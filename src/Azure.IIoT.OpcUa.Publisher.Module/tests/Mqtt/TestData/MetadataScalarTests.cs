@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class MetadataScalarTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class MetadataScalarTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public MetadataScalarTests(TestDataServer server, PublisherModuleMqttv5Fixture module)
+        public MetadataScalarTests(TestDataServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,31 +37,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         [Fact]
         public Task NodeMethodMetadataStaticScalarMethod1TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticScalarMethod1TestAsync();
+            return GetTests().NodeMethodMetadataStaticScalarMethod1TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticScalarMethod2TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticScalarMethod2TestAsync();
+            return GetTests().NodeMethodMetadataStaticScalarMethod2TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticScalarMethod3TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticScalarMethod3TestAsync();
+            return GetTests().NodeMethodMetadataStaticScalarMethod3TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async()
         {
-            return GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async();
+            return GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async()
         {
-            return GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async();
+            return GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async(Ct);
         }
     }
 }

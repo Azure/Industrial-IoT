@@ -1693,7 +1693,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Browse stack
             /// </summary>
             public Stack<Func<ServiceCallContext,
-                ValueTask<IEnumerable<BrowseStreamChunkModel>>>> Stack { get; }
+                ValueTask<IEnumerable<BrowseStreamChunkModel>>>> Stack
+            { get; }
 
             /// <summary>
             /// Create browse stream helper

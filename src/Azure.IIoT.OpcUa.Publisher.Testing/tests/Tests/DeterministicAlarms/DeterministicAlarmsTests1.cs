@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     public class DeterministicAlarmsTests1<T>
     {
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _server = server;
         }
 
-        public async Task BrowseAreaPathVendingMachine1DoorOpenTestAsync()
+        public async Task BrowseAreaPathVendingMachine1DoorOpenTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -36,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=1", target.Target.NodeId);
         }
 
-        public async Task BrowseAreaPathVendingMachine2DoorOpenTestAsync()
+        public async Task BrowseAreaPathVendingMachine2DoorOpenTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_DoorOpen"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -67,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=236", target.Target.NodeId);
         }
 
-        public async Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync()
+        public async Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -80,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_TemperatureHigh"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -89,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=115", target.Target.NodeId);
         }
 
-        public async Task BrowseAreaPathVendingMachine2LightOffTestAsync()
+        public async Task BrowseAreaPathVendingMachine2LightOffTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -102,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_LightOff"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -112,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
 #if UNUSED
-        public async Task FiresEventSequenceTestWithEdgeFilteringAsync()
+        public async Task FiresEventSequenceTestWithEdgeFilteringAsync(CancellationToken ct = default)
         {
             // Subscribe to server events
             using var provider = _subscription();
@@ -148,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var waitUntilStartInSeconds = TimeSpan.FromSeconds(9); // value in *.json file
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent1 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent1["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-1 (1)"));
             Assert.Equal(opcEvent1["/EventType"], Opc.Ua.ObjectTypeIds.TripAlarmType.ToString());
             Assert.Equal(opcEvent1["/SourceNode"], machine1);
@@ -169,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(5), 1);
             var opcEvent2 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent2["/EventId"], Encoding.UTF8.GetBytes("V2_LightOff-1 (1)"));
             Assert.Equal(opcEvent2["/EventType"], Opc.Ua.ObjectTypeIds.OffNormalAlarmType.ToString());
             Assert.Equal(opcEvent2["/SourceNode"], machine2);
@@ -184,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(7), 1);
             var opcEvent3 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent3["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-2 (1)"));
             Assert.Equal(opcEvent3["/EventType"], Opc.Ua.ObjectTypeIds.TripAlarmType.ToString());
             Assert.Equal(opcEvent3["/SourceNode"], machine1);
@@ -199,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(4), 1);
             var opcEvent4 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent4["/EventId"], Encoding.UTF8.GetBytes("V1_TemperatureHigh-1 (1)"));
             Assert.Equal(opcEvent4["/EventType"], Opc.Ua.ObjectTypeIds.LimitAlarmType.ToString());
             Assert.Equal(opcEvent4["/SourceNode"], machine1);
@@ -212,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(1), 1);
             var opcEvent5 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent5["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-1 (2)"));
             Assert.Equal(opcEvent5["/Message"].GetByPath("Text"), "Door Open");
 
@@ -223,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(5), 1);
             var opcEvent6 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent6["/EventId"], Encoding.UTF8.GetBytes("V2_LightOff-1 (2)"));
             Assert.Equal(opcEvent6["/Message"].GetByPath("Text"), "Light Off in machine");
 
@@ -251,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }
         }
 
-        public async Task FiresEventSequenceTestWithServerFilteringAsync()
+        public async Task FiresEventSequenceTestWithServerFilteringAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -304,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var waitUntilStartInSeconds = TimeSpan.FromSeconds(9); // value in *.json file
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent1 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent1["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-1 (1)"));
             Assert.Equal(opcEvent1["/EventType"], Opc.Ua.ObjectTypeIds.TripAlarmType.ToString());
             Assert.Equal(opcEvent1["/SourceNode"], machine1);
@@ -325,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(5), 1);
             var opcEvent2 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent2["/EventId"], Encoding.UTF8.GetBytes("V2_LightOff-1 (1)"));
             Assert.Equal(opcEvent2["/EventType"], Opc.Ua.ObjectTypeIds.OffNormalAlarmType.ToString());
             Assert.Equal(opcEvent2["/SourceNode"], machine2);
@@ -340,7 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(7), 1);
             var opcEvent3 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent3["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-2 (1)"));
             Assert.Equal(opcEvent3["/EventType"], Opc.Ua.ObjectTypeIds.TripAlarmType.ToString());
             Assert.Equal(opcEvent3["/SourceNode"], machine1);
@@ -355,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(4), 1);
             var opcEvent4 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent4["/EventId"], Encoding.UTF8.GetBytes("V1_TemperatureHigh-1 (1)"));
             Assert.Equal(opcEvent4["/EventType"], Opc.Ua.ObjectTypeIds.LimitAlarmType.ToString());
             Assert.Equal(opcEvent4["/SourceNode"], machine1);
@@ -368,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(1), 1);
             var opcEvent5 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent5["/EventId"], Encoding.UTF8.GetBytes("V1_DoorOpen-1 (2)"));
             Assert.Equal(opcEvent5["/Message"].GetByPath("Text"), "Door Open");
 
@@ -379,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(5), 1);
             var opcEvent6 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             Assert.Equal(opcEvent6["/EventId"], Encoding.UTF8.GetBytes("V2_LightOff-1 (2)"));
             Assert.Equal(opcEvent6["/Message"].GetByPath("Text"), "Light Off in machine");
 

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async(CancellationToken ct = default)
         {
             const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
@@ -48,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     NodeId = nodeId,
                     BrowsePaths = new List<string[]> { pathElements }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ErrorInfo);
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test2Async()
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async(CancellationToken ct = default)
         {
             const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
@@ -86,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     NodeId = nodeId,
                     BrowsePaths = new List<string[]> { pathElements }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ErrorInfo);
@@ -100,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task NodeBrowsePathStaticScalarMethod3Test3Async()
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async(CancellationToken ct = default)
         {
             const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements = new[] {
@@ -124,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     NodeId = nodeId,
                     BrowsePaths = new List<string[]> { pathElements }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ErrorInfo);
@@ -138,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task NodeBrowsePathStaticScalarMethodsTestAsync()
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync(CancellationToken ct = default)
         {
             const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
             var pathElements3 = new[] {
@@ -167,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     NodeId = nodeId,
                     BrowsePaths = new List<string[]> { pathElements3, pathElements2 }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ErrorInfo);

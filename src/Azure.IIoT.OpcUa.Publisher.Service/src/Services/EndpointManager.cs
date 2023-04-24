@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Exceptions;
     using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 

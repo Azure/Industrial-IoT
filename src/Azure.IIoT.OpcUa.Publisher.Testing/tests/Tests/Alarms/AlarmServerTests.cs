@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     /// <summary>
     /// Alarms server node tests
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task BrowseAreaPathTestAsync()
+        public async Task BrowseAreaPathTestAsync(CancellationToken ct = default)
         {
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
@@ -39,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.AlarmCondition + "#Blue"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -48,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("http://opcfoundation.org/AlarmCondition#s=0%3aEast%2fBlue", target.Target.NodeId);
         }
 
-        public async Task BrowseMetalsSouthMotorTestAsync()
+        public async Task BrowseMetalsSouthMotorTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -65,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.AlarmCondition + "#SouthMotor"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -74,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fSouthMotor", target.Target.NodeId);
         }
 
-        public async Task BrowseColoursEastTankTestAsync()
+        public async Task BrowseColoursEastTankTestAsync(CancellationToken ct = default)
         {
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.AlarmCondition + "#EastTank"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -100,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
 #if UNUSED
-        public async Task CompileSimpleBaseEventQueryTestAsync()
+        public async Task CompileSimpleBaseEventQueryTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -183,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task CompileSimpleTripAlarmQueryTestAsync()
+        public async Task CompileSimpleTripAlarmQueryTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -938,7 +939,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task CompileAlarmQueryTest1Async()
+        public async Task CompileAlarmQueryTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
@@ -1037,7 +1038,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task CompileAlarmQueryTest2Async()
+        public async Task CompileAlarmQueryTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 

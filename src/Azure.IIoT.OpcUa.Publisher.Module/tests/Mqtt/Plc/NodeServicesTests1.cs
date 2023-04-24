@@ -12,10 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public sealed class NodeServicesTests1 : IClassFixture<PlcServer>, IClassFixture<PublisherModuleMqttv5Fixture>
+    public sealed class NodeServicesTests1 : TwinIntegrationTestBase,
+        IClassFixture<PlcServer>, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests1(PlcServer server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests1(PlcServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -34,97 +37,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
         [Fact]
         public Task AlternatingBooleanTelemetryChangesWithPeriodAsync()
         {
-            return GetTests().AlternatingBooleanTelemetryChangesWithPeriodAsync();
+            return GetTests().AlternatingBooleanTelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task BadNodeHasAlternatingStatusCodeAsync()
         {
-            return GetTests().BadNodeHasAlternatingStatusCodeAsync();
+            return GetTests().BadNodeHasAlternatingStatusCodeAsync(Ct);
         }
 
         [Fact]
         public Task FastLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync()
         {
-            return GetTests().FastLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync();
+            return GetTests().FastLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync(Ct);
         }
 
         [Fact]
         public Task FastUIntScalar1TelemetryChangesWithPeriodAsync()
         {
-            return GetTests().FastUIntScalar1TelemetryChangesWithPeriodAsync();
+            return GetTests().FastUIntScalar1TelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task NegativeTrendDataNodeHasValueWithTrendAsync()
         {
-            return GetTests().NegativeTrendDataNodeHasValueWithTrendAsync();
+            return GetTests().NegativeTrendDataNodeHasValueWithTrendAsync(Ct);
         }
 
         [Fact]
         public Task NegativeTrendDataTelemetryChangesWithPeriodAsync()
         {
-            return GetTests().NegativeTrendDataTelemetryChangesWithPeriodAsync();
+            return GetTests().NegativeTrendDataTelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task PositiveTrendDataNodeHasValueWithTrendAsync()
         {
-            return GetTests().PositiveTrendDataNodeHasValueWithTrendAsync();
+            return GetTests().PositiveTrendDataNodeHasValueWithTrendAsync(Ct);
         }
 
         [Fact]
         public Task PositiveTrendDataTelemetryChangesWithPeriodAsync()
         {
-            return GetTests().PositiveTrendDataTelemetryChangesWithPeriodAsync();
+            return GetTests().PositiveTrendDataTelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task RandomSignedInt32TelemetryChangesWithPeriodAsync()
         {
-            return GetTests().RandomSignedInt32TelemetryChangesWithPeriodAsync();
+            return GetTests().RandomSignedInt32TelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task RandomUnsignedInt32TelemetryChangesWithPeriodAsync()
         {
-            return GetTests().RandomUnsignedInt32TelemetryChangesWithPeriodAsync();
+            return GetTests().RandomUnsignedInt32TelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task SlowLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync()
         {
-            return GetTests().SlowLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync();
+            return GetTests().SlowLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync(Ct);
         }
 
         [Fact]
         public Task SlowUIntScalar1TelemetryChangesWithPeriodAsync()
         {
-            return GetTests().SlowUIntScalar1TelemetryChangesWithPeriodAsync();
+            return GetTests().SlowUIntScalar1TelemetryChangesWithPeriodAsync(Ct);
         }
 
         [Fact]
         public Task TelemetryContainsOutlierInDipDataAsync()
         {
-            return GetTests().TelemetryContainsOutlierInDipDataAsync();
+            return GetTests().TelemetryContainsOutlierInDipDataAsync(Ct);
         }
 
         [Fact]
         public Task TelemetryContainsOutlierInSpikeDataAsync()
         {
-            return GetTests().TelemetryContainsOutlierInSpikeDataAsync();
+            return GetTests().TelemetryContainsOutlierInSpikeDataAsync(Ct);
         }
 
         [Fact]
         public Task TelemetryFastNodeTestAsync()
         {
-            return GetTests().TelemetryFastNodeTestAsync();
+            return GetTests().TelemetryFastNodeTestAsync(Ct);
         }
 
         [Fact]
         public Task TelemetryStepUpTestAsync()
         {
-            return GetTests().TelemetryStepUpTestAsync();
+            return GetTests().TelemetryStepUpTestAsync(Ct);
         }
     }
 }

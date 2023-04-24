@@ -12,10 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.DeterministicAlarms
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public sealed class NodeServicesTests2 : IClassFixture<DeterministicAlarmsServer2>, IClassFixture<PublisherModuleMqttv5Fixture>
+    public sealed class NodeServicesTests2 : TwinIntegrationTestBase,
+        IClassFixture<DeterministicAlarmsServer2>, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests2(DeterministicAlarmsServer2 server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests2(DeterministicAlarmsServer2 server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -34,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.DeterministicAlarms
         [Fact]
         public Task BrowseAreaPathVendingMachine1DoorOpenTestAsync()
         {
-            return GetTests().BrowseAreaPathVendingMachine1DoorOpenTestAsync();
+            return GetTests().BrowseAreaPathVendingMachine1DoorOpenTestAsync(Ct);
         }
     }
 }

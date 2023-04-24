@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
-    using Divergic.Logging.Xunit;
     using Furly.Extensions.Mqtt;
     using System;
     using System.Linq;

@@ -12,10 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public sealed class NodeServicesTests2 : IClassFixture<PlcServer>, IClassFixture<PublisherModuleMqttv5Fixture>
+    public sealed class NodeServicesTests2 : TwinIntegrationTestBase,
+        IClassFixture<PlcServer>, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests2(PlcServer server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests2(PlcServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -34,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
         [Fact]
         public Task PlcModelHeaterTestsAsync()
         {
-            return GetTests().PlcModelHeaterTestsAsync();
+            return GetTests().PlcModelHeaterTestsAsync(Ct);
         }
     }
 }

@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public sealed class BrowseStreamTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public sealed class BrowseStreamTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public BrowseStreamTests(TestDataServer server, PublisherModuleMqttv5Fixture module)
+        public BrowseStreamTests(TestDataServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -36,105 +38,105 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         public Task NodeBrowseInRootTest1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseInRootTest1Async();
+            return GetTests().NodeBrowseInRootTest1Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseInRootTest2Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseInRootTest2Async();
+            return GetTests().NodeBrowseInRootTest2Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseBoilersObjectsTest1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseBoilersObjectsTest1Async();
+            return GetTests().NodeBrowseBoilersObjectsTest1Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseDataAccessObjectsTest1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseDataAccessObjectsTest1Async();
+            return GetTests().NodeBrowseDataAccessObjectsTest1Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestAsync();
+            return GetTests().NodeBrowseStaticScalarVariablesTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticArrayVariablesTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticArrayVariablesTestAsync();
+            return GetTests().NodeBrowseStaticArrayVariablesTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestWithFilter1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter1Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestWithFilter2Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter2Async();
+            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter2Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestWithFilter3Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter3Async();
+            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter3Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestWithFilter4Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter4Async();
+            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter4Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseStaticScalarVariablesTestWithFilter5Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter5Async();
+            return GetTests().NodeBrowseStaticScalarVariablesTestWithFilter5Async(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseDiagnosticsNoneTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseDiagnosticsNoneTestAsync();
+            return GetTests().NodeBrowseDiagnosticsNoneTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseDiagnosticsStatusTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseDiagnosticsStatusTestAsync();
+            return GetTests().NodeBrowseDiagnosticsStatusTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseDiagnosticsOperationsTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseDiagnosticsInfoTestAsync();
+            return GetTests().NodeBrowseDiagnosticsInfoTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task NodeBrowseDiagnosticsVerboseTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().NodeBrowseDiagnosticsVerboseTestAsync();
+            return GetTests().NodeBrowseDiagnosticsVerboseTestAsync(Ct);
         }
     }
 }

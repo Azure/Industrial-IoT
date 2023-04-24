@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -28,13 +29,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _serializer = new DefaultJsonSerializer();
         }
 
-        public async Task NodeBrowseInRootTest1Async()
+        public async Task NodeBrowseInRootTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel()).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel(), ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
@@ -77,17 +77,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseInRootTest2Async()
+        public async Task NodeBrowseInRootTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    TargetNodesOnly = true,
-                    ReadVariableValues = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                TargetNodesOnly = true,
+                ReadVariableValues = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
@@ -130,17 +129,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseFirstInRootTest1Async()
+        public async Task NodeBrowseFirstInRootTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    TargetNodesOnly = false,
-                    MaxReferencesToReturn = 1
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                TargetNodesOnly = false,
+                MaxReferencesToReturn = 1
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
@@ -164,17 +162,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
               });
         }
 
-        public async Task NodeBrowseFirstInRootTest2Async()
+        public async Task NodeBrowseFirstInRootTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    TargetNodesOnly = false,
-                    MaxReferencesToReturn = 2
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                TargetNodesOnly = false,
+                MaxReferencesToReturn = 2
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("i=84", results.Node.NodeId);
@@ -187,37 +184,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 2);
             Assert.Collection(results.References,
-              reference =>
-              {
-                  Assert.Equal("i=35", reference.ReferenceTypeId);
-                  Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                  Assert.Equal("Objects", reference.Target.BrowseName);
-                  Assert.Equal("Objects", reference.Target.DisplayName);
-                  Assert.Equal("i=85", reference.Target.NodeId);
-                  Assert.True(reference.Target.Children);
-              },
-            reference =>
-            {
-                Assert.Equal("i=35", reference.ReferenceTypeId);
-                Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                Assert.Equal("Types", reference.Target.BrowseName);
-                Assert.Equal("Types", reference.Target.DisplayName);
-                Assert.Equal("i=86", reference.Target.NodeId);
-                Assert.True(reference.Target.Children);
-            });
+                reference =>
+                {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+                    Assert.Equal("Objects", reference.Target.BrowseName);
+                    Assert.Equal("Objects", reference.Target.DisplayName);
+                    Assert.Equal("i=85", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+                    Assert.Equal("Types", reference.Target.BrowseName);
+                    Assert.Equal("Types", reference.Target.DisplayName);
+                    Assert.Equal("i=86", reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                });
         }
 
-        public async Task NodeBrowseBoilersObjectsTest1Async()
+        public async Task NodeBrowseBoilersObjectsTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.Node);
@@ -254,17 +250,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessObjectsTest1Async()
+        public async Task NodeBrowseDataAccessObjectsTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "nsu=DataAccess;s=0:TestData/Static",
-                    TargetNodesOnly = false
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "nsu=DataAccess;s=0:TestData/Static",
+                TargetNodesOnly = false
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -346,17 +341,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessObjectsTest2Async()
+        public async Task NodeBrowseDataAccessObjectsTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "DataAccess#s=0:TestData/Static",
-                    TargetNodesOnly = false
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "DataAccess#s=0:TestData/Static",
+                TargetNodesOnly = false
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -438,117 +432,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessObjectsTest3Async()
+        public async Task NodeBrowseDataAccessObjectsTest3Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "nsu=DataAccess;s=0:TestData/Static",
-                    TargetNodesOnly = true,
-                    ReadVariableValues = true
-                }).ConfigureAwait(false);
-
-            // Assert
-
-            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
-            Assert.Equal("Static", results.Node.DisplayName);
-            Assert.Equal(true, results.Node.Children);
-            Assert.Equal(NodeClass.Object, results.Node.NodeClass);
-            Assert.Null(results.Node.EventNotifier);
-            Assert.Null(results.Node.Description);
-            Assert.Null(results.Node.AccessRestrictions);
-            Assert.Null(results.ContinuationToken);
-            Assert.NotNull(results.References);
-            Assert.Collection(results.References,
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("FC1001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("LC1001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("CC1001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("FC2001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("LC2001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
-                    Assert.Null(reference.Direction);
-
-                    Assert.Equal("CC2001", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                });
-        }
-
-        public async Task NodeBrowseDataAccessObjectsTest4Async()
-        {
-            var browser = _services();
-
-            // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "DataAccess#s=0:TestData/Static",
-                    TargetNodesOnly = true,
-                    ReadVariableValues = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "nsu=DataAccess;s=0:TestData/Static",
+                TargetNodesOnly = true,
+                ReadVariableValues = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -636,17 +530,114 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessFC1001Test1Async()
+        public async Task NodeBrowseDataAccessObjectsTest4Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "DataAccess#s=0:TestData/Static",
+                TargetNodesOnly = true,
+                ReadVariableValues = true
+            }, ct: ct).ConfigureAwait(false);
+
+            // Assert
+
+            Assert.Equal("nsu=DataAccess;s=0:TestData/Static", results.Node.NodeId);
+            Assert.Equal("Static", results.Node.DisplayName);
+            Assert.Equal(true, results.Node.Children);
+            Assert.Equal(NodeClass.Object, results.Node.NodeClass);
+            Assert.Null(results.Node.EventNotifier);
+            Assert.Null(results.Node.Description);
+            Assert.Null(results.Node.AccessRestrictions);
+            Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
+            Assert.Collection(results.References,
+                reference =>
                 {
-                    NodeId = "nsu=DataAccess;s=1:FC1001",
-                    TargetNodesOnly = false
-                }).ConfigureAwait(false);
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC1001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC1001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC1001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#FC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("FC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:FC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#LC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("LC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:LC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.ReferenceTypeId);
+                    Assert.Equal("DataAccess#CC2001", reference.Target.BrowseName);
+                    Assert.Null(reference.Direction);
+
+                    Assert.Equal("CC2001", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("nsu=DataAccess;s=1:CC2001", reference.Target.NodeId);
+                    Assert.True(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Children);
+                });
+        }
+
+        public async Task NodeBrowseDataAccessFC1001Test1Async(CancellationToken ct = default)
+        {
+            var browser = _services();
+
+            // Act
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "nsu=DataAccess;s=1:FC1001",
+                TargetNodesOnly = false
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -712,18 +703,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessFC1001Test2Async()
+        public async Task NodeBrowseDataAccessFC1001Test2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "nsu=DataAccess;s=1:FC1001",
-                    TargetNodesOnly = true,
-                    ReadVariableValues = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "nsu=DataAccess;s=1:FC1001",
+                TargetNodesOnly = true,
+                ReadVariableValues = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -793,17 +783,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseBoilersObjectsTest2Async()
+        public async Task NodeBrowseBoilersObjectsTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
-                    TargetNodesOnly = false
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                TargetNodesOnly = false
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -858,17 +847,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestAsync()
+        public async Task NodeBrowseStaticScalarVariablesTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://test.org/UA/Data/#i=10159",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://test.org/UA/Data/#i=10159",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ContinuationToken);
@@ -1290,21 +1278,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://test.org/UA/Data/#i=10159",
-                    TargetNodesOnly = true,
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://test.org/UA/Data/#i=10159",
+                TargetNodesOnly = true,
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method,
                         NodeClass.Object
                     }
-                }).ConfigureAwait(false);
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ContinuationToken);
@@ -1336,20 +1323,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://test.org/UA/Data/#i=10159",
-                    TargetNodesOnly = true,
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://test.org/UA/Data/#i=10159",
+                TargetNodesOnly = true,
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method
                     }
-                }).ConfigureAwait(false);
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ContinuationToken);
@@ -1371,17 +1357,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticArrayVariablesTestAsync()
+        public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://test.org/UA/Data/#i=10243",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://test.org/UA/Data/#i=10243",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ContinuationToken);
@@ -1890,18 +1875,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync()
+        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://test.org/UA/Data/#i=10243",
-                    TargetNodesOnly = true,
-                    ReadVariableValues = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://test.org/UA/Data/#i=10243",
+                TargetNodesOnly = true,
+                ReadVariableValues = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ContinuationToken);
@@ -2213,17 +2197,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync()
+        public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
-                    NodeIdsOnly = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                NodeIdsOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
@@ -2280,17 +2263,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseContinuationTest1Async()
+        public async Task NodeBrowseContinuationTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
-                    MaxReferencesToReturn = 5
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                MaxReferencesToReturn = 5
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             Assert.NotNull(results.ContinuationToken);
@@ -2298,11 +2280,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(5, results.References.Count);
 
             // Act
-            var results2 = await browser.BrowseNextAsync(_connection,
-                new BrowseNextRequestModel
-                {
-                    ContinuationToken = results.ContinuationToken
-                }).ConfigureAwait(false);
+            var results2 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results.ContinuationToken
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results2.ErrorInfo);
             Assert.NotNull(results2.ContinuationToken);
@@ -2310,17 +2291,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(5, results2.References.Count);
         }
 
-        public async Task NodeBrowseContinuationTest2Async()
+        public async Task NodeBrowseContinuationTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
-                    MaxReferencesToReturn = 200
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                MaxReferencesToReturn = 200
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             Assert.NotNull(results.ContinuationToken);
@@ -2328,11 +2308,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(200, results.References.Count);
 
             // Act
-            var results2 = await browser.BrowseNextAsync(_connection,
-                new BrowseNextRequestModel
-                {
-                    ContinuationToken = results.ContinuationToken
-                }).ConfigureAwait(false);
+            var results2 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results.ContinuationToken
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results2.ErrorInfo);
             Assert.NotNull(results2.ContinuationToken);
@@ -2340,42 +2319,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(200, results2.References.Count);
         }
 
-        public async Task NodeBrowseContinuationTest3Async()
+        public async Task NodeBrowseContinuationTest3Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
-                {
-                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
-                    MaxReferencesToReturn = 1,
-                    NodeIdsOnly = true
-                }).ConfigureAwait(false);
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                MaxReferencesToReturn = 1,
+                NodeIdsOnly = true
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.Single(results.References);
         }
 
-        public async Task NodeBrowseDiagnosticsNoneTestAsync()
+        public async Task NodeBrowseDiagnosticsNoneTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.None
-                        }
-                    },
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.None
+                    }
+                },
+                NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
@@ -2388,26 +2365,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsStatusTestAsync()
+        public async Task NodeBrowseDiagnosticsStatusTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
-                            TimeStamp = DateTime.Now,
-                            Level = DiagnosticsLevel.Status
-                        }
-                    },
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+                        AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
+                        TimeStamp = DateTime.Now,
+                        Level = DiagnosticsLevel.Status
+                    }
+                },
+                NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
@@ -2420,24 +2396,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsInfoTestAsync()
+        public async Task NodeBrowseDiagnosticsInfoTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseFirstRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Information
-                        }
-                    },
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Information
+                    }
+                },
+                NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
+                TargetNodesOnly = true
+            }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
@@ -2450,24 +2425,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsVerboseTestAsync()
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseFirstAsync(_connection,
-                new BrowseFirstRequestModel
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
-                    TargetNodesOnly = true
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown",
+                TargetNodesOnly = true
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.ErrorInfo);

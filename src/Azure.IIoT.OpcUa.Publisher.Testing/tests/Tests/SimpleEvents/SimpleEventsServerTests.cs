@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
 #if UNUSED
 
-        public async Task CompileSimpleBaseEventQueryTestAsync()
+        public async Task CompileSimpleBaseEventQueryTestAsync(CancellationToken ct = default)
         {
             var services = _services();
             var connection = await _connection().ConfigureAwait(false);
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-        public async Task CompileSimpleEventsQueryTestAsync()
+        public async Task CompileSimpleEventsQueryTestAsync(CancellationToken ct = default)
         {
             var services = _services();
             var connection = await _connection().ConfigureAwait(false);

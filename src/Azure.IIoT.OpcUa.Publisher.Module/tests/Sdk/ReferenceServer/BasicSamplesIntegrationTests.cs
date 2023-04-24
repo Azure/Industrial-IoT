@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         private readonly ReferenceServer _fixture;
 
         public BasicSamplesIntegrationTests(ITestOutputHelper output)
-            : base( output)
+            : base(output)
         {
             _output = output;
             _fixture = new ReferenceServer();

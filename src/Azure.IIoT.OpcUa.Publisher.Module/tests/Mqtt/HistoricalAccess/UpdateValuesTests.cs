@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class UpdateValuesTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class UpdateValuesTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public UpdateValuesTests(HistoricalAccessServer server, PublisherModuleMqttv5Fixture module)
+        public UpdateValuesTests(HistoricalAccessServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,67 +37,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
         [Fact]
         public Task HistoryUpsertUInt32ValuesTest1Async()
         {
-            return GetTests().HistoryUpsertUInt32ValuesTest1Async();
+            return GetTests().HistoryUpsertUInt32ValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryUpsertUInt32ValuesTest2Async()
         {
-            return GetTests().HistoryUpsertUInt32ValuesTest2Async();
+            return GetTests().HistoryUpsertUInt32ValuesTest2Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertUInt32ValuesTest1Async()
         {
-            return GetTests().HistoryInsertUInt32ValuesTest1Async();
+            return GetTests().HistoryInsertUInt32ValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertUInt32ValuesTest2Async()
         {
-            return GetTests().HistoryInsertUInt32ValuesTest2Async();
+            return GetTests().HistoryInsertUInt32ValuesTest2Async(Ct);
         }
 
         [Fact]
         public Task HistoryReplaceUInt32ValuesTest1Async()
         {
-            return GetTests().HistoryReplaceUInt32ValuesTest1Async();
+            return GetTests().HistoryReplaceUInt32ValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryReplaceUInt32ValuesTest2Async()
         {
-            return GetTests().HistoryReplaceUInt32ValuesTest2Async();
+            return GetTests().HistoryReplaceUInt32ValuesTest2Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest1Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest1Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest2Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest2Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest2Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest3Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest3Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest3Async(Ct);
         }
 
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest4Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest4Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest4Async(Ct);
         }
 
         [Fact]
         public Task HistoryDeleteUInt32ValuesTest1Async()
         {
-            return GetTests().HistoryDeleteUInt32ValuesTest1Async();
+            return GetTests().HistoryDeleteUInt32ValuesTest1Async(Ct);
         }
     }
 }

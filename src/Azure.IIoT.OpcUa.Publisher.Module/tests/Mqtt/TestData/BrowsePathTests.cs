@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class BrowsePathTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class BrowsePathTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public BrowsePathTests(TestDataServer server, PublisherModuleMqttv5Fixture module)
+        public BrowsePathTests(TestDataServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,25 +37,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         [Fact]
         public Task NodeBrowsePathStaticScalarMethod3Test1Async()
         {
-            return GetTests().NodeBrowsePathStaticScalarMethod3Test1Async();
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test1Async(Ct);
         }
 
         [Fact]
         public Task NodeBrowsePathStaticScalarMethod3Test2Async()
         {
-            return GetTests().NodeBrowsePathStaticScalarMethod3Test2Async();
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test2Async(Ct);
         }
 
         [Fact]
         public Task NodeBrowsePathStaticScalarMethod3Test3Async()
         {
-            return GetTests().NodeBrowsePathStaticScalarMethod3Test3Async();
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test3Async(Ct);
         }
 
         [Fact]
         public Task NodeBrowsePathStaticScalarMethodsTestAsync()
         {
-            return GetTests().NodeBrowsePathStaticScalarMethodsTestAsync();
+            return GetTests().NodeBrowsePathStaticScalarMethodsTestAsync(Ct);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     /// <summary>
     /// Tests for the Plc model, which is a complex type.
@@ -30,14 +31,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task PlcModelHeaterTestsAsync()
+        public async Task PlcModelHeaterTestsAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            await TurnHeaterOnAsync().ConfigureAwait(false);
+            await TurnHeaterOnAsync(ct).ConfigureAwait(false);
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
 
-            var model = await GetPlcModelAsync().ConfigureAwait(false);
+            var model = await GetPlcModelAsync(ct).ConfigureAwait(false);
             var state = model?.HeaterState;
             var temperature = model?.Temperature;
             var pressure = model?.Pressure;
@@ -55,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             for (var i = 0; i < 5; i++)
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
-                model = await GetPlcModelAsync().ConfigureAwait(false);
+                model = await GetPlcModelAsync(ct).ConfigureAwait(false);
                 pressure = model?.Pressure;
 
                 pressure.Should().BeGreaterThan(previousPressure,
@@ -65,10 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // let heater run for a few seconds to make temperature rise
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
-            await TurnHeaterOffAsync().ConfigureAwait(false);
+            await TurnHeaterOffAsync(ct).ConfigureAwait(false);
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
 
-            model = await GetPlcModelAsync().ConfigureAwait(false);
+            model = await GetPlcModelAsync(ct).ConfigureAwait(false);
             state = model?.HeaterState;
             temperature = model?.Temperature;
             pressure = model?.Pressure;
@@ -83,11 +84,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             temperature?.Bottom.Should().Be(pressure - 100_000,
                 "btoom is always 100,000 less than pressure. Pressure: {0}", pressure);
 
-            await TurnHeaterOffAsync().ConfigureAwait(false);
+            await TurnHeaterOffAsync(ct).ConfigureAwait(false);
             for (var i = 0; i < 5; i++)
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
-                model = await GetPlcModelAsync().ConfigureAwait(false);
+                model = await GetPlcModelAsync(ct).ConfigureAwait(false);
                 pressure = model?.Pressure;
 
                 pressure.Should().BeLessThan(previousPressure,
@@ -95,36 +96,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 previousPressure = pressure ?? 0;
             }
 
-            async Task TurnHeaterOnAsync()
+            async Task TurnHeaterOnAsync(CancellationToken ct = default)
             {
                 var result = await services.MethodCallAsync(_connection, new MethodCallRequestModel
                 {
                     ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
                     MethodId = Plc.Namespaces.PlcSimulation + "#s=HeaterOn"
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
                 Assert.NotNull(result);
                 Assert.Null(result.ErrorInfo);
             }
 
-            async Task TurnHeaterOffAsync()
+            async Task TurnHeaterOffAsync(CancellationToken ct = default)
             {
                 var result = await services.MethodCallAsync(_connection, new MethodCallRequestModel
                 {
                     ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
                     MethodId = Plc.Namespaces.PlcSimulation + "#s=HeaterOff"
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
                 Assert.NotNull(result);
                 Assert.Null(result.ErrorInfo);
             }
 
-            async Task<PlcDataType?> GetPlcModelAsync()
+            async Task<PlcDataType?> GetPlcModelAsync(CancellationToken ct = default)
             {
                 var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
                     NodeId = Plc.Namespaces.PlcSimulation + "#i=" + Variables.Plc1_PlcStatus
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
                 Assert.NotNull(value);
                 Assert.Null(value.ErrorInfo);

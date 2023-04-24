@@ -3,11 +3,6 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Mqtt\**" />
-    <EmbeddedResource Remove="Mqtt\**" />
-    <None Remove="Mqtt\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Json.More.Net" Version="1.8.0" />
     <PackageReference Include="FluentAssertions" Version="6.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.5" />

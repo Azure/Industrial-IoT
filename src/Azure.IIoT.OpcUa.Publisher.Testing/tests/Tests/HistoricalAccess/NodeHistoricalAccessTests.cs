@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -23,12 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task GetServerCapabilitiesTestAsync()
+        public async Task GetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.GetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.GetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
@@ -58,12 +58,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.ModellingRules);
         }
 
-        public async Task HistoryGetServerCapabilitiesTestAsync()
+        public async Task HistoryGetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.HistoryGetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.HistoryGetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
@@ -86,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.MaxReturnEventValues);
         }
 
-        public async Task HistoryGetInt16NodeHistoryConfigurationAsync()
+        public async Task HistoryGetInt16NodeHistoryConfigurationAsync(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
@@ -95,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new HistoryConfigurationRequestModel
                 {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.Configuration);
@@ -117,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.ErrorInfo);
         }
 
-        public async Task HistoryGetInt64NodeHistoryConfigurationAsync()
+        public async Task HistoryGetInt64NodeHistoryConfigurationAsync(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -126,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new HistoryConfigurationRequestModel
                 {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.Configuration);
@@ -148,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.ErrorInfo);
         }
 
-        public async Task HistoryGetNodeHistoryConfigurationFromBadNodeAsync()
+        public async Task HistoryGetNodeHistoryConfigurationFromBadNodeAsync(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Unknown.txt";
@@ -157,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new HistoryConfigurationRequestModel
                 {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.Null(results.Configuration);

@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     public class DeterministicAlarmsTests2<T>
     {
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _server = server;
         }
 
-        public async Task BrowseAreaPathVendingMachine1DoorOpenTestAsync()
+        public async Task BrowseAreaPathVendingMachine1DoorOpenTestAsync(CancellationToken ct = default)
         {
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
@@ -35,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen"
                     }
                 }
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
             var target = Assert.Single(results.Targets!);
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
 #if UNUSED
-        public async Task VerifyThatTimeForEventsChangesEdgeFilteredAsync()
+        public async Task VerifyThatTimeForEventsChangesEdgeFilteredAsync(CancellationToken ct = default)
         {
             // Subscribe to server events
             using var provider = _subscription();
@@ -70,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var waitUntilStartInSeconds = TimeSpan.FromSeconds(5); // value in config
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent1 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             var timeForFirstEvent = (DateTime)opcEvent1["/Time"];
 
             await services.NodeShouldHaveStatesAsync(connection, doorOpen1,
@@ -80,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent2 = await provider.GetEventChangesAsDictionary(1, true, Filter)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             var timeForNextEvent = (DateTime)opcEvent2["/Time"];
 
             await services.NodeShouldHaveStatesAsync(connection, doorOpen1,
@@ -95,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }
         }
 
-        public async Task VerifyThatTimeForEventsChangesServerFilteredAsync()
+        public async Task VerifyThatTimeForEventsChangesServerFilteredAsync(CancellationToken ct = default)
         {
             var services = _services();
             var connection = await _connection().ConfigureAwait(false);
@@ -137,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var waitUntilStartInSeconds = TimeSpan.FromSeconds(5); // value in config
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent1 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             var timeForFirstEvent = (DateTime)opcEvent1["/Time"];
 
             await services.NodeShouldHaveStatesAsync(connection, doorOpen1,
@@ -147,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             _server.FireTimersWithPeriod(waitUntilStartInSeconds, 1);
             var opcEvent2 = await provider.GetEventChangesAsDictionary(1)
-                .FirstAsync().ConfigureAwait(false);
+                .FirstAsync(CancellationToken ct = default).ConfigureAwait(false);
             var timeForNextEvent = (DateTime)opcEvent2["/Time"];
 
             await services.NodeShouldHaveStatesAsync(connection, doorOpen1,

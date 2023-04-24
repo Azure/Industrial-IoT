@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Furly.Extensions.Mqtt;
@@ -41,13 +40,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     public class PublisherIntegrationTestBase : IDisposable
     {
         protected int ServerPort { get; set; }
+        protected CancellationToken Ct => _cts.Token;
 
         /// <summary>
         /// Create fixture
         /// </summary>
         /// <param name="testOutputHelper"></param>
-        public PublisherIntegrationTestBase(ITestOutputHelper testOutputHelper)
+        /// <param name="timeout"></param>
+        public PublisherIntegrationTestBase(ITestOutputHelper testOutputHelper,
+            TimeSpan? timeout = null)
         {
+            _cts = new CancellationTokenSource(timeout ?? kTotalTestTimeout);
             _testOutputHelper = testOutputHelper;
         }
 
@@ -59,7 +62,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             if (disposing)
             {
+                if (_cts.IsCancellationRequested)
+                {
+                    _testOutputHelper.WriteLine(
+                        "OperationCanceledException thrown due to test time out.");
+                }
+
                 StopPublisher();
+
+                _cts.Dispose();
             }
         }
 
@@ -89,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string[] arguments = default)
         {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(test, publishedNodesFile, TimeSpan.FromMinutes(2), 1,
+            return ProcessMessagesAsync(test, publishedNodesFile, kTelemetryTimeout, 1,
                 predicate, messageType, arguments);
         }
 
@@ -108,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string messageType = null, string[] arguments = default, MqttVersion? version = null)
         {
             // Collect messages from server with default settings
-            return ProcessMessagesAndMetadataAsync(test, publishedNodesFile, TimeSpan.FromMinutes(2), 1,
+            return ProcessMessagesAndMetadataAsync(test, publishedNodesFile, kTelemetryTimeout, 1,
                 predicate, messageType, arguments, version);
         }
 
@@ -170,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             // Collect messages from server with default settings
-            return WaitForMessagesAsync(TimeSpan.FromMinutes(2), 1, predicate, messageType);
+            return WaitForMessagesAsync(kTelemetryTimeout, 1, predicate, messageType);
         }
 
         /// <summary>
@@ -355,6 +366,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
+        private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(10);
+        private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
         private PublisherModule _publisher;

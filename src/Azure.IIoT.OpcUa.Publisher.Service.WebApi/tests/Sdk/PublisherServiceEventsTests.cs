@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using xRetry;
     using Xunit;
     using Xunit.Abstractions;
 

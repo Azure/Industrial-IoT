@@ -12,10 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.DeterministicAlarms
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public sealed class NodeServicesTests1 : IClassFixture<DeterministicAlarmsServer1>, IClassFixture<PublisherModuleMqttv311Fixture>
+    public sealed class NodeServicesTests1 : TwinIntegrationTestBase,
+        IClassFixture<DeterministicAlarmsServer1>, IClassFixture<PublisherModuleMqttv311Fixture>
     {
-        public NodeServicesTests1(DeterministicAlarmsServer1 server, PublisherModuleMqttv311Fixture module)
+        public NodeServicesTests1(DeterministicAlarmsServer1 server,
+            PublisherModuleMqttv311Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -34,25 +37,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.DeterministicAlarms
         [Fact]
         public Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync()
         {
-            return GetTests().BrowseAreaPathVendingMachine1TemperatureHighTestAsync();
+            return GetTests().BrowseAreaPathVendingMachine1TemperatureHighTestAsync(Ct);
         }
 
         [Fact]
         public Task BrowseAreaPathVendingMachine2LightOffTestAsync()
         {
-            return GetTests().BrowseAreaPathVendingMachine2LightOffTestAsync();
+            return GetTests().BrowseAreaPathVendingMachine2LightOffTestAsync(Ct);
         }
 
         [Fact]
         public Task BrowseAreaPathVendingMachine1DoorOpenTestAsync()
         {
-            return GetTests().BrowseAreaPathVendingMachine1DoorOpenTestAsync();
+            return GetTests().BrowseAreaPathVendingMachine1DoorOpenTestAsync(Ct);
         }
 
         [Fact]
         public Task BrowseAreaPathVendingMachine2DoorOpenTestAsync()
         {
-            return GetTests().BrowseAreaPathVendingMachine2DoorOpenTestAsync();
+            return GetTests().BrowseAreaPathVendingMachine2DoorOpenTestAsync(Ct);
         }
     }
 }

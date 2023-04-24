@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -28,16 +29,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _serializer = new DefaultJsonSerializer();
         }
 
-        public async Task NodeBrowseInRootTest1Async()
+        public async Task NodeBrowseInRootTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -88,18 +88,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseInRootTest2Async()
+        public async Task NodeBrowseInRootTest2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NoRecurse = true,
-                    Direction = BrowseDirection.Forward,
-                    ReadVariableValues = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NoRecurse = true,
+                Direction = BrowseDirection.Forward,
+                ReadVariableValues = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -151,18 +150,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseBoilersObjectsTest1Async()
+        public async Task NodeBrowseBoilersObjectsTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#i=1240" },
-                    Direction = BrowseDirection.Forward,
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#i=1240" },
+                Direction = BrowseDirection.Forward,
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -220,17 +218,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDataAccessObjectsTest1Async()
+        public async Task NodeBrowseDataAccessObjectsTest1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "nsu=DataAccess;s=0:TestData/Static" },
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "nsu=DataAccess;s=0:TestData/Static" },
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
 
@@ -345,17 +342,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestAsync()
+        public async Task NodeBrowseStaticScalarVariablesTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -668,22 +664,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method,
                         NodeClass.Object
                     },
-                    Direction = BrowseDirection.Forward,
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+                Direction = BrowseDirection.Forward,
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -726,21 +721,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method
                     },
-                    Direction = BrowseDirection.Forward,
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+                Direction = BrowseDirection.Forward,
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -765,20 +759,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter3Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter3Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method
                     },
-                    Direction = BrowseDirection.Forward
-                }).ToListAsync().ConfigureAwait(false);
+                Direction = BrowseDirection.Forward
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -833,20 +826,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter4Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter4Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method
                     },
-                    Direction = BrowseDirection.Both
-                }).ToListAsync().ConfigureAwait(false);
+                Direction = BrowseDirection.Both
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -901,36 +893,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseStaticScalarVariablesTestWithFilter5Async()
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter5Async(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                    NodeClassFilter = new List<NodeClass> {
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
+                NodeClassFilter = new List<NodeClass> {
                         NodeClass.Method,
                         NodeClass.Object
                     }
-                }).ToListAsync().ConfigureAwait(false);
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.Equal(1959, results.Count);
         }
 
-        public async Task NodeBrowseStaticArrayVariablesTestAsync()
+        public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
-                {
-                    NodeIds = new[] { "http://test.org/UA/Data/#i=10243" },
-                    Direction = BrowseDirection.Forward,
-                    NoRecurse = true
-                }).ToListAsync().ConfigureAwait(false);
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                NodeIds = new[] { "http://test.org/UA/Data/#i=10243" },
+                Direction = BrowseDirection.Forward,
+                NoRecurse = true
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(results,
@@ -1224,23 +1214,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeBrowseDiagnosticsNoneTestAsync()
+        public async Task NodeBrowseDiagnosticsNoneTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.None
-                        }
-                    },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
-                }).ToListAsync().ConfigureAwait(false);
+                        Level = DiagnosticsLevel.None
+                    }
+                },
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             var result = Assert.Single(results);
@@ -1254,25 +1243,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, result.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsStatusTestAsync()
+        public async Task NodeBrowseDiagnosticsStatusTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
-                            TimeStamp = DateTime.Now,
-                            Level = DiagnosticsLevel.Status
-                        }
-                    },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
-                }).ToListAsync().ConfigureAwait(false);
+                        AuditId = nameof(NodeBrowseDiagnosticsStatusTestAsync),
+                        TimeStamp = DateTime.Now,
+                        Level = DiagnosticsLevel.Status
+                    }
+                },
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             var result = Assert.Single(results);
@@ -1286,23 +1274,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, result.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsInfoTestAsync()
+        public async Task NodeBrowseDiagnosticsInfoTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Information
-                        }
-                    },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
-                }).ToListAsync().ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Information
+                    }
+                },
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             var result = Assert.Single(results);
@@ -1316,23 +1303,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, result.ErrorInfo.StatusCode);
         }
 
-        public async Task NodeBrowseDiagnosticsVerboseTestAsync()
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var results = await browser.BrowseAsync(_connection,
-                new BrowseStreamRequestModel
+            var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
-                }).ToListAsync().ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
             var result = Assert.Single(results);

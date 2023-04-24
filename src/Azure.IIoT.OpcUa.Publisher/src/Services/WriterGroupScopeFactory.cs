@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"></param>
         /// <param name="collector"></param>
         public WriterGroupScopeFactory(ILifetimeScope lifetimeScope, IJsonSerializer serializer,
-            IOptions<PublisherOptions>? options = null, IDiagnosticCollector ? collector = null)
+            IOptions<PublisherOptions>? options = null, IDiagnosticCollector? collector = null)
         {
             _lifetimeScope = lifetimeScope;
             _serializer = serializer;

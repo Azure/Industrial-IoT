@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class ReadValuesTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class ReadValuesTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public ReadValuesTests(HistoricalAccessServer server, PublisherModuleMqttv5Fixture module)
+        public ReadValuesTests(HistoricalAccessServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,53 +37,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
         [Fact]
         public Task HistoryReadInt64ValuesTest1Async()
         {
-            return GetTests().HistoryReadInt64ValuesTest1Async();
+            return GetTests().HistoryReadInt64ValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryReadInt64ValuesTest2Async()
         {
-            return GetTests().HistoryReadInt64ValuesTest2Async();
+            return GetTests().HistoryReadInt64ValuesTest2Async(Ct);
         }
 
         [Fact]
         public Task HistoryReadInt64ValuesTest3Async()
         {
-            return GetTests().HistoryReadInt64ValuesTest3Async();
+            return GetTests().HistoryReadInt64ValuesTest3Async(Ct);
         }
 
         [Fact]
         public Task HistoryReadInt64ValuesTest4Async()
         {
-            return GetTests().HistoryReadInt64ValuesTest4Async();
+            return GetTests().HistoryReadInt64ValuesTest4Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamInt64ValuesTest1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamInt64ValuesTest1Async();
+            return GetTests().HistoryStreamInt64ValuesTest1Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamInt64ValuesTest2Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamInt64ValuesTest2Async();
+            return GetTests().HistoryStreamInt64ValuesTest2Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamInt64ValuesTest3Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamInt64ValuesTest3Async();
+            return GetTests().HistoryStreamInt64ValuesTest3Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamInt64ValuesTest4Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamInt64ValuesTest4Async();
+            return GetTests().HistoryStreamInt64ValuesTest4Async(Ct);
         }
     }
 }

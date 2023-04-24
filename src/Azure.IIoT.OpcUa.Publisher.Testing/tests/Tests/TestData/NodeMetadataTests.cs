@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -24,12 +25,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task GetServerCapabilitiesTestAsync()
+        public async Task GetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.GetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.GetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
@@ -59,12 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.ModellingRules);
         }
 
-        public async Task HistoryGetServerCapabilitiesTestAsync()
+        public async Task HistoryGetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.HistoryGetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.HistoryGetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.Null(results.AggregateFunctions);
@@ -85,23 +84,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.MaxReturnEventValues);
         }
 
-        public async Task NodeGetMetadataForFolderTypeTestAsync()
+        public async Task NodeGetMetadataForFolderTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeId = Opc.Ua.ObjectTypeIds.FolderType.ToString()
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeId = Opc.Ua.ObjectTypeIds.FolderType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -111,16 +109,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForServerObjectTestAsync()
+        public async Task NodeGetMetadataForServerObjectTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.ObjectIds.Server.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.ObjectIds.Server.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -201,23 +198,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal("InputArguments", arg));
         }
 
-        public async Task NodeGetMetadataForConditionTypeTestAsync()
+        public async Task NodeGetMetadataForConditionTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeId = Opc.Ua.ObjectTypeIds.ConditionType.ToString()
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeId = Opc.Ua.ObjectTypeIds.ConditionType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -230,16 +226,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(34, result.TypeDefinition.Declarations.Count);
         }
 
-        public async Task NodeGetMetadataForServerStatusVariableTestAsync()
+        public async Task NodeGetMetadataForServerStatusVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.VariableIds.Server_ServerStatus.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.VariableIds.Server_ServerStatus.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -269,16 +264,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal("ShutdownReason", arg));
         }
 
-        public async Task NodeGetMetadataForRedundancySupportPropertyTestAsync()
+        public async Task NodeGetMetadataForRedundancySupportPropertyTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.VariableIds.Server_ServerRedundancy_RedundancySupport.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.VariableIds.Server_ServerRedundancy_RedundancySupport.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -294,23 +288,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForBaseInterfaceTypeTestAsync()
+        public async Task NodeGetMetadataForBaseInterfaceTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeId = Opc.Ua.ObjectTypeIds.BaseInterfaceType.ToString()
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeId = Opc.Ua.ObjectTypeIds.BaseInterfaceType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -324,23 +317,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataTestForBaseEventTypeTestAsync()
+        public async Task NodeGetMetadataTestForBaseEventTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                Header = new RequestHeaderModel
                 {
-                    Header = new RequestHeaderModel
+                    Diagnostics = new DiagnosticsModel
                     {
-                        Diagnostics = new DiagnosticsModel
-                        {
-                            Level = DiagnosticsLevel.Verbose
-                        }
-                    },
-                    NodeId = Opc.Ua.ObjectTypeIds.BaseEventType.ToString()
-                }).ConfigureAwait(false);
+                        Level = DiagnosticsLevel.Verbose
+                    }
+                },
+                NodeId = Opc.Ua.ObjectTypeIds.BaseEventType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -438,16 +430,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeGetMetadataForPropertyTypeTestAsync()
+        public async Task NodeGetMetadataForPropertyTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.VariableTypeIds.PropertyType.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.VariableTypeIds.PropertyType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -461,16 +452,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForBaseDataVariableTypeTestAsync()
+        public async Task NodeGetMetadataForBaseDataVariableTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.VariableTypeIds.BaseDataVariableType.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.VariableTypeIds.BaseDataVariableType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);
@@ -484,16 +474,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForAudioVariableTypeTestAsync()
+        public async Task NodeGetMetadataForAudioVariableTypeTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
 
             // Act
-            var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel
-                {
-                    NodeId = Opc.Ua.VariableTypeIds.AudioVariableType.ToString()
-                }).ConfigureAwait(false);
+            var result = await browser.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+            {
+                NodeId = Opc.Ua.VariableTypeIds.AudioVariableType.ToString()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result.ErrorInfo);

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
-    using Divergic.Logging.Xunit;
     using Furly.Extensions.Mqtt;
     using Json.More;
     using System;
@@ -51,10 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync().ConfigureAwait(false);
@@ -63,17 +62,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishNodesAsync(e).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(e, Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -92,10 +91,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync().ConfigureAwait(false);
@@ -103,17 +102,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal("i=2253", message.Message.GetProperty("NodeId").GetString());
                 Assert.NotEmpty(message.Message.GetProperty("Value").GetProperty("EventId").GetString());
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel()).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel(), Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -132,10 +131,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition).ConfigureAwait(false);
@@ -151,17 +150,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.True(sev.TryGetProperty("Value", out sev));
                 Assert.True(sev.GetInt32() >= 100);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -182,19 +181,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
-                await PublisherApi.PublishNodesAsync(testInput1[0]).ConfigureAwait(false);
-                await PublisherApi.PublishNodesAsync(testInput2[0]).ConfigureAwait(false);
-                await PublisherApi.PublishNodesAsync(testInput3[0]).ConfigureAwait(false);
+                await PublisherApi.PublishNodesAsync(testInput1[0], Ct).ConfigureAwait(false);
+                await PublisherApi.PublishNodesAsync(testInput2[0], Ct).ConfigureAwait(false);
+                await PublisherApi.PublishNodesAsync(testInput3[0], Ct).ConfigureAwait(false);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 var e = Assert.Single(endpoints.Endpoints);
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel()).ConfigureAwait(false);
+                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel(), Ct).ConfigureAwait(false);
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -205,18 +204,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name
                     }
-                }).ConfigureAwait(false);
+                }, Ct).ConfigureAwait(false);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 e = Assert.Single(endpoints.Endpoints);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishNodesAsync(testInput3[0]).ConfigureAwait(false);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                await PublisherApi.UnpublishNodesAsync(testInput3[0], Ct).ConfigureAwait(false);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 Assert.Equal(2, nodes.OpcNodes.Count);
-                await PublisherApi.UnpublishNodesAsync(testInput2[0]).ConfigureAwait(false);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                await PublisherApi.UnpublishNodesAsync(testInput2[0], Ct).ConfigureAwait(false);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 Assert.Single(nodes.OpcNodes);
 
                 var messages = await WaitForMessagesAsync(GetDataFrame).ConfigureAwait(false);
@@ -225,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync(Ct).ConfigureAwait(false);
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(e.EndpointUrl, diag.Endpoint.EndpointUrl);
             }
@@ -246,10 +245,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition).ConfigureAwait(false);
@@ -268,14 +267,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
                 testInput[0].OpcNodes[0].DisplayName = "SimpleEvents";
-                result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
-                    testInput[0] }).ConfigureAwait(false);
+                result = await PublisherApi.AddOrUpdateEndpointsAsync(
+                    new List<PublishedNodesEntryModel> { testInput[0] }, Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct).ConfigureAwait(false);
                 var n = Assert.Single(nodes.OpcNodes);
 
                 // TODO: Fix
@@ -296,10 +295,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.GetInt32() > 0, $"{message.Message.ToJsonString()}");
 
-                result = await PublisherApi.UnpublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(testInput[0], Ct).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(Ct).ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
             finally

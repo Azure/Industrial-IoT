@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class ReadModifiedTests : IClassFixture<PublisherModuleMqttv311Fixture>
+    public class ReadModifiedTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv311Fixture>
     {
-        public ReadModifiedTests(HistoricalAccessServer server, PublisherModuleMqttv311Fixture module)
+        public ReadModifiedTests(HistoricalAccessServer server,
+            PublisherModuleMqttv311Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,14 +37,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
         [Fact]
         public Task HistoryReadInt16ValuesModifiedTestAsync()
         {
-            return GetTests().HistoryReadInt16ValuesModifiedTestAsync();
+            return GetTests().HistoryReadInt16ValuesModifiedTestAsync(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamInt16ValuesModifiedTestAsync()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamInt16ValuesModifiedTestAsync();
+            return GetTests().HistoryStreamInt16ValuesModifiedTestAsync(Ct);
         }
     }
 }

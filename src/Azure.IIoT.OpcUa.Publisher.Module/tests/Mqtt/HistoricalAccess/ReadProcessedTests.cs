@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class ReadProcessedTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class ReadProcessedTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public ReadProcessedTests(HistoricalAccessServer server, PublisherModuleMqttv5Fixture module)
+        public ReadProcessedTests(HistoricalAccessServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,41 +37,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
         [Fact]
         public Task HistoryReadUInt64ProcessedValuesTest1Async()
         {
-            return GetTests().HistoryReadUInt64ProcessedValuesTest1Async();
+            return GetTests().HistoryReadUInt64ProcessedValuesTest1Async(Ct);
         }
 
         [Fact]
         public Task HistoryReadUInt64ProcessedValuesTest2Async()
         {
-            return GetTests().HistoryReadUInt64ProcessedValuesTest2Async();
+            return GetTests().HistoryReadUInt64ProcessedValuesTest2Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryReadUInt64ProcessedValuesTest3Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryReadUInt64ProcessedValuesTest3Async();
+            return GetTests().HistoryReadUInt64ProcessedValuesTest3Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest1Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamUInt64ProcessedValuesTest1Async();
+            return GetTests().HistoryStreamUInt64ProcessedValuesTest1Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest2Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamUInt64ProcessedValuesTest2Async();
+            return GetTests().HistoryStreamUInt64ProcessedValuesTest2Async(Ct);
         }
 
         [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest3Async()
         {
             Skip.If(true, "Not yet supported");
-            return GetTests().HistoryStreamUInt64ProcessedValuesTest3Async();
+            return GetTests().HistoryStreamUInt64ProcessedValuesTest3Async(Ct);
         }
     }
 }

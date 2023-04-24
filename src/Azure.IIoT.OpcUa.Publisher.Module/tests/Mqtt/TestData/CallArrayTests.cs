@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(WriteCollection.Name)]
-    public class CallArrayTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class CallArrayTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public CallArrayTests(TestDataServer server, PublisherModuleMqttv5Fixture module)
+        public CallArrayTests(TestDataServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,91 +37,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod1TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod1TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod1TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod2TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod2TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod2TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod3TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod3TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod3TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod1Test1Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod1Test1Async();
+            return GetTests().NodeMethodCallStaticArrayMethod1Test1Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod1Test2Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod1Test2Async();
+            return GetTests().NodeMethodCallStaticArrayMethod1Test2Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod1Test3Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod1Test3Async();
+            return GetTests().NodeMethodCallStaticArrayMethod1Test3Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod1Test4Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod1Test4Async();
+            return GetTests().NodeMethodCallStaticArrayMethod1Test4Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod1Test5Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod1Test5Async();
+            return GetTests().NodeMethodCallStaticArrayMethod1Test5Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod2Test1Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod2Test1Async();
+            return GetTests().NodeMethodCallStaticArrayMethod2Test1Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod2Test2Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod2Test2Async();
+            return GetTests().NodeMethodCallStaticArrayMethod2Test2Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod2Test3Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod2Test3Async();
+            return GetTests().NodeMethodCallStaticArrayMethod2Test3Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod2Test4Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod2Test4Async();
+            return GetTests().NodeMethodCallStaticArrayMethod2Test4Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod3Test1Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod3Test1Async();
+            return GetTests().NodeMethodCallStaticArrayMethod3Test1Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod3Test2Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod3Test2Async();
+            return GetTests().NodeMethodCallStaticArrayMethod3Test2Async(Ct);
         }
 
         [Fact]
         public Task NodeMethodCallStaticArrayMethod3Test3Async()
         {
-            return GetTests().NodeMethodCallStaticArrayMethod3Test3Async();
+            return GetTests().NodeMethodCallStaticArrayMethod3Test3Async(Ct);
         }
     }
 }

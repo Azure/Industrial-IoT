@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task HistoryInsertUInt32ValuesTest1Async()
+        public async Task HistoryInsertUInt32ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(insert.ErrorInfo);
             Assert.Equal(toUpsert.Length, insert.Results?.Count);
             Assert.All(insert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)toUpsert.Length
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg => Assert.True(arg.Value == 77));
         }
 
-        public async Task HistoryInsertUInt32ValuesTest2Async()
+        public async Task HistoryInsertUInt32ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(insert.ErrorInfo);
             Assert.Equal(toUpsert.Length, insert.Results?.Count);
             Assert.All(insert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -108,13 +108,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(insert2.ErrorInfo);
             Assert.Equal(toUpsert.Length, insert2.Results?.Count);
             Assert.All(insert2.Results!, arg => Assert.Equal("BadEntryExists", arg.SymbolicId));
         }
 
-        public async Task HistoryUpsertUInt32ValuesTest1Async()
+        public async Task HistoryUpsertUInt32ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)toUpsert.Length
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg => Assert.True(arg.Value == 5));
         }
 
-        public async Task HistoryUpsertUInt32ValuesTest2Async()
+        public async Task HistoryUpsertUInt32ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toReplace
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(replace.ErrorInfo);
             Assert.Equal(toReplace.Length, replace.Results?.Count);
             Assert.All(replace.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)reqTimes.Length
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)reqTimes.Length
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read3.ErrorInfo);
             Assert.Equal(10, read3.History.Length);
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg => Assert.True(arg.Value == 5));
         }
 
-        public async Task HistoryReplaceUInt32ValuesTest1Async()
+        public async Task HistoryReplaceUInt32ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toReplace
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(replace.ErrorInfo);
             Assert.Equal(toReplace.Length, replace.Results?.Count);
             Assert.All(replace.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)reqTimes.Length
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         NumValues = (uint)reqTimes.Length * 2
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Equal(20, read3.History.Length);
             Assert.Null(read3.ErrorInfo);
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 h => h.ModificationInfo?.UpdateType == HistoryUpdateOperation.Replace));
         }
 
-        public async Task HistoryReplaceUInt32ValuesTest2Async()
+        public async Task HistoryReplaceUInt32ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -347,13 +347,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toReplace
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(replace.ErrorInfo);
             Assert.Equal(toReplace.Length, replace.Results?.Count);
             Assert.All(replace.Results!, arg => Assert.Equal("BadNoEntryExists", arg.SymbolicId));
         }
 
-        public async Task HistoryInsertDeleteUInt32ValuesTest1Async()
+        public async Task HistoryInsertDeleteUInt32ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -370,15 +370,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 })
                 .ToArray();
 
-            var upsert = await services.HistoryInsertValuesAsync(_connection,
-                new HistoryUpdateRequestModel<UpdateValuesDetailsModel>
+            var upsert = await services.HistoryInsertValuesAsync(_connection, new HistoryUpdateRequestModel<UpdateValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new UpdateValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new UpdateValuesDetailsModel
-                    {
-                        Values = toUpsert
-                    }
-                }).ConfigureAwait(false);
+                    Values = toUpsert
+                }
+            }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -392,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(replace.ErrorInfo);
             Assert.Empty(replace.Results!);
 
@@ -405,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read2.ErrorInfo);
             Assert.Equal("GoodNoData", read2.ErrorInfo?.SymbolicId);
@@ -420,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read3.ErrorInfo);
 
@@ -438,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 h => h.ModificationInfo?.UpdateType == HistoryUpdateOperation.Delete));
         }
 
-        public async Task HistoryInsertDeleteUInt32ValuesTest2Async()
+        public async Task HistoryInsertDeleteUInt32ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -463,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -477,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -498,27 +497,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(deleteModified.ErrorInfo);
             Assert.Empty(deleteModified.Results!);
 
-            var read3 = await services.HistoryReadModifiedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
+            var read3 = await services.HistoryReadModifiedValuesAsync(_connection, new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadModifiedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadModifiedValuesDetailsModel
-                    {
-                        StartTime = startTime,
-                        EndTime = reqTimes[^1].AddHours(1)
-                    }
-                }).ConfigureAwait(false);
+                    StartTime = startTime,
+                    EndTime = reqTimes[^1].AddHours(1)
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read3.ErrorInfo);
             Assert.Equal("GoodNoData", read3.ErrorInfo?.SymbolicId);
             Assert.Empty(read3.History);
         }
 
-        public async Task HistoryInsertDeleteUInt32ValuesTest3Async()
+        public async Task HistoryInsertDeleteUInt32ValuesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -543,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toUpsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toUpsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -557,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -578,7 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(delete.ErrorInfo);
             Assert.Empty(delete.Results!);
 
@@ -591,7 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(deleteModified.ErrorInfo);
             Assert.Empty(deleteModified.Results!);
 
@@ -604,14 +602,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read3.ErrorInfo);
             Assert.Equal("GoodNoData", read3.ErrorInfo?.SymbolicId); // TODO: Check this
             Assert.Empty(read3.History);
         }
 
-        public async Task HistoryInsertDeleteUInt32ValuesTest4Async()
+        public async Task HistoryInsertDeleteUInt32ValuesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -636,7 +634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         Values = toInsert
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(upsert.ErrorInfo);
             Assert.Equal(toInsert.Length, upsert.Results?.Count);
             Assert.All(upsert.Results!, arg => Assert.Equal("Good", arg.SymbolicId));
@@ -650,7 +648,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
             Assert.Equal(10, read2.History.Length);
@@ -671,7 +669,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         ReqTimes = new[] { startTime }
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(delete.ErrorInfo);
             var arg = Assert.Single(delete.Results!);
             Assert.Equal("Good", arg.SymbolicId);
@@ -685,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read4.ErrorInfo);
             Assert.Equal(9, read4.History.Length);
@@ -701,7 +699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = startTime,
                         EndTime = reqTimes[^1].AddHours(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.Null(read3.ErrorInfo);
 
@@ -719,7 +717,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 h => h.ModificationInfo?.UpdateType == HistoryUpdateOperation.Delete));
         }
 
-        public async Task HistoryDeleteUInt32ValuesTest1Async()
+        public async Task HistoryDeleteUInt32ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
@@ -735,7 +733,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         ReqTimes = reqTimes
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
             Assert.Null(delete.ErrorInfo);
             Assert.Equal(10, delete.Results?.Count);
             Assert.All(delete.Results!, arg => Assert.Equal("BadNoEntryExists", arg.SymbolicId));

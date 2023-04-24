@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     public class HistoryReadValuesAtTimesTests<T>
     {
@@ -28,22 +29,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task HistoryReadInt32ValuesAtTimesTest1Async()
+        public async Task HistoryReadInt32ValuesAtTimesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(1));
-            var results = await services.HistoryReadValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var results = await services.HistoryReadValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 10).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = true
-                    }
-                }).ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 10).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = true
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -59,22 +59,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt32ValuesAtTimesTest2Async()
+        public async Task HistoryReadInt32ValuesAtTimesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(1));
-            var results = await services.HistoryReadValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var results = await services.HistoryReadValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 10).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = false
-                    }
-                }).ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 10).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = false
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -90,22 +89,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt32ValuesAtTimesTest3Async()
+        public async Task HistoryReadInt32ValuesAtTimesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(1));
-            var results = await services.HistoryReadValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var results = await services.HistoryReadValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 1).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = true
-                    }
-                }).ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 1).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = true
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(1, results.History.Length);
@@ -121,23 +119,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt32ValuesAtTimesTest4Async()
+        public async Task HistoryReadInt32ValuesAtTimesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(1));
-            var results = await services.HistoryReadValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var results = await services.HistoryReadValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                TimestampsToReturn = TimestampsToReturn.Source,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    TimestampsToReturn = TimestampsToReturn.Source,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 1).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = false
-                    }
-                }).ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 1).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = false
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(1, results.History.Length);
@@ -153,22 +150,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt32ValuesAtTimesTest1Async()
+        public async Task HistoryStreamInt32ValuesAtTimesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(5));
-            var history = await services.HistoryStreamValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var history = await services.HistoryStreamValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 500).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = false
-                    }
-                }).ToListAsync().ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 500).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = false
+                }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(500, history.Count);
@@ -181,22 +177,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt32ValuesAtTimesTest2Async()
+        public async Task HistoryStreamInt32ValuesAtTimesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = _server.Now.Subtract(TimeSpan.FromHours(5));
-            var history = await services.HistoryStreamValuesAtTimesAsync(_connection,
-                new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            var history = await services.HistoryStreamValuesAtTimesAsync(_connection, new HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadValuesAtTimesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadValuesAtTimesDetailsModel
-                    {
-                        ReqTimes = Enumerable.Repeat(0, 500).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
-                        UseSimpleBounds = true
-                    }
-                }).ToListAsync().ConfigureAwait(false);
+                    ReqTimes = Enumerable.Repeat(0, 500).Select((_, i) => startTime.AddMilliseconds(i * 10000)).ToArray(),
+                    UseSimpleBounds = true
+                }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(500, history.Count);

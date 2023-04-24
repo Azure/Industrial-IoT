@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalEvents
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class NodeServicesTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class NodeServicesTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests(HistoricalEventsServer server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests(HistoricalEventsServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,13 +37,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalEvents
         [Fact]
         public Task GetServerCapabilitiesTestAsync()
         {
-            return GetTests().GetServerCapabilitiesTestAsync();
+            return GetTests().GetServerCapabilitiesTestAsync(Ct);
         }
 
         [Fact]
         public Task HistoryGetServerCapabilitiesTestAsync()
         {
-            return GetTests().HistoryGetServerCapabilitiesTestAsync();
+            return GetTests().HistoryGetServerCapabilitiesTestAsync(Ct);
         }
     }
 }

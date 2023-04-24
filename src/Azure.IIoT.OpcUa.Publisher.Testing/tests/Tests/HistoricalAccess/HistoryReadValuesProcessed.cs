@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     public class HistoryReadValuesProcessedTests<T>
     {
@@ -30,25 +31,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task HistoryReadUInt64ProcessedValuesTest1Async()
+        public async Task HistoryReadUInt64ProcessedValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var results = await services.HistoryReadProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var results = await services.HistoryReadProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(1),
-                        AggregateType = "i=2347"
-                    }
-                }).ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(1),
+                    AggregateType = "i=2347"
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
@@ -84,25 +84,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadUInt64ProcessedValuesTest2Async()
+        public async Task HistoryReadUInt64ProcessedValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var results = await services.HistoryReadProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var results = await services.HistoryReadProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(1),
-                        AggregateType = "Count"
-                    }
-                }).ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(1),
+                    AggregateType = "Count"
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
@@ -138,25 +137,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadUInt64ProcessedValuesTest3Async()
+        public async Task HistoryReadUInt64ProcessedValuesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var results = await services.HistoryReadProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var results = await services.HistoryReadProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(20),
-                        AggregateType = "Delta"
-                    }
-                }).ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(20),
+                    AggregateType = "Delta"
+                }
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
@@ -178,25 +176,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(AdditionalData.Partial, arg.AdditionalData);
         }
 
-        public async Task HistoryStreamUInt64ProcessedValuesTest1Async()
+        public async Task HistoryStreamUInt64ProcessedValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var history = await services.HistoryStreamProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var history = await services.HistoryStreamProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(1),
-                        AggregateType = "i=2347"
-                    }
-                }).ToListAsync().ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(1),
+                    AggregateType = "i=2347"
+                }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
@@ -232,25 +229,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamUInt64ProcessedValuesTest2Async()
+        public async Task HistoryStreamUInt64ProcessedValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var history = await services.HistoryStreamProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var history = await services.HistoryStreamProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(1),
-                        AggregateType = "Count"
-                    }
-                }).ToListAsync().ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(1),
+                    AggregateType = "Count"
+                }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
@@ -286,25 +282,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamUInt64ProcessedValuesTest3Async()
+        public async Task HistoryStreamUInt64ProcessedValuesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = _server.Now;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
-            var history = await services.HistoryStreamProcessedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            var history = await services.HistoryStreamProcessedValuesAsync(_connection, new HistoryReadRequestModel<ReadProcessedValuesDetailsModel>
+            {
+                NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
+                Details = new ReadProcessedValuesDetailsModel
                 {
-                    NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadProcessedValuesDetailsModel
-                    {
-                        StartTime = now - TimeSpan.FromHours(1),
-                        EndTime = now,
-                        ProcessingInterval = TimeSpan.FromMinutes(10),
-                        AggregateType = "Delta"
-                    }
-                }).ToListAsync().ConfigureAwait(false);
+                    StartTime = now - TimeSpan.FromHours(1),
+                    EndTime = now,
+                    ProcessingInterval = TimeSpan.FromMinutes(10),
+                    AggregateType = "Delta"
+                }
+            }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>

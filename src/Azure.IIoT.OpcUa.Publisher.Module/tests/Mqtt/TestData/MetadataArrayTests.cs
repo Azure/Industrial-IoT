@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class MetadataArrayTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class MetadataArrayTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public MetadataArrayTests(TestDataServer server, PublisherModuleMqttv5Fixture module)
+        public MetadataArrayTests(TestDataServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,19 +37,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod1TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod1TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod1TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod2TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod2TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod2TestAsync(Ct);
         }
 
         [Fact]
         public Task NodeMethodMetadataStaticArrayMethod3TestAsync()
         {
-            return GetTests().NodeMethodMetadataStaticArrayMethod3TestAsync();
+            return GetTests().NodeMethodMetadataStaticArrayMethod3TestAsync(Ct);
         }
     }
 }

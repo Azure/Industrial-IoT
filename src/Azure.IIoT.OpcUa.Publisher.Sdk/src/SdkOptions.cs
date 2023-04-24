@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk
 {
-    using System;
-
     /// <summary>
     /// Configuration for IoT Edge Opc Publisher sdk
     /// </summary>

@@ -12,11 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class NodeServicesTests : IClassFixture<PublisherModuleMqttv5Fixture>
+    public class NodeServicesTests : TwinIntegrationTestBase, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests(HistoricalAccessServer server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests(HistoricalAccessServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -35,31 +37,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalAccess
         [Fact]
         public Task GetServerCapabilitiesTestAsync()
         {
-            return GetTests().GetServerCapabilitiesTestAsync();
+            return GetTests().GetServerCapabilitiesTestAsync(Ct);
         }
 
         [Fact]
         public Task HistoryGetServerCapabilitiesTestAsync()
         {
-            return GetTests().HistoryGetServerCapabilitiesTestAsync();
+            return GetTests().HistoryGetServerCapabilitiesTestAsync(Ct);
         }
 
         [Fact]
         public Task HistoryGetInt16NodeHistoryConfiguration()
         {
-            return GetTests().HistoryGetInt16NodeHistoryConfigurationAsync();
+            return GetTests().HistoryGetInt16NodeHistoryConfigurationAsync(Ct);
         }
 
         [Fact]
         public Task HistoryGetInt64NodeHistoryConfigurationAsync()
         {
-            return GetTests().HistoryGetInt64NodeHistoryConfigurationAsync();
+            return GetTests().HistoryGetInt64NodeHistoryConfigurationAsync(Ct);
         }
 
         [Fact]
         public Task HistoryGetNodeHistoryConfigurationFromBadNode()
         {
-            return GetTests().HistoryGetNodeHistoryConfigurationFromBadNodeAsync();
+            return GetTests().HistoryGetNodeHistoryConfigurationFromBadNodeAsync(Ct);
         }
     }
 }

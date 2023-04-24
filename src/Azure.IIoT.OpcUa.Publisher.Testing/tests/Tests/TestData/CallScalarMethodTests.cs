@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
@@ -33,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _newMetadata = newMetadata;
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod1TestAsync()
+        public async Task NodeMethodMetadataStaticScalarMethod1TestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
@@ -43,19 +44,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             MethodMetadataModel result;
             if (!_newMetadata)
             {
-                result = await service.GetMethodMetadataAsync(_connection,
-                    new MethodMetadataRequestModel
-                    {
-                        MethodId = methodId
-                    }).ConfigureAwait(false);
+                result = await service.GetMethodMetadataAsync(_connection, new MethodMetadataRequestModel
+                {
+                    MethodId = methodId
+                }, ct).ConfigureAwait(false);
             }
             else
             {
-                var metadata = await service.GetMetadataAsync(_connection,
-                    new NodeMetadataRequestModel
-                    {
-                        NodeId = methodId
-                    }).ConfigureAwait(false);
+                var metadata = await service.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+                {
+                    NodeId = methodId
+                }, ct).ConfigureAwait(false);
                 result = metadata.MethodMetadata!;
             }
 
@@ -307,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod2TestAsync()
+        public async Task NodeMethodMetadataStaticScalarMethod2TestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
@@ -317,19 +316,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             MethodMetadataModel result;
             if (!_newMetadata)
             {
-                result = await service.GetMethodMetadataAsync(_connection,
-                    new MethodMetadataRequestModel
-                    {
-                        MethodId = methodId
-                    }).ConfigureAwait(false);
+                result = await service.GetMethodMetadataAsync(_connection, new MethodMetadataRequestModel
+                {
+                    MethodId = methodId
+                }, ct).ConfigureAwait(false);
             }
             else
             {
-                var metadata = await service.GetMetadataAsync(_connection,
-                    new NodeMetadataRequestModel
-                    {
-                        NodeId = methodId
-                    }).ConfigureAwait(false);
+                var metadata = await service.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+                {
+                    NodeId = methodId
+                }, ct).ConfigureAwait(false);
                 result = metadata.MethodMetadata!;
             }
 
@@ -559,7 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3TestAsync()
+        public async Task NodeMethodMetadataStaticScalarMethod3TestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
@@ -569,19 +566,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             MethodMetadataModel result;
             if (!_newMetadata)
             {
-                result = await service.GetMethodMetadataAsync(_connection,
-                    new MethodMetadataRequestModel
-                    {
-                        MethodId = methodId
-                    }).ConfigureAwait(false);
+                result = await service.GetMethodMetadataAsync(_connection, new MethodMetadataRequestModel
+                {
+                    MethodId = methodId
+                }, ct).ConfigureAwait(false);
             }
             else
             {
-                var metadata = await service.GetMetadataAsync(_connection,
-                    new NodeMetadataRequestModel
-                    {
-                        NodeId = methodId
-                    }).ConfigureAwait(false);
+                var metadata = await service.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+                {
+                    NodeId = methodId
+                }, ct).ConfigureAwait(false);
                 result = metadata.MethodMetadata!;
             }
 
@@ -657,7 +652,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async()
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async(CancellationToken ct = default)
         {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -669,21 +664,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             MethodMetadataModel result;
             if (!_newMetadata)
             {
-                result = await service.GetMethodMetadataAsync(_connection,
-                    new MethodMetadataRequestModel
-                    {
-                        MethodId = objectId,
-                        MethodBrowsePath = path
-                    }).ConfigureAwait(false);
+                result = await service.GetMethodMetadataAsync(_connection, new MethodMetadataRequestModel
+                {
+                    MethodId = objectId,
+                    MethodBrowsePath = path
+                }, ct).ConfigureAwait(false);
             }
             else
             {
-                var metadata = await service.GetMetadataAsync(_connection,
-                    new NodeMetadataRequestModel
-                    {
-                        NodeId = objectId,
-                        BrowsePath = path
-                    }).ConfigureAwait(false);
+                var metadata = await service.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+                {
+                    NodeId = objectId,
+                    BrowsePath = path
+                }, ct).ConfigureAwait(false);
                 result = metadata.MethodMetadata!;
             }
 
@@ -759,7 +752,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async()
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async(CancellationToken ct = default)
         {
             var service = _services();
             var path = new[] {
@@ -774,19 +767,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             MethodMetadataModel result;
             if (!_newMetadata)
             {
-                result = await service.GetMethodMetadataAsync(_connection,
-                    new MethodMetadataRequestModel
-                    {
-                        MethodBrowsePath = path
-                    }).ConfigureAwait(false);
+                result = await service.GetMethodMetadataAsync(_connection, new MethodMetadataRequestModel
+                {
+                    MethodBrowsePath = path
+                }, ct).ConfigureAwait(false);
             }
             else
             {
-                var metadata = await service.GetMetadataAsync(_connection,
-                    new NodeMetadataRequestModel
-                    {
-                        BrowsePath = path
-                    }).ConfigureAwait(false);
+                var metadata = await service.GetMetadataAsync(_connection, new NodeMetadataRequestModel
+                {
+                    BrowsePath = path
+                }, ct).ConfigureAwait(false);
                 result = metadata.MethodMetadata!;
             }
 
@@ -862,7 +853,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test1Async()
+        public async Task NodeMethodCallStaticScalarMethod1Test1Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
@@ -916,13 +907,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -939,7 +929,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal((double)input[10]!.Value!, (double)arg.Value!));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test2Async()
+        public async Task NodeMethodCallStaticScalarMethod1Test2Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
@@ -961,13 +951,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -984,19 +973,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(0, (double)arg.Value!));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test3Async()
+        public async Task NodeMethodCallStaticScalarMethod1Test3Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1013,20 +1001,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(0, (double)arg.Value!));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test4Async()
+        public async Task NodeMethodCallStaticScalarMethod1Test4Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = new List<MethodCallArgumentModel>()
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = new List<MethodCallArgumentModel>()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1043,7 +1030,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(0, (double)arg.Value!));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test5Async()
+        public async Task NodeMethodCallStaticScalarMethod1Test5Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
@@ -1076,13 +1063,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1099,7 +1085,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal((double)input[10]!.Value!, (double)arg.Value!));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod2Test1Async()
+        public async Task NodeMethodCallStaticScalarMethod2Test1Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
@@ -1157,13 +1143,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1220,7 +1205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod2Test2Async()
+        public async Task NodeMethodCallStaticScalarMethod2Test2Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
@@ -1232,12 +1217,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "QualifiedName","LocalizedText","StatusCode" };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1293,7 +1277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                  });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3Test1Async()
+        public async Task NodeMethodCallStaticScalarMethod3Test1Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
@@ -1323,13 +1307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1342,7 +1325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3Test2Async()
+        public async Task NodeMethodCallStaticScalarMethod3Test2Async(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
@@ -1368,13 +1351,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1383,7 +1365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[2].Value, arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync()
+        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             var objectPath = new[] {
@@ -1421,13 +1403,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodBrowsePath = methodPath,
-                    ObjectBrowsePath = objectPath,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodBrowsePath = methodPath,
+                ObjectBrowsePath = objectPath,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1440,7 +1421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync()
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1472,13 +1453,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodBrowsePath = methodPath,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodBrowsePath = methodPath,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1491,7 +1471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync()
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1527,14 +1507,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodBrowsePath = methodPath,
-                    ObjectId = objectId,
-                    MethodId = methodId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodBrowsePath = methodPath,
+                ObjectId = objectId,
+                MethodId = methodId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1547,7 +1526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync()
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             var objectPath = new[] {
@@ -1588,14 +1567,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodBrowsePath = methodPath,
-                    ObjectBrowsePath = objectPath,
-                    MethodId = methodId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodBrowsePath = methodPath,
+                ObjectBrowsePath = objectPath,
+                MethodId = methodId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1608,7 +1586,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync()
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10157"; // Data
@@ -1648,15 +1626,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             };
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodBrowsePath = methodPath,
-                    ObjectBrowsePath = objectPath,
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = input
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodBrowsePath = methodPath,
+                ObjectBrowsePath = objectPath,
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = input
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1669,39 +1646,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task NodeMethodCallBoiler2ResetTestAsync()
+        public async Task NodeMethodCallBoiler2ResetTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "ns=4;i=37";
             const string objectId = "ns=4;i=31";
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Empty(result.Results);
             Assert.Null(result.ErrorInfo);
         }
 
-        public async Task NodeMethodCallBoiler1ResetTestAsync()
+        public async Task NodeMethodCallBoiler1ResetTestAsync(CancellationToken ct = default)
         {
             var service = _services();
             const string methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";
             const string objectId = "http://opcfoundation.org/UA/Boiler/#i=1287";
 
             // Act
-            var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel
-                {
-                    MethodId = methodId,
-                    ObjectId = objectId,
-                    Arguments = new List<MethodCallArgumentModel>()
-                }).ConfigureAwait(false);
+            var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
+            {
+                MethodId = methodId,
+                ObjectId = objectId,
+                Arguments = new List<MethodCallArgumentModel>()
+            }, ct).ConfigureAwait(false);
 
             // Assert
             Assert.Empty(result.Results);

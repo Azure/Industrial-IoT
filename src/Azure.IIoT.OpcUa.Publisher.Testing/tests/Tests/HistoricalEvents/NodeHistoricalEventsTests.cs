@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -22,12 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task GetServerCapabilitiesTestAsync()
+        public async Task GetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.GetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.GetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
@@ -57,12 +57,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.ModellingRules);
         }
 
-        public async Task HistoryGetServerCapabilitiesTestAsync()
+        public async Task HistoryGetServerCapabilitiesTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-            var results = await services.HistoryGetServerCapabilitiesAsync(
-                _connection).ConfigureAwait(false);
+            var results = await services.HistoryGetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             //  Assert.NotNull(results.AggregateFunctions);

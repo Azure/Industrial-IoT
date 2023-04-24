@@ -12,10 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Alarms
     using Autofac;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public sealed class NodeServicesTests : IClassFixture<AlarmsServer>, IClassFixture<PublisherModuleMqttv5Fixture>
+    public sealed class NodeServicesTests : TwinIntegrationTestBase,
+        IClassFixture<AlarmsServer>, IClassFixture<PublisherModuleMqttv5Fixture>
     {
-        public NodeServicesTests(AlarmsServer server, PublisherModuleMqttv5Fixture module)
+        public NodeServicesTests(AlarmsServer server,
+            PublisherModuleMqttv5Fixture module, ITestOutputHelper output) : base(output)
         {
             _server = server;
             _module = module;
@@ -34,19 +37,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Alarms
         [Fact]
         public Task BrowseAreaPathTestAsync()
         {
-            return GetTests().BrowseAreaPathTestAsync();
+            return GetTests().BrowseAreaPathTestAsync(Ct);
         }
 
         [Fact]
         public Task BrowseMetalsSouthMotorTestAsync()
         {
-            return GetTests().BrowseMetalsSouthMotorTestAsync();
+            return GetTests().BrowseMetalsSouthMotorTestAsync(Ct);
         }
 
         [Fact]
         public Task BrowseColoursEastTankTestAsync()
         {
-            return GetTests().BrowseColoursEastTankTestAsync();
+            return GetTests().BrowseColoursEastTankTestAsync(Ct);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading;
 
     public class HistoryReadValuesTests<T>
     {
@@ -28,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
-        public async Task HistoryReadInt64ValuesTest1Async()
+        public async Task HistoryReadInt64ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         EndTime = _server.Now + TimeSpan.FromDays(1),
                         ReturnBounds = true
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(14, results.History.Length);
@@ -130,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest2Async()
+        public async Task HistoryReadInt64ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -144,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = _server.Now - TimeSpan.FromDays(600),
                         NumValues = 10
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -209,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest3Async()
+        public async Task HistoryReadInt64ValuesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -223,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = _server.Now - TimeSpan.FromDays(600),
                         EndTime = _server.Now + TimeSpan.FromDays(1)
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(12, results.History.Length);
@@ -298,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryReadInt64ValuesTest4Async()
+        public async Task HistoryReadInt64ValuesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -312,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         EndTime = _server.Now + TimeSpan.FromDays(1),
                         NumValues = 10
                     }
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -377,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt64ValuesTest1Async()
+        public async Task HistoryStreamInt64ValuesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -392,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         EndTime = _server.Now + TimeSpan.FromDays(1),
                         ReturnBounds = true
                     }
-                }).ToListAsync().ConfigureAwait(false);
+                }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(14, history.Count);
@@ -477,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt64ValuesTest2Async()
+        public async Task HistoryStreamInt64ValuesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -491,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = _server.Now - TimeSpan.FromDays(600),
                         NumValues = 10
                     }
-                }).ToListAsync().ConfigureAwait(false);
+                }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(10, history.Count);
@@ -556,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt64ValuesTest3Async()
+        public async Task HistoryStreamInt64ValuesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -570,7 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         StartTime = _server.Now - TimeSpan.FromDays(600),
                         EndTime = _server.Now + TimeSpan.FromDays(1)
                     }
-                }).ToListAsync().ConfigureAwait(false);
+                }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(12, history.Count);
@@ -645,7 +646,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 });
         }
 
-        public async Task HistoryStreamInt64ValuesTest4Async()
+        public async Task HistoryStreamInt64ValuesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
@@ -659,7 +660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         EndTime = _server.Now + TimeSpan.FromDays(1),
                         NumValues = 10
                     }
-                }).ToListAsync().ConfigureAwait(false);
+                }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
             Assert.Equal(10, history.Count);
