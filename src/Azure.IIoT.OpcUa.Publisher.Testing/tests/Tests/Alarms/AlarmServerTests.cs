@@ -9,9 +9,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Alarms;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading;
 
     /// <summary>
     /// Alarms server node tests

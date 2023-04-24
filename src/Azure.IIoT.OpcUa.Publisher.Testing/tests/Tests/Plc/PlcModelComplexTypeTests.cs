@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Furly.Extensions.Serializers.Newtonsoft;
     using PlcModel;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading;
 
     /// <summary>
     /// Tests for the Plc model, which is a complex type.

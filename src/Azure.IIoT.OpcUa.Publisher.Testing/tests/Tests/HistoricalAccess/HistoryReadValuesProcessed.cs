@@ -11,9 +11,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Linq;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading;
 
     public class HistoryReadValuesProcessedTests<T>
     {

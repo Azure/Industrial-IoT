@@ -10,9 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using DeterministicAlarms;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading;
 
     public class DeterministicAlarmsTests2<T>
     {

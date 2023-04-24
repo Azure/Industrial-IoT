@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading;
 
     /// <summary>
     /// Tests for the variables defined in the simulator, such

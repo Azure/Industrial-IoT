@@ -12,10 +12,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Opc.Ua;
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
-    using System.Threading;
 
     public class WriteArrayValueTests<T>
     {
