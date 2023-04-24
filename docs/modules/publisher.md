@@ -23,10 +23,11 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 
 ``` json
 {
-    "Hostname": "opcpublisher",
-    "Cmd": [
+
+      "Cmd": [
+    
         "--PkiRootPath=/mount/pki",
-        "--pf=/mount/published_nodes.json",
+        "--pf=/mount/publishednodes.json",
         "--lf=/mount/publisher.log",
         "--mm=PubSub",
         "--me=Json",
@@ -35,22 +36,16 @@ Container create options can be specified in the "Update IoT Edge Module" page o
         "--bs=100",
         "--di=20",
         "--sc=1",
-        "--aa"
-    ],
-    "HostConfig": {
-        "Mounts": [
-            {
-                "Type": "bind",
-                "Source": "/opcpublisher",
-                "Target": "/mount"
-            }
-        ],
-        "CapDrop": [
-            "CHOWN",
-            "SETUID"
+        "--aa",
+        "--ll=debug"
+      ],
+    
+      "HostConfig": {
+        "Binds": [
+          "/opcpublisher:/mount"
         ]
+      }
     }
-}
 ```
 
 With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/published_nodes.json` inside its container.
