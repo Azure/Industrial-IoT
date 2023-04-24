@@ -1,6 +1,17 @@
-# Telemetry Messages Processing
+# Telemetry Message Formats
 
 [Home](./readme.md)
+
+## Table Of Contents <!-- omit in toc -->
+
+* [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
+* [Data value change messages](#data-value-change-messages)
+* [Event messages](#event-messages)
+* [Legacy Samples Mode Encoding](#samples-mode-encoding-legacy)
+  * [Value change messages](#value-change-messages-in-samples-mode)
+  * [Event messages](#event-messages-in-samples-mode)
+
+OPC Publisher supports a rich set of message formats, including legacy formats supported.
 
 ## Messaging Profiles supported by OPC Publisher
 
@@ -98,7 +109,7 @@ The following messages are emitted for data value changes in a subscription if `
 }
 ```
 
-The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](./telemetry-events-format.md).
+The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](#event-messages).
 
 IMPORTANT: Depending on the number of nodes in a subscription and the data type of properties inside a single dataset, data set messages contained in a network message can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
@@ -152,9 +163,319 @@ The data set is described by a corresponding metadata message (message type `ua-
 
 IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messages can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case they are created but never sent. You can choose to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking. If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
-### Samples mode
+## Event messages
 
-In samples mode the messages will look like this:
+This section describes what the output looks like when listening for events in the OPC Publisher.
+
+To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` [mode](#samples-mode-encoding-legacy) which existed before the introduction of OPC UA standards compliant PubSub format.
+
+Events should be produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values. 
+
+The following is an example of the output you will se when listening to events from the Simple Events sample:
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "43",
+      "MessageType": "ua-data",
+      "PublisherId": "SIMPLE-EVENTS",
+      "DataSetWriterGroup": "SIMPLE-EVENTS",
+      "Messages": [
+        {
+          "DataSetWriterId": "SIMPLE-EVENTS",
+          "MetaDataVersion": {
+            "MajorVersion": 1222304427,
+            "MinorVersion": 801860751
+          },
+          "MessageType": "ua-event",
+          "Payload": {
+            "EventId": "+6CQjN1eqkO6+yHJnxMz5w==",
+            "EventType": "http://microsoft.com/Opc/OpcPlc/SimpleEvents#i=14",
+            "Message": "The system cycle '59' has started.",
+            "ReceiveTime": "2021-06-21T12:38:55.5814091Z",
+            "Severity": 1,
+            "SourceName": "System",
+            "SourceNode": "i=2253",
+            "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+              "Name": "Step 1",
+              "Duration": 1000.0
+            },
+            "Time": "2021-06-21T12:38:55.5814078Z"
+          }
+        }
+      ]
+    }
+  ],
+  "enqueuedTime": "Mon Jan 21 2023 14:39:02 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+The event is described by the corresponding metadata message, which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher. The following metadata is provided in `--strict` mode:
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "edecf7ec-5ae8-4957-82ef-7f915dddb5be",
+      "MessageType": "ua-metadata",
+      "PublisherId": "opc.tcp://localhost:55924/UA/SampleServer_E8BAB2AD",
+      "DataSetWriterId": 1,
+      "MetaData": {
+        "Namespaces": [
+          "http://opcfoundation.org/UA/",
+          "http://test.org/UA/Data/",
+          "http://test.org/UA/Data//Instance",
+          "http://opcfoundation.org/UA/Boiler//Instance",
+          "urn:localhost:somecompany.com:VehiclesServer",
+          "http://opcfoundation.org/UA/Vehicles/Types",
+          "http://opcfoundation.org/UA/Vehicles/Instances",
+          "http://opcfoundation.org/ReferenceApplications",
+          "http://opcfoundation.org/UA/Diagnostics",
+          "http://opcfoundation.org/UA/Boiler/"
+        ],
+        "StructureDataTypes": [
+          {
+            "DataTypeId": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
+            "Name": {
+              "Name": "CycleStepDataType",
+              "Uri": "http://opcfoundation.org/SimpleEvents"
+            },
+            "StructureDefinition": {
+              "BaseDataType": {
+                "Id": 22
+              },
+              "StructureType": "Structure_0",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "DataType": {
+                    "Id": 12
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                },
+                {
+                  "Name": "Duration",
+                  "DataType": {
+                    "Id": 11
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                }
+              ]
+            }
+          }
+        ],
+        "EnumDataTypes": [],
+        "SimpleDataTypes": [],
+        "Fields": [
+          {
+            "Name": "EventId",
+            "FieldFlags": 0,
+            "BuiltInType": 15,
+            "DataType": {
+              "Id": 15
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "487f710c-9f43-4425-9a77-03f3396362f7",
+            "Properties": []
+          },
+          {
+            "Name": "Message",
+            "FieldFlags": 0,
+            "BuiltInType": 21,
+            "DataType": {
+              "Id": 21
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "15c7bc3a-4714-4f5e-9874-d4671288f5a0",
+            "Properties": []
+          },
+          {
+            "Name": "http://opcfoundation.org/SimpleEvents#CycleId",
+            "FieldFlags": 0,
+            "BuiltInType": 12,
+            "DataType": {
+              "Id": 12
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "03378140-f21b-4ee1-9bbe-01325e847128",
+            "Properties": []
+          },
+          {
+            "Name": "http://opcfoundation.org/SimpleEvents#CurrentStep",
+            "FieldFlags": 0,
+            "BuiltInType": 22,
+            "DataType": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "a9cd0d57-ae64-4e20-b113-b3df52cb6a59",
+            "Properties": []
+          }
+        ],
+        "ConfigurationVersion": {
+          "MajorVersion": 1222308210,
+          "MinorVersion": 2861644214
+        }
+      },
+      "DataSetWriterName": "1000"
+    }
+  ],
+  "enqueuedTime": "Mon Jan 23 2023 13:49:02 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+
+```
+
+IMPORTANT: Depending on the number of members in an event type and their data types, data set messages contained in a network message can be large.  In some cases a JSON metadata message can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB. In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress event data set messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to use an event filter and select the properties needed or disable dataset metadata message sending altogether using `--dm=False`.
+
+### Reversible encoding
+
+The format produced here does not contain enough information to decode the message using the OPC UA type system. If you need to decode messages using a OPC UA JSON decoder the command-line option called `UseReversibleEncoding` can be set to `true`. If you enable this setting the output will look like as follows:
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "5",
+      "MessageType": "ua-data",
+      "PublisherId": "opc.tcp://localhost:54340/UA/SampleServer_5CB8F1A5",
+      "Messages": [
+        {
+          "DataSetWriterId": "SIMPLE-EVENTS",
+          "MetaDataVersion": {
+            "MajorVersion": 1222304426,
+            "MinorVersion": 3462403799
+          },
+          "MessageType": "ua-event",
+          "Payload": {
+            "EventId": {
+              "Type": "ByteString",
+              "Body": "88C2T817uUWMVNDclyOFnA=="
+            },
+            "Message": {
+              "Type": "LocalizedText",
+              "Body": {
+                "Text": "The system cycle \u00275\u0027 has started.",
+                "Locale": "en-US"
+              }
+            },
+            "http://opcfoundation.org/SimpleEvents#CycleId": {
+              "Type": "String",
+              "Body": "5"
+            },
+            "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+              "Type": "ExtensionObject",
+              "Body": {
+                "TypeId": "http://opcfoundation.org/SimpleEvents#i=183",
+                "Encoding": "Json",
+                "Body": {
+                  "Name": "Step 1",
+                  "Duration": 1000.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "enqueuedTime": "Mon Jun 21 2021 14:45:22 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+This JSON contains the metadata information to decode each variant value.
+
+### Pending Alarm snapshots
+
+The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect. 
+
+When running against the OPC Foundation's Alarms & Conditions reference server sample the output will look like this:
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "34",
+      "MessageType": "ua-data",
+      "PublisherId": "PENDING-ALARMS",
+      "DataSetWriterGroup": "PENDING-ALARMS",
+      "Messages": [
+        {
+          "DataSetWriterId": "PENDING-ALARMS",
+          "MetaDataVersion": {
+            "MajorVersion": 1,
+            "MinorVersion": 0
+          },
+          "MessageType": "ua-condition",
+          "Payload": {
+            "EventId": "PQpa0fNNwUym272/HW40ww==",
+            "EventType": "i=2830",
+            "LocalTime": {
+              "Offset": 60,
+              "DaylightSavingInOffset": true
+            },
+            "Message": "The dialog was activated",
+            "ReceiveTime": "2022-12-20T17:03:02.1338153Z",
+            "Severity": 100,
+            "SourceName": "EastTank",
+            "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
+            "Time": "2022-12-20T17:03:02.1338153Z"
+          }
+        }
+      ]
+    }
+  ],
+  "enqueuedTime": "Mon Jun 21 2021 14:56:53 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+The important part to highlight here is that the payload is an array of events which have the Retain property set to true. Otherwise it's very similar to value change messages earlier.
+
+## Samples mode encoding (Legacy)
+
+> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA Pub Sub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
+
+### Value change messages in Samples mode
+
+In samples mode value change messages look like this:
 
 ```json
 {
@@ -241,7 +562,7 @@ To provide compatibility with new version of the IIoT Platform's telemetry proce
 }
 ```
 
-The following message is an example with batching/bulk mode enabled. Here OPC Publisher was started in standalone mode with `--bs=5` argument, where 5 is the number of value-change messages to be batched.
+The following message is an example with batching/bulk mode enabled. Here OPC Publisher was started with the `--bs=5` argument, where 5 is the number of messages to be batched.
 
 ```json
 
@@ -440,58 +761,150 @@ In this case, if OPC Publisher is started in bulk mode with `--bs=5` argument a 
 }
 ```
 
-## Telemetry messages generated by the Telemetry Processor in Orchestrated mode
+### Event messages in Samples mode
 
-These messages can be read from the Industrial IoT Platforms Event Hub when the entire platform is deployed. Event messages are not supported.
-
-### Samples Mode
-
-Message body is
+The following sample messages show how events look like in legacy samples mode:
 
 ```json
 {
-  "publisherId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-  "dataSetClassId": "http://test.org/UA/Data/#i=10845",
-  "dataSetWriterId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-  "sequenceNumber": 0,
-  "metaDataVersion": "1.0",
-  "status": "Good",
-  "timestamp": "2020-03-24T23:54:23.4955724Z",
-  "payload": {
-    "http://test.org/UA/Data/#i=10845": {
-      "value": 27,
-      "sourceTimestamp": "2020-03-24T23:54:23.1307846Z",
-      "serverTimestamp": "2020-03-24T23:54:23.1307846Z"
+  "body": {
+    "NodeId": "i=2253",
+    "EndpointUrl": "opc.tcp://localhost:57965/UA/SampleServer",
+    "DisplayName": "SimpleEvents",
+    "Value": {
+      "EventId": "JdRhF43ktkKvJBrk\u002BsePkg==",
+      "Message": "The system cycle \u00271\u0027 has started.",
+      "http://opcfoundation.org/SimpleEvents#CycleId": "1",
+      "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+        "Name": "Step 1",
+        "Duration": 1000.0
+      }
     }
+  },
+  "enqueuedTime": "Fri Mar 18 2022 14:04:18 GMT+0100 (Central European Standard Time)",
+  "properties": {
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/json",
+    "$$ContentEncoding": "utf-8"
   }
 }
 ```
 
-### OPC UA PubSub Mode
-
-Message body is
+With `--fm=True` enabling full featured messages, these would then look like:
 
 ```json
 {
-  "messageId": "21",
-  "publisherId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-  "dataSetClassId": "78c4e91c-82cb-444e-a8e0-6bbacc9a946d",
-  "dataSetWriterId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-  "sequenceNumber": 21,
-  "metaDataVersion": "1.1",
-  "status": "Good",
-  "timestamp": "2020-03-25T00:00:28.5713393Z",
-  "payload": {
-    "http://test.org/UA/Data/#i=10845": {
-      "value": -91,
-      "sourceTimestamp": "2020-03-25T00:00:28.0498921Z",
-      "serverTimestamp": "2020-03-25T00:00:28.0498921Z"
+  "body": {
+    "NodeId": "i=2253",
+    "EndpointUrl": "opc.tcp://localhost:56769/UA/SampleServer",
+    "ApplicationUri": "urn:SampleServer",
+    "DisplayName": "SimpleEvents",
+    "Timestamp": "2022-12-05T11:00:18.1907826Z",
+    "Value": {
+      "EventId": "MB0Xs/BZ5US/BeKOUtsL8A==",
+      "Message": "The system cycle \u00273\u0027 has started.",
+      "http://opcfoundation.org/SimpleEvents#CycleId": "3",
+      "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+        "Name": "Step 1",
+        "Duration": 1000.0
+      }
     },
-    "http://test.org/UA/Data/#i=10846": {
-      "value": 89,
-      "sourceTimestamp": "2020-03-25T00:00:28.0498921Z",
-      "serverTimestamp": "2020-03-25T00:00:28.0498921Z"
+    "SequenceNumber": 2,
+    "ExtensionFields": {
+      "PublisherId": "opc.tcp://localhost:56769/UA/SampleServer_59F0BDE1",
+      "DataSetWriterId": "1000"
     }
+  },
+  "enqueuedTime": "Fri Mar 18 2022 14:04:18 GMT+0100 (Central European Standard Time)",
+  "properties": {
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+Pending Alarms (or conditions) sent in Samples mode look as follows:
+
+```json
+{
+  "body": {
+    "NodeId": "i=2253",
+    "EndpointUrl": "opc.tcp://localhost:56692/UA/SampleServer",
+    "DisplayName": "PendingAlarms",
+    "Value": {
+      "EventId": "xW5uvGPSuUWBdvp8IfSueQ==",
+      "EventType": "i=2830",
+      "LocalTime": {
+        "Offset": 60,
+        "DaylightSavingInOffset": true
+      },
+      "Message": "The dialog was activated",
+      "ReceiveTime": "2022-12-20T15:53:10.3815705Z",
+      "Severity": 100,
+      "SourceName": "EastTank",
+      "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
+      "Time": "2022-12-20T15:53:10.3815705Z"
+    }
+  },
+  "enqueuedTime": "Fri Mar 18 2022 14:04:18 GMT+0100 (Central European Standard Time)",
+  "properties": {
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+Finally, using reversable mode, legacy samples messages will look as follows:
+
+```json
+{
+  "body":   {
+    "NodeId": "i=2253",
+    "EndpointUrl": "opc.tcp://localhost:54040/UA/SampleServer",
+    "DisplayName": "SimpleEvents",
+    "Value": {
+      "Type": "ExtensionObject",
+      "Body": {
+        "TypeId": "http://microsoft.com/Industrial-IoT/OpcPublisher#i=1",
+        "Encoding": "Json",
+        "Body": {
+          "EventId": {
+            "Type": "ByteString",
+            "Body": "xbAm3QTXwEKsVZFcsHSdzA=="
+          },
+          "Message": {
+            "Type": "LocalizedText",
+            "Body": {
+              "Text": "The system cycle \u00271\u0027 has started.",
+              "Locale": "en-US"
+            }
+          },
+          "http://opcfoundation.org/SimpleEvents#CycleId": {
+            "Type": "String",
+            "Body": "1"
+          },
+          "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+            "Type": "ExtensionObject",
+            "Body": {
+              "TypeId": "http://opcfoundation.org/SimpleEvents#i=183",
+              "Encoding": "Json",
+              "Body": {
+                "Name": "Step 1",
+                "Duration": 1000.0
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "enqueuedTime": "Fri Mar 18 2022 14:04:18 GMT+0100 (Central European Standard Time)",
+  "properties": {
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/json",
+    "$$ContentEncoding": "utf-8"
   }
 }
 ```

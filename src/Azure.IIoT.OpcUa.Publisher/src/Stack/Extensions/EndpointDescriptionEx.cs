@@ -22,8 +22,16 @@ namespace Opc.Ua
         public static bool IsSameAs(this EndpointDescription endpoint,
             EndpointModel model)
         {
-            return endpoint.SecurityMode == (model.SecurityMode ?? SecurityMode.SignAndEncrypt)
-                .ToStackType() && endpoint.SecurityPolicyUri == model.SecurityPolicy;
+            if (endpoint.SecurityMode !=
+                (model.SecurityMode ?? SecurityMode.SignAndEncrypt).ToStackType())
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(model.SecurityPolicy))
+            {
+                return true;
+            }
+            return endpoint.SecurityPolicyUri == model.SecurityPolicy;
         }
     }
 }

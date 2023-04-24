@@ -49,9 +49,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="memoryCache"></param>
         /// <param name="identity"></param>
         /// <param name="metrics"></param>
+        /// <param name="sessionFactory"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
             IOptions<OpcUaClientOptions> options, IMemoryCache? memoryCache = null,
-            IProcessIdentity? identity = null, IMetricsContext? metrics = null)
+            IProcessIdentity? identity = null, IMetricsContext? metrics = null,
+            ISessionFactory? sessionFactory = null)
         {
             _metrics = metrics ?? IMetricsContext.Empty;
             _options = options ??
@@ -64,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
             _configuration = _options.Value.BuildApplicationConfigurationAsync(
                  identity == null ? "OpcUaClient" : identity.Id, OnValidate, _logger);
+            _sessionFactory = sessionFactory ?? new DefaultSessionFactory();
             InitializeMetrics();
         }
 
@@ -115,6 +118,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 ConnectionHandle = handle
             });
+        }
+
+        /// <inheritdoc/>
+        public async Task TestConnectAsync(ConnectionModel connection, CancellationToken ct)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Endpoint url is missing.", nameof(connection));
+            }
+
+            var endpointUrl = connection.Endpoint.Url;
+            var configuration = await _configuration.ConfigureAwait(false);
+            var endpointDescription = CoreClientUtils.SelectEndpoint(
+                configuration, endpointUrl,
+                    connection.Endpoint.SecurityMode != SecurityMode.None);
+            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            var configuredEndpoint = new ConfiguredEndpoint(null, endpointDescription,
+                endpointConfiguration);
+            var userIdentity = connection.User.ToStackModel()
+                ?? new UserIdentity(new AnonymousIdentityToken());
+
+            using var session = await _sessionFactory.CreateAsync(configuration,
+                reverseConnectManager: null, configuredEndpoint,
+                updateBeforeConnect: true, // Update endpoint through discovery
+                checkDomain: false, // Domain must match on connect
+                Guid.NewGuid().ToString(),
+                10000, userIdentity, null, ct).ConfigureAwait(false);
+            try
+            {
+                Debug.Assert(session != null);
+                await session.CloseAsync(ct).ConfigureAwait(false);
+            }
+            catch
+            {
+                // We close as a courtesy to the server
+            }
         }
 
         /// <inheritdoc/>
@@ -235,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Exception occurred duringing FindEndpoints at {DiscoveryUrl}.",
+                    _logger.LogDebug(ex, "Exception occurred during FindEndpoints at {DiscoveryUrl}.",
                         discoveryUrl);
                     _logger.LogError("Could not find endpoints at {DiscoveryUrl} " +
                         "due to {Error} (after {Elapsed}).",
@@ -565,7 +608,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Result, id, _serializer,
-                    _loggerFactory, _metrics, OnConnectionStateChange, _memoryCache)
+                    _loggerFactory, _metrics, OnConnectionStateChange, _memoryCache,
+                    _sessionFactory)
                 {
                     KeepAliveInterval = _options.Value.KeepAliveInterval,
                     SessionTimeout = _options.Value.DefaultSessionTimeout,
@@ -599,6 +643,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IJsonSerializer _serializer;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly Task<ApplicationConfiguration> _configuration;
+        private readonly ISessionFactory _sessionFactory;
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }

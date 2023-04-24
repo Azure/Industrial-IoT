@@ -1,22 +1,18 @@
 # Discover and register servers and browse their address space, read and publish nodes via REST API in Postman
 
-[Home](readme.md)
+[Home](./readme.md)
 
 This article will walk you through the steps to discover and register OPC UA servers, browse through endpoints, read node values and publish them using the [REST API](../api/readme.md) via Postman.
 
 ## Prerequisites
 
-You should have already deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules. If not, please follow these instructions:
+You should have already deployed the companion [web api](./readme.md) and at least one IoT Edge Gateway with the [OPC Publisher module](../opc-publisher/readme.md).
 
-1. [Deploy the Industrial IoT Microservices to Azure](../deploy/readme.md)
+To run the demo OPC UA server you will also need Docker installed on a machine that is visible to the IoT Edge from a network point of view. If you don't have it, follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or [Windows](https://docs.docker.com/docker-for-windows/install/).
 
-2. [Install Industrial IoT Edge](../deploy/howto-install-iot-edge.md)
+Make sure you have Git installed on the same machine that will run the demo OPC UA server. Otherwise follow the instructions for [Linux, Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) or [Windows](https://gitforwindows.org/) to install it.
 
-   To run the demo OPC UA server you will also need Docker installed on a machine that is visible to the IoT Edge from a network point of view. If you don't have it, follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or [Windows](https://docs.docker.com/docker-for-windows/install/).
-
-   Make sure you have Git installed on the same machine that will run the demo OPC UA server. Otherwise follow the instructions for [Linux, Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) or [Windows](https://gitforwindows.org/) to install it.
-
-3. [Have Postman installed](https://www.getpostman.com/)
+Finally, install [Postman](https://www.getpostman.com/).
 
 ## Start the demo OPC UA server
 
@@ -148,7 +144,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 2. Execute the request `Twin: Read value`. Replace the ID in the URI with the `endpointId`.
 3. You should see the current value of the variable.
 
-### Publish a node (OPC Publisher)
+### Publish a node
 
 1. This step is about remotely configuring the OPC Publisher.
 2. Execute the request `Twin: Get published nodes`, replace the endpointId in the URL with your `applicationId`.

@@ -107,12 +107,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             var logger = _container.Resolve<ILogger<BaseServerFixture>>();
             var options = _container.Resolve<IOptions<OpcUaClientOptions>>();
             var nodes = nodesFactory(_container.Resolve<ILoggerFactory>(), TimeService);
+            ServerConsoleHost? serverHost = null;
             while (true)
             {
                 try
                 {
                     var ep = $"{Host?.HostName ?? "localhost"}:{port}";
-                    _serverHost = new ServerConsoleHost(new ServerFactory(
+                    serverHost = new ServerConsoleHost(new ServerFactory(
                         _container.Resolve<ILogger<ServerFactory>>(), nodes)
                     {
                         LogStatus = false
@@ -121,9 +122,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
                     };
-                    logger.LogInformation("Starting server host on {Port}...",
-                        port);
-                    _serverHost.StartAsync(new int[] { port }).Wait();
+                    logger.LogInformation(
+                        "Starting server host on {Port}...", port);
+                    serverHost.StartAsync(new int[] { port }).Wait();
+
+                    //
+                    // Test server connection. Sometimes the server has not
+                    // started and tests are failing with Not reachable, this
+                    // should ensure the server has started up correctly.
+                    //
+                    var endpoint =
+                        _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
+                    endpoint.TestConnectAsync(new ConnectionModel
+                    {
+                        Endpoint = new EndpointModel
+                        {
+                            Url = $"opc.tcp://{ep}/UA/SampleServer"
+                        }
+                    }).GetAwaiter().GetResult();
+
+                    _serverHost = serverHost;
                     Port = port;
                     break;
                 }
@@ -133,6 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     port = NextPort();
                     logger.LogError(ex,
                         "Failed to start server host, retrying {Port}...", port);
+                    serverHost?.Dispose();
                 }
             }
         }

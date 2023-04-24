@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, IMetricsContext metrics,
             EventHandler<EndpointConnectivityState>? notifier,
-            IMemoryCache cache, ISessionFactory? sessionFactory = null,
+            IMemoryCache cache, ISessionFactory sessionFactory,
             string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
@@ -95,12 +95,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(loggerFactory));
             _cache = cache ??
                 throw new ArgumentNullException(nameof(cache));
+            _sessionFactory = sessionFactory ??
+                throw new ArgumentNullException(nameof(sessionFactory));
             _notifier = notifier;
 
             _logger = _loggerFactory.CreateLogger<OpcUaClient>();
             _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
-            _sessionFactory = sessionFactory ?? new DefaultSessionFactory();
             _subscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
 
             _cts = new CancellationTokenSource();
@@ -661,7 +662,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
                     var session = await _sessionFactory.CreateAsync(_configuration,
                         reverseConnectManager: null, endpoint,
-                        updateBeforeConnect: true, // Udpate endpoint through discovery
+                        updateBeforeConnect: false, // Udpate endpoint through discovery
                         checkDomain: false, // Domain must match on connect
                         _sessionName,
                         (uint)sessionTimeout.TotalMilliseconds,
@@ -686,7 +687,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
                     _numberOfConnectRetries++;
                     _logger.LogInformation(
-                        "#{Attempt}: Failed to create connect {Client} to {EndpointUrl}: {Message}...",
+                        "#{Attempt}: Failed to connect {Client} to {EndpointUrl}: {Message}...",
                         ++attempt, this, endpointUrl, ex.Message);
                 }
             }

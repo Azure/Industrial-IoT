@@ -1,6 +1,6 @@
 # Discover and register servers and browse their address space from the command line
 
-[Home](readme.md)
+[Home](./readme.md)
 
 This article will walk you through the steps to discover and register OPC UA servers using the Command line interface.  The command line interface exercises almost the entire REST API and allows you to
 
@@ -12,15 +12,11 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 ## Prerequisites
 
-You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
+You should have already deployed the companion [web api](./readme.md) and at least one IoT Edge Gateway with the [OPC Publisher module](../opc-publisher/readme.md).
 
-1. [Deploy the Industrial IoT Microservices to Azure](../deploy/readme.md) and securely store the resulting `.env` file.
+To run the demo OPC UA server you will also need Docker installed on a machine that is visible to the IoT Edge from a network point of view. If you don't have it, follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or [Windows](https://docs.docker.com/docker-for-windows/install/).
 
-2. [Install Industrial IoT Edge Gateway](../deploy/howto-install-iot-edge.md)
-
-  To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
-
-  Also, make sure you have Git installed.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
+Make sure you have Git installed on the same machine that will run the demo OPC UA server. Otherwise follow the instructions for [Linux, Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) or [Windows](https://gitforwindows.org/) to install it.
 
 ## Start the demo OPC UA server
 
@@ -85,19 +81,14 @@ To make the demo deterministic we also start a demo OPC UA server.
    >
    ```
 
-4. Test your connectivity with the Microservices by running
+4. Test your connectivity with the web api by running
 
    ```bash
    > status
    ```
 
-   If you have deployed with authentication you should see an output like this:
-
-   ```bash
-   To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code ABCDEFG to authenticate.
-   ```
-
-   Follow the prompt to authenticate and you should see output similar to
+   If you have deployed with authentication you should be prompted to authenticate.
+   Next you will see something similar to
 
    ```bash
    Connecting to https://opctwintest.azurewebsites.net/twin...
@@ -111,13 +102,13 @@ To make the demo deterministic we also start a demo OPC UA server.
    >
    ```
 
-5. Next, make sure the IoT Edge Gateway with OPC Twin module is up and running by entering...
+5. Next, make sure the IoT Edge Gateway with OPC Publisher module is up and running by entering...
 
    ```bash
-   > supervisors list
+   > publishers list
    ```
 
-   You should see the OPC Twin Modules you deployed in the form of their supervisor identities, for example:
+   You should see the OPC Publisher Modules you deployed in the form of their publisher identities, for example:
 
    ```bash
    ==================
@@ -141,10 +132,8 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Enter..
 
    ```bash
-   > apps add --url opc.tcp://<hostname>:50000 -a
+   > apps add --url opc.tcp://<hostname>:50000
    ```
-
-   * `–a` auto-activates all discovered twins automatically, a convenience shortcut. Normally an operator would manually activate/enable newly registered twins based on some form of security audit.
 
 3. Run
 
@@ -182,26 +171,6 @@ To make the demo deterministic we also start a demo OPC UA server.
    ```
 
    Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more.
-
-4. To activate all endpoints of all servers and enable communication with them run
-
-   ```bash
-   > endpoints activate
-   ```
-
-   This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
-
-   See the [architectural flow diagrams](../architecture-flow.md) for more information.
-
-5. To get a list of connected and ready endpoints run
-
-   ```bash
-   > endpoints query -s Ready
-   ```
-
-   If you have endpoints and these do not show up after a couple seconds take a look at the state of the endpoint.   The status property of the endpoint model will indicate the reason why a connection could not be established.
-
-   Remember one of the endpoints id, e.g. run `endpoints select -i <id>` so you do not need to pass the identifier in further commands.
 
 ### Browse all root nodes of the activated endpoint
 
@@ -306,4 +275,4 @@ To remove all applications and related endpoints run:
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
 * Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
-* [Explore Microservices REST APIs](../api/readme.md)
+* [Explore REST APIs](../api/readme.md)

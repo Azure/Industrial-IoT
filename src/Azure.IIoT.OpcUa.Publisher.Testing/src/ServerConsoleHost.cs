@@ -136,9 +136,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var application = new ApplicationInstance(config);
 
             // check the application certificate.
-            var hasAppCertificate =
-                await application.CheckApplicationInstanceCertificate(true,
-                    CertificateFactory.DefaultKeySize).ConfigureAwait(false);
+            var hasAppCertificate = await application.CheckApplicationInstanceCertificate(
+                silent: true, CertificateFactory.DefaultKeySize).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
                 _logger.LogError("Failed validating own certificate!");
@@ -161,7 +160,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 // just take the public key
-                Certificate = new X509Certificate2(config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
+                Certificate = new X509Certificate2(
+                    config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
             }
             catch
             {
@@ -176,6 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogInformation("Listening on {Endpoint}", ep);
             }
+
             _logger.LogInformation("Server started.");
         }
 

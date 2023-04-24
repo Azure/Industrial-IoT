@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 {
+    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Furly.Exceptions;
