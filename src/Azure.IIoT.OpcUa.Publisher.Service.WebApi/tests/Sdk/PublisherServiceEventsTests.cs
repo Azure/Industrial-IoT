@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Threading.Channels;
+    using System.Threading;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {
@@ -35,9 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
-        [Theory]
-        [MemberData(nameof(GetScalarValues))]
-        public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v)
+        [Fact]
+        public async Task TestPublishVariantTelemetryEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
@@ -45,38 +46,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             const string endpointId = "testid";
 
-            var result = new TaskCompletionSource<MonitoredItemMessageModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev =>
+            var channel = Channel.CreateUnbounded<MonitoredItemMessageModel>();
+            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, async ev =>
+                await channel.Writer.WriteAsync(ev).ConfigureAwait(false)).ConfigureAwait(false))
             {
-                result.SetResult(ev);
-                return Task.CompletedTask;
-            }).ConfigureAwait(false))
-            {
-                var expected = new MonitoredItemMessageModel
-                {
-                    DataSetWriterId = "testid",
-                    EndpointId = endpointId,
-                    DisplayName = "holla",
-                    NodeId = "nodeid",
-                    SourceTimestamp = DateTime.UtcNow,
-                    Timestamp = DateTime.UtcNow,
-                    Value = v
-                };
                 await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
-                await bus.HandleSampleAsync(expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
+                foreach (var value in GetVariantValues())
+                {
+                    var expected = new MonitoredItemMessageModel
+                    {
+                        DataSetWriterId = "testid",
+                        EndpointId = endpointId,
+                        DisplayName = "holla",
+                        NodeId = "nodeid",
+                        SourceTimestamp = DateTime.UtcNow,
+                        Timestamp = DateTime.UtcNow,
+                        Value = value.Item1
+                    };
 
-                Assert.True(result.Task.IsCompleted, $"Timed out with value: {v.ToJson()}");
-                var received = result.Task.Result;
+                    await bus.HandleSampleAsync(expected).ConfigureAwait(false);
 
-                Assert.Equal(expected.DisplayName, received.DisplayName);
-                Assert.Equal(expected.DataSetWriterId, received.DataSetWriterId);
-                Assert.Equal(expected.NodeId, received.NodeId);
-                Assert.Equal(expected.SourceTimestamp, received.SourceTimestamp);
-                Assert.Equal(expected.Timestamp, received.Timestamp);
+                    using var cts = new CancellationTokenSource(kTimeoutMillis);
+                    try
+                    {
+                        var received = await channel.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
 
-                Assert.NotNull(received?.Value);
-                Assert.Equal(expected.Value, received.Value);
+                        Assert.Equal(expected.DisplayName, received.DisplayName);
+                        Assert.Equal(expected.DataSetWriterId, received.DataSetWriterId);
+                        Assert.Equal(expected.NodeId, received.NodeId);
+                        Assert.Equal(expected.SourceTimestamp, received.SourceTimestamp);
+                        Assert.Equal(expected.Timestamp, received.Timestamp);
+
+                        Assert.NotNull(received?.Value);
+                        Assert.Equal(expected.Value, received.Value);
+                    }
+                    catch
+                    {
+                        Assert.True(false, $"{value.Item2.GetType()} failed to be sent.");
+                    }
+                }
             }
         }
 
@@ -124,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        public static IEnumerable<(VariantValue, object)> GetStrings()
+        public static IEnumerable<(VariantValue, object)> GetVariantValues()
         {
             yield return ("", "");
             yield return ("str ing", "str ing");
@@ -133,10 +141,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             yield return (new byte[1000], new byte[1000]);
             yield return (new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
             yield return (Encoding.UTF8.GetBytes("utf-8-string"), Encoding.UTF8.GetBytes("utf-8-string"));
-        }
-
-        public static IEnumerable<(VariantValue, object)> GetValues()
-        {
 #if FALSE
             yield return ((long?)null, (long?)null);
             yield return ((ulong?)null, (ulong?)null);
@@ -223,13 +227,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private static readonly DateTime kNow1 = DateTime.UtcNow;
         private static readonly DateTimeOffset kNow2 = DateTimeOffset.UtcNow;
         private const int kSubscribeDelay = 10;
-
-        public static IEnumerable<object[]> GetScalarValues()
-        {
-            return GetStrings()
-                .Select(v => new object[] { v.Item1 })
-                .Concat(GetValues()
-                .Select(v => new object[] { v.Item2 }));
-        }
     }
 }
