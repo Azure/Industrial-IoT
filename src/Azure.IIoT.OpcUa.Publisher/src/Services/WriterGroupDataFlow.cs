@@ -11,8 +11,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
@@ -46,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _messageEncoder = encoder;
             _logger = logger;
             _diagnostics = diagnostics;
+            _logNotifications = _options.Value.DebugLogNotifications ?? false;
 
             if (_options.Value.BatchSize > 1)
             {
@@ -150,9 +153,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="args"></param>
         private void OnMessageReceived(object? sender, SubscriptionNotificationModel args)
         {
-            _logger.LogDebug("Message source received message with sequenceNumber {SequenceNumber}",
-                args.SequenceNumber);
-
             if (_dataFlowStartTime == DateTime.MinValue)
             {
                 if (_batchTriggerInterval > TimeSpan.Zero)
@@ -168,16 +168,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_sinkBlock.InputCount >= _maxOutgressMessages)
             {
                 _sinkBlockInputDroppedCount++;
+
+                if (_logNotifications)
+                {
+                    LogNotification(args, true);
+                }
             }
             else
             {
                 _batchDataSetMessageBlock.Post(args);
+
+                if (_logNotifications)
+                {
+                    LogNotification(args);
+                }
             }
         }
 
+        /// <summary>
+        /// Counter reset
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MessageTriggerCounterResetReceived(object? sender, EventArgs e)
         {
             _dataFlowStartTime = DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Log notifications for debugging
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="dropped"></param>
+        private void LogNotification(SubscriptionNotificationModel args, bool dropped = false)
+        {
+            _logger.LogInformation("{Action}Notification#{Seq} from {Subscription}{Items}",
+                dropped ? "!!!! Dropped " : string.Empty, args.SequenceNumber,
+                args.SubscriptionName, Stringify(args.Notifications));
+            static string Stringify(IList<MonitoredItemNotificationModel> notifications)
+            {
+                var sb = new StringBuilder().AppendLine();
+                foreach (var item in notifications)
+                {
+                    sb
+                        .Append("|#")
+                        .Append(item.SequenceNumber)
+                        .Append('|')
+                        .Append(item.DataSetFieldName ?? item.DisplayName)
+                        .Append('|')
+                        .Append(item.Value?.Value)
+                        .Append('|')
+                        .AppendLine();
+                }
+                return sb.ToString();
+            }
         }
 
         /// <summary>
@@ -215,6 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IMessageEncoder _messageEncoder;
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
+        private readonly bool _logNotifications;
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
         private readonly TransformManyBlock<SubscriptionNotificationModel[], IEvent> _encodingBlock;
         private readonly ActionBlock<IEvent> _sinkBlock;

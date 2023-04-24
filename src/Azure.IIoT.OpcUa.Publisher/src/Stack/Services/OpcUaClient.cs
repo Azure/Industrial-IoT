@@ -704,7 +704,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 // check for events from discarded sessions.
-                if (!ReferenceEquals(session, _session))
+                if (!ReferenceEquals(session, _session?.Session))
                 {
                     return;
                 }

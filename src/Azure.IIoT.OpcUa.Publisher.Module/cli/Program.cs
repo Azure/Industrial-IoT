@@ -125,6 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             if (i < args.Length)
                             {
                                 publishProfile = args[i];
+                                withServer = true;
                                 break;
                             }
                             throw new ArgumentException(
@@ -294,7 +295,8 @@ Options:
 
                             args = args.Concat(new[]
                             {
-                                $"--pf={publishedNodesFilePath}"
+                                $"--pf={publishedNodesFilePath}",
+                                "--ln"
                             }).ToArray();
                         }
                     }

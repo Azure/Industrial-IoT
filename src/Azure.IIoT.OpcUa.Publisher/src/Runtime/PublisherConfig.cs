@@ -41,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
         public const string IoTHubMaxMessageSize = "IoTHubMaxMessageSize";
         public const string MaxEgressMessagesKey = "MaxOutgressMessages";
+        public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
@@ -173,6 +174,11 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.ScaleTestCount = GetIntOrDefault(ScaleTestCountKey,
                     ScaleTestCountDefault);
+            }
+
+            if (options.DebugLogNotifications == null)
+            {
+                options.DebugLogNotifications = GetBoolOrDefault(DebugLogNotificationsKey);
             }
 
             if (options.DiagnosticsInterval == null)

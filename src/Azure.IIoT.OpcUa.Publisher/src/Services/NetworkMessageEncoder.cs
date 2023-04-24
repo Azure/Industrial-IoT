@@ -331,7 +331,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                             {
                                                 result.Add((currentNotificationCount, currentMessage, topic, false, default));
-                                                _logger.LogTrace("Encoding message {Message}...", currentMessage.ToString());
                                                 currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                                     dataSetClassId, publisherId);
                                                 currentNotificationCount = 0;

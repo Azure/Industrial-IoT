@@ -325,6 +325,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ll|loglevel=|{Configuration.Logging.LogLevelKey}=",
                     $"The loglevel to use.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
                     (LogLevel l) => this[Configuration.Logging.LogLevelKey] = l.ToString() },
+                { "ln|lognotifications:",
+                    "Log ingress subscription notifications at Informational level to aid debugging.\n",
+                    (string i) => this[PublisherConfig.DebugLogNotificationsKey] = i ?? "True", true },
 
                 // testing purposes
 

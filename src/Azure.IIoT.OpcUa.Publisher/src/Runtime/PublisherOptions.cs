@@ -62,6 +62,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
+        /// Log ingress notifications to informational log
+        /// </summary>
+        public bool? DebugLogNotifications { get; set; }
+
+        /// <summary>
         /// Define the maximum number of messages in outgress buffer,
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>
