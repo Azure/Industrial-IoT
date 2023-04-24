@@ -1,6 +1,6 @@
 # Metrics Collector
 
-[Home](readme.md)
+[Home](./readme.md)
 
 We have used Metrics Collector module to collect the metrics from other edge modules. The `metricscollector` module runs inside IoT Edge. 
 
@@ -23,7 +23,6 @@ The default configuration to scrape metrics is:
     "metricsFormat": "Json",
     "syncTarget": "AzureLogAnalytics",
     "endpoints": {
-        "opctwin": "http://opctwin:9701/metrics",
         "opcpublisher": "http://opcpublisher:9702/metrics"
     }
 }

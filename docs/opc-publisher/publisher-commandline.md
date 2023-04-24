@@ -1,6 +1,6 @@
-[Home](../../readme.md)
-
 # OPC Publisher configuration via command line options and environment variables
+
+[Home](./readme.md)
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
 

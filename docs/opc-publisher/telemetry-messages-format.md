@@ -1,6 +1,6 @@
 # Telemetry Messages Processing
 
-[Home](../../readme.md)
+[Home](./readme.md)
 
 ## Messaging Profiles supported by OPC Publisher
 

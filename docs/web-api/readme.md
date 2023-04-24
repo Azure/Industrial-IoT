@@ -1,4 +1,4 @@
-# Azure Industrial IoT Platform Components
+# Azure Industrial IoT Platform Web API
 
 [Home](../readme.md)
 

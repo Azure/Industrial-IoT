@@ -1,5 +1,7 @@
 # Use configuration files for OPC UA Events in OPC Publisher
 
+[Home](./readme.md)
+
 This section describes how to configure the OPC Publisher to listen to events using an event filter.
 
 OPC Publisher supports two types of event filter configurations you can specify:

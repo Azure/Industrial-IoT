@@ -1,6 +1,6 @@
-[Home](../../readme.md)
-
 # Migrate from OPC Publisher 2.8.x to 2.9 and higher
+
+[Home](./readme.md)
 
 ## API changes
 

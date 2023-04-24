@@ -1,6 +1,6 @@
 # Detailing the output for OPC UA Events in OPC Publisher
 
-[Home](../../readme.md)
+[Home](./readme.md)
 
 This section describes what the output looks like when listening for events in the OPC Publisher.
 

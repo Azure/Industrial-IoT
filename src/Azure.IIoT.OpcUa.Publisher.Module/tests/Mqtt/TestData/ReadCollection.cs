@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Xunit;
 
-    [CollectionDefinition(Name)]
+    [CollectionDefinition(Name, DisableParallelization = true)]
     public class ReadCollection : ICollectionFixture<TestDataServer>
     {
         public const string Name = "TestDataServerReadModuleMqtt";

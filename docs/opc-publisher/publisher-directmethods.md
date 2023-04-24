@@ -1,6 +1,6 @@
-[Home](../../readme.md)
-
 # Configuration via IoT Hub Direct methods
+
+[Home](./readme.md)
 
 OPC Publisher version 2.8.2 and later implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from an application using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
 

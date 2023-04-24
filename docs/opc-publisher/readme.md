@@ -1,4 +1,4 @@
-[Home](../../readme.md)
+[Home](../readme.md)
 
 # Microsoft OPC Publisher
 
