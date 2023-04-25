@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     options.SingleLine = true;
                     options.IncludeScopes = true;
                     options.UseUtcTimestamp = true;
-                    options.TimestampFormat = "HH:mm:ss.ffff";
+                    options.TimestampFormat = "[HH:mm:ss.ffff] ";
                 })
                 .AddDebug())
                 ;
