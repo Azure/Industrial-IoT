@@ -58,7 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
-                .AddSimpleConsole(options => options.SingleLine = true)
+                .AddSimpleConsole(options =>
+                {
+                    options.SingleLine = true;
+                    options.IncludeScopes = true;
+                    options.UseUtcTimestamp = true;
+                    options.TimestampFormat = "HH:mm:ss.ffff";
+                })
                 .AddDebug())
                 ;
 
