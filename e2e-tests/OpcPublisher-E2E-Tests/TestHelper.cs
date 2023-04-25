@@ -737,13 +737,22 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="duration">A time duration during which to return data.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> TakeDuringAsync<TSource>(this IAsyncEnumerable<TSource> source, TimeSpan duration)
+        private static IAsyncEnumerable<TSource> TakeDuringAsync<TSource>(this IAsyncEnumerable<TSource> source, IIoTPlatformTestContext context, TimeSpan duration)
         {
             _ = source ?? throw new ArgumentNullException(nameof(source));
 
             // ReSharper disable once ConvertClosureToMethodGroup
             var sw = new Lazy<Stopwatch>(() => Stopwatch.StartNew());
-            return source.TakeWhile(_ => sw.Value.Elapsed < duration);
+            return source.TakeWhile(_ =>
+            {
+                if (sw.Value.Elapsed < duration)
+                {
+                    return true;
+                }
+
+                context.OutputHelper?.WriteLine($"Stop consuming {sw.Value.Elapsed}");
+                return false;
+            });
         }
 
         /// <summary>
@@ -808,13 +817,14 @@ namespace OpcPublisher_AE_E2E_Tests
         {
             // When the first message has been received for each simulator, the system is up and we
             // "let the flag fall" to start computing event rates.
-            return source.SkipUntilDistinctCountReached(
+            return source
+                .SkipUntilDistinctCountReached(
                     publisherIdFunc,
-                    context.PlcAciDynamicUrls.Count,
-                    () => context.OutputHelper?.WriteLine("Waiting for first message for each PLC"),
+                    1,
+                    () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
                     () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
                 )
-                .TakeDuringAsync(duration);
+                .TakeDuringAsync(context, duration);
         }
 
         /// <summary>

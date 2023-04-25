@@ -247,7 +247,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                     }
                 }
 
-                expectedNodes.ForEach(n => _context.OutputHelper.WriteLine(n));
+                expectedNodes.ForEach(_context.OutputHelper.WriteLine);
                 Assert.Empty(expectedNodes);
 
                 unexpectedNodesThatPublish.ForEach(node => _context.OutputHelper.WriteLine($"Publishing from unexpected node: {node}"));

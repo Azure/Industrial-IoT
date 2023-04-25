@@ -18,6 +18,7 @@ Preview releases are only supported through GitHub issues.  This particular rele
   - [OPC Twin] we removed the Activate and Deactivate calls. 
   - [OPC Twin] OPC TWIN Method call #996
   - Support for opc-twin module api direct method calls with input arguments (not requiring OPC Twin micro services) #1512
+- [OPC Publisher] (breaking change) The publisher id in each message is now always the same value across all writer groups rather than previously where a random guid was used per writer group when a publisher id was not configured.
 - [OPC Publisher] Several bug fixes on top of preview 1 (#1964)
 - [OPC Publisher] Enabling using DisplayNames defined for the event fields in pn.json as keys in the payload of dataset messages (#1963)
 - [OPC Publisher] DatasetMessage SequenceNumber is not being incremented in 2.9.0 (preview) (#1961)

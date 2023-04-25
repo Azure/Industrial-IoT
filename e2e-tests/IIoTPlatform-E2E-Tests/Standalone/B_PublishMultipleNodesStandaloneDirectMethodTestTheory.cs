@@ -222,7 +222,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
                     expectedNodes.Remove(expected);
                 }
 
-                expectedNodes.ForEach(n => _context.OutputHelper.WriteLine(n));
+                expectedNodes.ForEach(_context.OutputHelper.WriteLine);
                 Assert.Empty(expectedNodes);
             }
 
