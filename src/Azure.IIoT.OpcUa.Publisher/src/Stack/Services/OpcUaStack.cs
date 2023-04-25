@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Autofac;
+    using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -14,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Injectable service that registers a logger with stack
     /// </summary>
-    public class OpcUaStack : IStartable, ILogger
+    public sealed class OpcUaStack : IStartable, IDisposable
     {
         /// <summary>
         /// Create stack logger
@@ -24,44 +25,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaStack(ILogger<OpcUaStack> logger,
             IOptions<OpcUaClientOptions> options)
         {
-            _logger = logger;
-            _enabled = options.Value.EnableOpcUaStackLogging ?? false;
+            var enabled = options.Value.EnableOpcUaStackLogging ?? false;
+            Utils.SetLogger(enabled ? logger : new ErrorLogger(logger));
         }
 
         /// <inheritdoc/>
         public void Start()
         {
-            Utils.SetLogger(this);
+            // No op
         }
 
         /// <inheritdoc/>
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
-            Exception? exception, Func<TState, Exception?, string> formatter)
+        public void Dispose()
         {
-            if (_enabled || logLevel >= LogLevel.Error)
+            Utils.SetLogger(Log.Console<OpcUaStack>());
+        }
+
+        /// <summary>
+        /// Just log at error level (disabled)
+        /// </summary>
+        private sealed class ErrorLogger : ILogger
+        {
+            /// <inheritdoc/>
+            public ErrorLogger(ILogger<OpcUaStack> logger)
             {
-                _logger.Log(logLevel, eventId, state, exception, formatter);
+                _logger = logger;
             }
-        }
 
-        /// <inheritdoc/>
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            if (_enabled)
+            /// <inheritdoc/>
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
+                Exception? exception, Func<TState, Exception?, string> formatter)
             {
-                return _logger.IsEnabled(logLevel);
+                if (logLevel >= LogLevel.Error)
+                {
+                    _logger.Log(logLevel, eventId, state, exception, formatter);
+                }
             }
-            return logLevel >= LogLevel.Error;
-        }
 
-        /// <inheritdoc/>
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            return _logger.BeginScope(state);
-        }
+            /// <inheritdoc/>
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return logLevel >= LogLevel.Error;
+            }
 
-        private readonly ILogger _logger;
-        private readonly bool _enabled;
+            /// <inheritdoc/>
+            public IDisposable? BeginScope<TState>(TState state)
+                where TState : notnull
+            {
+                return _logger.BeginScope(state);
+            }
+
+            private readonly ILogger _logger;
+        }
     }
 }
