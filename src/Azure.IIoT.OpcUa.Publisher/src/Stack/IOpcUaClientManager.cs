@@ -32,15 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         Task AddTrustedPeerAsync(byte[] certificate);
 
         /// <summary>
-        /// Test connection to server
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task TestConnectAsync(T connection,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Execute the service on the provided session and
         /// return the result.
         /// </summary>

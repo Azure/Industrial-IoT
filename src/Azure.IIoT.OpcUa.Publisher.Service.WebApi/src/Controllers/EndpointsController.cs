@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             ICertificateServices<string> certificates)
         {
             _manager = manager;
-            _activation = activation;
+            _connections = activation;
             _certificates = certificates;
             _endpoints = endpoints;
         }
@@ -203,12 +203,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         }
 
         /// <summary>
-        /// Activate endpoint
+        /// Test endpoint is accessible
         /// </summary>
         /// <remarks>
-        /// Activates an endpoint for subsequent use in twin service.
-        /// All endpoints must be activated using this API or through a
-        /// activation filter during application registration or discovery.
+        /// Test an endpoint can be connected to. Returns error
+        /// information if connecting fails.
+        /// </remarks>
+        /// <param name="endpointId">endpoint identifier</param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        [HttpPost("{endpointId}/test")]
+        public async Task<TestConnectionResponseModel> TestConnectionAsync(
+            string endpointId, [FromBody][Required] TestConnectionRequestModel request,
+            CancellationToken ct)
+        {
+            return await _connections.TestConnectionAsync(endpointId,
+                request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Connect endpoint
+        /// </summary>
+        /// <remarks>
+        /// Connect an endpoint for subsequent use in twin service
+        /// calls. This call keeps the connection until it expires
+        /// based on the expiration requested or when disconnected.
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
         /// <param name="request"></param>
@@ -218,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] ConnectRequestModel request,
             CancellationToken ct)
         {
-            return await _activation.ConnectAsync(endpointId,
+            return await _connections.ConnectAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
 
@@ -252,13 +271,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task DisconnectAsync(string endpointId,
             [FromBody][Required] DisconnectRequestModel request, CancellationToken ct)
         {
-            await _activation.DisconnectAsync(endpointId, request,
+            await _connections.DisconnectAsync(endpointId, request,
                 ct).ConfigureAwait(false);
         }
 
         private readonly IEndpointManager _manager;
         private readonly IEndpointRegistry _endpoints;
-        private readonly IConnectionServices<string> _activation;
+        private readonly IConnectionServices<string> _connections;
         private readonly ICertificateServices<string> _certificates;
     }
 }

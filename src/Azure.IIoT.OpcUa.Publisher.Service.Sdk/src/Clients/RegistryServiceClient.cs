@@ -515,26 +515,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task ConnectAsync(string endpointId, CancellationToken ct)
+        public async Task<TestConnectionResponseModel> TestConnectionAsync(string endpointId,
+            TestConnectionRequestModel request, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/test");
+            return await _httpClient.PostAsync<TestConnectionResponseModel>(uri, request,
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ConnectResponseModel> ConnectAsync(string endpointId,
+            ConnectRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/activate");
-            await _httpClient.PostAsync(uri, string.Empty, _serializer,
-                authorization: _authorization, ct: ct).ConfigureAwait(false);
+            return await _httpClient.PostAsync<ConnectResponseModel>(uri, request,
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task DisconnectAsync(string endpointId, CancellationToken ct)
+        public async Task DisconnectAsync(string endpointId,
+            DisconnectRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/deactivate");
-            await _httpClient.PostAsync(uri, string.Empty, _serializer,
+            await _httpClient.PostAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 

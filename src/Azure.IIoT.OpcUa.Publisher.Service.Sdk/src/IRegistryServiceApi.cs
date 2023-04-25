@@ -182,22 +182,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             string endpointId, CancellationToken ct = default);
 
         /// <summary>
-        /// Set endpoint activation state to activated
+        /// Connect the endpoint on the module side.
         /// </summary>
         /// <param name="endpointId"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ConnectAsync(string endpointId,
-            CancellationToken ct = default);
+        Task<ConnectResponseModel> ConnectAsync(string endpointId,
+            ConnectRequestModel request, CancellationToken ct = default);
 
         /// <summary>
-        /// Set endpoint activation state to deactivated
+        /// Test connection by opening a session to the server.
         /// </summary>
         /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<TestConnectionResponseModel> TestConnectionAsync(string endpointId,
+            TestConnectionRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Disconnect the session for the endpoint.
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DisconnectAsync(string endpointId,
-            CancellationToken ct = default);
+            DisconnectRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// List all endpoints

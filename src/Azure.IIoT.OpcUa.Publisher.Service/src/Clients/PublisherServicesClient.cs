@@ -57,6 +57,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 return client.GetEndpointCertificateAsync(endpoint, ct);
             }, ct);
         }
+
+        /// <inheritdoc/>
+        public Task<TestConnectionResponseModel> TestConnectionAsync(string endpoint,
+            TestConnectionRequestModel request, CancellationToken ct)
+        {
+            return Execute("TestConnection", endpoint, (publisherId, endpoint) =>
+            {
+                var client = new TwinApiClient(_client, publisherId, _serializer);
+                return client.TestConnectionAsync(new ConnectionModel
+                {
+                    Endpoint = endpoint,
+                    User = request.Header?.Elevation
+                }, request, ct);
+            }, ct);
+        }
+
         /// <inheritdoc/>
         public Task<ConnectResponseModel> ConnectAsync(string endpoint,
             ConnectRequestModel request, CancellationToken ct)
@@ -71,7 +87,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 }, request, ct);
             }, ct);
         }
-
         /// <inheritdoc/>
         public Task DisconnectAsync(string endpoint, DisconnectRequestModel request,
             CancellationToken ct)

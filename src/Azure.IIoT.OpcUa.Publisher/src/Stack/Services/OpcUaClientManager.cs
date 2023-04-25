@@ -121,42 +121,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task TestConnectAsync(ConnectionModel connection, CancellationToken ct)
+        public async Task<TestConnectionResponseModel> TestConnectionAsync(
+            ConnectionModel endpoint, TestConnectionRequestModel request,
+            CancellationToken ct)
         {
-            if (connection == null)
+            if (endpoint == null)
             {
-                throw new ArgumentNullException(nameof(connection));
+                throw new ArgumentNullException(nameof(endpoint));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            if (string.IsNullOrEmpty(endpoint.Endpoint?.Url))
             {
-                throw new ArgumentException("Endpoint url is missing.", nameof(connection));
+                throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
             }
 
-            var endpointUrl = connection.Endpoint.Url;
+            var endpointUrl = endpoint.Endpoint.Url;
             var configuration = await _configuration.ConfigureAwait(false);
             var endpointDescription = CoreClientUtils.SelectEndpoint(
                 configuration, endpointUrl,
-                    connection.Endpoint.SecurityMode != SecurityMode.None);
+                    endpoint.Endpoint.SecurityMode != SecurityMode.None);
             var endpointConfiguration = EndpointConfiguration.Create(configuration);
             var configuredEndpoint = new ConfiguredEndpoint(null, endpointDescription,
                 endpointConfiguration);
-            var userIdentity = connection.User.ToStackModel()
+            var userIdentity = endpoint.User.ToStackModel()
                 ?? new UserIdentity(new AnonymousIdentityToken());
-
-            using var session = await _sessionFactory.CreateAsync(configuration,
-                reverseConnectManager: null, configuredEndpoint,
-                updateBeforeConnect: true, // Update endpoint through discovery
-                checkDomain: false, // Domain must match on connect
-                Guid.NewGuid().ToString(),
-                10000, userIdentity, null, ct).ConfigureAwait(false);
             try
             {
-                Debug.Assert(session != null);
-                await session.CloseAsync(ct).ConfigureAwait(false);
+                using var session = await _sessionFactory.CreateAsync(
+                    configuration, reverseConnectManager: null, configuredEndpoint,
+                    updateBeforeConnect: true, // Update endpoint through discovery
+                    checkDomain: false, // Domain must match on connect
+                    "Test" + Guid.NewGuid().ToString(),
+                    10000, userIdentity, null, ct).ConfigureAwait(false);
+                try
+                {
+                    Debug.Assert(session != null);
+                    await session.CloseAsync(ct).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // We close as a courtesy to the server
+                }
+                return new TestConnectionResponseModel();
             }
-            catch
+            catch (Exception ex)
             {
-                // We close as a courtesy to the server
+                return new TestConnectionResponseModel
+                {
+                    ErrorInfo = ex.ToServiceResultModel()
+                };
             }
         }
 

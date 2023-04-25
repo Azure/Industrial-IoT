@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
@@ -132,15 +132,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // should ensure the server has started up correctly.
                     //
                     var endpoint =
-                        _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
-                    endpoint.TestConnectAsync(new ConnectionModel
+                        _container.Resolve<IConnectionServices<ConnectionModel>>();
+                    var result = endpoint.TestConnectionAsync(new ConnectionModel
                     {
                         Endpoint = new EndpointModel
                         {
                             Url = $"opc.tcp://{ep}/UA/SampleServer"
                         }
-                    }).GetAwaiter().GetResult();
-
+                    }, new TestConnectionRequestModel()).GetAwaiter().GetResult();
+                    if (result.ErrorInfo != null)
+                    {
+                        throw new IOException(
+                            result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
+                    }
                     _serverHost = serverHost;
                     Port = port;
                     break;

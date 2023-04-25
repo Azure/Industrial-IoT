@@ -16,6 +16,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
     public interface ITwinApi
     {
         /// <summary>
+        /// This call is used to test a connection by opening a session
+        /// to the server identified by the connection object.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<TestConnectionResponseModel> TestConnectionAsync(
+            ConnectionModel connection, TestConnectionRequestModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// This call is used to ensure a connection exists for other
         /// calls and speeds up overall operations.
         /// </summary>

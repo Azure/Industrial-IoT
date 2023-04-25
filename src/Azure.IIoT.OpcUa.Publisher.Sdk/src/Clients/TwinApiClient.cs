@@ -54,6 +54,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
+        public async Task<TestConnectionResponseModel> TestConnectionAsync(
+            ConnectionModel connection, TestConnectionRequestModel request,
+            CancellationToken ct)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
+            }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var response = await _methodClient.CallMethodAsync(_target,
+                "TestConnection_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    request
+                }),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<TestConnectionResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
         public async Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
             ConnectRequestModel request, CancellationToken ct)
         {

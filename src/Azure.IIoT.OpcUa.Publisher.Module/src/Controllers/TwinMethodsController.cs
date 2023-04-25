@@ -410,6 +410,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// Test connection
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        [HttpPost("test")]
+        public async Task<TestConnectionResponseModel> TestConnectionAsync(
+            RequestEnvelope<TestConnectionRequestModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _endpoints.TestConnectionAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Disconnect
         /// </summary>
         /// <param name="request"></param>

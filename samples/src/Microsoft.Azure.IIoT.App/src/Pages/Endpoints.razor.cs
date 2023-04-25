@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
             {
                 try
                 {
-                    await RegistryService.ConnectAsync(endpointId).ConfigureAwait(false);
+                    await RegistryService.ConnectAsync(endpointId, new ConnectRequestModel()).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
             {
                 try
                 {
-                    await RegistryService.DisconnectAsync(endpointId).ConfigureAwait(false);
+                    await RegistryService.DisconnectAsync(endpointId, new DisconnectRequestModel()).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
