@@ -211,8 +211,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 .AsImplementedInterfaces();
 
             builder.AddOpcUaStack();
-            builder.RegisterType<OpcUaStack>()
-                .AsImplementedInterfaces().SingleInstance().AutoActivate();
             return builder.Build();
         }
 

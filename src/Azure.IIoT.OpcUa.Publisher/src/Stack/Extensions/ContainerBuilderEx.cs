@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             builder.RegisterInstance(IMetricsContext.Empty)
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
 
+            builder.RegisterType<OpcUaStack>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
 

@@ -4,7 +4,7 @@
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
 
-CamcelCase options can also typically be provided using enviornment variables. When both environment variable and CLI argument are provided, the command line option will override the environment variable.
+CamelCase options can also be provided using environment variables. When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
 
@@ -520,4 +520,4 @@ Diagnostic options
                                Default: `Information`.
 ```
 
-Currently supported combinations of `--mm` snd `--me` can be found [here](./telemetry-messages-format.md).
+Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

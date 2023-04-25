@@ -38,9 +38,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// How long to wait until reconnecting is attempted.
+        /// How long to wait until connected or until
+        /// reconnecting is attempted.
         /// </summary>
-        public TimeSpan? ReconnectRetryDelay { get; set; }
+        public TimeSpan? CreateSessionTimeout { get; set; }
 
         /// <summary>
         /// How long to keep clients around after a service call.
@@ -56,5 +57,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Security configuration
         /// </summary>
         public SecurityOptions Security { get; } = new SecurityOptions();
+
+        /// <summary>
+        /// Enable traces in the stack beyond errors
+        /// </summary>
+        public bool? EnableOpcUaStackLogging { get; set; }
     }
 }

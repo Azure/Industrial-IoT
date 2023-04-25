@@ -40,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// The reconnect periodic retry delay to use in ms.
+        /// The connect and reconnect timeout and periodic
+        /// retry delay to use in ms.
         /// </summary>
         public TimeSpan? ReconnectPeriod { get; set; }
 
@@ -48,6 +49,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// The session lifetime.
         /// </summary>
         public TimeSpan? SessionTimeout { get; set; }
+
+        /// <summary>
+        /// Session operation timeout
+        /// </summary>
+        public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
         /// The linger timeout.
@@ -365,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             using var connectTimer = new Timer(_ =>
                 _channel.Writer.TryWrite(ConnectionEvent.ConnectRetry));
-            var reconnectPeriod = ReconnectPeriod ?? TimeSpan.FromSeconds(3);
+            var reconnectPeriod = ReconnectPeriod ?? TimeSpan.FromSeconds(5);
 
             SessionReconnectHandler? reconnectHandler = null;
             try
@@ -386,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     Debug.Assert(_disconnectLock != null);
                                     Debug.Assert(_session == null);
 
-                                    if (!await TryConnectAsync(ct).ConfigureAwait(false))
+                                    if (!await TryConnectAsync(reconnectPeriod, ct).ConfigureAwait(false))
                                     {
                                         // Reschedule connecting. Todo: Exponential retry
                                         connectTimer.Change(reconnectPeriod, Timeout.InfiniteTimeSpan);
@@ -601,9 +607,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Connect client
         /// </summary>
+        /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<bool> TryConnectAsync(CancellationToken ct)
+        private async ValueTask<bool> TryConnectAsync(TimeSpan timeout, CancellationToken ct)
         {
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
 
@@ -632,6 +639,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _connection.Endpoint.SecurityMode != SecurityMode.None);
                     var endpointConfiguration = EndpointConfiguration.Create(
                         _configuration);
+                    endpointConfiguration.OperationTimeout =
+                        (int)timeout.TotalMilliseconds;
                     var endpoint = new ConfiguredEndpoint(null, endpointDescription,
                         endpointConfiguration);
 
@@ -667,9 +676,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _sessionName,
                         (uint)sessionTimeout.TotalMilliseconds,
                         userIdentity, preferredLocales, ct).ConfigureAwait(false);
-                    session.KeepAliveInterval =
-                        (int)(KeepAliveInterval ?? TimeSpan.FromSeconds(5)).TotalMilliseconds;
-
                     // Assign the created session
                     SetSession(session);
                     _logger.LogInformation(
@@ -733,11 +739,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            var keepAliveInterval = KeepAliveInterval ?? TimeSpan.FromSeconds(5);
-            session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
-
             UnsetSession();
             _session = new OpcUaSession(session, Session_KeepAlive,
+                KeepAliveInterval ?? TimeSpan.FromSeconds(5),
+                OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>());
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);

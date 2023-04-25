@@ -623,9 +623,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _loggerFactory, _metrics, OnConnectionStateChange, _memoryCache,
                     _sessionFactory)
                 {
+                    OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
+                        TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
+
+                    ReconnectPeriod = _options.Value.CreateSessionTimeout,
                     KeepAliveInterval = _options.Value.KeepAliveInterval,
                     SessionTimeout = _options.Value.DefaultSessionTimeout,
-                    ReconnectPeriod = _options.Value.ReconnectRetryDelay,
                     LingerTimeout = _options.Value.LingerTimeout
                 };
                 _logger.LogInformation("New client {Client} created.", client);

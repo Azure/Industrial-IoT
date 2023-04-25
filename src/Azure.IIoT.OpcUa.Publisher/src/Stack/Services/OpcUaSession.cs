@@ -59,18 +59,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="keepAlive"></param>
+        /// <param name="keepAliveInterval"></param>
+        /// <param name="operationTimeout"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
+            TimeSpan keepAliveInterval, TimeSpan operationTimeout,
             IJsonSerializer serializer, ILogger<OpcUaSession> logger)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _keepAlive = keepAlive ??
                 throw new ArgumentNullException(nameof(keepAlive));
+
             Session = session ??
                 throw new ArgumentNullException(nameof(session));
+
+            Session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
+            Session.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
 
             _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
                 "AuthenticationToken",

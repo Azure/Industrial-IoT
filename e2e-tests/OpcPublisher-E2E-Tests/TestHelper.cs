@@ -665,7 +665,11 @@ namespace OpcPublisher_AE_E2E_Tests
             {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
                 JToken json = null;
-                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentType"] == "application/json+gzip";
+                if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
+                {
+                    continue;
+                }
+                bool isPayloadCompressed = (string)contentType == "application/json+gzip";
                 if (isPayloadCompressed)
                 {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());

@@ -21,12 +21,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// Configuration
         /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public const string PkiRootPathKey = "PkiRootPath";
         public const string ApplicationNameKey = "ApplicationName";
         public const string ApplicationUriKey = "ApplicationUri";
         public const string ProductUriKey = "ProductUri";
         public const string DefaultSessionTimeoutKey = "DefaultSessionTimeout";
         public const string KeepAliveIntervalKey = "KeepAliveInterval";
-        public const string PkiRootPathKey = "PkiRootPath";
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
         public const string ApplicationCertificateStoreTypeKey = "ApplicationCertificateStoreType";
         public const string ApplicationCertificateSubjectNameKey = "ApplicationCertificateSubjectName";
@@ -42,6 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string AddAppCertToTrustedStoreKey = "AddAppCertToTrustedStore";
         public const string RejectUnknownRevocationStatusKey = "RejectUnknownRevocationStatus";
         public const string SecurityTokenLifetimeKey = "SecurityTokenLifetime";
+        public const string EnableOpcUaStackLoggingKey = "EnableOpcUaStackLogging";
         public const string ChannelLifetimeKey = "ChannelLifetime";
         public const string MaxBufferSizeKey = "MaxBufferSize";
         public const string MaxMessageSizeKey = "MaxMessageSize";
@@ -49,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxByteStringLengthKey = "MaxByteStringLength";
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
-        public const string ReconnectRetryDelayKey = "ReconnectRetryDelay";
+        public const string CreateSessionTimeoutKey = "CreateSessionTimeout";
         public const string LingerTimeoutKey = "LingerTimeout";
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int OperationTimeoutDefault = 120 * 1000;
         public const int DefaultSessionTimeoutDefaultSec = 60;
         public const int KeepAliveIntervalDefaultSec = 10;
-        public const int ReconnectRetryDelayDefaultSec = 5;
+        public const int CreateSessionTimeoutDefaultSec = 5;
         public const int MinimumCertificateKeySizeDefault = 1024;
         public const bool AutoAcceptUntrustedCertificatesDefault = false;
         public const bool RejectSha1SignedCertificatesDefault = false;
@@ -119,13 +120,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            if (options.ReconnectRetryDelay == null)
+            if (options.CreateSessionTimeout == null)
             {
-                var reconnectRetryDelay = GetIntOrDefault(ReconnectRetryDelayKey,
-                    ReconnectRetryDelayDefaultSec);
-                if (reconnectRetryDelay > 0)
+                var createSessionTimeout = GetIntOrDefault(CreateSessionTimeoutKey,
+                    CreateSessionTimeoutDefaultSec);
+                if (createSessionTimeout > 0)
                 {
-                    options.ReconnectRetryDelay = TimeSpan.FromSeconds(reconnectRetryDelay);
+                    options.CreateSessionTimeout = TimeSpan.FromSeconds(createSessionTimeout);
                 }
             }
 
@@ -276,6 +277,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.Quotas.SecurityTokenLifetime = GetIntOrDefault(SecurityTokenLifetimeKey,
                     SecurityTokenLifetimeDefault);
+            }
+
+            if (options.EnableOpcUaStackLogging == null)
+            {
+                options.EnableOpcUaStackLogging = GetBoolOrNull(EnableOpcUaStackLoggingKey);
             }
         }
 

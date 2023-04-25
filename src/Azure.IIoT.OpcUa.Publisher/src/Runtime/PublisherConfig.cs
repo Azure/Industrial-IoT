@@ -164,6 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.EnableRuntimeStateReporting = GetBoolOrDefault(
                     EnableRuntimeStateReportingKey, EnableRuntimeStateReportingDefault);
             }
+
             if (options.RuntimeStateRoutingInfo == null)
             {
                 options.RuntimeStateRoutingInfo = GetStringOrDefault(

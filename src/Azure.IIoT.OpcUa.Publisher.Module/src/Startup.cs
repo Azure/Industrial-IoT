@@ -132,8 +132,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
             // Register publisher services
             builder.AddPublisherServices();
-            builder.RegisterType<OpcUaStack>()
-                .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Register transport services
             builder.AddMqttClient(Configuration);

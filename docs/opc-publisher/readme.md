@@ -6,7 +6,7 @@ OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.
 
 In this document you find information to
 
-* [Get started](#getting-started)
+* [Getting started](#getting-started)
 * [Configue OPC Publisher](#configuring-opc-publisher)
   * [Configure secure access to OPC UA server endpoints](#configuring-security)
   * [Configure Value Change subscriptions](#configuration-via-configuration-file)
@@ -192,7 +192,8 @@ Here is an example of a configuration file in simple mode:
 ```
 
 To subscribe to an event you specify the source node (in this case the server node which has node id `i=2253`) and the event type to monitor (in this case `ns=2;i=235`).
-When you specify a simple mode configuration, the OPC Publisher does two things:
+
+When you use the simple configuration option above, the OPC Publisher does two things:
 
 * It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
 * It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
@@ -265,11 +266,13 @@ Here is an example of a configuration file that selects events using an advanced
 ]
 ```
 
-The exact syntax allowed can be found in the OPC UA reference documentation.  Note that not all servers support all filter capabilities.  You can trouble shoot issues using the OPC Publisher logs.
+The exact syntax allowed can be found in the OPC UA reference documentation. Note that not all servers support all filter capabilities. You can troubleshoot issues using the OPC Publisher logs.
 
 #### Condition handling options
 
-In addition to this, you can also configure to enable condition handling. When configured OPC Publisher listens to ConditionType derived events, records unique occurrences of them and periodically sends all condition events that have the Retain property set to True. This enables you to continuously get a snapshot view of all active alarms and conditions which can be very useful for dashboard-like scenarios.
+In addition to event subscription, you can also configure events to enable condition handling. 
+
+When configured, OPC Publisher listens to ConditionType derived events, records unique occurrences of them and periodically sends out all condition events that have the Retain property set to True. This enables you to continuously get a snapshot view of all active alarms and conditions which can be very useful for dashboard-like scenarios.
 
 Here is an example of a configuration for condition handling:
 
@@ -314,7 +317,9 @@ In version 2.6 and above, username and password are stored in plain text in the 
 
 ## OPC UA Client (OPC Twin)
 
-The control services (formerly OPC Twin services) provides a IoT Hub device method API to invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service.  This includes [Variant](../api/json.md) encoding and decoding in a consistent JSON format.
+The control services (formerly OPC Twin services) are provided using IoT Hub device method API (as well as Web API and MQTT based request response API).
+
+The API enables you to write applications taht invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../api/json.md) encoding and decoding in a consistent JSON format.
 
 Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response.  This allows fast and large value writes and reads, as well as returning large browse results.  
 
@@ -437,7 +442,7 @@ The `om` parameter controls the upper limit of the capacity of the internal mess
 - Decrease the IoT Hub send interval (`si`)
 - Use latest OPC Publisher in standalone mode
   - Use PubSub format (`--mm=PubSub`).
-    - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](messageformats.md).
+    - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](./messageformats.md).
     - If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
     - If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
   - When Samples format (`--mm=Samples`) is required
