@@ -88,12 +88,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<IOpcUaClient> GetOrCreateClientAsync(
-            ConnectionModel connection, CancellationToken ct)
+        public IOpcUaClient GetOrCreateClient(ConnectionModel connection)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            var client = GetOrAddClient(connection);
-            return ValueTask.FromResult((IOpcUaClient)client);
+            return GetOrAddClient(connection);
         }
 
         /// <inheritdoc/>

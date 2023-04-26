@@ -19,10 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// disposed when not used anymore.
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<IOpcUaClient> GetOrCreateClientAsync(
-            T connection, CancellationToken ct = default);
+        IOpcUaClient GetOrCreateClient(T connection);
 
         /// <summary>
         /// Get a client handle for a connection or null

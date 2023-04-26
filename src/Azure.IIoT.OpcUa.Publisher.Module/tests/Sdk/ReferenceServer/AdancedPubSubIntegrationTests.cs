@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Microsoft.Azure.Devices.Shared;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -143,6 +144,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 diag = Assert.Single(diagnostics);
                 Assert.Equal(name2, diag.Endpoint.DataSetWriterGroup);
+            }
+            finally
+            {
+                StopPublisher();
+                server.Dispose();
+            }
+        }
+
+        [Fact]
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod()
+        {
+            var server = new ReferenceServer();
+            ServerPort = server.Port;
+            const string name = nameof(CanSendDataItemToIoTHubTestWithDeviceMethod);
+            var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
+            var testInput2 = GetEndpointsFromFile(name, "./Resources/DataItems2.json");
+            StartPublisher(name, arguments: new string[] { "--mm=PubSub" });
+            try
+            {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                Assert.Empty(endpoints.Endpoints);
+
+                var result = await PublisherApi.PublishNodesAsync(testInput1[0]).ConfigureAwait(false);
+                Assert.NotNull(result);
+
+                var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    messageType: "ua-data").ConfigureAwait(false);
+
+                var message = Assert.Single(messages).Message;
+                var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
+                Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+                Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+                Assert.NotNull(metadata);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var e = Assert.Single(endpoints.Endpoints);
+
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var n = Assert.Single(nodes.OpcNodes);
+                Assert.Equal(testInput1[0].OpcNodes[0].Id, n.Id);
+
+                // Add another node
+                result = await PublisherApi.PublishNodesAsync(testInput2[0]).ConfigureAwait(false);
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                e = Assert.Single(endpoints.Endpoints);
+
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                Assert.Equal(2, nodes.OpcNodes.Count);
+                Assert.Contains(testInput1[0].OpcNodes[0].Id, nodes.OpcNodes.Select(e => e.Id));
+                Assert.Contains(testInput2[0].OpcNodes[0].Id, nodes.OpcNodes.Select(e => e.Id));
+
+                (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    predicate: WaitUntilOutput2, messageType: "ua-data").ConfigureAwait(false);
+
+                // Remove endpoint
+                result = await PublisherApi.UnpublishNodesAsync(e).ConfigureAwait(false);
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                Assert.Empty(endpoints.Endpoints);
             }
             finally
             {

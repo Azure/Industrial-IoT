@@ -245,9 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // try to get a session using the provided configuration
-                using var client = await _clients.GetOrCreateClientAsync(
-                    _subscription.Id.Connection, default).ConfigureAwait(false);
-                Debug.Assert(client != null);
+                using var client = _clients.GetOrCreateClient(_subscription.Id.Connection);
 
                 //
                 // Now register with the session to ensure the state is
@@ -367,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.LogWarning(
                         "Failed to close subscription '{Subscription}'. " +
-                        "The attached session could not be found.", this);
+                        "The client for the connection could not be found.", this);
                     return;
                 }
 

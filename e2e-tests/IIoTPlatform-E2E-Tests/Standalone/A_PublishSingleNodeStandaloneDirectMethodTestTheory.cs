@@ -98,8 +98,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
-            var expectedModel = model;
-            expectedModel.OpcNodes = new List<OpcNodeModel>();
+            var expectedModel = model with { OpcNodes = new List<OpcNodeModel>() };
 
             var initialOpcPublishingInterval = model.OpcNodes[0].OpcPublishingInterval;
 
