@@ -741,16 +741,22 @@ namespace OpcPublisher_AE_E2E_Tests
         /// </summary>
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="predicate">While condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> TakeDuringAsync<TSource>(this IAsyncEnumerable<TSource> source, TimeSpan duration)
+        private static IAsyncEnumerable<TSource> TakeWhile<TSource>(this IAsyncEnumerable<TSource> source, Func<TSource, TSource, bool> predicate)
         {
             _ = source ?? throw new ArgumentNullException(nameof(source));
 
-            // ReSharper disable once ConvertClosureToMethodGroup
-            var sw = new Lazy<Stopwatch>(() => Stopwatch.StartNew());
-            return source.TakeWhile(_ => sw.Value.Elapsed < duration);
+            object firstSeen = null;
+            return source.TakeWhile(predicate: s =>
+            {
+                if (firstSeen is null)
+                {
+                    firstSeen = s;
+                }
+                return predicate((TSource)firstSeen, s);
+            });
         }
 
         /// <summary>
@@ -803,14 +809,14 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="source">A sequence to return elements from.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="writerGroupIdFunc">A function to extract the Data Source ID from a message payload.</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="predicate">While condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
+        private static IAsyncEnumerable<TSource> TakeWhile<TSource>(
             this IAsyncEnumerable<TSource> source,
             IIoTPlatformTestContext context,
             Func<TSource, string> writerGroupIdFunc,
-            TimeSpan duration
+            Func<TSource, TSource, bool> predicate
         )
         {
             // When the first message has been received for each simulator, the system is up and we
@@ -820,9 +826,9 @@ namespace OpcPublisher_AE_E2E_Tests
                     writerGroupIdFunc,
                     context.PlcAciDynamicUrls.Count,
                     () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
-                    () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
+                    () => context.OutputHelper?.WriteLine($"Consuming messages...")
                 )
-                .TakeDuringAsync(duration);
+                .TakeWhile(predicate);
         }
 
         /// <summary>
@@ -832,16 +838,16 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <typeparam name="TPayload">The type of the payloads in the Publisher messages.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="predicate">A while condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        public static IAsyncEnumerable<EventData<TPayload>> ConsumeDuring<TPayload>(
+        public static IAsyncEnumerable<EventData<TPayload>> TakeWhile<TPayload>(
             this IAsyncEnumerable<EventData<TPayload>> source,
             IIoTPlatformTestContext context,
-            TimeSpan duration
+            Func<EventData<TPayload>, EventData<TPayload>, bool> predicate
         ) where TPayload : BaseEventTypePayload
         {
-            return source.ConsumeDuring(context, m => m.WriterGroupId, duration);
+            return source.TakeWhile(context, m => m.WriterGroupId, predicate);
         }
 
         /// <summary>

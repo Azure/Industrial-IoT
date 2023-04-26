@@ -82,6 +82,7 @@ jobs:
     displayName: 'Run Roslyn Analyzers'
     inputs:
       userProvideBuildInfo: 'auto'
+      setupCommandlinePicker: 'vs2022'
     env:
       system_accesstoken: $(System.AccessToken)
     continueOnError: true
@@ -99,11 +100,13 @@ jobs:
 #      toolVersion: Latest
 #      targetDirectory: '$(Build.SourcesDirectory)'
 #    continueOnError: true
-  - task: BinSkim@3
+  - task: BinSkim@4
     displayName: 'BinSkim'
     inputs:
-      InputType: Basic
-      AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
+      InputType: 'Basic'
+      Function: 'analyze'
+      TargetPattern: 'guardianGlob'
+      AnalyzeTargetGlob: '**/Azure.IIoT.*.dll;**/Azure.IIoT.*.exe'
     continueOnError: true
   - task: PoliCheck@2
     displayName: PoliCheck

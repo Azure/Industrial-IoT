@@ -55,7 +55,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages
-                .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
+                .TakeWhile(_context, (first, current) => current.EnqueuedTime - first.EnqueuedTime <= FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
                 .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
