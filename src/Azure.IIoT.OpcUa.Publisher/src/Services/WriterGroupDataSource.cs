@@ -225,8 +225,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
                 {
-                    { "dataSetWriterName", dataSetWriter.DataSetWriterName },
-                    { "dataSetClassId", dataSetClassId }
+                    new KeyValuePair<string, object?>(Constants.DataSetWriterIdTag,
+                        dataSetWriter.DataSetWriterName)
                 };
             }
 

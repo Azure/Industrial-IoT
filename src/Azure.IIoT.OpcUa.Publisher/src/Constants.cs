@@ -11,6 +11,11 @@ namespace Azure.IIoT.OpcUa.Publisher
     internal static class Constants
     {
         /// <summary>
+        /// Dataset Writer identifier tag
+        /// </summary>
+        public const string DataSetWriterIdTag = "dataSetWriterId";
+
+        /// <summary>
         /// Default dataset writer id
         /// </summary>
         public const string DefaultDataSetWriterName = "<<UnknownDataSet>>";

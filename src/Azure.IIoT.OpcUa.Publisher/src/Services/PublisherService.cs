@@ -67,11 +67,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _currentJobs = new Dictionary<string, WriterGroupJob>();
 
-            TagList = new TagList(new[] {
-                new KeyValuePair<string, object?>("publisherId", PublisherId),
-                new KeyValuePair<string, object?>("timestamp_utc",
-                    DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                    CultureInfo.InvariantCulture))
+            TagList = new TagList(new[]
+            {
+                new KeyValuePair<string, object?>(Constants.PublisherIdTag, PublisherId)
             });
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();

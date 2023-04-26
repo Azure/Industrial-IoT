@@ -66,16 +66,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _outer = outer;
                 _writerGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
-                TagList = new TagList(new[] {
-                    new KeyValuePair<string, object?>(Constants.PublisherIdTag,
-                        _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
+                TagList = new TagList(new[]
+                {
                     new KeyValuePair<string, object?>(Constants.SiteIdTag,
                         _outer._options?.Value.Site ?? Constants.DefaultSite),
+                    new KeyValuePair<string, object?>(Constants.PublisherIdTag,
+                        _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,
-                        _writerGroup),
-                    new KeyValuePair<string, object?>(Constants.TimeStampTag,
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture))
+                        _writerGroup)
                 });
 
                 _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>

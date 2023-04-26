@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Text;
     using System.Threading;
+    using System.Linq;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -59,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void ResetWriterGroup(string writerGroupId)
         {
-            var diag = new WriterGroupDiagnosticModel { IngestionStart = DateTime.UtcNow };
+            var diag = new AggregateDiagnosticModel { IngestionStart = DateTime.UtcNow };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
             _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
                 writerGroupId);
@@ -76,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // then clone to take a snapshot
                 //
                 _meterListener.RecordObservableInstruments();
-                diagnostic = value.Clone();
+                diagnostic = value.GetAggregateModel();
                 return true;
             }
             diagnostic = default;
@@ -140,18 +141,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnMeasurementRecorded<T>(Instrument instrument, T measurement,
             ReadOnlySpan<KeyValuePair<string, object?>> tags, object? state)
         {
-            if (_bindings.TryGetValue(instrument.Name, out var binding))
+            if (_bindings.TryGetValue(instrument.Name, out var binding) &&
+                TryGetIds(tags, out var writerGroupId, out var dataSetWriterId) &&
+                _diagnostics.TryGetValue(writerGroupId, out var diag))
             {
-                for (var index = 0; index < tags.Length; index++)
+                binding(dataSetWriterId != null ? diag[dataSetWriterId] : diag, measurement!);
+            }
+            static bool TryGetIds(ReadOnlySpan<KeyValuePair<string, object?>> tags,
+                [NotNullWhen(true)] out string? writerGroupId, out string? dataSetWriterId)
+            {
+                writerGroupId = null;
+                dataSetWriterId = null;
+                for (var index = tags.Length; index > 0; index--) // Identifiers are at the end
                 {
-                    if (tags[index].Key == Constants.WriterGroupIdTag &&
-                        tags[index].Value is string name &&
-                        _diagnostics.TryGetValue(name, out var diag))
+                    var entry = tags[index - 1];
+                    if (entry.Value is string id)
                     {
-                        binding(diag, measurement!);
-                        break;
+                        switch (entry.Key)
+                        {
+                            case Constants.WriterGroupIdTag:
+                                writerGroupId = id;
+                                break;
+                            case Constants.DataSetWriterIdTag:
+                                dataSetWriterId = id;
+                                break;
+                        }
+                    }
+                    if (writerGroupId != null &&
+                        dataSetWriterId != null)
+                    {
+                        return true;
                     }
                 }
+                return writerGroupId != null;
             }
         }
 
@@ -165,7 +187,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meterListener.RecordObservableInstruments();
 
             var builder = new StringBuilder();
-            foreach (var (writerGroupId, info) in _diagnostics)
+
+            // Get all writers
+            var diagnostics = _diagnostics
+                .Select(kv => (kv.Key, kv.Value.GetAggregateModel()));
+            foreach (var (writerGroupId, info) in diagnostics)
             {
                 builder = Append(builder, writerGroupId, info, now - info.IngestionStart);
             }
@@ -267,11 +293,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        /// <summary>
+        /// Aggregate diagnostics
+        /// </summary>
+        private sealed record class AggregateDiagnosticModel : WriterGroupDiagnosticModel
+        {
+            /// <summary>
+            /// Writer group level diagnostics
+            /// </summary>
+            public WriterGroupDiagnosticModel WriterGroup { get; } = new();
+
+            /// <summary>
+            /// Get the writer diagnostics
+            /// </summary>
+            /// <param name="dataSetWriterId"></param>
+            /// <returns></returns>
+            public WriterGroupDiagnosticModel this[string dataSetWriterId] =>
+                _writers.GetOrAdd(dataSetWriterId, new WriterGroupDiagnosticModel
+                {
+                    IngestionStart = DateTime.UtcNow
+                });
+
+            internal WriterGroupDiagnosticModel GetAggregateModel()
+            {
+                return WriterGroup with
+                {
+                    MonitoredOpcNodesFailedCount =
+                        _writers.Values.Sum(w => w.MonitoredOpcNodesFailedCount),
+                    MonitoredOpcNodesSucceededCount =
+                        _writers.Values.Sum(w => w.MonitoredOpcNodesSucceededCount),
+                };
+            }
+            private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _writers = new();
+        }
+
         private readonly Timer _diagnosticsOutputTimer;
         private readonly MeterListener _meterListener;
         private readonly ILogger _logger;
         private readonly TimeSpan _diagnosticInterval;
-        private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics = new();
+        private readonly ConcurrentDictionary<string, AggregateDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing
         private readonly ConcurrentDictionary<string,

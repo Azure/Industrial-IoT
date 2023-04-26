@@ -210,7 +210,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(0, diag.MonitoredOpcNodesFailedCount);
-                if (!differentPublishingInterval) // TODO: Remove and fix diagnostics
                 Assert.Equal(2, diag.MonitoredOpcNodesSucceededCount);
 
                 // Remove endpoint

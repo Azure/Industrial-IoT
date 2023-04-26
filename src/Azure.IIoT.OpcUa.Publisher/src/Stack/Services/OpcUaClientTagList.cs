@@ -32,13 +32,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             var existing = parent?.TagList ?? default;
             var tags = existing.ToDictionary(kv => kv.Key, kv => kv.Value);
-            tags.AddOrUpdate("endpointUrl", connection.Endpoint.Url);
-            tags.AddOrUpdate("securityMode", connection.Endpoint.SecurityMode);
-            if (connection.Group != null && !tags.ContainsKey(Constants.WriterGroupIdTag))
+
+            TagList = new TagList(tags.ToArray().AsSpan())
             {
-                tags.Add(Constants.WriterGroupIdTag, connection.Group);
+                 new KeyValuePair<string, object?>("endpointUrl",
+                    connection.Endpoint.Url),
+                 new KeyValuePair<string, object?>("securityMode",
+                    connection.Endpoint.SecurityMode)
+            };
+
+            if (connection.Group != null &&
+                !tags.ContainsKey(Constants.WriterGroupIdTag))
+            {
+                TagList.Add(Constants.WriterGroupIdTag, connection.Group);
             }
-            TagList = new TagList(tags.ToArray().AsSpan());
         }
     }
 }

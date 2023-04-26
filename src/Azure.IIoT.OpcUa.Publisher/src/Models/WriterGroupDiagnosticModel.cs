@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// <summary>
     /// Model for a diagnostic info.
     /// </summary>
-    public class WriterGroupDiagnosticModel
+    public record class WriterGroupDiagnosticModel
     {
         /// <summary>
         /// Ingestion start
