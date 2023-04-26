@@ -144,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _writerGroup.WriterGroupId, writerGroup.WriterGroupId);
                 }
 
-                _logger.LogInformation("Successfully updated all subscriptions inside the writer group {Name}.",
+                _logger.LogInformation(
+                    "Successfully updated all subscriptions inside the writer group {Name}.",
                     writerGroup.WriterGroupId);
                 _writerGroup = writerGroup;
             }

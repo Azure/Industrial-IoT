@@ -152,14 +152,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
         }
 
-        [Fact]
-        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod(bool differentPublishingInterval)
         {
             var server = new ReferenceServer();
             ServerPort = server.Port;
-            const string name = nameof(CanSendDataItemToIoTHubTestWithDeviceMethod);
+            const string name = nameof(AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod);
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/DataItems2.json");
+            if (!differentPublishingInterval)
+            {
+                // Set both to the same so that there is a single writer instead of 2
+                testInput2[0].OpcNodes[0].OpcPublishingInterval = testInput1[0].OpcNodes[0].OpcPublishingInterval;
+            }
             StartPublisher(name, arguments: new string[] { "--mm=PubSub" });
             try
             {
@@ -199,6 +206,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
                     predicate: WaitUntilOutput2, messageType: "ua-data").ConfigureAwait(false);
+
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diag = Assert.Single(diagnostics);
+                Assert.Equal(0, diag.MonitoredOpcNodesFailedCount);
+                if (!differentPublishingInterval) // TODO: Remove and fix diagnostics
+                Assert.Equal(2, diag.MonitoredOpcNodesSucceededCount);
 
                 // Remove endpoint
                 result = await PublisherApi.UnpublishNodesAsync(e).ConfigureAwait(false);
