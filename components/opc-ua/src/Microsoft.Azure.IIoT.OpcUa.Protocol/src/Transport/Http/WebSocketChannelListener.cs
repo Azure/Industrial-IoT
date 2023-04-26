@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                 CertificateValidator = controller.CertificateValidator
                     .GetChannelValidator()
             };
-            _bufferManager = new BufferManager("Server", int.MaxValue,
+            _bufferManager = new BufferManager("Server",
                 _quotas.MaxBufferSize);
             _urls = (config?.ListenUrls?.Length ?? 0) != 0 ? config.ListenUrls :
                 new string[] { "http://localhost:9040" };

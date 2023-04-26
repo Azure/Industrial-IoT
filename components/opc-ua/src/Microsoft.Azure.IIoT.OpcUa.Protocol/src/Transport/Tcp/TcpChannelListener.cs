@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
 
             _serverCertificate = config.TcpListenerCertificate;
             _serverCertificateChain = config.TcpListenerCertificateChain;
-            _bufferManager = new BufferManager("Server", int.MaxValue,
+            _bufferManager = new BufferManager("Server",
                 _quotas.MaxBufferSize);
 
             // Create and bind sockets for listening.
