@@ -15,7 +15,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels
         public DateTime EnqueuedTime { get; set; }
 
         /// <summary>Message origin host.</summary>
-        public string PublisherId { get; set; }
+        public string WriterGroupId { get; set; }
 
         /// <summary>Payload</summary>
         public T Payload { get; set; }

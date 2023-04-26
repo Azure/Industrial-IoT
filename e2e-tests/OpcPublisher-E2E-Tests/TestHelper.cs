@@ -35,6 +35,7 @@ namespace OpcPublisher_AE_E2E_Tests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Xunit.Sdk;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -339,6 +340,7 @@ namespace OpcPublisher_AE_E2E_Tests
                     context.PlcAciDynamicUrls.Select(host => new JObject(
                         new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
                         new JProperty("UseSecurity", false),
+                        new JProperty("DataSetWriterGroup", Guid.NewGuid().ToString()),
                         new JProperty("DataSetWriterId", writerId),
                         new JProperty("OpcNodes", opcNodes)))
                 ), Formatting.Indented);
@@ -599,7 +601,7 @@ namespace OpcPublisher_AE_E2E_Tests
                     new EventData<T>
                     {
                         EnqueuedTime = x.enqueuedTime,
-                        PublisherId = x.publisherId,
+                        WriterGroupId = x.writerGroupId,
                         Payload = x.payload.ToObject<T>()
                     });
 
@@ -657,7 +659,7 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="numberOfBatchesToRead"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
             int numberOfBatchesToRead, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
@@ -667,6 +669,7 @@ namespace OpcPublisher_AE_E2E_Tests
                 JToken json = null;
                 if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
                 {
+                    Assert.Fail("Missing $$ContentType property in message");
                     continue;
                 }
                 bool isPayloadCompressed = (string)contentType == "application/json+gzip";
@@ -705,8 +708,8 @@ namespace OpcPublisher_AE_E2E_Tests
                 {
                     Assert.NotNull(message.MessageId.Value);
                     Assert.True(messageIds.Add(message.MessageId.Value));
-                    var publisherId = (string)message.PublisherId.Value;
-                    Assert.NotNull(publisherId);
+                    var writerGroupId = (string)message.DataSetWriterGroup.Value;
+                    Assert.NotNull(writerGroupId);
                     Assert.Equal("ua-data", message.MessageType.Value);
                     var innerMessages = (JArray)message.Messages;
                     Assert.True(innerMessages.Any(), "Json doesn't contain any messages");
@@ -722,7 +725,7 @@ namespace OpcPublisher_AE_E2E_Tests
                         // Metadata disabled, always sending version 1
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
 
-                        yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload, isPayloadCompressed);
+                        yield return (enqueuedTime, writerGroupId, (JObject)innerMessage.Payload, isPayloadCompressed);
                     }
                 }
 
@@ -741,22 +744,13 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="duration">A time duration during which to return data.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> TakeDuringAsync<TSource>(this IAsyncEnumerable<TSource> source, IIoTPlatformTestContext context, TimeSpan duration)
+        private static IAsyncEnumerable<TSource> TakeDuringAsync<TSource>(this IAsyncEnumerable<TSource> source, TimeSpan duration)
         {
             _ = source ?? throw new ArgumentNullException(nameof(source));
 
             // ReSharper disable once ConvertClosureToMethodGroup
             var sw = new Lazy<Stopwatch>(() => Stopwatch.StartNew());
-            return source.TakeWhile(_ =>
-            {
-                if (sw.Value.Elapsed < duration)
-                {
-                    return true;
-                }
-
-                context.OutputHelper?.WriteLine($"Stop consuming {sw.Value.Elapsed}");
-                return false;
-            });
+            return source.TakeWhile(_ => sw.Value.Elapsed < duration);
         }
 
         /// <summary>
@@ -808,14 +802,14 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="publisherIdFunc">A function to extract the Source ID from a message payload.</param>
+        /// <param name="writerGroupIdFunc">A function to extract the Data Source ID from a message payload.</param>
         /// <param name="duration">A time duration during which to return data.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
             this IAsyncEnumerable<TSource> source,
             IIoTPlatformTestContext context,
-            Func<TSource, string> publisherIdFunc,
+            Func<TSource, string> writerGroupIdFunc,
             TimeSpan duration
         )
         {
@@ -823,12 +817,12 @@ namespace OpcPublisher_AE_E2E_Tests
             // "let the flag fall" to start computing event rates.
             return source
                 .SkipUntilDistinctCountReached(
-                    publisherIdFunc,
-                    1,
+                    writerGroupIdFunc,
+                    context.PlcAciDynamicUrls.Count,
                     () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
                     () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
                 )
-                .TakeDuringAsync(context, duration);
+                .TakeDuringAsync(duration);
         }
 
         /// <summary>
@@ -847,7 +841,7 @@ namespace OpcPublisher_AE_E2E_Tests
             TimeSpan duration
         ) where TPayload : BaseEventTypePayload
         {
-            return source.ConsumeDuring(context, m => m.PublisherId, duration);
+            return source.ConsumeDuring(context, m => m.WriterGroupId, duration);
         }
 
         /// <summary>
