@@ -108,7 +108,7 @@ To deploy all required modules using Az...
                 "restartPolicy": "always",
                 "settings": {
                   "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-                  "createOptions": "{\"Hostname\":\"publisher\",\"HostConfig\":{\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
+                  "createOptions": "{\"HostConfig\":{\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
                 }
               }
             }

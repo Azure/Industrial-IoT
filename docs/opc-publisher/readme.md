@@ -39,27 +39,20 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 
 ``` json
 {
-    "Hostname": "opcpublisher",
     "Cmd": [
         "-c",
         "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
-        "--lf=/mount/publisher.log",
         "--mm=PubSub",
         "--me=Json",
         "--fd=false",
         "--bs=100",
-        "--bi=1000",
-        "--di=20"
+        "--bi=1000"
         "--aa"
     ],
     "HostConfig": {
-        "Mounts": [
-            {
-                "Type": "bind",
-                "Source": "/opcpublisher",
-                "Target": "/mount"
-            }
+        "Binds": [
+            "/opcpublisher:/mount"
         ],
         "CapDrop": [
             "CHOWN",

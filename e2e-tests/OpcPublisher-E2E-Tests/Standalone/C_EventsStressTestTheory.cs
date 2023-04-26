@@ -53,22 +53,21 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
 
-            const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
+            const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast + 10;
             var fullData = await messages
-                .ConsumeDuring(_context, FromSeconds(nSecondsTotal * 2))
+                .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
+                .Select(e => (Received: DateTime.UtcNow, e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
                 .ToListAsync(_timeoutToken).ConfigureAwait(false);
 
             // Assert throughput
 
-            // Trim first few and last seconds of data, since Publisher polls PLCs
-            // at different times
-            var intervalStart = fullData.Min(d => d.SourceTimestamp) + FromSeconds(nSecondSkipFirst);
-            var intervalEnd = fullData.Max(d => d.SourceTimestamp) - FromSeconds(nSecondSkipLast);
+            // Trim first few and last seconds of data
+            var intervalStart = fullData.Min(d => d.Received) + FromSeconds(nSecondSkipFirst);
+            var intervalEnd = fullData.Max(d => d.Received) - FromSeconds(nSecondSkipLast);
             var intervalDuration = intervalEnd - intervalStart;
-            var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
+            var eventData = fullData.Where(d => d.Received > intervalStart && d.Received < intervalEnd).ToList();
 
             // Bin events by 1-second interval to compute event rate histogram
             var eventRatesBySecond = eventData
@@ -78,7 +77,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
 
             _output.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s");
 
-            var eventRate = eventData.Count / intervalDuration.Value.TotalSeconds;
+            var eventRate = eventData.Count / intervalDuration.TotalSeconds;
             intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds));
 
             const int expectedEventsPerSecond = instances * eventInstances * 1000 / eventIntervalPerInstanceMs;
@@ -100,7 +99,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
 
             // Assert latency
             var end2EndLatency = eventData
-                .Select(v => v.EnqueuedTime - v.SourceTimestamp)
+                .Select(v => v.Received - v.SourceTimestamp)
                 .ToList();
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
