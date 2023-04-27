@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
@@ -202,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="dropped"></param>
         private void LogNotification(SubscriptionNotificationModel args, bool dropped = false)
         {
-            _logger.LogInformation("{Action}Notification#{Seq} from {Subscription}{Items}",
+            _logger.LogInformation("{Action}Notification#{Seq} from Subscription {Subscription}{Items}",
                 dropped ? "!!!! Dropped " : string.Empty, args.SequenceNumber,
                 args.SubscriptionName, Stringify(args.Notifications));
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
@@ -217,6 +218,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Append(item.DataSetFieldName ?? item.DisplayName)
                         .Append('|')
                         .Append(item.Value?.Value)
+                        .Append('|')
+                        .Append(item.Value?.StatusCode)
                         .Append('|')
                         .AppendLine();
                 }

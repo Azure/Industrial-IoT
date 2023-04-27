@@ -1,0 +1,24 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": true,
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcSamplingInterval": 100
+            },
+            {
+                "Id": "ns=23;i=1267",
+                "OpcSamplingInterval": 100
+            },
+            {
+                "Id": "ns=23;i=1274",
+                "OpcSamplingInterval": 100
+            },
+            {
+                "Id": "ns=23;i=1278",
+                "OpcSamplingInterval": 100
+            }
+        ]
+    }
+]

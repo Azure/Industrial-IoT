@@ -73,11 +73,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_diagnostics.TryGetValue(writerGroupId, out var value))
             {
                 //
-                // Ensure we collect all observable instruments into this model and
-                // then clone to take a snapshot
+                // Ensure we collect all observable instruments then
+                // return the aggregate model
                 //
                 _meterListener.RecordObservableInstruments();
-                diagnostic = value.GetAggregateModel();
+                diagnostic = value.AggregateModel;
                 return true;
             }
             diagnostic = default;
@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Get all writers
             var diagnostics = _diagnostics
-                .Select(kv => (kv.Key, kv.Value.GetAggregateModel()));
+                .Select(kv => (kv.Key, kv.Value.AggregateModel));
             foreach (var (writerGroupId, info) in diagnostics)
             {
                 builder = Append(builder, writerGroupId, info, now - info.IngestionStart);
@@ -299,9 +299,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private sealed record class AggregateDiagnosticModel : WriterGroupDiagnosticModel
         {
             /// <summary>
-            /// Writer group level diagnostics
+            /// The aggregate including information from all writers
             /// </summary>
-            public WriterGroupDiagnosticModel WriterGroup { get; } = new();
+            internal WriterGroupDiagnosticModel AggregateModel
+            {
+                get
+                {
+                    return this with
+                    {
+                        MonitoredOpcNodesFailedCount = MonitoredOpcNodesFailedCount +
+                            _writers.Values.Sum(w => w.MonitoredOpcNodesFailedCount),
+                        MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
+                            _writers.Values.Sum(w => w.MonitoredOpcNodesSucceededCount),
+                        ConnectionRetries = (int)
+                            _writers.Values.Average(w => w.ConnectionRetries),
+                        OpcEndpointConnected = OpcEndpointConnected ||
+                            _writers.Values.Any(w => w.OpcEndpointConnected)
+                    };
+                }
+            }
 
             /// <summary>
             /// Get the writer diagnostics
@@ -314,16 +330,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     IngestionStart = DateTime.UtcNow
                 });
 
-            internal WriterGroupDiagnosticModel GetAggregateModel()
-            {
-                return WriterGroup with
-                {
-                    MonitoredOpcNodesFailedCount =
-                        _writers.Values.Sum(w => w.MonitoredOpcNodesFailedCount),
-                    MonitoredOpcNodesSucceededCount =
-                        _writers.Values.Sum(w => w.MonitoredOpcNodesSucceededCount),
-                };
-            }
             private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _writers = new();
         }
 
