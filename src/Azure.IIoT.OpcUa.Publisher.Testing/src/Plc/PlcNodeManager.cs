@@ -267,7 +267,8 @@ namespace Plc
 	        if (path is uint || path is long)
 	        {
 	            baseDataVariableState.NodeId = new NodeId((uint)path, namespaceIndex);
-	            baseDataVariableState.BrowseName = new QualifiedName(((uint)path).ToString(), namespaceIndex);
+	            baseDataVariableState.BrowseName = new QualifiedName(((uint)path)
+                    .ToString(CultureInfo.CurrentCulture), namespaceIndex);
 	        }
 	        else if (path is string)
 	        {

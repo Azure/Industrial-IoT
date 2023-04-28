@@ -152,7 +152,17 @@ namespace Plc
                         : string.Empty;
 
                     string nodeId = JsonEncodedText.Encode(node.NodeId, JavaScriptEncoder.Default).ToString();
-                    sb.AppendLine($"      {{ \"Id\": \"nsu={node.Namespace};{node.NodeIdTypePrefix}={nodeId}\"{publishingInterval}{samplingInterval} }},");
+                    sb.Append("      { \"Id\": \"nsu=")
+                        .Append(node.Namespace)
+                        .Append(';')
+                        .Append(node.NodeIdTypePrefix)
+                        .Append('=')
+                        .Append(nodeId)
+                        .Append('\"')
+                        .Append(publishingInterval)
+                        .Append(samplingInterval)
+                        .AppendLine(" },")
+                        ;
                 }
             }
 
