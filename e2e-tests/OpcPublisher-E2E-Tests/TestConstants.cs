@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests {
+namespace OpcPublisher_AE_E2E_Tests
+{
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
-    internal static partial class TestConstants {
+    internal static partial class TestConstants
+    {
         /// <summary>
         /// Character that need to be used when split value of "PLC_SIMULATION_URLS"
         /// </summary>
@@ -62,7 +64,8 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Contains constants for OPC PLC
         /// </summary>
-        internal static class OpcSimulation {
+        internal static class OpcSimulation
+        {
             /// <summary>
             /// Default port of OPC UA Server endpoint of OPC PLC
             /// </summary>
@@ -98,8 +101,8 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Contains names of Environment variables available for tests
         /// </summary>
-        internal static class EnvironmentVariablesNames {
-
+        internal static class EnvironmentVariablesNames
+        {
             /// <summary>
             /// Tenant name used for authentication of Industrial IoT Platform
             /// </summary>
@@ -214,7 +217,8 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Constants related to xUnit traits
         /// </summary>
-        internal static class TraitConstants {
+        internal static class TraitConstants
+        {
             /// <summary>
             /// The trait name of the Publisher Mode
             /// </summary>
@@ -234,7 +238,8 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Direct Method names
         /// </summary>
-        internal static class DirectMethodNames {
+        internal static class DirectMethodNames
+        {
             /// <summary>
             /// Publish Nodes
             /// </summary>

@@ -11,8 +11,8 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
-@using Microsoft.Azure.IIoT.App.Common
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -20,7 +20,7 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 <h1>Twin Modules</h1>
 
@@ -97,7 +97,6 @@
                     <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(supervisor.Id))">More Data</a>
                 </td>
                 <td>
-                    <button @onclick="@(() => ResetSupervisorUIAsync(supervisor.Id))" class="btn btn-primary">Reset</button>
                 </td>
             </tr>
         }

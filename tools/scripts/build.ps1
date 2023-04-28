@@ -1,124 +1,193 @@
 <#
  .SYNOPSIS
-    Builds docker images from definition files in folder or the entire 
-    tree into a container registry.
+    Builds a manifest list from images produced as part of 
+    a full build of all csproj files. A full build includes
+    building linux-arm, linux-arm64, linux-x64, etc.
 
- .DESCRIPTION
-    The script traverses the build root to find all folders with an 
-    container.json file builds each one.
-
-    If resource group or registry name is provided, creates or uses the 
-    container registry in the resource group to build with. In this case
-    you must use az login first to authenticate to azure.
-
- .PARAMETER Path
-    The root folder to start traversing the repository from (Optional).
-
- .PARAMETER ResourceGroupName
-    The name of the resource group to create (Optional).
- .PARAMETER ResourceGroupLocation
-    The location of the resource group to create (Optional).
- .PARAMETER Subscription
-    The subscription to use (Optional).
+ .PARAMETER Registry
+    The name of the container registry to push to (optional)
+ .PARAMETER User
+    The user name to use when pushing.
+ .PARAMETER Pw
+    The password used when pushing.
+ .PARAMETER ImageNamespace
+    The namespace to use for the image inside the registry.
+ .PARAMETER ImageTag
+    Image tags to combine into manifest. Defaults to "latest"
+ .PARAMETER PublishTags
+    Comma seperated tags to publish. Defaults to Tag
 
  .PARAMETER Debug
-    Whether to build debug images.
+    Whether to build Release or Debug - default to Release.  
+ .PARAMETER NoBuid
+    If set does not build but just packages the images into a 
+    manifest list
 #>
 
 Param(
-    [string] $Path = $null,
-    [string] $ResourceGroupName = $null,
-    [string] $ResourceGroupLocation = $null,
-    [string] $Subscription = $null,
-    [switch] $Debug
+    [string] $Registry = $null,
+    [string] $User = $null,
+    [string] $Pw = $null,
+    [string] $ImageNamespace = $null,
+    [string] $ImageTag = "latest",
+    [string] $PublishTags = $null,
+    [switch] $Debug,
+    [switch] $NoBuild
 )
 
-$startTime = $(Get-Date)
-$BuildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "*.sln"
-if ([string]::IsNullOrEmpty($script:Path)) {
-    $script:Path = $BuildRoot
+$ErrorActionPreference = "Stop"
+
+if (!$script:PublishTags) {
+    $script:PublishTags = "latest"
+    if ($script:ImageTag -ne "latest") {
+        $script:PublishTags = "$($script:PublishTags),$($script:ImageTag)"
+    }
+}
+$platforms = @{
+    "linux" = @( "x64", "arm", "arm64")
 }
 
-if ([string]::IsNullOrEmpty($script:Subscription)) {
-    $argumentList = @("account", "show")
-    $account = & "az" @argumentList 2>$null | ConvertFrom-Json
-    if (!$account) {
-        throw "Failed to retrieve account information."
-    }
-    $script:Subscription = $account.name
-    Write-Host "Using default subscription $script:Subscription..."
-}
+$Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
 
-$registry = $null
-if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
-    # check if group exists and if not create it.
-    $argumentList = @("group", "show", "-g", $script:ResourceGroupName,
-        "--subscription", $script:Subscription)
-    $group = & "az" @argumentList 2>$null | ConvertFrom-Json
-    if (!$group) {
-        if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
-            throw "Need a resource group location to create the resource group."
+# Build manifest using the manifest tool
+$manifestFile = New-TemporaryFile
+$url = "https://github.com/estesp/manifest-tool/releases/download/v1.0.0/"
+if ($env:OS -eq "windows_nt") {
+    $manifestTool = "manifest-tool-windows-amd64.exe"
+}
+else {
+    $manifestTool = "manifest-tool-linux-amd64"
+}
+$manifestToolPath = Join-Path $PSScriptRoot $manifestTool
+while ($true) {
+    try {
+        # Download and verify manifest tool
+        $wc = New-Object System.Net.WebClient
+        $url += $manifestTool
+        Write-Host "Downloading $($manifestTool)..."
+        $wc.DownloadFile($url, $manifestToolPath)
+
+        if (Test-Path $manifestToolPath) {
+            break
         }
-        $argumentList = @("group", "create", "-g", $script:ResourceGroupName, `
-            "-l", $script:ResourceGroupLocation, 
-            "--subscription", $script:Subscription)
-        $group = & "az" @argumentList | ConvertFrom-Json
-        if ($LastExitCode -ne 0) {
-            throw "az $($argumentList) failed with $($LastExitCode)."
-        }
-        Write-Host "Created new Resource group $ResourceGroupName."
     }
-    if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
-        $script:ResourceGroupLocation = $group.location
-    }
-    # check if acr exist and if not create it
-    $argumentList = @("acr", "list", "-g", $script:ResourceGroupName,
-        "--subscription", $script:Subscription)
-    $registries = & "az" @argumentList 2>$null | ConvertFrom-Json
-    $registry = if ($registries) { $registries[0] } else { $null }
-    if (!$registry) {
-        $argumentList = @("acr", "create", "-g", $script:ResourceGroupName, "-n", `
-            "acr$script:ResourceGroupName", "-l", $script:ResourceGroupLocation, `
-            "--sku", "Basic", "--admin-enabled", "true", 
-            "--subscription", $script:Subscription)
-        $registry = & "az" @argumentList | ConvertFrom-Json
-        if ($LastExitCode -ne 0) {
-            throw "az $($argumentList) failed with $($LastExitCode)."
-        }
-        Write-Host "Created new Container registry in $ResourceGroupName."
-    }
-    else {
-        Write-Host "Using Container registry $($registry.name)."
+    catch {
+        Write-Warning "Failed to download $($manifestTool) - try again..."
+        Start-Sleep -s 3
     }
 }
 
-# Traverse from build root and find all container.json metadata files and build
-Get-ChildItem $script:Path -Recurse -Include "container.json" `
-    | ForEach-Object {
-
-    # Get root
-    $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "")
-    if (![string]::IsNullOrEmpty($dockerFolder)) {
-        $dockerFolder = $dockerFolder.Substring(1)
+if (-not $script:NoBuild.IsPresent) {
+    $push = $false
+    if ($script:Registry -and ($script:User -and $script:Pw)) {
+        Write-Host "Logging into $($script:Registry) with $($script:Pw)..."
+        (& docker login $script:Registry -u $script:User -p $script:Pw) | Out-Null
+        $push = ($LastExitCode -ne 0)
+        Write-Host "Pushing to $($script:Registry)..."
     }
-    $metadata = Get-Content -Raw -Path (join-path $_.DirectoryName "container.json") `
-        | ConvertFrom-Json
-    if ($metadata) {
-        # See if we should build into registry, otherwise build local docker images
-        if ($registry) {
-            & (Join-Path $PSScriptRoot "acr-build.ps1") -Path $dockerFolder `
-                -Registry $registry.name -Subscription $script:Subscription `
-                -Debug:$Debug  -Fast
-        }
-        else {
-            if ([string]::IsNullOrEmpty($dockerFolder)) {
-                $dockerFolder = "."
+
+    # Build all platforms
+    $platforms.Keys | ForEach-Object {
+        $os = $_
+        $platforms.Item($_) | ForEach-Object {
+            $arch = $_
+                        
+            Write-Host "Publish containers for $os-$arch..."
+            # Build the docker images and push them to acr
+            & (Join-Path $PSScriptRoot "publish.ps1") -Registry $($script:Registry) `
+                -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
+                -Os $os -Arch $arch -Debug:$script:Debug -Push:$push
+            if ($LastExitCode -ne 0) {
+                throw "Failed to publish containers for $os-$arch."
             }
-            & (Join-Path $PSScriptRoot "docker-build.ps1") `
-                -ImageName $metadata.name -Path $dockerFolder -Debug:$Debug
         }
+    }
+    if ($push) {
+        docker logout $script:Registry
     }
 }
 
-$elapsedTime = $(Get-Date) - $startTime
-Write-Host "Build took $($elapsedTime.ToString("hh\:mm\:ss")) (hh:mm:ss)" 
+try {
+    # Find all container projects, publish them and then push to container registry
+    Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
+        $projFile = $_
+        $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
+            | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
+            | Select-Object -First 1
+        if ($properties) {
+            $fullName = ""
+            if ($script:Registry) {
+                $fullName = "$($script:Registry)/"
+            }
+            if ($script:ImageNamespace) {
+                $fullName = "$($fullName)$($script:ImageNamespace)/"
+            }
+            $fullName = "$($fullName)$($properties.ContainerImageName)"
+            $tagPostfix = ""
+            if ($script:Debug.IsPresent) {
+                $tagPostfix = "-debug"
+            }
+
+            $manifest = @"
+image: $($fullName)
+tags: [$($script:PublishTags)]
+manifests:
+"@
+            $platforms.Keys | ForEach-Object {
+                $os = $_
+                $platforms.Item($_) | ForEach-Object {
+                    $arch = $_
+                    $architecture = $arch
+                    if ($architecture -eq "x64") {
+                        $architecture = "amd64"
+                    }
+
+        # Append to manifest
+        if (![string]::IsNullOrEmpty($os)) {
+            $manifest += @"
+
+  - 
+    image: $($fullName):$($script:ImageTag)-$($os)-$($arch)$($tagPostfix)
+    platform: 
+      os: $($os)
+      architecture: $($architecture)
+"@
+    }
+                }
+            }
+
+            Write-Host "Building and pushing manifest file:"
+            Write-Host
+            $manifest | Out-Host
+            $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
+            $argumentList = @()
+            if ($script:User) {
+                $argumentList += "--username"
+                $argumentList += $script:User
+            }
+            if ($script:Pw) {
+                $argumentList += "--password"
+                $argumentList += $script:Pw
+            }
+            $argumentList += "push"
+            $argumentList += "from-spec"
+            $argumentList += $manifestFile.FullName
+            while ($true) {
+                (& $manifestToolPath $argumentList) | Out-Host
+                if ($LastExitCode -eq 0) {
+                    break   
+                }
+                Write-Warning "Manifest push failed - try again."
+                Start-Sleep -s 2
+            }
+    Write-Host "Manifest $($fullName) successfully pushed with tags $($script:PublishTags)."
+        }
+    }
+}
+catch {
+    throw $_.Exception
+}
+finally {
+    Remove-Item -Force -Path $manifestFile.FullName
+    Remove-Item -Force -Path $manifestToolPath
+}

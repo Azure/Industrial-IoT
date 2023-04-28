@@ -2,17 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "deploymentLevel": {
-            "type": "string",
-            "defaultValue": "Standard",
-            "allowedValues": [
-                "Standard",
-                "Minimum"
-            ],
-            "metadata": {
-                "description": "Specifies the level of resources that should be deployed (e.g. for a 'Minimum' deployment)."
-            }
-        },
         "serviceAppId": {
             "type": "string",
             "defaultValue": "",
@@ -95,13 +84,6 @@
             "defaultValue": "main",
             "metadata": {
                 "description": "The branch from which to deploy deploy services and application.  Default to main."
-            }
-        },
-        "repoUrl": {
-            "type": "string",
-            "defaultValue": "https://github.com/Azure/Industrial-IoT",
-            "metadata": {
-                "description": "The repository url from which to deploy services and application.  Default is official repository."
             }
         },
         "templateUrl": {
@@ -219,6 +201,137 @@
                 "description": "Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription."
             }
         },
+        "managedIdentityName": {
+            "type": "string",
+            "defaultValue": "[concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5))]",
+            "metadata": {
+                "description": "The name of the managed identity to create. If client principal was omitted a default identity will be provisioned to access resources."
+            }
+        },
+        "storageName": {
+            "type": "string",
+            "defaultValue": "[concat('storage', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the storage account created as part of the deployment."
+            }
+        },
+        "storageSkuName": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "The storage SKU to use."
+            }
+        },
+        "iotHubName": {
+            "type": "string",
+            "defaultValue": "[concat('iothub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of Azure IoT Hub created as part of the deployment."
+            }
+        },
+        "iotHubSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "F1",
+                "S1",
+                "S2",
+                "S3"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub SKU to use."
+            }
+        },
+        "iotHubCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The Azure IoT Hub SKU capacity to use."
+            }
+        },
+        "iotHubTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Free",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure IoT Hub tier to use."
+            }
+        },
+        "iotHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 4,
+            "metadata": {
+                "description": "The Azure IoT Hub default endpoint partition count."
+            }
+        },
+        "iotHubRetentionInDays": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The Azure IoT Hub default message retention in days."
+            }
+        },
+        "dpsName": {
+            "type": "string",
+            "defaultValue": "[concat('dps', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the Azure Device Provisioning service created as part of this deployment."
+            }
+        },
+        "dpsSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "S1"
+            ],
+            "metadata": {
+                "description": "The Azure Device Provisioning service SKU to use."
+            }
+        },
+        "dpsCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "minValue": 1,
+            "maxValue": 3,
+            "metadata": {
+                "description": "The Azure Device Provisioning service capacity."
+            }
+        },
+        "appInsightsName": {
+            "type": "string",
+            "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "[concat('keyvault-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The resource name of the KeyVault created as part of the deployment."
+            }
+        },
+        "keyVaultSkuName": {
+            "type": "string",
+            "defaultValue": "Premium",
+            "allowedValues": [
+                "Standard",
+                "Premium"
+            ],
+            "metadata": {
+                "description": "The KeyVault SKU to use."
+            }
+        },
         "tags": {
             "type": "object",
             "defaultValue": {},
@@ -226,67 +339,313 @@
                 "description": "Tags for Azure resources."
             }
         }
+
     },
     "variables": {
-        "infrastructureDeploymentLevel": "[if(or(equals(parameters('deploymentLevel'), 'Standard'), variables('platformDeployment')), 'Standard', 'Minimum')]",
-        "minimumInfrastructureResourceName": "infrastructure.minimum",
-        "minimumInfrastructureResourceId": "[resourceId('Microsoft.Resources/deployments', variables('minimumInfrastructureResourceName'))]",
-        "standardInfrastructureResourceName": "infrastructure.standard",
-        "standardInfrastructureResourceId": "[resourceId('Microsoft.Resources/deployments', variables('standardInfrastructureResourceName'))]",
-        "standardInfrastructureDeployment": "[equals(variables('infrastructureDeploymentLevel'), 'Standard')]",
-        "authConfigurationResourcName": "auth.configuration",
         "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
         "platformResourcName": "platform",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
         "simulationDeployment": "[not(and(equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
         "simulationResourcName": "simulation",
+        "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
+        "iotHubKeyName": "iothubowner",
+        "iotHubContainerName": "[parameters('iotHubName')]",
+        "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
+        "iothubTelemetryConsumerGroup": "telemetry",
+        "iothubEventsConsumerGroup": "events",
+        "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
+        "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+        "configurationResourceName": "infrastructure.configuration",
+        "configurationResourceId": "[resourceId('Microsoft.Resources/deployments', variables('configurationResourceName'))]",
+        "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
     },
     "resources": [
         {
-            "comments": "Deploy minimum required Azure Infrastructure for Industrial IoT.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[variables('minimumInfrastructureResourceName')]",
+            "comments": "Managed identity to access keyvault.",
+            "name": "[parameters('managedIdentityName')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "comments": "KeyVault for secrets and certificate store.",
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[parameters('keyVaultName')]",
+            "apiVersion": "2016-10-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "templateUrl": {
-                        "value": "[parameters('templateUrl')]"
-                    },
-                    "branchName": {
-                        "value": "[parameters('branchName')]"
-                    },
-                    "keyVaultPrincipalId": {
-                        "value": "[parameters('keyVaultPrincipalId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
+                "enabledForDeployment": false,
+                "enabledForTemplateDeployment": true,
+                "enabledForVolumeEncryption": false,
+                "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
+                "sku": {
+                    "name": "[parameters('keyVaultSkuName')]",
+                    "family": "A"
+                },
+                "accessPolicies": [
+                    {
+                        "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
+                        "objectId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
+                        "permissions": {
+                            "keys": [
+                                "get",
+                                "list",
+                                "sign",
+                                "unwrapKey",
+                                "wrapKey",
+                                "create"
+                            ],
+                            "secrets": [
+                                "get",
+                                "list",
+                                "set",
+                                "delete"
+                            ],
+                            "certificates": [
+                                "get",
+                                "list",
+                                "update",
+                                "create",
+                                "import"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('identityResourceId')]"
+            ]
+        },
+        {
+            "comments": "Optional KeyVault principal access permissions for configuration secrets.",
+            "condition": "[not(empty(parameters('keyVaultPrincipalId')))]",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[concat(parameters('keyVaultName'), '/add')]",
+            "apiVersion": "2016-10-01",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[parameters('keyVaultPrincipalId')]",
+                        "permissions": {
+                            "keys": [
+                                "get",
+                                "list",
+                                "sign",
+                                "unwrapKey",
+                                "wrapKey",
+                                "create"
+                            ],
+                            "secrets": [
+                                "get",
+                                "list",
+                                "set",
+                                "delete"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('keyVaultResourceId')]"
+            ]
+        },
+        {
+            "comments": "Azure IoT Hub",
+            "apiVersion": "2019-03-22",
+            "type": "Microsoft.Devices/Iothubs",
+            "name": "[parameters('iotHubName')]",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('iotHubSku')]",
+                "tier": "[parameters('iotHubTier')]",
+                "capacity": "[parameters('iotHubCapacity')]"
+            },
+            "properties": {
+                "location": "[resourceGroup().location]",
+                "ipFilterRules": [],
+                "eventHubEndpoints": {
+                    "events": {
+                        "retentionTimeInDays": "[parameters('iotHubRetentionInDays')]",
+                        "partitionCount": "[parameters('iotHubPartitionCount')]"
                     }
                 },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.minimum.json')]"
+                "routing": {
+                    "endpoints": {
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [],
+                        "storageContainers": []
+                    },
+                    "routes": [
+                        {
+                            "name": "TwinChanges",
+                            "source": "TwinChangeEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "events"
+                            ],
+                            "isEnabled": true
+                        },
+                        {
+                            "name": "DeviceLifecycle",
+                            "source": "DeviceLifecycleEvents",
+                            "condition": "true",
+                            "endpointNames": [
+                                "events"
+                            ],
+                            "isEnabled": true
+                        }
+                    ],
+                    "fallbackRoute": {
+                        "name": "$fallback",
+                        "source": "DeviceMessages",
+                        "condition": "true",
+                        "endpointNames": [
+                            "events"
+                        ],
+                        "isEnabled": true
+                    }
+                },
+                "storageEndpoints": {
+                    "$default": {
+                        "sasTtlAsIso8601": "PT1H",
+                        "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
+                        "containerName": "[variables('iotHubContainerName')]"
+                    }
+                },
+                "messagingEndpoints": {
+                    "fileNotifications": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "enableFileUploadNotifications": true,
+                "cloudToDevice": {
+                    "maxDeliveryCount": 10,
+                    "defaultTtlAsIso8601": "PT1H",
+                    "feedback": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "features": "None"
+            },
+            "dependsOn": [
+                "[variables('storageResourceId')]"
+            ]
+        },
+        {
+            "comments": "Telemetry Consumer Group in IoT Hub",
+            "apiVersion": "2019-03-22",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTelemetryConsumerGroup'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Edge Events Consumer Group in IoT Hub",
+            "apiVersion": "2019-03-22",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubEventsConsumerGroup'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Blob storage account",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[parameters('storageSkuName')]"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
                 }
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Azure Device Provisioning service.",
+            "type": "Microsoft.Devices/provisioningServices",
+            "name": "[parameters('dpsName')]",
+            "apiVersion": "2018-01-22",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('dpsSku')]",
+                "capacity": "[parameters('dpsCapacity')]"
+            },
+            "properties": {
+                "iotHubs": [
+                    {
+                        "connectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
+                        "location": "[resourceGroup().location]",
+                        "name": "[reference(variables('iotHubResourceId')).hostName]"
+                    }
+                ]
             }
         },
         {
-            "comments": "Save auth configuration in keyVault.",
+            "comments": "Applications monitoring instance",
+            "type": "Microsoft.Insights/components",
+            "name": "[parameters('appInsightsName')]",
+            "apiVersion": "2015-05-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web",
+                "ApplicationId": "[parameters('appInsightsName')]"
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Save configuration in keyVault.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-08-01",
-            "name": "[variables('authConfigurationResourcName')]",
+            "name": "[variables('configurationResourceName')]",
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
+                        "value": "[parameters('keyVaultName')]"
                     },
                     "configuration": {
                         "value": [
-                            {
-                                "key": "PCS_DEPLOYMENT_LEVEL",
-                                "value": "[variables('infrastructureDeploymentLevel')]"
-                            },
                             {
                                 "key": "PCS_AUTH_REQUIRED",
                                 "value": "[not(empty(parameters('serviceAppId')))]"
@@ -328,6 +687,14 @@
                                 "value": "[parameters('trustedTokenIssuer')]"
                             },
                             {
+                                "key": "PCS_SIMULATION_USER",
+                                "value": "[parameters('edgeUserName')]"
+                            },
+                            {
+                                "key": "PCS_SIMULATION_PASSWORD",
+                                "value": "[parameters('edgePassword')]"
+                            },
+                            {
                                 "key": "PCS_DOCKER_SERVER",
                                 "value": "[parameters('dockerServer')]"
                             },
@@ -342,6 +709,62 @@
                             {
                                 "key": "PCS_IMAGES_NAMESPACE",
                                 "value": "[parameters('imagesNamespace')]"
+                            },
+                            {
+                                "key": "PCS_IOTHUB_CONNSTRING",
+                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]"
+                            },
+                            {
+                                "key": "PCS_IOTHUB_EVENTHUBENDPOINT",
+                                "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
+                            },
+                            {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
+                                "value": "[variables('iothubTelemetryConsumerGroup')]"
+                            },
+                            {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP2",
+                                "value": "[variables('iothubEventsConsumerGroup')]"
+                            },
+                            {
+                                "key": "PCS_STORAGE_CONNSTRING",
+                                "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
+                            },
+                            {
+                                "key": "PCS_STORAGE_KEY",
+                                "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                            },
+                            {
+                                "key": "PCS_KEYVAULT_URL",
+                                "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]"
+                            },
+                            {
+                                "key": "PCS_MSI_APPID",
+                                "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
+                            },
+                            {
+                                "key": "PCS_MSI_TENANT",
+                                "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
+                            },
+                            {
+                                "key": "PCS_DPS_CONNSTRING",
+                                "value": "[concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey)]"
+                            },
+                            {
+                                "key": "PCS_DPS_IDSCOPE",
+                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').idScope]"
+                            },
+                            {
+                                "key": "PCS_DPS_ENDPOINT",
+                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').deviceProvisioningHostName]"
+                            },
+                            {
+                                "key": "PCS_SUBSCRIPTION_ID",
+                                "value": "[subscription().subscriptionId]"
+                            },
+                            {
+                                "key": "PCS_RESOURCE_GROUP",
+                                "value": "[resourceGroup().name]"
                             }
                         ]
                     },
@@ -355,69 +778,9 @@
                 }
             },
             "dependsOn": [
-                "[variables('minimumInfrastructureResourceId')]"
-            ]
-        },
-        {
-            "comments": "Deploy Azure Infrastructure required by the full Industrial IoT Platform.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[variables('standardInfrastructureResourceName')]",
-            "condition": "[variables('standardInfrastructureDeployment')]",
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "templateUrl": {
-                        "value": "[parameters('templateUrl')]"
-                    },
-                    "branchName": {
-                        "value": "[parameters('branchName')]"
-                    },
-                    "keyVaultName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
-                    },
-                    "dpsIotHubHostName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.iotHubHostName.value]"
-                    },
-                    "dpsIotHubLocation": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.iotHubLocation.value]"
-                    },
-                    "eventHubNamespaceName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.eventHubNamespaceName.value]"
-                    },
-                    "eventHubName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.eventHubName.value]"
-                    },
-                    "dpsIotHubConnectionString": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value)]"
-                            },
-                            "secretName": "pcs-iothub-connstring"
-                        }
-                    },
-                    "tsiStorageName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.storageName.value]"
-                    },
-                    "tsiStorageManagementKey": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value)]"
-                            },
-                            "secretName": "pcs-storage-key"
-                        }
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.standard.json')]"
-                }
-            },
-            "dependsOn": [
-                "[variables('minimumInfrastructureResourceId')]"
+                "[variables('iotHubResourceId')]",
+                "[variables('storageResourceId')]",
+                "[variables('keyVaultResourceId')]"
             ]
         },
         {
@@ -435,29 +798,17 @@
                     "serviceSiteName": {
                         "value": "[parameters('serviceSiteName')]"
                     },
-                    "branchName": {
-                        "value": "[parameters('branchName')]"
-                    },
-                    "repoUrl": {
-                        "value": "[parameters('repoUrl')]"
-                    },
-                    "templateUrl": {
-                        "value": "[parameters('templateUrl')]"
-                    },
-                    "keyVaultName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
-                    },
                     "keyVaultUri": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultUri.value]"
+                        "value": "[reference(variables('keyVaultResourceId')).vaultUri]"
                     },
                     "managedIdentityResourceId": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                        "value": "[variables('identityResourceId')]"
                     },
                     "managedIdentityClientId": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityClientId.value]"
+                        "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
                     },
                     "managedIdentityTenantId": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityTenantId.value]"
+                        "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
                     },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"
@@ -487,7 +838,7 @@
                 }
             },
             "dependsOn": [
-                "[variables('minimumInfrastructureResourceId')]"
+                "[variables('configurationResourceId')]"
             ]
         },
         {
@@ -530,10 +881,10 @@
                         "value": "[parameters('templateUrl')]"
                     },
                     "keyVaultName": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
+                        "value": "[parameters('keyVaultName')]"
                     },
                     "managedIdentityResourceId": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                        "value": "[variables('identityResourceId')]"
                     },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"
@@ -560,18 +911,14 @@
                 }
             },
             "dependsOn": [
-                "[variables('standardInfrastructureResourceId')]"
+                "[variables('configurationResourceId')]"
             ]
         }
     ],
     "outputs": {
         "keyVaultUri": {
             "type": "string",
-            "value": "[reference(variables('minimumInfrastructureResourceId'), '2017-05-10').outputs.keyVaultUri.value]"
-        },
-        "tsiUrl": {
-            "type": "string",
-            "value": "[if (variables('standardInfrastructureDeployment'), reference(variables('standardInfrastructureResourceId'), '2017-05-10').outputs.tsiUrl.value, '')]"
+            "value": "[reference(variables('keyVaultResourceId')).vaultUri]"
         },
         "tenantId": {
             "type": "string",

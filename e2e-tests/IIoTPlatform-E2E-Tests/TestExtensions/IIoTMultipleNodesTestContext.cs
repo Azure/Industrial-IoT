@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using IIoTPlatform_E2E_Tests.TestModels;
+namespace IIoTPlatform_E2E_Tests.TestExtensions
+{
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
@@ -14,8 +15,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass between test, for test that handle multiple OPC UA nodes
     /// </summary>
-    public class IIoTMultipleNodesTestContext : IIoTPlatformTestContext  {
-        public IIoTMultipleNodesTestContext() {
+    public class IIoTMultipleNodesTestContext : IIoTPlatformTestContext
+    {
+        public IIoTMultipleNodesTestContext()
+        {
             ConsumedOpcUaNodes = new Dictionary<string, PublishedNodesEntryModel>();
         }
 
@@ -32,9 +35,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Uses the Testhelper to load the simulated OPC UA Nodes and transform them
         /// </summary>
+        /// <param name="token"></param>
         /// <returns></returns>
-        public async Task LoadSimulatedPublishedNodes(CancellationToken token) {
-            var simulatedPlcs = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, token);
+        public async Task LoadSimulatedPublishedNodesAsync(CancellationToken token)
+        {
+            var simulatedPlcs = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, token).ConfigureAwait(false);
 
             SimulatedPublishedNodes = new ReadOnlyDictionary<string, PublishedNodesEntryModel>(
                 simulatedPlcs.ToDictionary(kvp => kvp.Value.EndpointUrl, kvp => kvp.Value));
@@ -45,8 +50,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// </summary>
         /// <param name="testPlc">Source object</param>
         /// <returns>Copy</returns>
-        public PublishedNodesEntryModel GetEntryModelWithoutNodes(PublishedNodesEntryModel testPlc) {
-            return new PublishedNodesEntryModel {
+        public static PublishedNodesEntryModel GetEntryModelWithoutNodes(PublishedNodesEntryModel testPlc)
+        {
+            return new PublishedNodesEntryModel
+            {
                 EncryptedAuthPassword = testPlc.EncryptedAuthPassword,
                 EncryptedAuthUsername = testPlc.EncryptedAuthUsername,
                 EndpointUrl = testPlc.EndpointUrl,
@@ -60,7 +67,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Reset the consumed nodes
         /// </summary>
-        public void Reset() {
+        public void Reset()
+        {
             ConsumedOpcUaNodes?.Clear();
         }
     }

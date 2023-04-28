@@ -1,0 +1,189 @@
+[
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetName": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DisplayName": "StepUp",
+                "OpcSamplingIntervalTimespan": "00:00:02",
+                "OpcPublishingIntervalTimespan": "00:00:01.500",
+                "HeartbeatIntervalTimespan": "00:00:01.500",
+                "SkipFirst": true,
+                "QueueSize": 10
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DisplayName": "StepUp",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 1500,
+                "HeartbeatInterval": 4,
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetName": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "DisplayName": "FastUInt1",
+                "OpcSamplingIntervalTimespan": "00:00:02.000",
+                "OpcPublishingIntervalTimespan": "00:00:01.500",
+                "HeartbeatIntervalTimespan": "00:00:01.500",
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "DataSetName": "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "Username": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 2000,
+                "HeartbeatInterval": 2,
+                "SkipFirst": false,
+                "QueueSize": 1
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetName": "Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetPublishingIntervalTimespan": "00:00:02.500",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DisplayName": "StepUp",
+                "OpcSamplingIntervalTimespan": "00:00:01.500",
+                "OpcPublishingIntervalTimespan": "00:00:01.500",
+                "HeartbeatIntervalTimespan": "00:00:01.500",
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "DataSetName": "Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "DataSetPublishingInterval": 10000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "Username": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 2000,
+                "HeartbeatInterval": 2,
+                "SkipFirst": false,
+                "QueueSize": 1
+            },
+            {
+                "Id": "i=2253",
+                "DisplayName": "SimpleEvents",
+                "QueueSize": 10,
+                "EventFilter": {
+                    "SelectClauses": [
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Message"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CycleId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CurrentStep"
+                            ]
+                        }
+                    ],
+                    "WhereClause": {
+                        "Elements": [
+                            {
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
+                                    {
+                                        "Value": "ns=16;i=235"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp"
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
+            }
+        ]
+    }
+
+]

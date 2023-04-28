@@ -10,8 +10,8 @@
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-@using Microsoft.Azure.IIoT.App.Common
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -19,7 +19,7 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 <h1>Publishers</h1>
 
@@ -34,102 +34,8 @@
             <th class="width-small">Version</th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var publisher in _pagedPublisherList.Results) {
-            <tr>
-                <td class="hover-text width-large">
-                    <div>
-                        @publisher.Id
-                    </div>
-                </td>
-                <td class="width-large">
-                    <div class="space-wrap">
-                        @{ string Capabilities = CommonHelper.None;}
-                        @{ string HeartbeatInterval = CommonHelper.None;}
-                        @{ string JobCheckInterval = CommonHelper.None;}
-                        @{ string JobOrchestratorUrl = CommonHelper.None;}
-                        @{ string MaxWorkers = CommonHelper.None;}
-                        @if (publisher.Configuration != null) {
-                            Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
-                            HeartbeatInterval = !IsTimeIntervalSet(publisher.Configuration.HeartbeatInterval) ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.Value.TotalSeconds.ToString();
-                            JobCheckInterval = !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ? CommonHelper.None : publisher.Configuration.JobCheckInterval.Value.TotalSeconds.ToString();
-                            JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
-                            MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
-                        }
-                        Capabilities: @Capabilities<br />
-                        HeartbeatInterval:
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(publisher))">
-                            @HeartbeatInterval
-                        </a>
-                        <br />
-                        JobCheckInterval: 
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(publisher))">
-                            @JobCheckInterval
-                        </a>
-                        <br />
-                        JobOrchestratorUrl: @JobOrchestratorUrl<br />
-                        MaxWorkers: 
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(publisher))">
-                            @MaxWorkers
-                        </a>
-                    </div>
-                </td>
-                <td class="hover-text width-medium">
-                    <div>
-                        @(string.IsNullOrEmpty(publisher.SiteId)
-                            ? CommonHelper.None
-                            : publisher.SiteId)
-                    </div>
-                </td>
-                <td class="hover-text width-small">
-                    <div>
-                        @(publisher.OutOfSync == null
-                            ? CommonHelper.None
-                            : publisher.OutOfSync == true
-                                ? "Out Of Sync"
-                                : "Synced")
-                    </div>
-                </td>
-                @{string connectStatus = publisher.Connected == null
-                      ? CommonHelper.None
-                      : publisher.Connected == true
-                          ? "Connected"
-                          : "Disconnected";}
-                <td class="hover-text width-small">
-                    <div>
-                        @{
-                            string alt = connectStatus;
-
-                            switch (connectStatus)
-                            {
-                                case "Connected":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
-                                    break;
-                                case "Disconnected":
-                                case "(None)":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
-                                    break;
-                                default:
-                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
-                                    break;
-                            }
-                        }
-                    </div>
-                </td>
-                <td class="hover-text width-small">
-                    <div>
-                        @publisher.Version
-                    </div>
-                </td>
-            </tr>
-        }
-    </tbody>
 </table>
 <div class="@_tableEmpty center">No Publishers found.</div>
-
-<Drawer HeaderText="Publisher Config" ObjectData="@Publisher" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerPublisher Publisher="@Publisher"></_DrawerPublisher>
-</Drawer>
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 

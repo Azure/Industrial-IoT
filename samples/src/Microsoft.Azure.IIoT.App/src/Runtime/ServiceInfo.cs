@@ -3,19 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Runtime {
-    using Microsoft.Azure.IIoT.Diagnostics;
+namespace Microsoft.Azure.IIoT.App.Runtime
+{
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Service information
     /// </summary>
-    public class ServiceInfo : IProcessIdentity {
-
-        /// <summary>
-        /// ID
-        /// </summary>
-        public string ServiceId => "ENGINEERING_TOOL";
-
+    public class ServiceInfo : IProcessIdentity
+    {
         /// <summary>
         /// Process id
         /// </summary>

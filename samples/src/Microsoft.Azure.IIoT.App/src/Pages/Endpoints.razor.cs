@@ -3,16 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
-    using System;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.AspNetCore.Components;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
+    using System.Globalization;
+    using System.Threading.Tasks;
 
-    public partial class Endpoints {
+    public sealed partial class Endpoints
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -38,11 +40,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            if (!string.IsNullOrEmpty(EndpointList.ContinuationToken) && page > PagedendpointList.PageCount) {
-                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, EndpointList);
+            if (!string.IsNullOrEmpty(EndpointList.ContinuationToken) && page > PagedendpointList.PageCount)
+            {
+                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, EndpointList).ConfigureAwait(false);
             }
             PagedendpointList = EndpointList.GetPaged(page, CommonHelper.PageLength, null);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId);
@@ -53,7 +57,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -61,38 +66,47 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
-                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId).ConfigureAwait(false);
                 Page = "1";
-                PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
+                PagedendpointList = EndpointList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                    CommonHelper.PageLength, EndpointList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(PagedendpointList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
-                    ev => InvokeAsync(() => EndpointEvent(ev)));
+                    ev => InvokeAsync(() => EndpointEventAsync(ev))).ConfigureAwait(false);
             }
         }
 
-        private Task EndpointEvent(EndpointEventApiModel ev) {
+        private Task EndpointEventAsync(EndpointEventModel ev)
+        {
             EndpointList.Results.Update(ev);
-            PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
+            PagedendpointList = EndpointList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                CommonHelper.PageLength, EndpointList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
 
-        public async void Dispose() {
-            if (_endpointEvents != null) {
-                await _endpointEvents.DisposeAsync();
+        public async ValueTask DisposeAsync()
+        {
+            if (_endpointEvents != null)
+            {
+                await _endpointEvents.DisposeAsync().ConfigureAwait(false);
             }
         }
 
-        private bool IsEndpointSeen(EndpointInfo endpoint) {
+        private static bool IsEndpointSeen(EndpointInfo endpoint)
+        {
             return endpoint.EndpointModel?.NotSeenSince == null;
         }
 
-        private bool IsIdGiven(string id) {
+        private bool IsIdGiven(string id)
+        {
             return !string.IsNullOrEmpty(id) && id != RegistryHelper.PathAll;
         }
 
@@ -101,9 +115,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="endpoint">The endpoint info</param>
         /// <returns>True if the endpoint is activated, false otherwise</returns>
-        private bool IsEndpointActivated(EndpointInfo endpoint) {
-            return endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated ||
-                 endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected;
+        private static bool IsEndpointActivated(EndpointInfo endpoint)
+        {
+            return false;
         }
 
         /// <summary>
@@ -111,45 +125,41 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="endpoint">The endpoint info</param>
         /// <returns>The css string</returns>
-        private string GetEndpointVisibilityString(EndpointInfo endpoint) {
-            if (!IsEndpointSeen(endpoint)) {
-                return "enabled-false";
-            }
-            else if (IsEndpointActivated(endpoint)) {
-                return "enabled-true activated-true";
-            }
-            else {
-                return "enabled-true";
-            }
+        private static string GetEndpointVisibilityString(EndpointInfo endpoint)
+        {
+            return !IsEndpointSeen(endpoint) ? "enabled-false" : IsEndpointActivated(endpoint) ?
+                "enabled-true activated-true" : "enabled-true";
         }
 
         /// <summary>
         /// Activate or deactivate an endpoint
         /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="checkedValue"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
-        private async Task SetActivationAsync(EndpointInfo endpoint) {
-            string endpointId = endpoint.EndpointModel.Registration.Id;
+        private async Task SetActivationAsync(EndpointInfo endpoint)
+        {
+            var endpointId = endpoint.EndpointModel.Registration.Id;
 
-            if (!IsEndpointActivated(endpoint)) {
-                try {
-                    await RegistryService.ActivateEndpointAsync(endpointId);
+            if (!IsEndpointActivated(endpoint))
+            {
+                try
+                {
+                    await RegistryService.ConnectAsync(endpointId, new ConnectRequestModel()).ConfigureAwait(false);
                 }
-                catch (Exception e) {
-                    if (e.Message.Contains("404103")) {
-                        Status = "The endpoint is not available.";
-                    }
-                    else {
-                        Status = e.Message;
-                    }
+                catch (Exception e)
+                {
+                    Status = e.Message.Contains("404103", StringComparison.Ordinal) ?
+                        "The endpoint is not available." : e.Message;
                 }
             }
-            else {
-                try {
-                    await RegistryService.DeactivateEndpointAsync(endpointId);
+            else
+            {
+                try
+                {
+                    await RegistryService.DisconnectAsync(endpointId, new DisconnectRequestModel()).ConfigureAwait(false);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Status = e.Message;
                 }
             }

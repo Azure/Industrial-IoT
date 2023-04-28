@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
-namespace OpcPublisher_AE_E2E_Tests.Config {
+namespace OpcPublisher_AE_E2E_Tests.Config
+{
     /// <summary>
     /// Container registry client configuration
     /// </summary>
-    public interface IContainerRegistryConfig {
-
+    public interface IContainerRegistryConfig
+    {
         /// <summary>
         /// Server url
         /// </summary>

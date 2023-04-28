@@ -11,7 +11,6 @@
 
  .PARAMETER Registry
     The name of the registry
-
  .PARAMETER Subscription
     The subscription to use - otherwise uses default.
 

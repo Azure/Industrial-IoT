@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests {
+namespace OpcPublisher_AE_E2E_Tests
+{
     using Azure.Core;
     using Azure.Identity;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -26,21 +26,26 @@ namespace OpcPublisher_AE_E2E_Tests {
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Net.Sockets;
     using System.Runtime.CompilerServices;
     using System.Text;
-    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Xunit.Sdk;
 
-    internal static partial class TestHelper {
+    public record class MethodResultModel(string JsonPayload, int Status);
+    public record class MethodParameterModel
+    {
+        public string Name { get; set; }
+        public string JsonPayload { get; set; }
+    }
 
+    internal static class TestHelper
+    {
         /// <summary>
         /// Update Device Twin tag
         /// </summary>
@@ -51,10 +56,11 @@ namespace OpcPublisher_AE_E2E_Tests {
             string patch,
             IIoTPlatformTestContext context,
             CancellationToken ct = default
-        ) {
+        )
+        {
             var registryManager = context.RegistryHelper.RegistryManager;
-            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId, ct);
-            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag, ct);
+            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId, ct).ConfigureAwait(false);
+            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -67,11 +73,12 @@ namespace OpcPublisher_AE_E2E_Tests {
             string json,
             IIoTPlatformTestContext context,
             CancellationToken ct = default
-        ) {
+        )
+        {
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
-            await PublishNodesAsync(json, context, ct);
-            await SwitchToStandaloneModeAsync(context, ct);
+            await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
+            await SwitchToStandaloneModeAsync(context, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -84,23 +91,41 @@ namespace OpcPublisher_AE_E2E_Tests {
             string json,
             IIoTPlatformTestContext context,
             CancellationToken ct = default
-        ) {
-            CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
-            using var scpClient = CreateScpClientAndConnect(context);
-            await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
+        )
+        {
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
+            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
-                using var sshCient = CreateSshClientAndConnect(context);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
-                    if (edge != string.Empty) {
-                        // Copy file to the edge vm
-                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
-                        sshCient.RunCommand(command);
-                        // Move file to the target folder with sudo permissions
-                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
-                        sshCient.RunCommand(command);
+                    if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
+                    {
+                        using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+                        foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
+                        {
+                            if (edge != string.Empty)
+                            {
+                                // Copy file to the edge vm
+                                var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                                sshCient.RunCommand(command);
+                                // Move file to the target folder with sudo permissions
+                                command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                                sshCient.RunCommand(command);
+                            }
+                        }
                     }
+                    return;
+                }
+                catch (Exception ex) when (attempt < 60)
+                {
+                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
+                        context.SshConfig.Host,
+                        context.SshConfig.Username, ex.Message);
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
         }
@@ -110,12 +135,29 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
-            // Make sure directories exist.
-            using (var sshCient = CreateSshClientAndConnect(context)) {
-                sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
-                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context)
+        {
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    // Make sure directories exist.
+                    using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+                    {
+                        sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
+                            $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                    }
+                    break;
+                }
+                catch (Exception ex) when (attempt < 60)
+                {
+                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
+                        context.SshConfig.Host,
+                        context.SshConfig.Username, ex.Message);
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
             }
+
             await PublishNodesAsync("[]", context).ConfigureAwait(false);
         }
 
@@ -128,15 +170,16 @@ namespace OpcPublisher_AE_E2E_Tests {
         public static async Task SwitchToStandaloneModeAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
-        ) {
-            var patch =
+        )
+        {
+            const string patch =
                 @"{
                     tags: {
                         unmanaged: true
                     }
                 }";
 
-            await UpdateTagAsync(patch, context, ct);
+            await UpdateTagAsync(patch, context, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -144,26 +187,32 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
+        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context)
+        {
             var privateKeyFile = GetPrivateSshKey(context);
-            try {
+            try
+            {
                 var client = new SshClient(
                     context.SshConfig.Host,
                     context.SshConfig.Username,
                     privateKeyFile);
 
                 var connectAttempt = 0;
-                while (true) {
-                    try {
+                while (true)
+                {
+                    try
+                    {
                         client.Connect();
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5) {
-                        Thread.Sleep(1000);
+                    catch (SocketException) when (++connectAttempt < 5)
+                    {
+                        await Task.Delay(1000).ConfigureAwait(false);
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
@@ -176,26 +225,32 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
+        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context)
+        {
             var privateKeyFile = GetPrivateSshKey(context);
-            try {
+            try
+            {
                 var client = new ScpClient(
                     context.SshConfig.Host,
                     context.SshConfig.Username,
                     privateKeyFile);
 
                 var connectAttempt = 0;
-                while (true) {
-                    try {
+                while (true)
+                {
+                    try
+                    {
                         client.Connect();
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5) {
-                        Thread.Sleep(1000);
+                    catch (SocketException) when (++connectAttempt < 5)
+                    {
+                        await Task.Delay(1000).ConfigureAwait(false);
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
@@ -208,12 +263,12 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context) {
+        private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
+        {
             var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
             var privateKeyStream = new MemoryStream(buffer);
 
-            var privateKeyFile = new PrivateKeyFile(privateKeyStream);
-            return privateKeyFile;
+            return new PrivateKeyFile(privateKeyStream);
         }
 
         /// <summary>
@@ -221,21 +276,27 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void DeleteFileOnEdgeVM(string fileName, IIoTPlatformTestContext context) {
+        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context)
+        {
             var isSuccessful = false;
-            using var client = CreateSshClientAndConnect(context);
+            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
 
             var terminal = client.RunCommand("rm " + fileName);
 
-            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.ToLowerInvariant().Contains("no such file")) {
+            if (string.IsNullOrEmpty(terminal.Error) ||
+                terminal.Error.ToLowerInvariant().Contains("no such file", StringComparison.Ordinal))
+            {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
 
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
-                using var sshCient = CreateSshClientAndConnect(context);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
-                    if (edge != string.Empty) {
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
+            {
+                using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
+                {
+                    if (edge != string.Empty)
+                    {
                         var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
                         sshCient.RunCommand(command);
                     }
@@ -248,21 +309,22 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static void CreateFolderOnEdgeVM(string folderPath, IIoTPlatformTestContext context) {
+        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
+        {
             Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
 
             var isSuccessful = false;
-            using var client = CreateSshClientAndConnect(context);
+            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
 
-            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";" + "cd " + folderPath + "; " + "sudo chmod 777 " + folderPath);
+            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
 
-            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists")) {
+            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists", StringComparison.Ordinal))
+            {
                 isSuccessful = true;
             }
 
             Assert.True(isSuccessful, "Folder creation was not successful");
         }
-
 
         /// <summary>
         /// Serialize a published nodes json file.
@@ -271,12 +333,14 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="port">Port of OPC UA server</param>
         /// <param name="writerId">DataSetWriterId to set</param>
         /// <param name="opcNodes">OPC UA nodes</param>
-        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcNodes) {
+        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcNodes)
+        {
             return JsonConvert.SerializeObject(
                 new JArray(
                     context.PlcAciDynamicUrls.Select(host => new JObject(
                         new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
                         new JProperty("UseSecurity", false),
+                        new JProperty("DataSetWriterGroup", Guid.NewGuid().ToString()),
                         new JProperty("DataSetWriterId", writerId),
                         new JProperty("OpcNodes", opcNodes)))
                 ), Formatting.Indented);
@@ -290,11 +354,13 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="fileToUpload">File to upload to the container</param>
         /// <param name="numInstances">Number of instances</param>
-        public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context, List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1) {
-            var azure = await GetAzureContextAsync(context, cancellationToken);
+        public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context, List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
+        {
+            var azure = await GetAzureContextAsync(context, cancellationToken).ConfigureAwait(false);
 
-            if (fileToUpload != null) {
-                await UploadFileToStorageAccountAsync(context.AzureStorageName, context.AzureStorageKey, fileToUpload);
+            if (fileToUpload != null)
+            {
+                await UploadFileToStorageAccountAsync(context.AzureStorageName, context.AzureStorageKey, fileToUpload).ConfigureAwait(false);
             }
 
             context.PlcAciDynamicUrls = await Task.WhenAll(
@@ -308,7 +374,7 @@ namespace OpcPublisher_AE_E2E_Tests {
                             commandLine.GetRange(1, commandLine.Count - 1).ToArray(),
                             TestConstants.OpcSimulation.FileShareName,
                             context.AzureStorageName,
-                            context.AzureStorageKey)));
+                            context.AzureStorageKey))).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -317,25 +383,28 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="storageAccountName">Name of storage account</param>
         /// <param name="storageAccountKey">Key for storage account</param>
         /// <param name="fileName">File name</param>
-        private async static Task UploadFileToStorageAccountAsync(string storageAccountName, string storageAccountKey, string fileName) {
+        private async static Task UploadFileToStorageAccountAsync(string storageAccountName, string storageAccountKey, string fileName)
+        {
             var cloudStorageAccount = new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
             var cloudFileClient = cloudStorageAccount.CreateCloudFileClient();
             var share = cloudFileClient.GetShareReference(TestConstants.OpcSimulation.FileShareName);
             var directory = share.GetRootDirectoryReference();
 
-            Assert.False(fileName.Contains('\\'), "\\ can't be used for file path");
+            Assert.False(fileName.Contains('\\', StringComparison.Ordinal), "\\ can't be used for file path");
 
             // if fileName contains '/' we will extract the filename
             string onlyFileName;
-            if (fileName.Contains('/')) {
+            if (fileName.Contains('/', StringComparison.Ordinal))
+            {
                 onlyFileName = fileName.Substring(fileName.LastIndexOf('/') + 1);
             }
-            else {
+            else
+            {
                 onlyFileName = fileName;
             }
 
             var cf = directory.GetFileReference(onlyFileName);
-            await cf.UploadFromFileAsync(fileName);
+            await cf.UploadFromFileAsync(fileName).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -358,8 +427,8 @@ namespace OpcPublisher_AE_E2E_Tests {
                                       string[] commandLine,
                                       string fileShareName,
                                       string storageAccountName,
-                                      string storageAccountKey) {
-
+                                      string storageAccountKey)
+        {
             IResourceGroup resGroup = azure.ResourceGroups.GetByName(resourceGroupName);
             Region azureRegion = resGroup.Region;
 
@@ -382,17 +451,17 @@ namespace OpcPublisher_AE_E2E_Tests {
                     .WithStartingCommandLine(executable, commandLine)
                     .Attach()
                 .WithDnsPrefix(containerGroupName)
-                .CreateAsync();
+                .CreateAsync().ConfigureAwait(false);
 
             return containerGroup.Fqdn;
         }
-
 
         /// <summary>
         /// Delete an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void DeleteSimulationContainer(IIoTPlatformTestContext context) {
+        public static void DeleteSimulationContainer(IIoTPlatformTestContext context)
+        {
             DeleteSimulationContainerAsync(context).GetAwaiter().GetResult();
         }
 
@@ -400,12 +469,13 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// Delete an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context) {
+        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
+        {
             await Task.WhenAll(
             context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
                 .Select(n => context.AzureContext.ContainerGroups.DeleteByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, n))
-            );
+            ).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -413,8 +483,10 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        private async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken) {
-            if (context.AzureContext != null) {
+        private async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        {
+            if (context.AzureContext != null)
+            {
                 return context.AzureContext;
             }
 
@@ -423,14 +495,15 @@ namespace OpcPublisher_AE_E2E_Tests {
             context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
             context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
 
-            var options = new DefaultAzureCredentialOptions {
-                TenantId = context.OpcPlcConfig.TenantId,
+            var options = new DefaultAzureCredentialOptions
+            {
+                TenantId = context.OpcPlcConfig.TenantId
             };
             //options.AdditionallyAllowedTenants.Add("*");
 
             var defaultAzureCredential = new DefaultAzureCredential(options);
             var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
-                new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken);
+                new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
 
             context.OutputHelper.WriteLine($"Received Token {accessToken.Token}");
 
@@ -440,14 +513,16 @@ namespace OpcPublisher_AE_E2E_Tests {
 
             IAzure azure;
 
-            if (string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId)) {
+            if (string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
+            {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                     .Authenticate(azureCredentials)
                     .WithDefaultSubscription();
             }
-            else {
+            else
+            {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
@@ -480,7 +555,8 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="partitionEvent">The <see cref="PartitionEvent"/> containing the object.</param>
         /// <typeparam name="T">The type of the object to deserialize.</typeparam>
         /// <returns>The instance of <typeparamref name="T"/> being deserialized.</returns>
-        public static T DeserializeJson<T>(this PartitionEvent partitionEvent) {
+        public static T DeserializeJson<T>(this PartitionEvent partitionEvent)
+        {
             using var sr = new StreamReader(partitionEvent.Data.BodyAsStream);
             using var reader = new JsonTextReader(sr);
             return kSerializer.Deserialize<T>(reader);
@@ -490,57 +566,73 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// Get an Event Hub consumer
         /// </summary>
         /// <param name="config">Configuration for IoT Hub</param>
-        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config) {
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config)
+        {
             return new EventHubConsumerClient(
                 TestConstants.TestConsumerGroupName,
                 config.IoTHubEventHubConnectionString);
         }
 
         /// <summary>
+        /// <para>
         ///   Reads events from all partitions of the IoT Hub Event Hubs endpoint as an asynchronous enumerable, allowing events to be iterated as they
         ///   become available on the partition, waiting as necessary should there be no events available.
-        ///
-        ///   Reading begins at the end of each partition seeing only new events as they are published.
-        ///
+        /// </para>
+        /// <para>  Reading begins at the end of each partition seeing only new events as they are published.</para>
+        /// <para>
         ///   Breaks up the batched messages contained in the event, and returns only messages for the provided
         ///   DataSetWriterId.
-        ///
+        /// </para>
+        /// <para>
         ///   This enumerator may block for an indeterminate amount of time for an <c>await</c> if events are not available on the partition, requiring
         ///   cancellation via the <paramref name="cancellationToken"/> to be requested in order to return control.
+        /// </para>
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="consumer">The Event Hubs consumer.</param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="numberOfBatchesToRead"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId,
-            CancellationToken cancellationToken, int numberOfBatchesToRead) where T : BaseEventTypePayload
-            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken, numberOfBatchesToRead)
+            int numberOfBatchesToRead, CancellationToken cancellationToken) where T : BaseEventTypePayload
+            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, cancellationToken)
                 .Select(x =>
-                    new EventData<T> {
+                    new EventData<T>
+                    {
                         EnqueuedTime = x.enqueuedTime,
-                        PublisherId = x.publisherId,
+                        WriterGroupId = x.writerGroupId,
                         Payload = x.payload.ToObject<T>()
                     });
 
         /// <summary>
+        /// <para>
         ///   Reads events from all partitions of the IoT Hub Event Hubs endpoint as an asynchronous enumerable, allowing events to be iterated as they
         ///   become available on the partition, waiting as necessary should there be no events available.
-        ///
-        ///   Reading begins at the end of each partition seeing only new events as they are published.
-        ///
+        /// </para>
+        /// <para>  Reading begins at the end of each partition seeing only new events as they are published.</para>
+        /// <para>
         ///   Breaks up the batched messages contained in the event, and returns only messages for the provided
         ///   DataSetWriterId.
-        ///
+        /// </para>
+        /// <para>
         ///   This enumerator may block for an indeterminate amount of time for an <c>await</c> if events are not available on the partition, requiring
         ///   cancellation via the <paramref name="cancellationToken"/> to be requested in order to return control.
+        /// </para>
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="consumer">The Event Hubs consumer.</param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="numberOfBatchesToRead"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<PendingConditionEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer,
-            string dataSetWriterId, CancellationToken cancellationToken, int numberOfBatchesToRead) where T : BaseEventTypePayload {
-            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken, numberOfBatchesToRead)
+            string dataSetWriterId, int numberOfBatchesToRead, CancellationToken cancellationToken) where T : BaseEventTypePayload
+        {
+            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, cancellationToken)
                 .Select(x =>
-                    new PendingConditionEventData<T> {
+                    new PendingConditionEventData<T>
+                    {
                         IsPayloadCompressed = x.isPayloadCompressed,
                         Payload = x.payload.ToObject<T>()
                     }
@@ -548,74 +640,97 @@ namespace OpcPublisher_AE_E2E_Tests {
         }
 
         /// <summary>
+        /// <para>
         ///   Reads events from all partitions of the IoT Hub Event Hubs endpoint as an asynchronous enumerable, allowing events to be iterated as they
         ///   become available on the partition, waiting as necessary should there be no events available.
-        ///
-        ///   Reading begins at the end of each partition seeing only new events as they are published.
-        ///
+        /// </para>
+        /// <para>  Reading begins at the end of each partition seeing only new events as they are published.</para>
+        /// <para>
         ///   Breaks up the batched messages contained in the event, and returns only messages for the provided
         ///   DataSetWriterId.
-        ///
+        /// </para>
+        /// <para>
         ///   This enumerator may block for an indeterminate amount of time for an <c>await</c> if events are not available on the partition, requiring
         ///   cancellation via the <paramref name="cancellationToken"/> to be requested in order to return control.
+        /// </para>
         /// </summary>
         /// <param name="consumer">The Event Hubs consumer.</param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="numberOfBatchesToRead"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
-            [EnumeratorCancellation] CancellationToken cancellationToken, int numberOfBatchesToRead) {
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
+            int numberOfBatchesToRead, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
-            await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
+            await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
+            {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
                 JToken json = null;
-                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentType"] == "application/json+gzip";
-                if (isPayloadCompressed) {
+                if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
+                {
+                    Assert.Fail("Missing $$ContentType property in message");
+                    continue;
+                }
+                bool isPayloadCompressed = (string)contentType == "application/json+gzip";
+                if (isPayloadCompressed)
+                {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
-                    using (var input = new MemoryStream(compressedPayload)) {
-                        using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
-                            using (var textReader = new StreamReader(gs)) {
-                                json = JsonConvert.DeserializeObject<JToken>(await textReader.ReadToEndAsync());
+                    using (var input = new MemoryStream(compressedPayload))
+                    {
+                        using (var gs = new GZipStream(input, CompressionMode.Decompress))
+                        {
+                            using (var textReader = new StreamReader(gs))
+                            {
+                                json = JsonConvert.DeserializeObject<JToken>(await textReader.ReadToEndAsync(cancellationToken).ConfigureAwait(false));
                             }
                         }
                     }
                 }
-                else {
+                else
+                {
                     json = partitionEvent.DeserializeJson<JToken>();
                 }
 
                 List<dynamic> batchedMessages;
-                if (json is JArray array) {
-                    batchedMessages = array.Select(v => (dynamic)v).ToList();
+                if (json is JArray array)
+                {
+                    batchedMessages = array.Cast<dynamic>().ToList();
                 }
-                else {
+                else
+                {
                     batchedMessages = new List<dynamic> { json };
                 }
 
                 // Expect all messages to be the same
                 var messageIds = new HashSet<string>();
-                foreach (dynamic message in batchedMessages) {
+                foreach (dynamic message in batchedMessages)
+                {
                     Assert.NotNull(message.MessageId.Value);
                     Assert.True(messageIds.Add(message.MessageId.Value));
-                    var publisherId = (string)message.PublisherId.Value;
-                    Assert.NotNull(publisherId);
+                    var writerGroupId = (string)message.DataSetWriterGroup.Value;
+                    Assert.NotNull(writerGroupId);
                     Assert.Equal("ua-data", message.MessageType.Value);
                     var innerMessages = (JArray)message.Messages;
                     Assert.True(innerMessages.Any(), "Json doesn't contain any messages");
 
-                    foreach (dynamic innerMessage in innerMessages) {
+                    foreach (dynamic innerMessage in innerMessages)
+                    {
                         var messageWriterId = (string)innerMessage.DataSetWriterId.Value;
-                        if (messageWriterId != dataSetWriterId) {
+                        if (messageWriterId != dataSetWriterId)
+                        {
                             continue;
                         }
 
                         // Metadata disabled, always sending version 1
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
 
-                        yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload, isPayloadCompressed);
+                        yield return (enqueuedTime, writerGroupId, (JObject)innerMessage.Payload, isPayloadCompressed);
                     }
                 }
 
-                if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0) {
+                if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0)
+                {
                     break;
                 }
             }
@@ -626,15 +741,22 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="predicate">While condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> TakeDuring<TSource>(this IAsyncEnumerable<TSource> source, TimeSpan duration) {
+        private static IAsyncEnumerable<TSource> TakeWhile<TSource>(this IAsyncEnumerable<TSource> source, Func<TSource, TSource, bool> predicate)
+        {
             _ = source ?? throw new ArgumentNullException(nameof(source));
 
-            // ReSharper disable once ConvertClosureToMethodGroup
-            var sw = new Lazy<Stopwatch>(() => Stopwatch.StartNew());
-            return source.TakeWhile(_ => sw.Value.Elapsed < duration);
+            object firstSeen = null;
+            return source.TakeWhile(predicate: s =>
+            {
+                if (firstSeen is null)
+                {
+                    firstSeen = s;
+                }
+                return predicate((TSource)firstSeen, s);
+            });
         }
 
         /// <summary>
@@ -655,18 +777,22 @@ namespace OpcPublisher_AE_E2E_Tests {
             int distinctCountToReach,
             Action before = default,
             Action after = default
-        ) {
+        )
+        {
             _ = source ?? throw new ArgumentNullException(nameof(source));
             _ = valueFunc ?? throw new ArgumentNullException(nameof(valueFunc));
 
             var seenValues = new HashSet<TValue>();
-            return source.SkipWhile(m => {
-                if (seenValues.Count == 0) {
+            return source.SkipWhile(m =>
+            {
+                if (seenValues.Count == 0)
+                {
                     before?.Invoke();
                 }
 
                 seenValues.Add(valueFunc(m));
-                if (seenValues.Count < distinctCountToReach) {
+                if (seenValues.Count < distinctCountToReach)
+                {
                     return true;
                 }
 
@@ -682,25 +808,27 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="publisherIdFunc">A function to extract the Source ID from a message payload.</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="writerGroupIdFunc">A function to extract the Data Source ID from a message payload.</param>
+        /// <param name="predicate">While condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
+        private static IAsyncEnumerable<TSource> TakeWhile<TSource>(
             this IAsyncEnumerable<TSource> source,
             IIoTPlatformTestContext context,
-            Func<TSource, string> publisherIdFunc,
-            TimeSpan duration
-        ) {
+            Func<TSource, string> writerGroupIdFunc,
+            Func<TSource, TSource, bool> predicate
+        )
+        {
             // When the first message has been received for each simulator, the system is up and we
             // "let the flag fall" to start computing event rates.
-            return source.SkipUntilDistinctCountReached(
-                    publisherIdFunc,
-                    context.PlcAciDynamicUrls.Length,
-                    () => context.OutputHelper?.WriteLine("Waiting for first message for each PLC"),
-                    () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
+            return source
+                .SkipUntilDistinctCountReached(
+                    writerGroupIdFunc,
+                    context.PlcAciDynamicUrls.Count,
+                    () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
+                    () => context.OutputHelper?.WriteLine($"Consuming messages...")
                 )
-                .TakeDuring(duration);
+                .TakeWhile(predicate);
         }
 
         /// <summary>
@@ -710,15 +838,16 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <typeparam name="TPayload">The type of the payloads in the Publisher messages.</typeparam>
         /// <param name="source">A sequence to return elements from.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="duration">A time duration during which to return data.</param>
+        /// <param name="predicate">A while condition.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        public static IAsyncEnumerable<EventData<TPayload>> ConsumeDuring<TPayload>(
+        public static IAsyncEnumerable<EventData<TPayload>> TakeWhile<TPayload>(
             this IAsyncEnumerable<EventData<TPayload>> source,
             IIoTPlatformTestContext context,
-            TimeSpan duration
-        ) where TPayload : BaseEventTypePayload {
-            return source.ConsumeDuring(context, m => m.PublisherId, duration);
+            Func<EventData<TPayload>, EventData<TPayload>, bool> predicate
+        ) where TPayload : BaseEventTypePayload
+        {
+            return source.TakeWhile(context, m => m.WriterGroupId, predicate);
         }
 
         /// <summary>
@@ -726,12 +855,15 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="dateTime">Date time top truncate</param>
         /// <param name="timeSpan">Time span</param>
-        public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan) {
-            if (timeSpan == TimeSpan.Zero) {
+        public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan)
+        {
+            if (timeSpan == TimeSpan.Zero)
+            {
                 return dateTime;
             }
 
-            if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) {
+            if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue)
+            {
                 return dateTime;
             }
 
@@ -743,13 +875,16 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="iotHubConnectionString"></param>
         /// <param name="transportType"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
             Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
-        ) {
+        )
+        {
             ServiceClient iotHubClient;
 
-            if (string.IsNullOrWhiteSpace(iotHubConnectionString)) {
+            if (string.IsNullOrWhiteSpace(iotHubConnectionString))
+            {
                 throw new ArgumentNullException(nameof(iotHubConnectionString));
             }
 
@@ -764,10 +899,11 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// </summary>
         /// <param name="e">Exception to be printed</param>
         /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
-        private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
-
+        private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper)
+        {
             var exception = e;
-            while (exception != null) {
+            while (exception != null)
+            {
                 outputHelper.WriteLine(exception.Message);
                 outputHelper.WriteLine(exception.StackTrace);
                 outputHelper.WriteLine("");
@@ -785,24 +921,26 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
-            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
+            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct)
+        {
             var attempt = 0;
-            while (true) {
-                try {
+            while (true)
+            {
+                try
+                {
                     var methodInfo = new CloudToDeviceMethod(parameters.Name);
                     methodInfo.SetPayloadJson(parameters.JsonPayload);
                     var result = await (string.IsNullOrEmpty(moduleId) ?
                          serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
                     context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
-                    return new MethodResultModel {
-                        JsonPayload = result.GetPayloadAsJson(),
-                        Status = result.Status
-                    };
+                    return new MethodResultModel(result.GetPayloadAsJson(), result.Status);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
-                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
+                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && ++attempt < 60)
+                    {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                         continue;
@@ -813,6 +951,6 @@ namespace OpcPublisher_AE_E2E_Tests {
             }
         }
 
-		private static readonly JsonSerializer kSerializer = new JsonSerializer();
+        private static readonly JsonSerializer kSerializer = new JsonSerializer();
     }
 }

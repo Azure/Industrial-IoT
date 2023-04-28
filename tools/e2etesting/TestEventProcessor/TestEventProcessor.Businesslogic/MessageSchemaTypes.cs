@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.Businesslogic {
+namespace TestEventProcessor.Businesslogic
+{
 
     /// <summary>
     /// Publisher related message schemas
     /// </summary>
-    public static class MessageSchemaTypes {
+    public static class MessageSchemaTypes
+    {
 
         /// <summary>
         /// Samples message type json encoded

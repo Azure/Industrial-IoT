@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Collections.Generic;
@@ -14,21 +15,24 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(TwinTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
-    public class TwinWriteTestTheory {
+    public class TwinWriteTestTheory
+    {
         private readonly TwinTestContext _context;
 
-        public TwinWriteTestTheory(TwinTestContext context, ITestOutputHelper output) {
+        public TwinWriteTestTheory(TwinTestContext context, ITestOutputHelper output)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
         [Fact, PriorityOrder(0)]
-        public void WriteAttributes() {
+        public void WriteAttributes()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // The attribute that will be overwritten
-            var attribute = "DisplayName";
-            var nodeId = "http://microsoft.com/Opc/OpcPlc/#s=FastUInt1";
+            const string attribute = "DisplayName";
+            const string nodeId = "http://microsoft.com/Opc/OpcPlc/#s=FastUInt1";
 
             var attributesToRead = new List<object> {
                 new {

@@ -138,8 +138,7 @@
         }
     },
     "variables": {
-        "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
-        "simulationConfigurationResourceName": "simulation.configuration"
+        "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
     },
     "resources": [
         {
@@ -317,42 +316,6 @@
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
                     "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.edge.json')]"
-                }
-            },
-            "dependsOn": [
-            ]
-        },
-        {
-            "comments": "Save edge simulation user and password.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[variables('simulationConfigurationResourceName')]",
-            "condition": "[and(not(empty(parameters('keyVaultName'))), or(not(equals(0, parameters('numberOfLinuxGateways'))), not(equals(0, parameters('numberOfWindowsGateways')))))]",
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "configuration": {
-                        "value": [
-                            {
-                                "key": "PCS_SIMULATION_USER",
-                                "value": "[parameters('edgeUserName')]"
-                            },
-                            {
-                                "key": "PCS_SIMULATION_PASSWORD",
-                                "value": "[parameters('edgePassword')]"
-                            }
-                        ]
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
                 }
             },
             "dependsOn": [

@@ -1,0 +1,13 @@
+Plc_BinarySchema,15074,Variable
+Plc_XmlSchema,15086,Variable
+Plc1,15070,Object
+PlcDataType,15032,DataType
+PlcDataType_Encoding_DefaultBinary,15072,Object
+PlcDataType_Encoding_DefaultJson,15096,Object
+PlcDataType_Encoding_DefaultXml,15084,Object
+PlcHeaterStateType,15014,DataType
+PlcTemperatureType,15001,DataType
+PlcTemperatureType_Encoding_DefaultBinary,15004,Object
+PlcTemperatureType_Encoding_DefaultJson,15012,Object
+PlcTemperatureType_Encoding_DefaultXml,15008,Object
+PlcType,15068,ObjectType

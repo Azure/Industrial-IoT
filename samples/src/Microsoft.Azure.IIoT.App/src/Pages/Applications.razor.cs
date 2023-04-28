@@ -3,26 +3,28 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
+    using System.Globalization;
+    using System.Threading.Tasks;
 
-    public partial class Applications {
+    public sealed partial class Applications
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
         public string Status { get; set; }
-        public bool IsOpen { get; set; } = false;
-        public ApplicationInfoApiModel ApplicationData { get; set; }
-        private PagedResult<ApplicationInfoApiModel> ApplicationList { get; set; } =
-            new PagedResult<ApplicationInfoApiModel>();
-        private PagedResult<ApplicationInfoApiModel> _pagedApplicationList =
-            new PagedResult<ApplicationInfoApiModel>();
+        public bool IsOpen { get; set; }
+        public ApplicationInfoModel ApplicationData { get; set; }
+        private PagedResult<ApplicationInfoModel> ApplicationList { get; set; } =
+            new PagedResult<ApplicationInfoModel>();
+        private PagedResult<ApplicationInfoModel> _pagedApplicationList =
+            new();
         private IAsyncDisposable _applicationEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -31,13 +33,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             ApplicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, ApplicationList, ref _pagedApplicationList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
-            for (int i = 0; i < _pagedApplicationList.Results.Count; i++) {
-                _pagedApplicationList.Results[i] = (await RegistryService.GetApplicationAsync(_pagedApplicationList.Results[i].ApplicationId)).Application;
+            for (var i = 0; i < _pagedApplicationList.Results.Count; i++)
+            {
+                _pagedApplicationList.Results[i] = (await RegistryService.GetApplicationAsync(_pagedApplicationList.Results[i].ApplicationId).ConfigureAwait(false)).Application;
             }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -46,7 +50,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -54,15 +59,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
-                await UpdateApplicationAsync();
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await UpdateApplicationAsync().ConfigureAwait(false);
                 StateHasChanged();
 
                 _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(
-                    async data => {
-                        await InvokeAsync(() => ApplicationEvent(data));
-                    });
+                    async data => await InvokeAsync(() => ApplicationEventAsync(data)).ConfigureAwait(false)).ConfigureAwait(false);
             }
         }
 
@@ -70,20 +75,24 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Unregister application and remove it from UI
         /// </summary>
         /// <param name="applicationId"></param>
-        private async Task UnregisterApplicationUIAsync(string applicationId) {
-            var index = ApplicationList.Results.Select(t => t.ApplicationId).ToList().IndexOf(applicationId);
+        private async Task UnregisterApplicationUIAsync(string applicationId)
+        {
+            var index = ApplicationList.Results.ConvertAll(t => t.ApplicationId).IndexOf(applicationId);
             ApplicationList.Results.RemoveAt(index);
-            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, ApplicationList.Error);
+            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                CommonHelper.PageLength, ApplicationList.Error);
             StateHasChanged();
 
-            Status = await RegistryHelper.UnregisterApplicationAsync(applicationId);
+            Status = await RegistryHelper.UnregisterApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
-        // <summary>
+        /// <summary>
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
-        private void OpenDrawer(ApplicationInfoApiModel application) {
+        /// <param name="application"></param>
+        private void OpenDrawer(ApplicationInfoModel application)
+        {
             IsOpen = true;
             ApplicationData = application;
         }
@@ -91,7 +100,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Close the Drawer
         /// </summary>
-        private void CloseDrawer() {
+        private void CloseDrawer()
+        {
             IsOpen = false;
             StateHasChanged();
         }
@@ -100,9 +110,11 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Action on ApplicationEvent
         /// </summary>
         /// <param name="ev"></param>
-        private Task ApplicationEvent(ApplicationEventApiModel ev) {
+        private Task ApplicationEventAsync(ApplicationEventModel ev)
+        {
             ApplicationList.Results.Update(ev);
-            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, ApplicationList.Error);
+            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                CommonHelper.PageLength, ApplicationList.Error);
             CommonHelper.CheckErrorOrEmpty(_pagedApplicationList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
             return Task.CompletedTask;
@@ -111,10 +123,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Update application list
         /// </summary>
-        private async Task UpdateApplicationAsync() {
-            ApplicationList = await RegistryHelper.GetApplicationListAsync();
+        private async Task UpdateApplicationAsync()
+        {
+            ApplicationList = await RegistryHelper.GetApplicationListAsync().ConfigureAwait(false);
             Page = "1";
-            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, ApplicationList.Error);
+            _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                CommonHelper.PageLength, ApplicationList.Error);
             CommonHelper.CheckErrorOrEmpty(_pagedApplicationList, ref _tableView, ref _tableEmpty);
             CommonHelper.Spinner = string.Empty;
         }
@@ -122,9 +136,11 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Dispose
         /// </summary>
-        public async void Dispose() {
-            if (_applicationEvent != null) {
-                await _applicationEvent.DisposeAsync();
+        public async ValueTask DisposeAsync()
+        {
+            if (_applicationEvent != null)
+            {
+                await _applicationEvent.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

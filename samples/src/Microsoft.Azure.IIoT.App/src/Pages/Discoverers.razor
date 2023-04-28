@@ -13,9 +13,9 @@
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.AspNetCore.Components
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
-@using Microsoft.Azure.IIoT.App.Common
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
+@using global::Azure.IIoT.OpcUa.Publisher.Models
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -24,12 +24,12 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 <div class="flex">
     <h1>Asset Discovery</h1>
     <a class="adhocmargin" href="javascript: void(0)" @onclick="@(() => OpenDrawer(new DiscovererInfo {
-                                                  DiscovererModel = new DiscovererApiModel(),
+                                                  DiscovererModel = new DiscovererModel(),
                                                   isAdHocDiscovery = true
                                               }))">
         Run ad-hoc discovery

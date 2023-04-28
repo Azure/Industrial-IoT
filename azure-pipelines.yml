@@ -13,36 +13,23 @@ trigger:
     - dev/*
     - release/*
 
-variables:
-  iaiStorageAccount: azureiiot
-  iaiStorageAccountSubscription: azureiiotbak-storage
-
 stages:
 - stage: build
   displayName: 'Build and Test Code'
+  condition: ne(variables['SkipBuild'], true)
   jobs:
   - template: tools/templates/ci.yml
   - template: tools/templates/sdl.yml
-# - stage: pack
-#   displayName: 'Package and Sign Nuget'
-#   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-#   dependsOn:
-#   - build
-#   jobs:
-#   - template: tools/templates/nuget.yml
-#     parameters:
-#       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-- stage: iiot_deployment
-  displayName: 'Build Installer'
+  - template: tools/templates/cc.yml
+- stage: pack
+  displayName: 'Package and Sign Nuget'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
   jobs:
-  - template: tools/templates/iiot_deployment_win.yml
+  - template: tools/templates/nuget.yml
     parameters:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-  - template: tools/templates/iiot_deployment_linux.yml
-  - template: tools/templates/iiot_deployment_mac.yml
 - stage: images
   displayName: 'Build Images'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
@@ -50,22 +37,13 @@ stages:
   - build
   jobs:
   - template: tools/templates/acrbuild.yml
-- stage: coverage
-  displayName: 'Code Coverage'
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-  dependsOn:
-  - build
-  jobs:
-  - template: tools/templates/cc.yml
 - stage: e2e_tests
   displayName: 'Triggering E2E tests'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
-  # - pack
-  - iiot_deployment
+  - pack
   - images
-  - coverage
   jobs:
   - template: tools/templates/e2e_tests.yml
     parameters:

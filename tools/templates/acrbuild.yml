@@ -1,49 +1,91 @@
 #
-# Build images in acr
+# Build and push images
 #
 jobs:
-- job: imagesprep
-  displayName: Prepare Image Jobs
+- job: containers
+  displayName: Build Images
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'ubuntu-latest'
   variables:
     skipComponentGovernanceDetection: true
     runCodesignValidationInjection: false
-  steps:
-  - task: PowerShell@2
-    name: acrmatrix
-    displayName: Prepare Builds
-    inputs:
-      targetType: filePath
-      filePath: ./tools/scripts/acr-matrix.ps1
-- job: imagesall
-  displayName: Build Images for
-  pool:
-    name: Hosted Windows 2019 with VS2019
-  dependsOn: imagesprep
   strategy:
-    matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
-  variables:
-    skipComponentGovernanceDetection: true
-    runCodesignValidationInjection: false
+    matrix: 
+      linux_arm:
+        os: linux
+        arch: arm
+      linux_arm64:
+        os: linux
+        arch: arm64
+      linux_x64:
+        os: linux
+        arch: x64
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      version: 7.0.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
+  - task: PowerShell@2
+    displayName: Set Namespace
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-namespace.ps1
+  - task: AzureCLI@2
+    displayName: Build Container
+    inputs:
+      azureSubscription: azureiiot
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'pscore'
+      scriptPath: ./tools/scripts/acr-publish.ps1
+      arguments: >
+        -ImageNamespace "$(ImageNamespace)"
+        -ImageTag "$(Version_Prefix)"
+        -Arch "$(arch)" 
+        -Os "$(os)"
+- job: manifest
+  displayName: Push Manifests
+  pool:
+    vmImage: 'windows-latest'
+  dependsOn: containers
+  variables:
+    skipComponentGovernanceDetection: true
+    runCodesignValidationInjection: false
+  steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 6.0.x
+      version: 7.0.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: AzureCLI@1
-    name: acrbuildr
-    displayName: Build Release Images
+  - task: PowerShell@2
+    displayName: Versioning
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-version.ps1
+  - task: PowerShell@2
+    displayName: Set Namespace
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-namespace.ps1
+  - task: AzureCLI@2
+    name: Push
+    displayName: Push Manifests
     inputs:
       azureSubscription: azureiiot
-      scriptLocation: inlineScript
-      inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder)
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'ps'
+      scriptPath: ./tools/scripts/acr-build.ps1
+      arguments: >
+        -ImageTag "$(Version_Prefix)"
+        -ImageNamespace "$(ImageNamespace)"
+        -NoBuild
       

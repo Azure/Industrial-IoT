@@ -1,0 +1,145 @@
+﻿[
+    {
+        "DataSetWriterGroup": "Leaf0",
+        "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetName": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=SlowUInt1",
+                "DataSetFieldId": "ns=2;s=SlowUInt1",
+                "DisplayName": "SlowUint1",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 1500,
+                "HeartbeatInterval": 4,
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf1",
+        "DataSetWriterId": "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "DataSetName": "Tag_Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "DataSetPublishingInterval": 3000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcAuthenticationMode": "Anonymous",
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=SlowUInt2",
+                "DataSetFieldId": "ns=2;s=SlowUInt2",
+                "DisplayName": "SlowUint",
+                "OpcSamplingInterval": 2000,
+                "HeartbeatInterval": 4,
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterGroup": "Leaf2",
+        "DataSetWriterId": "Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "DataSetName": "Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "DataSetPublishingInterval": 10000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "SimpleEvents",
+                "QueueSize": 10,
+                "EventFilter": {
+                    "SelectClauses": [
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Message"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CycleId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CurrentStep"
+                            ]
+                        }
+                    ],
+                    "WhereClause": {
+                        "Elements": [
+                            {
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
+                                    {
+                                        "Value": "ns=16;i=235"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "DataSetPublishingIntervalTimespan": "00:00:02",
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=SlowUInt3",
+                "DataSetFieldId": "ns=2;s=SlowUInt3",
+                "DisplayName": "SlowUint",
+                "OpcSamplingInterval": 2000,
+                "HeartbeatInterval": 4,
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=FastUInt3",
+                "OpcPublishingInterval": 1000
+            },
+            {
+                "Id": "ns=2;s=FastUInt4",
+                "OpcPublishingInterval": 2000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50010",
+        "OpcAuthenticationMode": "Anonymous",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=FastUInt1",
+                "OpcPublishingInterval": 1000
+            },
+            {
+                "Id": "ns=2;s=FastUInt2",
+                "OpcPublishingInterval": 2000
+            }
+        ]
+    }
+]

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -13,13 +14,14 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// <summary>
     /// Checker to validate that expected number of value changes have been received per timestamp.
     /// </summary>
-    class MissingValueChangesChecker {
+    class MissingValueChangesChecker : IDisposable
+    {
 
         private readonly uint _expectedValueChangesPerTimestamp;
         private readonly ILogger _logger;
 
         private readonly IDictionary<DateTime, int> _valueChangesPerTimestamp;
-        private bool _isStopped = false;
+        private bool _isStopped;
         private readonly SemaphoreSlim _lock;
 
         /// <summary>
@@ -31,7 +33,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public MissingValueChangesChecker(
             uint expectedValueChangesPerTimestamp,
             ILogger logger
-        ) {
+        )
+        {
             _expectedValueChangesPerTimestamp = expectedValueChangesPerTimestamp;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -45,26 +48,32 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <param name="nodeId"></param>
         /// <param name="sourceTimestamp"></param>
         /// <param name="_"></param>
-        public void ProcessEvent(DateTime sourceTimestamp) {
+        public void ProcessEvent(DateTime sourceTimestamp)
+        {
             // Do not process events after Stop() has been called.
-            if (_isStopped) {
+            if (_isStopped)
+            {
                 return;
             }
 
             // Do not process if _expectedValueChangesPerTimestamp is set to zero.
-            if (_expectedValueChangesPerTimestamp == 0) {
+            if (_expectedValueChangesPerTimestamp == 0)
+            {
                 return;
             }
 
             _lock.Wait();
-            try {
-                if (!_valueChangesPerTimestamp.ContainsKey(sourceTimestamp)) {
+            try
+            {
+                if (!_valueChangesPerTimestamp.ContainsKey(sourceTimestamp))
+                {
                     _valueChangesPerTimestamp.Add(sourceTimestamp, 0);
                 }
 
                 _valueChangesPerTimestamp[sourceTimestamp]++;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -78,21 +87,28 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public Task StartAsync(
             TimeSpan checkDelay,
             CancellationToken token = default
-        ) {
-            if (checkDelay.Ticks < 0) {
+        )
+        {
+            if (checkDelay.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(checkDelay)} cannot be negative");
             }
 
-            return new Task(() => {
-                try {
-                    while (!token.IsCancellationRequested) {
+            return new Task(() =>
+            {
+                try
+                {
+                    while (!token.IsCancellationRequested)
+                    {
 
                         CheckForMissingValueChanges();
                         Task.Delay(checkDelay, token).Wait(token);
                     }
                 }
-                catch (OperationCanceledException oce) {
-                    if (oce.CancellationToken == token) {
+                catch (OperationCanceledException oce)
+                {
+                    if (oce.CancellationToken == token)
+                    {
                         return;
                     }
                     throw;
@@ -104,16 +120,19 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop validation and return number of incomplete timestamps.
         /// </summary>
         /// <returns></returns>
-        public int Stop() {
+        public int Stop()
+        {
             _isStopped = true;
 
             CheckForMissingValueChanges();
 
             _lock.Wait();
-            try {
+            try
+            {
                 return _valueChangesPerTimestamp.Count;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -122,17 +141,21 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Check that expected number of value changes have been received and clean complete timestamps
         /// from _valueChangesPerTimestamp.
         /// </summary>
-        private void CheckForMissingValueChanges() {
+        private void CheckForMissingValueChanges()
+        {
             _lock.Wait();
-            try {
-                _logger.LogInformation("Currently waiting for {incompletedTimestamps} timestamp to be completed.",
+            try
+            {
+                _logger.LogInformation("Currently waiting for {IncompletedTimestamps} timestamp to be completed.",
                     _valueChangesPerTimestamp.Count);
 
                 var entriesToDelete = new List<DateTime>(50);
 
-                foreach (var missingSequence in _valueChangesPerTimestamp) {
+                foreach (var missingSequence in _valueChangesPerTimestamp)
+                {
                     var numberOfValueChanges = missingSequence.Value;
-                    if (numberOfValueChanges >= _expectedValueChangesPerTimestamp) {
+                    if (numberOfValueChanges >= _expectedValueChangesPerTimestamp)
+                    {
                         _logger.LogInformation("Received {NumberOfValueChanges} value changes for timestamp {Timestamp}",
                             numberOfValueChanges, missingSequence.Key);
 
@@ -144,29 +167,40 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 }
 
                 // Remove all timestamps that are completed (all value changes received)
-                foreach (var entry in entriesToDelete) {
+                foreach (var entry in entriesToDelete)
+                {
                     var success = _valueChangesPerTimestamp.Remove(entry);
 
-                    if (!success) {
+                    if (!success)
+                    {
                         _logger.LogError("Could not remove timestamp {Timestamp} with all value changes from internal list",
                             entry);
                     }
-                    else {
+                    else
+                    {
                         _logger.LogInformation("[Success] All value changes received for {Timestamp}", entry);
                     }
                 }
 
                 // Log total amount of missing value changes for each timestamp that already reported 80% of value changes
-                foreach (var missingSequence in _valueChangesPerTimestamp) {
-                    if (missingSequence.Value > (int)(_expectedValueChangesPerTimestamp * 0.8)) {
+                foreach (var missingSequence in _valueChangesPerTimestamp)
+                {
+                    if (missingSequence.Value > (int)(_expectedValueChangesPerTimestamp * 0.8))
+                    {
                         _logger.LogInformation("For timestamp {Timestamp} there are {NumberOfMissing} value changes missing",
                             missingSequence.Key, _expectedValueChangesPerTimestamp - missingSequence.Value);
                     }
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
         }
     }
 }

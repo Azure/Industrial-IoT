@@ -124,6 +124,14 @@ Function Select-Context() {
         [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext] $context
     )
 
+    $tenantArg = @{}
+
+    if (![string]::IsNullOrEmpty($script:tenantId)) {
+        $tenantArg = @{
+            Tenant = $script:tenantId
+        }
+    }
+
     $rootDir = Get-RootFolder $script:ScriptDir
     $contextFile = Join-Path $rootDir ".user"
     if (!$context) {
@@ -147,7 +155,7 @@ Function Select-Context() {
         try {
             Write-Host "Signing into $($environment.Name) ..."
             $connection = Connect-AzAccount -Environment $environment.Name `
-                -SkipContextPopulation -ErrorAction Stop 
+                -SkipContextPopulation @tenantArg -ErrorAction Stop 
             Write-Host "Signed in."
             Write-Host
             $context = $connection.Context
@@ -156,8 +164,6 @@ Function Select-Context() {
             throw "The login to the Azure account was not successful."
         }
     }
-
-    $tenantIdArg = @{}
 
     if (![string]::IsNullOrEmpty($script:tenantId)) {
         $tenantIdArg = @{
@@ -702,7 +708,6 @@ Function New-Deployment() {
     Set-ResourceGroupTags -state "Deploying" -version $script:branchName
     Write-Host "Deployment will use '$($script:branchName)' branch in '$($script:repo)'."
     $templateParameters.Add("branchName", $script:branchName)
-    $templateParameters.Add("repoUrl", $script:repo)
 
     # support forks on github by switching the template url
     if ($script:repo.ToLower().Contains("github.com")) {
@@ -716,9 +721,6 @@ Function New-Deployment() {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName.Replace('_', '-')
-        }
-        if ($script:type -eq "minimum") {
-            $templateParameters.Add("deploymentLevel", "Minimum")
         }
     }
     else {
@@ -1170,17 +1172,11 @@ $script:interactive = !$script:context
 
 $script:requiredProviders = @(
     "microsoft.devices",
-    "microsoft.documentdb",
-    "microsoft.signalrservice",
-    "microsoft.servicebus",
-    "microsoft.eventhub",
     "microsoft.storage",
     "microsoft.keyvault",
     "microsoft.managedidentity",
-    "microsoft.timeseriesinsights",
     "microsoft.web",
-    "microsoft.compute",
-    "microsoft.containerregistry"
+    "microsoft.compute"
 )
 
 Import-Module Az

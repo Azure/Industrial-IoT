@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
 
     /// <summary>
     /// Result of IncrementalIntValueChecker monitoring.
     /// </summary>
-    class SequenceNumberCheckerResult {
+    class SequenceNumberCheckerResult
+    {
 
         /// <summary>
         /// Indicates number of dropped messages that were observed. It is calculated by detecting

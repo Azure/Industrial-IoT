@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Config {
-
+namespace OpcPublisher_AE_E2E_Tests.Config
+{
     /// <summary>
     /// IoT Edge configuration
     /// </summary>
-    public interface IIoTEdgeConfig {
-
+    public interface IIoTEdgeConfig
+    {
         /// <summary>
         /// IoT Edge version
         /// </summary>
@@ -26,4 +26,3 @@ namespace OpcPublisher_AE_E2E_Tests.Config {
         string[] NestedEdgeSshConnections { get; }
     }
 }
-

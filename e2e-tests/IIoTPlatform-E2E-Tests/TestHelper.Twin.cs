@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests {
+namespace IIoTPlatform_E2E_Tests
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -17,13 +18,13 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Threading.Tasks;
     using Xunit;
 
-    internal static partial class TestHelper {
-
+    internal static partial class TestHelper
+    {
         /// <summary>
         /// Twin related helper methods
         /// </summary>
-        public static class Twin {
-
+        public static class Twin
+        {
             /// <summary>
             /// Equivalent to GetSetOfUniqueNodesAsync
             /// </summary>
@@ -31,13 +32,15 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="ArgumentNullException"></exception>
             public static async Task<List<(string NodeId, string NodeClass, bool Children)>> GetBrowseEndpointAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeId = null,
-                    CancellationToken ct = default) {
-
-                if (string.IsNullOrEmpty(endpointId)) {
+                    CancellationToken ct = default)
+            {
+                if (string.IsNullOrEmpty(endpointId))
+                {
                     context.OutputHelper.WriteLine($"{nameof(endpointId)} is null or empty");
                     throw new ArgumentNullException(nameof(endpointId));
                 }
@@ -45,10 +48,12 @@ namespace IIoTPlatform_E2E_Tests {
                 var result = new List<(string NodeId, string NodeClass, bool Children)>();
                 string continuationToken = null;
 
-                do {
-                    var browseResult = await GetBrowseEndpoint_InternalAsync(context, endpointId, nodeId, continuationToken, ct);
+                do
+                {
+                    var browseResult = await GetBrowseEndpoint_InternalAsync(context, endpointId, nodeId, continuationToken, ct).ConfigureAwait(false);
 
-                    if (browseResult.results.Count > 0) {
+                    if (browseResult.results.Count > 0)
+                    {
                         result.AddRange(browseResult.results);
                     }
 
@@ -66,29 +71,35 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
             /// <param name="continuationToken">Continuation token from the previous call, or null</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
             private static async Task<(List<(string NodeId, string NodeClass, bool Children)> results, string continuationToken)> GetBrowseEndpoint_InternalAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeId = null,
                     string continuationToken = null,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 RestRequest request;
-                if (continuationToken == null) {
-                    request = new RestRequest($"twin/v2/browse/{endpointId}", Method.Get) {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                if (continuationToken == null)
+                {
+                    request = new RestRequest($"twin/v2/browse/{endpointId}", Method.Get)
+                    {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
                     };
 
-                    if (!string.IsNullOrEmpty(nodeId)) {
+                    if (!string.IsNullOrEmpty(nodeId))
+                    {
                         request.AddQueryParameter("nodeId", nodeId);
                     }
                 }
-                else {
-                    request = new RestRequest($"twin/v2/browse/{endpointId}/next", Method.Get) {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                else
+                {
+                    request = new RestRequest($"twin/v2/browse/{endpointId}/next", Method.Get)
+                    {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
                     };
                     request.AddQueryParameter("continuationToken", continuationToken);
                 }
@@ -98,7 +109,8 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
                 Assert.NotNull(response);
-                if (!response.IsSuccessful) {
+                if (!response.IsSuccessful)
+                {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
@@ -111,7 +123,8 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var result = new List<(string NodeId, string NodeClass, bool Children)>();
 
-                foreach (var node in json.references) {
+                foreach (var node in json.references)
+                {
                     result.Add(
                         (
                             node.target?.nodeId?.ToString(),
@@ -132,21 +145,23 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="nodeClass">Class of the node to filter to or null for no filtering</param>
             /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="ArgumentNullException"></exception>
             public static async Task<List<(string NodeId, string NodeClass, bool Children)>> GetBrowseEndpointRecursiveAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeClass = null,
                     string nodeId = null,
-                    CancellationToken ct = default) {
-
-                if (string.IsNullOrEmpty(endpointId)) {
+                    CancellationToken ct = default)
+            {
+                if (string.IsNullOrEmpty(endpointId))
+                {
                     context.OutputHelper.WriteLine($"{nameof(endpointId)} is null or empty");
                     throw new ArgumentNullException(nameof(endpointId));
                 }
 
                 var nodes = new ConcurrentBag<(string NodeId, string NodeClass, bool Children)>();
 
-                await GetBrowseEndpointRecursiveCollectResultsAsync(context, endpointId, nodes, nodeId, ct);
+                await GetBrowseEndpointRecursiveCollectResultsAsync(context, endpointId, nodes, nodeId, ct).ConfigureAwait(false);
 
                 return nodes.Where(n => string.Equals(nodeClass, n.NodeClass, StringComparison.OrdinalIgnoreCase)).ToList();
             }
@@ -164,20 +179,23 @@ namespace IIoTPlatform_E2E_Tests {
                     string endpointId,
                     ConcurrentBag<(string NodeId, string NodeClass, bool Children)> nodes,
                     string nodeId = null,
-                    CancellationToken ct = default) {
+                    CancellationToken ct = default)
+            {
+                var currentNodes = await GetBrowseEndpointAsync(context, endpointId, nodeId, ct).ConfigureAwait(false);
 
-                var currentNodes = await GetBrowseEndpointAsync(context, endpointId, nodeId).ConfigureAwait(false);
-
-                foreach (var node in currentNodes) {
+                foreach (var node in currentNodes)
+                {
                     ct.ThrowIfCancellationRequested();
 
-                    if (nodes.Any(n => string.Equals(n.NodeId, node.NodeId))) {
+                    if (nodes.Any(n => string.Equals(n.NodeId, node.NodeId, StringComparison.Ordinal)))
+                    {
                         continue;
                     }
 
                     nodes.Add(node);
 
-                    if (node.Children) {
+                    if (node.Children)
+                    {
                         await GetBrowseEndpointRecursiveCollectResultsAsync(
                             context,
                             endpointId,
@@ -199,20 +217,24 @@ namespace IIoTPlatform_E2E_Tests {
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string methodId = null,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
-                var body = new {
+                var body = new
+                {
                     methodId,
-                    header = new {
-                        diagnostics = new {
+                    header = new
+                    {
+                        diagnostics = new
+                        {
                             level = "Verbose"
                         }
                     }
@@ -221,9 +243,7 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-                dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
-
-                return json;
+                return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
             }
 
             /// <summary>
@@ -233,17 +253,19 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="attributes">Attributes to be read</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
             public static async Task<dynamic> ReadNodeAttributesAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     List<object> attributes,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -254,14 +276,14 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
                 Assert.NotNull(response);
-                if (!response.IsSuccessful) {
+                if (!response.IsSuccessful)
+                {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
                 }
 
-                var json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
-                return json;
+                return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
             }
 
             /// <summary>
@@ -271,17 +293,19 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="attributes">Attributes to be written</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
             public static async Task<dynamic> WriteNodeAttributesAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     List<object> attributes,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -292,7 +316,8 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
                 Assert.NotNull(response);
-                if (!response.IsSuccessful) {
+                if (!response.IsSuccessful)
+                {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
@@ -316,22 +341,26 @@ namespace IIoTPlatform_E2E_Tests {
                     string methodId,
                     string objectId,
                     List<object> arguments,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
-                var body = new {
+                var body = new
+                {
                     methodId,
                     objectId,
                     arguments,
-                    header = new {
-                        diagnostics = new {
+                    header = new
+                    {
+                        diagnostics = new
+                        {
                             level = "Verbose"
                         }
                     }
@@ -340,9 +369,7 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-                dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
-
-                return json;
+                return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
             }
 
             /// <summary>
@@ -353,22 +380,25 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="nodeId">Node to browse from, if null defaults to root folder</param>
             /// <param name="browsePath">The paths to browse from node</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
             public static async Task<dynamic> GetBrowseNodePathAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeId,
                     List<string> browsePath,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
-                var body = new {
+                var body = new
+                {
                     nodeId,
                     browsePaths = new List<object> { browsePath }
                 };
@@ -378,7 +408,8 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
                 Assert.NotNull(response);
-                if (!response.IsSuccessful) {
+                if (!response.IsSuccessful)
+                {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
@@ -394,7 +425,8 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="nodeId">Id of the node to read the value of</param>
             /// <param name="ct">Cancellation token</param>
-            public static async Task<(dynamic Value, string DataType)> ReadNodeValue(
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
+            public static async Task<(dynamic Value, string DataType)> ReadNodeValueAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeId,
@@ -404,8 +436,9 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -441,8 +474,11 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="nodeId">Id of the node to read the value of</param>
+            /// <param name="value"></param>
+            /// <param name="dataType"></param>
             /// <param name="ct">Cancellation token</param>
-            public static async Task WriteNodeValue(
+            /// <exception cref="Xunit.Sdk.XunitException"></exception>
+            public static async Task WriteNodeValueAsync(
                     IIoTPlatformTestContext context,
                     string endpointId,
                     string nodeId,
@@ -454,8 +490,9 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 

@@ -3,45 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App {
+namespace Microsoft.Azure.IIoT.App
+{
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.Hosting;
-    using System;
-    using System.IO;
-    using Serilog;
-    using Serilog.Events;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Logging.ApplicationInsights;
+    using Autofac.Extensions.DependencyInjection;
+    using System.IO;
 
-    public class Program {
-
+    public static class Program
+    {
         /// <summary>
         /// Start application
         /// </summary>
         /// <param name="args"></param>
-        public static void Main(string[] args) {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information)
-                .MinimumLevel.ControlledBy(Diagnostics.LogControl.Level)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateLogger();
-#if DEBUG
-            Diagnostics.LogControl.Level.MinimumLevel = LogEventLevel.Debug;
-#endif
-            try {
-                CreateHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex) {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-                throw;
-            }
-            finally {
-                Log.CloseAndFlush();
-            }
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -49,19 +27,18 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IHostBuilder CreateHostBuilder(string[] args) {
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
             return Host.CreateDefaultBuilder(args)
-                .UseAutofac()
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false)
                     .UseIISIntegration()
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
-                .UseSerilog()
-                .ConfigureLogging(logging =>
-                    logging.AddFilter<ApplicationInsightsLoggerProvider>
-                        ("", LogLevel.Information));
+                .ConfigureLogging(builder => builder.AddConsole())
+                    ;
         }
     }
 }

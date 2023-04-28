@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Add url
         /// </summary>
+        /// <param name="url"></param>
         public void AddDiscoveryUrl(string url)
         {
             RequestedDiscoveryUrls ??= new List<string>();
@@ -58,42 +59,12 @@ namespace Microsoft.Azure.IIoT.App.Models
         }
 
         /// <summary>
-        /// Remove url
-        /// </summary>
-        public void RemoveDiscoveryUrl(string url)
-        {
-            RequestedDiscoveryUrls ??= new List<string>();
-            RequestedDiscoveryUrls.Remove(url);
-        }
-
-        /// <summary>
         /// Clear url list
         /// </summary>
-        public void ClearDiscoveryUrlList(List<string> list) {
+        /// <param name="list"></param>
+        public void ClearDiscoveryUrlList(List<string> list)
+        {
             list?.Clear();
-        }
-
-        /// <summary>
-        /// List of locales to filter with during discovery
-        /// </summary>
-        public List<string> RequestedLocales { get; set; }
-
-        /// <summary>
-        /// Add locale
-        /// </summary>
-        public void AddLocale(string locale)
-        {
-            RequestedLocales ??= new List<string>();
-            RequestedLocales.Add(locale);
-        }
-
-        /// <summary>
-        /// remove locale
-        /// </summary>
-        public void RemoveLocale(string locale)
-        {
-            RequestedLocales ??= new List<string>();
-            RequestedLocales.Remove(locale);
         }
     }
 }

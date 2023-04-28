@@ -3,7 +3,8 @@
     /// <summary>
     /// The configuration of the TestEventProcessor
     /// </summary>
-    public interface ITestEventProcessorConfig {
+    public interface ITestEventProcessorConfig
+    {
         /// <summary>
         /// The base url of the TestEventProcessor service
         /// </summary>

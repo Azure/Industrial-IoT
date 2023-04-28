@@ -3,14 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy {
+namespace OpcPublisher_AE_E2E_Tests.Deploy
+{
     using TestExtensions;
 
     /// <summary>
     /// Configuration that corresponds to a module deployment.
     /// </summary>
-    public abstract class ModuleDeploymentConfiguration : DeploymentConfiguration {
-
+    public abstract class ModuleDeploymentConfiguration : DeploymentConfiguration
+    {
         /// <summary>
         /// Name of the module that is being deployed by this configuration.
         /// </summary>

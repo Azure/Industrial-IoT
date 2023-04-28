@@ -1,0 +1,16 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcSamplingInterval": 200,
+                "OpcPublishingInterval": 200,
+                "DisplayName": "Output",
+                "SkipFirst": true
+            }
+        ]
+    }
+]

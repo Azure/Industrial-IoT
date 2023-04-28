@@ -3,19 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace MqttTestValidator.Controllers {
+namespace MqttTestValidator.Controllers
+{
     using Microsoft.AspNetCore.Mvc;
     using MqttTestValidator.Interfaces;
     using MqttTestValidator.Models;
 
     [ApiController]
     [Route("/Mqtt")]
-    public class MqttVerificationController : ControllerBase {
+    public class MqttVerificationController : ControllerBase
+    {
         private readonly ILogger<MqttVerificationController> _logger;
         private readonly ITaskRepository _repostiory;
         private readonly IVerificationTaskFactory _factory;
 
-        public MqttVerificationController(ILogger<MqttVerificationController> logger, ITaskRepository repository, IVerificationTaskFactory factory) {
+        public MqttVerificationController(ILogger<MqttVerificationController> logger, ITaskRepository repository, IVerificationTaskFactory factory)
+        {
             _logger = logger;
             _repostiory = repository;
             _factory = factory;
@@ -23,18 +26,22 @@ namespace MqttTestValidator.Controllers {
 
         [HttpPost("/StartVerification")]
         [Produces(typeof(MqttVerificationResponse))]
-        public IActionResult Verify([FromBody] MqttVerificationRequest request) {
-            if (request == null) {
+        public IActionResult Verify([FromBody] MqttVerificationRequest request)
+        {
+            if (request == null)
+            {
                 _logger.LogDebug("Request object is null");
                 return BadRequest();
             }
 
-            if (string.IsNullOrEmpty(request.MqttBroker)) {
+            if (string.IsNullOrEmpty(request.MqttBroker))
+            {
                 _logger.LogDebug("MqttBroker is null or Empty");
                 return BadRequest();
             }
 
-            if (string.IsNullOrEmpty(request.MqttTopic)) {
+            if (string.IsNullOrEmpty(request.MqttTopic))
+            {
                 _logger.LogDebug("Mqtt Topic is null or Empty");
                 return BadRequest();
             }
@@ -49,8 +56,10 @@ namespace MqttTestValidator.Controllers {
 
         [HttpGet("/GetVerificationResult/{id}")]
         [Produces(typeof(MqttVerificationDetailedResponse))]
-        public IActionResult GetResult([FromRoute] ulong id) {
-            if (!_repostiory.Contains(id)) {
+        public IActionResult GetResult([FromRoute] ulong id)
+        {
+            if (!_repostiory.Contains(id))
+            {
                 _logger.LogDebug("Verification task id unkown");
                 return BadRequest();
             }

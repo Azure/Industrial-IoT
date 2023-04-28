@@ -52,11 +52,8 @@ rem echo swagger2markup.separatedOperationsEnabled=true             >> config.pr
 docker pull swagger2markup/swagger2markup:latest
 set convert=docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:latest convert
 
-call :generate_doc_for_service twin
-call :generate_doc_for_service publisher
-call :generate_doc_for_service registry
-call :generate_doc_for_service history
-call :generate_doc_for_service events
+call :generate_doc_for_service opc-publisher
+call :generate_doc_for_service industrial-iot
 
 set service=
 set convert=

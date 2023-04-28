@@ -46,43 +46,33 @@ rem wait until listening
 rem
 :retrieve_spec
 :retrieve_retry
+echo Retrieve swagger docs for %1 from %_hostname%.
+if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
+pushd %build_root%\api\swagger
 if exist %1.json del /f %1.json
-curl -o %1.json http://%_hostname%/%1/swagger/v2/openapi.json
+curl -o %1.json http://%_hostname%/swagger/v2/openapi.json
 if exist %1.json goto :eof
 ping nowhere -w 5000 >nul 2>&1
 goto :retrieve_retry
-
-rem
-rem retrieve swagger json
-rem
-:retrieve_specs
-echo Retrieve swagger docs from %_hostname%.
-if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
-pushd %build_root%\api\swagger
-call :retrieve_spec twin
-call :retrieve_spec publisher
-call :retrieve_spec registry
-call :retrieve_spec history
-call :retrieve_spec events
-popd
-goto :eof
 
 @rem
 @rem Main
 @rem
 :main
-
-if not "%_hostname%" == "" goto :run
-rem start all services
-pushd %build_root%\services\src\Microsoft.Azure.IIoT.Services.All\src
 rem force https scheme only
 rem set PCS_AUTH_HTTPSREDIRECTPORT=443
-start dotnet run --project Microsoft.Azure.IIoT.Services.All.csproj
-set _hostname=localhost:9080
-goto :run
 
-:run
-call :retrieve_specs
+rem start publisher service
+pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.WebApi\src
+start dotnet run --project Azure.IIoT.OpcUa.Publisher.Service.WebApi.csproj
+set _hostname=localhost:9045
+call :retrieve_spec industrial-iot
+
+rem start publisher module
+pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Module\src
+start dotnet run --project Azure.IIoT.OpcUa.Publisher.Module.csproj --unsecurehttp=9072
+set _hostname=localhost:9702
+call :retrieve_spec opc-publisher
 
 :done
 if exist %TMP%\sdk_build.log del /f %TMP%\sdk_build.log

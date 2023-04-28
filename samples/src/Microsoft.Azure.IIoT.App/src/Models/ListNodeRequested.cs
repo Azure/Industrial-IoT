@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System.Globalization;
 
-    public class ListNodeRequested {
-
-        public ListNodeRequested(PublishedItemApiModel publishedItem) {
+    public class ListNodeRequested
+    {
+        public ListNodeRequested(PublishedItemModel publishedItem)
+        {
             _requestedPublishingInterval = publishedItem?.PublishingInterval;
             _requestedSamplingInterval = publishedItem?.SamplingInterval;
             _requestedHeartbeatInterval = publishedItem?.HeartbeatInterval;
@@ -24,31 +27,34 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// PublishingInterval
         /// </summary>
-        public string RequestedPublishingInterval {
-            get => (_requestedPublishingInterval != null && _requestedPublishingInterval.Value != TimeSpan.MinValue ?
-                _requestedPublishingInterval.Value.TotalMilliseconds.ToString() : null);
+        public string RequestedPublishingInterval
+        {
+            get => _requestedPublishingInterval != null && _requestedPublishingInterval.Value != TimeSpan.MinValue ?
+                _requestedPublishingInterval.Value.TotalMilliseconds.ToString(CultureInfo.InvariantCulture) : null;
             set => _requestedPublishingInterval = string.IsNullOrWhiteSpace(value) ?
-                TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
+                TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
         /// SamplingInterval
         /// </summary>
-        public string RequestedSamplingInterval {
-            get => (_requestedSamplingInterval != null && _requestedSamplingInterval.Value != TimeSpan.MinValue ?
-                _requestedSamplingInterval.Value.TotalMilliseconds.ToString() : null);
+        public string RequestedSamplingInterval
+        {
+            get => _requestedSamplingInterval != null && _requestedSamplingInterval.Value != TimeSpan.MinValue ?
+                _requestedSamplingInterval.Value.TotalMilliseconds.ToString(CultureInfo.InvariantCulture) : null;
             set => _requestedSamplingInterval = string.IsNullOrWhiteSpace(value) ?
-                TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
+                TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value, CultureInfo.InvariantCulture));
         }
 
         /// <summary>
         /// HeartbeatInterval
         /// </summary>
-        public string RequestedHeartbeatInterval {
-            get => (_requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
-                _requestedHeartbeatInterval.Value.TotalSeconds.ToString() : null);
+        public string RequestedHeartbeatInterval
+        {
+            get => _requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
+                _requestedHeartbeatInterval.Value.TotalSeconds.ToString(CultureInfo.InvariantCulture) : null;
             set => _requestedHeartbeatInterval = string.IsNullOrWhiteSpace(value) ?
-                TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
+                TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value, CultureInfo.InvariantCulture));
         }
     }
 }

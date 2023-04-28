@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Data {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using System.Collections.Generic;
 
-    public class PagedResult<T> : PagedResultBase where T : class {
-
+    public class PagedResult<T> : PagedResultBase where T : class
+    {
         public List<T> Results { get; set; }
 
-        public PagedResult() {
+        public PagedResult()
+        {
             Results = new List<T>();
         }
     }

@@ -6,7 +6,7 @@
 
 The document guides system operators to run the Azure Industrial IoT Platform in production scenarios. It explains how to set it up, what each of its components do and how to troubleshoot it.
 
-### Uses Cases of the Azure Industrial IoT Platform
+### Use Cases 
 
 The Azure Industrial IoT Platform is a Microsoft suite of modules and services that are deployed on Azure. These modules and services have fully embraced openness (an open platform, open source, open industrial standards and an open data model is used). Specifically, we leverage Azure's managed Platform as a Service (PaaS) offering, open-source software licensed via MIT license, open international standards for communication (OPC UA, AMQP, MQTT, HTTP) and interfaces (Open API) and open industrial data models (OPC UA) on the edge and in the cloud.
 
@@ -20,45 +20,11 @@ The following edge modules are part of the platform:
 
 - OPC Publisher Module
 
-  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA "Data Changed Notifications" into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
+  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA "Data Changed Notifications" into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file. It connects to OPC UA-enabled assets, browses their data model, reads and writes ad-hoc data, and calls methods on the asset. It can be accessed from the cloud. OPC Publisher also enables scanning the shop floor network for OPC UA-enabled assets. When it finds an asset, it queries the assets endpoints (including its security configuration) and registers an IoT Hub device in the IoT Hub Device Registry for each endpoint.
 
-- OPC Twin Module
+- Companion web service
 
-  The OPC Twin module runs on Azure IoT Edge and connects to OPC UA-enabled assets, browses their data model, reads and writes ad-hoc data, and calls methods on the asset. It can be accessed from the cloud.
-
-- Discovery Module
-
-  The Discovery module runs on Azure IoT Edge and scans the shop floor network for OPC UA-enabled assets. When it finds an asset, it queries the assets endpoints (including its security configuration) and registers an IoT Hub device in the IoT Hub Device Registry for each endpoint.
-
-- Registry Microservice
-
-  The Registry microservice is responsible for CRUD commands to the [IoT Hub Device Registry](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-identity-registry) as well as providing a HTTP REST interface for cloud applications. It manages all OPC UA asset endpoints that are stored in the IoT Hub device registry.
-
-- OPC Twin Microservice
-
-  The OPC Twin microservice is responsible for accessing OPC UA assets via the OPC Twin edge module and provides a HTTP REST interface to cloud applications.
-
-- OPC Publisher Microservice and Orchestrator Microservice
-
-  The OPC Publisher microservice is responsible for managing OPC Publisher module subscriptions to OPC UA assets. It provides a HTTP REST interface to cloud applications.
-
-  The Orchestrator microservice is an internal service responsible for load-balancing publishing jobs across OPC Publisher modules deployed in the same shop floor. It is also used to fail over publishing jobs from one OPC Publisher module to another.
-
-- Edge Telemetry Processor Microservice
-
-  The Edge Telemetry Processor microservice is responsible for decoding OPC UA PubSub messages received by IoT Hub and provides the data to post processing Azure services like Azure Event Hubs, Azure Data Lake Storage or Azure Time Series Insights for further processing and visualization.
-
-- Registry Onboarding Processor Microservice
-
-  The Registry Onboarding Processor microservice responsible for processing OPC UA endpoints sent to the cloud by the Discovery module.
-
-- Edge Event Processor Microservice
-
-  The Edge Event Processor microservice is responsible for decoding discovery messages sent to it by the Discovery module and forwards their payload, i.e., OPC UA endpoints, to the Registry Onboarding Processor. It implements an Event Processor.
-
-- Registry Synchronization Microservice
-
-  The Registry Synchronization microservice is responsible for providing a HTTP REST interface to cloud applications that want to initiate an asset discovery process via the Discovery module.
+  The companion web service runs in the cloud and provides a REST API over IoT Hub and deployed OPC Publisher modules. The Registry component of the web service is responsible for CRUD commands to the [IoT Hub Device Registry](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-identity-registry) as well as providing a HTTP REST interface for cloud applications. It manages all OPC UA asset endpoints that are stored in the IoT Hub device registry. The Twin component of the web service is responsible for accessing OPC UA assets via the OPC Twin edge module and provides a HTTP REST interface to cloud applications. The publish component of the web service manages subscriptions to OPC UA assets. 
 
 ### Data Flow Diagram
 
@@ -196,24 +162,6 @@ In this mode the OPC Publisher module runs a configurable number of workers (whi
 ##### Overview of how Standalone Mode Works
 
 OPC Publisher Module checks on a regular basis if there is a `publishednodes.json` file in its application directory. If there is one, the file is parsed and the OPC Publisher Module creates a new OPC UA subscription for each OPC UA server endpoint specified in the file and starts monitoring for data changes from this OPC UA server. Additionally, we support json schema validation of `publishednodes.json` file if a schema file is available to the OPC Publisher. Default location for schema file is `schemas/publishednodesschema.json` in its application directory. Default location of schema file can be changed via cli options [here](../modules/publisher-commandline.md), if a schema file is not found by OPC Publisher, a warning message is logged and module continues to load.
-
-##### Overview of how Orchestrated Mode Works
-
-1. During module startup, the OPC Publisher module also registers itself with the Orchestrator microservice so the orchestrator knows which publishing jobs it can possibly assign to it.
-
-2. The user sends a publishing request to the OPC Publisher microservice.
-
-3. The OPC Publisher microservice contacts the Orchestrator microservice who will create a new publishing job or modify an existing one if there already is one for that OPC UA server endpoint.
-
-4. The Orchestrator microservice does not leverage the IoT Hub device identity for the OPC UA server endpoint but instead creates a new IoT Hub device for the publishing job, so in theory we could have multiple publishing jobs per OPC UA server endpoint. However, to maintain backward compatibility with the V1 Publisher REST API, there can only be 1 job per OPC UA server endpoint right now.
-
-5. A job can contain several `DataSetWriters`. A `DataSetWriter` must have a distinct publishing interval (e.g., "publish this data every second"). Therefore, if you want to publish a set of OPC UA data items ("nodes") at different publishing intervals, the orchestrator will create multiple `DataSetWriters`.
-
-   > Implementation detail: Right now, the OPC Publisher creates a separate subscription per `DataSetWriter`.
-
-   <img src="media/image3.png" style="width:6.2493in;height:3.33403in" />
-
-6. OPC Publisher Module checks on a regular basis if there is a publishing job waiting for it from the Orchestrator microservice. If there is one, the job is assigned to the OPC Publisher Module and the OPC Publisher Module creates a new OPC UA subscription to the associated OPC UA server endpoint and starts monitoring for data changes from this OPC UA server.
 
 ### OPC UA stack
 

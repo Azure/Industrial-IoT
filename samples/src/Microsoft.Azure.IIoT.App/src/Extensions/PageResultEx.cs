@@ -3,16 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Data {
+namespace Microsoft.Azure.IIoT.App.Extensions
+{
+    using Microsoft.Azure.IIoT.App.Models;
     using System;
     using System.Linq;
 
     /// <summary>
     /// Page extensions
     /// </summary>
-    public static class PagedResultEx {
-        public static PagedResult<T> GetPaged<T>(this PagedResult<T> query, int page, int pageSize, string error) where T : class {
-            var result = new PagedResult<T> {
+    public static class PagedResultEx
+    {
+        public static PagedResult<T> GetPaged<T>(this PagedResult<T> query, int page, int pageSize, string error) where T : class
+        {
+            var result = new PagedResult<T>
+            {
                 CurrentPage = page,
                 PageSize = pageSize,
                 RowCount = query.Results.Count,

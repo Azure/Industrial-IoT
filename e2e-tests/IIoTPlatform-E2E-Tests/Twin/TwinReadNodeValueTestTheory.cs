@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Threading;
@@ -13,10 +14,12 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(TwinTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
-    public class TwinReadNodeValueTestTheory {
+    public class TwinReadNodeValueTestTheory
+    {
         private readonly TwinTestContext _context;
 
-        public TwinReadNodeValueTestTheory(TwinTestContext context, ITestOutputHelper output) {
+        public TwinReadNodeValueTestTheory(TwinTestContext context, ITestOutputHelper output)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
@@ -38,26 +41,29 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         [InlineData("UInt16", "i=13853", true)]
         [InlineData("UInt32", "http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", true)]
         [InlineData("UInt64", "i=13850", true)]
-        public void BasicDataType(string expectedDataType, string nodeId, bool expectValue) {
+        public void BasicDataType(string expectedDataType, string nodeId, bool expectValue)
+        {
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
-            var (value, dataType) = TestHelper.Twin.ReadNodeValue(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
+            var (value, dataType) = TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
 
             Assert.Equal(expectedDataType, dataType);
 
-            if (expectValue) {
+            if (expectValue)
+            {
                 Assert.NotNull(value);
             }
         }
 
         [Fact, PriorityOrder(2)]
-        public void ComplexDataType() {
+        public void ComplexDataType()
+        {
             const string expectedDataType = "ExtensionObject";
             const string nodeId = "http://microsoft.com/Opc/OpcPlc/Boiler#i=15003";
 
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
-            var (value, dataType) = TestHelper.Twin.ReadNodeValue(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
+            var (value, dataType) = TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
 
             Assert.Equal(expectedDataType, expectedDataType);
 

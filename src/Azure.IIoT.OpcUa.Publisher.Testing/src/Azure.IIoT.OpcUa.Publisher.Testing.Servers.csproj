@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Description>Contains several test servers to run tests against</Description>
+    <IsPackable>true</IsPackable>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsTrimmable>false</IsTrimmable>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Boolean.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Byte.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\DateTime.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Double.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Float.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Int16.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Int32.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Int64.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\SByte.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\String.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\UInt16.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\UInt32.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\UInt64.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Boolean.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Byte.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\ByteString.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\DateTime.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Double.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Float.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Int16.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Int32.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\Int64.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\SByte.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\String.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\UInt16.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\UInt32.txt" />
+    <EmbeddedResource Include="HistoricalAccess\Data\Sample\UInt64.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Instances.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Types.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Types.Types.bsd" />
+    <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Types.Types.xsd" />
+    <EmbeddedResource Include="Generated\Views\Design\Engineering.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Views\Design\Model.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Views\Design\Operations.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\HistoricalEvents\Design\HistoricalEvents.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Plc\Design\PlcModel.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\SimpleEvents\Design\SimpleEvents.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\TestData\Design\TestData.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\MemoryBuffer\Design\MemoryBuffer.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.371.86" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.30" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+</Project>

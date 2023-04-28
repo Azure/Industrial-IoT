@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
+namespace IIoTPlatform_E2E_Tests.TestExtensions
+{
     using Config;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -13,14 +14,15 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// Context to pass data between test cases
     /// </summary>
     public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
-		IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
-
+        IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig
+    {
         /// <summary>
         /// Configuration
         /// </summary>
         private IConfiguration Configuration { get; }
 
-        public IIoTPlatformTestContext() {
+        public IIoTPlatformTestContext()
+        {
             Configuration = GetConfiguration();
             RegistryHelper = new RegistryHelper(this);
             OutputHelper = null;
@@ -97,7 +99,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public RegistryHelper RegistryHelper { get; }
 
         /// <inheritdoc />
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -106,8 +109,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Override for disposing
         /// </summary>
         /// <param name="disposing">Indicates if called from <see cref="Dispose"/></param>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 RegistryHelper.Dispose();
             }
         }
@@ -118,9 +123,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetStringOrDefault(string key, Func<string> defaultValue) {
+        private string GetStringOrDefault(string key, Func<string> defaultValue)
+        {
             var value = Configuration.GetValue<string>(key);
-            if (string.IsNullOrEmpty(value)) {
+            if (string.IsNullOrEmpty(value))
+            {
                 return defaultValue?.Invoke() ?? string.Empty;
             }
             return value.Trim();
@@ -133,27 +140,25 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         ///     - environment variables from .env file
         /// </summary>
         /// <returns></returns>
-        private static IConfigurationRoot GetConfiguration() {
-            var configuration = new ConfigurationBuilder()
+        private static IConfigurationRoot GetConfiguration()
+        {
+            return new ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .Build();
-
-            return configuration;
         }
 
         string IDeviceConfig.DeviceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID,
-            () => throw new Exception("IoT Edge device id is not provided."));
+            () => throw new ArgumentException("IoT Edge device id is not provided."));
 
         string IIoTHubConfig.IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
-            () => throw new Exception("IoT Hub connection string is not provided."));
+            () => throw new ArgumentException("IoT Hub connection string is not provided."));
 
         string IIoTHubConfig.IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
-            () => throw new Exception("IoT Hub EventHub connection string is not provided."));
+            () => throw new ArgumentException("IoT Hub EventHub connection string is not provided."));
 
         string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
-        () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
+        () => throw new ArgumentException("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
@@ -165,43 +170,43 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => "").Split(",");
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
-            () => throw new Exception("ApplicationName is not provided."));
+            () => throw new ArgumentException("ApplicationName is not provided."));
 
         string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
-            () => throw new Exception("Username of iot edge device is not provided."));
+            () => throw new ArgumentException("Username of iot edge device is not provided."));
 
         string ISshConfig.PublicKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PUBLICKEY,
-            () => throw new Exception("Public key of iot edge device is not provided."));
+            () => throw new ArgumentException("Public key of iot edge device is not provided."));
 
         string ISshConfig.PrivateKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PRIVATEKEY,
-            () => throw new Exception("Private key of iot edge device is not provided."));
+            () => throw new ArgumentException("Private key of iot edge device is not provided."));
 
         string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNSNAME,
-            () => throw new Exception("DNS name of iot edge device is not provided."));
+            () => throw new ArgumentException("DNS name of iot edge device is not provided."));
 
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
-            () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
+            () => throw new ArgumentException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
         string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
-            () => throw new Exception("Test Event Processor BaseUrl is not provided."));
+            () => throw new ArgumentException("Test Event Processor BaseUrl is not provided."));
 
         string ITestEventProcessorConfig.TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
-            () => throw new Exception("Test Event Processor Username is not provided."));
+            () => throw new ArgumentException("Test Event Processor Username is not provided."));
 
         string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
-            () => throw new Exception("Test Event Processor Password is not provided."));
+            () => throw new ArgumentException("Test Event Processor Password is not provided."));
 
         string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);

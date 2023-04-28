@@ -1,0 +1,20 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "DisplayName": "PendingAlarms",
+                "Id": "i=2253",
+                "EventFilter": {
+                    "TypeDefinitionId": "i=2041"
+                },
+                "ConditionHandling": {
+                    "UpdateInterval": 1,
+                    "SnapshotInterval": 2
+                }
+            }
+        ]
+    }
+]

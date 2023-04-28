@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -19,14 +20,16 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_EventsStressTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
-        public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
-            : base(context, output) {
+    public class CEventsStressTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext>
+    {
+        public CEventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+            : base(context, output)
+        {
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestACI_VerifyEnd2EndThroughputAndLatency() {
-
+        public async void TestACIVerifyEnd2EndThroughputAndLatency()
+        {
             // Settings
             const int eventIntervalPerInstanceMs = 400;
             const int eventInstances = 40;
@@ -37,33 +40,33 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context,
-                new List<string> {"/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000"},
+                new List<string> { "/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000" },
                 _timeoutToken,
-                numInstances: instances);
+                numInstances: instances).ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, _timeoutToken, -1);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, -1, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages
-                .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
+                .TakeWhile(_context, (first, current) => current.EnqueuedTime - first.EnqueuedTime <= FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
                 .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
-                .ToListAsync(_timeoutToken);
+                .ToListAsync(_timeoutToken).ConfigureAwait(false);
 
             // Assert throughput
 
             // Trim first few and last seconds of data, since Publisher polls PLCs
             // at different times
-            var intervalStart = fullData.Select(d => d.SourceTimestamp).Min() + FromSeconds(nSecondSkipFirst);
-            var intervalEnd = fullData.Select(d => d.SourceTimestamp).Max() - FromSeconds(nSecondSkipLast);
+            var intervalStart = fullData.Min(d => d.SourceTimestamp) + FromSeconds(nSecondSkipFirst);
+            var intervalEnd = fullData.Max(d => d.SourceTimestamp) - FromSeconds(nSecondSkipLast);
             var intervalDuration = intervalEnd - intervalStart;
             var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
 
@@ -103,7 +106,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
         }
 
-        private static (double average, double stDev) DescriptiveStats(IReadOnlyCollection<int> population) {
+        private static (double average, double stDev) DescriptiveStats(IReadOnlyCollection<int> population)
+        {
             var average = population.Average();
             var stDev = Math.Sqrt(population.Sum(v => (v - average) * (v - average)) / population.Count);
             return (average, stDev);

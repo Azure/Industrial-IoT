@@ -3,7 +3,7 @@
     <Product>Azure Industrial IoT Platform</Product>
     <RepositoryUrl>https://github.com/Azure/Industrial-IoT</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <NoWarn>NU5125;RS1022;AD0001;CS8032</NoWarn>
+    <NoWarn>NU5125;RS1022;AD0001</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
@@ -13,15 +13,13 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>Industrial;Industrial IoT;Manufacturing;Azure;IoT;.NET</PackageTags>
     <HighEntropyVA>true</HighEntropyVA>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <LangVersion>10.0</LangVersion>
-	<Nullable>disable</Nullable>
+    <LangVersion>11.0</LangVersion>
     <IsPackable>false</IsPackable>
-	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-	<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
-	<RuntimeIdentifiers>win-x64;linux-x64;linux-musl-x64;linux-musl-arm;linux-musl-arm64</RuntimeIdentifiers>
+    <Nullable>disable</Nullable>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+    <RuntimeIdentifiers>win-x64;linux-x64;linux-musl-x64;linux-musl-arm;linux-musl-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)/docs/media/icon.png" Pack="true" PackagePath="\"/>
@@ -36,29 +34,17 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119" PrivateAssets="All"/>
   </ItemGroup>
-  <ItemGroup Condition="'$(FX_COP)' != ''">
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" />
-  </ItemGroup>
   <PropertyGroup>
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>preview</AnalysisLevel>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
-  <PropertyGroup Condition="'$(FX_COP)' != ''">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <ItemGroup Condition="'$(SDL)' == 'true'">
-    <PackageReference Include="Roslynator.Analyzers" Version="3.1.0" PrivateAssets="All" />
+  <ItemGroup Condition="$(NO_RCS) == ''">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.3.0" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.3.0" PrivateAssets="All"/>
   </ItemGroup>
-  <PropertyGroup Condition="'$(SDL)' == 'true'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PrereleaseSuffix>$(PrereleaseVersionNoLeadingHyphen)-$(GitCommitIdShort)</PrereleaseSuffix>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(NuGetPackageVersion)]</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' == ''">$(VersionPrefix)-$(PrereleaseVersion)*</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)-*</PrereleaseVersion>
-    <ReleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)</ReleaseVersion>
-    <ReleaseVersion Condition="'$(PublicRelease)' == 'False'">$(NuGetPackageVersion)</ReleaseVersion>
-  </PropertyGroup>
   <!-- only create the SARIF files for the SDL build step in cloud builds -->
   <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">
     <ErrorLog>$(MSBuildProjectFullPath).$([System.Guid]::NewGuid().ToString().Substring(0,8)).sarif</ErrorLog>

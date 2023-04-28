@@ -6,17 +6,15 @@
 @page "/browser/{page}/{applicationId}/{endpointId}"
 @page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
+@using Microsoft.Azure.IIoT.App.Models;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.AspNetCore.Components
-@using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models
-@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
-@using Microsoft.Azure.IIoT.App.Common
-@using Microsoft.Azure.IIoT.App.Models
-@using Microsoft.Azure.IIoT.App.Services.SecureData
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
+@using global::Azure.IIoT.OpcUa.Publisher.Models
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -28,7 +26,7 @@
 @inject SecureData secureData
 @inject IRegistryServiceApi registryService
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 <h1>Endpoint Control</h1>
 

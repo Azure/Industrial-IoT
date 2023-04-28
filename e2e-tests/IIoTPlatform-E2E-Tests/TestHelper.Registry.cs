@@ -3,7 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests {
+namespace IIoTPlatform_E2E_Tests
+{
+    using Furly.Exceptions;
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -11,45 +13,49 @@ namespace IIoTPlatform_E2E_Tests {
     using System;
     using System.Collections.Generic;
     using System.Dynamic;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
-    internal static partial class TestHelper {
-
+    internal static partial class TestHelper
+    {
         /// <summary>
         /// Registry related helper methods
         /// </summary>
-        public static class Registry {
-
+        public static class Registry
+        {
             /// <summary>
             /// Wait for OPC UA endpoint to be activated
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-            /// <param name="ct">Cancellation token</param>
             /// <param name="requestedEndpointIds">List of OPC UA endpoint Ids that need to be activated and connected</param>
+            /// <param name="ct">Cancellation token</param>
             /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
             public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
                 IIoTPlatformTestContext context,
-                CancellationToken ct = default,
-                HashSet<string> requestedEndpointIds = null) {
-
-                var accessToken = await GetTokenAsync(context, ct);
+                HashSet<string> requestedEndpointIds = null,
+                CancellationToken ct = default)
+            {
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 ct.ThrowIfCancellationRequested();
-                try {
+                try
+                {
                     dynamic json;
                     var activationStates = new List<string>(10);
-                    do {
+                    do
+                    {
                         activationStates.Clear();
-                        var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get) {
-                            Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                        var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get)
+                        {
+                            Timeout = TestConstants.DefaultTimeoutInMilliseconds
                         };
                         request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
-                        var response = await client.ExecuteAsync(request, ct);
+                        var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                         Assert.NotNull(response);
                         Assert.True(response.IsSuccessful, $"GET /registry/v2/endpoints failed ({response.StatusCode}, {response.ErrorMessage})!");
 
@@ -59,30 +65,35 @@ namespace IIoTPlatform_E2E_Tests {
 
                         int count = (int)json.items.Count;
                         Assert.NotEqual(0, count);
-                        if (requestedEndpointIds == null) {
+                        if (requestedEndpointIds == null)
+                        {
                             activationStates.Add((string)json.items[0].activationState);
                         }
-                        else {
+                        else
+                        {
                             for (int indexOfRequestedOpcServer = 0;
                                 indexOfRequestedOpcServer < count;
-                                indexOfRequestedOpcServer++) {
+                                indexOfRequestedOpcServer++)
+                            {
                                 var endpoint = (string)json.items[indexOfRequestedOpcServer].registration.id;
-                                if (requestedEndpointIds.Contains(endpoint)) {
+                                if (requestedEndpointIds.Contains(endpoint))
+                                {
                                     activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
                                 }
                             }
                         }
 
                         // wait the endpoint to be connected
-                        if (activationStates.Any(s => s == "Activated")) {
-                            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, ct);
+                        if (activationStates.Any(s => s == "Activated"))
+                        {
+                            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, ct).ConfigureAwait(false);
                         }
-
                     } while (activationStates.All(s => s != "ActivatedAndConnected"));
 
                     return json;
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
                     return null;
                 }
@@ -94,12 +105,14 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="discoveryUrl">Discovery URL to register</param>
             /// <param name="ct">Cancellation token</param>
+            /// <exception cref="ArgumentNullException"></exception>
             public static async Task RegisterServerAsync(
                     IIoTPlatformTestContext context,
                     string discoveryUrl,
-                    CancellationToken ct = default) {
-
-                if (string.IsNullOrEmpty(discoveryUrl)) {
+                    CancellationToken ct = default)
+            {
+                if (string.IsNullOrEmpty(discoveryUrl))
+                {
                     context.OutputHelper.WriteLine($"{nameof(discoveryUrl)} is null or empty");
                     throw new ArgumentNullException(nameof(discoveryUrl));
                 }
@@ -108,8 +121,9 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -131,14 +145,15 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task<string> GetApplicationIdAsync(
                     IIoTPlatformTestContext context,
                     string discoveryUrl,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -153,18 +168,21 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.True(HasProperty(result, "items"), "GET /registry/v2/application response did not contain items");
                 Assert.False(result.items == null, "GET /registry/v2/application response items property is null");
 
-                foreach (var item in result.items) {
+                foreach (var item in result.items)
+                {
                     var itemDictionary = (IDictionary<string, object>)item;
 
                     if (!itemDictionary.ContainsKey("discoveryUrls")
-                        || !itemDictionary.ContainsKey("applicationId")) {
+                        || !itemDictionary.ContainsKey("applicationId"))
+                    {
                         continue;
                     }
 
                     var discoveryUrls = (List<object>)item.discoveryUrls;
                     var itemUrl = (string)discoveryUrls?.FirstOrDefault(url => IsUrlStringsEqual(url as string, discoveryUrl));
 
-                    if (itemUrl != null) {
+                    if (itemUrl != null)
+                    {
                         return item.applicationId;
                     }
                 }
@@ -181,22 +199,24 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task UnregisterServerAsync(
                     IIoTPlatformTestContext context,
                     string discoveryUrl,
-                    CancellationToken ct = default) {
-
+                    CancellationToken ct = default)
+            {
                 var applicationId = context.ApplicationId;
 
                 // Validate if an aplicationId was ever added to the context. If not try to get it from discovery Url
-                if (string.IsNullOrEmpty(applicationId)) {
-                    applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct);
+                if (string.IsNullOrEmpty(applicationId))
+                {
+                    applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct).ConfigureAwait(false);
                 }
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var resource = string.Format(TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
-                var request = new RestRequest(resource, Method.Delete) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var resource = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
+                var request = new RestRequest(resource, Method.Delete)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -209,16 +229,19 @@ namespace IIoTPlatform_E2E_Tests {
             /// Activates (and waits for activated and connected state) the endpoint from <paramref name="context"/>
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId"></param>
             /// <param name="ct">Cancellation token</param>
-            public static async Task ActivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default) {
+            public static async Task ActivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId), Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest(string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId), Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -227,22 +250,25 @@ namespace IIoTPlatform_E2E_Tests {
                 // but we will keep this workaround until we can consume the fixed platform in the E2E tests.
                 bool IsSuccessful = false;
                 int numberOfRetries = 3;
-                while (!IsSuccessful && numberOfRetries > 0) {
-                    var response = await client.ExecuteAsync(request, ct);
+                while (!IsSuccessful && numberOfRetries > 0)
+                {
+                    var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                     IsSuccessful = response.IsSuccessful;
                     numberOfRetries--;
                 }
 
                 Assert.True(IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
 
-                while (true) {
+                while (true)
+                {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
 
                     var endpointList = await GetEndpointsAsync(context, ct).ConfigureAwait(false);
-                    var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, endpointId));
+                    var endpoint = endpointList.Find(e => string.Equals(e.Id, endpointId, StringComparison.Ordinal));
 
-                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.ActivatedAndConnected)
-                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Ready)) {
+                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.ActivatedAndConnected, StringComparison.Ordinal)
+                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Ready, StringComparison.Ordinal))
+                    {
                         return;
                     }
 
@@ -257,30 +283,35 @@ namespace IIoTPlatform_E2E_Tests {
             /// Deactivate the endpoint from <paramref name="context"/>
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId"></param>
             /// <param name="ct">Cancellation token</param>
-            public static async Task DeactivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default) {
+            public static async Task DeactivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default)
+            {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(string.Format(TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId), Method.Post) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                var request = new RestRequest(string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId), Method.Post)
+                {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
                 var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
 
                 Assert.True(response.IsSuccessful, $"POST /registry/v2/endpoints/{endpointId}/deactivate failed ({response.StatusCode}, {response.ErrorMessage})!");
-                while (true) {
+                while (true)
+                {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not deactivated within the expected timeout");
 
                     var endpointList = await GetEndpointsAsync(context, ct).ConfigureAwait(false);
-                    var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, endpointId));
+                    var endpoint = endpointList.Find(e => string.Equals(e.Id, endpointId, StringComparison.Ordinal));
 
-                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.Deactivated)
-                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Disconnected)) {
+                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.Deactivated, StringComparison.Ordinal)
+                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Disconnected, StringComparison.Ordinal))
+                    {
                         return;
                     }
 
@@ -289,7 +320,6 @@ namespace IIoTPlatform_E2E_Tests {
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
-
             }
 
             /// <summary>
@@ -299,7 +329,8 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="ct">Cancellation token</param>
             public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> GetEndpointsAsync(
                     IIoTPlatformTestContext context,
-                    CancellationToken ct = default) {
+                    CancellationToken ct = default)
+            {
                 dynamic json = await GetEndpointsInternalAsync(context, ct).ConfigureAwait(false);
 
                 Assert.True(HasProperty(json, "items"), "GET /registry/v2/endpoints response has no items");
@@ -308,7 +339,8 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var result = new List<(string Id, string Url, string ActivationState, string EndpointState)>();
 
-                foreach (var item in json.items) {
+                foreach (var item in json.items)
+                {
                     var id = item.registration.id?.ToString();
                     var endpointUrl = item.registration.endpointUrl?.ToString();
                     var activationState = item.activationState?.ToString();
@@ -325,20 +357,26 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="ct">Cancellation token</param>
             public static async Task RemoveAllApplicationsAsync(IIoTPlatformTestContext context,
-                    CancellationToken ct = default) {
-                while (true) {
+                    CancellationToken ct = default)
+            {
+                while (true)
+                {
                     dynamic json = await GetApplicationsInternalAsync(context, ct).ConfigureAwait(false);
                     Assert.True(HasProperty(json, "items"), "GET /registry/v2/applications response has no items property");
-                    if (json.items == null || json.items.Count == 0) {
+                    if (json.items == null || json.items.Count == 0)
+                    {
                         return;
                     }
-                    foreach (var item in json.items) {
+                    foreach (var item in json.items)
+                    {
                         var id = item.applicationId?.ToString();
-                        try {
+                        try
+                        {
                             RemoveApplication(context, id, ct);
                             context.OutputHelper?.WriteLine($"Removed application {id}.");
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             context.OutputHelper?.WriteLine($"Failed to remove application {id} -> {ex.Message}");
                         }
                     }
@@ -352,14 +390,18 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="applicationId"></param>
             /// <param name="ct"></param>
             /// <exception cref="Exception"></exception>
-            public static void RemoveApplication(IIoTPlatformTestContext context, string applicationId, CancellationToken ct) {
+            /// <exception cref="ResourceNotFoundException"></exception>
+            public static void RemoveApplication(IIoTPlatformTestContext context, string applicationId, CancellationToken ct)
+            {
                 var route = $"{TestConstants.APIRoutes.RegistryApplications}/{applicationId}";
                 var response = CallRestApi(context, Method.Delete, route, ct: ct);
-                if (response.ErrorException != null) {
+                if (response.ErrorException != null)
+                {
                     throw response.ErrorException;
                 }
-                if (!response.IsSuccessStatusCode) {
-                    throw new Exception(response.ToString());
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new ResourceNotFoundException(response.ToString());
                 }
             }
         }

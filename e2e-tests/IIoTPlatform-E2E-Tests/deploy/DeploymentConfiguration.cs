@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Deploy {
+namespace IIoTPlatform_E2E_Tests.Deploy
+{
     using Microsoft.Azure.Devices;
     using System;
     using System.Collections.Generic;
@@ -11,14 +12,16 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
     using System.Threading.Tasks;
     using TestExtensions;
 
-    public abstract class DeploymentConfiguration : IIoTHubEdgeDeployment {
-
-        public DeploymentConfiguration(IIoTPlatformTestContext context) {
+    public abstract class DeploymentConfiguration : IIoTHubEdgeDeployment
+    {
+        public DeploymentConfiguration(IIoTPlatformTestContext context)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         /// <inheritdoc />
-        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token) {
+        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token)
+        {
             var deploymentConfiguration = GetDeploymentConfiguration();
 
             var configuration = await _context.RegistryHelper
@@ -29,16 +32,17 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         }
 
         /// <inheritdoc />
-        public Configuration GetDeploymentConfiguration() {
-            var deploymentConfiguration = new Configuration(DeploymentName) {
-                Content = new ConfigurationContent {
+        public Configuration GetDeploymentConfiguration()
+        {
+            return new Configuration(DeploymentName)
+            {
+                Content = new ConfigurationContent
+                {
                     ModulesContent = CreateDeploymentModules()
                 },
                 TargetCondition = TargetCondition,
                 Priority = Priority
             };
-
-            return deploymentConfiguration;
         }
 
         protected readonly IIoTPlatformTestContext _context;

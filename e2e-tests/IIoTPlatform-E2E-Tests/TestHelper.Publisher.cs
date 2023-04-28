@@ -3,30 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using System.Threading;
-    using System.Threading.Tasks;
+namespace IIoTPlatform_E2E_Tests
+{
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Xunit;
 
-    internal static partial class TestHelper {
-
+    internal static partial class TestHelper
+    {
         /// <summary>
         /// Publisher related helper methods
         /// </summary>
-        public static class Publisher {
-
+        public static class Publisher
+        {
             /// <summary>
             /// Compare PublishNodesEndpointApiModel with PublishedNodeApiModel
             /// </summary>
-            public static void AssertEndpointModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
+            /// <param name="expected"></param>
+            /// <param name="actual"></param>
+            public static void AssertEndpointModel(PublishedNodesEntryModel expected, PublishedNodesEntryModel actual)
+            {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
                 Assert.Equal(expected.DataSetPublishingIntervalTimespan, actual.DataSetPublishingIntervalTimespan);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.DataSetWriterId, actual.DataSetWriterId);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
                 Assert.Equal(expected.OpcAuthenticationMode, actual.OpcAuthenticationMode);
-                Assert.Equal(expected.UserName, actual.UserName);
+                Assert.Equal(expected.OpcAuthenticationUsername, actual.OpcAuthenticationUsername);
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);
             }
 
@@ -34,16 +36,18 @@ namespace IIoTPlatform_E2E_Tests {
             /// Compare PublishNodesEndpointApiModel of requst with DiagnosticInfoApiModel returned
             /// from GetDiagnosticInfo direct method call.
             /// </summary>
+            /// <param name="expected"></param>
+            /// <param name="diagnosticInfo"></param>
             public static void AssertEndpointDiagnosticInfoModel(
-                PublishNodesEndpointApiModel expected,
-                DiagnosticInfoApiModel diagnosticInfo) {
-
+                PublishedNodesEntryModel expected,
+                PublishDiagnosticInfoModel diagnosticInfo)
+            {
                 var actual = diagnosticInfo.Endpoint;
 
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
                 Assert.Equal(expected.OpcAuthenticationMode, actual.OpcAuthenticationMode);
-                Assert.Equal(expected.UserName, actual.UserName);
+                Assert.Equal(expected.OpcAuthenticationUsername, actual.OpcAuthenticationUsername);
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);
 
                 // Check validity of diagnosticInfo
@@ -56,7 +60,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 // Check that we are not dropping anything.
                 Assert.Equal(0U, diagnosticInfo.EncoderNotificationsDropped);
-                Assert.Equal(0UL, diagnosticInfo.OutgressInputBufferDropped);
+                Assert.Equal(0L, diagnosticInfo.OutgressInputBufferDropped);
             }
         }
     }

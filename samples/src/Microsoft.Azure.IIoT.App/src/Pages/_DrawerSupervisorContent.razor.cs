@@ -3,21 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
-    using System.Threading.Tasks;
+namespace Microsoft.Azure.IIoT.App.Pages
+{
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using System.Threading.Tasks;
 
-    public partial class _DrawerSupervisorContent {
+    public partial class _DrawerSupervisorContent
+    {
         [Parameter]
         public string SupervisorId { get; set; }
-
-        public SupervisorStatusApiModel SupervisorStatus { get; set; }
 
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -25,12 +25,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
-                SupervisorStatus = await RegistryHelper.GetSupervisorStatusAsync(SupervisorId);
+        protected override Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
                 CommonHelper.Spinner = "";
                 StateHasChanged();
             }
+            return Task.CompletedTask;
         }
     }
 }

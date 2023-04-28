@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
     using System;
@@ -16,7 +17,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// Class to check whether there are missing timestamps in the event timeline.
     /// The validation will be done per nodeId.
     /// </summary>
-    class MissingTimestampsChecker {
+    class MissingTimestampsChecker : IDisposable
+    {
 
         /// <summary>
         /// Format to be used for Timestamps
@@ -29,8 +31,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         private readonly SemaphoreSlim _lock;
         private readonly IDictionary<string, List<DateTime>> _sourceTimestamps;
         private readonly DateTimeFormatInfo _dateTimeFormatInfo;
-        private bool _isStopped = false;
-        private int _missingTimestampsCounter = 0;
+        private bool _isStopped;
+        private int _missingTimestampsCounter;
 
         /// <summary>
         /// Constructor of the checker.
@@ -43,11 +45,14 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             TimeSpan expectedIntervalOfValueChanges,
             TimeSpan threshold,
             ILogger logger
-        ) {
-            if (expectedIntervalOfValueChanges.Ticks < 0) {
+        )
+        {
+            if (expectedIntervalOfValueChanges.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(expectedIntervalOfValueChanges)} cannot be negative");
             }
-            if (threshold.Ticks < 0) {
+            if (threshold.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(threshold)} cannot be negative");
             }
 
@@ -71,25 +76,31 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             string nodeId,
             DateTime sourceTimestamp,
             JToken _
-        ) {
+        )
+        {
             // Do not process events after Stop() has been called.
-            if (_isStopped) {
+            if (_isStopped)
+            {
                 return;
             }
 
             // Do not process if _expectedInterval is set to zero.
-            if (_expectedInterval.Equals(TimeSpan.Zero)) {
+            if (_expectedInterval.Equals(TimeSpan.Zero))
+            {
                 return;
             }
 
             _lock.Wait();
-            try {
-                if (!_sourceTimestamps.ContainsKey(nodeId)) {
+            try
+            {
+                if (!_sourceTimestamps.ContainsKey(nodeId))
+                {
                     _sourceTimestamps.Add(nodeId, new List<DateTime>());
                 }
                 _sourceTimestamps[nodeId].Add(sourceTimestamp);
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -103,21 +114,28 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public Task StartAsync(
             TimeSpan checkDelay,
             CancellationToken token = default
-        ) {
-            if (checkDelay.Ticks < 0) {
+        )
+        {
+            if (checkDelay.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(checkDelay)} cannot be negative");
             }
 
-            return new Task(() => {
-                try {
-                    while (!token.IsCancellationRequested) {
+            return new Task(() =>
+            {
+                try
+                {
+                    while (!token.IsCancellationRequested)
+                    {
 
                         CheckForMissingTimestamps();
                         Task.Delay(checkDelay, token).Wait(token);
                     }
                 }
-                catch (OperationCanceledException oce) {
-                    if (oce.CancellationToken == token) {
+                catch (OperationCanceledException oce)
+                {
+                    if (oce.CancellationToken == token)
+                    {
                         return;
                     }
                     throw;
@@ -129,16 +147,19 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop validation.
         /// </summary>
         /// <returns></returns>
-        public int Stop() {
+        public int Stop()
+        {
             _isStopped = true;
 
             CheckForMissingTimestamps();
 
             _lock.Wait();
-            try {
+            try
+            {
                 return _missingTimestampsCounter;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -146,11 +167,15 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Validate all timestamp intervals that have been received this far.
         /// </summary>
-        private void CheckForMissingTimestamps() {
+        private void CheckForMissingTimestamps()
+        {
             _lock.Wait();
-            try {
-                foreach(var kvp in _sourceTimestamps) {
-                    if (kvp.Value.Count < 2) {
+            try
+            {
+                foreach (var kvp in _sourceTimestamps)
+                {
+                    if (kvp.Value.Count < 2)
+                    {
                         // Nothing to check as there are no enough timestamps to compare.
                         continue;
                     }
@@ -158,7 +183,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     var nodeId = kvp.Key;
                     var nodeSourceTimestamps = kvp.Value;
 
-                    while (nodeSourceTimestamps.Count > 1) {
+                    while (nodeSourceTimestamps.Count > 1)
+                    {
                         var older = nodeSourceTimestamps[0];
                         nodeSourceTimestamps.RemoveAt(0);
 
@@ -171,12 +197,13 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                         var expectedMin = expectedTime - _threshold;
                         var expectedMax = expectedTime + _threshold;
 
-                        if (newer < expectedMin || newer > expectedMax) {
+                        if (newer < expectedMin || newer > expectedMax)
+                        {
                             var expectedTS = expectedTime.ToString(_dateTimeFormat, _dateTimeFormatInfo);
                             var olderTS = older.ToString(_dateTimeFormat, _dateTimeFormatInfo);
                             var newerTS = newer.ToString(_dateTimeFormat, _dateTimeFormatInfo);
                             _logger.LogWarning(
-                                "Missing timestamp for {nodeId}, value changes for {ExpectedTs} not " +
+                                "Missing timestamp for {NodeId}, value changes for {ExpectedTs} not " +
                                 "received, predecessor {Older} successor {Newer}",
                                 nodeId, expectedTS, olderTS, newerTS
                             );
@@ -186,9 +213,15 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     }
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
         }
     }
 }

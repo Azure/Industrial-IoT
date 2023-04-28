@@ -10,8 +10,6 @@
     Layout = null;
 }
 
-@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +17,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Engineering Tool</title>
     <base href="~/discoverers" />
-    @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
     <link href="css/blazored-modal.min.css" rel="stylesheet" />
