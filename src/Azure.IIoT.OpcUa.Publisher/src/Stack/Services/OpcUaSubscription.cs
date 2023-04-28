@@ -280,6 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     try
                     {
                         await ReapplyToSessionInternalAsync(handle, ct).ConfigureAwait(false);
+                        return;
                     }
                     catch (Exception e)
                     {
@@ -925,7 +926,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="handle"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task ReapplyToSessionInternalAsync(IOpcUaSession handle,
+        private async ValueTask ReapplyToSessionInternalAsync(IOpcUaSession handle,
             CancellationToken ct)
         {
             Debug.Assert(_subscription != null, "No subscription during apply");
