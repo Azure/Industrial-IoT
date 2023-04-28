@@ -305,16 +305,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 get
                 {
+                    var writers = _writers.Values; // Snapshot writers
                     return this with
                     {
                         MonitoredOpcNodesFailedCount = MonitoredOpcNodesFailedCount +
-                            _writers.Values.Sum(w => w.MonitoredOpcNodesFailedCount),
+                            writers.Sum(w => w.MonitoredOpcNodesFailedCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
-                            _writers.Values.Sum(w => w.MonitoredOpcNodesSucceededCount),
-                        ConnectionRetries = (int)
-                            _writers.Values.Average(w => w.ConnectionRetries),
+                            writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
+                        ConnectionRetries = writers.Count == 0 ? 0 : (int)
+                            writers.Average(w => w.ConnectionRetries),
                         OpcEndpointConnected = OpcEndpointConnected ||
-                            _writers.Values.Any(w => w.OpcEndpointConnected)
+                            writers.Any(w => w.OpcEndpointConnected)
                     };
                 }
             }
