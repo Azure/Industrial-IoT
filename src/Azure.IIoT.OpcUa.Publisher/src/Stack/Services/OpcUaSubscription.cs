@@ -274,71 +274,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                Debug.Assert(_subscription != null, "No subscription during apply");
-
-                // Get the raw session object from the session handle to do the heart surgery
-                if (handle is not ISessionAccessor accessor ||
-                    !accessor.TryGetSession(out var session)) // Should never happen.
+                // Try again
+                for (var attempt = 1; ; attempt++)
                 {
-                    _logger.LogInformation(
-                        "Failed to access session in {Session} to update subscription {Subscription}.",
-                        handle, this);
-                    return;
+                    try
+                    {
+                        await ReapplyToSessionInternalAsync(handle, ct).ConfigureAwait(false);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Attempt#{Attempt} failed to apply state to " +
+                            "Subscription {Subscription} in session {Session}...", attempt,
+                            this, handle);
+                        if (attempt > 2)
+                        {
+                            // Give up after trying three times
+                            break;
+                        }
+                        await Task.Delay(TimeSpan.FromSeconds(2), ct).ConfigureAwait(false);
+                    }
                 }
-
-                //
-                // While we access the session it is valid and what is more connected.
-                // We are called on the client connection manager thread and thus can
-                // access the session however we want without anyone disconnecting it.
-                //
-                Debug.Assert(session.Connected);
-
-                // Create or update the subscription inside the raw session object.
-                var subscription = await AddOrUpdateSubscriptionInSessionAsync(session,
-                    ct).ConfigureAwait(false);
-
-                if (subscription == null)
-                {
-                    _logger.LogWarning(
-                        "Could not add or update a Subscription {Subscription} in {Session}.",
-                        this, handle);
-
-                    // TODO: This failed, but what is the reason for it
-                    return;
-                }
-
-                if (!subscription.PublishingEnabled)
-                {
-                    // Initialized subscription, resolve display names first
-                    ResolveDisplayNames(session);
-                }
-
-                if (_subscription.MonitoredItems != null)
-                {
-                    // Set the monitored items in the subscription
-                    await SetMonitoredItemsAsync(handle, subscription,
-                        _subscription.MonitoredItems, ct).ConfigureAwait(false);
-                }
-
-                if (!subscription.PublishingEnabled || subscription.ChangesPending)
-                {
-                    _logger.LogDebug(
-                        "Enabling subscription {Subscription} in session {Session}...",
-                        this, handle);
-
-                    subscription.SetPublishingMode(true);
-                    await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-
-                    _logger.LogInformation(
-                        "Subscription {Subscription} in session {Session} enabled.",
-                        this, handle);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e,
-                    "Failed to apply subscription state to Subscription {Subscription} in session {Session}.",
-                    this, handle);
             }
             finally
             {
@@ -965,22 +920,92 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         }
 
         /// <summary>
+        /// Apply state to session
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task ReapplyToSessionInternalAsync(IOpcUaSession handle,
+            CancellationToken ct)
+        {
+            Debug.Assert(_subscription != null, "No subscription during apply");
+
+            // Get the raw session object from the session handle to do the heart surgery
+            if (handle is not ISessionAccessor accessor ||
+                !accessor.TryGetSession(out var session)) // Should never happen.
+            {
+                _logger.LogInformation(
+                    "Failed to access session in {Session} to update subscription {Subscription}.",
+                    handle, this);
+                return;
+            }
+
+            //
+            // While we access the session it is valid and what is more connected.
+            // We are called on the client connection manager thread and thus can
+            // access the session however we want without anyone disconnecting it.
+            //
+            Debug.Assert(session.Connected);
+
+            // Create or update the subscription inside the raw session object.
+            var subscription = await AddOrUpdateSubscriptionInSessionAsync(handle, session,
+                ct).ConfigureAwait(false);
+
+            if (subscription == null)
+            {
+                _logger.LogWarning(
+                    "Could not add or update a Subscription {Subscription} in {Session}.",
+                    this, handle);
+
+                // TODO: This failed, but what is the reason for it
+                return;
+            }
+
+            if (!subscription.PublishingEnabled)
+            {
+                // Initialized subscription, resolve display names first
+                ResolveDisplayNames(session);
+            }
+
+            if (_subscription.MonitoredItems != null)
+            {
+                // Set the monitored items in the subscription
+                await SetMonitoredItemsAsync(handle, subscription,
+                    _subscription.MonitoredItems, ct).ConfigureAwait(false);
+            }
+
+            if (!subscription.PublishingEnabled || subscription.ChangesPending)
+            {
+                _logger.LogDebug(
+                    "Enabling subscription {Subscription} in session {Session}...",
+                    this, handle);
+
+                subscription.SetPublishingMode(true);
+                await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "Subscription {Subscription} in session {Session} enabled.",
+                    this, handle);
+            }
+        }
+
+        /// <summary>
         /// Get a subscription with the supplied configuration (no lock)
         /// </summary>
+        /// <param name="handle"></param>
         /// <param name="session"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<Subscription?> AddOrUpdateSubscriptionInSessionAsync(ISession session,
-            CancellationToken ct)
+        /// <exception cref="ServiceResultException"></exception>
+        private async ValueTask<Subscription?> AddOrUpdateSubscriptionInSessionAsync(
+            IOpcUaSession handle, ISession session, CancellationToken ct)
         {
-            if (session.DefaultSubscription == null)
-            {
-                return null;
-            }
+            Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
 
             var configuredPublishingInterval = (int)(_subscription?.Configuration?.PublishingInterval)
                 .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
-            var normedPublishingInterval = (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
+            var normedPublishingInterval =
+                (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
 
             // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
             var revisedKeepAliveCount = (_subscription?.Configuration?.KeepAliveCount) ?? 10;
@@ -989,16 +1014,19 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 if (m is DataMonitoredItemModel dataItem)
                 {
-                    var heartbeat = (uint)(dataItem?.HeartbeatInterval).GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
+                    var heartbeat = (uint)(dataItem?.HeartbeatInterval)
+                        .GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
                     if (heartbeat != 0)
                     {
                         var itemKeepAliveCount = heartbeat / normedPublishingInterval;
-                        revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
+                        revisedKeepAliveCount = GreatCommonDivisor(
+                            revisedKeepAliveCount, itemKeepAliveCount);
                     }
                 }
             });
 
-            var configuredMaxNotificationsPerPublish = session.DefaultSubscription.MaxNotificationsPerPublish;
+            var configuredMaxNotificationsPerPublish =
+                session.DefaultSubscription.MaxNotificationsPerPublish;
             var configuredLifetimeCount = (_subscription?.Configuration?.LifetimeCount)
                 ?? session.DefaultSubscription.LifetimeCount;
 
@@ -1030,23 +1058,25 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 if (!result)
                 {
                     _logger.LogError(
-                        "Failed to add subscription '{Subscription}' to session:'{SessionId}'",
-                        this, session.SessionName);
+                        "Failed to add subscription '{Subscription}' to session {Session}",
+                        this, handle);
                     return null;
                 }
 
-                _logger.LogInformation("Create new subscription '{Subscription}' in session:'{SessionId}'",
-                    this, session.SessionName);
+                _logger.LogInformation(
+                    "Create new subscription '{Subscription}' in session {Session}",
+                    this, handle);
 
                 await subscription.CreateAsync(ct).ConfigureAwait(false);
 
                 if (!subscription.Created)
                 {
-                    _logger.LogError("Failed to create subscription {Subscription} in session:'{SessionId}'",
-                        this, session.SessionName);
-                    return null;
+                    throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
+                        $"Failed to create subscription {this} in session {session}");
                 }
+
                 LogRevisedValues(subscription, true);
+                Debug.Assert(subscription.Id != 0);
             }
             else
             {
@@ -1055,7 +1085,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 if (revisedKeepAliveCount != subscription.KeepAliveCount)
                 {
-                    _logger.LogInformation("Change KeepAliveCount to {New} in Subscription {Subscription}...",
+                    _logger.LogInformation(
+                        "Change KeepAliveCount to {New} in Subscription {Subscription}...",
                         revisedKeepAliveCount, this);
 
                     subscription.KeepAliveCount = revisedKeepAliveCount;
@@ -1063,7 +1094,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 if (subscription.PublishingInterval != configuredPublishingInterval)
                 {
-                    _logger.LogInformation("Change publishing interval to {New} in Subscription {Subscription}...",
+                    _logger.LogInformation(
+                        "Change publishing interval to {New} in Subscription {Subscription}...",
                         configuredPublishingInterval, this);
                     subscription.PublishingInterval = configuredPublishingInterval;
                     modifySubscription = true;
@@ -1098,8 +1130,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     await subscription.ModifyAsync(ct).ConfigureAwait(false);
                     _logger.LogInformation(
-                        "Subscription {Subscription} in session:'{SessionId}' successfully modified.",
-                        this, session.SessionName);
+                        "Subscription {Subscription} in session {Session} successfully modified.",
+                        this, handle);
                     LogRevisedValues(subscription, false);
                 }
             }

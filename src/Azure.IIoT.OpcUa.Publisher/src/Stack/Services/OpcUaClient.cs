@@ -448,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     {
                                         diff = diff.Add(changedSubscription);
                                     }
-                                    await ApplySubscriptionAsync(diff, true, ct).ConfigureAwait(false);
+                                    await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
                                     currentSubscriptions = subscriptions;
                                     break;
                             }
@@ -601,18 +601,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
-                bool online, CancellationToken cancellationToken)
+                bool? online = null, CancellationToken cancellationToken = default)
             {
                 foreach (var subscription in subscriptions)
                 {
                     try
                     {
-                        if (online)
+                        if (online != false)
                         {
                             await subscription.ReapplyToSessionAsync(_session!,
                                 cancellationToken).ConfigureAwait(false);
                         }
-                        subscription.OnSubscriptionStateChanged(online, _numberOfConnectRetries);
+                        if (online != null)
+                        {
+                            subscription.OnSubscriptionStateChanged(online.Value,
+                                _numberOfConnectRetries);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
