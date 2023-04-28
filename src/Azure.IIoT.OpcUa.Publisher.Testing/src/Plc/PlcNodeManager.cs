@@ -1,3 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
 namespace Plc
 {
     using Plc.PluginNodes;
@@ -52,7 +57,7 @@ namespace Plc
                 plugin.TimeService = timeService;
             }
 
-            _simulation = new PlcSimulation(this, timeService);
+            _simulation = new PlcSimulation(this, timeService, logger);
         }
 
         protected override void Dispose(bool disposing)
@@ -259,17 +264,22 @@ namespace Plc
         {
             var namespaceIndex = NamespaceIndexes[(int)namespaceType];
 
-            if (path.GetType() == Type.GetType("System.Int64"))
-            {
-                baseDataVariableState.NodeId = new NodeId((uint)path, namespaceIndex);
-                baseDataVariableState.BrowseName = new QualifiedName(((uint)path).ToString(
-                    CultureInfo.InvariantCulture), namespaceIndex);
-            }
-            else
-            {
-                baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
-                baseDataVariableState.BrowseName = new QualifiedName(path, namespaceIndex);
-            }
+	        if (path is uint || path is long)
+	        {
+	            baseDataVariableState.NodeId = new NodeId((uint)path, namespaceIndex);
+	            baseDataVariableState.BrowseName = new QualifiedName(((uint)path).ToString(), namespaceIndex);
+	        }
+	        else if (path is string)
+	        {
+	            baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
+	            baseDataVariableState.BrowseName = new QualifiedName(path, namespaceIndex);
+	        }
+	        else
+	        {
+                _logger.LogDebug("NodeId type is {NodeIdType}", (string)path.GetType().ToString());
+	            baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
+	            baseDataVariableState.BrowseName = new QualifiedName(name, namespaceIndex);
+	        }
 
             baseDataVariableState.DisplayName = new LocalizedText("en", name);
             baseDataVariableState.WriteMask = AttributeWriteMask.DisplayName | AttributeWriteMask.Description;

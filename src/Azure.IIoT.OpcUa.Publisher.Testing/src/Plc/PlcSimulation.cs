@@ -1,8 +1,18 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
 namespace Plc
 {
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Test;
+    using System;
     using System.Diagnostics;
+    using System.Text;
+    using System.Text.Encodings.Web;
+    using System.Text.Json;
     using System.Timers;
 
     public class PlcSimulation
@@ -24,10 +34,12 @@ namespace Plc
         /// </summary>
         /// <param name="plcNodeManager"></param>
         /// <param name="timeService"></param>
-        public PlcSimulation(PlcNodeManager plcNodeManager, TimeService timeService)
+        /// <param name="logger"></param>
+        public PlcSimulation(PlcNodeManager plcNodeManager, TimeService timeService, ILogger logger)
         {
             _plcNodeManager = plcNodeManager;
             _timeService = timeService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -47,6 +59,8 @@ namespace Plc
             {
                 plugin.StartSimulation();
             }
+
+            PrintPublisherConfigJson();
         }
 
         /// <summary>
@@ -108,6 +122,50 @@ namespace Plc
 
             timer.Enabled = false;
         }
+        /// <summary>
+        /// Show and save pn.json
+        /// </summary>
+        public void PrintPublisherConfigJson()
+        {
+            var sb = new StringBuilder();
+
+            sb.Append(Environment.NewLine)
+                .AppendLine("[")
+                .AppendLine("  {")
+                .AppendLine("    \"EndpointUrl\": \"opc.tcp://localhost:{{Port}}/UA/SampleServer\",")
+                .AppendLine("    \"UseSecurity\": true,")
+                .AppendLine("    \"OpcNodes\": [");
+
+            // Print config from plugin nodes list.
+            foreach (var plugin in _plcNodeManager.PluginNodes)
+            {
+                foreach (var node in plugin.Nodes)
+                {
+                    // Show only if > 0 and != 1000 ms.
+                    string publishingInterval = node.PublishingInterval > 0 &&
+                                                node.PublishingInterval != 1000
+                        ? $", \"OpcPublishingInterval\": {node.PublishingInterval}"
+                        : string.Empty;
+                    // Show only if > 0 ms.
+                    string samplingInterval = node.SamplingInterval > 0
+                        ? $", \"OpcSamplingInterval\": {node.SamplingInterval}"
+                        : string.Empty;
+
+                    string nodeId = JsonEncodedText.Encode(node.NodeId, JavaScriptEncoder.Default).ToString();
+                    sb.AppendLine($"      {{ \"Id\": \"nsu={node.Namespace};{node.NodeIdTypePrefix}={nodeId}\"{publishingInterval}{samplingInterval} }},");
+                }
+            }
+
+            int trimLen = Environment.NewLine.Length + 1;
+            sb
+                .Remove(sb.Length - trimLen, trimLen)
+                .Append(Environment.NewLine).AppendLine("    ]")
+                .AppendLine("  }")
+                .AppendLine("]"); // Trim trailing ,\n.
+
+            string pnJson = sb.ToString();
+            _logger.LogInformation("OPC Publisher configuration file: {PnJson}", pnJson);
+        }
 
         /// <summary>
         /// in cycles
@@ -119,6 +177,7 @@ namespace Plc
         private const int kSimulationCycleLengthDefault = 100;
         private readonly PlcNodeManager _plcNodeManager;
         private readonly TimeService _timeService;
+        private readonly ILogger _logger;
         private ITimer _eventInstanceGenerator;
         private uint _eventInstanceCycle;
     }

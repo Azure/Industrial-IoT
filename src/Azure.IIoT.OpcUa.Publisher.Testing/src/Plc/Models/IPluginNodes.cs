@@ -1,4 +1,9 @@
-﻿namespace Plc.PluginNodes.Models
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Plc.PluginNodes.Models
 {
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
