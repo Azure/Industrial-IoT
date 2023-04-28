@@ -169,7 +169,7 @@ This section describes what the output looks like when listening for events in t
 
 To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` [mode](#samples-mode-encoding-legacy) which existed before the introduction of OPC UA standards compliant PubSub format.
 
-Events should be produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values. 
+Events should be produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values.
 
 The following is an example of the output you will se when listening to events from the Simple Events sample:
 
@@ -420,7 +420,7 @@ This JSON contains the metadata information to decode each variant value.
 
 ### Pending Alarm snapshots
 
-The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect. 
+The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect.
 
 When running against the OPC Foundation's Alarms & Conditions reference server sample the output will look like this:
 

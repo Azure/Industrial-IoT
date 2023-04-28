@@ -2,7 +2,7 @@
 
 [Home](./readme.md)
 
-We have used Metrics Collector module to collect the metrics from other edge modules. The `metricscollector` module runs inside IoT Edge. 
+We have used Metrics Collector module to collect the metrics from other edge modules. The `metricscollector` module runs inside IoT Edge.
 
 Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Kusto, we could then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
 
@@ -38,13 +38,11 @@ The metrics are exposed using an`HttpListener` based server. It may throw an **a
 
 **twin**:
 
-> netsh http add urlacl url=http://+:9701/metrics user=Everyone
+> netsh http add urlacl url=<http://+:9701/metrics> user=Everyone
 
 **publisher**:
 
-> netsh http add urlacl url=http://+:9702/metrics user=Everyone
-
-
+> netsh http add urlacl url=<http://+:9702/metrics> user=Everyone
 
 ## Next steps
 

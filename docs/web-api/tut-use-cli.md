@@ -260,9 +260,9 @@ apps unregister
 
    Remember one of the endpoints id, e.g. run `endpoints select -i <id>` so you do not need to pass the identifier in further commands.
 
-You can now [browse one the discovered endpoints](#Browse-all-root-nodes-of-the-activated-endpoint).
+You can now [browse one the discovered endpoints](#browse-all-root-nodes-of-the-activated-endpoint).
 
-### Clean up
+### Clean up applications
 
 To remove all applications and related endpoints run:
 

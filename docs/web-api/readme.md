@@ -6,11 +6,11 @@ The OPC Publisher Web API service is an optional component included in this repo
 
 ## APIs
 
-The optional Web service exposes API with enabling the following functionality: 
+The optional Web service exposes API with enabling the following functionality:
 
 * Start the publishing of values of an endpoint (a.k.a Publish services)
 * Access the OPC UA services exposed by OPC Publisher (a.k.a [Twin](#twin) services)
-* Discover OPC UA servers and endpoints (a.k.a [Discovery](#discovery) services) 
+* Discover OPC UA servers and endpoints (a.k.a [Discovery](#discovery) services)
 * Manage the discovered entities (a.k.a [Registry](#registry) services)
 * Receive updates through SignalR subscriptions (a.k.a [Event](#events) services)
 
@@ -30,7 +30,7 @@ The role of the Registry component is to enable managenment of entities and iden
 
 > NOTE: In 2.9 the previous concepts of "Supervisor" and "Discoverer" have been subsumed by the "Publisher" concept.
 
-You can Read as well as **query** all of these identities' models in the Registry. 
+You can Read as well as **query** all of these identities' models in the Registry.
 You can also create and delete Application identities ("resources").  There are 2 ways applications can be created:
 
 * By **POST**ing of an Application Model. In this case the application will not have endpoints associated. This is useful to register client applications or reflect servers registered in another system.
@@ -43,7 +43,7 @@ You can also create and delete Application identities ("resources").  There are 
 
 * By calling the **RegisterEndpoint** API to register an endpoint. If successful this will also add the application descriptor of the endpoint to the registry.
 
-A **DELETE** of an application will delete all associated endpoints. 
+A **DELETE** of an application will delete all associated endpoints.
 
 To update items where supported, you must send a HTTP `PATCH` request containing the item's model (e.g. a `PublisherModel`).
 
@@ -74,9 +74,9 @@ OPC Twin component of the Web API provides a [REST API](../api/twin/readme.md) t
 * **Browse** first / next (with and without reading the browsed target nodes)
 * Get **meta data** of methods (to display input arguments to a user)
 
-Before invoking any services you must inspect the endpoint certificate using the registry API. 
+Before invoking any services you must inspect the endpoint certificate using the registry API.
 
-> NOTE: After deleting of an endpoint in the registry access through the twin component is still possible for a while due to connection information caching. 
+> NOTE: After deleting of an endpoint in the registry access through the twin component is still possible for a while due to connection information caching.
 
 ## Events
 
@@ -103,6 +103,7 @@ The health check endpoint is enabled by default. You can verify that it has star
 ![Health checks endpoint started as visible in the standard output.](../media/healthchecks.png)
 
 You can use a browser or a command line to probe the health check endpoint:
+
 1. Liveness: `http://localhost:8045/healthz`
 1. Readiness: `http://localhost:8045/ready`
 

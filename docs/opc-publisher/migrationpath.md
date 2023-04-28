@@ -443,7 +443,7 @@ If the endpoint isn't configured or `UnpublishAllNodes` is called on that endpoi
 
 ### UnpublishNodes (UnpublishNodes_V1)
 
-If _OpcNodes_ is omitted, then all nodes are unpublished and the endpoint is removed.
+If *OpcNodes* is omitted, then all nodes are unpublished and the endpoint is removed.
 
 `Request`
 
