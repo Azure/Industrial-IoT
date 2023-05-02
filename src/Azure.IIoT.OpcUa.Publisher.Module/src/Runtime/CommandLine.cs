@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         $"Protocol to use for communication with EdgeHub.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
                         (TransportOption p) => this[Configuration.IoTEdge.HubTransport] = p.ToString() },
                 { $"dh|disablehttp:|{Configuration.Kestrel.DisableHttpServerKey}:",
-                    "Specify this to disable the OPC Publisher REST api.\n.Default: `enabled`.\n",
+                    "Specify this to disable the OPC Publisher HTTP server and with it the REST api and Prometheus metrics endpoint.\nDefault: `enabled`.\n",
                     (bool? b) => this[Configuration.Kestrel.DisableHttpServerKey] = b?.ToString() ?? "True" },
                 { $"p|httpserverport=|{Configuration.Kestrel.HttpServerPortKey}=",
                     $"The port on which the http server of OPC Publisher is listening.\nDefault: `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",

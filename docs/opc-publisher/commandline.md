@@ -180,21 +180,22 @@ Transport settings
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
       --dh, --disablehttp, --DisableHttpServer[=VALUE]
-                             Specify this to disable the OPC Publisher REST api.
-
-                               .Default: `enabled`.
+                             Specify this to disable the OPC Publisher HTTP
+                               server and with it the REST api and Prometheus
+                               metrics endpoint.
+                               Default: `enabled`.
   -p, --httpserverport, --HttpServerPort=VALUE
                              The port on which the http server of OPC Publisher
                                is listening.
-                               Default: `443` if no value is provided.
+                               Default: `9072` if no value is provided.
       --unsecurehttp, --UnsecureHttpServerPort[=VALUE]
                              Allow unsecure access to the REST api of OPC
                                Publisher. A port can be specified if the
-                               default port 80 is not desired.
+                               default port 9071 is not desired.
                                Do not enable this in production as it exposes
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
-                               `80` port is used.
+                               `9071` port is used.
 
 Routing configuration
 ---------------------
@@ -404,6 +405,26 @@ OPC UA Client configuration
                                Use this setting to speed up multiple subsequent
                                calls to a server.
                                Default: `0` sec (no linger).
+      --smi, --subscriptionmanagementinterval, --SubscriptionManagementInterval=VALUE
+                             The interval in seconds after which the publisher
+                               re-applies the desired state of the subscription
+                               to a session.
+                               Default: `never` (only on configuration change).
+      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelay=VALUE
+                             The delay in seconds after which nodes that were
+                               rejected by the server while added or updating a
+                               subscription or while publishing, are re-applied
+                               to a subscription.
+                               Default: `1800` seconds.
+      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelay=VALUE
+                             The delay in seconds after which the publisher
+                               attempts to re-apply nodes that were incorrectly
+                               configured to a subscription.
+                               Default: `300` seconds.
+      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelay=VALUE
+                             The delay in seconds between attempts to create a
+                               subscription in a session.
+                               Default: `2` seconds.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.
