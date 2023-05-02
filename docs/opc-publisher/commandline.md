@@ -187,15 +187,15 @@ Transport settings
   -p, --httpserverport, --HttpServerPort=VALUE
                              The port on which the http server of OPC Publisher
                                is listening.
-                               Default: `9072` if no value is provided.
+                               Default: `443` if no value is provided.
       --unsecurehttp, --UnsecureHttpServerPort[=VALUE]
                              Allow unsecure access to the REST api of OPC
                                Publisher. A port can be specified if the
-                               default port 9071 is not desired.
+                               default port 80 is not desired.
                                Do not enable this in production as it exposes
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
-                               `9071` port is used.
+                               `80` port is used.
 
 Routing configuration
 ---------------------

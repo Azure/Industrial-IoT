@@ -8,19 +8,19 @@
 
 Microsoft [OPC Publisher](docs/opc-publisher/readme.md) and the optional Azure Industrial IoT Platform companion web service allow you to discover and operate OPC UA enabled industrial assets.
 
-With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (both JSON and UADP binary) and provides a large set of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.  
+With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (both JSON and UADP binary) and provides a large subset of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.  
 
 We worked with our large partner network to support all types of industrial protocols through the use of adapters if your industrial equipment doesn't support OPC UA.  These modules are fully integrated with our platform. Check out [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules) for more information.
 
-The companion cloud service provided in this repository (Preview) with REST interface runs inside Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. 
+The [companion cloud service](docs/web-api/readme.md) provided in this repository (Preview) with REST interface runs inside Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. An easy-to-use deployment script guides you step-by-step through deploying the web service and its dependencies, as well as an optional simulation environment in Azure.
 
-Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for both edge and cloud components. An easy-to-use deployment script guides you step-by-step through deploying the cloud service and dependencies, as well as an optional simulation environment in Azure.
+Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for OPC Publisher and the other tools included in this repository.
 
 ## Get started
 
-* Learn about [OPC Publisher](docs/opc-publisher/readme.md) and how to operate it in production.
-* Check out all of the [Industrial IoT Platform documentation](docs/readme.md).
-* [Release announcements](docs/release-announcement.md) and all [releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
+* Learn about [OPC Publisher](docs/opc-publisher/readme.md) and how to use it.
+* Check out all of the [Industrial IoT documentation](docs/readme.md).
+* Find [release announcements](docs/release-announcement.md) and all [releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 
 ## Get support
 
@@ -36,10 +36,10 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 
 | Release (tag)                               | Latest patch release (tag) | End of support | Successor (tag)       | Update instructions                                       |
 |---------------------------------------------|----------------------------|----------------|-----------------------|-----------------------------------------------------------|
-| 2.5                                         | 2.5.5                      | 12/1/2021      | 2.8  (LTS) (>= 2.8.2) | [Migration Path](docs/modules/publisher-migrationpath.md) |
+| 2.5                                         | 2.5.5                      | 12/1/2021      | 2.8  (LTS) (>= 2.8.2) | [Migration Path](docs/opc-publisher/migrationpath.md) |
 | 2.7                                         | 2.7.206                    | 1/15/2022      | 2.8  (LTS) (>= 2.8.0) | N/A                                                       |
 | 2.8 (LTS)                                   | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023      | 2.9                   | N/A                                                       |
-| [2.9](https://github.com/Azure/Industrial-IoT)| 2.9.0-preview2             | N/A            | 2.10 (LTS)            | [Migration Path](docs/modules/publisher-migrationpath.md) |
+| [2.9](https://github.com/Azure/Industrial-IoT)| 2.9.0-preview1             | N/A            | 2.10 (LTS)            | [Migration Path](docs/opc-publisher/migrationpath.mdd) |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases are only supported through GitHub issues. If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 
