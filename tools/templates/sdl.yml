@@ -123,6 +123,7 @@ jobs:
       GdnExportGdnToolBinSkim: true
       GdnExportGdnToolCredScan: true
       GdnExportGdnToolPoliCheck: false
+      GdnExportGdnToolFortifySca: false
       GdnExportGdnToolRoslynAnalyzers: true
     condition: succeededOrFailed()
   - task: PostAnalysis@2
@@ -132,6 +133,7 @@ jobs:
       GdnBreakGdnToolBinSkim: true
       GdnBreakGdnToolPoliCheck: false
       GdnBreakGdnToolCredScan: true
+      GdnExportGdnToolFortifySca: false
       GdnBreakGdnToolRoslynAnalyzers: true
     condition: succeededOrFailed()
   - script: |

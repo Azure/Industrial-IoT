@@ -57,7 +57,7 @@ namespace Plc
                 plugin.TimeService = timeService;
             }
 
-            _simulation = new PlcSimulation(this, timeService, logger);
+            _simulation = new PlcSimulation(this, timeService);
         }
 
         protected override void Dispose(bool disposing)

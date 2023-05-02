@@ -1,28 +1,71 @@
-# Microsoft OPC Publisher
+# Microsoft OPC Publisher <!-- omit in toc -->
 
 [Home](../readme.md)
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
 
-In this document you find information to
+Here you find information about
 
-* [Getting started](#getting-started)
-* [Configue OPC Publisher](#configuring-opc-publisher)
-  * [Configure secure access to OPC UA server endpoints](#configuring-security)
-  * [Configure Value Change subscriptions](#configuration-via-configuration-file)
-  * [Configure Event subscriptions](#configuring-event-subscriptions)
-  * [Command Line Options](./ommandline.md) 
-  * [Direct method based Configuration](./directmethods.md)
-* [Calling services inside an OPC UA servers](#opc-ua-client-opc-twin)
-* [Configure mutual trust between OPC Publisher and the OPC UA server](#opc-ua-certificates-management)
-* [Understand message formats supported by OPC Publisher](#opc-publisher-telemetry-formats)
-  * [More Details](./messageformats.md)
-* [Tune OPC Publisher performance](#performance-and-memory-tuning-opc-publisher)
-* [Monitor and diagnose OPC Publisher](#diagnostics)
+## Table Of Contents <!-- omit in toc -->
+
+- [Overview](#overview)
+- [Getting Started](#getting-started)
+  - [Install IoT Edge](#install-iot-edge)
+  - [Deploy OPC Publisher from Azure Marketplace](#deploy-opc-publisher-from-azure-marketplace)
+  - [Specifying Container Create Options in the Azure portal](#specifying-container-create-options-in-the-azure-portal)
+  - [Deploy OPC Publisher using Azure CLI](#deploy-opc-publisher-using-azure-cli)
+  - [Deploy OPC Publisher using the Azure Portal](#deploy-opc-publisher-using-the-azure-portal)
+- [How OPC Publisher works](#how-opc-publisher-works)
+- [Configuring OPC Publisher](#configuring-opc-publisher)
+  - [Configuration via Configuration File](#configuration-via-configuration-file)
+    - [Configuring Security](#configuring-security)
+    - [Configuring event subscriptions](#configuring-event-subscriptions)
+      - [Simple event filter](#simple-event-filter)
+      - [Advanced event filter configuration](#advanced-event-filter-configuration)
+      - [Condition handling options](#condition-handling-options)
+  - [Persisting OPC Publisher Configuration](#persisting-opc-publisher-configuration)
+- [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
+  - [Discovery Configuration](#discovery-configuration)
+  - [One-time discovery](#one-time-discovery)
+  - [Discovery Progress](#discovery-progress)
+- [OPC UA Client (OPC Twin)](#opc-ua-client-opc-twin)
+- [OPC Publisher API](#opc-publisher-api)
+- [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
+- [OPC UA Certificates management](#opc-ua-certificates-management)
+  - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
+- [OPC UA stack](#opc-ua-stack)
+- [Performance and Memory Tuning OPC Publisher](#performance-and-memory-tuning-opc-publisher)
+
+## Overview
+
+Microsoft OPC Publisher runs on Azure [IoT Edge](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub) and connects OPC UA-enabled servers to Azure. It can be [configured](#configuring-opc-publisher) using Azure IoT Hub, through MQTT/HTTPS locally (Preview) or via configuration file.
+
+OPC Publisher is a feature rich OPC UA client/server to OPC UA Pub/Sub translator. Per configuration it sets up OPC UA subscriptions to monitor data (OPC UA nodes) using an integrated [OPC UA stack](#opc-ua-stack). When a data value change or event of an OPC UA node is reported, it transcodes the OPC UA notification using the configured encoding and publishes it to IoT Hub or MQTT broker of choice.
+
+With OPC Publisher you can also browse a server's data model, read and write ad-hoc data, or call methods on your assets. This [capability](#opc-ua-client-opc-twin) can be accessed from the cloud. OPC Publisher also supports [discovering](#discovering-opc-ua-servers-with-opc-publisher) OPC UA-enabled assets on the shop floor. When it finds an asset either through a discovery url or (optionally) active network scanning, it queries the assets endpoints (including its security configuration) and reports the results to IoT Hub or returns them from the respective [API call as response](api.md#find-server-with-endpoint).
+
+The IoT Edge gateways support nested ISA 95 (Purdue) topologies. It needs to be placed where it has access to all industrial assets that are to be connected, and a IoT Edge device needs to be placed at every layer leading to the internet.
+
+> Note that this might require configuring a specific route from IoT Edge to the public Internet through several on-premise routers. In terms of firewall configuration, IoT Edge just needs a single outbound port to operate, i.e., port 443.
 
 ## Getting Started
 
-Use our released containers for OPC Publisher available in the Microsoft Container Registry, rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
+### Install IoT Edge
+
+The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway.
+
+You can purchase industrial gateways compatible with IoT Edge. Please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={"3":["2","9"],"18":["1"]}) for a selection of industrial-grade gateways. Alternatively, you can setup a local VM.
+
+You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). The IoT Edge Runtime can be installed on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-for-linux-on-windows).
+
+For more information check out:
+
+- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
+- [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
+
+### Deploy OPC Publisher from Azure Marketplace
+
+Use our released docker container for OPC Publisher available in the Microsoft Container Registry rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
 
 Select the "Get It Now" button to log into the [Azure portal](https://portal.azure.com) and deploy OPC Publisher. The following steps are required:
 
@@ -33,14 +76,16 @@ Select the "Get It Now" button to log into the [Azure portal](https://portal.azu
 5. Select on "OPCPublisher" to open the OPC Publisher's "Update IoT Edge Module" page and then select "Container Create Options".
 6. Validate "container create options" based on your usage of OPC Publisher. For more information, see next section.
 
+> We recommend to use a floating version tag ("2.9") when deploying the web api container but not "latest".
+
 ### Specifying Container Create Options in the Azure portal
 
-Container create options can be specified in the "Update IoT Edge Module" page of OPC Publisher. These create options must be in JSON format. The OPC Publisher command line arguments can be specified via the "Cmd" key. Here an example for a configuration on a Linux host system:
+Container create options are used to specify the container and configuration command line arguments of OPC Publisher. The docker create options can be specified in the "Update IoT Edge Module" page of OPC Publisher and must be in JSON format. Specifically the OPC Publisher command line arguments can be specified via the "Cmd" key. Here an example for a configuration on a Linux host system:
 
 ``` json
 {
     "Cmd": [
-        "-c",
+        "-c", // 2.9+ only
         "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
         "--mm=PubSub",
@@ -63,10 +108,13 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 ```
 
 With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/published_nodes.json` inside its container.
-OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory. To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher`. Please note that `/opcpublisher` directory should be present on host file system, otherwise OPC Publisher will fail to start.
-The `CapDrop` option will drop the CHOWN (user can’t makes arbitrary changes to file UIDs and GIDs) and SETUID (user can’t makes arbitrary manipulations of process UIDs) capabilities for security reason.
+OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory.
 
-**Without this bind mount volume, all OPC Publisher configuration files will be lost when the container is restarted.**
+To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher`. To not loose the OPC Publisher configuration across restarts [all configuration files should be persisted](#persisting-opc-publisher-configuration). This requires a bind mount. Without it all configuration changes will be lost when OPC Publisher is restarted.
+
+> IMPORTANT: The `/opcpublisher` directory must be present on the host file system, otherwise OPC Publisher will fail to start.
+
+The `CapDrop` option will drop the CHOWN (user can’t makes arbitrary changes to file UIDs and GIDs) and SETUID (user can’t makes arbitrary manipulations of process UIDs) capabilities for security reason.
 
 A connection to an OPC UA server using its hostname without a DNS server configured on the network can be achieved by adding an `ExtraHosts` entry to the `HostConfig` section:
 
@@ -78,38 +126,202 @@ A connection to an OPC UA server using its hostname without a DNS server configu
 }
 ```
 
+### Deploy OPC Publisher using Azure CLI
+
+1. Obtain the IoT Hub name and device id of the [installed IoT Edge](#install-iot-edge) Gateway.
+
+1. Install the [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli). You must have at least `v2.0.24`, which you can verify with `az --version`.
+
+1. Add the [IoT Edge Extension](https://github.com/Azure/azure-iot-cli-extension/) with the following commands:
+
+    ```bash
+    az extension add --name azure-cli-iot-ext
+    ```
+
+To deploy all required modules using Az...  
+
+1. Save the following content into a `deployment.json` file:
+
+    ```json
+    {
+      "modulesContent": {
+        "$edgeAgent": {
+          "properties.desired": {
+            "schemaVersion": "1.1",
+            "runtime": {
+              "type": "docker",
+              "settings": {
+                "minDockerVersion": "v1.25",
+                "loggingOptions": "",
+                "registryCredentials": {}
+              }
+            },
+            "systemModules": {
+              "edgeAgent": {
+                "type": "docker",
+                "settings": {
+                  "image": "mcr.microsoft.com/azureiotedge-agent:1.4",
+                  "createOptions": ""
+                }
+              },
+              "edgeHub": {
+                "type": "docker",
+                "status": "running",
+                "restartPolicy": "always",
+                "settings": {
+                  "image": "mcr.microsoft.com/azureiotedge-hub:1.4",
+                  "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}], \"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+                },
+                "env": {
+                  "SslProtocols": {
+                    "value": "tls1.2"
+                  }
+                }
+              }
+            },
+            "modules": {
+              "publisher": {
+                "version": "1.0",
+                "type": "docker",
+                "status": "running",
+                "restartPolicy": "always",
+                "settings": {
+                  "image": "mcr.microsoft.com/iotedge/opc-publisher:2.9",
+                  "createOptions": "{\"HostConfig\":{\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
+                }
+              }
+            }
+          }
+        },
+        "$edgeHub": {
+          "properties.desired": {
+            "schemaVersion": "1.0",
+            "routes": {
+              "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream",
+              "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
+            },
+            "storeAndForwardConfiguration": {
+              "timeToLiveSecs": 7200
+            }
+          }
+        }
+      }
+    }
+    ```
+
+1. Use the following command to apply the configuration to an IoT Edge device:
+
+   ```bash
+   az iot edge set-modules --device-id [device id] --hub-name [hub name] --content ./deployment.json
+   ```
+
+   The `device id` parameter is case-sensitive. The content parameter points to the deployment manifest file that you saved.
+    ![az iot edge set-modules output](https://docs.microsoft.com/azure/iot-edge/media/how-to-deploy-cli/set-modules.png)
+
+1. Once you've deployed modules to your device, you can view all of them with the following command:
+
+   ```bash
+   az iot hub module-identity list --device-id [device id] --hub-name [hub name]
+   ```
+
+   The device id parameter is case-sensitive. ![az iot hub module-identity list output](https://docs.microsoft.com/azure/iot-edge/media/how-to-deploy-cli/list-modules.png)
+
+More information about az and IoT Edge can be found [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor-cli).
+
+### Deploy OPC Publisher using the Azure Portal
+
+To deploy OPC Puublisher to the IoT Edge Gateway using the Azure Portal...
+
+1. Sign in to the [Azure portal](https://portal.azure.com/) and navigate to the IoT Hub deployed earlier.
+
+1. Select **IoT Edge** from the left-hand menu.
+
+1. Click on the ID of the target device from the list of devices.
+
+1. Select **Set Modules**.
+
+1. In the **Deployment modules** section of the page, select **Add** and **IoT Edge Module.**
+
+1. In the **IoT Edge Custom Module** dialog use `publisher` as name for the module, then specify the container *image URI* as
+
+   ```bash
+   mcr.microsoft.com/iotedge/opc-publisher:2.9
+   ```
+
+   On Linux use the following *create options* if you intend to use the network scanning capabilities of the module:
+
+   ```json
+   {"NetworkingConfig":{"EndpointsConfig":{"host":{}}},"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"],
+   "CapDrop":["CHOWN", "SETUID"]}}
+   ```
+
+   Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/azure/iot-edge/module-composition#define-or-update-desired-properties).
+
+1. Select **Save** and then **Next** to continue to the routes section.
+
+1. In the routes tab, paste the following
+
+    ```json
+    {
+      "routes": {
+        "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream",
+        "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
+      }
+    }
+    ```
+
+    and select **Next**
+
+1. Review your deployment information and manifest.  It should look like the deployment manifest found in the [previous section](#deploy-opc-publisher-using-azure-cli).  Select **Submit**.
+
+1. Once you've deployed modules to your device, you can view all of them in the **Device details** page of the portal. This page displays the name of each deployed module, as well as useful information like the deployment status and exit code.
+
+1. Add your own or other modules from the Azure Marketplace using the steps above.
+
+For more in depth information check out [the Azure IoT Edge Portal documentation](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal).
+
+## How OPC Publisher works
+
+Publishing OPC UA telemetry from an OPC UA server works as follows:
+
+1. An OPC UA server exposes variable nodes (also sometimes called "tags") which make sensor readings accessible, or nodes that allow a client to subscribe to events.
+
+1. The OPC Publisher can be configured to connect to one or more selected OPC UA server endpoints. Based on the configuration the OPC Publisher OPC UA client creates subscriptions requesting to be notified when the value of the specified nodes change or an event occurs.
+
+1. The publisher groups nodes in the configuration into groups of `Dataset Writers` which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, `DataSetWriterGroup` and `Heartbeat` (keep-alive key frames)
+
+   - `DataSetWriterId`: A logical name of a subscription to an endpoint on a OPC UA server. A writer can only have 1 publishing interval andin case of event subscription, 1 event node. Should multiple be specified then the writer is broken into smaller writers. A data set writer writes data sets, which are a set of OPC UA data values or events inside a OPC UA PubSub network message.
+
+   - `DataSetWriterGroup`: A logical group of data set writers. These define the content of a OPC UA PubSub network message.
+
+   - `SamplingInterval`: The cyclic time in milliseconds, in which a node in a writer is sampled for updates. This is not applicable for events.
+
+   - `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
+
+   - `Heartbeat`: Cyclic time in seconds, in which to send keep-alive messages to indicate that the connection is still being used, in case no notifications are available
+
+1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` settings.
+
+1. The OPC Publisher can be configured to send notifications as soon as they arrive or batch them before sending which saves bandwidth and increases throughput. Sending a batch is triggered by exceeding the threshold of a specified number of messages or by exceeding a specified time interval.
+
+1. OPC Publisher groups and encodes the telemetry events using the specified messaging mode and message encoding format. More information can be found [here](./messageformats.md).
+
+1. The encoded telemetry events are added as the network message, which cannot exceed 256kB, the maximum size of an IoT Hub message. The publisher will try to split messages to avoid loosing data, but has a runtime cost.
+
+1. OPC Publisher also emits Metadata messages in case of PubSub encoding which can be used to learn more about the message content and support decoding in some cases.
+
+1. The network and metadata messages are sent to the northbound destination chosen. By default IoT Hub stores them for the configured retention time (default: 1 day, max: 7 days, dependent on the size of the ingested messages as well, see [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-messages-read-builtin) for more details).
+
+1. Messages can be consumed by applications or other services at the northbound destination.
+
 ## Configuring OPC Publisher
 
 OPC Publisher has several interfaces that can be used to configure it.  
 
-* [Configuration via configuration file](#configuration-via-configuration-file)
-* [Command Line options configuration](./ommandline.md)
-* [Direct method runtime configuration](./directmethods.md)
-* [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
-
-### Configuring Security
-
-IoT Edge provides OPC Publisher with its security configuration for accessing IoT Hub automatically. OPC Publisher can also run as a standalone Docker container by specifying a device connection string for accessing IoT Hub via the `dc` command line parameter. A device for IoT Hub can be created and its connection string retrieved through the Azure portal.
-
-OPC UA does use X.509 certificates for:
-
-- mutual authentication of clients and server systems
-- encrypted communication between the systems
-- optionally for user authentication
-
-OPC Publisher can be configured to store these certificates in a file system based certificate store. During startup, OPC Publisher checks if there's already a private certificate it can use. If not, a self-signed certificate is created. Self-signed certificates don't provide any trust value and we don't recommend using them in production.
-
-Encrypted communication can be enabled per endpoint via the `"UseSecurity": true,` flag. By default OPC Publisher will connect to an endpoint using the least secure mode OPC Publisher and the OPC UA server support.
-
-By default OPC Publisher does use no user authentication (anonymous). However, OPC Publisher supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
-
-``` json
-"OpcAuthenticationMode": "UsernamePassword",
-"OpcAuthenticationUsername": "usr",
-"OpcAuthenticationPassword": "pwd",
-```
-
-OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
+- [Configuration via configuration file](#configuration-via-configuration-file)
+- [Command Line options configuration](./ommandline.md)
+- [Direct method runtime configuration](./directmethods.md)
+- [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
 
@@ -150,18 +362,42 @@ OPC UA sends the current data value when OPC Publisher connects to the OPC UA se
  "SkipFirst": true,
 ```
 
-### Configuring event subscriptions
+#### Configuring Security
+
+IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates for:
+
+- mutual authentication of clients and server systems
+- encrypted communication between the systems
+- optionally for user authentication
+
+OPC Publisher can be configured to store these certificates in a file system based certificate store. During startup, OPC Publisher checks if there's already a private certificate it can use. If not, a self-signed certificate is created. Self-signed certificates don't provide any trust value and we don't recommend using them in production.
+
+Encrypted communication can be enabled per endpoint via the `"UseSecurity": true,` flag. By default OPC Publisher will connect to an endpoint using the least secure mode OPC Publisher and the OPC UA server support.
+
+By default OPC Publisher does use no user authentication (anonymous). However, OPC Publisher supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
+
+``` json
+"OpcAuthenticationMode": "UsernamePassword",
+"OpcAuthenticationUsername": "usr",
+"OpcAuthenticationPassword": "pwd",
+```
+
+OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
+
+#### Configuring event subscriptions
+
+> Starting from version 2.9
 
 OPC Publisher supports two types of event filter configurations you can specify:
 
-* [Simple event filter](#simple-event-filter) configuration mode, where you specify the source node and the event type you want to filter on and then the OPC Publisher constructs the select and where clauses for you.
-* [Advanced event filter](#advanced-event-filter) configuration mode where you explicitly specify the select and where clauses.
+- [Simple event filter](#simple-event-filter) configuration mode, where you specify the source node and the event type you want to filter on and then the OPC Publisher constructs the select and where clauses for you.
+- [Advanced event filter](#advanced-event-filter-configuration) configuration mode where you explicitly specify the select and where clauses.
 
 In the configuration file you can specify how many event configurations as you like and you can also combine events and data nodes for a single endpoint.
 
 In addition you can configure optional [Condition](#condition-handling-options) reporting where OPC Publisher reports retaind conditions at a configured time periodic rate in seconds.
 
-#### Simple event filter
+##### Simple event filter
 
 As highlighted in the example above you can specify namespaces both by using the index or the full name for the namespace. Also look at how the BrowsePath can be configured.
 
@@ -188,16 +424,16 @@ To subscribe to an event you specify the source node (in this case the server no
 
 When you use the simple configuration option above, the OPC Publisher does two things:
 
-* It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
-* It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
+- It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
+- It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
 
-#### Advanced event filter configuration
+##### Advanced event filter configuration
 
 To configure an advanced event filter you have to specify a full event filter which at minimum consists of three things:
 
-* The source node you want to receive events for (in the example below again the server node which has node id `i=2253`).
-* A select clause specifying which fields should be in the reported event. This can include a data set class field id that is then used as identifier in the dataset metadata for the dataset class.
-* A where clause specifying the filter AST.
+- The source node you want to receive events for (in the example below again the server node which has node id `i=2253`).
+- A select clause specifying which fields should be in the reported event. This can include a data set class field id that is then used as identifier in the dataset metadata for the dataset class.
+- A where clause specifying the filter AST.
 
 Here is an example of a configuration file that selects events using an advanced event filter:
 
@@ -261,9 +497,9 @@ Here is an example of a configuration file that selects events using an advanced
 
 The exact syntax allowed can be found in the OPC UA reference documentation. Note that not all servers support all filter capabilities. You can troubleshoot issues using the OPC Publisher logs.
 
-#### Condition handling options
+##### Condition handling options
 
-In addition to event subscription, you can also configure events to enable condition handling. 
+In addition to event subscription, you can also configure events to enable condition handling.
 
 When configured, OPC Publisher listens to ConditionType derived events, records unique occurrences of them and periodically sends out all condition events that have the Retain property set to True. This enables you to continuously get a snapshot view of all active alarms and conditions which can be very useful for dashboard-like scenarios.
 
@@ -292,8 +528,8 @@ Here is an example of a configuration for condition handling:
 
 The `ConditionHandling` section consists of the following properties:
 
-* `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
-* `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
+- `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
+- `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
 
 One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
@@ -308,46 +544,92 @@ To ensure operation of OPC Publisher over restarts, it's required to map configu
 
 In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
 
+## Discovering OPC UA servers with OPC Publisher
+
+> Starting from version 2.9
+
+OPC Publisher provides discovery services (formerly [OPC Discovery](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) to find assets (OPC UA servers) on the local shop floor network where the IoT Edge device is deployed. This can be programmatically controlled using API calls documented [here](./api.md). The optional [Web service](../web-api/readme.md) subscribes to the events and registers the discovered assets in Azure IoT Hub as device identities.
+
+Example use cases:
+
+- An industrial solution wants to detect assets which are unknown by its asset management system.
+- A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
+- A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
+
+Discovery supports two modes of operation:
+
+- Active Scan mode: The local network is actively scanned by the Discovery module.
+- Targeted discovery mode: A list of asset addresses can be specified to be checked.
+
+Discovery is based on native OPC UA server functionality as specified in the OPC UA specification, which allows discovery of endpoint information including security profile information without establishing an OPC UA authenticated and encrypted OPC UA session.
+
+The results of the discovery process are sent to cloud via the IoT Edge Hub’s and IoT Hub’s telemetry path. The optional cloud web service processes the results and onboards the discovered entities as IoT Hub identities.
+
+The Discovery can be configured via the OPC Registry REST API and allows a fine-grained configuration of the discovery process for recurring as well as one-time scans.
+
+### Discovery Configuration
+
+The Discovery capability of OPC Publisher can be configured to do active network and port scanning. The following parameters can be configured for active scanning:
+
+- address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
+- port ranges (to narrow or widen scanning to a list of known ports)
+- number of workers and time between scans (Advanced)
+
+> Active scanning should be used with care since it causes load on the local network and might be identified by network security software as a threat.
+
+For a targeted discovery, the configuration requires a specific list of discovery URLs. Please note that targeted discovery disables the use of address and port ranges as only the specific list of discovery URLs are checked.
+
+### One-time discovery
+
+One-time discovery is supported by the OPC Publisher module and can be initiated through a API call over IoT Hub direct methods or MQTT/HTTPS (Preview).  The API is documented [here](./api.md).
+
+A discovery configuration is part of the API request payload. All one-time discovery requests are serialized in the Discovery module at the edge, i.e. will be performed one by one.
+
+Using the targeted discovery mode, servers can be registered using a well-known discovery URL without active scanning.
+
+### Discovery Progress
+
+The discovery progress as well as current request queue size is reported via the telemetry path and available in the cloud for applications by the Registry services REST interface.
+
 ## OPC UA Client (OPC Twin)
 
-The control services (formerly OPC Twin services) are provided using IoT Hub device method API (as well as Web API and MQTT based request response API).
+> Starting from version 2.9
 
-The API enables you to write applications taht invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../api/json.md) encoding and decoding in a consistent JSON format.
+The control services (formerly [OPC Twin services](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) are provided using IoT Hub device method API as well as Web API and MQTT based request response API (Preview).
 
-Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response.  This allows fast and large value writes and reads, as well as returning large browse results.  
+The API enables you to write applications that invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../json.md) encoding and decoding in a consistent JSON format.
 
-A single session is opened on demand per endpoint so the OPC UA server is not overburdened with 100’s of simultaneous requests.  
+Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response. This allows fast and large value writes and reads, as well as returning large browse results.  
 
-## OPC UA Certificates management
+A single session is opened on demand per endpoint so the OPC UA server is not overburdened with 100’s of simultaneous requests.
 
-OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
+The API is documented [here](./api.md).
 
-To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa"). 
-Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+Example use cases:
 
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
+- A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
+- A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
+- An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
 
-The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
+## OPC Publisher API
 
-To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
-The pki path can be configured using the `PkiRootPath` command line argument.
+OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md).
 
-### Use custom OPC UA application instance certificate in OPC Publisher
+> Starting from version 2.9
 
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) that can be called via
 
-Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+- Azure IoT Hub direct methods. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
 
-`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+- The same API can also be called via the HTTP Server built into OPC Publisher (Preview). The API supports browse and histrian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key can be read from the OPC Publisher module's module twin.
 
-`ApplicationName ="TEST-PUBLISHER"`
+- API can also be invoked through MQTT v5 RPC calls (Preview). The API is mounted on top of tje method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
 
 ## OPC Publisher Telemetry Formats
 
 OPC Publisher version 2.6 and above supports standardized OPC UA PubSub network messages in JSON format as specified in [part 14 of the OPC UA specification](https://opcfoundation.org/developer-tools/specifications-unified-architecture/part-14-pubsub/).
 
-An example OPC UA PubSub message looks as follows:
+An example OPC UA PubSub message emitted by OPC Publisher version 2.9 and higher looks as follows:
 
 ``` json
 {
@@ -384,6 +666,7 @@ An example OPC UA PubSub message looks as follows:
 ```
 
 OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibilty this option is off by default.
+
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
 All versions of OPC Publisher support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
@@ -423,6 +706,35 @@ All versions of OPC Publisher support a non-standard, simple JSON telemetry form
 
 More detailed information about the supported message formats can be found [here](./messageformats.md)
 
+## OPC UA Certificates management
+
+OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
+
+To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa").
+Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
+
+The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
+
+To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
+The pki path can be configured using the `PkiRootPath` command line argument.
+
+### Use custom OPC UA application instance certificate in OPC Publisher
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
+One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+
+Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+
+`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+
+`ApplicationName ="TEST-PUBLISHER"`
+
+## OPC UA stack
+
+The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the NuGet package redistributable licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
+
 ## Performance and Memory Tuning OPC Publisher
 
 In production setups, network performance requirements (throughput and latency) and memory resources must be considered. OPC Publisher exposes the following command line parameters to help meet these requirements:
@@ -460,39 +772,3 @@ The `ms` parameter enables batching of messages sent to IoT Hub. In most network
 The metric `monitored item notifications enqueue failure`  in OPC Publisher version 2.5 and below and `messages lost` in OPC Publisher version 2.7 shows how many messages were lost.
 
 When both `si` and `ms` parameters are set to 0, OPC Publisher sends a message to IoT Hub as soon as data is available. This results in an average IoT Hub message size of just over 200 bytes. However, the advantage of this configuration is that OPC Publisher sends the data from the connected asset without delay. The number of lost messages will be high for use cases where a large amount of data must be published and hence this isn't recommended for these scenarios.
-
-### Diagnostics
-
-The OPC Publisher emits metrics through its Prometheus endpoint (`/metrics`). To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, refer to the tutorial [here](../tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
-
-To measure the performance of OPC Publisher, the `di` parameter can be used to print metrics to the log in the interval specified (in seconds).
-
-The following table describes the actual instruments that are logged per endpoint:
-
-| Log line item name                      | Diagnostic info property name                       | Description |
-|-----------------------------------------|-------------------------------------|-------------|
-| # Ingestion duration                    | ingestionDuration                   | How long the data flow inside the publisher has been executing after it was created (either from file or API) |
-| # Ingress DataChanges (from OPC)        | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
-| # Ingress ValueChanges (from OPC)       | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
-| # Ingress EventNotifications (from OPC) | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
-| # Ingress EventChanges (from OPC)       | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
-| # Ingress BatchBlock buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
-| # Encoding Block input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
-| # Encoding Block input / output size    | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
-| # Encoder Notifications processed       | encoderNotificationsProcessed       | The total number of subscription notifications processed by the encoder stage of the data flow pipeline since the pipeline started. |
-| # Encoder Notifications dropped         | encoderNotificationsDropped         | The total number of subscription notifications that were dropped because they could not be encoded, e.g., due to their size being to large to fit into the message. |
-| # Encoder IoT Messages processed        | encoderIoTMessagesProcessed         | The total number of encoded messages produced by the encoder since the start of the pipeline. |
-| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were presssed into a message. |
-| # Encoder avg IoT Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
-| # Encoder avg IoT Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
-| # Estimated IoT Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
-| # Outgress Batch Block buffer size      | outgressBatchBlockBufferSize        | The number of messages that are waiting to be sent to all configured telemetry message destination via the message sink. |
-| # Outgress input bufffer count          | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
-| # Outgress input buffer dropped         | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
-| # Outgress IoT message count            | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
-|                                         | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
-| # Connection retries                    | connectionRetries                   | How many times connections to the OPC UA server broke and needed to be reconnected as it pertains to the data flow. |
-| # Opc endpoint connected?               | opcEndpointConnected                | Whether the pipeline is currently connected to the OPC UA server endpoint or in a reconnect attempt. |
-| # Montitored Opc nodes succeeded count  | monitoredOpcNodesSucceededCount     | How many of the configured monitored items have been established successfully inside the data flow's OPC UA subscription and should be producing data. |
-| # Montitored Opc nodes failed count     | monitoredOpcNodesFailedCount        | How many of the configured monitored items inside the data flow failed to be created in the subscription (the logs will provide more information). |
-

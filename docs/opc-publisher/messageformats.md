@@ -2,14 +2,19 @@
 
 [Home](./readme.md)
 
+> This documentation applies to version 2.9
+
 ## Table Of Contents <!-- omit in toc -->
 
-* [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
-* [Data value change messages](#data-value-change-messages)
-* [Event messages](#event-messages)
-* [Legacy Samples Mode Encoding](#samples-mode-encoding-legacy)
-  * [Value change messages](#value-change-messages-in-samples-mode)
-  * [Event messages](#event-messages-in-samples-mode)
+- [Telemetry Message Formats](#telemetry-message-formats)
+  - [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
+  - [Data value change messages](#data-value-change-messages)
+  - [Event messages](#event-messages)
+    - [Reversible encoding](#reversible-encoding)
+    - [Pending Alarm snapshots](#pending-alarm-snapshots)
+  - [Samples mode encoding (Legacy)](#samples-mode-encoding-legacy)
+    - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
+    - [Event messages in Samples mode](#event-messages-in-samples-mode)
 
 OPC Publisher supports a rich set of message formats, including legacy formats supported.
 
@@ -471,7 +476,7 @@ The important part to highlight here is that the payload is an array of events w
 
 ## Samples mode encoding (Legacy)
 
-> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA Pub Sub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
+> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA PubSub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
 
 ### Value change messages in Samples mode
 

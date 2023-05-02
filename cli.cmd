@@ -67,7 +67,7 @@ goto :args-continue
 :args-done
 
 :main
-pushd %build_root%\src\Microsoft.Azure.IIoT.OpcUa.Api\cli
+pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\cli
 dotnet run console
 popd
 

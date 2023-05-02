@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "-h":
                         case "--help":
                             throw new ArgumentException("Help");
-                        case "-n":
+                        case "-N":
                         case "--instances":
                             i++;
                             if (i < args.Length && int.TryParse(args[i], out instances))
@@ -89,15 +89,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --instances");
-                        case "-t":
+                        case "-T":
                         case "--only-trusted":
                             checkTrust = true;
                             break;
-                        case "-s":
+                        case "-S":
                         case "--with-server":
                             withServer = true;
                             break;
-                        case "-d":
+                        case "-D":
                         case "--disconnect-interval-sec":
                             i++;
                             if (i < args.Length)
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --disconnect-interval-sec");
-                        case "-r":
+                        case "-R":
                         case "--reconnect-delay-sec":
                             i++;
                             if (i < args.Length)
@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --reconnect-delay-sec");
-                        case "-p":
+                        case "-P":
                         case "--publish-profile":
                             i++;
                             if (i < args.Length)

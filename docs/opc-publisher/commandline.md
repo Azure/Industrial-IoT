@@ -2,9 +2,13 @@
 
 [Home](./readme.md)
 
-The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
+> This documentation applies to version 2.9
 
-CamelCase options can also be provided using environment variables. When both environment variable and CLI argument are provided, the command line option will override the environment variable.
+The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. CamelCase options can also be provided using environment variables.
+
+> IMPORTANT Environment variable (option) names just like the command line options are **case-sensitive**!
+
+When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
 
@@ -175,15 +179,23 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
-      --http, --httpserver, --EnableHttpServer[=VALUE]
-                             Specify this to enable the OPC Publisher REST api.
-                               .Default: `disabled`.
+      --dh, --disablehttp, --DisableHttpServer[=VALUE]
+                             Specify this to disable the OPC Publisher HTTP
+                               server and with it the REST api and Prometheus
+                               metrics endpoint.
+                               Default: `enabled`.
   -p, --httpserverport, --HttpServerPort=VALUE
-                             The port on which the REST api of OPC Publisher is
-                               is listening. Implicitly enables the http server
-                               and REST api capabilities.
-                               Default: `not set` if https is not enabled,
-                               otherwise `443` if no value is provided.
+                             The port on which the http server of OPC Publisher
+                               is listening.
+                               Default: `443` if no value is provided.
+      --unsecurehttp, --UnsecureHttpServerPort[=VALUE]
+                             Allow unsecure access to the REST api of OPC
+                               Publisher. A port can be specified if the
+                               default port 80 is not desired.
+                               Do not enable this in production as it exposes
+                               the Api Key on the network.
+                               Default: `disabled`, if specified without a port
+                               `80` port is used.
 
 Routing configuration
 ---------------------
@@ -356,11 +368,6 @@ Subscription settings
 OPC UA Client configuration
 ---------------------------
 
-      --ki, --keepaliveinterval, --KeepAliveInterval=VALUE
-                             The interval in seconds the publisher is sending
-                               keep alive messages to the OPC servers on the
-                               endpoints it is connected to.
-                               Default: `10000` (10 seconds).
       --aa, --acceptuntrusted, --AutoAcceptUntrustedCertificates[=VALUE]
                              The publisher accepts untrusted certificates
                                presented by a server it connects to.
@@ -370,23 +377,54 @@ OPC UA Client configuration
                                and connection will always be rejected.
                                WARNING: This setting should never be used in
                                production environments!
+      --ct, --createsessiontimeout, --CreateSessionTimeout=VALUE
+                             Amount of time in seconds to wait until a session
+                               is connected. This is also the delay between
+                               client reconnecting to the server to re-
+                               establish connectivity.
+                               Default: `5` seconds.
+      --sto, --sessiontimeout, --DefaultSessionTimeout=VALUE
+                             Maximum amount of time in seconds that a session
+                               should remain open by the OPC server without any
+                               activity (session timeout). Requested from the
+                               OPC server at session creation.
+                               Default: `60` seconds.
+      --ki, --keepaliveinterval, --KeepAliveInterval=VALUE
+                             The interval in seconds the publisher is sending
+                               keep alive messages to the OPC servers on the
+                               endpoints it is connected to.
+                               Default: `10000` (10 seconds).
       --ot, --operationtimeout, --OperationTimeout=VALUE
                              The operation service call timeout of the
                                publisher OPC UA client in milliseconds.
-                               Default: `120000` (2 minutes).
-      --ct, --createsessiontimeout, --DefaultSessionTimeout=VALUE
-                             Maximum amount of time in seconds that a session
-                               should remain open by the OPC server without any
-                               activity (session timeout) to request from the
-                               OPC server at session creation.
-                               Default: `not set`.
-      --rd, --reconnectdelay, --ReconnectRetryDelay=VALUE
-                             Amount of time in seconds to wait between client
-                               reconnecting to the server to reastablish
-                               connectivity.
-                               Set to 0 to disable reconnect handling and
-                               instead recreate the session when required.
-                               Default: `5` (5 seconds).
+                               Default: `120000` milliseconds.
+      --cl, --clientlinger, --LingerTimeout=VALUE
+                             Amount of time in seconds to delay closing a
+                               client and underlying session after the a last
+                               service call.
+                               Use this setting to speed up multiple subsequent
+                               calls to a server.
+                               Default: `0` sec (no linger).
+      --smi, --subscriptionmanagementinterval, --SubscriptionManagementInterval=VALUE
+                             The interval in seconds after which the publisher
+                               re-applies the desired state of the subscription
+                               to a session.
+                               Default: `never` (only on configuration change).
+      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelay=VALUE
+                             The delay in seconds after which nodes that were
+                               rejected by the server while added or updating a
+                               subscription or while publishing, are re-applied
+                               to a subscription.
+                               Default: `1800` seconds.
+      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelay=VALUE
+                             The delay in seconds after which the publisher
+                               attempts to re-apply nodes that were incorrectly
+                               configured to a subscription.
+                               Default: `300` seconds.
+      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelay=VALUE
+                             The delay in seconds between attempts to create a
+                               subscription in a session.
+                               Default: `2` seconds.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.
@@ -518,6 +556,14 @@ Diagnostic options
                                    `Critical`
                                    `None`
                                Default: `Information`.
+      --sl, --opcstacklogging, --EnableOpcUaStackLogging[=VALUE]
+                             Enable opc ua stack logging beyond logging at
+                               error level.
+                               Default: `disabled`.
+      --ln, --lognotifications[=VALUE]
+                             Log ingress subscription notifications at
+                               Informational level to aid debugging.
+                               Default: `disabled`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

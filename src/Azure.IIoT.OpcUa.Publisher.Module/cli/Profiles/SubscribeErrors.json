@@ -1,0 +1,12 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": true,
+        "OpcNodes": [
+            { "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp" },
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean" },
+            { "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=RandomSignedInt32" },
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DoesNotExist" }
+        ]
+    }
+]

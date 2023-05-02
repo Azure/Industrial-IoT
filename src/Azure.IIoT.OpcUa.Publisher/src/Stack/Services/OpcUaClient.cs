@@ -174,6 +174,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public void ManageSubscription(ISubscriptionHandle subscription)
+        {
+            TriggerConnectionEvent(ConnectionEvent.SubscriptionManage,
+                    subscription);
+        }
+
+        /// <inheritdoc/>
         public void UnregisterSubscription(ISubscriptionHandle subscription)
         {
             try
@@ -392,8 +399,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
                 {
-                    _logger.LogDebug("Processing event {Event} in State {State}...",
-                        trigger, currentSessionState);
+                    _logger.LogDebug("Processing event {Event} in State {State}...", trigger,
+                        currentSessionState);
 
                     switch (trigger)
                     {
@@ -450,6 +457,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
                                     currentSubscriptions = subscriptions;
+                                    break;
+                            }
+                            break;
+
+                        case ConnectionEvent.SubscriptionManage:
+                            switch (currentSessionState)
+                            {
+                                case SessionState.Connected:
+                                    var item = context as ISubscriptionHandle;
+                                    Debug.Assert(item != null);
+                                    var diff = ImmutableHashSet.Create<ISubscriptionHandle>(item);
+                                    await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
                                     break;
                             }
                             break;
@@ -936,7 +955,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Disconnect,
             StartReconnect,
             ReconnectComplete,
-            SubscriptionChange
+            SubscriptionChange,
+            SubscriptionManage
         }
 
         private enum SessionState

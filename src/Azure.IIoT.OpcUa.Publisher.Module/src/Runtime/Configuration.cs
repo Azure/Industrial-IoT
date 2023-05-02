@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Configuration;
@@ -49,6 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             builder.RegisterType<CommandLine>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Logging>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<Kestrel>()
                 .AsImplementedInterfaces();
 
             // Register and configure controllers
@@ -112,15 +114,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         internal sealed class Kestrel : ConfigureOptionBase<KestrelServerOptions>
         {
             /// <summary>
+            /// Running in container
+            /// </summary>
+            static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
+                Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
+                    ?? string.Empty, "true");
+
+            /// <summary>
             /// Configuration
             /// </summary>
-            public const string EnableHttpServerKey = "EnableHttpServer";
+            public const string DisableHttpServerKey = "DisableHttpServer";
             public const string HttpServerPortKey = "HttpServerPort";
-            public const string AllowUnsecureHttpServerAccessKey = "AllowUnsecureHttpServerAccess";
             public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
 
-            public const int HttpPortDefault = 80;
-            public const int HttpsPortDefault = 443;
+            public static readonly int HttpPortDefault = IsContainer ? 80 : 9071;
+            public static readonly int HttpsPortDefault = IsContainer ? 443 : 9072;
 
             /// <summary>
             /// Create kestrel configuration
@@ -139,58 +147,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, KestrelServerOptions options)
             {
-                var supportHttp = GetBoolOrDefault(AllowUnsecureHttpServerAccessKey);
-                var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
-                if (supportHttp || httpPort != null)
+                var disableHttp = GetBoolOrDefault(DisableHttpServerKey);
+                if (disableHttp)
                 {
-                    options.ListenAnyIP(httpPort ?? HttpPortDefault);
+                    return;
                 }
-                var supportHttps = GetBoolOrDefault(EnableHttpServerKey);
-                var httpsPort = GetIntOrNull(HttpServerPortKey);
-                if (supportHttps || httpsPort != null)
-                {
-                    options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions =>
-                    {
-                        listenOptions.UseHttps(httpsOptions =>
-                        {
-                            httpsOptions.ServerCertificateSelector = (_, dnsName) =>
-                            {
-                                dnsName ??= "certificate";
-                                try
-                                {
-                                    // Try get or create new certificate
-                                    return GetCertificate(dnsName, httpsOptions);
-                                }
-                                catch
-                                {
-                                    // Invalidate
-                                    _memoryCache.Remove(dnsName);
-                                    return httpsOptions.ServerCertificate;
-                                }
-                            };
-                        });
-                    });
 
-                    X509Certificate2? GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
+                var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
+                options.ListenAnyIP(httpPort ?? HttpPortDefault);
+
+                var httpsPort = GetIntOrNull(HttpServerPortKey);
+                options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions =>
+                {
+                    listenOptions.UseHttps(httpsOptions =>
                     {
-                        return _memoryCache.GetOrCreate(dnsName, async cacheEntry =>
+                        httpsOptions.ServerCertificateSelector = (_, dnsName) =>
                         {
-                            if (_workload != null)
+                            dnsName ??= "certificate";
+                            try
                             {
-                                cacheEntry.AbsoluteExpirationRelativeToNow =
-                                    TimeSpan.FromDays(30);
-                                var expiration = DateTime.UtcNow +
-                                    cacheEntry.AbsoluteExpirationRelativeToNow.Value;
-                                var chain = await _workload.CreateServerCertificateAsync(
-                                    dnsName, expiration, default).ConfigureAwait(false);
-                                // TODO: where should the chain go?
-                                httpsOptions.ServerCertificateChain =
-                                    new X509Certificate2Collection(chain.Skip(1).ToArray());
-                                return chain[0];
+                                // Try get or create new certificate
+                                return GetCertificate(dnsName, httpsOptions);
                             }
-                            return null;
-                        })?.Result;
-                    }
+                            catch
+                            {
+                                // Invalidate
+                                _memoryCache.Remove(dnsName);
+                                return httpsOptions.ServerCertificate;
+                            }
+                        };
+                    });
+                });
+
+                X509Certificate2? GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
+                {
+                    return _memoryCache.GetOrCreate(dnsName, async cacheEntry =>
+                    {
+                        if (_workload != null)
+                        {
+                            cacheEntry.AbsoluteExpirationRelativeToNow =
+                                TimeSpan.FromDays(30);
+                            var expiration = DateTime.UtcNow +
+                                cacheEntry.AbsoluteExpirationRelativeToNow.Value;
+                            var chain = await _workload.CreateServerCertificateAsync(
+                                dnsName, expiration, default).ConfigureAwait(false);
+                            // TODO: where should the chain go?
+                            httpsOptions.ServerCertificateChain =
+                                new X509Certificate2Collection(chain.Skip(1).ToArray());
+                            return chain[0];
+                        }
+                        return null;
+                    })?.Result;
                 }
             }
 

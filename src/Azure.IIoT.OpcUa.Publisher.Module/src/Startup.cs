@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddLogging(options => options
                 .AddSimpleConsole(options =>
                 {
-                    options.SingleLine = true;
+                    // options.SingleLine = true;
                     options.IncludeScopes = true;
                     options.UseUtcTimestamp = true;
                     options.TimestampFormat = "[HH:mm:ss.ffff] ";
@@ -71,8 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddHttpClient();
 
             services.AddRouting();
-            services.AddHealthChecks()
-                ;
+            services.AddHealthChecks();
+            services.AddMemoryCache();
 
             services.AddAuthorization();
             services.AddAuthentication()
@@ -109,8 +109,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
             app.UseRouting();
 
-            app.UseHsts();
-            app.UseHttpsRedirection();
+            // app.UseHsts();
+            // app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();

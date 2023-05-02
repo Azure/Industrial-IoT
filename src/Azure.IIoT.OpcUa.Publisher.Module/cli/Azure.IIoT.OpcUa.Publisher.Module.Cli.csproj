@@ -14,7 +14,13 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Profiles\LargeDataSet.json">
+    <None Update="Profiles\Extremes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Profiles\PlcSimulation.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Profiles\SubscribeErrors.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Profiles\DataItems.json">

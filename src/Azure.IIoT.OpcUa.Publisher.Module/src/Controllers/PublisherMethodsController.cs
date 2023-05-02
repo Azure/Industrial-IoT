@@ -7,12 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Exceptions;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -220,46 +218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             return await _configServices.GetDiagnosticInfoAsync(ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Handler for GetInfo direct method
-        /// </summary>
-        /// <exception cref="MethodCallStatusException"></exception>
-        public async Task GetInfoAsync()
-        {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Not supported");
-        }
-
-        /// <summary>
-        /// Handler for GetDiagnosticLog direct method - Not supported
-        /// </summary>
-        /// <exception cref="MethodCallStatusException"></exception>
-        public async Task GetDiagnosticLogAsync()
-        {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Not supported");
-        }
-
-        /// <summary>
-        /// Handler for GetDiagnosticStartupLog direct method - Not supported
-        /// </summary>
-        /// <exception cref="MethodCallStatusException"></exception>
-        public async Task GetDiagnosticStartupLogAsync()
-        {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Not supported");
-        }
-
-        /// <summary>
-        /// Handler for ExitApplication direct method - Not supported
-        /// </summary>
-        /// <exception cref="MethodCallStatusException"></exception>
-        public async Task ExitApplicationAsync()
-        {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Not supported");
         }
 
         private readonly IConfigurationServices _configServices;

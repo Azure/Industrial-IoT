@@ -145,15 +145,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     { $"ht|ih=|iothubprotocol=|{Configuration.IoTEdge.HubTransport}=",
                         $"Protocol to use for communication with EdgeHub.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
                         (TransportOption p) => this[Configuration.IoTEdge.HubTransport] = p.ToString() },
-                { $"http|httpserver:|{Configuration.Kestrel.EnableHttpServerKey}:",
-                    "Specify this to enable the OPC Publisher REST api.\n.Default: `disabled`.\n",
-                    (bool? b) => this[Configuration.Kestrel.EnableHttpServerKey] = b?.ToString() ?? "True" },
+                { $"dh|disablehttp:|{Configuration.Kestrel.DisableHttpServerKey}:",
+                    "Specify this to disable the OPC Publisher HTTP server and with it the REST api and Prometheus metrics endpoint.\nDefault: `enabled`.\n",
+                    (bool? b) => this[Configuration.Kestrel.DisableHttpServerKey] = b?.ToString() ?? "True" },
                 { $"p|httpserverport=|{Configuration.Kestrel.HttpServerPortKey}=",
-                    $"The port on which the http server of OPC Publisher is listening. Implicitly enables the http server and REST api capabilities.\nDefault: `not set` if https is not enabled, otherwise `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",
+                    $"The port on which the http server of OPC Publisher is listening.\nDefault: `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",
                     p => this[Configuration.Kestrel.HttpServerPortKey] = p },
-                    { $"unsecurehttp:|{Configuration.Kestrel.UnsecureHttpServerPortKey}:",
-                        $"Allow unsecure access to the REST api of OPC Publisher. A port can be specified if the default port {Configuration.Kestrel.HttpPortDefault} is not desired.\nDo not enable this in production as it exposes the Api Key on the network.\nDefault: `disabled`, if specified without a port `{Configuration.Kestrel.HttpPortDefault}` port is used.\n",
-                        p => this[Configuration.Kestrel.UnsecureHttpServerPortKey] = p ?? Configuration.Kestrel.HttpPortDefault.ToString(CultureInfo.CurrentCulture), true },
+                { $"unsecurehttp:|{Configuration.Kestrel.UnsecureHttpServerPortKey}:",
+                    $"Allow unsecure access to the REST api of OPC Publisher. A port can be specified if the default port {Configuration.Kestrel.HttpPortDefault} is not desired.\nDo not enable this in production as it exposes the Api Key on the network.\nDefault: `disabled`, if specified without a port `{Configuration.Kestrel.HttpPortDefault}` port is used.\n",
+                    (int? p) => this[Configuration.Kestrel.UnsecureHttpServerPortKey] = p?.ToString(CultureInfo.CurrentCulture) ?? Configuration.Kestrel.HttpPortDefault.ToString(CultureInfo.CurrentCulture) },
 
                 "",
                 "Routing configuration",
@@ -242,6 +242,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"cl|clientlinger=|{OpcUaClientConfig.LingerTimeoutKey}=",
                     "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls to a server.\nDefault: `0` sec (no linger).\n",
                     (uint u) => this[OpcUaClientConfig.LingerTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalKey}=",
+                    "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `never` (only on configuration change).\n",
+                    (int i) => this[OpcUaClientConfig.SubscriptionManagementIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
+                { $"bnr|badnoderetrydelay=|{OpcUaClientConfig.BadMonitoredItemRetryDelayKey}=",
+                    $"The delay in seconds after which nodes that were rejected by the server while added or updating a subscription or while publishing, are re-applied to a subscription.\nDefault: `{OpcUaClientConfig.BadMonitoredItemRetryDelayDefaultSec}` seconds.\n",
+                    (int i) => this[OpcUaClientConfig.BadMonitoredItemRetryDelayKey] = TimeSpan.FromSeconds(i).ToString() },
+                { $"inr|invalidnoderetrydelay=|{OpcUaClientConfig.InvalidMonitoredItemRetryDelayKey}=",
+                    $"The delay in seconds after which the publisher attempts to re-apply nodes that were incorrectly configured to a subscription.\nDefault: `{OpcUaClientConfig.InvalidMonitoredItemRetryDelayDefaultSec}` seconds.\n",
+                    (int i) => this[OpcUaClientConfig.InvalidMonitoredItemRetryDelayKey] = TimeSpan.FromSeconds(i).ToString() },
+                { $"ser|subscriptionerrorretrydelay=|{OpcUaClientConfig.SubscriptionErrorRetryDelayKey}=",
+                    $"The delay in seconds between attempts to create a subscription in a session.\nDefault: `{OpcUaClientConfig.SubscriptionErrorRetryDelayDefaultSec}` seconds.\n",
+                    (int i) => this[OpcUaClientConfig.SubscriptionErrorRetryDelayKey] = TimeSpan.FromSeconds(i).ToString() },
 
                 { $"otl|opctokenlifetime=|{OpcUaClientConfig.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",
@@ -330,7 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaClientConfig.EnableOpcUaStackLoggingKey] = b?.ToString() ?? "True" },
                 { "ln|lognotifications:",
                     "Log ingress subscription notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
-                    (string i) => this[PublisherConfig.DebugLogNotificationsKey] = i ?? "True", true },
+                    (bool? b) => this[PublisherConfig.DebugLogNotificationsKey] = b?.ToString() ?? "True" },
 
                 // testing purposes
 
@@ -442,7 +454,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     Warning("You must specify connection strings or run inside IoT Edge context, " +
                             "please use -h option to get all the supported options.");
                     ExitProcess(180);
-                    return;
                 }
             }
             else
