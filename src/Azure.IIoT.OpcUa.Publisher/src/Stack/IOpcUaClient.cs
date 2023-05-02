@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -44,6 +45,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="subscription"></param>
         /// <returns></returns>
         void RegisterSubscription(ISubscriptionHandle subscription);
+
+        /// <summary>
+        /// Trigger the client to manage the subscription. This is a
+        /// no op if the subscription is not registered or the client
+        /// is not connected.
+        /// </summary>
+        /// <param name="subscription"></param>
+        void ManageSubscription(ISubscriptionHandle subscription);
 
         /// <summary>
         /// Removes a subscription and releases the reference count. If the

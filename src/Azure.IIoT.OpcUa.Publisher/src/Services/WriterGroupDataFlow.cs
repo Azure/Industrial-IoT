@@ -208,10 +208,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 args.SubscriptionName, Stringify(args.Notifications));
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
             {
-                var sb = new StringBuilder().AppendLine();
+                var sb = new StringBuilder();
                 foreach (var item in notifications)
                 {
                     sb
+                        .AppendLine()
                         .Append("|#")
                         .Append(item.SequenceNumber)
                         .Append('|')
@@ -221,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Append('|')
                         .Append(item.Value?.StatusCode)
                         .Append('|')
-                        .AppendLine();
+                        ;
                 }
                 return sb.ToString();
             }

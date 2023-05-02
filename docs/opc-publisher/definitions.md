@@ -1,0 +1,2256 @@
+
+<a name="definitions"></a>
+## Definitions
+
+<a name="additionaldata"></a>
+### AdditionalData
+Flags that are set by the historian when
+returning archived values.
+
+*Type* : enum (None, Partial, ExtraData, MultipleValues)
+
+
+<a name="aggregateconfigurationmodel"></a>
+### AggregateConfigurationModel
+Aggregate configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**percentDataBad**  <br>*optional*|Percent of data that is bad|integer (int32)|
+|**percentDataGood**  <br>*optional*|Percent of data that is good|integer (int32)|
+|**treatUncertainAsBad**  <br>*optional*|Whether to treat uncertain as bad|boolean|
+|**useSlopedExtrapolation**  <br>*optional*|Whether to use sloped extrapolation.|boolean|
+
+
+<a name="applicationinfomodel"></a>
+### ApplicationInfoModel
+Application info model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**applicationId**  <br>*optional*|Unique application id|string|
+|**applicationName**  <br>*optional*|Default name of application|string|
+|**applicationType**  <br>*optional*||[ApplicationType](definitions.md#applicationtype)|
+|**applicationUri**  <br>*optional*|Unique application uri|string|
+|**capabilities**  <br>*optional*|The capabilities advertised by the server.|< string > array|
+|**created**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**discovererId**  <br>*optional*|Discoverer that registered the application|string|
+|**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
+|**discoveryUrls**  <br>*optional*|Discovery urls of the server|< string > array|
+|**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
+|**hostAddresses**  <br>*optional*|Host addresses of server application or null|< string > array|
+|**locale**  <br>*optional*|Locale of default name - defaults to "en"|string|
+|**localizedNames**  <br>*optional*|Localized Names of application keyed on locale|< string, string > map|
+|**notSeenSince**  <br>*optional*|Last time application was seen if not visible|string (date-time)|
+|**productUri**  <br>*optional*|Product uri|string|
+|**siteId**  <br>*optional*|Site of the application  <br>**Example** : `"productionlineA"`|string|
+|**updated**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+
+
+<a name="applicationregistrationmodel"></a>
+### ApplicationRegistrationModel
+Application with optional list of endpoints
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**application**  <br>*required*||[ApplicationInfoModel](definitions.md#applicationinfomodel)|
+|**endpoints**  <br>*optional*|List of endpoints for it|< [EndpointRegistrationModel](definitions.md#endpointregistrationmodel) > array|
+
+
+<a name="applicationtype"></a>
+### ApplicationType
+Application type
+
+*Type* : enum (Server, Client, ClientAndServer, DiscoveryServer)
+
+
+<a name="attributereadrequestmodel"></a>
+### AttributeReadRequestModel
+Attribute to read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**attribute**  <br>*required*||[NodeAttribute](definitions.md#nodeattribute)|
+|**nodeId**  <br>*required*|Node to read from or write to (mandatory)  <br>**Minimum length** : `1`|string|
+
+
+<a name="attributereadresponsemodel"></a>
+### AttributeReadResponseModel
+Attribute value read
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="attributewriterequestmodel"></a>
+### AttributeWriteRequestModel
+Attribute and value to write to it
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**attribute**  <br>*required*||[NodeAttribute](definitions.md#nodeattribute)|
+|**nodeId**  <br>*required*|Node to write to (mandatory)  <br>**Minimum length** : `1`|string|
+
+
+<a name="attributewriteresponsemodel"></a>
+### AttributeWriteResponseModel
+Attribute write result
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="authenticationmethodmodel"></a>
+### AuthenticationMethodModel
+Authentication Method model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**credentialType**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
+|**id**  <br>*required*|Method id  <br>**Minimum length** : `1`|string|
+|**securityPolicy**  <br>*optional*|Security policy to use when passing credential.|string|
+
+
+<a name="browsedirection"></a>
+### BrowseDirection
+Direction to browse
+
+*Type* : enum (Forward, Backward, Both)
+
+
+<a name="browsefirstrequestmodel"></a>
+### BrowseFirstRequestModel
+Browse request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**direction**  <br>*optional*||[BrowseDirection](definitions.md#browsedirection)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**maxReferencesToReturn**  <br>*optional*|Max number of references to return. There might<br>be less returned as this is up to the client<br>restrictions.  Set to 0 to return no references<br>or target nodes.<br>(default is decided by client e.g. 60)|integer (int64)|
+|**noSubtypes**  <br>*optional*|Whether to include subtypes of the reference type.<br>(default is false)|boolean|
+|**nodeClassFilter**  <br>*optional*|Filter returned target nodes by only returning<br>nodes that have classes defined in this array.<br>(default: null - all targets are returned)|enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)|
+|**nodeId**  <br>*optional*|Node to browse.<br>(defaults to root folder).|string|
+|**nodeIdsOnly**  <br>*optional*|Whether to only return the raw node id<br>information and not read the target node.<br>(default is false)|boolean|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
+|**referenceTypeId**  <br>*optional*|Reference types to browse.<br>(default: hierarchical).|string|
+|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)|boolean|
+|**view**  <br>*optional*||[BrowseViewModel](definitions.md#browseviewmodel)|
+
+
+<a name="browsefirstrequestmodelrequestenvelope"></a>
+### BrowseFirstRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[BrowseFirstRequestModel](definitions.md#browsefirstrequestmodel)|
+
+
+<a name="browsefirstresponsemodel"></a>
+### BrowseFirstResponseModel
+Browse response model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**node**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
+|**references**  <br>*optional*|References, if included, otherwise null.|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
+
+
+<a name="browsenextrequestmodel"></a>
+### BrowseNextRequestModel
+Request node browsing continuation
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**abort**  <br>*optional*|Whether to abort browse and release.<br>(default: false)|boolean|
+|**continuationToken**  <br>*required*|Continuation token from previews browse request.<br>(mandatory)  <br>**Minimum length** : `1`|string|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeIdsOnly**  <br>*optional*|Whether to only return the raw node id<br>information and not read the target node.<br>(default is false)|boolean|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
+|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)|boolean|
+
+
+<a name="browsenextrequestmodelrequestenvelope"></a>
+### BrowseNextRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[BrowseNextRequestModel](definitions.md#browsenextrequestmodel)|
+
+
+<a name="browsenextresponsemodel"></a>
+### BrowseNextResponseModel
+Result of node browse continuation
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**references**  <br>*optional*|References, if included, otherwise null.|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
+
+
+<a name="browsepathrequestmodel"></a>
+### BrowsePathRequestModel
+Browse nodes by path
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePaths**  <br>*required*|The paths to browse from node.<br>(mandatory)|< < string > array > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*optional*|Node to browse from.<br>(defaults to root folder).|string|
+|**nodeIdsOnly**  <br>*optional*|Whether to only return the raw node id<br>information and not read the target node.<br>(default is false)|boolean|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
+
+
+<a name="browsepathrequestmodelrequestenvelope"></a>
+### BrowsePathRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[BrowsePathRequestModel](definitions.md#browsepathrequestmodel)|
+
+
+<a name="browsepathresponsemodel"></a>
+### BrowsePathResponseModel
+Result of node browse continuation
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**targets**  <br>*optional*|Targets|< [NodePathTargetModel](definitions.md#nodepathtargetmodel) > array|
+
+
+<a name="browsestreamchunkmodeliasyncenumerable"></a>
+### BrowseStreamChunkModelIAsyncEnumerable
+*Type* : object
+
+
+<a name="browsestreamrequestmodel"></a>
+### BrowseStreamRequestModel
+Browse stream request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**direction**  <br>*optional*||[BrowseDirection](definitions.md#browsedirection)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**noRecurse**  <br>*optional*|Whether to not browse recursively<br>(default is false)|boolean|
+|**noSubtypes**  <br>*optional*|Whether to include subtypes of the reference type.<br>(default is false)|boolean|
+|**nodeClassFilter**  <br>*optional*|Filter returned target nodes by only returning<br>nodes that have classes defined in this array.<br>(default: null - all targets are returned)|enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)|
+|**nodeId**  <br>*optional*|Start nodes to browse.<br>(defaults to root folder).|< string > array|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on source nodes.<br>(default is false)|boolean|
+|**referenceTypeId**  <br>*optional*|Reference types to browse.<br>(default: hierarchical).|string|
+|**view**  <br>*optional*||[BrowseViewModel](definitions.md#browseviewmodel)|
+
+
+<a name="browsestreamrequestmodelrequestenvelope"></a>
+### BrowseStreamRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[BrowseStreamRequestModel](definitions.md#browsestreamrequestmodel)|
+
+
+<a name="browseviewmodel"></a>
+### BrowseViewModel
+View to browse
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**timestamp**  <br>*optional*|Browses at or before this timestamp.|string (date-time)|
+|**version**  <br>*optional*|Browses specific version of the view.|integer (int64)|
+|**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
+
+
+<a name="conditionhandlingoptionsmodel"></a>
+### ConditionHandlingOptionsModel
+Condition handling options model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**snapshotInterval**  <br>*optional*|Time interval for sending pending interval snapshot in seconds.|integer (int32)|
+|**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
+
+
+<a name="connectrequestmodel"></a>
+### ConnectRequestModel
+Connect request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**expiresAfter**  <br>*optional*|Connection automatically closes after a<br>specified duration.|string (date-span)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="connectrequestmodelrequestenvelope"></a>
+### ConnectRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ConnectRequestModel](definitions.md#connectrequestmodel)|
+
+
+<a name="connectresponsemodel"></a>
+### ConnectResponseModel
+Connect response
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connectionHandle**  <br>*optional*|This handle can be used to disconnect the<br>connection ahead of expiration.|string|
+
+
+<a name="connectionmodel"></a>
+### ConnectionModel
+Connection model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
+|**endpoint**  <br>*optional*||[EndpointModel](definitions.md#endpointmodel)|
+|**group**  <br>*optional*|Group Id of the data set associated to the<br>connection that the stram belongs to.|string|
+|**user**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
+
+
+<a name="contentfilterelementmodel"></a>
+### ContentFilterElementModel
+An expression element in the filter ast
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**filterOperands**  <br>*optional*|The operands in the element for the operator|< [FilterOperandModel](definitions.md#filteroperandmodel) > array|
+|**filterOperator**  <br>*optional*||[FilterOperatorType](definitions.md#filteroperatortype)|
+
+
+<a name="contentfiltermodel"></a>
+### ContentFilterModel
+Content filter
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**elements**  <br>*optional*|The flat list of elements in the filter AST|< [ContentFilterElementModel](definitions.md#contentfilterelementmodel) > array|
+
+
+<a name="credentialmodel"></a>
+### CredentialModel
+Credential model
+
+
+|Name|Schema|
+|---|---|
+|**type**  <br>*optional*|[CredentialType](definitions.md#credentialtype)|
+
+
+<a name="credentialtype"></a>
+### CredentialType
+Type of credentials to use for authentication
+
+*Type* : enum (None, UserName, X509Certificate, JwtToken)
+
+
+<a name="datachangetriggertype"></a>
+### DataChangeTriggerType
+Data change trigger
+
+*Type* : enum (Status, StatusValue, StatusValueTimestamp)
+
+
+<a name="datalocation"></a>
+### DataLocation
+Indicate the data location
+
+*Type* : enum (Raw, Calculated, Interpolated)
+
+
+<a name="datatypemetadatamodel"></a>
+### DataTypeMetadataModel
+Data type metadata model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataType**  <br>*optional*|The data type for the instance declaration.|string|
+
+
+<a name="deadbandtype"></a>
+### DeadbandType
+Deadband type
+
+*Type* : enum (Absolute, Percent)
+
+
+<a name="deleteeventsdetailsmodel"></a>
+### DeleteEventsDetailsModel
+The events to delete
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**eventIds**  <br>*required*|Events to delete|< string (byte) > array|
+
+
+<a name="deleteeventsdetailsmodelhistoryupdaterequestmodel"></a>
+### DeleteEventsDetailsModelHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[DeleteEventsDetailsModel](definitions.md#deleteeventsdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope"></a>
+### DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[DeleteEventsDetailsModelHistoryUpdateRequestModel](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodel)|
+
+
+<a name="deletevaluesattimesdetailsmodel"></a>
+### DeleteValuesAtTimesDetailsModel
+Deletes data at times
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**reqTimes**  <br>*required*|The timestamps to delete|< string (date-time) > array|
+
+
+<a name="deletevaluesattimesdetailsmodelhistoryupdaterequestmodel"></a>
+### DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[DeleteValuesAtTimesDetailsModel](definitions.md#deletevaluesattimesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope"></a>
+### DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodel)|
+
+
+<a name="deletevaluesdetailsmodel"></a>
+### DeleteValuesDetailsModel
+Delete values
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endTime**  <br>*optional*|End time to delete until|string (date-time)|
+|**startTime**  <br>*optional*|Start time|string (date-time)|
+
+
+<a name="deletevaluesdetailsmodelhistoryupdaterequestmodel"></a>
+### DeleteValuesDetailsModelHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[DeleteValuesDetailsModel](definitions.md#deletevaluesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope"></a>
+### DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[DeleteValuesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodel)|
+
+
+<a name="diagnosticslevel"></a>
+### DiagnosticsLevel
+Level of diagnostics requested in responses
+
+*Type* : enum (None, Status, Information, Debug, Verbose)
+
+
+<a name="diagnosticsmodel"></a>
+### DiagnosticsModel
+Diagnostics configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
+|**level**  <br>*optional*||[DiagnosticsLevel](definitions.md#diagnosticslevel)|
+|**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
+
+
+<a name="disconnectrequestmodel"></a>
+### DisconnectRequestModel
+Disconnect request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connectionHandle**  <br>*required*|This handle can be used to disconnect the<br>connection ahead of expiration.  <br>**Minimum length** : `1`|string|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="disconnectrequestmodelrequestenvelope"></a>
+### DisconnectRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[DisconnectRequestModel](definitions.md#disconnectrequestmodel)|
+
+
+<a name="discoverycancelrequestmodel"></a>
+### DiscoveryCancelRequestModel
+Discovery cancel request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**id**  <br>*optional*|Id of discovery request|string|
+
+
+<a name="discoveryconfigmodel"></a>
+### DiscoveryConfigModel
+Discovery configuration api model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**addressRangesToScan**  <br>*optional*|Address ranges to scan (null == all wired nics)|string|
+|**discoveryUrls**  <br>*optional*|List of preset discovery urls to use|< string > array|
+|**idleTimeBetweenScans**  <br>*optional*|Delay time between discovery sweeps|string (date-span)|
+|**locales**  <br>*optional*|List of locales to filter with during discovery|< string > array|
+|**maxNetworkProbes**  <br>*optional*|Max network probes that should ever run.|integer (int32)|
+|**maxPortProbes**  <br>*optional*|Max port probes that should ever run.|integer (int32)|
+|**minPortProbesPercent**  <br>*optional*|Probes that must always be there as percent of max.|integer (int32)|
+|**networkProbeTimeout**  <br>*optional*|Network probe timeout|string (date-span)|
+|**portProbeTimeout**  <br>*optional*|Port probe timeout|string (date-span)|
+|**portRangesToScan**  <br>*optional*|Port ranges to scan (null == all unassigned)|string|
+
+
+<a name="discoverymode"></a>
+### DiscoveryMode
+Discovery mode to use
+
+*Type* : enum (Off, Local, Network, Fast, Scan)
+
+
+<a name="discoveryrequestmodel"></a>
+### DiscoveryRequestModel
+Discovery request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*optional*||[DiscoveryConfigModel](definitions.md#discoveryconfigmodel)|
+|**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
+|**id**  <br>*optional*|Id of discovery request|string|
+
+
+<a name="endpointmodel"></a>
+### EndpointModel
+Endpoint model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**alternativeUrls**  <br>*optional*|Alternative endpoint urls that can be used for<br>accessing and validating the server|< string > array|
+|**certificate**  <br>*optional*|Endpoint certificate thumbprint|string|
+|**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
+|**securityPolicy**  <br>*optional*|Security policy uri to use for communication.<br>default to best.|string|
+|**url**  <br>*optional*|Endpoint url to use to connect with|string|
+
+
+<a name="endpointregistrationmodel"></a>
+### EndpointRegistrationModel
+Endpoint registration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**authenticationMethods**  <br>*optional*|Supported authentication methods that can be selected to<br>obtain a credential and used to interact with the endpoint.|< [AuthenticationMethodModel](definitions.md#authenticationmethodmodel) > array|
+|**discovererId**  <br>*optional*|Entity that registered and can access the endpoint|string|
+|**endpoint**  <br>*optional*||[EndpointModel](definitions.md#endpointmodel)|
+|**endpointUrl**  <br>*optional*|Original endpoint url of the endpoint|string|
+|**id**  <br>*required*|Endpoint identifier which is hashed from<br>the supervisor, site and url.  <br>**Minimum length** : `1`|string|
+|**securityLevel**  <br>*optional*|Security level of the endpoint|integer (int32)|
+|**siteId**  <br>*optional*|Registered site of the endpoint|string|
+
+
+<a name="eventfiltermodel"></a>
+### EventFilterModel
+Event filter
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**selectClauses**  <br>*required*|Select clauses|< [SimpleAttributeOperandModel](definitions.md#simpleattributeoperandmodel) > array|
+|**typeDefinitionId**  <br>*optional*|Simple event Type definition node id|string|
+|**whereClause**  <br>*required*||[ContentFilterModel](definitions.md#contentfiltermodel)|
+
+
+<a name="exceptiondeviationtype"></a>
+### ExceptionDeviationType
+Exception deviation type
+
+*Type* : enum (AbsoluteValue, PercentOfValue, PercentOfRange, PercentOfEURange)
+
+
+<a name="filteroperandmodel"></a>
+### FilterOperandModel
+Filter operand
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**alias**  <br>*optional*|Optional alias to refer to it makeing it a<br>full blown attribute operand|string|
+|**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
+|**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
+|**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int64)|
+|**indexRange**  <br>*optional*|Index range of attribute operand|string|
+|**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
+
+
+<a name="filteroperatortype"></a>
+### FilterOperatorType
+Filter operator type
+
+*Type* : enum (Equals, IsNull, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual, Like, Not, Between, InList, And, Or, Cast, InView, OfType, RelatedTo, BitwiseAnd, BitwiseOr)
+
+
+<a name="getconfiguredendpointsresponsemodel"></a>
+### GetConfiguredEndpointsResponseModel
+Result of GetConfiguredEndpoints method call
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endpoints**  <br>*optional*|Collection of Endpoints in the configuration|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
+
+
+<a name="getconfigurednodesonendpointresponsemodel"></a>
+### GetConfiguredNodesOnEndpointResponseModel
+Result of GetConfiguredNodesOnEndpoint method call
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**opcNodes**  <br>*optional*|Collection of Nodes configured for a particular endpoint|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+
+
+<a name="historiceventmodel"></a>
+### HistoricEventModel
+Historic event
+
+*Type* : object
+
+
+<a name="historiceventmodelarrayhistoryreadnextresponsemodel"></a>
+### HistoricEventModelArrayHistoryReadNextResponseModel
+History read continuation result
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
+
+
+<a name="historiceventmodelarrayhistoryreadresponsemodel"></a>
+### HistoricEventModelArrayHistoryReadResponseModel
+History read results
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
+
+
+<a name="historiceventmodeliasyncenumerable"></a>
+### HistoricEventModelIAsyncEnumerable
+*Type* : object
+
+
+<a name="historicvaluemodel"></a>
+### HistoricValueModel
+Historic data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**additionalData**  <br>*optional*||[AdditionalData](definitions.md#additionaldata)|
+|**dataLocation**  <br>*optional*||[DataLocation](definitions.md#datalocation)|
+|**dataType**  <br>*optional*|Built in data type of the updated values|string|
+|**modificationInfo**  <br>*optional*||[ModificationInfoModel](definitions.md#modificationinfomodel)|
+|**serverPicoseconds**  <br>*optional*|Additional resolution for the server timestamp.|integer (int32)|
+|**serverTimestamp**  <br>*optional*|The server timestamp associated with the value.|string (date-time)|
+|**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.|integer (int32)|
+|**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.|string (date-time)|
+|**status**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="historicvaluemodelarrayhistoryreadnextresponsemodel"></a>
+### HistoricValueModelArrayHistoryReadNextResponseModel
+History read continuation result
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
+
+
+<a name="historicvaluemodelarrayhistoryreadresponsemodel"></a>
+### HistoricValueModelArrayHistoryReadResponseModel
+History read results
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
+
+
+<a name="historicvaluemodeliasyncenumerable"></a>
+### HistoricValueModelIAsyncEnumerable
+*Type* : object
+
+
+<a name="historyconfigurationmodel"></a>
+### HistoryConfigurationModel
+History configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**aggregateConfiguration**  <br>*optional*||[AggregateConfigurationModel](definitions.md#aggregateconfigurationmodel)|
+|**aggregateFunctions**  <br>*optional*|Allowed aggregate functions|< string, string > map|
+|**definition**  <br>*optional*|Human readable string that specifies how<br>the value of this HistoricalDataNode is<br>calculated|string|
+|**endOfArchive**  <br>*optional*|The last date of the archive|string (date-time)|
+|**exceptionDeviation**  <br>*optional*|Minimum amount that the data for the<br>Node shall change in order for the change<br>to be reported to the history database|number (double)|
+|**exceptionDeviationType**  <br>*optional*||[ExceptionDeviationType](definitions.md#exceptiondeviationtype)|
+|**maxTimeInterval**  <br>*optional*|Specifies the maximum interval between data<br>points in the history repository<br>regardless of their value change|string (date-span)|
+|**minTimeInterval**  <br>*optional*|Specifies the minimum interval between<br>data points in the history repository<br>regardless of their value change|string (date-span)|
+|**serverTimestampSupported**  <br>*optional*|Server supports ServerTimestamps in addition<br>to SourceTimestamp|boolean|
+|**startOfArchive**  <br>*optional*|The date before which there is no data in the<br>archive either online or offline|string (date-time)|
+|**startOfOnlineArchive**  <br>*optional*|Date of the earliest data in the online archive|string (date-time)|
+|**stepped**  <br>*optional*|specifies whether the historical data was<br>collected in such a manner that it should<br>be displayed as SlopedInterpolation (sloped<br>line between points) or as SteppedInterpolation<br>(vertically-connected horizontal lines<br>between points) when raw data is examined.<br>This Property also effects how some<br>Aggregates are calculated|boolean|
+
+
+<a name="historyconfigurationrequestmodel"></a>
+### HistoryConfigurationRequestModel
+Request history configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Continuation token to continue reading more<br>results.  <br>**Minimum length** : `1`|string|
+
+
+<a name="historyconfigurationrequestmodelrequestenvelope"></a>
+### HistoryConfigurationRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[HistoryConfigurationRequestModel](definitions.md#historyconfigurationrequestmodel)|
+
+
+<a name="historyconfigurationresponsemodel"></a>
+### HistoryConfigurationResponseModel
+Response with history configuration
+
+
+|Name|Schema|
+|---|---|
+|**configuration**  <br>*optional*|[HistoryConfigurationModel](definitions.md#historyconfigurationmodel)|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="historyreadnextrequestmodel"></a>
+### HistoryReadNextRequestModel
+Request node history read continuation
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**abort**  <br>*optional*|Abort reading after this read|boolean|
+|**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.  <br>**Minimum length** : `1`|string|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="historyreadnextrequestmodelrequestenvelope"></a>
+### HistoryReadNextRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[HistoryReadNextRequestModel](definitions.md#historyreadnextrequestmodel)|
+
+
+<a name="historyservercapabilitiesmodel"></a>
+### HistoryServerCapabilitiesModel
+History Server capabilities
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**aggregateFunctions**  <br>*optional*|Supported aggregate functions|< string, string > map|
+|**deleteAtTimeCapability**  <br>*optional*|Server support deleting data at times|boolean|
+|**deleteEventCapability**  <br>*optional*|Server supports deleting events|boolean|
+|**deleteRawCapability**  <br>*optional*|Server supports deleting raw data|boolean|
+|**insertAnnotationCapability**  <br>*optional*|Allows inserting annotations|boolean|
+|**insertDataCapability**  <br>*optional*|Server supports inserting data|boolean|
+|**insertEventCapability**  <br>*optional*|Server supports inserting events|boolean|
+|**maxReturnDataValues**  <br>*optional*|Maximum number of historic data values that will<br>be returned in a single read.|integer (int64)|
+|**maxReturnEventValues**  <br>*optional*|Maximum number of events that will be returned<br>in a single read.|integer (int64)|
+|**replaceDataCapability**  <br>*optional*|Server supports replacing historic data|boolean|
+|**replaceEventCapability**  <br>*optional*|Server supports replacing events|boolean|
+|**serverTimestampSupported**  <br>*optional*|Server supports ServerTimestamps in addition<br>to SourceTimestamp|boolean|
+|**supportsHistoricData**  <br>*optional*|Server supports historic data access|boolean|
+|**supportsHistoricEvents**  <br>*optional*|Server supports historic event access|boolean|
+|**updateDataCapability**  <br>*optional*|Server supports updating historic data|boolean|
+|**updateEventCapability**  <br>*optional*|Server supports updating events|boolean|
+
+
+<a name="historyupdateoperation"></a>
+### HistoryUpdateOperation
+History update type
+
+*Type* : enum (Insert, Replace, Update, Delete)
+
+
+<a name="historyupdateresponsemodel"></a>
+### HistoryUpdateResponseModel
+History update results
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**results**  <br>*optional*|List of results from the update operation|< [ServiceResultModel](definitions.md#serviceresultmodel) > array|
+
+
+<a name="instancedeclarationmodel"></a>
+### InstanceDeclarationModel
+Instance declaration meta data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browseName**  <br>*optional*|The browse name for the instance declaration.|string|
+|**browsePath**  <br>*optional*|The browse path|string|
+|**description**  <br>*optional*|The description for the instance declaration.|string|
+|**displayName**  <br>*optional*|The display name for the instance declaration.|string|
+|**displayPath**  <br>*optional*|A localized path to the instance declaration.|string|
+|**method**  <br>*optional*||[MethodMetadataModel](definitions.md#methodmetadatamodel)|
+|**modellingRule**  <br>*optional*|The modelling rule for the instance<br>declaration (i.e. Mandatory or Optional).|string|
+|**modellingRuleId**  <br>*optional*|The modelling rule node id.|string|
+|**nodeClass**  <br>*optional*||[NodeClass](definitions.md#nodeclass)|
+|**nodeId**  <br>*optional*|The node id for the instance.|string|
+|**overriddenDeclaration**  <br>*optional*||[InstanceDeclarationModel](definitions.md#instancedeclarationmodel)|
+|**rootTypeId**  <br>*optional*|The type that the declaration belongs to.|string|
+|**variable**  <br>*optional*||[VariableMetadataModel](definitions.md#variablemetadatamodel)|
+
+
+<a name="methodcallargumentmodel"></a>
+### MethodCallArgumentModel
+Method argument model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataType**  <br>*optional*|Data type Id of the value (from meta data)|string|
+
+
+<a name="methodcallrequestmodel"></a>
+### MethodCallRequestModel
+Call request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**arguments**  <br>*optional*|Arguments for the method - null means no args|< [MethodCallArgumentModel](definitions.md#methodcallargumentmodel) > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId or from a resolved objectId to the actual<br>method node.|< string > array|
+|**methodId**  <br>*optional*|Method id of method to call.|string|
+|**objectBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>ObjectId to the actual object or objectType node.<br>If ObjectId is null, the root node (i=84) is used|< string > array|
+|**objectId**  <br>*optional*|Context of the method, i.e. an object or object type<br>node.  If null then the method is called in the context<br>of the inverse HasComponent reference of the MethodId<br>if it exists.|string|
+
+
+<a name="methodcallrequestmodelrequestenvelope"></a>
+### MethodCallRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[MethodCallRequestModel](definitions.md#methodcallrequestmodel)|
+
+
+<a name="methodcallresponsemodel"></a>
+### MethodCallResponseModel
+Method call response model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**results**  <br>*optional*|Resulting output values of method call|< [MethodCallArgumentModel](definitions.md#methodcallargumentmodel) > array|
+
+
+<a name="methodmetadataargumentmodel"></a>
+### MethodMetadataArgumentModel
+Method argument metadata model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**arrayDimensions**  <br>*optional*|Optional Array dimension of argument|integer (int64)|
+|**description**  <br>*optional*|Optional description of argument|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**name**  <br>*optional*|Name of the argument|string|
+|**type**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
+|**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
+
+
+<a name="methodmetadatamodel"></a>
+### MethodMetadataModel
+Method metadata model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**inputArguments**  <br>*optional*|Input argument meta data|< [MethodMetadataArgumentModel](definitions.md#methodmetadataargumentmodel) > array|
+|**objectId**  <br>*optional*|Id of object that the method is a component of|string|
+|**outputArguments**  <br>*optional*|output argument meta data|< [MethodMetadataArgumentModel](definitions.md#methodmetadataargumentmodel) > array|
+
+
+<a name="methodmetadatarequestmodel"></a>
+### MethodMetadataRequestModel
+Method metadata request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId to the actual method node.|< string > array|
+|**methodId**  <br>*optional*|Method id of method to call.<br>(Required)|string|
+
+
+<a name="methodmetadatarequestmodelrequestenvelope"></a>
+### MethodMetadataRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[MethodMetadataRequestModel](definitions.md#methodmetadatarequestmodel)|
+
+
+<a name="methodmetadataresponsemodel"></a>
+### MethodMetadataResponseModel
+Result of method metadata query
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**inputArguments**  <br>*optional*|Input argument meta data|< [MethodMetadataArgumentModel](definitions.md#methodmetadataargumentmodel) > array|
+|**objectId**  <br>*optional*|Id of object that the method is a component of|string|
+|**outputArguments**  <br>*optional*|output argument meta data|< [MethodMetadataArgumentModel](definitions.md#methodmetadataargumentmodel) > array|
+
+
+<a name="modificationinfomodel"></a>
+### ModificationInfoModel
+Modification information
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**modificationTime**  <br>*optional*|Modification time|string (date-time)|
+|**updateType**  <br>*optional*||[HistoryUpdateOperation](definitions.md#historyupdateoperation)|
+|**userName**  <br>*optional*|User who made the change|string|
+
+
+<a name="nodeaccesslevel"></a>
+### NodeAccessLevel
+Flags that can be set for the AccessLevel attribute.
+
+*Type* : enum (None, CurrentRead, CurrentWrite, HistoryRead, HistoryWrite, SemanticChange, StatusWrite, TimestampWrite, NonatomicRead, NonatomicWrite, WriteFullArrayOnly)
+
+
+<a name="nodeaccessrestrictions"></a>
+### NodeAccessRestrictions
+Flags that can be read or written in the
+AccessRestrictions attribute.
+
+*Type* : enum (None, SigningRequired, EncryptionRequired, SessionRequired)
+
+
+<a name="nodeattribute"></a>
+### NodeAttribute
+Node attribute identifiers
+
+*Type* : enum (NodeId, NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)
+
+
+<a name="nodeclass"></a>
+### NodeClass
+Node class
+
+*Type* : enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)
+
+
+<a name="nodeeventnotifier"></a>
+### NodeEventNotifier
+Flags that can be set for the EventNotifier attribute.
+
+*Type* : enum (SubscribeToEvents, HistoryRead, HistoryWrite)
+
+
+<a name="nodeidmodel"></a>
+### NodeIdModel
+Node id serialized as object
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**Identifier**  <br>*optional*|Identifier|string|
+
+
+<a name="nodemetadatarequestmodel"></a>
+### NodeMetadataRequestModel
+Node metadata request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional component path from the node identified by<br>NodeId to the actual node.|< string > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*optional*|Node id of the type.<br>(Required)|string|
+
+
+<a name="nodemetadatarequestmodelrequestenvelope"></a>
+### NodeMetadataRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[NodeMetadataRequestModel](definitions.md#nodemetadatarequestmodel)|
+
+
+<a name="nodemetadataresponsemodel"></a>
+### NodeMetadataResponseModel
+Node metadata model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataTypeMetadata**  <br>*optional*||[DataTypeMetadataModel](definitions.md#datatypemetadatamodel)|
+|**description**  <br>*optional*|The description for the node.|string|
+|**displayName**  <br>*optional*|The display name of the node.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**nethodMetadata**  <br>*optional*||[MethodMetadataModel](definitions.md#methodmetadatamodel)|
+|**nodeClass**  <br>*optional*||[NodeClass](definitions.md#nodeclass)|
+|**nodeId**  <br>*optional*|The node id of the node|string|
+|**typeDefinition**  <br>*optional*||[TypeDefinitionModel](definitions.md#typedefinitionmodel)|
+|**variableMetadata**  <br>*optional*||[VariableMetadataModel](definitions.md#variablemetadatamodel)|
+
+
+<a name="nodemodel"></a>
+### NodeModel
+Node model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**accessLevel**  <br>*optional*||[NodeAccessLevel](definitions.md#nodeaccesslevel)|
+|**accessRestrictions**  <br>*optional*||[NodeAccessRestrictions](definitions.md#nodeaccessrestrictions)|
+|**arrayDimensions**  <br>*optional*|Array dimensions of variable or variable type.<br>(default: empty array)|integer (int64)|
+|**browseName**  <br>*optional*|Browse name|string|
+|**children**  <br>*optional*|Whether node has children which are defined as<br>any forward hierarchical references.<br>(default: unknown)|boolean|
+|**containsNoLoops**  <br>*optional*|Whether a view contains loops. Null if<br>not a view.|boolean|
+|**dataType**  <br>*optional*|If variable the datatype of the variable.<br>(default: null)|string|
+|**description**  <br>*optional*|Description if any|string|
+|**displayName**  <br>*optional*|Display name|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**eventNotifier**  <br>*optional*||[NodeEventNotifier](definitions.md#nodeeventnotifier)|
+|**executable**  <br>*optional*|If method node class, whether method can<br>be called.|boolean|
+|**historizing**  <br>*optional*|Whether the value of a variable is historizing.<br>(default: false)|boolean|
+|**inverseName**  <br>*optional*|Inverse name of the reference if the node is<br>a reference type, otherwise null.|string|
+|**isAbstract**  <br>*optional*|Whether type is abstract, if type can<br>be abstract.  Null if not type node.<br>(default: false)|boolean|
+|**minimumSamplingInterval**  <br>*optional*|Minimum sampling interval for the variable<br>value, otherwise null if not a variable node.<br>(default: null)|number (double)|
+|**nodeClass**  <br>*optional*||[NodeClass](definitions.md#nodeclass)|
+|**nodeId**  <br>*required*|Id of node.<br>(Mandatory).  <br>**Minimum length** : `1`|string|
+|**rolePermissions**  <br>*optional*|Role permissions|< [RolePermissionModel](definitions.md#rolepermissionmodel) > array|
+|**serverPicoseconds**  <br>*optional*|Pico seconds part of when value was read at server.|integer (int32)|
+|**serverTimestamp**  <br>*optional*|Timestamp of when value was read at server.|string (date-time)|
+|**sourcePicoseconds**  <br>*optional*|Pico seconds part of when value was read at source.|integer (int32)|
+|**sourceTimestamp**  <br>*optional*|Timestamp of when value was read at source.|string (date-time)|
+|**symmetric**  <br>*optional*|Whether the reference is symmetric in case<br>the node is a reference type, otherwise<br>null.|boolean|
+|**typeDefinitionId**  <br>*optional*|Optional type definition of the node|string|
+|**userAccessLevel**  <br>*optional*||[NodeAccessLevel](definitions.md#nodeaccesslevel)|
+|**userExecutable**  <br>*optional*|If method node class, whether method can<br>be called by current user.<br>(default: false if not executable)|boolean|
+|**userRolePermissions**  <br>*optional*|User Role permissions|< [RolePermissionModel](definitions.md#rolepermissionmodel) > array|
+|**userWriteMask**  <br>*optional*|User write mask for the node<br>(default: 0)|integer (int64)|
+|**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
+|**writeMask**  <br>*optional*|Default write mask for the node<br>(default: 0)|integer (int64)|
+
+
+<a name="nodepathtargetmodel"></a>
+### NodePathTargetModel
+Node path target
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|The target browse path|< string > array|
+|**remainingPathIndex**  <br>*optional*|Remaining index in path|integer (int32)|
+|**target**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
+
+
+<a name="nodereferencemodel"></a>
+### NodeReferenceModel
+Reference model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**direction**  <br>*optional*||[BrowseDirection](definitions.md#browsedirection)|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**referenceTypeId**  <br>*optional*|Reference Type id|string|
+|**target**  <br>*required*||[NodeModel](definitions.md#nodemodel)|
+
+
+<a name="nodetype"></a>
+### NodeType
+The node type
+
+*Type* : enum (Unknown, Variable, DataVariable, Property, DataType, View, Object, Event, Interface)
+
+
+<a name="nodevaluerank"></a>
+### NodeValueRank
+Constants defined for the ValueRank attribute.
+
+*Type* : enum (OneOrMoreDimensions, OneDimension, TwoDimensions, ScalarOrOneDimension, Any, Scalar)
+
+
+<a name="opcauthenticationmode"></a>
+### OpcAuthenticationMode
+Enum that defines the authentication method
+
+*Type* : enum (Anonymous, UsernamePassword)
+
+
+<a name="opcnodemodel"></a>
+### OpcNodeModel
+Describing an entry in the node list
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**ConditionHandling**  <br>*optional*||[ConditionHandlingOptionsModel](definitions.md#conditionhandlingoptionsmodel)|
+|**DataChangeTrigger**  <br>*optional*||[DataChangeTriggerType](definitions.md#datachangetriggertype)|
+|**DataSetClassFieldId**  <br>*optional*|The identifier of the field in the dataset class.<br>Allows correlation to the data set class.|string (uuid)|
+|**DataSetFieldId**  <br>*optional*|The identifier of the field in the dataset message.<br>If not provided Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.DisplayName is used.|string|
+|**DeadbandType**  <br>*optional*||[DeadbandType](definitions.md#deadbandtype)|
+|**DeadbandValue**  <br>*optional*|Deadband value of the data change filter to apply.<br>Does not apply to events|number (double)|
+|**DiscardNew**  <br>*optional*|Discard new values in the server queue instead of<br>old values when no more room in queue.|boolean|
+|**DisplayName**  <br>*optional*|Display name|string|
+|**EventFilter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
+|**ExpandedNodeId**  <br>*optional*|Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)|string|
+|**HeartbeatInterval**  <br>*optional*|Heartbeat interval in seconds|integer (int32)|
+|**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
+|**Id**  <br>*optional*|Node Identifier|string|
+|**OpcPublishingInterval**  <br>*optional*|Publishing interval in milliseconds|integer (int32)|
+|**OpcPublishingIntervalTimespan**  <br>*optional*|OpcPublishingInterval as TimeSpan.|string (date-span)|
+|**OpcSamplingInterval**  <br>*optional*|Sampling interval in milliseconds|integer (int32)|
+|**OpcSamplingIntervalTimespan**  <br>*optional*|OpcSamplingInterval as TimeSpan.|string (date-span)|
+|**QueueSize**  <br>*optional*|Queue Size for the monitored item on the server.<br>Specifies how many values are queued on the server<br>before undelivered ones are discarded.|integer (int64)|
+|**SkipFirst**  <br>*optional*|Do not send the first value that is always provided<br>by the server when the monitored item is created.|boolean|
+
+
+<a name="operationcontextmodel"></a>
+### OperationContextModel
+Operation log model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**AuthorityId**  <br>*optional*|User|string|
+|**Time**  <br>*optional*|Operation time|string (date-time)|
+
+
+<a name="operationlimitsmodel"></a>
+### OperationLimitsModel
+Server limits
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**maxArrayLength**  <br>*optional*|Max array length supported|integer (int64)|
+|**maxBrowseContinuationPoints**  <br>*optional*|Max browse continuation points|integer (int32)|
+|**maxByteStringLength**  <br>*optional*|Max byte buffer length supported|integer (int64)|
+|**maxHistoryContinuationPoints**  <br>*optional*|Max history continuation points|integer (int32)|
+|**maxMonitoredItemsPerCall**  <br>*optional*|Max monitored items that can be updated at once.|integer (int64)|
+|**maxNodesPerBrowse**  <br>*optional*|Max nodes that can be part of a single browse call.|integer (int64)|
+|**maxNodesPerHistoryReadData**  <br>*optional*|Number of nodes that can be in a History Read value call|integer (int64)|
+|**maxNodesPerHistoryReadEvents**  <br>*optional*|Number of nodes that can be in a History Read events call|integer (int64)|
+|**maxNodesPerHistoryUpdateData**  <br>*optional*|Number of nodes that can be in a History Update call|integer (int64)|
+|**maxNodesPerHistoryUpdateEvents**  <br>*optional*|Number of nodes that can be in a History events update call|integer (int64)|
+|**maxNodesPerMethodCall**  <br>*optional*|Max nodes that can be read in single method call|integer (int64)|
+|**maxNodesPerNodeManagement**  <br>*optional*|Max nodes that can be added or removed in a single call.|integer (int64)|
+|**maxNodesPerRead**  <br>*optional*|Max nodes that can be read in single read call|integer (int64)|
+|**maxNodesPerRegisterNodes**  <br>*optional*|Max nodes that can be registered at once|integer (int64)|
+|**maxNodesPerTranslatePathsToNodeIds**  <br>*optional*|Max nodes that can be part of a browse path|integer (int64)|
+|**maxNodesPerWrite**  <br>*optional*|Max nodes that can be read in single write call|integer (int64)|
+|**maxQueryContinuationPoints**  <br>*optional*|Max query continuation points|integer (int32)|
+|**maxStringLength**  <br>*optional*|Max string length supported|integer (int64)|
+|**minSupportedSampleRate**  <br>*optional*|Min supported sampling rate|number (double)|
+
+
+<a name="publishbulkrequestmodel"></a>
+### PublishBulkRequestModel
+Publish in bulk request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodesToAdd**  <br>*optional*|Node to add|< [PublishedItemModel](definitions.md#publisheditemmodel) > array|
+|**nodesToRemove**  <br>*optional*|Node to remove|< string > array|
+
+
+<a name="publishbulkrequestmodelrequestenvelope"></a>
+### PublishBulkRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[PublishBulkRequestModel](definitions.md#publishbulkrequestmodel)|
+
+
+<a name="publishbulkresponsemodel"></a>
+### PublishBulkResponseModel
+Result of bulk request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**nodesToAdd**  <br>*optional*|Node to add|< [ServiceResultModel](definitions.md#serviceresultmodel) > array|
+|**nodesToRemove**  <br>*optional*|Node to remove|< [ServiceResultModel](definitions.md#serviceresultmodel) > array|
+
+
+<a name="publishdiagnosticinfomodel"></a>
+### PublishDiagnosticInfoModel
+Model for a diagnostic info.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connectionRetries**  <br>*optional*|ConnectionRetries|integer (int64)|
+|**encoderAvgIoTChunkUsage**  <br>*optional*|EncoderAvgIoTChunkUsage|number (double)|
+|**encoderAvgIoTMessageBodySize**  <br>*optional*|EncoderAvgIoTMessageBodySize|number (double)|
+|**encoderAvgNotificationsMessage**  <br>*optional*|EncoderAvgNotificationsMessage|number (double)|
+|**encoderIoTMessagesProcessed**  <br>*optional*|EncoderIoTMessagesProcessed|integer (int64)|
+|**encoderMaxMessageSplitRatio**  <br>*optional*|Encoder max message split ratio|number (double)|
+|**encoderNotificationsDropped**  <br>*optional*|EncoderNotificationsDropped|integer (int64)|
+|**encoderNotificationsProcessed**  <br>*optional*|EncoderNotificationsProcessed|integer (int64)|
+|**encodingBlockInputSize**  <br>*optional*|EncodingBlockInputSize|integer (int64)|
+|**encodingBlockOutputSize**  <br>*optional*|EncodingBlockOutputSize|integer (int64)|
+|**endpoint**  <br>*optional*||[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**estimatedIoTChunksPerDay**  <br>*optional*|EstimatedIoTChunksPerDay|number (double)|
+|**ingestionDuration**  <br>*optional*|IngestionDuration|string (date-span)|
+|**ingressBatchBlockBufferSize**  <br>*optional*|IngressBatchBlockBufferSize|integer (int64)|
+|**ingressDataChanges**  <br>*optional*|IngressDataChanges|integer (int64)|
+|**ingressDataChangesInLastMinute**  <br>*optional*|Data changes received in the last minute|integer (int64)|
+|**ingressEventNotifications**  <br>*optional*|Number of incoming event notifications|integer (int64)|
+|**ingressEvents**  <br>*optional*|Total incoming events so far.|integer (int64)|
+|**ingressValueChanges**  <br>*optional*|IngressValueChanges|integer (int64)|
+|**ingressValueChangesInLastMinute**  <br>*optional*|Value changes received in the last minute|integer (int64)|
+|**monitoredOpcNodesFailedCount**  <br>*optional*|MonitoredOpcNodesFailedCount|integer (int64)|
+|**monitoredOpcNodesSucceededCount**  <br>*optional*|MonitoredOpcNodesSucceededCount|integer (int64)|
+|**opcEndpointConnected**  <br>*optional*|OpcEndpointConnected|boolean|
+|**outgressInputBufferCount**  <br>*optional*|OutgressInputBufferCount|integer (int64)|
+|**outgressInputBufferDropped**  <br>*optional*|OutgressInputBufferDropped|integer (int64)|
+|**outgressIoTMessageCount**  <br>*optional*|OutgressIoTMessageCount|integer (int64)|
+|**sentMessagesPerSec**  <br>*optional*|SentMessagesPerSec|number (double)|
+
+
+<a name="publishstartrequestmodel"></a>
+### PublishStartRequestModel
+Publish request
+
+
+|Name|Schema|
+|---|---|
+|**header**  <br>*optional*|[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**item**  <br>*required*|[PublishedItemModel](definitions.md#publisheditemmodel)|
+
+
+<a name="publishstartrequestmodelrequestenvelope"></a>
+### PublishStartRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[PublishStartRequestModel](definitions.md#publishstartrequestmodel)|
+
+
+<a name="publishstartresponsemodel"></a>
+### PublishStartResponseModel
+Result of publish request
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="publishstoprequestmodel"></a>
+### PublishStopRequestModel
+Unpublish request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node of published item to unpublish  <br>**Minimum length** : `1`|string|
+
+
+<a name="publishstoprequestmodelrequestenvelope"></a>
+### PublishStopRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[PublishStopRequestModel](definitions.md#publishstoprequestmodel)|
+
+
+<a name="publishstopresponsemodel"></a>
+### PublishStopResponseModel
+Result of publish stop request
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="publisheditemlistrequestmodel"></a>
+### PublishedItemListRequestModel
+Request list of published items
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token or null to start|string|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="publisheditemlistrequestmodelrequestenvelope"></a>
+### PublishedItemListRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[PublishedItemListRequestModel](definitions.md#publisheditemlistrequestmodel)|
+
+
+<a name="publisheditemlistresponsemodel"></a>
+### PublishedItemListResponseModel
+List of published nodes
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation or null if final|string|
+|**items**  <br>*optional*|Monitored items|< [PublishedItemModel](definitions.md#publisheditemmodel) > array|
+
+
+<a name="publisheditemmodel"></a>
+### PublishedItemModel
+A monitored and published item
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**displayName**  <br>*optional*|Display name of the variable node monitored|string|
+|**heartbeatInterval**  <br>*optional*|Heartbeat interval to use|string (date-span)|
+|**nodeId**  <br>*required*|Variable node monitored  <br>**Minimum length** : `1`|string|
+|**publishingInterval**  <br>*optional*|Publishing interval to use|string (date-span)|
+|**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
+
+
+<a name="publishednodesentrymodel"></a>
+### PublishedNodesEntryModel
+Contains the nodes which should be published
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
+|**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
+|**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
+|**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
+|**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
+|**DataSetPublishingIntervalTimespan**  <br>*optional*|The Publishing interval for a dataset writer<br>in timespan format. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetPublishingInterval if defined.|string (date-span)|
+|**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
+|**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
+|**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
+|**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
+|**EndpointUrl**  <br>*optional*|The endpoint URL of the OPC UA server.|string|
+|**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
+|**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
+|**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
+|**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
+|**OpcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
+|**OpcAuthenticationPassword**  <br>*optional*|plain password|string|
+|**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
+|**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+|**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
+|**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+
+
+<a name="publishednodesresponsemodel"></a>
+### PublishedNodesResponseModel
+PublishNodes direct method response
+
+*Type* : object
+
+
+<a name="readeventsdetailsmodel"></a>
+### ReadEventsDetailsModel
+Read event data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endTime**  <br>*optional*|End time to read to|string (date-time)|
+|**filter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
+|**numEvents**  <br>*optional*|Number of events to read|integer (int64)|
+|**startTime**  <br>*optional*|Start time to read from|string (date-time)|
+
+
+<a name="readeventsdetailsmodelhistoryreadrequestmodel"></a>
+### ReadEventsDetailsModelHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[ReadEventsDetailsModel](definitions.md#readeventsdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope"></a>
+### ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadEventsDetailsModelHistoryReadRequestModel](definitions.md#readeventsdetailsmodelhistoryreadrequestmodel)|
+
+
+<a name="readmodifiedvaluesdetailsmodel"></a>
+### ReadModifiedValuesDetailsModel
+Read modified data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endTime**  <br>*optional*|The end time to read to|string (date-time)|
+|**numValues**  <br>*optional*|The number of values to read|integer (int64)|
+|**startTime**  <br>*optional*|The start time to read from|string (date-time)|
+
+
+<a name="readmodifiedvaluesdetailsmodelhistoryreadrequestmodel"></a>
+### ReadModifiedValuesDetailsModelHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[ReadModifiedValuesDetailsModel](definitions.md#readmodifiedvaluesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope"></a>
+### ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadModifiedValuesDetailsModelHistoryReadRequestModel](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodel)|
+
+
+<a name="readprocessedvaluesdetailsmodel"></a>
+### ReadProcessedValuesDetailsModel
+Read processed historic data
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**aggregateConfiguration**  <br>*optional*||[AggregateConfigurationModel](definitions.md#aggregateconfigurationmodel)|
+|**aggregateType**  <br>*optional*|The aggregate type to apply. Can be the name of<br>the aggregate if available in the history server<br>capabilities, or otherwise will be used as a node<br>id referring to the aggregate.|string|
+|**endTime**  <br>*optional*|End time to read until|string (date-time)|
+|**processingInterval**  <br>*optional*|Interval to process|string (date-span)|
+|**startTime**  <br>*optional*|Start time to read from.|string (date-time)|
+
+
+<a name="readprocessedvaluesdetailsmodelhistoryreadrequestmodel"></a>
+### ReadProcessedValuesDetailsModelHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[ReadProcessedValuesDetailsModel](definitions.md#readprocessedvaluesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope"></a>
+### ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadProcessedValuesDetailsModelHistoryReadRequestModel](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodel)|
+
+
+<a name="readrequestmodel"></a>
+### ReadRequestModel
+Request node attribute read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**attributes**  <br>*required*|Attributes to read|< [AttributeReadRequestModel](definitions.md#attributereadrequestmodel) > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="readrequestmodelrequestenvelope"></a>
+### ReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadRequestModel](definitions.md#readrequestmodel)|
+
+
+<a name="readresponsemodel"></a>
+### ReadResponseModel
+Result of attribute reads
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**results**  <br>*optional*|All results of attribute reads|< [AttributeReadResponseModel](definitions.md#attributereadresponsemodel) > array|
+
+
+<a name="readvaluesattimesdetailsmodel"></a>
+### ReadValuesAtTimesDetailsModel
+Read data at specified times
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**reqTimes**  <br>*required*|Requested datums|< string (date-time) > array|
+|**useSimpleBounds**  <br>*optional*|Whether to use simple bounds|boolean|
+
+
+<a name="readvaluesattimesdetailsmodelhistoryreadrequestmodel"></a>
+### ReadValuesAtTimesDetailsModelHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[ReadValuesAtTimesDetailsModel](definitions.md#readvaluesattimesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope"></a>
+### ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodel)|
+
+
+<a name="readvaluesdetailsmodel"></a>
+### ReadValuesDetailsModel
+Read historic values
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endTime**  <br>*optional*|End of period to read. Set to null if no<br>specific end time is specified.|string (date-time)|
+|**numValues**  <br>*optional*|The maximum number of values returned for any Node<br>over the time range. If only one time is specified,<br>the time range shall extend to return this number<br>of values. 0 or null indicates that there is no<br>maximum.|integer (int64)|
+|**returnBounds**  <br>*optional*|Whether to return the bounding values or not.|boolean|
+|**startTime**  <br>*optional*|Beginning of period to read. Set to null<br>if no specific start time is specified.|string (date-time)|
+
+
+<a name="readvaluesdetailsmodelhistoryreadrequestmodel"></a>
+### ReadValuesDetailsModelHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[ReadValuesDetailsModel](definitions.md#readvaluesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope"></a>
+### ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ReadValuesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodel)|
+
+
+<a name="requestheadermodel"></a>
+### RequestHeaderModel
+Request header model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
+|**elevation**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
+|**locales**  <br>*optional*|Optional list of locales in preference order.|< string > array|
+
+
+<a name="rolepermissionmodel"></a>
+### RolePermissionModel
+Role permission model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**permissions**  <br>*optional*||[RolePermissions](definitions.md#rolepermissions)|
+|**roleId**  <br>*required*|Identifier of the role object.  <br>**Minimum length** : `1`|string|
+
+
+<a name="rolepermissions"></a>
+### RolePermissions
+Individual permissions assigned to a role
+
+*Type* : enum (None, Browse, ReadRolePermissions, WriteAttribute, WriteRolePermissions, WriteHistorizing, Read, Write, ReadHistory, InsertHistory, ModifyHistory, DeleteHistory, ReceiveEvents, Call, AddReference, RemoveReference, DeleteNode, AddNode)
+
+
+<a name="securitymode"></a>
+### SecurityMode
+Security mode of endpoint
+
+*Type* : enum (Best, Sign, SignAndEncrypt, None)
+
+
+<a name="servercapabilitiesmodel"></a>
+### ServerCapabilitiesModel
+Server capabilities
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**aggregateFunctions**  <br>*optional*|Supported aggregate functions|< string, string > map|
+|**modellingRules**  <br>*optional*|Supported modelling rules|< string, string > map|
+|**operationLimits**  <br>*optional*||[OperationLimitsModel](definitions.md#operationlimitsmodel)|
+|**serverProfileArray**  <br>*optional*|Server profiles|< string > array|
+|**supportedLocales**  <br>*optional*|Supported locales|< string > array|
+
+
+<a name="serverendpointquerymodel"></a>
+### ServerEndpointQueryModel
+Endpoint model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**certificate**  <br>*optional*|Endpoint must match with this certificate thumbprint|string|
+|**discoveryUrl**  <br>*optional*|Discovery url to use to query|string|
+|**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
+|**securityPolicy**  <br>*optional*|Endpoint must support this Security policy.|string|
+|**url**  <br>*optional*|Endpoint url that should match the found endpoint|string|
+
+
+<a name="serverregistrationrequestmodel"></a>
+### ServerRegistrationRequestModel
+Server registration request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**discoveryUrl**  <br>*required*|Discovery url to use for registration  <br>**Minimum length** : `1`|string|
+|**id**  <br>*optional*|User defined request id|string|
+
+
+<a name="serviceresultmodel"></a>
+### ServiceResultModel
+Service result
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**additionalInfo**  <br>*optional*|Additional information if available|string|
+|**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
+|**inner**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**locale**  <br>*optional*|Locale of the error message|string|
+|**namespaceUri**  <br>*optional*|Namespace uri|string|
+|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
+|**symbolicId**  <br>*optional*|Symbolic identifier|string|
+
+
+<a name="simpleattributeoperandmodel"></a>
+### SimpleAttributeOperandModel
+Simple attribute operand model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
+|**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
+|**dataSetClassFieldId**  <br>*optional*|Optional data set class field id (Publisher extension)|string (uuid)|
+|**displayName**  <br>*optional*|Optional display name|string|
+|**indexRange**  <br>*optional*|Index range of attribute operand|string|
+|**typeDefinitionId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
+
+
+<a name="testconnectionrequestmodel"></a>
+### TestConnectionRequestModel
+Test connection request
+
+
+|Name|Schema|
+|---|---|
+|**header**  <br>*optional*|[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="testconnectionrequestmodelrequestenvelope"></a>
+### TestConnectionRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[TestConnectionRequestModel](definitions.md#testconnectionrequestmodel)|
+
+
+<a name="testconnectionresponsemodel"></a>
+### TestConnectionResponseModel
+Test connection response
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="timestampstoreturn"></a>
+### TimestampsToReturn
+Timestamps
+
+*Type* : enum (Both, Source, Server, None)
+
+
+<a name="typedefinitionmodel"></a>
+### TypeDefinitionModel
+Type definition
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browseName**  <br>*optional*|Browse name|string|
+|**description**  <br>*optional*|Description if any|string|
+|**displayName**  <br>*optional*|Display name|string|
+|**nodeType**  <br>*optional*||[NodeType](definitions.md#nodetype)|
+|**typeDefinitionId**  <br>*required*|The node id of the type of the node  <br>**Minimum length** : `1`|string|
+|**typeHierarchy**  <br>*optional*|Super types hierarchy starting from base type<br>up to Azure.IIoT.OpcUa.Publisher.Models.TypeDefinitionModel.TypeDefinitionId which is<br>not included.|< [NodeModel](definitions.md#nodemodel) > array|
+|**typeMembers**  <br>*optional*|Fully inherited instance declarations of the type<br>of the node.|< [InstanceDeclarationModel](definitions.md#instancedeclarationmodel) > array|
+
+
+<a name="updateeventsdetailsmodel"></a>
+### UpdateEventsDetailsModel
+Insert, upsert or replace historic events
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**events**  <br>*required*|The new events to insert|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
+|**filter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
+
+
+<a name="updateeventsdetailsmodelhistoryupdaterequestmodel"></a>
+### UpdateEventsDetailsModelHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[UpdateEventsDetailsModel](definitions.md#updateeventsdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope"></a>
+### UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[UpdateEventsDetailsModelHistoryUpdateRequestModel](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodel)|
+
+
+<a name="updatevaluesdetailsmodel"></a>
+### UpdateValuesDetailsModel
+Insert, upsert, or update historic values
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**values**  <br>*required*|Values to insert|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
+
+
+<a name="updatevaluesdetailsmodelhistoryupdaterequestmodel"></a>
+### UpdateValuesDetailsModelHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*||[UpdateValuesDetailsModel](definitions.md#updatevaluesdetailsmodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope"></a>
+### UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[UpdateValuesDetailsModelHistoryUpdateRequestModel](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodel)|
+
+
+<a name="valuereadrequestmodel"></a>
+### ValueReadRequestModel
+Request node value read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>an actual node.|< string > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**maxAge**  <br>*optional*|Maximum age of the value to be read in milliseconds.<br>The age of the value is based on the difference<br>between the ServerTimestamp and the time when<br>the Server starts processing the request.<br>If not supplied, the Server shall attempt to read<br>a new value from the data source.|string (date-span)|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="valuereadrequestmodelrequestenvelope"></a>
+### ValueReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ValueReadRequestModel](definitions.md#valuereadrequestmodel)|
+
+
+<a name="valuereadresponsemodel"></a>
+### ValueReadResponseModel
+Value read response model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**dataType**  <br>*optional*|Built in data type of the value read.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**serverPicoseconds**  <br>*optional*|Pico seconds part of when value was read at server.|integer (int32)|
+|**serverTimestamp**  <br>*optional*|Timestamp of when value was read at server.|string (date-time)|
+|**sourcePicoseconds**  <br>*optional*|Pico seconds part of when value was read at source.|integer (int32)|
+|**sourceTimestamp**  <br>*optional*|Timestamp of when value was read at source.|string (date-time)|
+
+
+<a name="valuewriterequestmodel"></a>
+### ValueWriteRequestModel
+Value write request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**dataType**  <br>*optional*|A built in datatype for the value. This can<br>be a data type from browse, or a built in<br>type.<br>(default: best effort)|string|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to write|string|
+|**nodeId**  <br>*optional*|Node id to write value to.|string|
+
+
+<a name="valuewriterequestmodelrequestenvelope"></a>
+### ValueWriteRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[ValueWriteRequestModel](definitions.md#valuewriterequestmodel)|
+
+
+<a name="valuewriteresponsemodel"></a>
+### ValueWriteResponseModel
+Value write response model
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="variablemetadatamodel"></a>
+### VariableMetadataModel
+Variable metadata model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**arrayDimensions**  <br>*optional*|Array dimensions of the variable.|integer (int64)|
+|**dataType**  <br>*optional*||[DataTypeMetadataModel](definitions.md#datatypemetadatamodel)|
+|**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
+
+
+<a name="variantvaluehistoryreadnextresponsemodel"></a>
+### VariantValueHistoryReadNextResponseModel
+History read continuation result
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="variantvaluehistoryreadrequestmodel"></a>
+### VariantValueHistoryReadRequestModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+
+
+<a name="variantvaluehistoryreadrequestmodelrequestenvelope"></a>
+### VariantValueHistoryReadRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[VariantValueHistoryReadRequestModel](definitions.md#variantvaluehistoryreadrequestmodel)|
+
+
+<a name="variantvaluehistoryreadresponsemodel"></a>
+### VariantValueHistoryReadResponseModel
+History read results
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+
+
+<a name="variantvaluehistoryupdaterequestmodel"></a>
+### VariantValueHistoryUpdateRequestModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+
+
+<a name="variantvaluehistoryupdaterequestmodelrequestenvelope"></a>
+### VariantValueHistoryUpdateRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[VariantValueHistoryUpdateRequestModel](definitions.md#variantvaluehistoryupdaterequestmodel)|
+
+
+<a name="writerequestmodel"></a>
+### WriteRequestModel
+Request node attribute write
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**attributes**  <br>*required*|Attributes to update|< [AttributeWriteRequestModel](definitions.md#attributewriterequestmodel) > array|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="writerequestmodelrequestenvelope"></a>
+### WriteRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[WriteRequestModel](definitions.md#writerequestmodel)|
+
+
+<a name="writeresponsemodel"></a>
+### WriteResponseModel
+Result of attribute write
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**results**  <br>*optional*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
+
+
+<a name="x509certificatechainmodel"></a>
+### X509CertificateChainModel
+Certificate chain
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**chain**  <br>*optional*|Chain|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
+|**status**  <br>*optional*|Chain validation status if validated|enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
+
+
+<a name="x509certificatemodel"></a>
+### X509CertificateModel
+Certificate model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**certificate**  <br>*optional*|Raw data|< integer (int32) > array|
+|**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
+|**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
+|**selfSigned**  <br>*optional*|Self signed certificate|boolean|
+|**serialNumber**  <br>*optional*|Serial number|string|
+|**subject**  <br>*optional*|Subject|string|
+|**thumbprint**  <br>*optional*|Thumbprint|string|
+
+
+<a name="x509chainstatus"></a>
+### X509ChainStatus
+Status of x509 chain
+
+*Type* : enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
+
+
+

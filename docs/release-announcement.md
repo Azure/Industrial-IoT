@@ -1,21 +1,19 @@
 # Release announcement
 
-## Azure Industrial IoT OPC Publisher Community Preview 2 Release 2.9.0
+## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2
 
 We are pleased to announce the second **preview** release of version 2.9.0 of OPC Publisher. This release marks a large change for the Industrial IoT components and features. We have combined all edge functionality into the OPC Publisher edge module which now boasts not just MQTT and IoT Hub direct method access, but a full HTTP REST endpoint that can be used to configure its functionality. The cloud components also have been combined into a single Web API, which we recommend to deploy into Azure App Service for reduced cost and simplified operations.
 
-### IMPORTANT - PLEASE READ
+> IMPORTANT: Preview releases are only supported through GitHub issues. This particular release due to the number of changes included might have backward compatibility breaks that have not yet been documented. Please file issues and we will try to address them ahead of GA release.
 
-Preview releases are only supported through GitHub issues.  This particular release due to the number of changes included might have backward compatibility breaks that have not yet been documented. Please file issues and we will try to address them ahead of GA release.
+### Changes in 2.9.0 Preview 2
 
-### Changes in this release
-
-- New Namespaces for all projects and simplified code structure. There are now 2 SDK projects, one for the OPC Publisher module, and another for the optional cloud WebAPI companion service. 
+- New Namespaces for all projects and simplified code structure. There are now 2 SDK projects, one for the OPC Publisher module, and another for the optional cloud WebAPI companion service.
 - Ability to run platform (modules, services) "standalone" on the edge #464
-  - [OPC Discovery] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
+  - [OPC Discovery] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher.
   - [OPC Discovery] A new synchronous FindServer API has been added to allow discovery by discovery url through a single API call.
-  - [OPC Twin] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
-  - [OPC Twin] we removed the Activate and Deactivate calls. 
+  - [OPC Twin] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher.
+  - [OPC Twin] we removed the Activate and Deactivate calls.
   - [OPC Twin] OPC TWIN Method call #996
   - Support for opc-twin module api direct method calls with input arguments (not requiring OPC Twin micro services) #1512
 - Support for a new TestConnection API to test a connection to a server and receiving detailed error information back.
@@ -27,21 +25,19 @@ Preview releases are only supported through GitHub issues.  This particular rele
 - [OPC Publisher] dotnet publish can be used to build a docker container for OPC Publisher #1949
 - [OPC Publisher] Metrics output and log output showing number of sessions currently active (related to #1923)
 - [OPC Publisher] Added new OPC UA stack which addressess #1937 and latest CVE's
-- [All micro services] Have been combined into a single WebAPI with the same resource paths as the 2.8 AKS deployment and all-in-one service. 
-  - [OPC Registry service] Supervisor, Discoverer entities have been removed, but the API has been layered on top of the publisher entity for backwards compatibiltiy. Do not use these API's anymore. 
+- [All micro services] Have been combined into a single WebAPI with the same resource paths as the 2.8 AKS deployment and all-in-one service.
+  - [OPC Registry service] Supervisor, Discoverer entities have been removed, but the API has been layered on top of the publisher entity for backwards compatibiltiy. Do not use these API's anymore.
   - [OPC Registry service] A new RegisterEndpoint API has been added that calls the new sync FindServer API and adds the result into the registry in one call.
   - [Telemetry processor] The telemetry and onboarding processors have been integrated into the WebAPI, but only forwards to SignalR. The secondary event hub has been removed. If you need to post process telemetry you must read telemetry data directly from IoT Hub.
 - Document the diagnostics output and troubleshooting guide #1952
 
-## Azure Industrial IoT OPC Publisher Community Preview 1 Release 2.9.0
+## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 1
 
 We are pleased to announce the first **preview** release of version 2.9.0 of OPC Publisher. This release contains several requested features and fixes issues discovered.
 
-### IMPORTANT - PLEASE READ
+> IMPORTANT: Preview releases are only supported through GitHub issues.
 
-Preview releases are only supported through GitHub issues.
-
-### Changes in this release
+### Changes 2.9.0 Preview 1
 
 - [OPC Publisher] [Alarms and Events](./modules/publisher-event-configuration.md) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
 - [OPC Publisher] Full Deadband filtering. We introduced data change triggers in 2.8.4 and are now supporting the full data change filter configuration to configure percent and absolute deadband as defined in OPC UA.
@@ -54,11 +50,21 @@ Preview releases are only supported through GitHub issues.
 - [All IoT Edge modules] Configuration to optionally enable MQTT topic publishing and command control via an MQTT broker instead of IoT Edge EdgeHub.
 - [All IoT Edge modules] Update OPC UA stack to latest .371 version.
 
+## Azure Industrial IoT Platform Release 2.8.6
+
+We are pleased to announce the release of version 2.8.6 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
+
+### Changes in 2.8.6
+
+- [All] Update to latest JSON.net nuget dependency.
+- [All] Use latest OPC UA .net stack 371.
+- Update all images to use latest version of Alpine base image
+
 ## Azure Industrial IoT Platform Release 2.8.5
 
 We are pleased to announce the release of version 2.8.5 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
 
-### Changes in this release
+### Changes in 2.8.5
 
 - [All] Update to latest dependencies.
 - [All] Use latest OPC UA .net stack 371.
@@ -82,7 +88,7 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
   - Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on a Windows VM Host (Preview Feature).  This requires nested virtualization.  The Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of simulated Windows gateway will be skipped.
   - Network scanning on IoT Edge 1.4 LTS EFLOW using OPC Discovery is not supported yet. This applies to the deployed [simulation environment](./deploy/howto-deploy-all-in-one.md) and [engineering tool](./services/engineeringtool.md) experience. You can register servers using a discovery url using the [registry service's registration REST API](./services/registry.md).
 
-### Changes in this release
+### Changes in 2.8.4
 
 - Updated .net to .net 6.0 LTS from .net core 3.1 LTS which will be going out of support on 12/13/2022.
 - Updated nuget dependencies to their .net 6 counterpart or to their latest compatible release.
@@ -116,16 +122,16 @@ We are pleased to announce the release of version 2.8.3 of our Industrial IoT Pl
 > IMPORTANT
 > We suggest updating from the version 2.5 or later to ensure secure operations of your deployment. OPC Publisher 2.8.3 addresses backwards compatibilities issues with version 2.5.x.
 
-### Security related fixes
+### Security related fixes in 2.8.3
 
 - Updated OPC UA Stack NuGet to the latest (1.4.368.58) addressing various security issues
 - Upgraded SSH.NET package to 2020.0.2 to address [CVE-2022-29245](https://nvd.nist.gov/vuln/detail/CVE-2022-29245).
 
-### Fundamentals related fixes
+### Fundamentals related fixes in 2.8.3
 
 - [OPC Publisher] option to route telemetry to a specific output route was added
 
-### Bug fixes
+### Bug fixes in 2.8.3
 
 - [OPC Publisher] Removed timestamps from metrics and updated the affected dashboard queries
 - [OPC Publisher] Fixed issue with large configurations when publisher running in orchestrated mode related to CosmosDB continuation tokens handling
@@ -141,14 +147,14 @@ We are pleased to announce the release of version 2.8.2 of our Industrial IoT Pl
 > IMPORTANT
 > We suggest to update from  version 2.5 or later to ensure secure operations of your deployment. OPC Publisher 2.8.2 addresses backwards compatibilities issues with version 2.5.x.
 
-### Fundamentals related fixes
+### Fundamentals related fixes in 2.8.2
 
 - [OPC Publisher] Implemented the backwards compatible [Direct Methods API](modules/publisher-directmethods.md) of 2.5.x publisher. The migration path is documented [here](modules/publisher-migrationpath.md)
 - [OPC Publisher] Optimizations in opc subscriptions/monitored items management in case of configuration changes. Only incremental changes are applied to a subscription.
 - [OPC Publisher] Added support for setting QueueSize on monitored items for publisher in standalone mode.
 - [OPC Publisher] Hardened the retry mechanism for activating monitored items.
 
-### Backwards Compatibility Notes
+### Backwards Compatibility Notes for release 2.8.2
 
 - [OPC Publisher] NodeId shows up now in telemetry in the exact format as specified in the configuration. Before 2.8.2, the NodeId was always reported as `Namespace#NodeId`
     > E.g. : When configuring in pn.json file a NodeId like `nsu=http://mynamespace.com/;i=1`
@@ -162,15 +168,13 @@ We are pleased to announce the release of version 2.8.2 of our Industrial IoT Pl
 
 We are pleased to announce the release of version 2.8.1 of our Industrial IoT Platform components as the first patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates, bugfixes and performance optimizations.
 
-> IMPORTANT
-> Please note that OPC Publisher 2.8.1 is not backwards compatible with version 2.5.x.
+> IMPORTANT: Please note that OPC Publisher 2.8.1 is not backwards compatible with version 2.5.x.
 
 ## Azure Industrial IoT Platform Release 2.8
 
 We are pleased to announce the release of version 2.8 of our Industrial IoT Platform as well as the declaration of Long-Term Support (LTS) for this version.
 While we continue to develop and release updates to our ongoing projects on GitHub, we now also offer a branch that will only get critical bug fixes and security updates starting in July 2021. Customers can rely upon a longer-term support lifecycle for these LTS builds, providing stability and assurance for the planning on longer time horizons our customers require. The LTS branch offers customers a guarantee that they will benefit from any necessary security or critical bug fixes with minimal impact to their deployments and module interactions. At the same time, customers can access the latest updates in the main branch to keep pace with the latest developments and fastest cycle time for product updates.
 
-> IMPORTANT
-> We suggest to update from the version 2.6 or later to ensure secure operations of your deployment. 2.8.0 is not backwards compatible with version 2.5.x
+> IMPORTANT: We suggest to update from the version 2.6 or later to ensure secure operations of your deployment. 2.8.0 is not backwards compatible with version 2.5.x
 
 Version 2.8.0 includes an updated version of the IoT Edge Runtime, a new Linux base image for all Linux deployments, and several bug fixes. The detailed changes can be found [here](https://github.com/Azure/Industrial-IoT/releases/tag/2.8.0).

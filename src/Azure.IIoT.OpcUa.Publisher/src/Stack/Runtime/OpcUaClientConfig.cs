@@ -51,6 +51,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
         public const string CreateSessionTimeoutKey = "CreateSessionTimeout";
+        public const string SubscriptionErrorRetryDelayKey = "SubscriptionErrorRetryDelay";
+        public const string InvalidMonitoredItemRetryDelayKey = "InvalidMonitoredItemRetryDelay";
+        public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
+        public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
         public const string LingerTimeoutKey = "LingerTimeout";
 
         /// <summary>
@@ -68,6 +72,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int MaxByteStringLengthDefault = 1024 * 1024;
         public const int MaxStringLengthDefault = (128 * 1024) - 256;
         public const int OperationTimeoutDefault = 120 * 1000;
+        public const int SubscriptionErrorRetryDelayDefaultSec = 2;
+        public const int InvalidMonitoredItemRetryDelayDefaultSec = 5 * 60;
+        public const int BadMonitoredItemRetryDelayDefaultSec = 30 * 60;
         public const int DefaultSessionTimeoutDefaultSec = 60;
         public const int KeepAliveIntervalDefaultSec = 10;
         public const int CreateSessionTimeoutDefaultSec = 5;
@@ -136,6 +143,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (lingerTimeout > 0)
                 {
                     options.LingerTimeout = TimeSpan.FromSeconds(lingerTimeout);
+                }
+            }
+
+            if (options.SubscriptionErrorRetryDelay == null)
+            {
+                var retryTimeout = GetIntOrDefault(SubscriptionErrorRetryDelayKey);
+                if (retryTimeout > 0)
+                {
+                    options.SubscriptionErrorRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                }
+            }
+
+            if (options.BadMonitoredItemRetryDelay == null)
+            {
+                var retryTimeout = GetIntOrDefault(BadMonitoredItemRetryDelayKey);
+                if (retryTimeout > 0)
+                {
+                    options.BadMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                }
+            }
+
+            if (options.InvalidMonitoredItemRetryDelay == null)
+            {
+                var retryTimeout = GetIntOrDefault(InvalidMonitoredItemRetryDelayKey);
+                if (retryTimeout > 0)
+                {
+                    options.InvalidMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                }
+            }
+
+            if (options.SubscriptionManagementInterval == null)
+            {
+                var managementInterval = GetIntOrDefault(SubscriptionManagementIntervalKey);
+                if (managementInterval > 0)
+                {
+                    options.SubscriptionManagementInterval = TimeSpan.FromSeconds(managementInterval);
                 }
             }
 

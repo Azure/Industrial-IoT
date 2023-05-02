@@ -2,7 +2,7 @@
 
 [Home](./readme.md)
 
-This article will walk you through the steps to discover and register OPC UA servers, browse through endpoints, read node values and publish them using the [REST API](../api/readme.md) via Postman.
+This article will walk you through the steps to discover and register OPC UA servers, browse through endpoints, read node values and publish them using the [REST API](./api.md) via Postman.
 
 ## Prerequisites
 
@@ -56,18 +56,18 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 
 ## Download a sample set of API calls (Postman collection)
 
-1. Download the collection as a [raw JSON file](../media/OPCTwin.postman_collection.1.0.json)
+1. Download the collection as a [raw JSON file](./media/OPCTwin.postman_collection.1.0.json)
 2. Import the collection by using the 'Import' button at the top left of Postman
 3. At the top right, click Manage Environments and add a new Environment named OPC Twin
 4. Add a new variable:
    - OPC-SERVICEURL: e.g. `[yourprefix].azurewebsites.net`
-5. Click Add and close the screen. ![Environment](../media/2-postmanenv.png)
+5. Click Add and close the screen. ![Environment](./media/2-postmanenv.png)
 
 ### Request a new OAuth 2.0 Token
 
 1. In Postman, on the left you will see your collections, click the '...' (three dots) next to the OPC Twin collection and choose 'Edit'
-![edit](../media/postman-edit-collection.png)
-2. Choose 'Authorization' ![auth](../media/3-auth-edit.png)
+![edit](./media/postman-edit-collection.png)
+2. Choose 'Authorization' ![auth](./media/3-auth-edit.png)
 3. Choose 'Get New Access Token'
 4. Fill in the following fields:
    - Token Name: Some name
@@ -79,7 +79,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
    - Client Secret: `[YOUR AAD CLIENT SECRET]`
    - Scope: `[YOUR SCOPE URI]`
    - Click 'Request Token'
-   ![gettoken](../media/4-postmantoken.png)
+   ![gettoken](./media/4-postmantoken.png)
    - Click 'Use Token', and then on 'Update'
 
 5. Test your connectivity with the Microservices by running the request named `Registry: Get applications`
@@ -130,10 +130,10 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 
 1. Once you have an application and endpoints, execute `Registry: Get endpoints` to get your base endpoint ID for the OPC PLC. This will be one where the `endpointUrl` is on port 50000. Copy the `id` (endpoint id).
 2. Execute the request `Twin: Browse nodes`, using the `id` in the URL.
-![img](../media/ex3-twinbrowsebyid.png)
+![img](./media/ex3-twinbrowsebyid.png)
 3. Copy the `nodeId` of the objects (displayName: Objects) node. In our case this was `i=85`.
 4. Execute the request `Twin: Browse target node`, replace the ID in the URL with the `id` from above, and add the node ID to the query parameter. If the node id includes special characters such as a '/' or ':' then you should URL Encode the parameter by right-clicking the selection and choosing the Postman option 'EncodeUriComponent'.
-![img](../media/ex3-uriencode.png)
+![img](./media/ex3-uriencode.png)
 5. From the result, copy `nodeId` of the OpcPlc target node.
 6. Execute the same request, but now use the above `nodeId` value in the request parameter. Remember to URI-encode.
 7. From the result, copy the `nodeId` for Telemetry target node. Repeat the above with this `nodeId`. This should give you a set of target nodes with variables, their data and values.
@@ -157,10 +157,3 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 Note the `applicationId` by executing the request `Registry: Get applications`. Execute the request `Registry: Remove application`, make sure to change the applicaitonId in the URI.
 
 Note: This step does not remove the published nodes from the OPC Publisher.
-
-## Next steps
-
-Try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
-
-- See the [architectural flow diagrams](../architecture-flow.md) for more information.
-- [Explore Microservices REST APIs](../api/readme.md)

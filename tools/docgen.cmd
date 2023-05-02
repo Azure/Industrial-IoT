@@ -35,29 +35,13 @@ rem
 rem generate docs
 rem
 :generate_docs
-if not exist %build_root%\docs\api mkdir %build_root%\docs\api
-pushd %build_root%\docs\api
-echo swagger2markup.markupLanguage=MARKDOWN                      > config.properties
-echo swagger2markup.generatedExamplesEnabled=false              >> config.properties
-echo swagger2markup.pathsGroupedBy=TAGS                         >> config.properties
-echo swagger2markup.inlineSchemaEnabled=true                    >> config.properties
-echo swagger2markup.lineSeparator=WINDOWS                       >> config.properties
-echo swagger2markup.pathSecuritySectionEnabled=true             >> config.properties
-echo swagger2markup.flatBodyEnabled=false                       >> config.properties
-echo swagger2markup.interDocumentCrossReferencesEnabled=true    >> config.properties
-echo swagger2markup.overviewDocument=readme                     >> config.properties
-rem echo swagger2markup.separatedDefinitionsEnabled=true            >> config.properties
-rem echo swagger2markup.separatedOperationsEnabled=true             >> config.properties
-
-docker pull swagger2markup/swagger2markup:latest
-set convert=docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:latest convert
+pushd %build_root%\docs
 
 call :generate_doc_for_service opc-publisher
-call :generate_doc_for_service industrial-iot
+call :generate_doc_for_service web-api
 
 set service=
 set convert=
-if exist config.properties del /f config.properties
 popd
 goto :eof
 
@@ -66,14 +50,26 @@ rem generate doc
 rem
 :generate_doc_for_service
 set service=%1
-if not exist %build_root%\api\swagger\%service%.json goto :eof
-copy %build_root%\api\swagger\%service%.json %service%\swagger.json
-if exist %service%\security.md move %service%\security.md %service%\security_save.md
-%convert% -i /opt/%service%/swagger.json -d /opt/%service% -c /opt/config.properties
-if exist %service%\security_save.md move %service%\security_save.md %service%\security.md
-if exist %service%\paths.md type %service%\paths.md >> %service%\readme.md
-if exist %service%\paths.md del /f %service%\paths.md
-if exist %service%\swagger.json del /f %service%\swagger.json
+pushd %service%
+if not exist openapi.json goto :eof
+if exist security.md move security.md security_save.md
+echo swagger2markup.markupLanguage=MARKDOWN                      > config.properties
+echo swagger2markup.generatedExamplesEnabled=false              >> config.properties
+echo swagger2markup.pathsGroupedBy=TAGS                         >> config.properties
+echo swagger2markup.inlineSchemaEnabled=true                    >> config.properties
+echo swagger2markup.lineSeparator=WINDOWS                       >> config.properties
+echo swagger2markup.pathSecuritySectionEnabled=true             >> config.properties
+echo swagger2markup.flatBodyEnabled=false                       >> config.properties
+echo swagger2markup.interDocumentCrossReferencesEnabled=true    >> config.properties
+rem echo swagger2markup.overviewDocument=overview               >> config.properties
+echo swagger2markup.separatedDefinitionsEnabled=false           >> config.properties
+echo swagger2markup.separatedOperationsEnabled=false            >> config.properties
+docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:1.3.1 convert -i /opt/openapi.json -d /opt -c /opt/config.properties
+if exist security_save.md move security_save.md security.md
+if exist paths.md type paths.md >> api.md
+if exist paths.md del /f paths.md
+if exist config.properties del /f config.properties
+popd
 goto :eof
 
 

@@ -49,6 +49,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? LingerTimeout { get; set; }
 
         /// <summary>
+        /// How long to wait until retrying on errors related
+        /// to creating and modifying the subscription.
+        /// </summary>
+        public TimeSpan? SubscriptionErrorRetryDelay { get; set; }
+
+        /// <summary>
+        /// The watchdog period to kick off regular management
+        /// of the subscription and reapply any state on failed
+        /// nodes.
+        /// </summary>
+        public TimeSpan? SubscriptionManagementInterval { get; set; }
+
+        /// <summary>
+        /// At what interval should bad monitored items be retried.
+        /// These are items that have been rejected by the server
+        /// during subscription update or never successfully
+        /// published.
+        /// </summary>
+        public TimeSpan? BadMonitoredItemRetryDelay { get; set; }
+
+        /// <summary>
+        /// At what interval should invalid monitored items be
+        /// retried. These are items that are potentially
+        /// misconfigured.
+        /// </summary>
+        public TimeSpan? InvalidMonitoredItemRetryDelay { get; set; }
+
+        /// <summary>
         /// Transport quota
         /// </summary>
         public TransportOptions Quotas { get; } = new TransportOptions();

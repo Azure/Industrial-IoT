@@ -45,7 +45,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Build and start the CLI in console mode by running
 
    ```bash
-   cd ./api/src/Microsoft.Azure.IIoT.Api/cli
+   cd ./src/Azure.IIoT.OpcUa.Publisher.Service.Sdk/cli
    dotnet run console
    ```
 
@@ -65,15 +65,7 @@ To make the demo deterministic we also start a demo OPC UA server.
         exit        Exit interactive mode and thus the cli.
         status      Print service status
 
-        apps        Manage applications
-        endpoints   Manage endpoints
-        supervisors Manage supervisors
-
-        nodes       Call twin module services on endpoint
-
-        groups      Manage trust groups (Experimental)
-        trust       Manage trust between above entities (Experimental)
-        requests    Manage certificate requests (Experimental)
+         ...
 
         help, -h, -? --help
                     Prints out this help.
@@ -219,10 +211,10 @@ apps unregister
 2. Run
 
    ```bash
-   > supervisors list
+   > publishers list
    ```
 
-   and note down the `supervisorId`.
+   and note down the `publisherId`.
 
 3. Scan network
 
@@ -240,23 +232,13 @@ apps unregister
 
    To list all found servers.
 
-5. To activate all endpoints of all servers and enable communication with them run
+5. To get a list of endpoints run
 
    ```bash
-   > endpoints activate
+   > endpoints list
    ```
 
-   This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
-
-   See the [architectural flow diagrams](../architecture-flow.md) for more information.
-
-6. To get a list of connected and ready endpoints run
-
-   ```bash
-   > endpoints query -s Ready
-   ```
-
-   If you have endpoints and these do not show up after a couple seconds take a look at the state of the endpoint.   The status property of the endpoint model will indicate the reason why a connection could not be established.
+   If you have endpoints and these do not show up after a couple seconds take a look at the state of the endpoint.
 
    Remember one of the endpoints id, e.g. run `endpoints select -i <id>` so you do not need to pass the identifier in further commands.
 
@@ -269,10 +251,3 @@ To remove all applications and related endpoints run:
 ```bash
 > apps unregister
 ```
-
-## Next steps
-
-Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
-
-* Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
-* [Explore REST APIs](../api/readme.md)

@@ -2,6 +2,8 @@
 
 [Home](./readme.md)
 
+> This documentation applies to version 2.9
+
 ## Table Of Contents <!-- omit in toc -->
 
 * [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
@@ -471,7 +473,7 @@ The important part to highlight here is that the payload is an array of events w
 
 ## Samples mode encoding (Legacy)
 
-> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA Pub Sub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
+> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA PubSub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
 
 ### Value change messages in Samples mode
 

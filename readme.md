@@ -2,23 +2,25 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=main)
 
+> The following information applies to version 2.9. If you are using 2.8 LTS today and are looking for the corresponding documentation and code then you will find it in the [latest 2.8 branch](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6).
+
 ## Discover, register and manage your OPC UA enabled Assets with Azure
 
-Microsoft [OPC Publisher](docs/modules/publisher.md) and the optional Azure Industrial IoT companion web service allow you to discover and operate OPC UA enabled industrial assets.
+Microsoft [OPC Publisher](docs/opc-publisher/readme.md) and the optional Azure Industrial IoT Platform companion web service allow you to discover and operate OPC UA enabled industrial assets.
 
-OPC Publisher enables you to access and harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (both JSON and UADP binary) and provides a large set of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s), an MQTT Broker or through Azure IoT Hub device methods.  
+With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (both JSON and UADP binary) and provides a large set of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.  
 
-If your industrial equipment doesn't support OPC UA, we have worked with our large partner network to support all types of industrial interfaces through the use of adapters, fully integrated with our platform. Please check out the [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules).
+We worked with our large partner network to support all types of industrial protocols through the use of adapters if your industrial equipment doesn't support OPC UA.  These modules are fully integrated with our platform. Check out [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules) for more information.
 
-The companion cloud service with REST interface runs Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for both edge and cloud components. An easy-to-use deployment script guides you step-by-step through deploying the cloud service and dependencies, as well as an optional simulation environment in Azure.
+The companion cloud service provided in this repository (Preview) with REST interface runs inside Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. 
+
+Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for both edge and cloud components. An easy-to-use deployment script guides you step-by-step through deploying the cloud service and dependencies, as well as an optional simulation environment in Azure.
 
 ## Get started
 
 * Learn about [OPC Publisher](docs/opc-publisher/readme.md) and how to operate it in production.
 * Check out all of the [Industrial IoT Platform documentation](docs/readme.md).
 * [Release announcements](docs/release-announcement.md) and all [releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
-
-> If you are using 2.8 LTS today and are looking for the corresponding documentation and code then you will find it in the [latest 2.8 branch](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6).
 
 ## Get support
 

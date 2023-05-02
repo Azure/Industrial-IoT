@@ -1,25 +1,40 @@
-# Migrate from OPC Publisher 2.8.x to 2.9 and higher
+# Migrate from previous versions of OPC Publisher to 2.9 and higher
 
 [Home](./readme.md)
 
-## API changes
+## Why the changes from 2.8 to 2.9?
 
-* OPC Publisher 2.9 removes "orchestrated mode". This means you must [migrate your Cosmos DB job definitions](#migrating-cosmos-db-job-definitions) using the migration tooling (COMING SOON)
-* OPC Twin capabilities are integrated in OPC Publisher 2.9. The following differences between 2.8.4 OPC Twin and OPC Publisher 2.9 exist:
+Customers told us they want to leverage the capabilities of OPC Twin. However, deploying and operating a micro service architecture is often times too costly and too difficult for them. Many times customers were already using an Azure IoT Hub instance to manage other devices and wanted to leverage this instance also for OPC UA enabled assets. What they were looking for was the standalone version of OPC Publisher but with its capabilities extended to provide read/write/call capabilities also.
+
+We also found significant problems with the orchestration approach in OPC Publisher to continue its development. For one, the size constraints imposed by keeping the entire configuration of a publisher in a single document in Cosmos DB became an issue for some customers.  And the overhead of the communication between publisher and cloud services and the need for a second cloud connection bypassing IoT Edge were a problem for stable and reliable production use.
+
+We reacted by combining all 3 edge modules into OPC Publisher 2.9 and combining all cloud services into a single web service that is now optional. Yes, you can directy interact with OPC Publisher through IoT Hub or MQTT/HTTP (Preview). We also updated OPC Publisher to leverage .net 7 performance improvements and to use more defensive coding and code analysis moving the code base forward.
+
+## Breaking changes
+
+We provided backwards compatibility (e.g., you need to use the `-c`, `--strict` command line argument to enable standards compliance) in OPC Publisher. *OPC Publisher 2.9 is therefore a drop in replacement for OPC Publisher 2.8 in standalone mode*.
+
+However, if you were using the 2.8 micro services before then you must be aware of the following breaking changes:
+
+* Due to the simplification of the cloud services we **removed the IAI installer and Helm chart** support. It is still possible to deploy the web api container in AKS but we do not provide any tooling to do that.
+* OPC Publisher 2.9 **removes "orchestrated mode"**. This means you must [migrate your Cosmos DB job definitions](#migrating-cosmos-db-job-definitions) using the migration tooling.
+* We also removed the **telemetry processors** and the secondary event hub to read the proprietary data set messages from. To migrate change your event hub processor or ingestion code to read OPC Publisher telemetry messages directly from IoT Hub event hub compatible endpoint.
+* We retained Open API compatibility to the 2.8 cloud service API in the new OPC Publisher cloud web service's API. This includes using the same route paths as in the AKS hosted version of the 2.8 platform. However, the following **API changes** were made:
   * OPC Publisher 2.9 does not support activation and deactivation of Endpoint Twins, which allowed OPC Twin endpoints to be addressed with a IoT Hub device id. Instead all API's must be invoked with a `ConnectionModel` parameter (`connection`) and the original request model.
-  * The concept of supervisor (the OPC Twin module instance) and discoverer (the OPC Discovery module instance) are completely equivalent to the publisher concept in 2.9. The supervisor, discovery, and publisher REST APIs have been retained for backwards compatibility and return the same information which is the twin of the Publisher module.
-  * Activation and deactivation, and the endpoint connectivity concept have been removed.  The current activation and deactivation API can be used to connect and disconnect clients in the OPC Publisher that are not actively managing subscriptions.
-    * The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
-  * GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of byte array in 2.8.
-* OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
+  * The concept of supervisor (the OPC Twin module instance) and discoverer (the OPC Discovery module instance) are completely equivalent to the publisher concept in 2.9. The supervisor, discovery, and publisher REST APIs have been retained for backwards compatibility and return the same information which is the twin of the Publisher module.  However, this also means there is no migration from OPC Twin or OPC Discovery to OPC Publisher 2.9, settings have to be re-applied.
+  * With removal of the database and orchestrated mode we changed the existing Publishing API to directly update the publisher configuration which has different performance characteristics than in 2.8 especially for the bulk publishing API.
+  * The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
+  * GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of a byte array in 2.8.
+  * OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
 
-## Migrating Cosmos DB job definitions
+### Migrating Cosmos DB job definitions
 
 COMING SOON
 
-## Configuration file (pn.json)
+## Upgrading OPC Publisher published nodes configuration file (pn.json)
 
-In standalone mode OPC Publisher (2.8.2 or higher) can consume published nodes JSON files version 2.5.x or higher without any modifications.
+OPC Publisher can consume published nodes JSON files version 2.5.x or higher without any modifications.
+
 Each OPC Publisher since has added new fields to configure publishing but maintained backwards compatibilty with older versions, such as 2.5.*x*.
 
 The full schema of published nodes JSON file that works in all versions since 2.5.* looks like this:
@@ -60,7 +75,7 @@ The full schema of published nodes JSON file that works in all versions since 2.
 For details of each field you can consult the [direct methods API documentation](publisher-directmethods.md) as the fields of published nodes JSON schema map directly to that of direct method API calls.
 The only difference is that `OpcAuthenticationUsername` and `OpcAuthenticationPassword` are refereed to as `UserName` and `Password` in direct method API calls.
 
-Please note that OPC Publisher 2.8.2 can still consume legacy `NodeId`-based node definitions (as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)), but we strongly recommend to use `OpcNodes`-based definitions instead. Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
+Please note that OPC Publisher 2.9 can still consume legacy `NodeId`-based node definitions (as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)), but we strongly recommend to use `OpcNodes`-based definitions instead. Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
 
 ## Command Line Arguments
 

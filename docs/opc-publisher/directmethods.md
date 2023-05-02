@@ -14,14 +14,18 @@ The following direct methods are exposed:
 - GetDiagnosticInfo_V1
 - AddOrUpdateEndpoints_V1
 
-If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or later, we provide the needed information in a [separate document](./publisher-migrationpath.md).
+The corresponding REST API of OPC Publisher 2.9 (with same operation names and [type definitions](./definitions.md)) is documented [here](./api.md). In addition to calling the API through HTTP REST calls (Preview) you can call the configuration API through MQTT v5 (Preview) in OPC Publisher 2.9.
+
+If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or later, we provide the needed information in a [separate document](./migrationpath.md).
 
 ## Terminology
 
 The definitions of the important terms used are described below:
 
 - __DataSet__ is a group of nodes within one OPC UA server, publishing of data value changes of those nodes is done with the same publishing interval.
+
 - __DataSetWriter__ has one DataSet and contains all information to establish a connection to an OPC UA server.
+
 - __DatSetWriterGroup__ is used to group several DataSetWriter's for a specific OPC UA server.
 
 Below we will dicuss which attributes of payload schema will define a DatSetWriterGroup and DataSetWriter.
@@ -77,7 +81,7 @@ The `_V1` direct methods use the payload schema as described below:
 }
 ```
 
-(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described in this seperate document](./publisher-event-configuration.md).
+(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md).
 
 Method call's request attributes are as follows:
 
@@ -125,7 +129,7 @@ OpcNode attributes are as follows:
 | `DataChangeTrigger`             | No        | String  | null    | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./publisher-commandline.md). This value is ignored if an EventFilter is configured. |
 | `DeadbandType`                  | No        | String  | 1       | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
 | `DeadbandValue`                 | No        | Decimal | 1       | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
-| `EventFilter`                   | No        | [EventFilter](./publisher-event-configuration.md) | null | An [event filter](./publisher-event-configuration.md) configuration to use when subscribing to events instead of data changes.  |
+| `EventFilter`                   | No        | [EventFilter](./readme.md) | null | An [event filter](./readme.md) configuration to use when subscribing to events instead of data changes.  |
 
 In the implementation of OPC Publisher, DatSetWriterGroup is defined by combination of `DataSetWriterGroup` attribute and details of OPC UA server endpoint (`EndpointUrl` and connection details).
 Each unique DatSetWriterGroup will result in one session to OPC UA server. This session will contain several subscriptions within it for each DataSetWriter of DatSetWriterGroup.
@@ -141,11 +145,11 @@ Now let's dive into each direct method request and response payloads with exampl
 
 ### PublishNodes_V1
 
-PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](publisher-directmethods.md#terminologies) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
+PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](#terminology) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
 
-When a `DataSetWriter` already exists, the nodes are incrementally added to the same [`dataset`](publisher-directmethods.md#terminologies). When it doesn't already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request. When working with `DataSetWriterGroup`s it is important to note that all groups not part of the publish request are removed.  To incrementally update `DataSetWriterGroup`s of `DataSetWriter`s use [`AddOrUpdateEndpoints_v1`](#addorupdateendpoints_v1) API instead.
+When a `DataSetWriter` already exists, the nodes are incrementally added to the same [`dataset`](#terminology). When it doesn't already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request. When working with `DataSetWriterGroup`s it is important to note that all groups not part of the publish request are removed.  To incrementally update `DataSetWriterGroup`s of `DataSetWriter`s use [`AddOrUpdateEndpoints_v1`](#addorupdateendpoints_v1) API instead.
 
-  _Request_: follows strictly the request [payload schema](publisher-directmethods.md#payload-schema), the `OpcNodes` attribute being mandatory.
+  _Request_: follows strictly the request [payload schema](#payload-schema), the `OpcNodes` attribute being mandatory.
 
   _Response_: when successful Status 200 and an empty json (`{}`) as payload
 

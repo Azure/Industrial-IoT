@@ -34,12 +34,10 @@ namespace Plc
         /// </summary>
         /// <param name="plcNodeManager"></param>
         /// <param name="timeService"></param>
-        /// <param name="logger"></param>
-        public PlcSimulation(PlcNodeManager plcNodeManager, TimeService timeService, ILogger logger)
+        public PlcSimulation(PlcNodeManager plcNodeManager, TimeService timeService)
         {
             _plcNodeManager = plcNodeManager;
             _timeService = timeService;
-            _logger = logger;
         }
 
         /// <summary>
@@ -174,7 +172,7 @@ namespace Plc
                 .AppendLine("]"); // Trim trailing ,\n.
 
             string pnJson = sb.ToString();
-            _logger.LogInformation("OPC Publisher configuration file: {PnJson}", pnJson);
+            Console.Out.WriteLine(pnJson);
         }
 
         /// <summary>
@@ -187,7 +185,6 @@ namespace Plc
         private const int kSimulationCycleLengthDefault = 100;
         private readonly PlcNodeManager _plcNodeManager;
         private readonly TimeService _timeService;
-        private readonly ILogger _logger;
         private ITimer _eventInstanceGenerator;
         private uint _eventInstanceCycle;
     }
