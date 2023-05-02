@@ -1,4 +1,4 @@
-# Microsoft OPC Publisher
+# Microsoft OPC Publisher <!-- omit in toc -->
 
 [Home](../readme.md)
 
@@ -8,26 +8,33 @@ Here you find information about
 
 ## Table Of Contents <!-- omit in toc -->
 
-* [Getting started](#getting-started)
-  * [Install IoT Edge](#install-iot-edge)
-  * [Deploy OPC Publisher from Azure Marketplace](#deploy-opc-publisher-from-azure-marketplace)
-  * [Deploy OPC Publisher using Azure CLI](#deploy-opc-publisher-using-azure-cli)
-  * [Deploy OPC Publisher using the Azure Portal](#deploy-opc-publisher-using-the-azure-portal)
-* [How OPC Publisher works](#how-opc-publisher-works)
-* [Configuring OPC Publisher](#configuring-opc-publisher)
-  * [Configuring secure access to OPC UA server endpoints](#configuring-security)
-  * [Configuring Value Change subscriptions](#configuration-via-configuration-file)
-  * [Configuring Event subscriptions](#configuring-event-subscriptions)
-  * [OPC Publisher command line options](./commandline.md)
-  * [Using device method based Configuration](./directmethods.md)
-* [Discoverying OPC UA server endpoints](#discovering-opc-ua-servers-with-opc-publisher)
-* [Calling services inside an OPC UA servers using OPC Publisher](#opc-ua-client-opc-twin)
-* [Enabling mutual trust between OPC Publisher and the OPC UA server](#opc-ua-certificates-management)
-* [The message formats supported by OPC Publisher](#opc-publisher-telemetry-formats)
-* [The OPC UA stack used in OPC Publisher](#opc-ua-stack)
-* [How to tune OPC Publisher performance](#performance-and-memory-tuning-opc-publisher)
-* [Troubleshooting OPC Publisher](./troubleshooting.md)
-* [Mnitoring OPC Publisher metrics](./observability.md)
+- [Overview](#overview)
+- [Getting Started](#getting-started)
+  - [Install IoT Edge](#install-iot-edge)
+  - [Deploy OPC Publisher from Azure Marketplace](#deploy-opc-publisher-from-azure-marketplace)
+  - [Specifying Container Create Options in the Azure portal](#specifying-container-create-options-in-the-azure-portal)
+  - [Deploy OPC Publisher using Azure CLI](#deploy-opc-publisher-using-azure-cli)
+  - [Deploy OPC Publisher using the Azure Portal](#deploy-opc-publisher-using-the-azure-portal)
+- [How OPC Publisher works](#how-opc-publisher-works)
+- [Configuring OPC Publisher](#configuring-opc-publisher)
+  - [Configuration via Configuration File](#configuration-via-configuration-file)
+    - [Configuring Security](#configuring-security)
+    - [Configuring event subscriptions](#configuring-event-subscriptions)
+      - [Simple event filter](#simple-event-filter)
+      - [Advanced event filter configuration](#advanced-event-filter-configuration)
+      - [Condition handling options](#condition-handling-options)
+  - [Persisting OPC Publisher Configuration](#persisting-opc-publisher-configuration)
+- [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
+  - [Discovery Configuration](#discovery-configuration)
+  - [One-time discovery](#one-time-discovery)
+  - [Discovery Progress](#discovery-progress)
+- [OPC UA Client (OPC Twin)](#opc-ua-client-opc-twin)
+- [OPC Publisher API](#opc-publisher-api)
+- [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
+- [OPC UA Certificates management](#opc-ua-certificates-management)
+  - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
+- [OPC UA stack](#opc-ua-stack)
+- [Performance and Memory Tuning OPC Publisher](#performance-and-memory-tuning-opc-publisher)
 
 ## Overview
 
@@ -53,8 +60,8 @@ You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.
 
 For more information check out:
 
-* [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
-* [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
+- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
+- [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
 
 ### Deploy OPC Publisher from Azure Marketplace
 
@@ -283,15 +290,15 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
 1. The publisher groups nodes in the configuration into groups of `Dataset Writers` which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, `DataSetWriterGroup` and `Heartbeat` (keep-alive key frames)
 
-   * `DataSetWriterId`: A logical name of a subscription to an endpoint on a OPC UA server. A writer can only have 1 publishing interval andin case of event subscription, 1 event node. Should multiple be specified then the writer is broken into smaller writers. A data set writer writes data sets, which are a set of OPC UA data values or events inside a OPC UA PubSub network message.
+   - `DataSetWriterId`: A logical name of a subscription to an endpoint on a OPC UA server. A writer can only have 1 publishing interval andin case of event subscription, 1 event node. Should multiple be specified then the writer is broken into smaller writers. A data set writer writes data sets, which are a set of OPC UA data values or events inside a OPC UA PubSub network message.
 
-   * `DataSetWriterGroup`: A logical group of data set writers. These define the content of a OPC UA PubSub network message.
+   - `DataSetWriterGroup`: A logical group of data set writers. These define the content of a OPC UA PubSub network message.
 
-   * `SamplingInterval`: The cyclic time in milliseconds, in which a node in a writer is sampled for updates. This is not applicable for events.
+   - `SamplingInterval`: The cyclic time in milliseconds, in which a node in a writer is sampled for updates. This is not applicable for events.
 
-   * `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
+   - `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
 
-   * `Heartbeat`: Cyclic time in seconds, in which to send keep-alive messages to indicate that the connection is still being used, in case no notifications are available
+   - `Heartbeat`: Cyclic time in seconds, in which to send keep-alive messages to indicate that the connection is still being used, in case no notifications are available
 
 1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` settings.
 
@@ -311,10 +318,10 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
 OPC Publisher has several interfaces that can be used to configure it.  
 
-* [Configuration via configuration file](#configuration-via-configuration-file)
-* [Command Line options configuration](./ommandline.md)
-* [Direct method runtime configuration](./directmethods.md)
-* [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
+- [Configuration via configuration file](#configuration-via-configuration-file)
+- [Command Line options configuration](./ommandline.md)
+- [Direct method runtime configuration](./directmethods.md)
+- [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
 
@@ -359,9 +366,9 @@ OPC UA sends the current data value when OPC Publisher connects to the OPC UA se
 
 IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates for:
 
-* mutual authentication of clients and server systems
-* encrypted communication between the systems
-* optionally for user authentication
+- mutual authentication of clients and server systems
+- encrypted communication between the systems
+- optionally for user authentication
 
 OPC Publisher can be configured to store these certificates in a file system based certificate store. During startup, OPC Publisher checks if there's already a private certificate it can use. If not, a self-signed certificate is created. Self-signed certificates don't provide any trust value and we don't recommend using them in production.
 
@@ -383,8 +390,8 @@ OPC Publisher version 2.5 and below encrypts the username and password in the co
 
 OPC Publisher supports two types of event filter configurations you can specify:
 
-* [Simple event filter](#simple-event-filter) configuration mode, where you specify the source node and the event type you want to filter on and then the OPC Publisher constructs the select and where clauses for you.
-* [Advanced event filter](#advanced-event-filter-configuration) configuration mode where you explicitly specify the select and where clauses.
+- [Simple event filter](#simple-event-filter) configuration mode, where you specify the source node and the event type you want to filter on and then the OPC Publisher constructs the select and where clauses for you.
+- [Advanced event filter](#advanced-event-filter-configuration) configuration mode where you explicitly specify the select and where clauses.
 
 In the configuration file you can specify how many event configurations as you like and you can also combine events and data nodes for a single endpoint.
 
@@ -417,16 +424,16 @@ To subscribe to an event you specify the source node (in this case the server no
 
 When you use the simple configuration option above, the OPC Publisher does two things:
 
-* It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
-* It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
+- It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
+- It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
 
 ##### Advanced event filter configuration
 
 To configure an advanced event filter you have to specify a full event filter which at minimum consists of three things:
 
-* The source node you want to receive events for (in the example below again the server node which has node id `i=2253`).
-* A select clause specifying which fields should be in the reported event. This can include a data set class field id that is then used as identifier in the dataset metadata for the dataset class.
-* A where clause specifying the filter AST.
+- The source node you want to receive events for (in the example below again the server node which has node id `i=2253`).
+- A select clause specifying which fields should be in the reported event. This can include a data set class field id that is then used as identifier in the dataset metadata for the dataset class.
+- A where clause specifying the filter AST.
 
 Here is an example of a configuration file that selects events using an advanced event filter:
 
@@ -521,8 +528,8 @@ Here is an example of a configuration for condition handling:
 
 The `ConditionHandling` section consists of the following properties:
 
-* `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
-* `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
+- `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
+- `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
 
 One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
@@ -532,8 +539,8 @@ Conditions are sent as `ua-condition` data set messages. This is a message type 
 
 To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
 
-* the file system based directory store
-* the telemetry configuration file
+- the file system based directory store
+- the telemetry configuration file
 
 In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
 
@@ -545,14 +552,14 @@ OPC Publisher provides discovery services (formerly [OPC Discovery](https://gith
 
 Example use cases:
 
-* An industrial solution wants to detect assets which are unknown by its asset management system.
-* A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
-* A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
+- An industrial solution wants to detect assets which are unknown by its asset management system.
+- A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
+- A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
 
 Discovery supports two modes of operation:
 
-* Active Scan mode: The local network is actively scanned by the Discovery module.
-* Targeted discovery mode: A list of asset addresses can be specified to be checked.
+- Active Scan mode: The local network is actively scanned by the Discovery module.
+- Targeted discovery mode: A list of asset addresses can be specified to be checked.
 
 Discovery is based on native OPC UA server functionality as specified in the OPC UA specification, which allows discovery of endpoint information including security profile information without establishing an OPC UA authenticated and encrypted OPC UA session.
 
@@ -564,9 +571,9 @@ The Discovery can be configured via the OPC Registry REST API and allows a fine-
 
 The Discovery capability of OPC Publisher can be configured to do active network and port scanning. The following parameters can be configured for active scanning:
 
-* address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
-* port ranges (to narrow or widen scanning to a list of known ports)
-* number of workers and time between scans (Advanced)
+- address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
+- port ranges (to narrow or widen scanning to a list of known ports)
+- number of workers and time between scans (Advanced)
 
 > Active scanning should be used with care since it causes load on the local network and might be identified by network security software as a threat.
 
@@ -600,34 +607,9 @@ The API is documented [here](./api.md).
 
 Example use cases:
 
-* A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
-* A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
-* An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
-
-## OPC UA Certificates management
-
-OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
-
-To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa").
-Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
-
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
-
-The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
-
-To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
-The pki path can be configured using the `PkiRootPath` command line argument.
-
-### Use custom OPC UA application instance certificate in OPC Publisher
-
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
-
-Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
-
-`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
-
-`ApplicationName ="TEST-PUBLISHER"`
+- A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
+- A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
+- An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
 
 ## OPC Publisher API
 
@@ -637,11 +619,11 @@ OPC Publisher supports remote configuration through Azure IoT Hub [direct method
 
 In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) that can be called via
 
-* Azure IoT Hub direct methods. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
+- Azure IoT Hub direct methods. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
 
-* The same API can also be called via the HTTP Server built into OPC Publisher (Preview). The API supports browse and histrian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key can be read from the OPC Publisher module's module twin.
+- The same API can also be called via the HTTP Server built into OPC Publisher (Preview). The API supports browse and histrian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key can be read from the OPC Publisher module's module twin.
 
-* API can also be invoked through MQTT v5 RPC calls (Preview). The API is mounted on top of tje method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
+- API can also be invoked through MQTT v5 RPC calls (Preview). The API is mounted on top of tje method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
 
 ## OPC Publisher Telemetry Formats
 
@@ -724,6 +706,31 @@ All versions of OPC Publisher support a non-standard, simple JSON telemetry form
 
 More detailed information about the supported message formats can be found [here](./messageformats.md)
 
+## OPC UA Certificates management
+
+OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
+
+To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa").
+Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
+
+The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
+
+To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
+The pki path can be configured using the `PkiRootPath` command line argument.
+
+### Use custom OPC UA application instance certificate in OPC Publisher
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
+One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+
+Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+
+`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+
+`ApplicationName ="TEST-PUBLISHER"`
+
 ## OPC UA stack
 
 The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the NuGet package redistributable licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
@@ -732,25 +739,25 @@ The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by M
 
 In production setups, network performance requirements (throughput and latency) and memory resources must be considered. OPC Publisher exposes the following command line parameters to help meet these requirements:
 
-* Message queue capacity (`om` since version 2.7)
-* IoT Hub send interval (`si`)
+- Message queue capacity (`om` since version 2.7)
+- IoT Hub send interval (`si`)
 
 The `om` parameter controls the upper limit of the capacity of the internal message queue. This queue buffers all messages before they're sent to IoT Hub. The default size of the queue is 4000 IoT Hub messages (for example: if the setting for the IoT Hub message size is 256 KB, the size of the queue will be up to 1 GB). If OPC Publisher isn't able to send messages to IoT Hub fast enough, the number of items in this queue increases. In this case, one or both of the following can be done to mitigate:
 
-* Decrease the IoT Hub send interval (`si`)
-* Use latest OPC Publisher in standalone mode
-  * Use PubSub format (`--mm=PubSub`).
-    * Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](./messageformats.md).
-    * If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
-    * If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
-  * When Samples format (`--mm=Samples`) is required
-    * Don't use FullFeaturedMessage (`--mm=FullSamples` or `--mm=Samples` with `--fm=false`). You can find a sample of full featured telemetry message [here](messageformats.md).
-  * Use batching (`--bs=600`) in combination with batch publishing interval (`--si=20`).
-  * Increase Monitored Items Queue capacity (e.g., `--mq=10`)
-  * Don't use "fetch display name" (`--fd=false`)
-* General recommendations
-  * Try to use less different publishing intervals, rather aim to use the same for all nodes.
-  * Experiment with the command line and configuration. E.g., depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every application.
+- Decrease the IoT Hub send interval (`si`)
+- Use latest OPC Publisher in standalone mode
+  - Use PubSub format (`--mm=PubSub`).
+    - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](./messageformats.md).
+    - If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
+    - If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
+  - When Samples format (`--mm=Samples`) is required
+    - Don't use FullFeaturedMessage (`--mm=FullSamples` or `--mm=Samples` with `--fm=false`). You can find a sample of full featured telemetry message [here](messageformats.md).
+  - Use batching (`--bs=600`) in combination with batch publishing interval (`--si=20`).
+  - Increase Monitored Items Queue capacity (e.g., `--mq=10`)
+  - Don't use "fetch display name" (`--fd=false`)
+- General recommendations
+  - Try to use less different publishing intervals, rather aim to use the same for all nodes.
+  - Experiment with the command line and configuration. E.g., depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every application.
 
 If the queue keeps growing even though the parameters have been adjusted, eventually the maximum queue capacity will be reached and messages will be lost. This is because all parameters have physical limits and the Internet connection between OPC Publisher and IoT Hub isn't fast enough for the number of messages that must be sent in a given scenario. In that case, only setting up several, parallel OPC Publishers will help. The `om` parameter also has the biggest impact on the memory consumption by OPC Publisher.
 

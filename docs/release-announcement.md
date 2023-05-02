@@ -1,4 +1,28 @@
-# Release announcement
+# Release announcement <!-- omit in toc -->
+
+## Table Of Contents <!-- omit in toc -->
+
+- [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2](#azure-industrial-iot-opc-publisher-290-community-preview-2)
+  - [Changes in 2.9.0 Preview 2](#changes-in-290-preview-2)
+- [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 1](#azure-industrial-iot-opc-publisher-290-community-preview-1)
+  - [Changes 2.9.0 Preview 1](#changes-290-preview-1)
+- [Azure Industrial IoT Platform Release 2.8.6](#azure-industrial-iot-platform-release-286)
+  - [Changes in 2.8.6](#changes-in-286)
+- [Azure Industrial IoT Platform Release 2.8.5](#azure-industrial-iot-platform-release-285)
+  - [Changes in 2.8.5](#changes-in-285)
+- [Azure Industrial IoT Platform Release 2.8.4](#azure-industrial-iot-platform-release-284)
+  - [IMPORTANT - PLEASE READ](#important---please-read)
+  - [Changes in 2.8.4](#changes-in-284)
+  - [Known issues](#known-issues)
+- [Azure Industrial IoT Platform Release 2.8.3](#azure-industrial-iot-platform-release-283)
+  - [Security related fixes in 2.8.3](#security-related-fixes-in-283)
+  - [Fundamentals related fixes in 2.8.3](#fundamentals-related-fixes-in-283)
+  - [Bug fixes in 2.8.3](#bug-fixes-in-283)
+- [Azure Industrial IoT Platform Release 2.8.2](#azure-industrial-iot-platform-release-282)
+  - [Fundamentals related fixes in 2.8.2](#fundamentals-related-fixes-in-282)
+  - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
+- [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
+- [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
 
 ## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2
 

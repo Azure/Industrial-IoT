@@ -1,4 +1,4 @@
-# Azure Industrial IoT
+# Azure Industrial IoT <!-- omit in toc -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -6,12 +6,12 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
-* [Features](#features)
-* [Use cases](#use-cases)
-* [OPC UA](#what-is-opc-ua)
-* [OPC Publisher](./opc-publisher/readme.md)
-* [Web API](./web-api/readme.md)
-* [Next steps](#next-steps)
+- [Features](#features)
+- [Use Cases](#use-cases)
+- [What is OPC UA?](#what-is-opc-ua)
+  - [Why did Microsoft choose OPC UA as Industrial IoT Protocol?](#why-did-microsoft-choose-opc-ua-as-industrial-iot-protocol)
+  - [How can I learn more?](#how-can-i-learn-more)
+- [Next steps](#next-steps)
 
 ## Features
 

@@ -1,4 +1,4 @@
-# Troubleshooting OPC Publisher
+# Troubleshooting OPC Publisher <!-- omit in toc -->
 
 [Home](./readme.md)
 
@@ -6,22 +6,28 @@ In this document you find information about
 
 ## Table Of Contents <!-- omit in toc -->
 
-* [Debugging Telemetry issues](#debugging-telemetry-data-issues)
-* [Restart OPC Publisher](#restart-the-module)
-* [Understanding limits of OPC Publisher](#limits-and-contributing-factors)
-* [Debugging endpoint discovery](#debugging-discovery)
+- [Debugging Telemetry data issues](#debugging-telemetry-data-issues)
+  - [Check OPC UA server](#check-opc-ua-server)
+  - [Check IoT Edge](#check-iot-edge)
+  - [Check OPC Publisher](#check-opc-publisher)
+  - [Check EdgeHub](#check-edgehub)
+  - [Check data arriving in IoT Hub](#check-data-arriving-in-iot-hub)
+    - [IoT Hub Metrics](#iot-hub-metrics)
+      - [Use Azure IoT Explorer](#use-azure-iot-explorer)
+- [Restart the module](#restart-the-module)
+- [Limits and contributing factors](#limits-and-contributing-factors)
+- [Debugging Discovery](#debugging-discovery)
 
 ## Debugging Telemetry data issues
 
 Follow the data from the source and check where it stops:
 
-1. [Check OPC UA server](#check-opc-ua-server)
-1. [Check IoT Edge](#check-iot-edge)
-1. [Check OPC Publisher](#check-opc-publisher)
-1. [Check Edge Hub](#check-edgehub)
-1. [Check data arriving in IoT Hub](#check-data-arriving-in-iot-hub)
-
-Finally check your application that is consuming from IoT Hub is running and operating correctly.
+1. Check the [OPC UA server](#check-opc-ua-server)
+1. Check [IoT Edge](#check-iot-edge)
+1. Check [OPC Publisher](#check-opc-publisher)
+1. Check [EdgeHub](#check-edgehub)
+1. Check data arriving in [IoT Hub](#check-data-arriving-in-iot-hub)
+1. Finally check your application that is consuming from IoT Hub is running and operating correctly.
 
 ### Check OPC UA server
 

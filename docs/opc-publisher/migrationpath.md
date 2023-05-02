@@ -1,6 +1,28 @@
-# Migrate from previous versions of OPC Publisher to 2.9 and higher
+# Migrate from previous versions of OPC Publisher to 2.9 and higher  <!-- omit in toc -->
 
 [Home](./readme.md)
+
+## Table Of Contents <!-- omit in toc -->
+
+- [Why the changes from 2.8 to 2.9?](#why-the-changes-from-28-to-29)
+- [Breaking changes](#breaking-changes)
+  - [Migrating Cosmos DB job definitions](#migrating-cosmos-db-job-definitions)
+- [Upgrading OPC Publisher published nodes configuration file (pn.json)](#upgrading-opc-publisher-published-nodes-configuration-file-pnjson)
+- [Command Line Arguments](#command-line-arguments)
+  - [OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher](#opc-publisher-25x-command-line-arguments-supported-in-282-or-higher)
+- [Direct Method compatibility](#direct-method-compatibility)
+- [OPC Publisher 2.5.x direct methods supported in 2.8.2](#opc-publisher-25x-direct-methods-supported-in-282)
+  - [PublishNodes (PublishNodes\_V1)](#publishnodes-publishnodes_v1)
+  - [GetConfiguredEndpoints (GetConfiguredEndpoints\_V1)](#getconfiguredendpoints-getconfiguredendpoints_v1)
+  - [GetConfiguredNodesOnEndpoint (GetConfiguredNodesOnEndpoint\_V1)](#getconfigurednodesonendpoint-getconfigurednodesonendpoint_v1)
+  - [GetDiagnosticInfo (GetDiagnosticInfo\_V1)](#getdiagnosticinfo-getdiagnosticinfo_v1)
+  - [UnpublishNodes (UnpublishNodes\_V1)](#unpublishnodes-unpublishnodes_v1)
+  - [UnpublishAllNodes (UnpublishAllNodes\_V1)](#unpublishallnodes-unpublishallnodes_v1)
+- [OPC Publisher 2.5.x direct methods not supported in 2.8.2](#opc-publisher-25x-direct-methods-not-supported-in-282)
+  - [GetDiagnosticLog](#getdiagnosticlog)
+  - [GetDiagnosticStartupLog](#getdiagnosticstartuplog)
+  - [ExitApplication](#exitapplication)
+  - [GetInfo](#getinfo)
 
 ## Why the changes from 2.8 to 2.9?
 
@@ -81,7 +103,7 @@ Please note that OPC Publisher 2.9 can still consume legacy `NodeId`-based node 
 
 To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
 
-## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
+### OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
 
 Any removed command line arguments will still silently work.  
 
@@ -186,9 +208,7 @@ The following table describes the direct methods, which were available in OPC Pu
 
 An outdated, archived [sample application](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) used to configure OPC Publisher 2.5.x can be used to configure OPC Publisher 2.8.2.
 
-### Direct Methods use in applications
-
-For new applications, direct method names with a `_V1` suffix should be used. For backward compatibility of older applications direct method names without the `_V1` suffix are supported, but are subject of deprecation.
+For new applications, direct method names with a `_V2` suffix should be used. For backward compatibility of older applications direct method names without the `_V2` suffix are supported, but are subject of deprecation.
 
 ### PublishNodes (PublishNodes_V1)
 

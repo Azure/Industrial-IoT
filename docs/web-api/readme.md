@@ -1,4 +1,4 @@
-# Azure Industrial IoT Platform
+# Azure Industrial IoT Platform <!-- omit in toc -->
 
 [Home](../readme.md)
 
@@ -8,39 +8,80 @@ The Azure Industrial IoT companion web (OPC Publisher Web API) service is an opt
 
 ## Table Of Contents <!-- omit in toc -->
 
-* [Get Started](#getting-started)
-  * [Deploy](#deploy-the-industrial-iot-platform)
-  * [Troubleshooting deployment failures](#troubleshooting-deployment-failures)
-  * [Deployment script options](#deployment-script-options)
-  * [Dependencies](#dependencies)
-* [API](#apis)
-* [Operations](#operations)
-* [Configuration settings](#configuration-settings)
-* [Limits and monitoring](#limits-and-monitoring)
-* [Advanced topics](#advanced-topics)
-  * [Running the service locally](#running-the-industrial-iot-platform-opc-publisher-web-service-locally)
-  * [Redirect uri](#redirect-uris)
-* [Next steps](#next-steps)
+- [Getting started](#getting-started)
+  - [Deploy the Industrial IoT Platform](#deploy-the-industrial-iot-platform)
+  - [Azure Active Directory application registrations](#azure-active-directory-application-registrations)
+  - [Automatic deployment of OPC Publisher modules](#automatic-deployment-of-opc-publisher-modules)
+    - [1.1 IoT Edge devices](#11-iot-edge-devices)
+    - [Module Versions](#module-versions)
+- [APIs](#apis)
+  - [Registry](#registry)
+  - [Discovery](#discovery)
+  - [Twin](#twin)
+  - [Events](#events)
+- [Operations](#operations)
+  - [Health checks](#health-checks)
+  - [How to use](#how-to-use)
+  - [Format](#format)
+- [Dependencies](#dependencies)
+  - [Azure Account, Subscription](#azure-account-subscription)
+  - [Azure Active Directory](#azure-active-directory)
+  - [Azure AD Tenant](#azure-ad-tenant)
+  - [Azure IoT Hub](#azure-iot-hub)
+  - [Azure Storage Account](#azure-storage-account)
+    - [Blob Storage](#blob-storage)
+  - [Azure Key Vault](#azure-key-vault)
+  - [Azure App Registrations](#azure-app-registrations)
+- [Configuration Settings](#configuration-settings)
+  - [Configuration Environment Variables](#configuration-environment-variables)
+    - [OpenApi Configuration](#openapi-configuration)
+    - [IoT Hub Configuration](#iot-hub-configuration)
+    - [Container Registry Configuration](#container-registry-configuration)
+  - [Scale Configuration](#scale-configuration)
+    - [IoT Hub](#iot-hub)
+    - [IoT Edge VM](#iot-edge-vm)
+    - [App Service Plan](#app-service-plan)
+- [Limits and Monitoring](#limits-and-monitoring)
+  - [Azure PaaS Services](#azure-paas-services)
+- [SLA, Disaster Recovery, Backup/Restore](#sla-disaster-recovery-backuprestore)
+  - [SLA](#sla)
+  - [Disaster Recovery](#disaster-recovery)
+  - [Backup and Restore](#backup-and-restore)
+- [Recommendations on Versions and Upgrading](#recommendations-on-versions-and-upgrading)
+  - [Version upgrade for pinned versions](#version-upgrade-for-pinned-versions)
+- [Troubleshooting deployment failures](#troubleshooting-deployment-failures)
+  - [Execution Policy](#execution-policy)
+  - [Security Warning](#security-warning)
+  - [Resource group name](#resource-group-name)
+  - [Website name already in use](#website-name-already-in-use)
+  - [Azure Active Directory Permissions](#azure-active-directory-permissions)
+  - [Missing Script dependencies](#missing-script-dependencies)
+  - [Deploy from Linux other than Ubuntu](#deploy-from-linux-other-than-ubuntu)
+- [Advanced topics](#advanced-topics)
+  - [Deployment script options](#deployment-script-options)
+  - [Running the Industrial IoT platform (OPC Publisher) Web service locally](#running-the-industrial-iot-platform-opc-publisher-web-service-locally)
+  - [Redirect URIs](#redirect-uris)
+- [Next steps](#next-steps)
 
 ## Getting started
 
 The following components are deployed when you use the provided deployment scripts (Dependencies such as disks or network interfaces are not explicitly listed).
 
-* Everything requires: IoT Hub
-* **Common**: UI and web services require: Key Vault, Storage, Azure Active Directory (AAD) app registrations
-* **Web services** require: App Service Plan, App Service
-* **UI** (Web app): App Service Plan (shared with services), App Service
-* **Simulation**: Virtual machine, Virtual network, IoT Edge,  Device Provisioning Service
+- Everything requires: IoT Hub
+- **Common**: UI and web services require: Key Vault, Storage, Azure Active Directory (AAD) app registrations
+- **Web services** require: App Service Plan, App Service
+- **UI** (Web app): App Service Plan (shared with services), App Service
+- **Simulation**: Virtual machine, Virtual network, IoT Edge,  Device Provisioning Service
 
 You can find more information about the production dependencies [here](#dependencies).
 
 The provided deployment script can deploy the following configurations (specified using the `-type` command line argument):
 
-* Local: **Common** dependencies
-* Services: Local + **Web Services**
-* Simulation: Local + **simulation** components
-* App: Services + **UI**
-* All (default): App + **simulation**
+- Local: **Common** dependencies
+- Services: Local + **Web Services**
+- Simulation: Local + **simulation** components
+- App: Services + **UI**
+- All (default): App + **simulation**
 
 ### Deploy the Industrial IoT Platform
 
@@ -55,13 +96,13 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
 
 1. Open a command prompt or terminal to the repository root and start the guided deployment:
 
-   * On Windows:
+   - On Windows:
 
      ```pwsh
      .\deploy
      ```
 
-   * On Linux:
+   - On Linux:
 
      ```bash
      ./deploy.sh
@@ -69,23 +110,23 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
 
    The deployment script allows to select which set of components to deploy using deployment types:
 
-    * `local`: Just what is necessary to run the services locally
-    * `services`: `local` and the service container
-    * `simulation`: `local` and the simulation components
-    * `app`: `services` and the engineering tool
-    * `all` (default): all components
+    - `local`: Just what is necessary to run the services locally
+    - `services`: `local` and the service container
+    - `simulation`: `local` and the simulation components
+    - `app`: `services` and the engineering tool
+    - `all` (default): all components
 
     Depending on the chosen deployment type the following services will be deployed:
 
-    * Minimum dependencies:
-      * 1 [IoT Hub](https://azure.microsoft.com/services/iot-hub/) to communicate with the edge and ingress raw OPC UA telemetry data
-      * 1 [Key Vault](https://azure.microsoft.com/services/key-vault/), Premium SKU (to manage secrets and certificates)
-      * 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
-      * App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the cloud micro-services [all-in-one](../services/all-in-one.md)
-      * App Service Plan (shared with microservices), 1 [App Service](https://azure.microsoft.com/services/app-service/) for hosting the Industrial IoT Engineering Tool cloud application
-    * Simulation:
-      * 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
-      * [Virtual machine](https://azure.microsoft.com/services/virtual-machines/), Virtual network, IoT Edge used for a factory simulation to show the capabilities of the platform and to generate sample telemetry. By default, 4 [Virtual Machines](https://azure.microsoft.com/services/virtual-machines/), 2 B2 SKU (1 Linux IoT Edge gateway and 1 Windows IoT Edge gateway) and 2 B1 SKU (factory simulation).
+    - Minimum dependencies:
+      - 1 [IoT Hub](https://azure.microsoft.com/services/iot-hub/) to communicate with the edge and ingress raw OPC UA telemetry data
+      - 1 [Key Vault](https://azure.microsoft.com/services/key-vault/), Premium SKU (to manage secrets and certificates)
+      - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
+      - App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the cloud micro-services [all-in-one](../services/all-in-one.md)
+      - App Service Plan (shared with microservices), 1 [App Service](https://azure.microsoft.com/services/app-service/) for hosting the Industrial IoT Engineering Tool cloud application
+    - Simulation:
+      - 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
+      - [Virtual machine](https://azure.microsoft.com/services/virtual-machines/), Virtual network, IoT Edge used for a factory simulation to show the capabilities of the platform and to generate sample telemetry. By default, 4 [Virtual Machines](https://azure.microsoft.com/services/virtual-machines/), 2 B2 SKU (1 Linux IoT Edge gateway and 1 Windows IoT Edge gateway) and 2 B1 SKU (factory simulation).
 
    > Additional supported parameters can be found [here](#deployment-script-options).
 
@@ -100,26 +141,26 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
 
 1. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
 
-#### Azure Active Directory application registrations
+### Azure Active Directory application registrations
 
 The Azure Industrial IoT platform requires several App Registrations in your Azure Active Directory
 (AAD) to run. Those App Registrations are responsible for:
 
-* providing identity for back-end microservices to run
-* defining authentication methods and details for client applications
+- providing identity for back-end microservices to run
+- defining authentication methods and details for client applications
 
 The `deploy.ps1` script creates those App Registrations for you by default. But they both require that the user has the `Administrator` role in the AAD for deployment to succeed. In cases when the user does not have the `Administrator` role, the process of deployment can be separated into 2 distinct states:
 
-* creation and setup of the App Registrations in AAD tenant
-* creation of Azure resources and deployment of the Azure Industrial IoT platform components
+- creation and setup of the App Registrations in AAD tenant
+- creation of Azure resources and deployment of the Azure Industrial IoT platform components
 
 With this separation, the first step can be performed by an Administrator of the AAD tenant. Deployments will output details of App Registrations which can then be passed to a user for running the second step.
 
 `deploy.ps1` PowerShell script calls `aad-register.ps1` for creating the following App Registrations:
 
-* `<application-name>-service`: used for providing identity for back-end microservices
-* `<application-name>-client`: used for authentication of native clients, such as CLI tool
-* `<application-name>-web`: used for authentication of Web clients, such as Swagger
+- `<application-name>-service`: used for providing identity for back-end microservices
+- `<application-name>-client`: used for authentication of native clients, such as CLI tool
+- `<application-name>-web`: used for authentication of Web clients, such as Swagger
 
 Use the following command to run `aad-register.ps1` script for creation of the App Registrations.
 Specify desired application name instead of the `<application-name>` and your tenant id.
@@ -145,7 +186,7 @@ Follow the script commands and provide additional details where needed.
 
 You can find all configuration options for `deploy.ps` [here](#deployment-script-options).
 
-#### Automatic deployment of OPC Publisher modules
+### Automatic deployment of OPC Publisher modules
 
 The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments for OPC Publisher. These Layered Deployments will be automatically applied to any IoT Edge instance that contains the following Device Twin JSON tags.
 
@@ -155,7 +196,7 @@ The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments
 
 1. Insert the following `tags`:
 
-   * For Linux, set the "os" property to "Linux":
+   - For Linux, set the "os" property to "Linux":
 
     ```json
     ...
@@ -169,7 +210,7 @@ The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments
     ...
     ```
 
-   * For Windows (EFLOW), set the "os" property to "Windows":
+   - For Windows (EFLOW), set the "os" property to "Windows":
 
     ```json
     ...
@@ -185,7 +226,7 @@ The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments
 
 The tags can also be created as part of an Azure Device Provisioning (DPS) enrollment. An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
-##### Temporarily continue deploying out of support 1.1 LTS modules to an 1.1 IoT Edge device
+#### 1.1 IoT Edge devices
 
 To continue deploying the 1.1 LTS modules to a 1.1 LTS IoT Edge gateway device until you are able to upgrade the device to 1.4, add a tag to your gateway device's twin with the name `use_1_1_LTS` and remove it once you have upgraded your edge gateway to 1.4 LTS. This operation can be automated using the az CLI. It should be done ahead of deploying the 2.8.4 release to Azure to avoid outages.
 
@@ -201,7 +242,7 @@ To continue deploying the 1.1 LTS modules to a 1.1 LTS IoT Edge gateway device u
 
 > IMPORTANT: Setting the tag to `false` or any other value has no effect.  Once you upgrade your IoT Edge device to 1.4 you must remove the tag to ensure the 1.4 modules are deployed to it.
 
-##### Module Versions
+#### Module Versions
 
 By default, the same Docker container image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.
 
@@ -211,38 +252,38 @@ If you need to point to a different Docker container registry or image version t
 
 The optional Web service exposes API with enabling the following functionality:
 
-* Start the publishing of values of an endpoint (a.k.a Publish services)
-* Access the OPC UA services exposed by OPC Publisher (a.k.a [Twin](#twin) services)
-* Discover OPC UA servers and endpoints (a.k.a [Discovery](#discovery) services)
-* Manage the discovered entities (a.k.a [Registry](#registry) services)
-* Receive updates through SignalR subscriptions (a.k.a [Event](#events) services)
+- Start the publishing of values of an endpoint (a.k.a Publish services)
+- Access the OPC UA services exposed by OPC Publisher (a.k.a [Twin](#twin) services)
+- Discover OPC UA servers and endpoints (a.k.a [Discovery](#discovery) services)
+- Manage the discovered entities (a.k.a [Registry](#registry) services)
+- Receive updates through SignalR subscriptions (a.k.a [Event](#events) services)
 
 ### Registry
 
 The role of the Registry component is to enable managenment of entities and identities in IoT Hub. These include:
 
-* **Applications**. In OPC parlance, an "Application" can be a server or a client or both. It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints. An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
+- **Applications**. In OPC parlance, an "Application" can be a server or a client or both. It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints. An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 
-* **Endpoints**. Each endpoint represents the twin of an OPC UA Server application's endpoint. A server can have multiple endpoints with different configurations, including security properties.  Endpoint identities are used to invoke OPC UA services or retrieve endpoint specific information, such as certificates.
+- **Endpoints**. Each endpoint represents the twin of an OPC UA Server application's endpoint. A server can have multiple endpoints with different configurations, including security properties.  Endpoint identities are used to invoke OPC UA services or retrieve endpoint specific information, such as certificates.
 
-* **Gateways.** The gateway is an IoT Edge runtime that hosts discovery modules, OPC Twin and OPC publisher modules, all of which have their IoT Edge Module identities managed in the registry as well:
+- **Gateways.** The gateway is an IoT Edge runtime that hosts discovery modules, OPC Twin and OPC publisher modules, all of which have their IoT Edge Module identities managed in the registry as well:
 
-* **Publishers**. The publisher identity is the OPC Publisher module's identity. A publisher is the host of multiple publish job workers.
+- **Publishers**. The publisher identity is the OPC Publisher module's identity. A publisher is the host of multiple publish job workers.
 
 > NOTE: In 2.9 the previous concepts of "Supervisor" and "Discoverer" have been subsumed by the "Publisher" concept.
 
 You can Read as well as **query** all of these identities' models in the Registry.
 You can also create and delete Application identities ("resources").  There are 2 ways applications can be created:
 
-* By **POST**ing of an Application Model. In this case the application will not have endpoints associated. This is useful to register client applications or reflect servers registered in another system.
+- By **POST**ing of an Application Model. In this case the application will not have endpoints associated. This is useful to register client applications or reflect servers registered in another system.
 
-* By the processing of discovery events emitted by the discovery edge module and processing of these events by the Onboarding Microservice. This typically happens either
+- By the processing of discovery events emitted by the discovery edge module and processing of these events by the Onboarding Microservice. This typically happens either
 
-  * as a result of a "Discover" API call (One time), or
-  * a continuous (persistent) discovery job (configured in the discoverer identity twin), or
-  * when registering applications via their OPC UA discovery Url.
+  - as a result of a "Discover" API call (One time), or
+  - a continuous (persistent) discovery job (configured in the discoverer identity twin), or
+  - when registering applications via their OPC UA discovery Url.
 
-* By calling the **RegisterEndpoint** API to register an endpoint. If successful this will also add the application descriptor of the endpoint to the registry.
+- By calling the **RegisterEndpoint** API to register an endpoint. If successful this will also add the application descriptor of the endpoint to the registry.
 
 A **DELETE** of an application will delete all associated endpoints.
 
@@ -256,10 +297,10 @@ The discovery component provides access to the OPC Publisher discovery API. The 
 
 This involves the following tasks:
 
-* Add new applications and their endpoints to the registry if they do not yet exist
-* Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
-* Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
-* Mark any applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
+- Add new applications and their endpoints to the registry if they do not yet exist
+- Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
+- Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
+- Mark any applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
 
 Applications and their endpoints that have not been found for a while can be purged using the [REST API](./api.md).
 
@@ -267,13 +308,13 @@ Applications and their endpoints that have not been found for a while can be pur
 
 OPC Twin component of the Web API provides a [REST API](./api.md) to call the following [OPC UA](../readme.md#what-is-opc-ua) services using endpoint identifiers in the registry:
 
-* **Read** and **Write** a “Value” on a Variable node
-* **Call** a “Method Node”
-* **Read** and **Write** Node “Attributes
-* **History Read** and **Update** service calls to interact with Historians
-* **Batching** of any of the above calls.
-* **Browse** first / next (with and without reading the browsed target nodes)
-* Get **meta data** of methods (to display input arguments to a user)
+- **Read** and **Write** a “Value” on a Variable node
+- **Call** a “Method Node”
+- **Read** and **Write** Node “Attributes
+- **History Read** and **Update** service calls to interact with Historians
+- **Batching** of any of the above calls.
+- **Browse** first / next (with and without reading the browsed target nodes)
+- Get **meta data** of methods (to display input arguments to a user)
 
 Before invoking any services you must inspect the endpoint certificate using the registry API.
 
@@ -283,9 +324,9 @@ Before invoking any services you must inspect the endpoint certificate using the
 
 The SignalR event component of the Web Service forwards ...
 
-* Registry update events
-* Discovery Progress
-* OPC UA PubSub messages
+- Registry update events
+- Discovery Progress
+- OPC UA PubSub messages
 
 over SignalR to subscribed clients and thus provides a reactive UX experience.
 
@@ -328,9 +369,9 @@ Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud
 
 Azure Active Directory (Azure AD or AAD) is Microsoft’s cloud-based identity and access management service, which helps your employees sign in and access resources in:
 
-* External resources, such as Microsoft 365, the Azure portal, and thousands of other SaaS applications.
+- External resources, such as Microsoft 365, the Azure portal, and thousands of other SaaS applications.
 
-* Internal resources, such as apps on your corporate network and intranet, along with any cloud apps developed by your own organization.
+- Internal resources, such as apps on your corporate network and intranet, along with any cloud apps developed by your own organization.
 
 Specifically, Azure Industrial IoT companion web service is using Azure AD as an identity provider which authenticates users and applications accessing the platform. Azure AD will be providing access tokens to authenticated users or applications which are then checked by the platform components to identify the identities of clients.
 
@@ -354,15 +395,15 @@ IoT Hub's capabilities help build scalable, full-featured IoT solutions such as 
 
 Azure IoT Hub is a cornerstone of Azure Industrial IoT companion web service, that uses it for all communications between the IoT Edge modules and cloud services. Apart from that Azure IoT Hub is also used for:
 
-* Managing entities and identities such as Applications, Endpoints and Gateways.
+- Managing entities and identities such as Applications, Endpoints and Gateways.
 
-* Managing IoT Edge devices.
+- Managing IoT Edge devices.
 
-* Managing IoT Edge module deployment definitions and rules for applying them.
+- Managing IoT Edge module deployment definitions and rules for applying them.
 
-* Calling device methods on IoT Edge modules.
+- Calling device methods on IoT Edge modules.
 
-* Consume telemetry and events from built-in Event Hub of IoT Hub.
+- Consume telemetry and events from built-in Event Hub of IoT Hub.
 
 Reference: [Azure IoT Hub overview](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub)
 
@@ -370,15 +411,15 @@ Reference: [Azure IoT Hub overview](https://docs.microsoft.com/en-us/azure/iot-h
 
 The Azure Storage platform is Microsoft's cloud storage solution for modern data storage scenarios. Core storage services offer a massively scalable object store for data objects, disk storage for Azure virtual machines (VMs), a file system service for the cloud, a messaging store for reliable messaging, and a NoSQL store. The services are:
 
-* **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across datacenters or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
+- **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across datacenters or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
 
-* **Secure**. All data written to an Azure storage account is encrypted by the service. Azure Storage provides one with fine-grained control over who has access to your data.
+- **Secure**. All data written to an Azure storage account is encrypted by the service. Azure Storage provides one with fine-grained control over who has access to your data.
 
-* **Scalable**. Azure Storage is designed to be massively scalable to meet the data storage and performance needs of today's applications.
+- **Scalable**. Azure Storage is designed to be massively scalable to meet the data storage and performance needs of today's applications.
 
-* **Managed**. Azure handles hardware maintenance, updates, and critical issues.
+- **Managed**. Azure handles hardware maintenance, updates, and critical issues.
 
-* **Accessible**. Data in Azure Storage is accessible from anywhere in the world over HTTP or HTTPS. Microsoft provides client libraries for Azure Storage in a variety of languages, including .NET, Java, Node.js, Python, PHP, Ruby, Go, and others, as well as a mature REST API. Azure Storage supports scripting in Azure PowerShell or Azure CLI. And the Azure portal and Azure Storage Explorer offer easy visual solutions for working with your data.
+- **Accessible**. Data in Azure Storage is accessible from anywhere in the world over HTTP or HTTPS. Microsoft provides client libraries for Azure Storage in a variety of languages, including .NET, Java, Node.js, Python, PHP, Ruby, Go, and others, as well as a mature REST API. Azure Storage supports scripting in Azure PowerShell or Azure CLI. And the Azure portal and Azure Storage Explorer offer easy visual solutions for working with your data.
 
 #### Blob Storage
 
@@ -386,31 +427,31 @@ Azure Blob storage is Microsoft's object storage solution for the cloud. Blob st
 
 Blob storage is ideal for:
 
-* Serving images or documents directly to a browser.
+- Serving images or documents directly to a browser.
 
-* Storing files for distributed access.
+- Storing files for distributed access.
 
-* Streaming video and audio.
+- Streaming video and audio.
 
-* Storing data for backup and restore, disaster recovery, and archiving.
+- Storing data for backup and restore, disaster recovery, and archiving.
 
-* Storing data for analysis by an on-premises or Azure-hosted service.
+- Storing data for analysis by an on-premises or Azure-hosted service.
 
 Objects in Blob storage can be accessed from anywhere in the world via HTTP or HTTPS. Users or client applications can access blobs via URLs, the Azure Storage REST API, Azure PowerShell, Azure CLI, or an Azure Storage client library. The storage client libraries are available for multiple languages, including .NET, Java, Node.js, Python, PHP, and Ruby.
 
 Cloud services of Azure Industrial IoT use Azure Blob Storage for:
 
-* Event Hub consumer offset checkpointing
+- Event Hub consumer offset checkpointing
 
-* [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1) feature
+- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1) feature
 
-* [Azure IoT Hub file upload](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-file-upload) feature
+- [Azure IoT Hub file upload](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-file-upload) feature
 
 References:
 
-* [Azure Blob storage overview](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-overview)
+- [Azure Blob storage overview](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-overview)
 
-* [Introduction to the core Azure Storage services](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction)
+- [Introduction to the core Azure Storage services](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction)
 
 ### Azure Key Vault
 
@@ -418,23 +459,23 @@ Azure Key Vault is a tool for securely storing and accessing secrets. A secret i
 
 Azure Key Vault helps solve the following problems:
 
-* **Secrets Management** - Azure Key Vault can be used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets.
+- **Secrets Management** - Azure Key Vault can be used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets.
 
-* **Key Management** - Azure Key Vault can also be used as a Key Management solution. Azure Key Vault makes it easy to create and control the encryption keys used to encrypt your data.
+- **Key Management** - Azure Key Vault can also be used as a Key Management solution. Azure Key Vault makes it easy to create and control the encryption keys used to encrypt your data.
 
-* **Certificate Management** - Azure Key Vault is also a service that lets one easily provision, manage, and deploy public and private Transport Layer Security/Secure Sockets Layer (TLS/SSL) certificates for use with Azure and your internal connected resources.
+- **Certificate Management** - Azure Key Vault is also a service that lets one easily provision, manage, and deploy public and private Transport Layer Security/Secure Sockets Layer (TLS/SSL) certificates for use with Azure and your internal connected resources.
 
-* **Store secrets backed by Hardware Security Modules** - The secrets and keys can be protected either by software or FIPS 140-2 Level 2 validated HSMs.
+- **Store secrets backed by Hardware Security Modules** - The secrets and keys can be protected either by software or FIPS 140-2 Level 2 validated HSMs.
 
 We mainly use Azure Key Vault as a centralized store of application secrets. We store information about whole deployment environment such as Azure resource details, their connections strings, as well as application configuration in Key Vault.
 
 References:
 
-* [About Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/general/overview)
+- [About Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/general/overview)
 
-* [About keys, secrets and certificates](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates)
+- [About keys, secrets and certificates](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates)
 
-* [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
 
 ### Azure App Registrations
 
@@ -444,61 +485,61 @@ When one completes the app registration, one has a globally unique instance of t
 
 The application object describes three aspects of an application:
 
-* how the service can issue tokens to access the application
+- how the service can issue tokens to access the application
 
-* resources that the application might need to access.
+- resources that the application might need to access.
 
-* the actions that the application can take.
+- the actions that the application can take.
 
 Deployment of Azure Industrial IoT companion web service requires Azure AD app registrations to enable authentication for the components. With authentication enabled, every call to APIs of Azure Industrial IoT components will require an Access Token to authenticate and authorize the caller. The authentication will happen against Azure AD using details of app registration. So, we generally require two apps to be registered in your AAD:
 
-* one which will define identity and permissions of Azure Industrial IoT components, we refer to this one as **ServicesApp**
+- one which will define identity and permissions of Azure Industrial IoT components, we refer to this one as **ServicesApp**
 
-* one for clients accessing APIs of Azure Industrial IoT components, we refer to this as **ClientsApp**.
+- one for clients accessing APIs of Azure Industrial IoT components, we refer to this as **ClientsApp**.
 
 Based on your setup, one might decide to split **ClientsApp** into two app registrations for client applications instead of one, one for web clients and one for native clients, such as CLI applications.
 
 References:
 
-* [Microsoft identity platform overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
+- [Microsoft identity platform overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
 
-* [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
+- [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
 
-* [Azure AAD App Registration](../../deploy/helm/azure-industrial-iot/README.md#azure-aad-app-registration)
+- [Azure AAD App Registration](../../deploy/helm/azure-industrial-iot/README.md#azure-aad-app-registration)
 
 ## Configuration Settings
 
 The deployment script automatically configures all components to work with each other using default values. Here are some of the more relevant customization settings for the components:
 
-* `IoT Hub`
+- `IoT Hub`
 
-  * `Networking -> Public access`: Configure Internet access, e.g., IP filters.
+  - `Networking -> Public access`: Configure Internet access, e.g., IP filters.
 
-  * `Networking -> Private endpoint connections`: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
+  - `Networking -> Private endpoint connections`: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
 
-  * `IoT Edge`: Manage the configuration of the edge devices that are connected to the OPC UA servers
-    * Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
+  - `IoT Edge`: Manage the configuration of the edge devices that are connected to the OPC UA servers
+    - Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
 
-* `Key Vault`
+- `Key Vault`
 
-  * Secrets: Manage platform settings
+  - Secrets: Manage platform settings
 
-  * Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
+  - Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
 
-  * Networking: Firewall, VNET and private endpoints
+  - Networking: Firewall, VNET and private endpoints
 
-* `Azure Active Directory (AAD) -> App registrations`
+- `Azure Active Directory (AAD) -> App registrations`
 
-  * `<APP_NAME>-web -> Authentication`: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
+  - `<APP_NAME>-web -> Authentication`: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
 
-* `App Service`
+- `App Service`
 
-  * Configuration: Manage the environment variables that control the services or UI
+  - Configuration: Manage the environment variables that control the services or UI
 
-* `Virtual machine`
-  * Networking: Configure supported networks and firewall rules
+- `Virtual machine`
+  - Networking: Configure supported networks and firewall rules
 
-  * Serial console: SSH access to get insights or for debugging, get the credentials from the output of deployment script or reset the password
+  - Serial console: SSH access to get insights or for debugging, get the credentials from the output of deployment script or reset the password
 
 ### Configuration Environment Variables
 
@@ -551,11 +592,11 @@ The diagnostic information of the OPC Publisher helps estimate the size and cost
 
 For more information see:
 
-* [Azure IoT Hub pricing](https://azure.microsoft.com/en-us/pricing/details/iot-hub/)
-* [Azure IoT Hub pricing information](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-pricing)
-* [IoT Hub quotas and throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling)
-* [IoT Hub limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
-* [How to estimate the costs of running the Azure Industrial IoT companion web service](../tutorials/tut-iiot-cost-estimation.md)
+- [Azure IoT Hub pricing](https://azure.microsoft.com/en-us/pricing/details/iot-hub/)
+- [Azure IoT Hub pricing information](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-pricing)
+- [IoT Hub quotas and throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling)
+- [IoT Hub limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
+- [How to estimate the costs of running the Azure Industrial IoT companion web service](../tutorials/tut-iiot-cost-estimation.md)
 
 #### IoT Edge VM
 
@@ -708,9 +749,9 @@ If you need additional reply URLs, you may add them manually as this does not re
 
 **Option 3** (recommended as PoC): Create your [own AAD tenant](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant), in which you are the admin
 
-* Azure Portal: Create a resource -> Azure Active Directory
-* After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
-* Copy the Tenant ID
+- Azure Portal: Create a resource -> Azure Active Directory
+- After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
+- Copy the Tenant ID
 
 Start the deployment with as many details about the environment as you can provide. You can use the following template to provide targeted details about how you would like the deployment to occur, supplying at least the `-authTenantID` parameter ...
 
@@ -849,8 +890,8 @@ Run the deployment script with the `local` deployment option.
 Build and run the Industrial IoT Microservices with Visual Studio or VS Code
 
 1. First, make sure your development tool chain is setup to build the Microservices. If not, [install .NET Core 3.1+](https://dotnet.microsoft.com/download/dotnet-core/3.1) and
-   * [Visual Studio 2019 16.4+ for Windows](https://visualstudio.microsoft.com/vs/), [Visual Studio for MacOS 8.3+](https://visualstudio.microsoft.com/vs/mac/).
-   * Or latest version of [Visual Studio Code](https://code.visualstudio.com/).
+   - [Visual Studio 2019 16.4+ for Windows](https://visualstudio.microsoft.com/vs/), [Visual Studio for MacOS 8.3+](https://visualstudio.microsoft.com/vs/mac/).
+   - Or latest version of [Visual Studio Code](https://code.visualstudio.com/).
 1. Ensure that the `.env` file previously generated by the deployment script is located in the repository's root.
 1. Open the `Industrial-IoT.sln` solution file in Visual Studio or VS Code.
 1. Right-click on the solution in the solution viewer and select `Properties`.
@@ -864,9 +905,9 @@ All configuration is stored in Azure Key vault during deployment. Key vault also
 
 Double check the following if you encounter any Key vault access issues during startup.
 
-* If you deployed yourself, make sure that your own user account has Key and Secret access rights to the deployed Key vault.
-* If you did not, or you do not see your user account configured in the Key vault, add your identity and give it all Key and Secret management rights.
-* Sometimes your token has expired. Re-add your account in Visual Studio, or use az login to login again.
+- If you deployed yourself, make sure that your own user account has Key and Secret access rights to the deployed Key vault.
+- If you did not, or you do not see your user account configured in the Key vault, add your identity and give it all Key and Secret management rights.
+- Sometimes your token has expired. Re-add your account in Visual Studio, or use az login to login again.
 
 ### Redirect URIs
 
@@ -916,11 +957,11 @@ https://azure-iiot-27180.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-
 
 References:
 
-* [Configure your App Service or Azure Functions app to use Azure AD login](https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aad)
+- [Configure your App Service or Azure Functions app to use Azure AD login](https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aad)
 
-* [Redirect URI (reply URL) restrictions and limitations](https://docs.microsoft.com/azure/active-directory/develop/reply-url)
+- [Redirect URI (reply URL) restrictions and limitations](https://docs.microsoft.com/azure/active-directory/develop/reply-url)
 
 ## Next steps
 
-* [Register a server and browse its address space](./tut-use-cli.md)
-* [Explore the REST API](./api.md)
+- [Register a server and browse its address space](./tut-use-cli.md)
+- [Explore the REST API](./api.md)
