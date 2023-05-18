@@ -11,9 +11,6 @@ trigger:
     - main
     - releases
     - release/*
-variables:
-  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release') }}:
-    registry: 'industrialiot'
 stages:
 - stage: build
   displayName: 'Build and Test Code'
