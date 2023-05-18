@@ -18,73 +18,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Status code
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "StatusCode")]
         StatusCode = 0x1,
 
         /// <summary>
         /// Source timestamp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SourceTimestamp")]
         SourceTimestamp = 0x2,
 
         /// <summary>
         /// Server timestamp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ServerTimestamp")]
         ServerTimestamp = 0x4,
 
         /// <summary>
         /// Source picoseconds
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SourcePicoSeconds")]
         SourcePicoSeconds = 0x8,
 
         /// <summary>
         /// Server picoseconds
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ServerPicoSeconds")]
         ServerPicoSeconds = 0x10,
 
         /// <summary>
         /// Raw value
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "RawData")]
         RawData = 0x20,
 
         /// <summary>
         /// Node id included
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NodeId")]
         NodeId = 0x10000,
 
         /// <summary>
         /// Display name included
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DisplayName")]
         DisplayName = 0x20000,
 
         /// <summary>
         /// Endpoint url included
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "EndpointUrl")]
         EndpointUrl = 0x40000,
 
         /// <summary>
         /// Application uri
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ApplicationUri")]
         ApplicationUri = 0x80000,
 
         /// <summary>
         /// Subscription id included
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SubscriptionId")]
         SubscriptionId = 0x100000,
 
         /// <summary>
         /// Extension fields included
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ExtensionFields")]
         ExtensionFields = 0x200000
     }
 }

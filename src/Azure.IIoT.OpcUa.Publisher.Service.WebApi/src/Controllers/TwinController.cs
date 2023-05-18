@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Gets the capabilities of the connected server.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>

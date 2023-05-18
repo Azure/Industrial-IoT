@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
                 DeviceId = twin.Id,
                 Etag = twin.Etag,
-                Connected = twin.IsConnected() ?? false,
+                Connected = false,
 
                 // Tags
                 IsDisabled =
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 Type =
                     properties.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string?)null),
                 State =
-                    properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Disconnected),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.State), (EndpointConnectivityState?)null),
                 SiteId =
                     properties.GetValueOrDefault(Constants.TwinPropertySiteKey,
                         tags.GetValueOrDefault(nameof(EndpointRegistration.SiteId), (string?)null)),
@@ -327,8 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     }
                 },
                 NotSeenSince = registration.NotSeenSince,
-                EndpointState = registration.State,
-                OutOfSync = registration.Connected && !registration._isInSync ? true : null
+                EndpointState = registration.State
             };
         }
 
@@ -375,12 +374,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="registration"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static string? GetSiteOrGatewayId(this EndpointRegistration? registration)
+        public static string GetSiteOrGatewayId(this EndpointRegistration registration)
         {
-            if (registration is null)
-            {
-                return null;
-            }
             var siteOrGatewayId = registration?.SiteId;
             if (siteOrGatewayId == null)
             {
@@ -391,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     throw new ArgumentException(error, nameof(registration));
                 }
             }
-            return siteOrGatewayId;
+            return siteOrGatewayId ?? EntityRegistration.UnknownGatewayOrSiteId;
         }
 
         /// <summary>

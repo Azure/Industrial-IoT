@@ -68,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                         DataSetWriterId = (extensionFields != null &&
                             extensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
+                        EndpointId = message.WriterGroupId,
                         NodeId = message.NodeId,
                         DisplayName = message.DisplayName,
                         Timestamp = message.Timestamp,
@@ -85,10 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                         ServerTimestamp = (message.Value?.ServerTimestamp == DateTime.MinValue)
                             ? null : message.Value?.ServerTimestamp,
                         ServerPicoseconds = (message.Value?.ServerPicoseconds == 0)
-                            ? null : message.Value?.ServerPicoseconds,
-                        EndpointId = (extensionFields != null &&
-                            extensionFields.TryGetValue("EndpointId", out var endpointId))
-                                ? endpointId : message.ApplicationUri ?? message.EndpointUrl
+                            ? null : message.Value?.ServerPicoseconds
                     };
                     await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample))).ConfigureAwait(false);
                 }

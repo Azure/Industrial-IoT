@@ -143,6 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                                 case "enable":
                                     await EnableApplicationAsync(options).ConfigureAwait(false);
                                     break;
+                                case "remove":
                                 case "unregister":
                                     await UnregisterApplicationAsync(options).ConfigureAwait(false);
                                     break;
@@ -309,6 +310,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                                 case "monitor":
                                     await MonitorPublishersAsync().ConfigureAwait(false);
                                     break;
+                                case "get-config":
+                                    await GetConfiguredEndpointsAsync(options).ConfigureAwait(false);
+                                    break;
+                                case "set-config":
+                                    await SetConfiguredEndpointsAsync(options).ConfigureAwait(false);
+                                    break;
                                 case "list":
                                     await ListPublishersAsync(options).ConfigureAwait(false);
                                     break;
@@ -455,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <exception cref="ArgumentException"></exception>
         private string GetNodeId(CliOptions options, bool shouldThrow = true)
         {
-            var id = options.GetValueOrDefault("-n", "--nodeid", null);
+            var id = options.GetValueOrNull<string>("-n", "--nodeid");
             if (_nodeId != null)
             {
                 if (id == null)
@@ -762,7 +769,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             else
             {
                 var result = await _client.Publisher.NodePublishListAsync(GetEndpointId(options),
-                    options.GetValueOrDefault("-C", "--continuation", null)).ConfigureAwait(false);
+                    options.GetValueOrNull<string>("-C", "--continuation")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -879,6 +886,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
+        }
+
+        /// <summary>
+        /// Get configured endpoints on publisher
+        /// </summary>
+        /// <param name="options"></param>
+        private async Task GetConfiguredEndpointsAsync(CliOptions options)
+        {
+            var file = options.GetValueOrNull<string>("f", "--file");
+            using var stream = file == null ? Console.Out : File.CreateText(file);
+
+            stream.WriteLine("[");
+            var empty = true;
+
+            await foreach (var endpoint in _client.Registry.GetConfiguredEndpointsAsync(
+                GetPublisherId(options), new GetConfiguredEndpointsRequestModel
+                {
+                    IncludeNodes = options.IsProvidedOrNull("-n", "--nodes")
+                }))
+            {
+                if (!empty)
+                {
+                    stream.WriteLine(",");
+                }
+                empty = false;
+                stream.Write(_client.Serializer.SerializeToString(endpoint,
+                    options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format")));
+            }
+            if (!empty)
+            {
+                stream.WriteLine();
+            }
+            stream.WriteLine("]");
+        }
+
+        /// <summary>
+        /// Clear configured endpoints on publisher
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private async Task SetConfiguredEndpointsAsync(CliOptions options)
+        {
+            var publishedNodes = new SetConfiguredEndpointsRequestModel();
+            var file = options.GetValueOrNull<string>("f", "--file");
+            if (file != null)
+            {
+                publishedNodes.Endpoints = _client.Serializer.Deserialize<IEnumerable<PublishedNodesEntryModel>>(
+                    File.ReadAllBytes(file));
+            }
+            await _client.Registry.SetConfiguredEndpointsAsync(GetPublisherId(options),
+                publishedNodes).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1052,7 +1110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.UpdateGatewayAsync(GetGatewayId(options),
                 new GatewayUpdateModel
                 {
-                    SiteId = options.GetValueOrDefault("-s", "--siteId", null)
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId")
                 }).ConfigureAwait(false);
         }
 
@@ -1391,7 +1449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.UpdateDiscovererAsync(GetDiscovererId(options),
                 new DiscovererUpdateModel
                 {
-                    SiteId = options.GetValueOrNull<string>("-s", "--siteId", null),
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
                     Discovery = options.GetValueOrDefault(
                         config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast,
                         "-d", "--discovery"),
@@ -1585,7 +1643,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         private async Task DiscoverServersAsync(CliOptions options)
         {
             IRegistryServiceEvents events = null;
-            var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
+            var id = options.GetValueOrDefault(Guid.NewGuid().ToString(), "-i", "--id");
             if (options.IsSet("-m", "--monitor"))
             {
                 events = _client.Events;
@@ -2697,6 +2755,21 @@ Commands and Options
         with ...
         -S, --server    Return only server state (default:false)
         -i, --id        Id of publisher to retrieve (mandatory)
+        -F, --format    Json format for result
+
+     get-config  Get configured endpoints on publisher
+        with ...
+        -i, --id        Id of publisher to retrieve from (mandatory)
+        -n, --nodes     Include nodes in the result
+        -f, --file      Published nodes file to write to (optional
+                        otherwise will write to console)
+        -F, --format    Json format for result
+
+     set-config  Set configured endpoints on publisher
+        with ...
+        -i, --id        Id of publisher to retrieve from (mandatory)
+        -f, --file      Published nodes file with content to read.
+                        (optional, without will erase configuration)
         -F, --format    Json format for result
 
      help, -h, -? --help

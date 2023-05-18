@@ -16,19 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Disabled
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Disabled")]
         Disabled,
 
         /// <summary>
         /// Sampling
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Sampling")]
         Sampling,
 
         /// <summary>
         /// Reporting
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Reporting")]
         Reporting
     }
 }

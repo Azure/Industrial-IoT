@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Site or gateway id
         /// </summary>
         [DataMember]
-        public override string? SiteOrGatewayId => this.GetSiteOrGatewayId();
+        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
 
         /// <summary>
         /// Type

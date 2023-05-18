@@ -44,7 +44,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Clear context.
             _context.Reset();

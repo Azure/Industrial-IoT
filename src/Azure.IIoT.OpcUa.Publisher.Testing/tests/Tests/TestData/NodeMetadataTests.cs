@@ -358,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Collection(result.TypeDefinition.Declarations,
                 arg =>
                 {
-                    Assert.Equal("EventId", arg.BrowsePath);
+                    Assert.Equal("/EventId", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("EventId", arg.DisplayName);
                     Assert.Equal("ByteString", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -366,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("EventType", arg.BrowsePath);
+                    Assert.Equal("/EventType", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("EventType", arg.DisplayName);
                     Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -374,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("SourceNode", arg.BrowsePath);
+                    Assert.Equal("/SourceNode", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("SourceNode", arg.DisplayName);
                     Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -382,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("SourceName", arg.BrowsePath);
+                    Assert.Equal("/SourceName", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("SourceName", arg.DisplayName);
                     Assert.Equal("String", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("Time", arg.BrowsePath);
+                    Assert.Equal("/Time", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("Time", arg.DisplayName);
                     Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("ReceiveTime", arg.BrowsePath);
+                    Assert.Equal("/ReceiveTime", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("ReceiveTime", arg.DisplayName);
                     Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("LocalTime", arg.BrowsePath);
+                    Assert.Equal("/LocalTime", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("LocalTime", arg.DisplayName);
                     Assert.Equal("TimeZoneDataType", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Optional", arg.ModellingRule);
@@ -414,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("Message", arg.BrowsePath);
+                    Assert.Equal("/Message", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("Message", arg.DisplayName);
                     Assert.Equal("LocalizedText", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
@@ -422,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal("Severity", arg.BrowsePath);
+                    Assert.Equal("/Severity", Assert.Single(arg.BrowsePath!));
                     Assert.Equal("Severity", arg.DisplayName);
                     Assert.Equal("UInt16", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);

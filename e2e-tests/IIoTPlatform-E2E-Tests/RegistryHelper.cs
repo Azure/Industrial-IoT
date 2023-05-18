@@ -239,9 +239,9 @@ namespace IIoTPlatform_E2E_Tests
         public RegistryManager RegistryManager { get; }
 
         /// <summary>
-        /// Default value fo IIoT module names.
+        /// Default value for IIoT module names.
         /// </summary>
-        public static IEnumerable<string> ModuleNamesDefault = new string[] { "publisher", "twin", "discovery" };
+        public static IEnumerable<string> ModuleNamesDefault = new string[] { "publisher" };
 
         private readonly IIoTPlatformTestContext _context;
     }

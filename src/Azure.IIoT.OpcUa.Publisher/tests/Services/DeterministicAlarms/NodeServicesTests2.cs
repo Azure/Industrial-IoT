@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.DeterministicAlarms
         private DeterministicAlarmsTests2<ConnectionModel> GetTests()
         {
             return new DeterministicAlarmsTests2<ConnectionModel>(
-                () => new NodeServices<ConnectionModel>(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
                 _server.GetConnection(), _server);
         }

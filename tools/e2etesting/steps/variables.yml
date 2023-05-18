@@ -1,7 +1,6 @@
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   AzureSubscription: IIOT_TEST-SP # Use Services-Connection with Service-Principal-Authentication as subscription
-  IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests
   Runtime: 'win-x64'
   ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:

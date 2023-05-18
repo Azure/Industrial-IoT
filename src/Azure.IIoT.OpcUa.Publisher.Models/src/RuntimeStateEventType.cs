@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Defines a message of restart announcement type.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "restartAnnouncement")]
         RestartAnnouncement
     }
 }

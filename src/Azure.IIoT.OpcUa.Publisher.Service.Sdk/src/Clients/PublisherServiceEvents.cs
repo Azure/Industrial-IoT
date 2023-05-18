@@ -105,9 +105,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(userId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples");
-            await _httpClient.PutAsync(uri, userId, _serializer,
-                authorization: _authorization, ct: ct).ConfigureAwait(false);
+            var uri = new Uri(
+                $"{_serviceUri}/events/v2/telemetry/{Uri.EscapeDataString(endpointId)}/samples");
+            await _httpClient.PutAsync(uri, userId, _serializer, authorization: _authorization,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -122,7 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(userId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples/{userId}");
+            var uri = new Uri(
+                $"{_serviceUri}/events/v2/telemetry/{Uri.EscapeDataString(endpointId)}/samples/{userId}");
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 

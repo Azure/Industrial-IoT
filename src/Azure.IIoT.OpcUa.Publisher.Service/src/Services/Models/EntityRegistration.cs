@@ -28,11 +28,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public virtual string? SiteId { get; set; }
 
         /// <summary>
+        /// Unknown site
+        /// </summary>
+        public const string UnknownGatewayOrSiteId = "<<unknownsite>>";
+
+        /// <summary>
         /// Searchable grouping (either device or site id)
         /// </summary>
         [DataMember]
-        public virtual string? SiteOrGatewayId =>
-            !string.IsNullOrEmpty(SiteId) ? SiteId : DeviceId;
+        public virtual string SiteOrGatewayId =>
+            !string.IsNullOrEmpty(SiteId) ? SiteId :
+            !string.IsNullOrEmpty(DeviceId) ? DeviceId :
+            UnknownGatewayOrSiteId;
 
         /// <summary>
         /// Etag id

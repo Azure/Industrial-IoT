@@ -6,11 +6,11 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6" />
-    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.7.5" />
+    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.9.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Serilog" Version="2.12.0" />
   </ItemGroup>
 

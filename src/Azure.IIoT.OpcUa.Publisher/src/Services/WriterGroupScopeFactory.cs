@@ -10,10 +10,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Options;
-    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
 
     /// <summary>
     /// Container builder for data set writer jobs

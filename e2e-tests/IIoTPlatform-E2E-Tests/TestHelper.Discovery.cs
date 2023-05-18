@@ -33,8 +33,7 @@ namespace IIoTPlatform_E2E_Tests
             /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
             public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
                 IIoTPlatformTestContext context,
-                HashSet<string> requestedEndpointUrls = null
-,
+                HashSet<string> requestedEndpointUrls = null,
                 CancellationToken ct = default)
             {
                 ct.ThrowIfCancellationRequested();
@@ -48,7 +47,7 @@ namespace IIoTPlatform_E2E_Tests
                     do
                     {
                         const string route = TestConstants.APIRoutes.RegistryApplications;
-                        var response = CallRestApi(context, Method.Get, route, ct: ct);
+                        var response = await CallRestApi(context, Method.Get, route, ct: ct).ConfigureAwait(false);
                         Assert.True(response.IsSuccessful, $"Got {response.StatusCode} calling {route}.");
                         Assert.NotEmpty(response.Content);
                         json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());

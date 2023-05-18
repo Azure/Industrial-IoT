@@ -67,7 +67,7 @@ namespace TestEventProcessor
             var validator = new TelemetryValidator(melLogger);
             await validator.StartAsync(configuration).ConfigureAwait(false);
 
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             Console.CancelKeyPress += (sender, cancelArgs) =>
             {

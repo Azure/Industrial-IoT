@@ -6,6 +6,8 @@
 namespace IIoTPlatform_E2E_Tests.Discovery
 {
     using IIoTPlatform_E2E_Tests.TestExtensions;
+    using System;
+    using System.Threading.Tasks;
 
     public class DiscoveryTestContext : IIoTPlatformTestContext
     {

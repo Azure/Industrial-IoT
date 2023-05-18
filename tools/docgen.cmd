@@ -68,6 +68,7 @@ docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger
 if exist security_save.md move security_save.md security.md
 if exist paths.md type paths.md >> api.md
 if exist paths.md del /f paths.md
+if exist overview.md del /f overview.md
 if exist config.properties del /f config.properties
 popd
 goto :eof

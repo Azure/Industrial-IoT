@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using FluentAssertions;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Alarms server node tests
@@ -100,16 +102,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", target.Target.NodeId);
         }
 
-#if UNUSED
         public async Task CompileSimpleBaseEventQueryTestAsync(CancellationToken ct = default)
         {
             var services = _services();
 
-
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
                 Query = "select * from BaseEventType"
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
@@ -120,63 +120,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventId",
+                        BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventType",
+                        BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceNode",
+                        BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceName",
+                        BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Time",
+                        BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/ReceiveTime",
+                        BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/LocalTime",
+                        BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LocalTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Message",
+                        BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Severity",
+                        BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     }
@@ -188,11 +188,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
                 Query = "select * from TripAlarmType"
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
@@ -203,735 +202,735 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventId",
+                        BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventType",
+                        BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceNode",
+                        BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceName",
+                        BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Time",
+                        BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/ReceiveTime",
+                        BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/LocalTime",
+                        BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LocalTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Message",
+                        BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Severity",
+                        BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionClassId",
+                        BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionClassName",
+                        BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionSubClassId",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionSubClassName",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionName",
+                        BrowsePath = new[] { "/ConditionName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/BranchId",
+                        BrowsePath = new[] { "/BranchId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/BranchId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Retain",
+                        BrowsePath = new[] { "/Retain" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Retain.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/EnabledState",
+                        BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/EnabledState/Id",
+                        BrowsePath = new[] { "/EnabledState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/EffectiveDisplayName",
+                        BrowsePath = new[] { "/EnabledState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveDisplayName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/TransitionTime",
+                        BrowsePath = new[] { "/EnabledState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/EffectiveTransitionTime",
+                        BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/TrueState",
+                        BrowsePath = new[] { "/EnabledState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/FalseState",
+                        BrowsePath = new[] { "/EnabledState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Quality",
+                        BrowsePath = new[] { "/Quality" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Quality.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Quality/SourceTimestamp",
+                        BrowsePath = new[] { "/Quality", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Quality/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/LastSeverity",
+                        BrowsePath = new[] { "/LastSeverity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LastSeverity.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/LastSeverity/SourceTimestamp",
+                        BrowsePath = new[] { "/LastSeverity", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LastSeverity/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Comment",
+                        BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Comment.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Comment/SourceTimestamp",
+                        BrowsePath = new[] { "/Comment", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Comment/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ClientUserId",
+                        BrowsePath = new[] { "/ClientUserId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ClientUserId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Disable",
+                        BrowsePath = new[] { "/Disable" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Disable.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Enable",
+                        BrowsePath = new[] { "/Enable" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Enable.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/AddComment",
+                        BrowsePath = new[] { "/AddComment" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AddComment.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/AddComment/InputArguments",
+                        BrowsePath = new[] { "/AddComment", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AddComment/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState",
+                        BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/Id",
+                        BrowsePath = new[] { "/AckedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/TransitionTime",
+                        BrowsePath = new[] { "/AckedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/TrueState",
+                        BrowsePath = new[] { "/AckedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/FalseState",
+                        BrowsePath = new[] { "/AckedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState",
+                        BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/Id",
+                        BrowsePath = new[] { "/ConfirmedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/TransitionTime",
+                        BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/TrueState",
+                        BrowsePath = new[] { "/ConfirmedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/FalseState",
+                        BrowsePath = new[] { "/ConfirmedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Acknowledge",
+                        BrowsePath = new[] { "/Acknowledge" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Acknowledge.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Acknowledge/InputArguments",
+                        BrowsePath = new[] { "/Acknowledge", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Acknowledge/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Confirm",
+                        BrowsePath = new[] { "/Confirm" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Confirm.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Confirm/InputArguments",
+                        BrowsePath = new[] { "/Confirm", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Confirm/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState",
+                        BrowsePath = new[] { "/ActiveState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/Id",
+                        BrowsePath = new[] { "/ActiveState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/EffectiveDisplayName",
+                        BrowsePath = new[] { "/ActiveState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/EffectiveDisplayName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/TransitionTime",
+                        BrowsePath = new[] { "/ActiveState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/EffectiveTransitionTime",
+                        BrowsePath = new[] { "/ActiveState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/EffectiveTransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/TrueState",
+                        BrowsePath = new[] { "/ActiveState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/FalseState",
+                        BrowsePath = new[] { "/ActiveState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/InputNode",
+                        BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/InputNode.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState",
+                        BrowsePath = new[] { "/SuppressedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/Id",
+                        BrowsePath = new[] { "/SuppressedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/TransitionTime",
+                        BrowsePath = new[] { "/SuppressedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/TrueState",
+                        BrowsePath = new[] { "/SuppressedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/FalseState",
+                        BrowsePath = new[] { "/SuppressedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState",
+                        BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/Id",
+                        BrowsePath = new[] { "/OutOfServiceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/TransitionTime",
+                        BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/TrueState",
+                        BrowsePath = new[] { "/OutOfServiceState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/FalseState",
+                        BrowsePath = new[] { "/OutOfServiceState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState",
+                        BrowsePath = new[] { "/ShelvingState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/CurrentState",
+                        BrowsePath = new[] { "/ShelvingState", "/CurrentState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/CurrentState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/CurrentState/Id",
+                        BrowsePath = new[] { "/ShelvingState", "/CurrentState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/CurrentState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition/Id",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition/TransitionTime",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/UnshelveTime",
+                        BrowsePath = new[] { "/ShelvingState", "/UnshelveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/UnshelveTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/TimedShelve",
+                        BrowsePath = new[] { "/ShelvingState", "/TimedShelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/TimedShelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/TimedShelve/InputArguments",
+                        BrowsePath = new[] { "/ShelvingState", "/TimedShelve", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/TimedShelve/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/Unshelve",
+                        BrowsePath = new[] { "/ShelvingState", "/Unshelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/Unshelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/OneShotShelve",
+                        BrowsePath = new[] { "/ShelvingState", "/OneShotShelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/OneShotShelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedOrShelved",
+                        BrowsePath = new[] { "/SuppressedOrShelved" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedOrShelved.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/MaxTimeShelved",
+                        BrowsePath = new[] { "/MaxTimeShelved" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/MaxTimeShelved.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/AudibleEnabled",
+                        BrowsePath = new[] { "/AudibleEnabled" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AudibleEnabled.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/AudibleSound",
+                        BrowsePath = new[] { "/AudibleSound" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AudibleSound.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState",
+                        BrowsePath = new[] { "/SilenceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/Id",
+                        BrowsePath = new[] { "/SilenceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/TransitionTime",
+                        BrowsePath = new[] { "/SilenceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/TrueState",
+                        BrowsePath = new[] { "/SilenceState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/FalseState",
+                        BrowsePath = new[] { "/SilenceState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OnDelay",
+                        BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OnDelay.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OffDelay",
+                        BrowsePath = new[] { "/OffDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OffDelay.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/FirstInGroupFlag",
+                        BrowsePath = new[] { "/FirstInGroupFlag" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/FirstInGroupFlag.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/FirstInGroup",
+                        BrowsePath = new[] { "/FirstInGroup" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/FirstInGroup.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState",
+                        BrowsePath = new[] { "/LatchedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/Id",
+                        BrowsePath = new[] { "/LatchedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/TransitionTime",
+                        BrowsePath = new[] { "/LatchedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/TrueState",
+                        BrowsePath = new[] { "/LatchedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/FalseState",
+                        BrowsePath = new[] { "/LatchedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/%3cAlarmGroup%3e",
+                        BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/<AlarmGroup>.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ReAlarmTime",
+                        BrowsePath = new[] { "/ReAlarmTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReAlarmTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ReAlarmRepeatCount",
+                        BrowsePath = new[] { "/ReAlarmRepeatCount" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReAlarmRepeatCount.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Silence",
+                        BrowsePath = new[] { "/Silence" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Silence.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Suppress",
+                        BrowsePath = new[] { "/Suppress" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Suppress.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Unsuppress",
+                        BrowsePath = new[] { "/Unsuppress" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Unsuppress.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/RemoveFromService",
+                        BrowsePath = new[] { "/RemoveFromService" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/RemoveFromService.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/PlaceInService",
+                        BrowsePath = new[] { "/PlaceInService" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/PlaceInService.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Reset",
+                        BrowsePath = new[] { "/Reset" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Reset.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=10637",
-                        BrowsePath = "/NormalState",
+                        BrowsePath = new[] { "/NormalState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/NormalState.Value"
                     }
@@ -943,7 +942,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
                 Query = @"
@@ -953,7 +951,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         OFTYPE TripAlarmType AND
                         /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
                 "
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
@@ -965,21 +963,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Comment",
+                        BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Comment.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Severity",
+                        BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceNode",
+                        BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     }
@@ -1011,7 +1009,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                                 new FilterOperandModel
                                 {
                                     NodeId = "i=2041",
-                                    BrowsePath = "/SourceNode",
+                                    BrowsePath = new[] { "/SourceNode" },
                                     AttributeId = NodeAttribute.Value
                                 },
                                 new FilterOperandModel
@@ -1051,7 +1049,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         OFTYPE TripAlarmType AND
                         /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
                 "
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
@@ -1062,735 +1060,735 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventId",
+                        BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/EventType",
+                        BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceNode",
+                        BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/SourceName",
+                        BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Time",
+                        BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/ReceiveTime",
+                        BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/LocalTime",
+                        BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LocalTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Message",
+                        BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2041",
-                        BrowsePath = "/Severity",
+                        BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionClassId",
+                        BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionClassName",
+                        BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionSubClassId",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionSubClassName",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ConditionName",
+                        BrowsePath = new[] { "/ConditionName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/BranchId",
+                        BrowsePath = new[] { "/BranchId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/BranchId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Retain",
+                        BrowsePath = new[] { "/Retain" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Retain.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/EnabledState",
+                        BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/EnabledState/Id",
+                        BrowsePath = new[] { "/EnabledState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/EffectiveDisplayName",
+                        BrowsePath = new[] { "/EnabledState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveDisplayName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/TransitionTime",
+                        BrowsePath = new[] { "/EnabledState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/EffectiveTransitionTime",
+                        BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/TrueState",
+                        BrowsePath = new[] { "/EnabledState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/EnabledState/FalseState",
+                        BrowsePath = new[] { "/EnabledState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Quality",
+                        BrowsePath = new[] { "/Quality" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Quality.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Quality/SourceTimestamp",
+                        BrowsePath = new[] { "/Quality", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Quality/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/LastSeverity",
+                        BrowsePath = new[] { "/LastSeverity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LastSeverity.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/LastSeverity/SourceTimestamp",
+                        BrowsePath = new[] { "/LastSeverity", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LastSeverity/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Comment",
+                        BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Comment.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Comment/SourceTimestamp",
+                        BrowsePath = new[] { "/Comment", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Comment/SourceTimestamp.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/ClientUserId",
+                        BrowsePath = new[] { "/ClientUserId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ClientUserId.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Disable",
+                        BrowsePath = new[] { "/Disable" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Disable.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/Enable",
+                        BrowsePath = new[] { "/Enable" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Enable.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/AddComment",
+                        BrowsePath = new[] { "/AddComment" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AddComment.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2782",
-                        BrowsePath = "/AddComment/InputArguments",
+                        BrowsePath = new[] { "/AddComment", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AddComment/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState",
+                        BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/Id",
+                        BrowsePath = new[] { "/AckedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/TransitionTime",
+                        BrowsePath = new[] { "/AckedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/TrueState",
+                        BrowsePath = new[] { "/AckedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/AckedState/FalseState",
+                        BrowsePath = new[] { "/AckedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AckedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState",
+                        BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/Id",
+                        BrowsePath = new[] { "/ConfirmedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/TransitionTime",
+                        BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/TrueState",
+                        BrowsePath = new[] { "/ConfirmedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/ConfirmedState/FalseState",
+                        BrowsePath = new[] { "/ConfirmedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Acknowledge",
+                        BrowsePath = new[] { "/Acknowledge" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Acknowledge.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Acknowledge/InputArguments",
+                        BrowsePath = new[] { "/Acknowledge", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Acknowledge/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Confirm",
+                        BrowsePath = new[] { "/Confirm" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Confirm.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = "/Confirm/InputArguments",
+                        BrowsePath = new[] { "/Confirm", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Confirm/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState",
+                        BrowsePath = new[] { "/ActiveState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/Id",
+                        BrowsePath = new[] { "/ActiveState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/EffectiveDisplayName",
+                        BrowsePath = new[] { "/ActiveState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/EffectiveDisplayName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/TransitionTime",
+                        BrowsePath = new[] { "/ActiveState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/EffectiveTransitionTime",
+                        BrowsePath = new[] { "/ActiveState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/EffectiveTransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/TrueState",
+                        BrowsePath = new[] { "/ActiveState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ActiveState/FalseState",
+                        BrowsePath = new[] { "/ActiveState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ActiveState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/InputNode",
+                        BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/InputNode.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState",
+                        BrowsePath = new[] { "/SuppressedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/Id",
+                        BrowsePath = new[] { "/SuppressedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/TransitionTime",
+                        BrowsePath = new[] { "/SuppressedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/TrueState",
+                        BrowsePath = new[] { "/SuppressedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedState/FalseState",
+                        BrowsePath = new[] { "/SuppressedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState",
+                        BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/Id",
+                        BrowsePath = new[] { "/OutOfServiceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/TransitionTime",
+                        BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/TrueState",
+                        BrowsePath = new[] { "/OutOfServiceState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OutOfServiceState/FalseState",
+                        BrowsePath = new[] { "/OutOfServiceState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState",
+                        BrowsePath = new[] { "/ShelvingState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/CurrentState",
+                        BrowsePath = new[] { "/ShelvingState", "/CurrentState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/CurrentState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/CurrentState/Id",
+                        BrowsePath = new[] { "/ShelvingState", "/CurrentState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/CurrentState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition/Id",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/LastTransition/TransitionTime",
+                        BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/LastTransition/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/UnshelveTime",
+                        BrowsePath = new[] { "/ShelvingState", "/UnshelveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/UnshelveTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/TimedShelve",
+                        BrowsePath = new[] { "/ShelvingState", "/TimedShelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/TimedShelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/TimedShelve/InputArguments",
+                        BrowsePath = new[] { "/ShelvingState", "/TimedShelve", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/TimedShelve/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/Unshelve",
+                        BrowsePath = new[] { "/ShelvingState", "/Unshelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/Unshelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ShelvingState/OneShotShelve",
+                        BrowsePath = new[] { "/ShelvingState", "/OneShotShelve" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ShelvingState/OneShotShelve.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SuppressedOrShelved",
+                        BrowsePath = new[] { "/SuppressedOrShelved" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SuppressedOrShelved.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/MaxTimeShelved",
+                        BrowsePath = new[] { "/MaxTimeShelved" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/MaxTimeShelved.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/AudibleEnabled",
+                        BrowsePath = new[] { "/AudibleEnabled" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AudibleEnabled.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/AudibleSound",
+                        BrowsePath = new[] { "/AudibleSound" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/AudibleSound.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState",
+                        BrowsePath = new[] { "/SilenceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/Id",
+                        BrowsePath = new[] { "/SilenceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/TransitionTime",
+                        BrowsePath = new[] { "/SilenceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/TrueState",
+                        BrowsePath = new[] { "/SilenceState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/SilenceState/FalseState",
+                        BrowsePath = new[] { "/SilenceState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SilenceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OnDelay",
+                        BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OnDelay.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/OffDelay",
+                        BrowsePath = new[] { "/OffDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OffDelay.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/FirstInGroupFlag",
+                        BrowsePath = new[] { "/FirstInGroupFlag" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/FirstInGroupFlag.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/FirstInGroup",
+                        BrowsePath = new[] { "/FirstInGroup" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/FirstInGroup.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState",
+                        BrowsePath = new[] { "/LatchedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/Id",
+                        BrowsePath = new[] { "/LatchedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/Id.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/TransitionTime",
+                        BrowsePath = new[] { "/LatchedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/TransitionTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/TrueState",
+                        BrowsePath = new[] { "/LatchedState", "/TrueState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/TrueState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/LatchedState/FalseState",
+                        BrowsePath = new[] { "/LatchedState", "/FalseState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LatchedState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/%3cAlarmGroup%3e",
+                        BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/<AlarmGroup>.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ReAlarmTime",
+                        BrowsePath = new[] { "/ReAlarmTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReAlarmTime.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/ReAlarmRepeatCount",
+                        BrowsePath = new[] { "/ReAlarmRepeatCount" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReAlarmRepeatCount.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Silence",
+                        BrowsePath = new[] { "/Silence" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Silence.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Suppress",
+                        BrowsePath = new[] { "/Suppress" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Suppress.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Unsuppress",
+                        BrowsePath = new[] { "/Unsuppress" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Unsuppress.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/RemoveFromService",
+                        BrowsePath = new[] { "/RemoveFromService" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/RemoveFromService.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/PlaceInService",
+                        BrowsePath = new[] { "/PlaceInService" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/PlaceInService.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = "/Reset",
+                        BrowsePath = new[] { "/Reset" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Reset.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=10637",
-                        BrowsePath = "/NormalState",
+                        BrowsePath = new[] { "/NormalState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/NormalState.Value"
                     }
@@ -1821,8 +1819,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                             {
                                 new FilterOperandModel
                                 {
-                                    TypeDefinitionId = "i=2041",
-                                    BrowsePath = "/SourceNode",
+                                    NodeId = "i=2041",
+                                    BrowsePath = new[] { "/SourceNode" },
                                     AttributeId = NodeAttribute.Value
                                 },
                                 new FilterOperandModel
@@ -1848,7 +1846,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
             });
         }
-#endif
+
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
     }

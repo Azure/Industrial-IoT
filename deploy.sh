@@ -45,22 +45,20 @@ if [ -z "$test" ]; then
   silent="yes"
 fi
 
-test=$(pwsh -Command "Get-Module -ListAvailable -Name AzureAD.Standard.Preview | ForEach-Object Name")
+test=$(pwsh -Command "Get-Module -ListAvailable -Name Microsoft.Graph | ForEach-Object Name")
 if [ -z "$test" ]; then
   if [ -n $silent ]; then
-    echo -e "\033[1;31mAzureAD Powershell module is not installed but is required to deploy.\033[0m"
+    echo -e "\033[1;31mMicrosoft.Graph Powershell module is not installed but is required to deploy.\033[0m"
     while true; do
-      read -p "Do you want to install AzureAD module (requires sudo privileges)? (y/n) " yn
+      read -p "Do you want to install Microsoft.Graph module (requires sudo privileges)? (y/n) " yn
       case $yn in
         [Yy]* ) break;;
-        * ) echo "You must install AzureAD Powershell module manually to continue..."; exit 1;;
+        * ) echo "You must install Microsoft.Graph Powershell module manually to continue..."; exit 1;;
       esac
     done
   fi
-  # TODO Check update to released version when available
-  # sudo pwsh -Command "Install-Module -Repository PSGallery -Name AzureAD -AllowClobber"
-  sudo pwsh -Command "Register-PackageSource -ForceBootstrap -Force -Trusted -ProviderName 'PowerShellGet' -Name 'Posh Test Gallery' -Location https://www.poshtestgallery.com/api/v2/"
-  sudo pwsh -Command "Install-Module -Repository 'Posh Test Gallery' -Name AzureAD.Standard.Preview -RequiredVersion 0.0.0.10 -AllowClobber"
+  sudo pwsh -Command "Set-psrepository -Name PSGallery -InstallationPolicy Trusted"
+  sudo pwsh -Command "Install-Module -Repository PSGallery -Name Microsoft.Graph -AllowClobber"
   silent="yes"
 fi
 

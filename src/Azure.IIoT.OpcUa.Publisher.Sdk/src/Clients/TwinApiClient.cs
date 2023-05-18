@@ -26,9 +26,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// </summary>
         /// <param name="methodClient"></param>
         /// <param name="target"></param>
+        /// <param name="timeout"></param>
         /// <param name="serializer"></param>
         public TwinApiClient(IMethodClient methodClient, string target,
-            IJsonSerializer? serializer = null)
+            TimeSpan? timeout = null, IJsonSerializer? serializer = null)
         {
             _serializer = serializer ??
                 new NewtonsoftJsonSerializer();
@@ -39,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentNullException(nameof(target));
             }
             _target = target;
+            _timeout = timeout ?? TimeSpan.FromMinutes(1);
         }
 
         /// <summary>
@@ -49,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="serializer"></param>
         public TwinApiClient(IMethodClient methodClient, IOptions<SdkOptions> options,
             IJsonSerializer? serializer = null) :
-            this(methodClient, options.Value.Target!, serializer)
+            this(methodClient, options.Value.Target!, options.Value.Timeout,
+                serializer)
         {
         }
 
@@ -76,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<TestConnectionResponseModel>(response);
         }
 
@@ -102,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ConnectResponseModel>(response);
         }
 
@@ -127,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<BrowseFirstResponseModel>(response);
         }
 
@@ -156,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<BrowseNextResponseModel>(response);
         }
 
@@ -186,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<BrowsePathResponseModel>(response);
         }
 
@@ -215,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ReadResponseModel>(response);
         }
 
@@ -244,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<WriteResponseModel>(response);
         }
 
@@ -269,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ValueReadResponseModel>(response);
         }
 
@@ -298,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ValueWriteResponseModel>(response);
         }
 
@@ -323,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<MethodMetadataResponseModel>(response);
         }
 
@@ -348,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<MethodCallResponseModel>(response);
         }
 
@@ -366,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             var response = await _methodClient.CallMethodAsync(_target,
                 "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ServerCapabilitiesModel>(response);
         }
 
@@ -391,8 +394,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<NodeMetadataResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<QueryCompilationResponseModel> CompileQueryAsync(ConnectionModel connection,
+            QueryCompilationRequestModel request, CancellationToken ct)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
+            }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var response = await _methodClient.CallMethodAsync(_target,
+                "CompileQuery_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    request
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<QueryCompilationResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -409,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             var response = await _methodClient.CallMethodAsync(_target,
                 "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryServerCapabilitiesModel>(response);
         }
 
@@ -434,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryConfigurationResponseModel>(response);
         }
 
@@ -464,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<VariantValue>>(response);
         }
 
@@ -494,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadNextResponseModel<VariantValue>>(response);
         }
 
@@ -524,7 +552,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -550,11 +578,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
         }
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _target;
+        private readonly TimeSpan _timeout;
     }
 }

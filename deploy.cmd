@@ -21,10 +21,10 @@ goto :check-ad
 :check-ad
 echo Az installed.
 set test=
-for /f %%i in ('%PWSH% -Command "Get-Module -ListAvailable -Name AzureAD | ForEach-Object Name"') do set test=%%i
+for /f %%i in ('%PWSH% -Command "Get-Module -ListAvailable -Name Microsoft.Graph | ForEach-Object Name"') do set test=%%i
 if not "%test%" == "" goto :main
 echo Installing AzureAD
-%PWSH% -Command "Install-Module -Name AzureAD -AllowClobber -Scope CurrentUser"
+%PWSH% -Command "Install-Module -Name Microsoft.Graph -AllowClobber -Scope CurrentUser"
 goto :main
 :main
 echo AzureAD installed.

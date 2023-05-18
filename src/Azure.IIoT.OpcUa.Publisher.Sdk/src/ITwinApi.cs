@@ -90,6 +90,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
             NodeMetadataRequestModel request, CancellationToken ct = default);
 
         /// <summary>
+        /// Compile the query string into a filter query syntax
+        /// structure that can be used in other calls.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<QueryCompilationResponseModel> CompileQueryAsync(ConnectionModel connection,
+            QueryCompilationRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
         /// Call method on a server
         /// </summary>
         /// <param name="connection"></param>

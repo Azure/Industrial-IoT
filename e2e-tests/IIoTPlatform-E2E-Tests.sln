@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFBD4A17-2EB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{28187370-EAF1-4848-922A-81278030AE03}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
 		.env = .env
 		..\tools\e2etesting\GetSecrets.ps1 = ..\tools\e2etesting\GetSecrets.ps1
 	EndProjectSection

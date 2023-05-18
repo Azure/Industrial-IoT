@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Configuration;
@@ -366,6 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Configuration
             /// </summary>
             public const string HubTransport = "Transport";
+            public const string UpstreamProtocol = "UpstreamProtocol";
             public const string EdgeHubConnectionString = "EdgeHubConnectionString";
 
             /// <inheritdoc/>
@@ -380,11 +381,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     options.EdgeHubConnectionString = string.Empty;
                 }
-                if (options.Transport == TransportOption.None &&
-                    Enum.TryParse<TransportOption>(GetStringOrDefault(HubTransport),
-                        out var transport))
+                if (options.Transport == TransportOption.None)
                 {
-                    options.Transport = transport;
+                    if (Enum.TryParse<TransportOption>(GetStringOrDefault(HubTransport),
+                            out var transport) ||
+                        Enum.TryParse<TransportOption>(GetStringOrDefault(UpstreamProtocol),
+                            out transport))
+                    {
+                        options.Transport = transport;
+                    }
                 }
                 options.Product = $"OpcPublisher_{GetType().Assembly.GetReleaseVersion()}";
             }

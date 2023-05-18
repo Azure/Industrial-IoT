@@ -5,16 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 {
-    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Tunnel;
     using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     /// </summary>
     public sealed class PublisherServicesClient : IConnectionServices<string>,
         ICertificateServices<string>, INodeServices<string>, IPublishServices<string>,
-        IHistoryServices<string>, IDisposable
+        IHistoryServices<string>, IPublisherServices<string>, IDisposable
     {
         /// <summary>
         /// Create ep registry
@@ -32,13 +33,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="cache"></param>
+        /// <param name="logger"></param>
         public PublisherServicesClient(IEndpointRegistry endpoints, IMethodClient client,
-            IJsonSerializer serializer, IMemoryCache cache)
+            IJsonSerializer serializer, IMemoryCache cache, ILogger<PublisherServicesClient> logger)
         {
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _cache = cache ?? throw new ArgumentNullException(nameof(serializer));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -48,13 +51,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <inheritdoc/>
+        public async IAsyncEnumerable<PublishedNodesEntryModel> GetConfiguredEndpointsAsync(
+            string publisherId, GetConfiguredEndpointsRequestModel request,
+            [EnumeratorCancellation] CancellationToken ct)
+        {
+            using var activity = _activitySource.StartActivity("GetConfiguredEndpoints");
+
+            var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
+            var result = await client.GetConfiguredEndpointsAsync(request, ct).ConfigureAwait(false);
+
+            _logger.LogDebug("Retrieved configured endpoints from publisher {Publisher}.",
+                publisherId);
+
+            if (result.Endpoints != null)
+            {
+                foreach (var item in result.Endpoints)
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task SetConfiguredEndpointsAsync(string publisherId,
+            SetConfiguredEndpointsRequestModel request, CancellationToken ct = default)
+        {
+            using var activity = _activitySource.StartActivity("SetConfiguredEndpoints");
+
+            var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
+            await client.SetConfiguredEndpointsAsync(request, ct).ConfigureAwait(false);
+
+            _logger.LogDebug("Set configured endpointts ont publisher {Publisher}.",
+                publisherId);
+        }
+
+        /// <inheritdoc/>
         public Task<X509CertificateChainModel> GetEndpointCertificateAsync(string endpoint,
             CancellationToken ct)
         {
-            return Execute("GetEndpointCertificate", endpoint, (publisherId, endpoint) =>
+            return Execute("GetEndpointCertificate", endpoint, (publisherId, ep) =>
             {
-                var client = new DiscoveryApiClient(_client, publisherId, _serializer);
-                return client.GetEndpointCertificateAsync(endpoint, ct);
+                var client = new DiscoveryApiClient(_client, publisherId, kTimeout, _serializer);
+                return client.GetEndpointCertificateAsync(ep, ct);
             }, ct);
         }
 
@@ -62,13 +100,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<TestConnectionResponseModel> TestConnectionAsync(string endpoint,
             TestConnectionRequestModel request, CancellationToken ct)
         {
-            return Execute("TestConnection", endpoint, (publisherId, endpoint) =>
+            return Execute("TestConnection", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.TestConnectionAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -77,27 +116,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ConnectResponseModel> ConnectAsync(string endpoint,
             ConnectRequestModel request, CancellationToken ct)
         {
-            return Execute("Connect", endpoint, (publisherId, endpoint) =>
+            return Execute("Connect", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.ConnectAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
+
         /// <inheritdoc/>
         public Task DisconnectAsync(string endpoint, DisconnectRequestModel request,
             CancellationToken ct)
         {
-            return Execute("Disconnect", endpoint, (publisherId, endpoint) =>
+            return Execute("Disconnect", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.DisconnectAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -110,13 +152,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeBrowseFirst", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeBrowseFirst", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeBrowseFirstAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -129,13 +172,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeBrowseNext", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeBrowseNext", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeBrowseNextAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -156,13 +200,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeBrowsePath", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeBrowsePath", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeBrowsePathAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -175,13 +220,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeValueRead", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeValueRead", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeValueReadAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -194,13 +240,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeValueWrite", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeValueWrite", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeValueWriteAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -213,13 +260,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeMethodGetMetadata", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeMethodGetMetadata", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeMethodGetMetadataAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -232,13 +280,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeMethodCall", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeMethodCall", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeMethodCallAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -251,13 +300,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeRead", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeRead", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeReadAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -270,13 +320,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("NodeWrite", endpoint, (publisherId, endpoint) =>
+            return Execute("NodeWrite", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.NodeWriteAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -285,12 +336,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpoint,
             CancellationToken ct)
         {
-            return Execute("GetServerCapabilities", endpoint, (publisherId, endpoint) =>
+            return Execute("GetServerCapabilities", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.GetServerCapabilitiesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint
+                    Endpoint = ep,
+                    Group = endpoint
                 }, ct);
             }, ct);
         }
@@ -303,10 +355,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("GetMetadata", endpoint, (publisherId, endpoint) =>
+            return Execute("GetMetadata", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.GetMetadataAsync(new ConnectionModel
+                {
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
+                }, request, ct);
+            }, ct);
+        }
+
+        /// <inheritdoc/>
+        public Task<QueryCompilationResponseModel> CompileQueryAsync(string endpoint,
+            QueryCompilationRequestModel request, CancellationToken ct = default)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            return Execute("CompileQuery", endpoint, (publisherId, endpoint) =>
+            {
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
+                return client.CompileQueryAsync(new ConnectionModel
                 {
                     Endpoint = endpoint,
                     User = request.Header?.Elevation
@@ -318,12 +390,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             string endpoint, CancellationToken ct)
         {
-            return Execute("HistoryGetServerCapabilities", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryGetServerCapabilities", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryGetServerCapabilitiesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint
+                    Endpoint = ep,
+                    Group = endpoint
                 }, ct);
             }, ct);
         }
@@ -336,13 +409,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryGetConfiguration", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryGetConfiguration", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryGetConfigurationAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -355,13 +429,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryRead", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryRead", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -374,13 +449,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadNext", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadNext", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadNextAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -393,13 +469,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryUpdate", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryUpdate", endpoint, (publisherId, ep) =>
             {
-                var client = new TwinApiClient(_client, publisherId, _serializer);
+                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryUpdateAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -412,13 +489,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("PublishStart", endpoint, (publisherId, endpoint) =>
+            return Execute("PublishStart", endpoint, (publisherId, ep) =>
             {
-                var client = new PublisherApiClient(_client, publisherId, _serializer);
+                var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.PublishStartAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -431,13 +509,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("PublishStop", endpoint, (publisherId, endpoint) =>
+            return Execute("PublishStop", endpoint, (publisherId, ep) =>
             {
-                var client = new PublisherApiClient(_client, publisherId, _serializer);
+                var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.PublishStopAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -450,13 +529,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("PublishBulk", endpoint, (publisherId, endpoint) =>
+            return Execute("PublishBulk", endpoint, (publisherId, ep) =>
             {
-                var client = new PublisherApiClient(_client, publisherId, _serializer);
+                var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.PublishBulkAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -469,13 +549,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("PublishList", endpoint, (publisherId, endpoint) =>
+            return Execute("PublishList", endpoint, (publisherId, ep) =>
             {
-                var client = new PublisherApiClient(_client, publisherId, _serializer);
+                var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.PublishListAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -488,13 +569,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReplaceEvents", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReplaceEvents", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReplaceEventsAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -507,13 +589,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryInsertEvents", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryInsertEvents", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryInsertEventsAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -526,13 +609,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryUpsertEvents", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryUpsertEvents", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryUpsertEventsAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -545,13 +629,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryDeleteEvents", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryDeleteEvents", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryDeleteEventsAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -565,13 +650,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryDeleteValuesAtTimes", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryDeleteValuesAtTimes", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryDeleteValuesAtTimesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -585,13 +671,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryDeleteModifiedValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryDeleteModifiedValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryDeleteModifiedValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -604,13 +691,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryDeleteValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryDeleteValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryDeleteValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -623,13 +711,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReplaceValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReplaceValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReplaceValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -642,13 +731,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryInsertValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryInsertValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryInsertValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -661,13 +751,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryUpsertValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryUpsertValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryUpsertValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -681,13 +772,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadEvents", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadEvents", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadEventsAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -700,13 +792,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadEventsNext", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadEventsNext", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadEventsNextAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -720,13 +813,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -740,13 +834,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadValuesAtTimes", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadValuesAtTimes", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadValuesAtTimesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -760,13 +855,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadProcessedValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadProcessedValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadProcessedValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -780,13 +876,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadModifiedValues", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadModifiedValues", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadModifiedValuesAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -799,13 +896,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute("HistoryReadValuesNext", endpoint, (publisherId, endpoint) =>
+            return Execute("HistoryReadValuesNext", endpoint, (publisherId, ep) =>
             {
-                var client = new HistoryApiClient(_client, publisherId, _serializer);
+                var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
                 return client.HistoryReadValuesNextAsync(new ConnectionModel
                 {
-                    Endpoint = endpoint,
-                    User = request.Header?.Elevation
+                    Endpoint = ep,
+                    User = request.Header?.Elevation,
+                    Group = endpoint
                 }, request, ct);
             }, ct);
         }
@@ -866,7 +964,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {
-                return await call(ep.DiscovererId!, ep.Endpoint!).ConfigureAwait(false);
+                Debug.Assert(ep.DiscovererId != null);
+                Debug.Assert(ep.Endpoint != null);
+
+                var result = await call(ep.DiscovererId, ep.Endpoint).ConfigureAwait(false);
+
+                _logger.LogDebug("Called {Operation} on publisher {Publisher}.",
+                    operation, ep.DiscovererId);
+
+                return result;
             }
             catch (ResourceNotFoundException)
             {
@@ -890,7 +996,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {
-                await call(ep.DiscovererId!, ep.Endpoint!).ConfigureAwait(false);
+                Debug.Assert(ep.DiscovererId != null);
+                Debug.Assert(ep.Endpoint != null);
+
+                await call(ep.DiscovererId, ep.Endpoint).ConfigureAwait(false);
+
+                _logger.LogDebug("Called {Operation} on publisher {Publisher}.",
+                    operation, ep.DiscovererId);
             }
             catch (ResourceNotFoundException)
             {
@@ -926,17 +1038,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 }
                 catch
                 {
-                    entry.SetAbsoluteExpiration(TimeSpan.Zero);
+                    entry.SetAbsoluteExpiration(DateTimeOffset.UtcNow);
                     throw;
                 }
             }).ConfigureAwait(false);
             return found!;
         }
 
+        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(10);
         private readonly IEndpointRegistry _endpoints;
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<PublisherServicesClient> _logger;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

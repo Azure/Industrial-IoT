@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -32,9 +33,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Create controller for publisher services
         /// </summary>
         /// <param name="publishers"></param>
-        public PublishersController(IPublisherRegistry publishers)
+        /// <param name="services"></param>
+        public PublishersController(IPublisherRegistry publishers,
+            IPublisherServices<string> services)
         {
             _publishers = publishers;
+            _services = services;
         }
 
         /// <summary>
@@ -207,6 +211,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Get configured endpoints
+        /// </summary>
+        /// <remarks>
+        /// Get all configured endpoints on the publisher. These are the ones
+        /// configured in the local storage of the publisher.
+        /// </remarks>
+        /// <param name="publisherId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="publisherId"/>
+        /// is <c>null</c>.</exception>
+        [HttpGet("{publisherId}/endpoints")]
+        public IAsyncEnumerable<PublishedNodesEntryModel> GetConfiguredEndpointsAsync(
+            string publisherId, [FromQuery] GetConfiguredEndpointsRequestModel request,
+            CancellationToken ct)
+        {
+            if (publisherId == null)
+            {
+                throw new ArgumentNullException(nameof(publisherId));
+            }
+            return _services.GetConfiguredEndpointsAsync(publisherId, request, ct);
+        }
+
+        /// <summary>
+        /// Set configured endpoints
+        /// </summary>
+        /// <remarks>
+        /// Set all configured endpoints on the publisher. These are the ones
+        /// that will be written to local storage of the publisher.
+        /// </remarks>
+        /// <param name="publisherId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="publisherId"/>
+        /// is <c>null</c>.</exception>
+        [HttpPut("{publisherId}/endpoints")]
+        public Task SetConfiguredEndpointsAsync(string publisherId,
+            [FromBody][Required] SetConfiguredEndpointsRequestModel request,
+            CancellationToken ct)
+        {
+            if (publisherId == null)
+            {
+                throw new ArgumentNullException(nameof(publisherId));
+            }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            return _services.SetConfiguredEndpointsAsync(publisherId, request, ct);
+        }
+
         private readonly IPublisherRegistry _publishers;
+        private readonly IPublisherServices<string> _services;
     }
 }

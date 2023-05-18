@@ -204,20 +204,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 throw new ArgumentException(nameof(ApplicationRegistration.ApplicationUri));
             }
 
-            var siteOrGatewayId = existing?.SiteOrGatewayId;
-            if (siteOrGatewayId == null)
-            {
-                siteOrGatewayId = update?.SiteOrGatewayId;
-                if (siteOrGatewayId == null)
-                {
-                    throw new ArgumentException(nameof(ApplicationRegistration.SiteOrGatewayId));
-                }
-            }
+            var siteOrGatewayId = (existing?.SiteOrGatewayId) ??
+                (update?.SiteOrGatewayId) ?? EntityRegistration.UnknownGatewayOrSiteId;
 
             var applicationType = existing?.ApplicationType;
             if (update?.ApplicationType != null)
             {
-                applicationType = update?.ApplicationType;
+                applicationType = update?.ApplicationType ?? ApplicationType.Server;
             }
 
             var id = ApplicationInfoModelEx.CreateApplicationId(
@@ -387,12 +380,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="registration"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static string? GetSiteOrGatewayId(this ApplicationRegistration? registration)
+        public static string GetSiteOrGatewayId(this ApplicationRegistration registration)
         {
-            if (registration is null)
-            {
-                return null;
-            }
             var siteOrGatewayId = registration?.SiteId;
             if (siteOrGatewayId == null)
             {
@@ -403,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     throw new ArgumentException(error, nameof(registration));
                 }
             }
-            return siteOrGatewayId;
+            return siteOrGatewayId ?? EntityRegistration.UnknownGatewayOrSiteId;
         }
 
         /// <summary>

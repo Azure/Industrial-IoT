@@ -16,19 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Browse forward (default)
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Forward")]
         Forward,
 
         /// <summary>
         /// Browse backward
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Backward")]
         Backward,
 
         /// <summary>
         /// Browse both directions
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Both")]
         Both
     }
 }

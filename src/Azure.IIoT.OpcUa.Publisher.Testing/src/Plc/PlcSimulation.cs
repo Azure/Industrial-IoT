@@ -5,7 +5,6 @@
 
 namespace Plc
 {
-    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Test;
     using System;

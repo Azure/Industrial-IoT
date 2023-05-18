@@ -63,7 +63,7 @@ namespace MqttTestValidator.BusinessLogic
         public void Start()
         {
             var timeBuffer = TimeSpan.FromMinutes(1);
-            var cts = new CancellationTokenSource(_startUpDelay + _observationTime + timeBuffer);
+            using var cts = new CancellationTokenSource(_startUpDelay + _observationTime + timeBuffer);
             var unítOfWork = Task.Delay(_startUpDelay, cts.Token)
             .ContinueWith(t =>
             {

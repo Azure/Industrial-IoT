@@ -16,9 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Globalization;
+    using System.Linq;
     using System.Text;
     using System.Threading;
-    using System.Linq;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -187,15 +187,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meterListener.RecordObservableInstruments();
 
             var builder = new StringBuilder();
-
-            // Get all writers
-            var diagnostics = _diagnostics
-                .Select(kv => (kv.Key, kv.Value.AggregateModel));
-            foreach (var (writerGroupId, info) in diagnostics)
+            foreach (var (writerGroupId, info) in _diagnostics
+                .Select(kv => (kv.Key, kv.Value.AggregateModel)))
             {
                 builder = Append(builder, writerGroupId, info, now - info.IngestionStart);
             }
-            Console.Out.WriteLine(builder.ToString());
+            if (builder.Length > 0)
+            {
+                Console.Out.WriteLine(builder.ToString());
+            }
 
             StringBuilder Append(StringBuilder builder, string writerGroupId,
                 WriterGroupDiagnosticModel info, TimeSpan ingestionDuration)

@@ -304,6 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             UseCompatibilityMode = !standardsCompliant,
                                                             ApplicationUri = Notification.ApplicationUri,
                                                             EndpointUrl = Notification.EndpointUrl,
+                                                            WriterGroupId = writerGroup.WriterGroupId,
                                                             NodeId = notification.NodeId,
                                                             MessageType = Notification.MessageType,
                                                             DataSetMessageContentMask = dataSetMessageContentMask,

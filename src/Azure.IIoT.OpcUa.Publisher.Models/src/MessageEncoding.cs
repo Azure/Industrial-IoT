@@ -18,37 +18,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// The encoding is binary.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Binary")]
         Binary = 0x1,
 
         /// <summary>
         /// The encoding is based on Json
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Json")]
         Json = 0x2,
 
         /// <summary>
         /// The encoding is based on Xml
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Xml")]
         Xml = 0x4,
 
         /// <summary>
         /// Messages can be decoded to the original data
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "IsReversible")]
         IsReversible = 0x8,
 
         /// <summary>
         /// Uadp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Uadp")]
         Uadp = Binary | IsReversible,
 
         /// <summary>
         /// Json reversible encoding
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "JsonReversible")]
         JsonReversible = Json | IsReversible,
 
         /// <summary>
@@ -59,13 +59,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Json gzip
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "JsonGzip")]
         JsonGzip = Json | IsGzipCompressed,
 
         /// <summary>
         /// Json reversible
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "JsonReversibleGzip")]
         JsonReversibleGzip = JsonGzip | IsReversible,
     }
 }

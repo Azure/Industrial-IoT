@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk
 {
+    using System;
+
     /// <summary>
     /// Configuration for IoT Edge Opc Publisher sdk
     /// </summary>
@@ -23,5 +25,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// </code>.
         /// </summary>
         public string? Target { get; set; }
+
+        /// <summary>
+        /// Call timeout
+        /// </summary>
+        public TimeSpan? Timeout { get; set; }
     }
 }

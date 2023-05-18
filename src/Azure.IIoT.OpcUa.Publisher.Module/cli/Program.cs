@@ -178,7 +178,8 @@ Options:
                 return;
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
+            AppDomain.CurrentDomain.UnhandledException +=
+                (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
 
             var tasks = new List<Task>(instances);
             try
@@ -249,6 +250,7 @@ Options:
                     deviceId, moduleId);
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
+                arguments.Add("--cl=5"); // enable 5 second client linger
                 if (acceptAll)
                 {
                     arguments.Add("--aa");

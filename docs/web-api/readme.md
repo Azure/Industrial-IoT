@@ -899,7 +899,7 @@ Build and run the Industrial IoT Microservices with Visual Studio or VS Code
 1. Log into Azure using the Az CLI (az login) or Visual Studio using the credentials used to deploy the infrastructure.
 1. Start debugging by pressing the "Start" button or hitting F5.
 
-To ensure the service is running, open a browser to ```http://localhost:9045/swagger```, which will show you the service's swagger UI. If the service exits immediately after start, check that the `.env` file exists in the root of the repository.
+To ensure the service is running, open a browser to ```http://localhost:9080/swagger```, which will show you the service's swagger UI. If the service exits immediately after start, check that the `.env` file exists in the root of the repository.
 
 All configuration is stored in Azure Key vault during deployment. Key vault also is used to provide scale out data protection. When running inside Azure Cloud, the platform uses a Managed Service Identity to access the Key vault and pull this information in a secure way. When you run outside of Azure, you need to log in using `az login` or Visual Studio Service Authentication (Tools -> Options -> Azure Service Authentication).
 

@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string PublisherIdKey = "PublisherId";
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
+        public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
         public const string FullFeaturedMessage = "FullFeaturedMessage";
@@ -101,6 +102,11 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (options.PublishedNodesFile == null)
             {
                 options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey);
+            }
+
+            if (options.CreatePublishFileIfNotExist == null)
+            {
+                options.CreatePublishFileIfNotExist = GetBoolOrNull(CreatePublishFileIfNotExistKey);
             }
 
             if (options.MaxNodesPerDataSet == 0)

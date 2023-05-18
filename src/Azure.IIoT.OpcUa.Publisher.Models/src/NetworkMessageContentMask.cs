@@ -18,97 +18,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Publisher id
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PublisherId")]
         PublisherId = 0x1,
 
         /// <summary>
         /// Group header
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "GroupHeader")]
         GroupHeader = 0x2,
 
         /// <summary>
         /// Writer group id
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "WriterGroupId")]
         WriterGroupId = 0x4,
 
         /// <summary>
         /// Group version
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "GroupVersion")]
         GroupVersion = 0x8,
 
         /// <summary>
         /// Network message number
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkMessageNumber")]
         NetworkMessageNumber = 0x10,
 
         /// <summary>
         /// Sequence number
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SequenceNumber")]
         SequenceNumber = 0x20,
 
         /// <summary>
         /// Payload header
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PayloadHeader")]
         PayloadHeader = 0x40,
 
         /// <summary>
         /// Timestamp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Timestamp")]
         Timestamp = 0x80,
 
         /// <summary>
         /// Picoseconds
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Picoseconds")]
         Picoseconds = 0x100,
 
         /// <summary>
         /// Dataset class id
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataSetClassId")]
         DataSetClassId = 0x200,
 
         /// <summary>
         /// Promoted fields
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PromotedFields")]
         PromotedFields = 0x400,
 
         /// <summary>
         /// Network message header
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkMessageHeader")]
         NetworkMessageHeader = 0x800,
 
         /// <summary>
         /// Dataset message header
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataSetMessageHeader")]
         DataSetMessageHeader = 0x1000,
 
         /// <summary>
         /// Single dataset messages
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SingleDataSetMessage")]
         SingleDataSetMessage = 0x2000,
 
         /// <summary>
         /// Reply to
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ReplyTo")]
         ReplyTo = 0x4000,
 
         /// <summary>
         /// Monitored item message (publisher extension)
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "MonitoredItemMessage")]
         MonitoredItemMessage = 0x8000000,
     }
 }

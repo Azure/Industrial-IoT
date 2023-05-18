@@ -19,40 +19,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The variable may be a scalar or a one
         /// dimensional array.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ScalarOrOneDimension")]
         ScalarOrOneDimension = -3,
 
         /// <summary>
         /// The variable may be a scalar or an array of
         /// any dimension.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Any")]
         Any = -2,
 
         /// <summary>
         /// The variable is always a scalar.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Scalar")]
         Scalar = Any | OneDimension,
 
         /// <summary>
         /// The variable is always an array with one or
         /// more dimensions.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "OneOrMoreDimensions")]
         OneOrMoreDimensions = 0,
 
         /// <summary>
         /// The variable is always one dimensional array.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "OneDimension")]
         OneDimension = 1,
 
         /// <summary>
         /// The variable is always an array with two or
         /// more dimensions.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "TwoDimensions")]
         TwoDimensions = 2
     }
 }

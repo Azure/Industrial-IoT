@@ -10,7 +10,6 @@ trigger:
     include:
     - main
     - releases
-    - dev/*
     - release/*
 
 stages:
@@ -29,7 +28,7 @@ stages:
   jobs:
   - template: tools/templates/nuget.yml
     parameters:
-      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/main') }}
 - stage: images
   displayName: 'Build Images'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

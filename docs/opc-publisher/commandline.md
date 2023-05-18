@@ -32,10 +32,21 @@ General
                                This file is also used to persist changes made
                                through the control plane, e.g., through IoT Hub
                                device method calls.
-                               When this file is specified, or the default file
-                               is accessible by the module, OPC Publisher will
-                               start in standalone mode.
+                               When no file is specified a default `
+                               publishednodes.json` file is created in the
+                               working directory.
                                Default: `publishednodes.json`
+      --cf, --createifnotexist, --CreatePublishFileIfNotExistKey[=VALUE]
+                             Permit publisher to create the the specified
+                               publish file if it does not exist. The new file
+                               will be created under the access rights of the
+                               publisher module.
+                               The default file 'publishednodes.json' is always
+                               created when no file name was provided on the
+                               command line and this option is ignored.
+                               If a file was specified but does not exist and
+                               should not be created the module exits.
+                               Default: `false`
       --id, --publisherid, --PublisherId=VALUE
                              Sets the publisher id of the publisher.
                                Default: `not set` which results in the IoT edge
@@ -89,10 +100,9 @@ Messaging configuration
                                When `--bs` is 1 and `--bi` is set to 0 batching
                                is disabled.
                                Default: `10000` (10 seconds).
-                               Alternatively can be set using `
-                               BatchTriggerInterval` environment variable in
-                               the form of a time span string formatted string `
-                               [d.]hh:mm:ss[.fffffff]`.
+                               Also can be set using `BatchTriggerInterval`
+                               environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`.
       --bs, --batchsize, --BatchSize=VALUE
                              The number of incoming OPC UA subscription
                                notifications to collect until sending a network
@@ -187,15 +197,15 @@ Transport settings
   -p, --httpserverport, --HttpServerPort=VALUE
                              The port on which the http server of OPC Publisher
                                is listening.
-                               Default: `443` if no value is provided.
+                               Default: `9072` if no value is provided.
       --unsecurehttp, --UnsecureHttpServerPort[=VALUE]
                              Allow unsecure access to the REST api of OPC
                                Publisher. A port can be specified if the
-                               default port 80 is not desired.
+                               default port 9071 is not desired.
                                Do not enable this in production as it exposes
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
-                               `80` port is used.
+                               `9071` port is used.
 
 Routing configuration
 ---------------------
@@ -294,20 +304,18 @@ Subscription settings
                                an explicit sampling interval for a node was not
                                configured.
                                Default: `1000`.
-                               Alternatively can be set using `
-                               DefaultSamplingInterval` environment variable in
-                               the form of a time span string formatted string `
-                               [d.]hh:mm:ss[.fffffff]`.
+                               Also can be set using `DefaultSamplingInterval`
+                               environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`.
       --op, --opcpublishinginterval, --DefaultPublishingInterval=VALUE
                              Default value in milliseconds for the publishing
                                interval setting of a subscription created with
                                an OPC UA server. This value is used if an
                                explicit publishing interval was not configured.
                                Default: `1000`.
-                               Alternatively can be set using `
-                               DefaultPublishingInterval` environment variable
-                               in the form of a time span string formatted
-                               string `[d.]hh:mm:ss[.fffffff]`.
+                               Also can be set using `DefaultPublishingInterval`
+                                environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`.
       --kt, --keepalivethreshold, --MaxKeepAliveCount=VALUE
                              Specify the number of keep alive packets a server
                                can miss, before the session is disconneced.
@@ -356,10 +364,9 @@ Subscription settings
                                interval setting. A heartbeat is sent at this
                                interval if no value has been received.
                                Default: `0` (disabled)
-                               Alternatively can be set using `
-                               DefaultHeartbeatInterval` environment variable
-                               in the form of a time span string formatted
-                               string `[d.]hh:mm:ss[.fffffff]`.
+                               Also can be set using `DefaultHeartbeatInterval`
+                               environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`.
       --slt, --MinSubscriptionLifetime=VALUE
                              Minimum subscription lifetime in seconds as per
                                OPC UA definition.
@@ -541,10 +548,9 @@ Diagnostic options
                                disables remote diagnostic log and diagnostic
                                output.
                                Default:60000 (60 seconds).
-                               Alternatively can be set using `
-                               DiagnosticsInterval` environment variable in the
-                               form of a time span string formatted string `[d.]
-                               hh:mm:ss[.fffffff]`".
+                               Also can be set using `DiagnosticsInterval`
+                               environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`".
       --ll, --loglevel, --LogLevel=VALUE
                              The loglevel to use.
                                Allowed values:

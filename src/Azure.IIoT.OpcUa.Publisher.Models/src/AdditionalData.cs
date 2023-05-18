@@ -19,21 +19,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// No additional data
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None = 0x0,
 
         /// <summary>
         /// A data value which was calculated with an
         /// incomplete interval.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Partial")]
         Partial = 0x4,
 
         /// <summary>
         /// A raw data value that hides other data at
         /// the same timestamp.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ExtraData")]
         ExtraData = 0x8,
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// (i.e. multiple minimum values at different
         /// timestamps within the same interval)
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "MultipleValues")]
         MultipleValues = 0x10
     }
 }

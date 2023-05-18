@@ -18,70 +18,70 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// No access
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None = 0x0,
 
         /// <summary>
         /// The current value of the Variable may be read.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "CurrentRead")]
         CurrentRead = 0x1,
 
         /// <summary>
         /// The current value of the Variable may be written.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "CurrentWrite")]
         CurrentWrite = 0x2,
 
         /// <summary>
         /// The history for the Variable may be read.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "HistoryRead")]
         HistoryRead = 0x4,
 
         /// <summary>
         /// The history for the Variable may be updated.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "HistoryWrite")]
         HistoryWrite = 0x8,
 
         /// <summary>
         /// Indicates if the Variable generates
         /// SemanticChangeEvents when its value changes.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SemanticChange")]
         SemanticChange = 0x10,
 
         /// <summary>
         /// Indicates if the current StatusCode of the
         /// value is writable.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "StatusWrite")]
         StatusWrite = 0x20,
 
         /// <summary>
         /// Indicates if the current SourceTimestamp is
         /// writable.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "TimestampWrite")]
         TimestampWrite = 0x40,
 
         /// <summary>
         /// Reads are not atomic.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NonatomicRead")]
         NonatomicRead = 0x100,
 
         /// <summary>
         /// Writes are not atomic
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NonatomicWrite")]
         NonatomicWrite = 0x200,
 
         /// <summary>
         /// Writes cannot be performed with IndexRange.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "WriteFullArrayOnly")]
         WriteFullArrayOnly = 0x400,
     }
 }

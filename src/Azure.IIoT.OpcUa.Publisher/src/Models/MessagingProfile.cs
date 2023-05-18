@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -94,6 +95,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             var key = (messageMode, GetMessageEncoding(encoding));
             return kProfiles[key];
+        }
+
+        /// <summary>
+        /// Find profile
+        /// </summary>
+        /// <param name="messageType"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="dataSetMessageContentMask"></param>
+        /// <param name="dataSetFieldContentMask"></param>
+        /// <returns></returns>
+        public static MessagingProfile? Find(MessageEncoding? messageType,
+            NetworkMessageContentMask? networkMessageContentMask,
+            DataSetContentMask? dataSetMessageContentMask,
+            DataSetFieldContentMask? dataSetFieldContentMask)
+        {
+            // TODO: Use hash code from custom messaging profile?
+            return kProfiles.Values
+                .FirstOrDefault(p =>
+                    (messageType == null ||
+                        p.MessageEncoding == messageType) &&
+                    (networkMessageContentMask == null ||
+                        p.NetworkMessageContentMask == networkMessageContentMask) &&
+                    (dataSetMessageContentMask == null ||
+                        p.DataSetMessageContentMask == dataSetMessageContentMask) &&
+                    (dataSetFieldContentMask == null ||
+                        p.DataSetFieldContentMask == dataSetFieldContentMask))
+                ;
         }
 
         /// <summary>

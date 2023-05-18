@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/discovery/{discovererId}");
+            var uri = new Uri($"{_serviceUri}/v2/discovery/{Uri.EscapeDataString(discovererId)}");
             await _httpClient.PatchAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/discovery/{discovererId}");
+            var uri = new Uri($"{_serviceUri}/v2/discovery/{Uri.EscapeDataString(discovererId)}");
             return await _httpClient.GetAsync<DiscovererModel>(uri, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}")
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{Uri.EscapeDataString(discovererId)}")
             {
                 Query = $"mode={mode}"
             };
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/supervisors/{supervisorId}");
+            var uri = new Uri($"{_serviceUri}/v2/supervisors/{Uri.EscapeDataString(supervisorId)}");
             await _httpClient.PatchAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -235,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}");
+            var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{Uri.EscapeDataString(supervisorId)}");
             if (onlyServerState ?? false)
             {
                 uri.Query = "onlyServerState=true";
@@ -282,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/discover/${request.Id}");
+            var uri = new Uri($"{_serviceUri}/v2/applications/discover/${Uri.EscapeDataString(request.Id)}");
             await _httpClient.DeleteAsync(uri,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -311,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/enable");
+            var uri = new Uri($"{_serviceUri}/v2/applications/{Uri.EscapeDataString(applicationId)}/enable");
             await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/disable");
+            var uri = new Uri($"{_serviceUri}/v2/applications/{Uri.EscapeDataString(applicationId)}/disable");
             await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -340,7 +340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            var uri = new Uri($"{_serviceUri}/v2/applications/{Uri.EscapeDataString(applicationId)}");
             await _httpClient.PatchAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -353,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            var uri = new Uri($"{_serviceUri}/v2/applications/{Uri.EscapeDataString(applicationId)}");
             return await _httpClient.GetAsync<ApplicationRegistrationModel>(uri,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -418,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            var uri = new Uri($"{_serviceUri}/v2/applications/{Uri.EscapeDataString(applicationId)}");
             await _httpClient.DeleteAsync(uri, authorization: _authorization,
                 ct: ct).ConfigureAwait(false);
         }
@@ -492,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}");
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{Uri.EscapeDataString(endpointId)}");
             if (onlyServerState ?? false)
             {
                 uri.Query = "onlyServerState=true";
@@ -509,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{Uri.EscapeDataString(endpointId)}/certificate");
             return await _httpClient.GetAsync<X509CertificateChainModel>(uri,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -522,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/test");
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{Uri.EscapeDataString(endpointId)}/test");
             return await _httpClient.PostAsync<TestConnectionResponseModel>(uri, request,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -535,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/activate");
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{Uri.EscapeDataString(endpointId)}/connect");
             return await _httpClient.PostAsync<ConnectResponseModel>(uri, request,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -548,7 +548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/deactivate");
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{Uri.EscapeDataString(endpointId)}/disconnect");
             await _httpClient.PostAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -588,9 +588,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(publisherId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/publishers/{publisherId}");
+            var uri = new Uri($"{_serviceUri}/v2/publishers/{Uri.EscapeDataString(publisherId)}");
             await _httpClient.PatchAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<PublishedNodesEntryModel> GetConfiguredEndpointsAsync(
+            string publisherId, GetConfiguredEndpointsRequestModel request, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(publisherId))
+            {
+                throw new ArgumentNullException(nameof(publisherId));
+            }
+            var uri = new UriBuilder(
+                $"{_serviceUri}/v2/publishers/{Uri.EscapeDataString(publisherId)}/endpoints");
+            if (request?.IncludeNodes ?? false)
+            {
+                uri.Query = "includeNodes=true";
+            }
+            return _httpClient.GetStreamAsync<PublishedNodesEntryModel>(uri.Uri, _serializer,
+                authorization: _authorization, ct: ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task SetConfiguredEndpointsAsync(string publisherId,
+            SetConfiguredEndpointsRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var uri = new Uri($"{_serviceUri}/v2/publishers/{Uri.EscapeDataString(publisherId)}/endpoints");
+            await _httpClient.PutAsync(uri, request,
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -621,7 +652,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(publisherId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/publishers/{publisherId}");
+            var uri = new UriBuilder($"{_serviceUri}/v2/publishers/{Uri.EscapeDataString(publisherId)}");
             if (onlyServerState ?? false)
             {
                 uri.Query = "onlyServerState=true";
@@ -660,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/gateways/{gatewayId}");
+            var uri = new Uri($"{_serviceUri}/v2/gateways/{Uri.EscapeDataString(gatewayId)}");
             await _httpClient.PatchAsync(uri, request, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -688,7 +719,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/gateways/{gatewayId}");
+            var uri = new Uri($"{_serviceUri}/v2/gateways/{Uri.EscapeDataString(gatewayId)}");
             return await _httpClient.GetAsync<GatewayInfoModel>(uri, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }

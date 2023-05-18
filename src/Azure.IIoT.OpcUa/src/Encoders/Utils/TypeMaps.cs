@@ -29,6 +29,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
             new Lazy<TypeMaps>(() => new TypeMaps(typeof(ReferenceTypes)), true);
 
         /// <summary>
+        /// Object types type map
+        /// </summary>
+        public static Lazy<TypeMaps> ObjectTypes { get; } =
+            new Lazy<TypeMaps>(() => new TypeMaps(typeof(ObjectTypes)), true);
+
+        /// <summary>
         /// Attributes type map
         /// </summary>
         public static Lazy<TypeMaps> Attributes { get; } =

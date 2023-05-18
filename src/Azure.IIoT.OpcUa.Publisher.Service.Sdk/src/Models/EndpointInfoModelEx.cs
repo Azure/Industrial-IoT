@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             endpoint.ApplicationId = update.ApplicationId;
             endpoint.EndpointState = update.EndpointState;
             endpoint.NotSeenSince = update.NotSeenSince;
-            endpoint.OutOfSync = update.OutOfSync;
             endpoint.Registration = (update.Registration ?? new EndpointRegistrationModel())
                 .Patch(endpoint.Registration);
             return endpoint;

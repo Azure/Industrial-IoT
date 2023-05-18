@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Site or gateway id
         /// </summary>
         [DataMember]
-        public override string? SiteOrGatewayId => this.GetSiteOrGatewayId();
+        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
 
         /// <summary>
         /// Identity that owns the twin.
@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Endpoint connectivity status
         /// </summary>
         [DataMember]
-        public EndpointConnectivityState State { get; set; }
+        public EndpointConnectivityState? State { get; set; }
 
         /// <summary>
         /// Certificate Thumbprint

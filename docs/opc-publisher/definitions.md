@@ -354,7 +354,7 @@ Connection model
 |---|---|---|
 |**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
 |**endpoint**  <br>*optional*||[EndpointModel](definitions.md#endpointmodel)|
-|**group**  <br>*optional*|Group Id of the data set associated to the<br>connection that the stram belongs to.|string|
+|**group**  <br>*optional*|Connection group allows splitting connections<br>per purpose.|string|
 |**user**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
 
 
@@ -688,6 +688,7 @@ Filter operand
 |**alias**  <br>*optional*|Optional alias to refer to it makeing it a<br>full blown attribute operand|string|
 |**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
 |**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
+|**dataType**  <br>*optional*|Data type if operand is a literal|string|
 |**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int64)|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
@@ -935,7 +936,7 @@ Instance declaration meta data
 |Name|Description|Schema|
 |---|---|---|
 |**browseName**  <br>*optional*|The browse name for the instance declaration.|string|
-|**browsePath**  <br>*optional*|The browse path|string|
+|**browsePath**  <br>*optional*|The browse path|< string > array|
 |**description**  <br>*optional*|The description for the instance declaration.|string|
 |**displayName**  <br>*optional*|The display name for the instance declaration.|string|
 |**displayPath**  <br>*optional*|A localized path to the instance declaration.|string|
@@ -947,6 +948,20 @@ Instance declaration meta data
 |**overriddenDeclaration**  <br>*optional*||[InstanceDeclarationModel](definitions.md#instancedeclarationmodel)|
 |**rootTypeId**  <br>*optional*|The type that the declaration belongs to.|string|
 |**variable**  <br>*optional*||[VariableMetadataModel](definitions.md#variablemetadatamodel)|
+
+
+<a name="messageencoding"></a>
+### MessageEncoding
+Message encoding
+
+*Type* : enum (Binary, Json, Xml, IsReversible, Uadp, JsonReversible, IsGzipCompressed, JsonGzip, JsonReversibleGzip)
+
+
+<a name="messagingmode"></a>
+### MessagingMode
+Message modes
+
+*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, RawDataSets)
 
 
 <a name="methodcallargumentmodel"></a>
@@ -1525,6 +1540,8 @@ Contains the nodes which should be published
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointUrl**  <br>*optional*|The endpoint URL of the OPC UA server.|string|
 |**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
+|**MessageType**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
+|**MessagingMode**  <br>*optional*||[MessagingMode](definitions.md#messagingmode)|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
 |**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
 |**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
@@ -1541,6 +1558,49 @@ Contains the nodes which should be published
 PublishNodes direct method response
 
 *Type* : object
+
+
+<a name="querycompilationrequestmodel"></a>
+### QueryCompilationRequestModel
+Query compiler request model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**query**  <br>*required*|The query to compile.  <br>**Minimum length** : `1`|string|
+|**queryType**  <br>*required*||[QueryType](definitions.md#querytype)|
+
+
+<a name="querycompilationrequestmodelrequestenvelope"></a>
+### QueryCompilationRequestModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*required*|[QueryCompilationRequestModel](definitions.md#querycompilationrequestmodel)|
+
+
+<a name="querycompilationresponsemodel"></a>
+### QueryCompilationResponseModel
+Query compiler response model
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**eventFilter**  <br>*optional*|[EventFilterModel](definitions.md#eventfiltermodel)|
+
+
+<a name="querytype"></a>
+### QueryType
+Query type
+
+*Type* : enum (Event, Query)
 
 
 <a name="readeventsdetailsmodel"></a>
@@ -1872,6 +1932,16 @@ Service result
 |**namespaceUri**  <br>*optional*|Namespace uri|string|
 |**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
 |**symbolicId**  <br>*optional*|Symbolic identifier|string|
+
+
+<a name="setconfiguredendpointsrequestmodel"></a>
+### SetConfiguredEndpointsRequestModel
+Set configured endpoints request call
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endpoints**  <br>*optional*|Endpoints and nodes that make up the configuration|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
 
 
 <a name="simpleattributeoperandmodel"></a>

@@ -16,19 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Status
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Status")]
         Status,
 
         /// <summary>
         /// Status value
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "StatusValue")]
         StatusValue,
 
         /// <summary>
         /// Status value and timestamp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "StatusValueTimestamp")]
         StatusValueTimestamp
     }
 }

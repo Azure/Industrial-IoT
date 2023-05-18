@@ -16,103 +16,103 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Discovery run pending
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Pending")]
         Pending,
 
         /// <summary>
         /// Discovery run started
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Started")]
         Started,
 
         /// <summary>
         /// Discovery was cancelled
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Cancelled")]
         Cancelled,
 
         /// <summary>
         /// Discovery resulted in error
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Error")]
         Error,
 
         /// <summary>
         /// Discovery finished
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Finished")]
         Finished,
 
         /// <summary>
         /// Network scanning started
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkScanStarted")]
         NetworkScanStarted,
 
         /// <summary>
         /// Network scanning result
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkScanResult")]
         NetworkScanResult,
 
         /// <summary>
         /// Network scan progress
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkScanProgress")]
         NetworkScanProgress,
 
         /// <summary>
         /// Network scan finished
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NetworkScanFinished")]
         NetworkScanFinished,
 
         /// <summary>
         /// Port scan started
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PortScanStarted")]
         PortScanStarted,
 
         /// <summary>
         /// Port scan result
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PortScanResult")]
         PortScanResult,
 
         /// <summary>
         /// Port scan progress
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PortScanProgress")]
         PortScanProgress,
 
         /// <summary>
         /// Port scan finished
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PortScanFinished")]
         PortScanFinished,
 
         /// <summary>
         /// Server discovery started
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ServerDiscoveryStarted")]
         ServerDiscoveryStarted,
 
         /// <summary>
         /// Endpoint discovery started
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "EndpointsDiscoveryStarted")]
         EndpointsDiscoveryStarted,
 
         /// <summary>
         /// Endpoint discovery finished
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "EndpointsDiscoveryFinished")]
         EndpointsDiscoveryFinished,
 
         /// <summary>
         /// Server discovery finished
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ServerDiscoveryFinished")]
         ServerDiscoveryFinished,
     }
 }

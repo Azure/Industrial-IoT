@@ -29,27 +29,31 @@ namespace IIoTPlatform_E2E_Tests.Discovery
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
 
             _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Get OAuth token
-            var token = TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
-            Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(0)]
+        public async Task TestPrepareAsync()
+        {
+            // Get OAuth token
+            var token = await TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
+            Assert.NotEmpty(token);
+        }
+
+        [Fact, PriorityOrder(1)]
         public async Task TestDiscoverAllOpcUaEndpoints()
         {
             await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
 
             // Add 5 servers
             var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToHashSet();
-            AddTestOpcServers(urls, _cancellationTokenSource.Token);
+            await AddTestOpcServersAsync(urls, _cancellationTokenSource.Token).ConfigureAwait(false);
 
             // Discover all servers
             await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, urls, _cancellationTokenSource.Token).ConfigureAwait(false);
         }
 
-        [Fact, PriorityOrder(1)]
+        [Fact, PriorityOrder(2)]
         public async Task TestDiscoverOpcUaEndpointsIpAddress()
         {
             await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
@@ -58,21 +62,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery
             var ipAddress = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).First();
             var url = $"opc.tcp://{ipAddress}:50000";
             var urls = new HashSet<string> { url };
-            AddTestOpcServers(urls, _cancellationTokenSource.Token);
-
-            // Discover all servers
-            await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
-                _context, urls, _cancellationTokenSource.Token).ConfigureAwait(false);
-        }
-
-        [Fact, PriorityOrder(2)]
-        public async Task TestDiscoverOpcUaEndpointsPortRange()
-        {
-            await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
-
-            // Add 2 servers
-            var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(2).ToHashSet();
-            AddTestOpcServers(urls, _cancellationTokenSource.Token);
+            await AddTestOpcServersAsync(urls, _cancellationTokenSource.Token).ConfigureAwait(false);
 
             // Discover all servers
             await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
@@ -80,12 +70,26 @@ namespace IIoTPlatform_E2E_Tests.Discovery
         }
 
         [Fact, PriorityOrder(3)]
+        public async Task TestDiscoverOpcUaEndpointsPortRange()
+        {
+            await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
+
+            // Add 2 servers
+            var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(2).ToHashSet();
+            await AddTestOpcServersAsync(urls, _cancellationTokenSource.Token).ConfigureAwait(false);
+
+            // Discover all servers
+            await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
+                _context, urls, _cancellationTokenSource.Token).ConfigureAwait(false);
+        }
+
+        [Fact, PriorityOrder(4)]
         public async Task TestDiscoverCleanupRegistry()
         {
             await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token).ConfigureAwait(false);
         }
 
-        private void AddTestOpcServers(HashSet<string> endpointUrls, CancellationToken ct)
+        private async Task AddTestOpcServersAsync(HashSet<string> endpointUrls, CancellationToken ct)
         {
             foreach (var endpointUrl in endpointUrls)
             {
@@ -93,7 +97,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery
                 {
                     discoveryUrl = endpointUrl
                 };
-                var response = TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body, ct: ct);
+                var response = await TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body, ct: ct).ConfigureAwait(false);
                 Assert.True(response.IsSuccessful, $"Got {response.StatusCode} registering {endpointUrl} discovery url");
             }
         }

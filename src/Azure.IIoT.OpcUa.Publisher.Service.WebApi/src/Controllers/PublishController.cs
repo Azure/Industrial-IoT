@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Start publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Adds or removes in bulk values that should be published from a particular
         /// endpoint.
         /// </remarks>
-        /// <param name="endpointId">The identifier of an activated endpoint.</param>
+        /// <param name="endpointId">The identifier of a registered endpoint.</param>
         /// <param name="request">The bulk publish request</param>
         /// <param name="ct"></param>
         /// <returns>The bulk publish response</returns>
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Stop publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Returns currently published node ids for an endpoint.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Returns next set of currently published node ids for an endpoint.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>

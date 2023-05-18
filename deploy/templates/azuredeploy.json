@@ -345,6 +345,7 @@
         "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
         "platformResourcName": "platform",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
+        "platformConfigurationResourceName": "platform.configuration",
         "simulationDeployment": "[not(and(equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
         "simulationResourcName": "simulation",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
@@ -647,10 +648,6 @@
                     "configuration": {
                         "value": [
                             {
-                                "key": "PCS_AUTH_REQUIRED",
-                                "value": "[not(empty(parameters('serviceAppId')))]"
-                            },
-                            {
                                 "key": "PCS_AUTH_TENANT",
                                 "value": "[subscription().tenantId]"
                             },
@@ -739,26 +736,6 @@
                                 "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]"
                             },
                             {
-                                "key": "PCS_MSI_APPID",
-                                "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
-                            },
-                            {
-                                "key": "PCS_MSI_TENANT",
-                                "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
-                            },
-                            {
-                                "key": "PCS_DPS_CONNSTRING",
-                                "value": "[concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey)]"
-                            },
-                            {
-                                "key": "PCS_DPS_IDSCOPE",
-                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').idScope]"
-                            },
-                            {
-                                "key": "PCS_DPS_ENDPOINT",
-                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').deviceProvisioningHostName]"
-                            },
-                            {
                                 "key": "PCS_SUBSCRIPTION_ID",
                                 "value": "[subscription().subscriptionId]"
                             },
@@ -839,6 +816,39 @@
             },
             "dependsOn": [
                 "[variables('configurationResourceId')]"
+            ]
+        },
+        {
+            "comments": "Save platform configuration in KeyVault.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-08-01",
+            "name": "[variables('platformConfigurationResourceName')]",
+            "condition": "[variables('platformDeployment')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "configuration": {
+                        "value": [
+                            {
+                                "key": "PCS_SERVICE_URL",
+                                "value":  "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.serviceUrl.value, '')]"
+                            }
+                        ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('platformResourceId')]"
             ]
         },
         {

@@ -66,5 +66,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "alias", Order = 6,
             EmitDefaultValue = false)]
         public string? Alias { get; set; }
+
+        /// <summary>
+        /// Data type if operand is a literal
+        /// </summary>
+        [DataMember(Name = "dataType", Order = 7,
+            EmitDefaultValue = false)]
+        public string? DataType { get; init; }
     }
 }

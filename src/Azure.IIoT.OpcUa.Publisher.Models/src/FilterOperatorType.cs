@@ -16,109 +16,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Equals
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Equals")]
         Equals,
 
         /// <summary>
         /// Element == null
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "IsNull")]
         IsNull,
 
         /// <summary>
         /// Greater than
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "GreaterThan")]
         GreaterThan,
 
         /// <summary>
         /// Less than
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "LessThan")]
         LessThan,
 
         /// <summary>
         /// Greater than or equal
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "GreaterThanOrEqual")]
         GreaterThanOrEqual,
 
         /// <summary>
         /// Less than or equal
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "LessThanOrEqual")]
         LessThanOrEqual,
 
         /// <summary>
         /// String match
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Like")]
         Like,
 
         /// <summary>
         /// Logical not
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Not")]
         Not,
 
         /// <summary>
         /// Between
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Between")]
         Between,
 
         /// <summary>
         /// In list
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "InList")]
         InList,
 
         /// <summary>
         /// Logical And
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "And")]
         And,
 
         /// <summary>
         /// Logical Or
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Or")]
         Or,
 
         /// <summary>
         /// Cast
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Cast")]
         Cast,
 
         /// <summary>
         /// View scope
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "InView")]
         InView,
 
         /// <summary>
         /// Type test
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "OfType")]
         OfType,
 
         /// <summary>
         /// Relationship
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "RelatedTo")]
         RelatedTo,
 
         /// <summary>
         /// Bitwise and
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "BitwiseAnd")]
         BitwiseAnd,
 
         /// <summary>
         /// Bitwise or
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "BitwiseOr")]
         BitwiseOr
     }
 }

@@ -9,6 +9,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
     using Microsoft.CSharp.RuntimeBinder;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -25,11 +26,17 @@ namespace IIoTPlatform_E2E_Tests.Twin
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
+        [Fact, PriorityOrder(0)]
+        public async Task TestPrepareAsync()
+        {
+            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+        }
+
         [Fact, PriorityOrder(1)]
-        public void GetMethodMetadata()
+        public async Task GetMethodMetadata()
         {
             const string methodId = "i=13358"; // CreateFile
-            var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
+            var methodMetadata = await TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).ConfigureAwait(false);
 
             Assert.Equal(methodMetadata.objectId, "i=13354");
             Assert.Equal(methodMetadata.inputArguments.Count, 2);
@@ -47,7 +54,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
         }
 
         [Fact, PriorityOrder(2)]
-        public void CallMethod()
+        public async Task CallMethod()
         {
             // CreateFile method - not implemented
             var methodId = "i=13358";
@@ -55,8 +62,8 @@ namespace IIoTPlatform_E2E_Tests.Twin
                 new {dataType = "String", value = "TestFile"},
                 new {dataType = "Boolean", value = "false"}
             };
-            var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            var response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
+            var methodMetadata = await TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).ConfigureAwait(false);
+            var response = await TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments);
             Assert.Equal("BadNotImplemented", GetErrorMessage(response));
 
             // ConditionRefresh method - wrong arguments
@@ -65,14 +72,14 @@ namespace IIoTPlatform_E2E_Tests.Twin
                 new {dataType = "IntegerId", value = "0"}
             };
 
-            methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
+            methodMetadata = await TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).ConfigureAwait(false);
+            response = await TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments);
             Assert.True(GetErrorMessage(response).Contains("Cannot refresh conditions for a subscription that does not exist"));
 
             // HeaterOn method - no arguments expected
             methodId = "http://microsoft.com/Opc/OpcPlc/Boiler#s=HeaterOn";
-            methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, new List<object>()).GetAwaiter().GetResult();
+            methodMetadata = await TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).ConfigureAwait(false);
+            response = await TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, new List<object>());
             Assert.Null(GetErrorMessage(response));
         }
 

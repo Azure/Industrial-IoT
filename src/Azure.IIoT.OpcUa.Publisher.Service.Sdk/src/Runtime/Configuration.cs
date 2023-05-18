@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
                 {
                     options.ServiceUrl = GetStringOrDefault(kServiceUrlKey,
                         GetStringOrDefault(EnvVars.PCS_SERVICE_URL,
-                            "http://localhost:9045"));
+                            "http://localhost:9080"));
                 }
             }
 

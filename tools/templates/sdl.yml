@@ -40,6 +40,10 @@ jobs:
     condition: succeededOrFailed()
   - task: PostAnalysis@2
     displayName: 'Post Analysis'
+    inputs:
+      GdnBreakPolicyMinSev: Warning
+    continueOnError: true
+    condition: succeededOrFailed()
 - job: sdl
   displayName: SDL Tasks
   pool:
@@ -71,6 +75,7 @@ jobs:
     displayName: 'Credential Scanner'
     inputs:
       toolMajorVersion: V2
+      outputFormat: pre
   - task: DotNetCoreCLI@2
     displayName: Build Release
     inputs:
@@ -98,6 +103,7 @@ jobs:
 #    displayName: 'Run ARMory'
 #    inputs:
 #      toolVersion: Latest
+#      targetFiles: 'f|**\*.json;-|.gdn\**;'
 #      targetDirectory: '$(Build.SourcesDirectory)'
 #    continueOnError: true
   - task: BinSkim@4
@@ -126,6 +132,34 @@ jobs:
       GdnExportGdnToolFortifySca: false
       GdnExportGdnToolRoslynAnalyzers: true
     condition: succeededOrFailed()
+  - task: PublishSecurityAnalysisLogs@3
+    displayName: 'Publish Security Analysis Logs'
+    continueOnError: true
+    condition: succeededOrFailed()
+  - task: PowerShell@2
+    displayName: 'Write TSA guardian configuration'
+    inputs:
+      targetType: 'inline'
+      script: |
+        $branch = $env:BUILD_SOURCEBRANCHNAME
+        if ($branch -ne "main") { $branch = "develop" }
+        @{
+            codebaseName = "Industrial_IoT_$($branch)"
+            serviceTreeId = "59eec07a-6f20-42b9-b41b-d20e0a6322da"
+            instanceUrl = "https://msazure.visualstudio.com/defaultcollection"
+            projectName = "One"
+            areaPath = "One\IoT\Platform and Devices\IoT Devices\Industrial\Community"
+            iterationPath = "One\Custom\IoT\Industrial\Backlog"
+            notificationAliases = @("azureiiot@microsoft.com")
+            allTools = $True
+        } | ConvertTo-Json | Out-File -FilePath "$(Build.SourcesDirectory)\.gdntsa" -Force -Encoding utf8
+    continueOnError: true
+  - task: TSAUpload@2
+    displayName: 'TSA upload'
+    inputs:
+      GdnPublishTsaOnboard: true
+      GdnPublishTsaConfigFile: '$(Build.SourcesDirectory)\.gdntsa'
+    continueOnError: true
   - task: PostAnalysis@2
     displayName: 'Post Analysis'
     inputs:
@@ -135,25 +169,6 @@ jobs:
       GdnBreakGdnToolCredScan: true
       GdnExportGdnToolFortifySca: false
       GdnBreakGdnToolRoslynAnalyzers: true
-    condition: succeededOrFailed()
-  - script: |
-      if not "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
-          if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]main
-  - task: TSAUpload@1
-    displayName: 'Upload to Stamp'
-    inputs:
-      tsaVersion: TsaV2
-      tsaEnvironment: 'PROD'
-      serviceTreeID: '59eec07a-6f20-42b9-b41b-d20e0a6322da'
-      codebase: NewOrUpdate
-      codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
-      instanceUrlForTsaV2: MSAZURE
-      projectNameMSAZURE: One
-      areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
-      iterationPath: 'One\Custom\IoT\Industrial\Backlog'
-      uploadBinSkim: true
-      uploadCredScan: true
-      uploadPoliCheck: false
-      uploadRoslyn: true
-      uploadAsync: true
+      # GdnBreakPolicyMinSev: Warning
     continueOnError: true
+    condition: succeededOrFailed()

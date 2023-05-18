@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
+            Assert.Contains("\"OpcAuthenticationMode\":\"Anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
             {
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
+            Assert.Contains("\"OpcAuthenticationMode\":\"Anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
             {
@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"usernamePassword\"", modeJson, StringComparison.Ordinal);
+            Assert.Contains("\"OpcAuthenticationMode\":\"UsernamePassword\"", modeJson, StringComparison.Ordinal);
         }
     }
 }

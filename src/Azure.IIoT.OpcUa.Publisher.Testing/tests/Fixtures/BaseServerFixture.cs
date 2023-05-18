@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Timers;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -56,6 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </summary>
         public IOpcUaClientManager<ConnectionModel> Client
             => _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
+
+        /// <summary>
+        /// Filter parser
+        /// </summary>
+        public IFilterParser Parser
+            => _container.Resolve<IFilterParser>();
 
         /// <summary>
         /// Now

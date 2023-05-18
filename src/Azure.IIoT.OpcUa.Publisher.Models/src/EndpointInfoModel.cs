@@ -30,18 +30,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string ApplicationId { get; set; } = null!;
 
         /// <summary>
-        /// Last state of the activated endpoint
+        /// Last state of the endpoint
         /// </summary>
         [DataMember(Name = "endpointState", Order = 3,
             EmitDefaultValue = false)]
         public EndpointConnectivityState? EndpointState { get; set; }
-
-        /// <summary>
-        /// Whether the registration is out of sync
-        /// </summary>
-        [DataMember(Name = "outOfSync", Order = 4,
-            EmitDefaultValue = false)]
-        public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Last time endpoint was seen

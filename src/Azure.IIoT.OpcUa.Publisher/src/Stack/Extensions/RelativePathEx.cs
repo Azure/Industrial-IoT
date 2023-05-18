@@ -187,7 +187,7 @@ namespace Opc.Ua.Extensions
         private static string FormatRelativePathElement(RelativePathElement element,
             IServiceMessageContext context)
         {
-            var value = "";
+            var value = string.Empty;
             var writeReference = false;
             if (element.ReferenceTypeId == ReferenceTypeIds.HierarchicalReferences)
             {

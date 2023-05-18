@@ -181,8 +181,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions
         string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
             () => string.Empty);
 
-        string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
-            () => throw new ArgumentException("ApplicationName is not provided."));
+        string IIIoTPlatformConfig.AuthServiceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_SERVICE_APPID,
+            () => string.Empty);
 
         string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
             () => throw new ArgumentException("Username of iot edge device is not provided."));

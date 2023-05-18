@@ -67,9 +67,7 @@ goto :args-continue
 :args-done
 
 :main
-pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\cli
-dotnet run console
-popd
+dotnet run --project %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\cli -- console
 
 set PCS_KEYVAULT_URL=
 set PCS_KEYVAULT_APPID=

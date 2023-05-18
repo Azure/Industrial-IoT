@@ -196,6 +196,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         }
 
         /// <inheritdoc/>
+        public async Task<QueryCompilationResponseModel> CompileQueryAsync(ConnectionModel endpoint,
+            QueryCompilationRequestModel request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(endpoint);
+            ArgumentNullException.ThrowIfNull(request);
+            var uri = new Uri($"{_serviceUri}/v2/query/compile");
+            return await _httpClient.PostAsync<QueryCompilationResponseModel>(uri,
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel endpoint,
             CancellationToken ct)
         {

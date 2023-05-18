@@ -147,19 +147,19 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
 
 2. Create and push images to this ACR:
 
-    * Download the zip (_metricsdashboard.zip_) located in this folder and extract it.
+    - Download the zip (_metricsdashboard.zip_) located in this folder and extract it.
 
-    * Navigate to **prometheus** folder as shown:
+    - Navigate to **prometheus** folder as shown:
 
       ![02](./media/02.JPG)
 
-    * Edit _prometheus.yml_ if needed. It defaults to scraping EdgeHub metrics at 9600 and OPC Publisher metrics at 9702. If only OPC Publisher metrics are needed, then remove the scraping config of EdgeHub.
+    - Edit _prometheus.yml_ if needed. It defaults to scraping EdgeHub metrics at 9600 and OPC Publisher metrics at 9702. If only OPC Publisher metrics are needed, then remove the scraping config of EdgeHub.
 
-    * Run _buildimage.bat_ and enter the _registryname_ , _password_ and _tagname_ when prompted. It will push the **edgeprometheus** image to container registry.
+    - Run _buildimage.bat_ and enter the _registryname_, _password_ and _tagname_ when prompted. It will push the **edgeprometheus** image to container registry.
 
       ![03](./media/03.JPG)
 
-    * Navigate back to the **grafana** folder and run _buildimage.bat_ located in this folder. Enter the same information to push the **edgegrafana** image to ACR.
+    - Navigate back to the **grafana** folder and run _buildimage.bat_ located in this folder. Enter the same information to push the **edgegrafana** image to ACR.
 
 3. Now go to the portal and verify that the images are present, as shown in the image below.
 
@@ -169,48 +169,48 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
 
 1. IoT Edge should now be configured to expose metrics. Navigate to the IoT Edge device to be used and perform the following steps:
 
-    * Select **Set Modules** to update the configuration
+    - Select **Set Modules** to update the configuration
 
-    * Enter the registry information in the **Container Registry Credentials** so that it can authenticate with the Azure Container Registry.
+    - Enter the registry information in the **Container Registry Credentials** so that it can authenticate with the Azure Container Registry.
 
      ![05](./media/05.JPG)
 
-    * Optional: Enable metrics of _edgeHub_ (Note: As of release 1.0.10, metrics are automatically exposed by default on http port **9600** of the EdgeHub)
+    - Optional: Enable metrics of _edgeHub_ (Note: As of release 1.0.10, metrics are automatically exposed by default on http port **9600** of the EdgeHub)
 
-      * Select the **Runtime Settings** option and for the EdgeHub and Agent, make sure that the
+      - Select the **Runtime Settings** option and for the EdgeHub and Agent, make sure that the
         stable version is selected with version 1.0.9.4+
 
         ![06](./media/06.JPG)
 
-      * Adjust the EdgeHub **Create Options** to include the Exposed Ports directive as shown above.
+      - Adjust the EdgeHub **Create Options** to include the Exposed Ports directive as shown above.
 
-      * Add the following environment variables to the EdgeHub. (Not needed for version 1.0.10+)
+      - Add the following environment variables to the EdgeHub. (Not needed for version 1.0.10+)
 
         **ExperimentalFeatures__Enabled         : true**
 
         **ExperimentalFeaturesEnable__Metrics   : true**
 
-      * Save the dialog to complete the runtime adjustments.
+      - Save the dialog to complete the runtime adjustments.
 
-    * Expose port on publisher module:
+    - Expose port on publisher module:
 
-      * Navigate to the publisher and expose port **9702** to allow the metrics to be scraped, by adding the exposed ports option in the Container Create Options in the Azure portal.
+      - Navigate to the publisher and expose port **9702** to allow the metrics to be scraped, by adding the exposed ports option in the Container Create Options in the Azure portal.
 
         ![07](./media/07.JPG)
 
-      * Select **Update** to complete the changes made to the OPC publisher module.
+      - Select **Update** to complete the changes made to the OPC publisher module.
 
 2. Now add new modules based on the Prometheus and Grafana images created previously.
 
-    * Prometheus:
+    - Prometheus:
 
-      * Add a new “IoT Edge Module” from the “+ Add” drop down list.
+      - Add a new “IoT Edge Module” from the “+ Add” drop down list.
 
-      * Add a module named **prometheus** with the image uploaded previously to the Azure Container Registry.
+      - Add a module named **prometheus** with the image uploaded previously to the Azure Container Registry.
 
         ![08](./media/08.JPG)
 
-      * In the **Container Create Options** expose and bind the Prometheus port 9090.
+      - In the **Container Create Options** expose and bind the Prometheus port 9090.
 
         ```json
         {
@@ -230,29 +230,29 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
         }
         ```
 
-      * Click **Update** to complete the changes to the Prometheus module.
+      - Click **Update** to complete the changes to the Prometheus module.
 
-      * Select **Review and Create** and complete the deployment by choosing **Create**.
+      - Select **Review and Create** and complete the deployment by choosing **Create**.
 
-    * Grafana:
+    - Grafana:
 
-      * Add a new “IoT Edge Module” from the “+ Add” drop down list.
+      - Add a new “IoT Edge Module” from the “+ Add” drop down list.
 
-      * Add a module named **grafana** with the image uploaded previously to the Azure Container Registry.
+      - Add a module named **grafana** with the image uploaded previously to the Azure Container Registry.
 
         ![09](./media/09.JPG)
 
-      * Update the environment variables to control access to the Grafana dashboard.
+      - Update the environment variables to control access to the Grafana dashboard.
 
-        * GF_SECURITY_ADMIN_USER - admin
+        - GF_SECURITY_ADMIN_USER - admin
 
-        * GF_SECURITY_ADMIN_PASSWORD - iiotgrafana
+        - GF_SECURITY_ADMIN_PASSWORD - iiotgrafana
 
-        * GF_SERVER_ROOT_URL  - <http://localhost:3000>
+        - GF_SERVER_ROOT_URL  - <http://localhost:3000>
 
           ![10](./media/10.JPG)
 
-      * In the **Container Create Options** expose and bind the Grafana port 3000.
+      - In the **Container Create Options** expose and bind the Grafana port 3000.
 
         ```json
         {
@@ -272,45 +272,45 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
          }
         ```
 
-      * Click **Update** to complete the changes to the Grafana module.
+      - Click **Update** to complete the changes to the Grafana module.
 
-      * Select **Review and Create** and complete the deployment by choosing **Create**.
+      - Select **Review and Create** and complete the deployment by choosing **Create**.
 
-    * Verify all the modules are running successfully:
+    - Verify all the modules are running successfully:
 
       ![15](./media/15.JPG)
 
 ### View Prometheus dashboard
 
-* Navigate to the Prometheus dashboard through a web browser on the IoT Edge’s host on port 9090.
+- Navigate to the Prometheus dashboard through a web browser on the IoT Edge’s host on port 9090.
 
-  * <http://{edge> host IP or name}:9090/graph
-  * **Note**: When using a VM, make sure to add an inbound rule for port 9090
+  - <http://{edge> host IP or name}:9090/graph
+  - **Note**: When using a VM, make sure to add an inbound rule for port 9090
 
-* Check the target state by navigating to **/targets**
+- Check the target state by navigating to **/targets**
 
   ![12](./media/12.JPG)
 
-* Metrics can be viewed as shown:
+- Metrics can be viewed as shown:
 
   ![11](./media/11.JPG)
 
-* ![13](./media/13.JPG)
+- ![13](./media/13.JPG)
 
 ### View Grafana dashboard
 
-* Navigate to the Grafana dashboard through a web browser against the edge’s host on port 3000.
-  * <http://{edge> host IP or name}:3000
-  * When prompted for a user name and password enter the values entered in the environment variables
-  * **Note**: When using a VM, make sure to add an inbound rule for port 3000
+- Navigate to the Grafana dashboard through a web browser against the edge’s host on port 3000.
+  - <http://{edge> host IP or name}:3000
+  - When prompted for a user name and password enter the values entered in the environment variables
+  - **Note**: When using a VM, make sure to add an inbound rule for port 3000
   
-* Prometheus has already been configured as a data source and can now be directly accessed. Prometheus is scraping EdgeHub and OPC Publisher metrics.
+- Prometheus has already been configured as a data source and can now be directly accessed. Prometheus is scraping EdgeHub and OPC Publisher metrics.
 
-* Select the dashboards option to view the available dashboards and select “Publisher” to view the pre-configured dashboard as shown below.
+- Select the dashboards option to view the available dashboards and select “Publisher” to view the pre-configured dashboard as shown below.
 
   ![14](./media/14.JPG)
 
-* One could easily add/remove more panels to this dashboard as per the needs.
+- One could easily add/remove more panels to this dashboard as per the needs.
 
 ## Distributed Tracing
 

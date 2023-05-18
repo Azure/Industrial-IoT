@@ -14,8 +14,8 @@
     <ContainerPort Include="443" Type="tcp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.30" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.37" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.31" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.46" />
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
     <PackageReference Include="Blazored.Modal" Version="4.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.3.0" />
@@ -23,8 +23,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.9.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.9.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.11.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.11.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>

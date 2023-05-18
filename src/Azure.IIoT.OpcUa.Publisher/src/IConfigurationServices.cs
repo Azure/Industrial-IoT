@@ -40,6 +40,15 @@ namespace Azure.IIoT.OpcUa.Publisher
             CancellationToken ct = default);
 
         /// <summary>
+        /// Replace all configured endpoints with the new set.
+        /// Using an empty list will remove all entries.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        Task SetConfiguredEndpointsAsync(List<PublishedNodesEntryModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Update nodes of endpoints in the published nodes configuration.
         /// </summary>
         /// <param name="request"></param>
@@ -50,9 +59,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// returns the endpoints currently part of the configuration
         /// </summary>
+        /// <param name="includeNodes"></param>
         /// <param name="ct"></param>
         Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
-            CancellationToken ct = default);
+            bool includeNodes = false, CancellationToken ct = default);
 
         /// <summary>
         /// Get the configuration nodes for an endpoint

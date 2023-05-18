@@ -201,8 +201,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// Compile query
+        /// </summary>
+        /// <remarks>
+        /// Compile a query string into a query spec that can be used when
+        /// setting up event filters on monitored items that monitor events.
+        /// </remarks>
+        /// <param name="request">The compilation request</param>
+        /// <param name="ct"></param>
+        /// <returns>The compilation response</returns>
+        [HttpPost("query/compile")]
+        public async Task<QueryCompilationResponseModel> CompileQueryAsync(
+            RequestEnvelope<QueryCompilationRequestModel> request, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _nodes.CompileQueryAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Get method meta data
         /// </summary>
+        /// <remarks>
+        /// Get the metadata for calling the method. This API is obsolete. Use the more powerful
+        /// <see cref="GetMetadataAsync(RequestEnvelope{NodeMetadataRequestModel}, CancellationToken)"/>
+        /// instead.
+        /// </remarks>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -222,6 +248,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Call method
         /// </summary>
+        /// <remarks>
+        /// Call a method on the OPC UA server endpoint with the specified
+        /// input arguments and received the result in the form of the
+        /// method output arguments.
+        /// </remarks>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -241,6 +272,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Read attributes
         /// </summary>
+        /// <remarks>
+        /// Read an attribute of a node. The attributes supported by the node
+        /// are dependend on the node class of the node.
+        /// </remarks>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>

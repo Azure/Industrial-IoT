@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/discovery/{discovererId}/events");
+            var uri = new Uri($"{_serviceUri}/events/v2/discovery/{Uri.EscapeDataString(discovererId)}/events");
             await _httpClient.PutAsync(uri, connectionId, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{requestId}/events");
+            var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{Uri.EscapeDataString(requestId)}/events");
             await _httpClient.PutAsync(uri, connectionId, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -272,7 +272,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/discovery/{discovererId}/events/{connectionId}");
+            var uri = new Uri($"{_serviceUri}/events/v2/discovery/{Uri.EscapeDataString(discovererId)}/" +
+                $"events/{Uri.EscapeDataString(connectionId)}");
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
@@ -288,7 +289,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{requestId}/events/{connectionId}");
+            var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{Uri.EscapeDataString(requestId)}/" +
+                $"events/{Uri.EscapeDataString(connectionId)}");
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 

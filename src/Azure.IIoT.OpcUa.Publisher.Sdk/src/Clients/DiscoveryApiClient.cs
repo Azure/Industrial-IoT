@@ -27,9 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// </summary>
         /// <param name="methodClient"></param>
         /// <param name="target"></param>
+        /// <param name="timeout"></param>
         /// <param name="serializer"></param>
         public DiscoveryApiClient(IMethodClient methodClient, string target,
-             IJsonSerializer? serializer = null)
+            TimeSpan? timeout = null, IJsonSerializer? serializer = null)
         {
             _serializer = serializer ??
                 new NewtonsoftJsonSerializer();
@@ -40,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentNullException(nameof(target));
             }
             _target = target;
+            _timeout = timeout ?? TimeSpan.FromMinutes(1);
         }
 
         /// <summary>
@@ -50,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="serializer"></param>
         public DiscoveryApiClient(IMethodClient methodClient,
             IOptions<SdkOptions> options, IJsonSerializer? serializer = null) :
-            this(methodClient, options.Value.Target!, serializer)
+            this(methodClient, options.Value.Target!, options.Value.Timeout,
+                serializer)
         {
         }
 
@@ -64,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             var response = await _methodClient.CallMethodAsync(_target,
                 "GetEndpointCertificate_V2", _serializer.SerializeToMemory(endpoint),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<X509CertificateChainModel>(response);
         }
 
@@ -78,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             await _methodClient.CallMethodAsync(_target,
                 "Cancel_V2", _serializer.SerializeToMemory(request),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -91,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             await _methodClient.CallMethodAsync(_target,
                 "Discover_V2", _serializer.SerializeToMemory(request),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -104,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             await _methodClient.CallMethodAsync(_target,
                 "Register_V2", _serializer.SerializeToMemory(request),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -117,12 +120,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             var response = await _methodClient.CallMethodAsync(_target,
                 "FindServer_V2", _serializer.SerializeToMemory(query),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ApplicationRegistrationModel>(response);
         }
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _target;
+        private readonly TimeSpan _timeout;
     }
 }

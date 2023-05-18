@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Object class
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Object")]
 #pragma warning disable CA1720 // Identifier contains type name
         Object,
 #pragma warning restore CA1720 // Identifier contains type name
@@ -24,43 +24,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Variable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Variable")]
         Variable,
 
         /// <summary>
         /// Method class
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Method")]
         Method,
 
         /// <summary>
         /// Object type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ObjectType")]
         ObjectType,
 
         /// <summary>
         /// Variable type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "VariableType")]
         VariableType,
 
         /// <summary>
         /// Reference type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ReferenceType")]
         ReferenceType,
 
         /// <summary>
         /// Data type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataType")]
         DataType,
 
         /// <summary>
         /// View class
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "View")]
         View
     }
 }

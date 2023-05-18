@@ -31,8 +31,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Security policy to use when passing credential.
         /// </summary>
-        [DataMember(Name = "securityPolicy", Order = 2)]
-        public string SecurityPolicy { get; set; } = null!;
+        [DataMember(Name = "securityPolicy", Order = 2,
+            EmitDefaultValue = false)]
+        public string? SecurityPolicy { get; set; }
 
         /// <summary>
         /// Method specific configuration

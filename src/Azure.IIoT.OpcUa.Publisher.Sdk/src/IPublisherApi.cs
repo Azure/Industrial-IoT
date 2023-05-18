@@ -16,22 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
     public interface IPublisherApi
     {
         /// <summary>
-        /// Add or update publishing endpoints
+        /// Get configured endpoints
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Get configured endpoints
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
-            CancellationToken ct = default);
+            GetConfiguredEndpointsRequestModel? request = null, CancellationToken ct = default);
 
         /// <summary>
         /// Get nodes of an endpoint
@@ -41,6 +32,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <returns></returns>
         Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Set configured endpoints
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SetConfiguredEndpointsAsync(SetConfiguredEndpointsRequestModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Add or update publishing endpoints
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
+            List<PublishedNodesEntryModel> request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Publish nodes

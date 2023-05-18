@@ -16,13 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Ascending writer id
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "AscendingWriterId")]
         AscendingWriterId = 1,
 
         /// <summary>
         /// Single
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "AscendingWriterIdSingle")]
         AscendingWriterIdSingle = 2,
     }
 }

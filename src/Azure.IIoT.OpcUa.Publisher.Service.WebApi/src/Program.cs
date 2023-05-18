@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .ConfigureHostConfiguration(builder => builder
                     .AddFromDotEnvFile())
                 .ConfigureWebHostDefaults(builder => builder
-                    .UseUrls("http://*:9045")
+                    .UseUrls("http://*:9080")
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false));
         }

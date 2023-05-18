@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -351,6 +352,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <returns></returns>
         Task<PublisherModel> GetPublisherAsync(
             string publisherId, bool? onlyServerState = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Set configured endpoints on the publisher
+        /// </summary>
+        /// <param name="publisherId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SetConfiguredEndpointsAsync(
+            string publisherId, SetConfiguredEndpointsRequestModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get configured endpoints on the publisher
+        /// </summary>
+        /// <param name="publisherId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<PublishedNodesEntryModel> GetConfiguredEndpointsAsync(
+            string publisherId, GetConfiguredEndpointsRequestModel request,
             CancellationToken ct = default);
 
         /// <summary>
