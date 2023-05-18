@@ -264,23 +264,23 @@ namespace Plc
         {
             var namespaceIndex = NamespaceIndexes[(int)namespaceType];
 
-	        if (path is uint || path is long)
-	        {
-	            baseDataVariableState.NodeId = new NodeId((uint)path, namespaceIndex);
-	            baseDataVariableState.BrowseName = new QualifiedName(((uint)path)
+            if (path is uint || path is long)
+            {
+                baseDataVariableState.NodeId = new NodeId((uint)path, namespaceIndex);
+                baseDataVariableState.BrowseName = new QualifiedName(((uint)path)
                     .ToString(CultureInfo.CurrentCulture), namespaceIndex);
-	        }
-	        else if (path is string)
-	        {
-	            baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
-	            baseDataVariableState.BrowseName = new QualifiedName(path, namespaceIndex);
-	        }
-	        else
-	        {
+            }
+            else if (path is string)
+            {
+                baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
+                baseDataVariableState.BrowseName = new QualifiedName(path, namespaceIndex);
+            }
+            else
+            {
                 _logger.LogDebug("NodeId type is {NodeIdType}", (string)path.GetType().ToString());
-	            baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
-	            baseDataVariableState.BrowseName = new QualifiedName(name, namespaceIndex);
-	        }
+                baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
+                baseDataVariableState.BrowseName = new QualifiedName(name, namespaceIndex);
+            }
 
             baseDataVariableState.DisplayName = new LocalizedText("en", name);
             baseDataVariableState.WriteMask = AttributeWriteMask.DisplayName | AttributeWriteMask.Description;

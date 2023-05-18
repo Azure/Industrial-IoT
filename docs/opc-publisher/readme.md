@@ -86,13 +86,15 @@ Container create options are used to specify the container and configuration com
 {
     "Cmd": [
         "-c", // 2.9+ only
+        "--cl=5", // 2.9+ only
         "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
+        "--cf", // 2.9+ only
         "--mm=PubSub",
         "--me=Json",
         "--fd=false",
         "--bs=100",
-        "--bi=1000"
+        "--bi=1000",
         "--aa"
     ],
     "HostConfig": {

@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Item missing", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/start");
+            var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}/start");
             return await _httpClient.PostAsync<PublishStartResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/bulk");
+            var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}/bulk");
             return await _httpClient.PostAsync<PublishBulkResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<PublishedItemListResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/stop");
+            var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}/stop");
             return await _httpClient.PostAsync<PublishStopResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }

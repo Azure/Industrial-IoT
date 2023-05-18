@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;

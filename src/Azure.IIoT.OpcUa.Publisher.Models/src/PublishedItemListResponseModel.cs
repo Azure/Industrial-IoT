@@ -27,4 +27,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             EmitDefaultValue = false)]
         public string? ContinuationToken { get; set; }
     }
+
+    /// <summary>
+    /// List of published nodes
+    /// </summary>
+    [DataContract]
+    public sealed record class SetEndpointConfigurationRequestModel
+    {
+        /// <summary>
+        /// Monitored items
+        /// </summary>
+        [DataMember(Name = "items", Order = 0)]
+        public List<PublishedItemModel>? Items { get; set; }
+    }
 }

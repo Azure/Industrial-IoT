@@ -1136,7 +1136,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                         }
                     }
                     // Delete application
-                    await _iothub.DeleteAsync(applicationId, null, registration.Etag, ct).ConfigureAwait(false);
+                    await _iothub.DeleteAsync(applicationId,
+                        /* registration.Etag, */ ct: ct).ConfigureAwait(false);
                     // return deleted entity
                     return application;
                 }

@@ -16,157 +16,157 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Node identifier
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NodeId")]
         NodeId = 1,
 
         /// <summary>
         /// Node class
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NodeClass")]
         NodeClass,
 
         /// <summary>
         /// Browse name
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "BrowseName")]
         BrowseName,
 
         /// <summary>
         /// Display name
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DisplayName")]
         DisplayName,
 
         /// <summary>
         /// Description
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Description")]
         Description,
 
         /// <summary>
         /// Node write mask
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "WriteMask")]
         WriteMask,
 
         /// <summary>
         /// User write mask
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UserWriteMask")]
         UserWriteMask,
 
         /// <summary>
         /// Is abstract
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "IsAbstract")]
         IsAbstract,
 
         /// <summary>
         /// Symmetric
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Symmetric")]
         Symmetric,
 
         /// <summary>
         /// Inverse name
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "InverseName")]
         InverseName,
 
         /// <summary>
         /// Contains no loop
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ContainsNoLoops")]
         ContainsNoLoops,
 
         /// <summary>
         /// Event notifier
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "EventNotifier")]
         EventNotifier,
 
         /// <summary>
         /// Value for variable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Value")]
         Value,
 
         /// <summary>
         /// Datatype
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataType")]
         DataType,
 
         /// <summary>
         /// Value rank
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ValueRank")]
         ValueRank,
 
         /// <summary>
         /// Array dimension
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ArrayDimensions")]
         ArrayDimensions,
 
         /// <summary>
         /// Accesslevel
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "AccessLevel")]
         AccessLevel,
 
         /// <summary>
         /// User access level
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UserAccessLevel")]
         UserAccessLevel,
 
         /// <summary>
         /// Minimum sampling interval
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "MinimumSamplingInterval")]
         MinimumSamplingInterval,
 
         /// <summary>
         /// Whether node is historizing
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Historizing")]
         Historizing,
 
         /// <summary>
         /// Method can be called
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Executable")]
         Executable,
 
         /// <summary>
         /// User can call method
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UserExecutable")]
         UserExecutable,
 
         /// <summary>
         /// Data type definition
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataTypeDefinition")]
         DataTypeDefinition,
 
         /// <summary>
         /// Role permissions
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "RolePermissions")]
         RolePermissions,
 
         /// <summary>
         /// User role permissions
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UserRolePermissions")]
         UserRolePermissions,
 
         /// <summary>
         /// Access restrictions on node
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "AccessRestrictions")]
         AccessRestrictions
     }
 }

@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="endpointId">endpoint identifier</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        [HttpPost("{endpointId}/activate")]
+        [HttpPost("{endpointId}/connect")]
         public async Task<ConnectResponseModel> ConnectAsync(
             string endpointId, [FromBody][Required] ConnectRequestModel request,
             CancellationToken ct)
@@ -259,15 +259,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         }
 
         /// <summary>
-        /// Deactivate endpoint
+        /// Disconnect endpoint
         /// </summary>
         /// <remarks>
-        /// Deactivates the endpoint and disable access through twin service.
+        /// Disconnects the endpoint on the publisher.
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        [HttpPost("{endpointId}/deactivate")]
+        [HttpPost("{endpointId}/disconnect")]
         public async Task DisconnectAsync(string endpointId,
             [FromBody][Required] DisconnectRequestModel request, CancellationToken ct)
         {

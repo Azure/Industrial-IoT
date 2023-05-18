@@ -9,17 +9,19 @@ namespace IIoTPlatform_E2E_Tests.Twin
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class TwinTestContext : IIoTPlatformTestContext
     {
+        private bool _testEnvironmentPrepared;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TwinTestContext"/> class.
         /// Used for preparation executed once before any tests of the collection are started.
         /// </summary>
-        public TwinTestContext() : base()
+        public TwinTestContext()
         {
-            PrepareTestEnvironment();
         }
 
         /// <summary>
@@ -37,59 +39,42 @@ namespace IIoTPlatform_E2E_Tests.Twin
             // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
             OutputHelper = null;
 
-            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            if (!string.IsNullOrWhiteSpace(OpcUaEndpointId))
+            if (_testEnvironmentPrepared && !string.IsNullOrEmpty(OpcServerUrl))
             {
-                TestHelper.Registry.DeactivateEndpointAsync(this, OpcUaEndpointId).GetAwaiter().GetResult();
+                using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
                 TestHelper.Registry.UnregisterServerAsync(this, OpcServerUrl, cts.Token).GetAwaiter().GetResult();
             }
 
             base.Dispose(true);
+            _testEnvironmentPrepared = false;
         }
 
-        private void PrepareTestEnvironment()
+        public async Task AssertTestEnvironmentPreparedAsync()
         {
-            RegisterOPCServerAndActivateEndpoint();
-            CheckEndpointActivation();
-        }
+            if (_testEnvironmentPrepared)
+            {
+                return;
+            }
 
-        private void RegisterOPCServerAndActivateEndpoint()
-        {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
-            TestHelper.WaitForServicesAsync(this, cts.Token).GetAwaiter().GetResult();
-            RegistryHelper.WaitForIIoTModulesConnectedAsync(DeviceConfig.DeviceId, cts.Token).GetAwaiter().GetResult();
+            await TestHelper.WaitForServicesAsync(this, cts.Token).ConfigureAwait(false);
+            await RegistryHelper.WaitForIIoTModulesConnectedAsync(DeviceConfig.DeviceId, cts.Token).ConfigureAwait(false);
 
             var endpointUrl = TestHelper.GetSimulatedOpcServerUrls(this).First();
-            TestHelper.Registry.RegisterServerAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
+            await TestHelper.Registry.RegisterServerAsync(this, endpointUrl, cts.Token).ConfigureAwait(false);
 
-            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, new HashSet<string> { endpointUrl }, cts.Token).GetAwaiter().GetResult();
+            dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, new HashSet<string> { endpointUrl }, cts.Token).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(OpcUaEndpointId))
             {
-                OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointIdAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
+                OpcUaEndpointId = await TestHelper.Discovery.GetOpcUaEndpointIdAsync(this, endpointUrl, cts.Token).ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(OpcUaEndpointId), "The endpoint id was not set");
             }
 
             OpcServerUrl = endpointUrl;
-            TestHelper.Registry.ActivateEndpointAsync(this, OpcUaEndpointId, cts.Token).GetAwaiter().GetResult();
-        }
-
-        private void CheckEndpointActivation()
-        {
-            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            var endpoints = TestHelper.Registry.GetEndpointsAsync(this, cts.Token).GetAwaiter().GetResult();
-
-            Assert.NotEmpty(endpoints);
-
-            var (id, _, activationState, endpointState) = endpoints.SingleOrDefault(e => string.Equals(OpcUaEndpointId, e.Id));
-
-            Assert.False(id == null, "The endpoint was not found");
-            Assert.Equal(TestConstants.StateConstants.ActivatedAndConnected, activationState);
-            Assert.Equal(TestConstants.StateConstants.Ready, endpointState);
+            _testEnvironmentPrepared = true;
         }
     }
 }

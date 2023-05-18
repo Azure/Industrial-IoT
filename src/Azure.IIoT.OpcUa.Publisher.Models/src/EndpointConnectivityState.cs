@@ -16,55 +16,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Client connecting to endpoint
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Connecting")]
         Connecting,
 
         /// <summary>
         /// Server not reachable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NotReachable")]
         NotReachable,
 
         /// <summary>
         /// Server busy - try later
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Busy")]
         Busy,
 
         /// <summary>
         /// Client is not trusted - update client cert
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "NoTrust")]
         NoTrust,
 
         /// <summary>
         /// Server certificate is invalid - update server certificate
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "CertificateInvalid")]
         CertificateInvalid,
 
         /// <summary>
         /// Connected and ready
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Ready")]
         Ready,
 
         /// <summary>
         /// Any other connection error
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Error")]
         Error,
 
         /// <summary>
         /// Client disconnected
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Disconnected")]
         Disconnected,
 
         /// <summary>
         /// User is not authorized to connect.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Unauthorized")]
         Unauthorized
     }
 }

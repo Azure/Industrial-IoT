@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Gets the capabilities of the connected historian server.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read node history if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read next batch of node history values using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Update node history using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read history node configuration if available.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read historic events of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read next batch of historic events of a node using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read historic values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
@@ -343,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// Read next batch of historic values of a node using historic access.
-        /// The endpoint must be activated and connected and the module client
+        /// The endpoint must be in the registry and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>

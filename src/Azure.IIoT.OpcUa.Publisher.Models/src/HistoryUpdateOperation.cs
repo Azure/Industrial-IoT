@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Insert
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Insert")]
         Insert = 1,
 
         /// <summary>
         /// Replace
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Replace")]
         Replace,
 
         /// <summary>
         /// Update
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Update")]
         Update,
 
         /// <summary>
         /// Delete
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Delete")]
         Delete,
     }
 }

@@ -59,24 +59,21 @@ goto :retrieve_retry
 @rem Main
 @rem
 :main
-rem force https scheme only
-rem set PCS_AUTH_HTTPSREDIRECTPORT=443
 
 rem start publisher service
 pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.WebApi\src
 start dotnet run --project Azure.IIoT.OpcUa.Publisher.Service.WebApi.csproj
-set _hostname=localhost:9045
+set _hostname=localhost:9080
 call :retrieve_spec industrial-iot
 
 rem start publisher module
 pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Module\src
 start dotnet run --project Azure.IIoT.OpcUa.Publisher.Module.csproj --unsecurehttp=9072
-set _hostname=localhost:9702
+set _hostname=localhost:9701
 call :retrieve_spec opc-publisher
 
 :done
 if exist %TMP%\sdk_build.log del /f %TMP%\sdk_build.log
-rem set PCS_AUTH_HTTPSREDIRECTPORT=
 popd
 endlocal
 

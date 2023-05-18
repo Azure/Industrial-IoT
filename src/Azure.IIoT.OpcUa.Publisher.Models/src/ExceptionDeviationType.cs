@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Absolute value
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "AbsoluteValue")]
         AbsoluteValue,
 
         /// <summary>
         /// Percent of value
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PercentOfValue")]
         PercentOfValue,
 
         /// <summary>
         /// Percent of a range
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PercentOfRange")]
         PercentOfRange,
 
         /// <summary>
         /// Percent of range
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "PercentOfEURange")]
         PercentOfEURange
     }
 }

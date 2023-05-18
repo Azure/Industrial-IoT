@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Plc
         private PlcModelComplexTypeTests<ConnectionModel> GetTests()
         {
             return new PlcModelComplexTypeTests<ConnectionModel>(_server,
-                () => new NodeServices<ConnectionModel>(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
                 _server.GetConnection());
         }

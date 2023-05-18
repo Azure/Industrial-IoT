@@ -23,6 +23,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string? NodeId { get; set; }
 
         /// <summary>
+        /// Writer group id
+        /// </summary>
+        public string? WriterGroupId { get; set; }
+
+        /// <summary>
         /// Endpoint url
         /// </summary>
         public string? EndpointUrl { get; set; }
@@ -187,6 +192,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     extensionFields = extensionFields
                         .Append(new KeyValuePair<string, string?>(nameof(JsonNetworkMessage.PublisherId), publisherId));
                 }
+                if (WriterGroupId != null)
+                {
+                    extensionFields = extensionFields
+                        .Append(new KeyValuePair<string, string?>(nameof(WriterGroupId), WriterGroupId));
+                }
                 if (ExtensionFields != null)
                 {
                     extensionFields = extensionFields.Concat(ExtensionFields
@@ -286,6 +296,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (extensionFields.TryGetValue(nameof(DataSetWriterId), out var dataSetWriterName))
                 {
                     DataSetWriterName = dataSetWriterName;
+                }
+                if (extensionFields.TryGetValue(nameof(WriterGroupId), out var writerGroupid))
+                {
+                    WriterGroupId = writerGroupid;
                 }
                 extensionFields.TryGetValue(nameof(JsonNetworkMessage.PublisherId), out publisherId);
             }

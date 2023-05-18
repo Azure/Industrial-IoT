@@ -8,6 +8,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -25,7 +26,13 @@ namespace IIoTPlatform_E2E_Tests.Twin
         }
 
         [Fact, PriorityOrder(0)]
-        public void BasicDataType()
+        public async Task TestPrepareAsync()
+        {
+            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+        }
+
+        [Fact, PriorityOrder(1)]
+        public async Task BasicDataType()
         {
             const string expectedDataType = "Boolean";
             const string nodeId = "i=2025";
@@ -33,18 +40,18 @@ namespace IIoTPlatform_E2E_Tests.Twin
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
             // Don't check the value before first writing it
-            TestHelper.Twin.WriteNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, true, expectedDataType, cts.Token).GetAwaiter().GetResult();
+            await TestHelper.Twin.WriteNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, true, expectedDataType, cts.Token).ConfigureAwait(false);
 
             // Check that the value has been set
-            var (value, dataType) = TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
+            var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).ConfigureAwait(false);
             Assert.Equal(expectedDataType, dataType);
             Assert.True(value);
 
             // Change value
-            TestHelper.Twin.WriteNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, false, expectedDataType, cts.Token).GetAwaiter().GetResult();
+            await TestHelper.Twin.WriteNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, false, expectedDataType, cts.Token).ConfigureAwait(false);
 
             // Check that the value has been set
-            (value, _) = TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
+            (value, _) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).ConfigureAwait(false);
             Assert.False(value);
         }
     }

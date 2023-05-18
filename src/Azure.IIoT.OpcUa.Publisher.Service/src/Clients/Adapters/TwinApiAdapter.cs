@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
             BrowseStreamRequestModel request, CancellationToken ct = default)
         {
             // TODO
-            throw new NotImplementedException();
+            throw new NotSupportedException("Browse stream is not supported");
         }
 
         /// <inheritdoc/>
@@ -110,6 +110,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
             NodeMetadataRequestModel request, CancellationToken ct)
         {
             return await _client.GetMetadataAsync(endpoint, request, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<QueryCompilationResponseModel> CompileQueryAsync(ConnectionModel endpoint,
+            QueryCompilationRequestModel request, CancellationToken ct)
+        {
+            return await _client.CompileQueryAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

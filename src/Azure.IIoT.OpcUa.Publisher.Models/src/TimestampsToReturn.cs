@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Both time stamps
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Both")]
         Both,
 
         /// <summary>
         /// Source time
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Source")]
         Source,
 
         /// <summary>
         /// Server time
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Server")]
         Server,
 
         /// <summary>
         /// No timestamp
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None
     }
 }

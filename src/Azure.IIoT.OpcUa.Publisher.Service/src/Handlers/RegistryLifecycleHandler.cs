@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Azure;
-    using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -30,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <summary>
         /// Create handler
         /// </summary>
-        /// <param name="iothub"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="gateways"></param>
@@ -39,8 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <param name="endpoints"></param>
         /// <param name="supervisors"></param>
         /// <param name="discoverers"></param>
-        public RegistryLifecycleHandler(IIoTHubTwinServices iothub,
-            IJsonSerializer serializer, ILogger<RegistryLifecycleHandler> logger,
+        public RegistryLifecycleHandler(IJsonSerializer serializer,
+            ILogger<RegistryLifecycleHandler> logger,
             IGatewayRegistryListener? gateways = null,
             IPublisherRegistryListener? publishers = null,
             IApplicationRegistryListener? applications = null,
@@ -48,7 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             ISupervisorRegistryListener? supervisors = null,
             IDiscovererRegistryListener? discoverers = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -84,20 +81,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             }
             twin.ModuleId ??= moduleId;
             twin.Id ??= deviceId;
-            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
-            if (string.IsNullOrEmpty(type))
-            {
-                try
-                {
-                    twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
-                    type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInformation(ex, "Failed to materialize twin from registry.");
-                    return;
-                }
-            }
             switch (opType)
             {
                 case "createDeviceIdentity":
@@ -119,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <returns></returns>
         private async Task HandleDeleteAsync(DeviceTwinModel twin, DateTime timestamp)
         {
-            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
+            var type = (twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null)) ??
+                (twin.Tags?.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null));
             var ctx = new OperationContextModel
             {
                 Time = timestamp
@@ -180,7 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <returns></returns>
         private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp)
         {
-            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
+            var type = (twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null))
+                ?? (twin.Tags?.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null));
             var ctx = new OperationContextModel
             {
                 Time = timestamp
@@ -248,7 +233,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
-        private readonly IIoTHubTwinServices _iothub;
         private readonly IGatewayRegistryListener? _gateways;
         private readonly IPublisherRegistryListener? _publishers;
         private readonly IApplicationRegistryListener? _applications;

@@ -47,9 +47,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             "application/x-runtimestate-message-v2-json";
 
         /// <summary>
-        /// Content is a lifecycle event
+        /// Content is a device lifecycle event
         /// </summary>
         public const string DeviceLifecycleNotification =
             "deviceLifecycleNotification";
+
+        /// <summary>
+        /// Content is a twin change event
+        /// </summary>
+        public const string TwinChangeNotification =
+            "twinChangeNotification";
     }
 }

@@ -20,11 +20,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
-- task: DownloadPipelineArtifact@2
-  inputs:
-    artifact: 'iai'
-    path: $(BasePath)
-
 - task: PowerShell@2
   displayName: Versioning
   name: setVersionInfo
@@ -47,31 +42,34 @@ steps:
       -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
-  displayName: "Replace parameters in appSettings.json (for IAI)"
+  displayName: "Run deployment script"
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
-    scriptArguments: >
-      -ClientId "$(ServicePrincipalId)"
-      -ClientSecret "$(ServicePrincipalKey)"
-      -ApplicationName "$(ApplicationName)"
-      -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
-      -ResourceGroupName "$(ResourceGroupName)"
-      -Region "$(Region)"
-      -ImageTag "$(ImageTag)"
-      -ImageNamespace "$(ImageNamespace)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
-      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
-      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
-
-- task: CmdLine@2
-  displayName: 'Run deployment with IAI'
-  timeoutInMinutes: 90
-  inputs:
-    script: 'type appsettings.json && $(IAILocalFilename)'
-    workingDirectory: '$(BasePath)\IAI'
+    scriptType: 'InlineScript'
+    Inline: |
+      $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
+        | ConvertTo-SecureString -AsPlainText -Force
+      $secureServicePrincipalSecret = "$(ServicePrincipalKey)" `
+        | ConvertTo-SecureString -AsPlainText -Force
+      $credentials = New-Object -TypeName System.Management.Automation.PSCredential `
+        -ArgumentList "$(ServicePrincipalId)", $secureServicePrincipalSecret
+      Write-Host "Installing AzureAD module..."
+      Install-Module -Name AzureAD -AllowClobber -Scope CurrentUser -Force
+      Write-Host "Deploying to '$(ResourceGroupName)'..."
+      . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
+          -type services `
+          -version "$(PlatformVersion)" `
+          -applicationName "$(ApplicationName)" `
+          -resourceGroupName "$(ResourceGroupName)" `
+          -resourceGroupLocation "$(Region)" `
+          -imageNamespace "$(ImageNamespace)" `
+          -containerRegistryServer "$(ContainerRegistryServer)" `
+          -containerRegistryUsername "$(ContainerRegistryUsername)" `
+          -containerRegistryPassword $secureContainerRegistryPassword `
+          -credentials $credentials `
+          -context $(Get-AzContext)
+      Write-Host "Finished deployment to '$(ResourceGroupName)'."
 
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
@@ -84,7 +82,6 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
-
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
   inputs:
@@ -94,18 +91,26 @@ steps:
     scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
-
-- task: AzurePowerShell@5
-  displayName: 'Set keyvault container registry secrets'
+- task: AzureKeyVault@1
+  displayName: 'Retrieve App identifier'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\SetKeyVaultSecrets.ps1'
-    scriptArguments: >
-      -KeyVaultName "$(KeyVaultName)"
-      -ImageTag "$(ImageTag)"
-      -ImageNamespace "$(ImageNamespace)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
-      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
-      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
+    KeyVaultName: '$(KeyVaultName)'
+    SecretsFilter: 'PCS-AUTH-CLIENT-APPID,PCS-AUTH-TENANT'
+- task: AzureKeyVault@1
+  displayName: 'Retrieve Admin credentials'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: 'e2etestingsecrets'
+    SecretsFilter: 'User,Password'
+- task: AzureCLI@2
+  displayName: 'Grant admin access to App'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptLocation: 'InlineScript'
+    scriptType: 'bash'
+    addSpnToEnvironment: true
+    inlineScript: |
+      az login -t $(pcs-auth-tenant) --allow-no-subscriptions -u $(User) -p "$(Password)"
+      az ad app permission admin-consent --id $(pcs-auth-client-appid)
+

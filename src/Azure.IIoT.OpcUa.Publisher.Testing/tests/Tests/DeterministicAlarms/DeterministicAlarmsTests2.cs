@@ -99,7 +99,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task VerifyThatTimeForEventsChangesServerFilteredAsync(CancellationToken ct = default)
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             var result = await services.CompileQueryAsync(connection, new QueryCompilationRequestModel
             {

@@ -25,9 +25,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// </summary>
         /// <param name="methodClient"></param>
         /// <param name="target"></param>
+        /// <param name="timeout"></param>
         /// <param name="serializer"></param>
         public HistoryApiClient(IMethodClient methodClient, string target,
-             IJsonSerializer? serializer = null)
+             TimeSpan? timeout = null, IJsonSerializer? serializer = null)
         {
             _serializer = serializer ??
                 new NewtonsoftJsonSerializer();
@@ -38,6 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentNullException(nameof(target));
             }
             _target = target;
+            _timeout = timeout ?? TimeSpan.FromMinutes(1);
         }
 
         /// <summary>
@@ -48,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="serializer"></param>
         public HistoryApiClient(IMethodClient methodClient,
             IOptions<SdkOptions> options, IJsonSerializer? serializer = null) :
-            this(methodClient, options.Value.Target!, serializer)
+            this(methodClient, options.Value.Target!, options.Value.Timeout,
+                serializer)
         {
         }
 
@@ -78,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -108,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -138,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -168,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -197,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadNextResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -226,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -255,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -284,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -313,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -343,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -373,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -403,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -432,7 +435,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryReadNextResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -461,7 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -490,7 +493,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -519,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
@@ -548,12 +551,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     connection,
                     request
-                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
         private readonly ISerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _target;
+        private readonly TimeSpan _timeout;
     }
 }

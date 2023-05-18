@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Events;
+    using Azure.IIoT.OpcUa.Publisher.Service.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Service.Services;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Azure.IIoT.OpcUa.Encoders;
@@ -72,10 +73,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(o => o.AddConsole().AddDebug())
-#if DEBUG_LOG
-                .Configure<LoggerFilterOptions>(o => o.MinLevel = LogLevel.Debug)
+            services.AddLogging(options => options
+#if !NON_PRODUCTION
+                .AddFilter(typeof(IAwaitable).Namespace, LogLevel.Warning)
+#else
+                .SetMinimumLevel(LogLevel.Debug)
 #endif
+                .AddConsole()
+                .AddDebug())
                 ;
 
             services.AddHeaderForwarding();
@@ -164,12 +169,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             builder.AddMessagePackSerializer();
             builder.AddNewtonsoftJsonSerializer();
 
-            // Register IoT Hub services for registry and edge clients.
+            // Register IoT Hub services for registry, edge clients and deployment.
             builder.AddIoTHubServices();
-            builder.RegisterModule<RegistryServices>();
+            builder.RegisterType<PublisherDeploymentConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<PublisherDeployment>()
+                .AsImplementedInterfaces();
 
-            builder.ConfigureServices(
-                services => services.AddMemoryCache());
+            builder.RegisterModule<RegistryServices>();
+            builder.ConfigureServices(services => services.AddMemoryCache());
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()

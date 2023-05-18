@@ -9,6 +9,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
     using System;
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -26,9 +27,15 @@ namespace IIoTPlatform_E2E_Tests.Twin
         }
 
         [Fact, PriorityOrder(0)]
-        public void ReadAttributes()
+        public async Task TestPrepareAsync()
         {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+        }
+
+        [Fact, PriorityOrder(1)]
+        public async Task ReadAttributes()
+        {
+            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var attributes = new List<object> {
                 new {
@@ -41,7 +48,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
                 }
             };
 
-            var response = TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributes, cts.Token).GetAwaiter().GetResult();
+            var response = await TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributes, cts.Token).ConfigureAwait(false);
             Assert.Equal("FastUInt1", response.results[0].value.Text.ToString());
             Assert.Equal("Server", response.results[1].value.ToString());
         }

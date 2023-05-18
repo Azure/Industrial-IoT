@@ -12,13 +12,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Threading.Channels;
-    using System.Threading;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {

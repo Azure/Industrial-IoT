@@ -29,6 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? PublishedNodesFile { get; set; }
 
         /// <summary>
+        /// Create the configuration file if it does not exist
+        /// </summary>
+        public bool? CreatePublishFileIfNotExist { get; set; }
+
+        /// <summary>
         /// Max number of nodes per data set (publishing
         /// endpoint inside the configuration of publisher)
         /// </summary>

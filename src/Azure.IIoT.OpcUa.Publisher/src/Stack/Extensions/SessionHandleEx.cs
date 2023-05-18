@@ -487,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
             this IOpcUaSession session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
-            IDictionary<string, InstanceDeclarationModel> map, CancellationToken ct)
+            IDictionary<ImmutableRelativePath, InstanceDeclarationModel> map, CancellationToken ct)
         {
             // find the children of the type.
             var nodeToBrowse = new BrowseDescriptionCollection {
@@ -530,21 +530,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var children = new Dictionary<NodeId, InstanceDeclarationModel>();
                 foreach (var (modellingRule, reference) in referencesWithRules)
                 {
-                    var browsePath = reference.BrowseName.AsString(session.MessageContext);
-                    if (parent != null)
-                    {
-                        browsePath = $"{parent.BrowsePath}/{browsePath}";
-                    }
+                    var browseName = reference.BrowseName.AsString(session.MessageContext);
+                    var relativePath = ImmutableRelativePath.Create(parent?.BrowsePath,
+                        "/" + browseName);
                     var nodeClass = reference.NodeClass.ToServiceType();
                     if (NodeId.IsNull(modellingRule.Item2) || nodeClass == null)
                     {
                         // if the modelling rule is null then the instance is not part
                         // of the type declaration.
-                        map.Remove(browsePath);
+                        map.Remove(relativePath);
                         continue;
                     }
                     // create a new declaration.
-                    map.TryGetValue(browsePath, out var overriden);
+                    map.TryGetValue(relativePath, out var overriden);
 
                     var displayName =
                         LocalizedText.IsNullOrEmpty(reference.DisplayName) ?
@@ -558,13 +556,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         DisplayPath = parent == null ?
                             displayName : $"{parent.DisplayPath}/{displayName}",
                         DisplayName = displayName,
-                        BrowsePath = browsePath,
+                        BrowsePath = relativePath.Path,
                         ModellingRule = modellingRule.Item1.AsString(session.MessageContext),
                         ModellingRuleId = modellingRule.Item2.AsString(session.MessageContext),
                         OverriddenDeclaration = overriden
                     };
 
-                    map[browsePath] = child;
+                    map[relativePath] = child;
 
                     // add to list.
                     children.Add((NodeId)reference.NodeId, child);
@@ -1161,16 +1159,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="parent"></param>
         /// <param name="parentPath"></param>
         /// <param name="browsePaths"></param>
-        private static List<BrowsePath> GetBrowsePathFromNodeState(
+        private static List<Opc.Ua.BrowsePath> GetBrowsePathFromNodeState(
             this IOpcUaSession session, NodeId rootId, NodeState parent,
-            RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
+            RelativePath? parentPath, List<Opc.Ua.BrowsePath>? browsePaths = null)
         {
-            browsePaths ??= new List<BrowsePath>();
+            browsePaths ??= new List<Opc.Ua.BrowsePath>();
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.SystemContext, children);
             foreach (var child in children)
             {
-                var browsePath = new BrowsePath
+                var browsePath = new Opc.Ua.BrowsePath
                 {
                     StartingNode = rootId,
                     Handle = child

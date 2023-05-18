@@ -77,16 +77,6 @@ namespace IIoTPlatform_E2E_Tests
         internal static class APIRoutes
         {
             /// <summary>
-            /// Route to enable an OPC UA endpoint
-            /// </summary>
-            public static string RegistryActivateEndpointsFormat = "/registry/v2/endpoints/{0}/activate";
-
-            /// <summary>
-            /// Route to enable an OPC UA endpoint
-            /// </summary>
-            public static string RegistryDeactivateEndpointsFormat = "/registry/v2/endpoints/{0}/deactivate";
-
-            /// <summary>
             /// Route to applications within registry
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
@@ -107,9 +97,9 @@ namespace IIoTPlatform_E2E_Tests
             public const string RegistryEndpoints = "/registry/v2/endpoints";
 
             /// <summary>
-            /// Route to registry health endpoint
+            /// Route health endpoint
             /// </summary>
-            public const string RegistryHealth = "/registry/healthz";
+            public const string HealthZ = "/healthz";
 
             /// <summary>
             /// Route to publish single OPC UA node from OPC Publisher
@@ -117,34 +107,19 @@ namespace IIoTPlatform_E2E_Tests
             public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
 
             /// <summary>
+            /// Route to unpublish single OPC UA node from OPC Publisher
+            /// </summary>
+            public static string PublisherStopFormat = "/publisher/v2/publish/{0}/stop";
+
+            /// <summary>
+            /// Route to list
+            /// </summary>
+            public static string PublisherListFormat = "/publisher/v2/publish/{0}";
+
+            /// <summary>
             /// Route to start or stop publishing multiple OPC UA nodes from OPC Publisher
             /// </summary>
             public static string PublisherBulkFormat = "/publisher/v2/publish/{0}/bulk";
-
-            /// <summary>
-            /// Route to read all publishing jobs
-            /// </summary>
-            public static string PublisherJobs = "/publisher/v2/jobs";
-
-            /// <summary>
-            /// Route to read single publishing jobs
-            /// </summary>
-            public static string PublisherJobsFormat = "/publisher/v2/jobs/{0}";
-
-            /// <summary>
-            /// Route to publisher health endpoint
-            /// </summary>
-            public const string PublisherHealth = "/publisher/healthz";
-
-            /// <summary>
-            /// Route to twin health endpoint
-            /// </summary>
-            public const string TwinHealth = "/twin/healthz";
-
-            /// <summary>
-            /// Route to job orchestrator health endpoint
-            /// </summary>
-            public const string JobOrchestratorHealth = "/edge/publisher/healthz";
         }
 
         /// <summary>
@@ -199,6 +174,11 @@ namespace IIoTPlatform_E2E_Tests
             /// Client Secrete used for authentication of Industrial IoT Platform
             /// </summary>
             public const string PCS_AUTH_CLIENT_SECRET = "PCS_AUTH_CLIENT_SECRET";
+
+            /// <summary>
+            /// Service App Id for authentication
+            /// </summary>
+            public const string PCS_AUTH_SERVICE_APPID = "PCS_AUTH_SERVICE_APPID";
 
             /// <summary>
             /// Name of Industrial IoT Platform instance
@@ -340,32 +320,6 @@ namespace IIoTPlatform_E2E_Tests
             /// The trait value for default trait
             /// </summary>
             public const string DefaultTraitValue = "default";
-        }
-
-        /// <summary>
-        /// Constants related to state returned in result
-        /// </summary>
-        internal static class StateConstants
-        {
-            /// <summary>
-            /// Endpoint activation state activated and connected
-            /// </summary>
-            public const string ActivatedAndConnected = "ActivatedAndConnected";
-
-            /// <summary>
-            /// Endpoint state ready
-            /// </summary>
-            public const string Ready = "Ready";
-
-            /// <summary>
-            /// Endpoint activation state ready
-            /// </summary>
-            public const string Deactivated = "Deactivated";
-
-            /// <summary>
-            /// Endpoint state Disconnected
-            /// </summary>
-            public const string Disconnected = "Disconnected";
         }
 
         /// <summary>

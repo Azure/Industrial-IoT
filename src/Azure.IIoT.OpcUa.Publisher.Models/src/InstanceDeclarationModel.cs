@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The browse path
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1)]
-        public string? BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// A localized path to the instance declaration.

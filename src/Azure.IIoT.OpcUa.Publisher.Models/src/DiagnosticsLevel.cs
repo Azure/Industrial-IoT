@@ -16,31 +16,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Include no diagnostics in response
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None = 0,
 
         /// <summary>
         /// Include status and symbol text (default)
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Status")]
         Status = 1,
 
         /// <summary>
         /// Include additional information
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Information")]
         Information = 10,
 
         /// <summary>
         /// Include inner diagnostics for tracing
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Debug")]
         Debug = 50,
 
         /// <summary>
         /// Include full diagnostics trace.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Verbose")]
         Verbose = 100
     }
 }

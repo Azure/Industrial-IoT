@@ -16,13 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Absolute
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Absolute")]
         Absolute,
 
         /// <summary>
         /// Percentage
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Percent")]
         Percent
     }
 }

@@ -16,43 +16,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Unknown
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Unknown")]
         Unknown,
 
         /// <summary>
         /// Variable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Variable")]
         Variable,
 
         /// <summary>
         /// Data variable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataVariable")]
         DataVariable,
 
         /// <summary>
         /// Variable
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Property")]
         Property,
 
         /// <summary>
         /// Data type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DataType")]
         DataType,
 
         /// <summary>
         /// View class
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "View")]
         View,
 
         /// <summary>
         /// Regular object type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Object")]
 #pragma warning disable CA1720 // Identifier contains type name
         Object,
 #pragma warning restore CA1720 // Identifier contains type name
@@ -60,13 +60,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Type is event type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Event")]
         Event,
 
         /// <summary>
         /// Interface type
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Interface")]
         Interface
     }
 }

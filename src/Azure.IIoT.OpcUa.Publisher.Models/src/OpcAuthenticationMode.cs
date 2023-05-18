@@ -16,13 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Anonymous authentication
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Anonymous")]
         Anonymous,
 
         /// <summary>
         /// Username/Password authentication
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UsernamePassword")]
         UsernamePassword
     }
 }

@@ -158,9 +158,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </summary>
         /// <remarks>
         /// The application is registered using the provided information, but it
-        /// is not associated with a supervisor.  This is useful for when you need
+        /// is not associated with a publisher. This is useful for when you need
         /// to register clients or you want to register a server that is located
-        /// in a network not reachable through a Twin module.
+        /// in a network not reachable through a publisher module.
         /// </remarks>
         /// <param name="request">Application registration request</param>
         /// <param name="ct"></param>
@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 throw new ArgumentNullException(nameof(request));
             }
             var model = request;
-            // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
+            // TODO: model.AuthorityId = User.Identity.Name;
             return await _applications.RegisterApplicationAsync(model,
                 ct).ConfigureAwait(false);
         }

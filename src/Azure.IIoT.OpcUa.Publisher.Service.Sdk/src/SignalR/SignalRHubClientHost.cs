@@ -188,7 +188,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     }
                     if (_options.Value.TokenProvider != null)
                     {
-                        options.AccessTokenProvider = _options.Value.TokenProvider;
+                        options.AccessTokenProvider = async () =>
+                        {
+                            var token = await _options.Value.TokenProvider().ConfigureAwait(false);
+                            if (token?.StartsWith("Bearer ", StringComparison.Ordinal) == true)
+                            {
+                                // Strip bearer identifier from the token it is added by signalr.
+                                token = token.Substring(7);
+                            }
+                            return token;
+                        };
                     }
                 })
                 .Build();

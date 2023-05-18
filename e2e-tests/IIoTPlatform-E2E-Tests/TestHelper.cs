@@ -54,7 +54,7 @@ namespace IIoTPlatform_E2E_Tests
                 context.IIoTPlatformConfigHubConfig.AuthTenant,
                 context.IIoTPlatformConfigHubConfig.AuthClientId,
                 context.IIoTPlatformConfigHubConfig.AuthClientSecret,
-                context.IIoTPlatformConfigHubConfig.ApplicationName,
+                context.IIoTPlatformConfigHubConfig.AuthServiceId,
                 ct
             ).ConfigureAwait(false);
         }
@@ -65,26 +65,24 @@ namespace IIoTPlatform_E2E_Tests
         /// <param name="tenantId">Tenant ID</param>
         /// <param name="clientId">User name for HTTP basic authentication</param>
         /// <param name="clientSecret">Password for HTTP basic authentication</param>
-        /// <param name="applicationName">Name of deployed Industrial IoT</param>
+        /// <param name="serviceId">service id of deployed Industrial IoT</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
         public static async Task<string> GetTokenAsync(
             string tenantId,
             string clientId,
             string clientSecret,
-            string applicationName,
+            string serviceId,
             CancellationToken ct = default
         )
         {
             Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
-            Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
+            Assert.True(!string.IsNullOrWhiteSpace(serviceId), "serviceId is null");
 
-            var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token")
-            {
-                Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
-            };
+            var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
+                client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
 
             var request = new RestRequest("", Method.Post)
             {
@@ -92,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests
             };
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"api://{tenantId}/{applicationName}-service/.default");
+            request.AddParameter("scope", $"{serviceId}/.default");
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
@@ -196,7 +194,7 @@ namespace IIoTPlatform_E2E_Tests
         /// <param name="body">Body for the request</param>
         /// <param name="queryParameters">Additional query parameters</param>
         /// /// <param name="ct">Cancellation token</param>
-        public static RestResponse CallRestApi(
+        public static async Task<RestResponse> CallRestApi(
             IIoTPlatformTestContext context,
             Method method,
             string route,
@@ -205,7 +203,7 @@ namespace IIoTPlatform_E2E_Tests
             CancellationToken ct = default
         )
         {
-            var accessToken = GetTokenAsync(context, ct).GetAwaiter().GetResult();
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
             var request = new RestRequest(route, method)
             {
@@ -227,7 +225,7 @@ namespace IIoTPlatform_E2E_Tests
             }
 
             var restClient = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
-            return restClient.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+            return await restClient.ExecuteAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -540,11 +538,9 @@ namespace IIoTPlatform_E2E_Tests
         {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
-            var client = new RestClient(runtimeUrl)
-            {
-                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword)
-            };
+            var client = new RestClient(runtimeUrl,
+                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword));
 
             var body = new
             {
@@ -590,11 +586,9 @@ namespace IIoTPlatform_E2E_Tests
             // TODO Merge with Start-Method to avoid code duplication
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
-            var client = new RestClient(runtimeUrl)
-            {
-                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword)
-            };
+            var client = new RestClient(runtimeUrl,
+                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword));
 
             var body = new
             {
@@ -630,10 +624,7 @@ namespace IIoTPlatform_E2E_Tests
             const string healthyState = "Healthy";
 
             var healthRoutes = new string[] {
-                TestConstants.APIRoutes.RegistryHealth,
-                TestConstants.APIRoutes.PublisherHealth,
-                TestConstants.APIRoutes.TwinHealth,
-                TestConstants.APIRoutes.JobOrchestratorHealth
+                TestConstants.APIRoutes.HealthZ
             };
 
             try

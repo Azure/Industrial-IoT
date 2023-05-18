@@ -256,7 +256,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
                 Query = $@"

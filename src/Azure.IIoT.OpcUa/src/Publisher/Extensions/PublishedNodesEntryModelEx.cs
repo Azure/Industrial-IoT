@@ -60,6 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                         OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
+                DataSetWriterGroup = model.Group,
+                MessageType = MessageEncoding.Json,
+                MessagingMode = MessagingMode.FullSamples,
                 OpcNodes = new List<OpcNodeModel>()
             };
         }
@@ -148,6 +151,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 OpcAuthenticationMode = model.OpcAuthenticationMode,
                 UseSecurity = model.UseSecurity,
                 Version = model.Version,
+                MessageType = model.MessageType,
+                MessagingMode = model.MessagingMode,
                 NodeId = null,
                 EncryptedAuthPassword = null,
                 OpcAuthenticationPassword = null,
@@ -191,6 +196,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.MetaDataUpdateTimeTimespan != that.MetaDataUpdateTimeTimespan)
+            {
+                return false;
+            }
+            if (model.MessageType != that.MessageType)
+            {
+                return false;
+            }
+            if (model.MessagingMode != that.MessagingMode)
             {
                 return false;
             }

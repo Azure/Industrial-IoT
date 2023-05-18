@@ -3,25 +3,31 @@
     Deploys Industrial IoT services to Azure.
 
  .DESCRIPTION
-    Deploys the Industrial IoT services dependencies, and optionally microservices and UI to Azure.
+    Deploys the Industrial IoT services and dependencies on
+    Azure.
 
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
+    The type of deployment (minimum, local, services, simulation,
+     app, all), defaults to all.
 
  .PARAMETER version
-    Set to mcr image tag to deploy - if not set and version can not be parsed from branch name will deploy "latest".
+    Set to mcr image tag to deploy - if not set and version can 
+    not be parsed from branch name will deploy "latest".
 
  .PARAMETER branchName
-    The branch name where to find the deployment templates - if not set, will try to use git.
+    The branch name where to find the deployment templates - if 
+    not set, will try to use git.
 
  .PARAMETER repo
-    The repository to find the deployment templates in - if not set will try to use git or set default.
+    The repository to find the deployment templates in - if not 
+    set will try to use git or set default.
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
 
  .PARAMETER resourceGroupLocation
-    Optional, a resource group location. If specified, will try to create a new resource group in this location.
+    Optional, a resource group location. If specified, will try
+     to create a new resource group in this location.
 
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
@@ -30,10 +36,12 @@
     Or alternatively the subscription name.
 
  .PARAMETER tenantId
-    The Azure Active Directory tenant tied to the subscription(s) that should be listed as options.
+    The Azure Active Directory tenant tied to the subscription(s)
+     that should be listed as options.
 
  .PARAMETER authTenantId
-    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
+    Specifies an Azure Active Directory tenant for authentication 
+    that is different from the one tied to the subscription.
 
  .PARAMETER accountName
     The account name to use if not to use default.
@@ -42,28 +50,47 @@
     The name of the application, if not local deployment.
 
  .PARAMETER aadConfig
-    The aad configuration object (use aad-register.ps1 to create object). If not provided, calls aad-register.ps1.
+    The aad configuration object (use aad-register.ps1 to create 
+    object). If not provided, calls aad-register.ps1.
 
  .PARAMETER context
     A previously created az context to be used for authentication.
 
  .PARAMETER aadApplicationName
-    The application name to use when registering aad application. If not set, uses applicationName.
+    The application name to use when registering aad application. 
+    If not set, uses applicationName.
+
+ .PARAMETER containerRegistryServer
+    The container registry server to use to pull images
+
+ .PARAMETER containerRegistryUsername
+    The user name to use to pull images
+
+ .PARAMETER containerRegistryPassword
+    The password to use to pull images
+
+ .PARAMETER imageNamespace
+    Override the automatically determined namespace of the 
+    container images
 
  .PARAMETER acrRegistryName
-    An optional name of an Azure container registry to deploy containers from.
+    An optional name of an Azure container registry to deploy 
+    containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry, if different from the specified subscription.
+    The subscription of the container registry, if different 
+    from the specified subscription.
 
  .PARAMETER acrTenantId
-    The tenant where the container registry resides. If not provided uses all.
+    The tenant where the container registry resides. If not 
+    provided uses all.
 
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
-    If you are deploying a simulation, the simulation profile to use, if not default.
+    If you are deploying a simulation, the simulation profile 
+    to use, if not default.
 
  .PARAMETER numberOfSimulationsPerEdge
     Number of simulations to deploy per edge.
@@ -83,6 +110,13 @@
     Virtual machine SKU size that hosts simulated OPC UA PLC.
     Suggestion: use VM with at least 1 core and 2 GB of memory.
     Must Support Generation 1.
+
+ .PARAMETER credentials
+    Use these credentials to log in. If not provided you are 
+    prompted to provide credentials
+
+ .PARAMETER isServicePrincipal
+    The credentials provided are service principal credentials.
 #>
 
 param(
@@ -99,6 +133,10 @@ param(
     [string] $tenantId,
     [string] $authTenantId,
     [string] $aadApplicationName,
+    [string] $containerRegistryServer,
+    [string] $containerRegistryUsername,
+    [securestring] $containerRegistryPassword,
+    [string] $imageNamespace,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
     [string] $acrTenantId,
@@ -108,9 +146,10 @@ param(
     [int] $numberOfLinuxGateways = 1,
     [int] $numberOfWindowsGateways = 1,
     [int] $numberOfSimulationsPerEdge = 1,
-    $aadConfig,
-    $context = $null,
-    [switch] $testAllDeploymentOptions,
+    [pscredential] $credentials,
+    [switch] $isServicePrincipal,
+    [object] $aadConfig,
+    [object] $context,
     [string] $environmentName = "AzureCloud"
 )
 
@@ -134,37 +173,62 @@ Function Select-Context() {
 
     $rootDir = Get-RootFolder $script:ScriptDir
     $contextFile = Join-Path $rootDir ".user"
-    if (!$context) {
-        # Migrate .user file into root (next to .env)
-        if (!(Test-Path $contextFile)) {
-            $oldFile = Join-Path $script:ScriptDir ".user"
-            if (Test-Path $oldFile) {
-                Move-Item -Path $oldFile -Destination $contextFile
+    if ($context) {
+        Write-Host "Using provided context (Account $($script:Context.Account), Tenant $($script:Context.Tenant.Id))"
+        $script:subscriptionId = $context.Subscription.Id
+    }
+    else {
+        if (!$context) {
+            # Migrate .user file into root (next to .env)
+            if (!(Test-Path $contextFile)) {
+                $oldFile = Join-Path $script:ScriptDir ".user"
+                if (Test-Path $oldFile) {
+                    Move-Item -Path $oldFile -Destination $contextFile
+                }
+            }
+            if (Test-Path $contextFile) {
+                $connection = Import-AzContext -Path $contextFile
+                if (($null -ne $connection) `
+                        -and ($null -ne $connection.Context) `
+                        -and ($null -ne (Get-AzSubscription))) {
+                    $context = $connection.Context
+                }
             }
         }
-        if (Test-Path $contextFile) {
-            $connection = Import-AzContext -Path $contextFile
-            if (($null -ne $connection) `
-                    -and ($null -ne $connection.Context) `
-                    -and ($null -ne (Get-AzSubscription))) {
+        if (!$context) {
+            try {
+                if ($script:credentials) {
+                    Write-Host "Signing into $($environment.Name) using the provided credentials..."
+                    $connection = Connect-AzAccount -Environment $environment.Name `
+                        -Credential $script:credentials `
+                        -ServicePrincipal:$script:isServicePrincipal.IsPresent `
+                        -SkipContextPopulation @tenantArg -ErrorAction Stop
+                }
+                else {
+                    Write-Host "Signing into $($environment.Name) ..."
+                    $connection = Connect-AzAccount -Environment $environment.Name `
+                        -SkipContextPopulation @tenantArg -ErrorAction Stop
+                }
+                Write-Host "Signed in."
+                Write-Host
                 $context = $connection.Context
             }
+            catch {
+                $connection | Out-Host
+                $context = Get-AzContext
+                if ($context) {
+                    Write-Host "Failed to log in. Using existing context $($context)..."
+                    Write-Host
+                }
+            }
         }
-    }
-    if (!$context) {
-        try {
-            Write-Host "Signing into $($environment.Name) ..."
-            $connection = Connect-AzAccount -Environment $environment.Name `
-                -SkipContextPopulation @tenantArg -ErrorAction Stop 
-            Write-Host "Signed in."
-            Write-Host
-            $context = $connection.Context
-        }
-        catch {
+
+        if (!$context) {
             throw "The login to the Azure account was not successful."
         }
     }
 
+    $tenantIdArg = @{}
     if (![string]::IsNullOrEmpty($script:tenantId)) {
         $tenantIdArg = @{
             TenantId = $script:tenantId
@@ -246,6 +310,7 @@ Function Select-Context() {
         Save-AzContext -Path $contextFile
     }
 
+    # Seed aad token in token cache
     Write-Host "Azure subscription $($context.Subscription.Name) ($($context.Subscription.Id)) selected."
     return $context
 }
@@ -761,27 +826,23 @@ Function New-Deployment() {
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
 
         $namespace = ""
-        if ($script:acrSubscriptionName -eq "IOT_GERMANY") {
-            if (($script:acrRegistryName -eq "industrialiot") -or `
-                ($script:acrRegistryName -eq "industrialiotprod")) {
-                $namespace = "public"
-            }
-            elseif ($script:acrRegistryName -eq "industrialiotdev") {
-                $namespace = $script:branchName
-                if ($script:branchName.StartsWith("feature/")) {
-                    $namespace = $namespace.Replace("feature/", "")
+        if (-not [string]::IsNullOrEmpty($script:imageNamespace)) {
+            $namespace = $script:imageNamespace
+        }
+        else {
+            if ($script:acrSubscriptionName -eq "IOT_GERMANY") {
+                if (($script:acrRegistryName -eq "industrialiot") -or `
+                    ($script:acrRegistryName -eq "industrialiotprod")) {
+                    $namespace = "public"
                 }
-                $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+                elseif ($script:acrRegistryName -eq "industrialiotdev") {
+                    $namespace = $script:branchName
+                    if ($script:branchName.StartsWith("feature/")) {
+                        $namespace = $namespace.Replace("feature/", "")
+                    }
+                    $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+                }
             }
-        }
-	    
-        # Try and get registry credentials
-        try {
-            $creds = Select-RegistryCredentials
-        }
-        catch {
-            Write-Warning $_.Exception.Message
-            $creds = $null
         }
 
         if ([string]::IsNullOrEmpty($script:version)) {
@@ -793,22 +854,43 @@ Function New-Deployment() {
             }
         }
 
-        # Configure registry
-        if ($creds) {
-            $templateParameters.Add("dockerServer", $creds.dockerServer)
-            $templateParameters.Add("dockerUser", $creds.dockerUser)
-            $templateParameters.Add("dockerPassword", $creds.dockerPassword)
-	        $templateParameters.Add("imagesNamespace", $namespace)
-            Write-Host "Using $($script:version) $($namespace) images from private registry $($creds.dockerServer)."
-        }
-        elseif ([string]::IsNullOrEmpty($script:acrRegistryName)) {
-            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
-            Write-Host "Using released $($script:version) images from mcr.microsoft.com."
+        if ([string]::IsNullOrEmpty($script:containerRegistryServer)) {
+            # Try and get registry credentials
+            try {
+                $creds = Select-RegistryCredentials
+            }
+            catch {
+                Write-Warning $_.Exception.Message
+                $creds = $null
+            }
+
+            # Configure registry
+            if ($creds) {
+                $templateParameters.Add("dockerServer", $creds.dockerServer)
+                $templateParameters.Add("dockerUser", $creds.dockerUser)
+                $templateParameters.Add("dockerPassword", $creds.dockerPassword)
+                $templateParameters.Add("imagesNamespace", $namespace)
+                Write-Host "Using $($script:version) $($namespace) images from private registry $($creds.dockerServer)."
+            }
+            elseif ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+                $templateParameters.Add("dockerServer", "mcr.microsoft.com")
+                Write-Host "Using released $($script:version) images from mcr.microsoft.com."
+            }
+            else {
+                $templateParameters.Add("dockerServer", "$($script:acrRegistryName).azurecr.io")
+                $templateParameters.Add("imagesNamespace", $namespace)
+                Write-Host "Using $($script:version) $($namespace) images from $($script:acrRegistryName).azurecr.io."
+            }
         }
         else {
-            $templateParameters.Add("dockerServer", "$($script:acrRegistryName).azurecr.io")
-	        $templateParameters.Add("imagesNamespace", $namespace)
-            Write-Host "Using $($script:version) $($namespace) images from $($script:acrRegistryName).azurecr.io."
+            Write-Host "Using $($script:version) $($namespace) images from private registry $($script:containerRegistryServer)."
+            $templateParameters.Add("dockerServer", $script:containerRegistryServer)
+            $templateParameters.Add("imagesNamespace", $namespace)
+            if (-not [string]::IsNullOrEmpty($script:containerRegistryUsername)) {
+                $templateParameters.Add("dockerUser", $script:containerRegistryUsername)
+                $plainTextPassword = [Net.NetworkCredential]::new('', $script:containerRegistryPassword).Password
+                $templateParameters.Add("dockerPassword", $plainTextPassword)
+            }
         }
         $templateParameters.Add("imagesTag", $script:version)
     }
@@ -1061,20 +1143,10 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
-                    $replyUrls.Add($serviceUri + "/twin/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/registry/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/history/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/publisher/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/edge/publisher/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/events/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/swagger/oauth2-redirect.html")
                 }
 
-                $replyUrls.Add("http://localhost:9080/twin/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/registry/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/history/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/publisher/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/edge/publisher/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/events/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/swagger/oauth2-redirect.html")
 
                 $replyUrls.Add("http://localhost:5000/signin-oidc")
                 $replyUrls.Add("https://localhost:5001/signin-oidc")
@@ -1185,11 +1257,6 @@ Import-Module Az.ContainerRegistry
 Select-RepositoryAndBranch
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
-
-if ($testAllDeploymentOptions.IsPresent) {
-    Test-All-Deployment-Options -context $script:context
-    return
-}
 
 $script:deleteOnErrorPrompt = Select-ResourceGroup
 New-Deployment -context $script:context

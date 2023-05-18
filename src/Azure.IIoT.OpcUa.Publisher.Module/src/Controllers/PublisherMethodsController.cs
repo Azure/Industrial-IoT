@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// Publisher methods controller
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [RouterExceptionFilter]
     [ControllerExceptionFilter]
     [ApiVersion("2")]
-    [Route("v{version:apiVersion}/publish")]
+    [Route("v{version:apiVersion}/configuration")]
     [ApiController]
     public class PublisherMethodsController : ControllerBase, IMethodController
     {
@@ -164,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
-        [HttpPost("endpoints/addorupdate")]
+        [HttpPatch]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request, CancellationToken ct = default)
         {
@@ -177,16 +178,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Handler for GetConfiguredEndpoints direct method
         /// </summary>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
-        [HttpPost("endpoints/list")]
+        [HttpGet]
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
-            CancellationToken ct = default)
+            [FromQuery] GetConfiguredEndpointsRequestModel? request = null, CancellationToken ct = default)
         {
-            var response = await _configServices.GetConfiguredEndpointsAsync(ct).ConfigureAwait(false);
+            var response = await _configServices.GetConfiguredEndpointsAsync(
+                request?.IncludeNodes ?? false, ct).ConfigureAwait(false);
             return new GetConfiguredEndpointsResponseModel
             {
                 Endpoints = response
             };
+        }
+
+        /// <summary>
+        /// Handler for SetConfiguredEndpoints direct method
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        [HttpPut]
+        public async Task SetConfiguredEndpointsAsync(
+            SetConfiguredEndpointsRequestModel request, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            await _configServices.SetConfiguredEndpointsAsync(new List<PublishedNodesEntryModel>(
+                request.Endpoints ?? Enumerable.Empty<PublishedNodesEntryModel>()),
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>

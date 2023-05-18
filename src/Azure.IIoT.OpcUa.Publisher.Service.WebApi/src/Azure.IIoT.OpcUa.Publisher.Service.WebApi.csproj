@@ -9,27 +9,27 @@
   </PropertyGroup>
   <PropertyGroup>
     <PublishProfile>DefaultContainer</PublishProfile>
-    <ContainerImageName>iot/opc-publisher-service</ContainerImageName>
+    <ContainerImageName>iot/industrial-iot-services-all</ContainerImageName>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
-    <ContainerPort Include="9045" Type="tcp" />
+    <ContainerPort Include="9080" Type="tcp" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.5" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.9.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.11.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.4.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.4.0-rc.4" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.4.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.14" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.1.0-rc.2" />
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.30" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.30" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.37" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.31" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.31" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.46" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>

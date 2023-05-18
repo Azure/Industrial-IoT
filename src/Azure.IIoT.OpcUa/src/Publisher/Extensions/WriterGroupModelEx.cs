@@ -5,9 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-
     /// <summary>
     /// Writer group Model extensions
     /// </summary>
@@ -47,15 +44,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.HeaderLayoutUri != other.HeaderLayoutUri)
-            {
-                return false;
-            }
             if (model.SecurityMode != other.SecurityMode)
             {
                 return false;
             }
             if (model.SecurityGroupId != other.SecurityGroupId)
+            {
+                return false;
+            }
+            if (model.HeaderLayoutUri != other.HeaderLayoutUri)
             {
                 return false;
             }
@@ -76,41 +73,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return false;
             }
             return true;
-        }
-
-        /// <summary>
-        /// Clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull(nameof(model))]
-        public static WriterGroupModel? Clone(this WriterGroupModel model)
-        {
-            if (model?.DataSetWriters == null)
-            {
-                return null;
-            }
-            return new WriterGroupModel
-            {
-                WriterGroupId = model.WriterGroupId,
-                DataSetWriters = model.DataSetWriters
-                    .ConvertAll(f => f.Clone())
-,
-                HeaderLayoutUri = model.HeaderLayoutUri,
-                KeepAliveTime = model.KeepAliveTime,
-                LocaleIds = model.LocaleIds?.ToList(),
-                MaxNetworkMessageSize = model.MaxNetworkMessageSize,
-                MessageSettings = model.MessageSettings.Clone(),
-                MessageType = model.MessageType,
-                Name = model.Name,
-                Priority = model.Priority,
-                PublishingInterval = model.PublishingInterval,
-                SecurityGroupId = model.SecurityGroupId,
-                SecurityKeyServices = model.SecurityKeyServices?
-                    .Select(c => c.Clone())
-                    .ToList(),
-                SecurityMode = model.SecurityMode
-            };
         }
     }
 }

@@ -19,21 +19,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The Object or View produces event
         /// notifications.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SubscribeToEvents")]
         SubscribeToEvents = 0x1,
 
         /// <summary>
         /// The Object has an event history which may
         /// be read.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "HistoryRead")]
         HistoryRead = 0x4,
 
         /// <summary>
         /// The Object has an event history which may
         /// be updated.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "HistoryWrite")]
         HistoryWrite = 0x8,
     }
 }

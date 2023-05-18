@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// No credentials for anonymous access
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None,
 
         /// <summary>
         /// User name and password as credential
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "UserName")]
         UserName,
 
         /// <summary>
         /// Credential is a x509 certificate
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "X509Certificate")]
         X509Certificate,
 
         /// <summary>
         /// Jwt token as credential
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "JwtToken")]
         JwtToken
     }
 }

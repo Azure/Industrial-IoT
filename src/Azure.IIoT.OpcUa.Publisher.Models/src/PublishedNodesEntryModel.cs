@@ -120,6 +120,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? DataSetDescription { get; set; }
 
         /// <summary>
+        /// The messaging mode to use for the group
+        /// </summary>
+        [DataMember(Name = "MessagingMode", Order = 16,
+            EmitDefaultValue = false)]
+        public MessagingMode? MessagingMode { get; set; }
+
+        /// <summary>
+        /// The messaging encoding to use for the group
+        /// </summary>
+        [DataMember(Name = "MessageType", Order = 17,
+            EmitDefaultValue = false)]
+        public MessageEncoding? MessageType { get; set; }
+
+        /// <summary>
         /// Secure transport should be used to connect to
         /// the opc server.
         /// </summary>

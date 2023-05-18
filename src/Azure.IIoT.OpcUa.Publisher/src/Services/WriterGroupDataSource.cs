@@ -46,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IOptions<OpcUaSubscriptionOptions> subscriptionConfig,
             IMetricsContext? metrics, ILogger<WriterGroupDataSource> logger)
         {
-            _writerGroup = writerGroup?.Clone() ??
-                throw new ArgumentNullException(nameof(writerGroup));
+            ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
+
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _logger = logger ??
@@ -59,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _metrics = metrics ??
                 throw new ArgumentNullException(nameof(metrics));
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
+            _writerGroup = Copy(writerGroup);
             InitializeMetrics();
         }
 
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                writerGroup = writerGroup.Clone();
+                writerGroup = Copy(writerGroup);
 
                 if (writerGroup.DataSetWriters == null ||
                     writerGroup.DataSetWriters.Count == 0)
@@ -169,6 +170,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await s.DisposeAsync().ConfigureAwait(false);
             }
             _subscriptions.Clear();
+        }
+
+        /// <summary>
+        /// Safe clone the writer group model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        private WriterGroupModel Copy(WriterGroupModel model)
+        {
+            var writerGroup = new WriterGroupModel
+            {
+                WriterGroupId = model.WriterGroupId,
+                DataSetWriters = model.DataSetWriters == null ?
+                    new List<DataSetWriterModel>() :
+                    model.DataSetWriters.ConvertAll(f => f.Clone()),
+                KeepAliveTime = model.KeepAliveTime,
+                LocaleIds = model.LocaleIds?.ToList(),
+                MaxNetworkMessageSize = model.MaxNetworkMessageSize,
+                MessageSettings = model.MessageSettings.Clone(),
+                MessageType = model.MessageType,
+                Name = model.Name,
+                Priority = model.Priority,
+                PublishingInterval = model.PublishingInterval,
+                SecurityGroupId = model.SecurityGroupId,
+                HeaderLayoutUri = model.HeaderLayoutUri,
+                SecurityKeyServices = model.SecurityKeyServices?
+                    .Select(c => c.Clone())
+                    .ToList(),
+                SecurityMode = model.SecurityMode
+            };
+
+            // Set the messaging profile settings
+            var defaultMessagingProfile = _options.Value.MessagingProfile ??
+                MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
+            if (writerGroup.HeaderLayoutUri != null)
+            {
+                defaultMessagingProfile = MessagingProfile.Get(
+                    Enum.Parse<MessagingMode>(writerGroup.HeaderLayoutUri),
+                    writerGroup.MessageType ?? defaultMessagingProfile.MessageEncoding);
+            }
+
+            if (writerGroup.MessageType == null)
+            {
+                writerGroup.MessageType = defaultMessagingProfile.MessageEncoding;
+            }
+
+            // Set the messaging settings for the encoder
+            if (writerGroup.MessageSettings?.NetworkMessageContentMask == null)
+            {
+                writerGroup.MessageSettings ??= new WriterGroupMessageSettingsModel();
+                writerGroup.MessageSettings.NetworkMessageContentMask =
+                    defaultMessagingProfile.NetworkMessageContentMask;
+            }
+
+            foreach (var dataSetWriter in writerGroup.DataSetWriters)
+            {
+                if (dataSetWriter.MessageSettings?.DataSetMessageContentMask == null)
+                {
+                    dataSetWriter.MessageSettings ??= new DataSetWriterMessageSettingsModel();
+                    dataSetWriter.MessageSettings.DataSetMessageContentMask =
+                        defaultMessagingProfile.DataSetMessageContentMask;
+                }
+                if (dataSetWriter.DataSetFieldContentMask == null)
+                {
+                    dataSetWriter.DataSetFieldContentMask =
+                        defaultMessagingProfile.DataSetFieldContentMask;
+                }
+            }
+
+            return writerGroup;
         }
 
         /// <summary>

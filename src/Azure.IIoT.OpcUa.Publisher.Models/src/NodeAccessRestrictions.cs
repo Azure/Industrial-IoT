@@ -19,28 +19,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// No restrictions
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None = 0x0,
 
         /// <summary>
         /// The Client can only access the Node when using a
         /// SecureChannel which digitally signs all messages.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SigningRequired")]
         SigningRequired = 0x1,
 
         /// <summary>
         /// The Client can only access the Node when using a
         /// SecureChannel which encrypts all messages.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "EncryptionRequired")]
         EncryptionRequired = 0x2,
 
         /// <summary>
         /// The Client cannot access the Node when using
         /// SessionlessInvoke Service invocation.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SessionRequired")]
         SessionRequired = 0x4
     }
 }

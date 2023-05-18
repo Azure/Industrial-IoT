@@ -934,7 +934,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(writerGroups
                 .Single().DataSetWriters);
@@ -974,7 +974,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(writerGroups
                 .Single().DataSetWriters);
@@ -1014,7 +1014,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(writerGroups
                 .Single().DataSetWriters);
@@ -1084,7 +1084,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var j = Assert.Single(writerGroups);
             Assert.Single(j.DataSetWriters);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal("opc.tcp://localhost:50000", writerGroups
                 .Single().DataSetWriters
@@ -1120,7 +1120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var j = Assert.Single(writerGroups);
             Assert.Single(j.DataSetWriters);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal("opc.tcp://localhost:50000", writerGroups
                 .Single().DataSetWriters
@@ -1157,7 +1157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var j = Assert.Single(writerGroups);
             Assert.Single(j.DataSetWriters);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal("opc.tcp://localhost:50000", writerGroups
                 .Single().DataSetWriters
@@ -1195,7 +1195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var j = Assert.Single(writerGroups);
             Assert.Single(j.DataSetWriters);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal("opc.tcp://localhost:50000", writerGroups
                 .Single().DataSetWriters
@@ -1241,7 +1241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(j.DataSetWriters);
             Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
@@ -1280,7 +1280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(j.DataSetWriters);
             Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
@@ -1340,7 +1340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Single(j.DataSetWriters);
             Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
@@ -1400,7 +1400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(4, j.DataSetWriters.Count);
         }
@@ -1467,7 +1467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(4, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
@@ -1534,7 +1534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(2, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
@@ -1599,7 +1599,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(3, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
@@ -1622,7 +1622,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(2, j.DataSetWriters.Count);
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
@@ -1674,7 +1674,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(10, j.DataSetWriters.Count);
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
@@ -1727,7 +1727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
 
-            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.MessageSettings);
 
             Assert.Equal(10, j.DataSetWriters.Count);
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",

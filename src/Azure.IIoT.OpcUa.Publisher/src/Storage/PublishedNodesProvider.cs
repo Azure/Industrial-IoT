@@ -38,6 +38,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         /// <summary>
+        /// Get file mode to use
+        /// </summary>
+        private FileMode FileMode =>
+            _options.Value.PublishedNodesFile == null ||
+            _options.Value.CreatePublishFileIfNotExist == true ?
+                FileMode.OpenOrCreate : FileMode.Open;
+
+        /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
         /// <param name="options"> Publisher configuration with location
@@ -91,10 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 // Create file only if it is the default file.
                 using (var fileStream = new FileStream(_fileName,
-                    _options.Value.PublishedNodesFile == null ?
-                        FileMode.OpenOrCreate : FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.Read))
+                    FileMode, FileAccess.Read, FileShare.Read))
                 {
                     return fileStream.ReadAsString(Encoding.UTF8);
                 }
@@ -127,8 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 try
                 {
                     using (var fileStream = new FileStream(_fileName,
-                        _options.Value.PublishedNodesFile == null ?
-                            FileMode.OpenOrCreate : FileMode.Open,
+                        FileMode,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
                         FileShare.None))
@@ -139,7 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 catch (IOException e)
                 {
-                    _logger.LogWarning("Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
+                    _logger.LogWarning(
+                        "Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
                         "Please close any other application that uses this file. " +
                         "Falling back to opening it with more relaxed share policies.",
                         _fileName);
@@ -148,8 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     try
                     {
                         using (var fileStream = new FileStream(_fileName,
-                            _options.Value.PublishedNodesFile == null ?
-                                FileMode.OpenOrCreate : FileMode.Open,
+                            FileMode,
                             FileAccess.Write,
                             // Relaxing requirements.
                             FileShare.ReadWrite))

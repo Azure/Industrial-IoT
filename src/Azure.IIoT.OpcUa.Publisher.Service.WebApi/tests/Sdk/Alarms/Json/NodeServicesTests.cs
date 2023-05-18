@@ -59,5 +59,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.Alarms.Json
         {
             return GetTests().BrowseColoursEastTankTestAsync();
         }
+
+        [SkippableFact]
+        public Task CompileAlarmQueryTest1Async()
+        {
+            Skip.IfNot(false, "Not supported");
+            return GetTests().CompileAlarmQueryTest1Async();
+        }
+
+        [SkippableFact]
+        public Task CompileAlarmQueryTest2Async()
+        {
+            Skip.IfNot(false, "Not supported");
+            return GetTests().CompileAlarmQueryTest2Async();
+        }
+
+        [SkippableFact]
+        public Task CompileSimpleBaseEventQueryTestAsync()
+        {
+            Skip.IfNot(false, "Not supported");
+            return GetTests().CompileSimpleBaseEventQueryTestAsync();
+        }
+
+        [SkippableFact]
+        public Task CompileSimpleTripAlarmQueryTestAsync()
+        {
+            Skip.IfNot(false, "Not supported");
+            return GetTests().CompileSimpleTripAlarmQueryTestAsync();
+        }
     }
 }

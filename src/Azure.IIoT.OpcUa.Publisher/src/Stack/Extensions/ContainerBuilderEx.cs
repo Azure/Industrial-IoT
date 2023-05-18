@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
 
     /// <summary>
     /// Container builder extensions
@@ -34,6 +35,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             builder.RegisterType<OpcUaSubscriptionConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<FilterQueryParser>()
                 .AsImplementedInterfaces();
         }
     }

@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         private BrowseServicesTests<ConnectionModel> GetTests()
         {
             return new BrowseServicesTests<ConnectionModel>(
-                () => new NodeServices<ConnectionModel>(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
                 _server.GetConnection());
         }

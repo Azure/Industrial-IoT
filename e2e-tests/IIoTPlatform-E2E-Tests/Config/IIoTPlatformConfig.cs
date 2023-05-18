@@ -28,8 +28,8 @@ namespace IIoTPlatform_E2E_Tests.Config
         string AuthClientSecret { get; }
 
         /// <summary>
-        /// Name of deployed Industrial IoT
+        /// Service app id
         /// </summary>
-        string ApplicationName { get; }
+        string AuthServiceId { get; }
     }
 }

@@ -38,11 +38,6 @@ stages:
   displayName: "Build Resources"
   condition: ne(variables['UseExisting'], true)
   jobs:
-  - job: buildiai
-    displayName: 'Build IAI'
-    steps:
-    - template: steps/buildiai.yml
-
   - job: buildtestresources
     displayName: 'Build Test Resources'
     steps:

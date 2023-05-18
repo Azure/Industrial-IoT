@@ -75,7 +75,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             var connection = dataSetWriter.DataSet.DataSetSource.Connection;
 
-            // TODO: We should get rid of this in connection model, it is redundant in the model tree
             if (connection.Group == null)
             {
                 connection = connection.Clone();

@@ -16,31 +16,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// No discovery
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Off")]
         Off,
 
         /// <summary>
         /// Find and use local discovery server on edge device
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Local")]
         Local,
 
         /// <summary>
         /// Find and use all LDS in all connected networks
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Network")]
         Network,
 
         /// <summary>
         /// Fast network scan of */24 and known list of ports
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Fast")]
         Fast,
 
         /// <summary>
         /// Perform a deep scan of all networks.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Scan")]
         Scan
     }
 }

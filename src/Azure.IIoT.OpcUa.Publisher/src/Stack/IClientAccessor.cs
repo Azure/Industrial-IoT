@@ -5,9 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Access to clients
     /// </summary>

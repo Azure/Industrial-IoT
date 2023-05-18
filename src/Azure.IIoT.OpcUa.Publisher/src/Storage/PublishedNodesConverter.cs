@@ -105,6 +105,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetClassId = item.Writer.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty,
                             DataSetDescription = item.Writer.DataSet?.DataSetMetaData?.Description,
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
+                            MessagingMode = item.WriterGroup.HeaderLayoutUri == null ? null :
+                                Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
+                            MessageType = item.WriterGroup.MessageType,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup = item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
@@ -197,7 +200,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         new FuncCompare<PublishedNodesEntryModel>((x, y) => x!.HasSameDataSet(y!)))
                     .Select(group =>
                     {
-                        group.Key.OpcNodes = group.Where(g => g.OpcNodes != null).SelectMany(g => g.OpcNodes!).ToList();
+                        group.Key.OpcNodes = group
+                            .Where(g => g.OpcNodes != null)
+                            .SelectMany(g => g.OpcNodes!)
+                            .ToList();
                         return group.Key;
                     });
             }
@@ -324,7 +330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
                     .Select(dataSetBatches => new WriterGroupModel
                     {
-                        MessageType = configuration.MessagingProfile?.MessageEncoding,
+                        MessageType = dataSetBatches.First.Header.MessageType,
+                        HeaderLayoutUri = dataSetBatches.First.Header.MessagingMode?.ToString(),
                         WriterGroupId = dataSetBatches.First.Source.Connection?.Group,
                         DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel
                         {
@@ -359,17 +366,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
                                     SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
                                 }
-                            },
-                            DataSetFieldContentMask = configuration.MessagingProfile?.DataSetFieldContentMask,
-                            MessageSettings = new DataSetWriterMessageSettingsModel
-                            {
-                                DataSetMessageContentMask = configuration.MessagingProfile?.DataSetMessageContentMask
                             }
-                        }),
-                        MessageSettings = new WriterGroupMessageSettingsModel
-                        {
-                            NetworkMessageContentMask = configuration.MessagingProfile?.NetworkMessageContentMask
-                        }
+                        })
                     });
 
                 // Coalesce into writer group

@@ -52,18 +52,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 if (publisher.Id == null)
                 {
+                    _logger.LogWarning("Publisher id was unexpectedly null");
                     continue;
                 }
-                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, kTimeout, _serializer);
                 try
                 {
                     await client.CancelAsync(request, ct).ConfigureAwait(false);
-                    // If we got here we have cancelled the request with the id
-                    return;
+
+                    _logger.LogDebug("Cancelled discovery on publisher {Publisher}...", publisher.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogTrace(ex, "Failed to cancel discovery on publisher {Id}", publisher.Id);
+                    _logger.LogDebug(ex, "Failed to cancel discovery on publisher {Id}", publisher.Id);
                 }
             }
         }
@@ -78,16 +79,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 if (publisher.Id == null)
                 {
+                    _logger.LogWarning("Publisher id was unexpectedly null");
                     continue;
                 }
-                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, kTimeout, _serializer);
                 try
                 {
                     return await client.FindServerAsync(query, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogTrace(ex, "Failed to find server on publisher {Id}", publisher.Id);
+                    _logger.LogDebug(ex, "Failed to find server on publisher {Id}", publisher.Id);
                     exceptions.Add(ex);
                 }
             }
@@ -102,13 +104,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 if (publisher.Id == null)
                 {
+                    _logger.LogWarning("Publisher id was unexpectedly null");
                     continue;
                 }
-                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, kTimeout, _serializer);
                 try
                 {
                     // We call discovery on all publishers
                     await client.DiscoverAsync(request, ct).ConfigureAwait(false);
+
+                    _logger.LogDebug("Started discover on publisher {Publisher}...", publisher.Id);
                 }
                 catch (Exception ex)
                 {
@@ -125,14 +130,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 if (publisher.Id == null)
                 {
+                    _logger.LogWarning("Publisher id was unexpectedly null");
                     continue;
                 }
-                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, kTimeout, _serializer);
                 try
                 {
                     await client.RegisterAsync(request, ct).ConfigureAwait(false);
-                    // If we got here we have registered the server
-                    return;
+
+                    _logger.LogDebug("Registered server through publisher {Publisher}...",
+                        publisher.Id);
                 }
                 catch (Exception ex)
                 {
@@ -170,6 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(10);
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Application is server
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Server")]
         Server,
 
         /// <summary>
         /// Application is client
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Client")]
         Client,
 
         /// <summary>
         /// Application is client and server
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "ClientAndServer")]
         ClientAndServer,
 
         /// <summary>
         /// Application is discovery server
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "DiscoveryServer")]
         DiscoveryServer
     }
 }

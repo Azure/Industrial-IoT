@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         {
             var httpRequest = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{_serviceUri}/twin/healthz")
+                RequestUri = new Uri($"{_serviceUri}/healthz")
             };
             try
             {
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<BrowseFirstResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/next");
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{Uri.EscapeDataString(endpointId)}/next");
             return await _httpClient.PostAsync<BrowseNextResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Browse paths missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/path");
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{Uri.EscapeDataString(endpointId)}/path");
             return await _httpClient.PostAsync<BrowsePathResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}/attributes");
+            var uri = new Uri($"{_serviceUri}/twin/v2/read/{Uri.EscapeDataString(endpointId)}/attributes");
             return await _httpClient.PostAsync<ReadResponseModel>(uri, request,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}/attributes");
+            var uri = new Uri($"{_serviceUri}/twin/v2/write/{Uri.EscapeDataString(endpointId)}/attributes");
             return await _httpClient.PostAsync<WriteResponseModel>(uri, request,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/read/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<ValueReadResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Value missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/write/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<ValueWriteResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}/metadata");
+            var uri = new Uri($"{_serviceUri}/twin/v2/call/{Uri.EscapeDataString(endpointId)}/metadata");
             return await _httpClient.PostAsync<MethodMetadataResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -251,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/call/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<MethodCallResponseModel>
                 (uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -268,7 +268,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{endpointId}/node");
+            var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{Uri.EscapeDataString(endpointId)}/node");
             return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.GetAsync<ServerCapabilitiesModel>(uri,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -294,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/capabilities/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/history/v2/capabilities/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.GetAsync<HistoryServerCapabilitiesModel>(uri,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("NodeId missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/configuration");
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/configuration");
             return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -336,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<HistoryReadResponseModel<VariantValue>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -357,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}/next");
+            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{Uri.EscapeDataString(endpointId)}/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<VariantValue>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -378,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/history/update/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/history/v2/history/update/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }

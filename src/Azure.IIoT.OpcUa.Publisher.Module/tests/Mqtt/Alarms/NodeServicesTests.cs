@@ -51,5 +51,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Alarms
         {
             return GetTests().BrowseColoursEastTankTestAsync(Ct);
         }
+
+        [Fact]
+        public Task CompileAlarmQueryTest1Async()
+        {
+            return GetTests().CompileAlarmQueryTest1Async();
+        }
+
+        [Fact]
+        public Task CompileAlarmQueryTest2Async()
+        {
+            return GetTests().CompileAlarmQueryTest2Async();
+        }
+
+        [Fact]
+        public Task CompileSimpleBaseEventQueryTestAsync()
+        {
+            return GetTests().CompileSimpleBaseEventQueryTestAsync();
+        }
+
+        [Fact]
+        public Task CompileSimpleTripAlarmQueryTestAsync()
+        {
+            return GetTests().CompileSimpleTripAlarmQueryTestAsync();
+        }
     }
 }

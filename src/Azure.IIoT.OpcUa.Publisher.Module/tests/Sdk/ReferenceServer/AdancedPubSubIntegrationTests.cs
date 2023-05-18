@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
-    using Microsoft.Azure.Devices.Shared;
     using System;
     using System.Linq;
     using System.Text.Json;

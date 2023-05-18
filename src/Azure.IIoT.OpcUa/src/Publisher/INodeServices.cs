@@ -79,6 +79,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             NodeMetadataRequestModel request, CancellationToken ct = default);
 
         /// <summary>
+        /// Compile a query into a filter
+        /// </summary>
+        /// <param name="endpoint">Server endpoint to talk to</param>
+        /// <param name="request">The query to compile</param>
+        /// <param name="ct"></param>
+        /// <returns>The compiled query</returns>
+        Task<QueryCompilationResponseModel> CompileQueryAsync(T endpoint,
+            QueryCompilationRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
         /// Read node value
         /// </summary>
         /// <param name="endpoint">Server endpoint to talk to</param>

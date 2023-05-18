@@ -16,19 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         ///  A raw data value.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Raw")]
         Raw = 0,
 
         /// <summary>
         /// Calculated data
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Calculated")]
         Calculated = 1,
 
         /// <summary>
         /// A data value which was interpolated.
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Interpolated")]
         Interpolated = 2,
     }
 }

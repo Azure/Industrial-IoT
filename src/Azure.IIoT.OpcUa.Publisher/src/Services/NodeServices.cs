@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -37,12 +38,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create node service
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="parser"></param>
         /// <param name="logger"></param>
-        ///
-        public NodeServices(IOpcUaClientManager<T> client, ILogger<NodeServices<T>> logger)
+        public NodeServices(IOpcUaClientManager<T> client, IFilterParser parser,
+            ILogger<NodeServices<T>> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _parser = parser ?? throw new ArgumentNullException(nameof(parser));
         }
 
         /// <inheritdoc/>
@@ -218,14 +221,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var targets = new List<NodePathTargetModel>();
                 var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
-                    new BrowsePath
+                    new Opc.Ua.BrowsePath
                     {
                         StartingNode = rootId,
                         RelativePath = p.ToRelativePath(context.Session.MessageContext)
                     }));
                 var response = await context.Session.Services.TranslateBrowsePathsToNodeIdsAsync(
                     request.Header.ToRequestHeader(), requests, ct).ConfigureAwait(false);
-                var results = response.Validate(response.Results, r => r.StatusCode,
+                var results = response.Validate<IReadOnlyList<string>, BrowsePathResult>(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, request.BrowsePaths);
                 if (results.ErrorInfo != null)
                 {
@@ -236,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 foreach (var operation in results)
                 {
-                    await AddTargetsToBrowseResultAsync(context.Session,
+                    await NodeServices<T>.AddTargetsToBrowseResultAsync(context.Session,
                         request.Header.ToRequestHeader(),
                         request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                         targets, operation.Result.Targets,
@@ -345,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 // process the types starting from the top of the tree.
-                var map = new Dictionary<string, InstanceDeclarationModel>();
+                var map = new Dictionary<ImmutableRelativePath, InstanceDeclarationModel>();
                 var declarations = new List<InstanceDeclarationModel>();
 
                 var hierarchy = new List<(NodeId, ReferenceDescription)>();
@@ -434,6 +437,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 return NodeType.Unknown;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<QueryCompilationResponseModel> CompileQueryAsync(T endpoint,
+            QueryCompilationRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.Query))
+            {
+                throw new ArgumentException("Query must not be empty", nameof(request));
+            }
+            using var trace = _activitySource.StartActivity("CompileQuery");
+            try
+            {
+                return await _client.ExecuteAsync(endpoint, async session =>
+                {
+                    var context = new SessionParserContext(session.Session,
+                        request.Header.ToRequestHeader());
+                    var eventFilter = await _parser.ParseEventFilterAsync(request.Query,
+                        context, ct).ConfigureAwait(false);
+                    return new QueryCompilationResponseModel
+                    {
+                        EventFilter = eventFilter,
+                        ErrorInfo = context.ErrorInfo
+                    };
+                }, ct: ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // This is where the parser exceptions will end up
+                return new QueryCompilationResponseModel
+                {
+                    ErrorInfo = ex.ToServiceResultModel()
+                };
             }
         }
 
@@ -1246,8 +1287,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
                 if (request.BrowsePath?.Count > 0)
                 {
-                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        nodeId, request.BrowsePath.ToArray(),
+                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session,
+                        request.Header, nodeId, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
                 if (NodeId.IsNull(nodeId))
@@ -1592,7 +1633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Targets = new List<NodePathTargetModel>()
             };
             var browsepaths = new BrowsePathCollection {
-                new BrowsePath {
+                new Opc.Ua.BrowsePath {
                     StartingNode = rootId,
                     RelativePath = paths.ToRelativePath(session.MessageContext)
                 }
@@ -1989,6 +2030,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private readonly ILogger _logger;
+        private readonly IFilterParser _parser;
         private readonly IOpcUaClientManager<T> _client;
     }
 }

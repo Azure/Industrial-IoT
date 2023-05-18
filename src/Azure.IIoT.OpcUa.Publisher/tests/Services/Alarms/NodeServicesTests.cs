@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Alarms
         private AlarmServerTests<ConnectionModel> GetTests()
         {
             return new AlarmServerTests<ConnectionModel>(
-                () => new NodeServices<ConnectionModel>(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
                 _server.GetConnection());
         }
@@ -48,6 +48,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Alarms
         public Task BrowseColoursEastTankTestAsync()
         {
             return GetTests().BrowseColoursEastTankTestAsync();
+        }
+
+        [Fact]
+        public Task CompileAlarmQueryTest1Async()
+        {
+            return GetTests().CompileAlarmQueryTest1Async();
+        }
+
+        [Fact]
+        public Task CompileAlarmQueryTest2Async()
+        {
+            return GetTests().CompileAlarmQueryTest2Async();
+        }
+
+        [Fact]
+        public Task CompileSimpleBaseEventQueryTestAsync()
+        {
+            return GetTests().CompileSimpleBaseEventQueryTestAsync();
+        }
+
+        [Fact]
+        public Task CompileSimpleTripAlarmQueryTestAsync()
+        {
+            return GetTests().CompileSimpleTripAlarmQueryTestAsync();
         }
     }
 }

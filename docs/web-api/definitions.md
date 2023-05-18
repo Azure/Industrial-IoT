@@ -316,6 +316,17 @@ View to browse
 |**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
 
 
+<a name="conditionhandlingoptionsmodel"></a>
+### ConditionHandlingOptionsModel
+Condition handling options model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**snapshotInterval**  <br>*optional*|Time interval for sending pending interval snapshot in seconds.|integer (int32)|
+|**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
+
+
 <a name="connectrequestmodel"></a>
 ### ConnectRequestModel
 Connect request
@@ -375,6 +386,13 @@ Type of credentials to use for authentication
 *Type* : enum (None, UserName, X509Certificate, JwtToken)
 
 
+<a name="datachangetriggertype"></a>
+### DataChangeTriggerType
+Data change trigger
+
+*Type* : enum (Status, StatusValue, StatusValueTimestamp)
+
+
 <a name="datalocation"></a>
 ### DataLocation
 Indicate the data location
@@ -390,6 +408,13 @@ Data type metadata model
 |Name|Description|Schema|
 |---|---|---|
 |**dataType**  <br>*optional*|The data type for the instance declaration.|string|
+
+
+<a name="deadbandtype"></a>
+### DeadbandType
+Deadband type
+
+*Type* : enum (Absolute, Percent)
 
 
 <a name="deleteeventsdetailsmodel"></a>
@@ -613,7 +638,6 @@ Endpoint info
 |**applicationId**  <br>*required*|Application id endpoint is registered under.  <br>**Minimum length** : `1`|string|
 |**endpointState**  <br>*optional*||[EndpointConnectivityState](definitions.md#endpointconnectivitystate)|
 |**notSeenSince**  <br>*optional*|Last time endpoint was seen|string (date-time)|
-|**outOfSync**  <br>*optional*|Whether the registration is out of sync|boolean|
 |**registration**  <br>*required*||[EndpointRegistrationModel](definitions.md#endpointregistrationmodel)|
 
 
@@ -694,6 +718,7 @@ Filter operand
 |**alias**  <br>*optional*|Optional alias to refer to it makeing it a<br>full blown attribute operand|string|
 |**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
 |**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
+|**dataType**  <br>*optional*|Data type if operand is a literal|string|
 |**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int64)|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
@@ -952,7 +977,7 @@ Instance declaration meta data
 |Name|Description|Schema|
 |---|---|---|
 |**browseName**  <br>*optional*|The browse name for the instance declaration.|string|
-|**browsePath**  <br>*optional*|The browse path|string|
+|**browsePath**  <br>*optional*|The browse path|< string > array|
 |**description**  <br>*optional*|The description for the instance declaration.|string|
 |**displayName**  <br>*optional*|The display name for the instance declaration.|string|
 |**displayPath**  <br>*optional*|A localized path to the instance declaration.|string|
@@ -964,6 +989,20 @@ Instance declaration meta data
 |**overriddenDeclaration**  <br>*optional*||[InstanceDeclarationModel](definitions.md#instancedeclarationmodel)|
 |**rootTypeId**  <br>*optional*|The type that the declaration belongs to.|string|
 |**variable**  <br>*optional*||[VariableMetadataModel](definitions.md#variablemetadatamodel)|
+
+
+<a name="messageencoding"></a>
+### MessageEncoding
+Message encoding
+
+*Type* : enum (Binary, Json, Xml, IsReversible, Uadp, JsonReversible, IsGzipCompressed, JsonGzip, JsonReversibleGzip)
+
+
+<a name="messagingmode"></a>
+### MessagingMode
+Message modes
+
+*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, RawDataSets)
 
 
 <a name="methodcallargumentmodel"></a>
@@ -1102,6 +1141,16 @@ Flags that can be set for the EventNotifier attribute.
 *Type* : enum (SubscribeToEvents, HistoryRead, HistoryWrite)
 
 
+<a name="nodeidmodel"></a>
+### NodeIdModel
+Node id serialized as object
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**Identifier**  <br>*optional*|Identifier|string|
+
+
 <a name="nodemetadatarequestmodel"></a>
 ### NodeMetadataRequestModel
 Node metadata request model
@@ -1209,6 +1258,41 @@ The node type
 Constants defined for the ValueRank attribute.
 
 *Type* : enum (OneOrMoreDimensions, OneDimension, TwoDimensions, ScalarOrOneDimension, Any, Scalar)
+
+
+<a name="opcauthenticationmode"></a>
+### OpcAuthenticationMode
+Enum that defines the authentication method
+
+*Type* : enum (Anonymous, UsernamePassword)
+
+
+<a name="opcnodemodel"></a>
+### OpcNodeModel
+Describing an entry in the node list
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**ConditionHandling**  <br>*optional*||[ConditionHandlingOptionsModel](definitions.md#conditionhandlingoptionsmodel)|
+|**DataChangeTrigger**  <br>*optional*||[DataChangeTriggerType](definitions.md#datachangetriggertype)|
+|**DataSetClassFieldId**  <br>*optional*|The identifier of the field in the dataset class.<br>Allows correlation to the data set class.|string (uuid)|
+|**DataSetFieldId**  <br>*optional*|The identifier of the field in the dataset message.<br>If not provided Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.DisplayName is used.|string|
+|**DeadbandType**  <br>*optional*||[DeadbandType](definitions.md#deadbandtype)|
+|**DeadbandValue**  <br>*optional*|Deadband value of the data change filter to apply.<br>Does not apply to events|number (double)|
+|**DiscardNew**  <br>*optional*|Discard new values in the server queue instead of<br>old values when no more room in queue.|boolean|
+|**DisplayName**  <br>*optional*|Display name|string|
+|**EventFilter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
+|**ExpandedNodeId**  <br>*optional*|Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)|string|
+|**HeartbeatInterval**  <br>*optional*|Heartbeat interval in seconds|integer (int32)|
+|**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
+|**Id**  <br>*optional*|Node Identifier|string|
+|**OpcPublishingInterval**  <br>*optional*|Publishing interval in milliseconds|integer (int32)|
+|**OpcPublishingIntervalTimespan**  <br>*optional*|OpcPublishingInterval as TimeSpan.|string (date-span)|
+|**OpcSamplingInterval**  <br>*optional*|Sampling interval in milliseconds|integer (int32)|
+|**OpcSamplingIntervalTimespan**  <br>*optional*|OpcSamplingInterval as TimeSpan.|string (date-span)|
+|**QueueSize**  <br>*optional*|Queue Size for the monitored item on the server.<br>Specifies how many values are queued on the server<br>before undelivered ones are discarded.|integer (int64)|
+|**SkipFirst**  <br>*optional*|Do not send the first value that is always provided<br>by the server when the monitored item is created.|boolean|
 
 
 <a name="operationcontextmodel"></a>
@@ -1349,6 +1433,43 @@ A monitored and published item
 |**nodeId**  <br>*required*|Variable node monitored  <br>**Minimum length** : `1`|string|
 |**publishingInterval**  <br>*optional*|Publishing interval to use|string (date-span)|
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
+
+
+<a name="publishednodesentrymodel"></a>
+### PublishedNodesEntryModel
+Contains the nodes which should be published
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
+|**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
+|**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
+|**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
+|**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
+|**DataSetPublishingIntervalTimespan**  <br>*optional*|The Publishing interval for a dataset writer<br>in timespan format. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetPublishingInterval if defined.|string (date-span)|
+|**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
+|**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
+|**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
+|**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
+|**EndpointUrl**  <br>*optional*|The endpoint URL of the OPC UA server.|string|
+|**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
+|**MessageType**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
+|**MessagingMode**  <br>*optional*||[MessagingMode](definitions.md#messagingmode)|
+|**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
+|**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
+|**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
+|**OpcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
+|**OpcAuthenticationPassword**  <br>*optional*|plain password|string|
+|**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
+|**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+|**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
+|**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+
+
+<a name="publishednodesentrymodeliasyncenumerable"></a>
+### PublishedNodesEntryModelIAsyncEnumerable
+*Type* : object
 
 
 <a name="publisherlistmodel"></a>
@@ -1650,6 +1771,16 @@ Service result
 |**namespaceUri**  <br>*optional*|Namespace uri|string|
 |**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
 |**symbolicId**  <br>*optional*|Symbolic identifier|string|
+
+
+<a name="setconfiguredendpointsrequestmodel"></a>
+### SetConfiguredEndpointsRequestModel
+Set configured endpoints request call
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**endpoints**  <br>*optional*|Endpoints and nodes that make up the configuration|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
 
 
 <a name="simpleattributeoperandmodel"></a>

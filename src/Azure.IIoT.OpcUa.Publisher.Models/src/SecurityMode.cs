@@ -16,25 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Use best security mode
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Best")]
         Best,
 
         /// <summary>
         /// Sign
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "Sign")]
         Sign,
 
         /// <summary>
         /// Sign and Encrypt
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "SignAndEncrypt")]
         SignAndEncrypt,
 
         /// <summary>
         /// No security
         /// </summary>
-        [EnumMember]
+        [EnumMember(Value = "None")]
         None
     }
 }

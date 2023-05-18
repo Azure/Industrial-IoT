@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     continue;
                 }
 
-                var hostname = !string.IsNullOrWhiteSpace(identity) ? identity : Utils.GetHostName();
+                var hostname = /*!string.IsNullOrWhiteSpace(identity) ? identity : */ Utils.GetHostName();
                 var applicationUri = options.ApplicationUri;
                 if (applicationUri == null)
                 {
