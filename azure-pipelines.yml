@@ -1,17 +1,19 @@
 pr:
-  autoCancel: true
-  drafts: true
+  autoCancel: 'true'
+  drafts: 'true'
   branches:
     include:
     - '*'
 trigger:
-  batch: true
+  batch: 'true'
   branches:
     include:
     - main
     - releases
     - release/*
-
+variables:
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release') }}:
+    registry: 'industrialiot'
 stages:
 - stage: build
   displayName: 'Build and Test Code'

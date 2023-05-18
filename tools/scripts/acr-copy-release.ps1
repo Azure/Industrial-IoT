@@ -152,7 +152,7 @@ foreach ($Repository in $BuildRepositories) {
         if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
             throw "IsMajorUpdate and IsLatest is not allowed when IsPrerelease is specified."
         }
-        $versionTag = $script:ReleaseVersion.Split('-')[0]
+        $versionTag = $script:ReleaseVersion
         $ReleaseTags += $versionTag
     }
     else {
