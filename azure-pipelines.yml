@@ -28,7 +28,7 @@ stages:
   jobs:
   - template: tools/templates/nuget.yml
     parameters:
-      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/main') }}
+      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/TODO') }}
 - stage: images
   displayName: 'Build Images'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
