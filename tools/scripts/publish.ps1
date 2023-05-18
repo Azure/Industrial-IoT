@@ -8,8 +8,6 @@
 
  .PARAMETER Registry
     The name of the container registry to push to (optional)
- .PARAMETER Push
-    Whether to push the image to the registry
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
 
@@ -28,12 +26,12 @@
 
 Param(
     [string] $Registry = $null,
-    [switch] $Push,
     [string] $ImageNamespace = $null,
     [string] $Os = "linux",
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
     [switch] $NoBuild,
+    [switch] $Push,
     [switch] $Debug
 )
 
@@ -54,9 +52,12 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         | Select-Object -First 1
     if ($properties) {
         $fullName = ""
+
+        $extra = @()
         if ($script:Registry) {
-            $fullName = "$($script:Registry)/"
+            $extra += "/p:ContainerRegistry=$($script:Registry)"
         }
+
         if ($script:ImageNamespace) {
             $fullName = "$($fullName)$($script:ImageNamespace)/"
         }
@@ -68,7 +69,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         Write-Host "Publish $($projFile.FullName) as $($fullName):$($fullTag)..."
-        $extra = @()
+   
         if ($script:NoBuild) {
             $extra += "--no-build"
         }
@@ -113,13 +114,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if ($LastExitCode -ne 0) {
             throw "Failed to publish container."
         }
-        if ($script:Registry -and $script:Push.IsPresent) {
-            Write-Host "Pushing $($fullName):$($fullTag) to registry..."
-            docker push "$($fullName):$($fullTag)"
-            if ($LastExitCode -ne 0) {
-                throw "Failed to push container image."
-            }
-        }
+
         Write-Host "$($fullName):$($fullTag) published."
     }
 }
