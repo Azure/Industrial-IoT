@@ -1,17 +1,16 @@
 pr:
-  autoCancel: true
-  drafts: true
+  autoCancel: 'true'
+  drafts: 'true'
   branches:
     include:
     - '*'
 trigger:
-  batch: true
+  batch: 'true'
   branches:
     include:
     - main
     - releases
     - release/*
-
 stages:
 - stage: build
   displayName: 'Build and Test Code'

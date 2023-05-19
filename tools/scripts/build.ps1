@@ -78,11 +78,11 @@ while ($true) {
 }
 
 if (-not $script:NoBuild.IsPresent) {
-    $push = $false
+    $loggedIn = $false
     if ($script:Registry -and ($script:User -and $script:Pw)) {
         Write-Host "Logging into $($script:Registry) with $($script:Pw)..."
         (& docker login $script:Registry -u $script:User -p $script:Pw) | Out-Null
-        $push = ($LastExitCode -ne 0)
+        $loggedIn = ($LastExitCode -ne 0)
         Write-Host "Pushing to $($script:Registry)..."
     }
 
@@ -96,13 +96,13 @@ if (-not $script:NoBuild.IsPresent) {
             # Build the docker images and push them to acr
             & (Join-Path $PSScriptRoot "publish.ps1") -Registry $($script:Registry) `
                 -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
-                -Os $os -Arch $arch -Debug:$script:Debug -Push:$push
+                -Os $os -Arch $arch -Debug:$script:Debug
             if ($LastExitCode -ne 0) {
                 throw "Failed to publish containers for $os-$arch."
             }
         }
     }
-    if ($push) {
+    if ($loggedIn) {
         docker logout $script:Registry
     }
 }

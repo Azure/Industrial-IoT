@@ -45,13 +45,19 @@ if ($namespace.StartsWith("feature/")) {
 }
 elseif ($namespace.StartsWith("release/") -or ($namespace -eq "releases")) {
     $namespace = "public"
-    if ([string]::IsNullOrEmpty($Registry)) {
+    if ([string]::IsNullOrEmpty($registry)) {
         # Release and Preview builds go into staging
-        $Registry = "industrialiot"
+        $registry = "industrialiot"
     }
 }
 $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+if ([string]::IsNullOrEmpty($registry)) {
+    # Everything else into dev registry
+    $registry = "industrialiotdev"
+}
 
 Write-Host "Setting ImageNamespace to '$($namespace)'..."
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($namespace)"
+Write-Host "Setting Registry to '$($registry)'..."
+Write-Host "##vso[task.setvariable variable=ContainerRegistry]$($registry)"
 return $namespace

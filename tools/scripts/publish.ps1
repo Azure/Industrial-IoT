@@ -1,15 +1,13 @@
 <#
  .SYNOPSIS
-    Builds csproj files with container support into docker 
+    Builds csproj files with container support into docker
     images. Linux docker images will be Alpine which we are
     officially supporting due to their attack surface. This
-    is compared to the default images when publishing, which 
+    is compared to the default images when publishing, which
     are debian.
 
  .PARAMETER Registry
     The name of the container registry to push to (optional)
- .PARAMETER Push
-    Whether to push the image to the registry
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
 
@@ -23,12 +21,11 @@
  .PARAMETER NoBuid
     Whether to not build before publishing.
  .PARAMETER Debug
-    Whether to build Release or Debug - default to Release.  
+    Whether to build Release or Debug - default to Release.
 #>
 
 Param(
     [string] $Registry = $null,
-    [switch] $Push,
     [string] $ImageNamespace = $null,
     [string] $Os = "linux",
     [string] $Arch = "x64",
@@ -46,6 +43,10 @@ if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 
+$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
+$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES = 131072
+$env:SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD = $false
+
 # Find all container projects, publish them and then push to container registry
 Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
     $projFile = $_
@@ -54,8 +55,9 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         | Select-Object -First 1
     if ($properties) {
         $fullName = ""
+        $extra = @()
         if ($script:Registry) {
-            $fullName = "$($script:Registry)/"
+            $extra += "/p:ContainerRegistry=$($script:Registry)"
         }
         if ($script:ImageNamespace) {
             $fullName = "$($fullName)$($script:ImageNamespace)/"
@@ -68,11 +70,11 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         Write-Host "Publish $($projFile.FullName) as $($fullName):$($fullTag)..."
-        $extra = @()
+
         if ($script:NoBuild) {
             $extra += "--no-build"
         }
-        
+
         $baseImage = "$($properties.ContainerBaseImage)"
         if ($os -eq "linux") {
             $architecture = $arch
@@ -105,7 +107,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         # add -r to select musl runtime?
-        dotnet publish $projFile.FullName -c $configuration --self-contained `
+        dotnet publish $projFile.FullName -c $configuration --self-contained false `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
             /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
             /p:ContainerImageTag=$fullTag `
@@ -113,13 +115,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if ($LastExitCode -ne 0) {
             throw "Failed to publish container."
         }
-        if ($script:Registry -and $script:Push.IsPresent) {
-            Write-Host "Pushing $($fullName):$($fullTag) to registry..."
-            docker push "$($fullName):$($fullTag)"
-            if ($LastExitCode -ne 0) {
-                throw "Failed to push container image."
-            }
-        }
+
         Write-Host "$($fullName):$($fullTag) published."
     }
 }

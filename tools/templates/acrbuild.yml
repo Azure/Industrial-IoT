@@ -46,6 +46,7 @@ jobs:
       scriptType: 'pscore'
       scriptPath: ./tools/scripts/acr-publish.ps1
       arguments: >
+        -Registry "$(ContainerRegistry)"
         -ImageNamespace "$(ImageNamespace)"
         -ImageTag "$(Version_Prefix)"
         -Arch "$(arch)" 
@@ -85,6 +86,7 @@ jobs:
       scriptType: 'ps'
       scriptPath: ./tools/scripts/acr-build.ps1
       arguments: >
+        -Registry "$(ContainerRegistry)"
         -ImageTag "$(Version_Prefix)"
         -ImageNamespace "$(ImageNamespace)"
         -NoBuild

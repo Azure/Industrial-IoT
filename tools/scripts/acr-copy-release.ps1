@@ -36,10 +36,10 @@
     Release as latest image
  .PARAMETER IsMajorUpdate
     Release as major update
- .PARAMETER IsPrerelease
-    Release as -ReleaseVersion (without any prerelease tags) only. This
-    will not update rolling tags like latest and major version and allow
-    customers to test the releae image ahead of full release.
+ .PARAMETER PreviewVersion
+    Release only as -ReleaseVersion with -preview{PreviewVersion} appended
+    to the tag. This will not update rolling tags like latest and major 
+    version and allow customers to test the releae image ahead of release.
  .PARAMETER RemoveNamespaceOnRelease
     Remove namespace (e.g. public) on release.
 #>
@@ -55,7 +55,7 @@ Param(
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
-    [switch] $IsPrerelease,
+    [string] $PreviewVersion,
     [switch] $RemoveNamespaceOnRelease
 )
 
@@ -148,11 +148,15 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     $ReleaseTags = @()
-    if ($script:IsPrerelease.IsPresent) {
+    if ($script:PreviewVersion) {
         if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
-            throw "IsMajorUpdate and IsLatest is not allowed when IsPrerelease is specified."
+            throw "IsMajorUpdate and IsLatest is not allowed when PreviewVersion is specified."
         }
-        $versionTag = $script:ReleaseVersion.Split('-')[0]
+<<<<<<< Updated upstream
+        $versionTag = $script:ReleaseVersion
+=======
+        $versionTag = "$($script:ReleaseVersion)-preview$($script:PreviewVersion)"
+>>>>>>> Stashed changes
         $ReleaseTags += $versionTag
     }
     else {
