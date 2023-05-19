@@ -31,7 +31,6 @@ Param(
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
     [switch] $NoBuild,
-    [switch] $Push,
     [switch] $Debug
 )
 
@@ -43,6 +42,10 @@ $configuration = "Release"
 if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
+
+$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
+$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES = 131072
+$env:SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD = $false
 
 # Find all container projects, publish them and then push to container registry
 Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
@@ -106,7 +109,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         # add -r to select musl runtime?
-        dotnet publish $projFile.FullName -c $configuration --self-contained `
+        dotnet publish $projFile.FullName -c $configuration --self-contained false `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
             /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
             /p:ContainerImageTag=$fullTag `

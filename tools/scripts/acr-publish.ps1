@@ -91,8 +91,7 @@ Write-Host "Build and push containers to $($script:Registry).azurecr.io..."
 & (Join-Path $PSScriptRoot "publish.ps1") -Registry "$($script:Registry).azurecr.io" `
     -Debug:$script:Debug -NoBuild:$script:NoBuild `
     -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
-    -Os $script:Os -Arch $script:Arch `
-    -Push
+    -Os $script:Os -Arch $script:Arch
 if ($LastExitCode -ne 0) {
     throw "Failed to build and push containers."
 }
