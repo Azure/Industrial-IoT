@@ -339,25 +339,24 @@
                 "description": "Tags for Azure resources."
             }
         }
-
     },
     "variables": {
         "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
-        "platformResourcName": "platform",
+        "platformResourcName": "[concat(deployment().name, '.platform')]",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
-        "platformConfigurationResourceName": "platform.configuration",
+        "platformConfigurationResourceName": "[concat(deployment().name, '.platform.configuration')]",
         "simulationDeployment": "[not(and(equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
-        "simulationResourcName": "simulation",
+        "simulationResourcName": "[concat(deployment().name, '.simulation')]",
+        "simulationConfigurationResourceName": "[concat(deployment().name, '.simulation.configuration')]",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
-        "iotHubContainerName": "[parameters('iotHubName')]",
         "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
         "iothubTelemetryConsumerGroup": "telemetry",
         "iothubEventsConsumerGroup": "events",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
-        "configurationResourceName": "infrastructure.configuration",
+        "configurationResourceName": "[concat(deployment().name, '.configuration')]",
         "configurationResourceId": "[resourceId('Microsoft.Resources/deployments', variables('configurationResourceName'))]",
         "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
@@ -380,7 +379,7 @@
             "tags": "[parameters('tags')]",
             "properties": {
                 "enabledForDeployment": false,
-                "enabledForTemplateDeployment": true,
+                "enabledForTemplateDeployment": false,
                 "enabledForVolumeEncryption": false,
                 "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
                 "sku": {
@@ -514,13 +513,6 @@
                         "isEnabled": true
                     }
                 },
-                "storageEndpoints": {
-                    "$default": {
-                        "sasTtlAsIso8601": "PT1H",
-                        "connectionString": "[concat('DefaultEndpointsProtocol=https;EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]",
-                        "containerName": "[variables('iotHubContainerName')]"
-                    }
-                },
                 "messagingEndpoints": {
                     "fileNotifications": {
                         "lockDurationAsIso8601": "PT1M",
@@ -528,7 +520,6 @@
                         "maxDeliveryCount": 10
                     }
                 },
-                "enableFileUploadNotifications": true,
                 "cloudToDevice": {
                     "maxDeliveryCount": 10,
                     "defaultTtlAsIso8601": "PT1H",
@@ -594,29 +585,6 @@
                     },
                     "keySource": "Microsoft.Storage"
                 }
-            },
-            "dependsOn": [
-            ]
-        },
-        {
-            "comments": "Azure Device Provisioning service.",
-            "type": "Microsoft.Devices/provisioningServices",
-            "name": "[parameters('dpsName')]",
-            "apiVersion": "2018-01-22",
-            "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
-            "sku": {
-                "name": "[parameters('dpsSku')]",
-                "capacity": "[parameters('dpsCapacity')]"
-            },
-            "properties": {
-                "iotHubs": [
-                    {
-                        "connectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
-                        "location": "[resourceGroup().location]",
-                        "name": "[reference(variables('iotHubResourceId')).hostName]"
-                    }
-                ]
             }
         },
         {
@@ -630,9 +598,7 @@
             "properties": {
                 "Application_Type": "web",
                 "ApplicationId": "[parameters('appInsightsName')]"
-            },
-            "dependsOn": [
-            ]
+            }
         },
         {
             "comments": "Save configuration in keyVault.",
@@ -682,14 +648,6 @@
                             {
                                 "key": "PCS_AUTH_ISSUER",
                                 "value": "[parameters('trustedTokenIssuer')]"
-                            },
-                            {
-                                "key": "PCS_SIMULATION_USER",
-                                "value": "[parameters('edgeUserName')]"
-                            },
-                            {
-                                "key": "PCS_SIMULATION_PASSWORD",
-                                "value": "[parameters('edgePassword')]"
                             },
                             {
                                 "key": "PCS_DOCKER_SERVER",
@@ -852,6 +810,31 @@
             ]
         },
         {
+            "comments": "Azure Device Provisioning service.",
+            "type": "Microsoft.Devices/provisioningServices",
+            "name": "[parameters('dpsName')]",
+            "condition": "[variables('simulationDeployment')]",
+            "apiVersion": "2018-01-22",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('dpsSku')]",
+                "capacity": "[parameters('dpsCapacity')]"
+            },
+            "properties": {
+                "iotHubs": [
+                    {
+                        "connectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
+                        "location": "[resourceGroup().location]",
+                        "name": "[reference(variables('iotHubResourceId')).hostName]"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
             "comments": "Deploy Azure Industrial IoT Edge simulation.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-08-01",
@@ -872,6 +855,12 @@
                     "numberOfWindowsGateways": {
                         "value": "[parameters('numberOfWindowsGateways')]"
                     },
+                    "dpsIdScope": {
+                        "value": "[if(variables('simulationDeployment'), reference(variables('dpsResourceId'), '2018-01-22').idScope, '')]"
+                    },
+                    "dpsConnString": {
+                        "value": "[if(variables('simulationDeployment'), concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey), '')]"
+                    },
                     "edgeVmSize": {
                         "value": "[parameters('edgeVmSize')]"
                     },
@@ -889,9 +878,6 @@
                     },
                     "templateUrl": {
                         "value": "[parameters('templateUrl')]"
-                    },
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
                     },
                     "managedIdentityResourceId": {
                         "value": "[variables('identityResourceId')]"
@@ -921,7 +907,57 @@
                 }
             },
             "dependsOn": [
-                "[variables('configurationResourceId')]"
+                "[variables('dpsResourceId')]",
+                "[variables('identityResourceId')]"
+            ]
+        },
+        {
+            "comments": "Save simulation configuration in keyVault.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-08-01",
+            "name": "[variables('simulationConfigurationResourceName')]",
+            "condition": "[variables('simulationDeployment')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "configuration": {
+                        "value": [
+                            {
+                                "key": "PCS_SIMULATION_USER",
+                                "value": "[parameters('edgeUserName')]"
+                            },
+                            {
+                                "key": "PCS_SIMULATION_PASSWORD",
+                                "value": "[parameters('edgePassword')]"
+                            },
+                            {
+                                "key": "PCS_DPS_CONNSTRING",
+                                "value": "[if(variables('simulationDeployment'), concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey), '')]"
+                            },
+                            {
+                                "key": "PCS_DPS_IDSCOPE",
+                                "value": "[if(variables('simulationDeployment'), reference(variables('dpsResourceId'), '2018-01-22').idScope, '')]"
+                            },
+                            {
+                                "key": "PCS_DPS_ENDPOINT",
+                                "value": "[if(variables('simulationDeployment'), reference(variables('dpsResourceId'), '2018-01-22').deviceProvisioningHostName, '')]"
+                            }
+                        ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('dpsResourceId')]"
             ]
         }
     ],

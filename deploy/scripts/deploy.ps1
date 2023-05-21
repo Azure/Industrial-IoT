@@ -117,10 +117,16 @@
 
  .PARAMETER isServicePrincipal
     The credentials provided are service principal credentials.
+
+ .PARAMETER whatIfDeployment
+    Create everything but run the deployment as what-if then
+    exit.
+ .PARAMETER verboseDeployment
+    Show verbose progress of the deployment step.
 #>
 
 param(
-    [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
+    [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "services",
     [string] $version,
     [string] $repo,
     [string] $branchName,
@@ -150,7 +156,9 @@ param(
     [switch] $isServicePrincipal,
     [object] $aadConfig,
     [object] $context,
-    [string] $environmentName = "AzureCloud"
+    [string] $environmentName = "AzureCloud",
+    [switch] $whatIfDeployment,
+    [switch] $verboseDeployment
 )
 
 #*******************************************************************************************************
@@ -363,11 +371,11 @@ Function Select-RepositoryAndBranch() {
                 }
             }
         }
+    }
     
-        if ([string]::IsNullOrEmpty($script:repo)) {
-            # Try get repo name / TODO
-            $script:repo = "https://github.com/Azure/Industrial-IoT"
-        }
+    if ([string]::IsNullOrEmpty($script:repo)) {
+        # Try get repo name / TODO
+        $script:repo = "https://github.com/Azure/Industrial-IoT"
     }
 }
 
@@ -1072,13 +1080,23 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
     }
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
-    $tags = @{"IoTSuiteType" = "AzureIndustrialIoT-$($script:version)-PS1"}
+    $tags = @{"IoTSuiteType" = "AzureIndustrialIoT-$($script:type)-$($script:version)-PS1"}
     $templateParameters.Add("tags", $tags)
+    $deploymentName = $script:version
 
     # register providers
     $script:requiredProviders | ForEach-Object {
         Register-AzResourceProvider -ProviderNamespace $_
     } | Out-Null
+
+    if ($script:whatIfDeployment.IsPresent) {
+        Write-Host "Starting what-if deployment..."
+        $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
+        New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
+            -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters `
+            -WhatIf -WhatIfResultFormat FullResourcePayloads
+        return
+    }
 
     while ($true) {
         try {
@@ -1090,19 +1108,19 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
                 Write-Host
             }
 
-            Write-Host "Starting deployment..."
             # Start the deployment
+            Write-Host "Starting deployment '$($deploymentName)'..."
             $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
             $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
-                -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
-
+                -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters `
+                -Name $deploymentName -Verbose:$script:verboseDeployment
             if ($deployment.ProvisioningState -ne "Succeeded") {
                 Set-ResourceGroupTags -state "Failed"
-                throw "Deployment $($deployment.ProvisioningState)."
+                throw "Deployment '$($deploymentName)' $($deployment.ProvisioningState)."
             }
 
             Set-ResourceGroupTags -state "Complete"
-            Write-Host "Deployment succeeded."
+            Write-Host "Deployment '$($deploymentName)' succeeded."
 
             # Use context of auth tenant
             if (![string]::IsNullOrEmpty($authTenantId)) {
@@ -1251,7 +1269,10 @@ $script:requiredProviders = @(
     "microsoft.compute"
 )
 
-Import-Module Az
+# Import-Module Az
+Import-Module Az.Accounts
+Import-Module Az.Resources
+Import-Module Az.Compute
 Import-Module Az.ContainerRegistry
 
 Select-RepositoryAndBranch

@@ -153,6 +153,7 @@
         "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
         "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
         "simulationName": "[concat(variables('vmName'), '-sim')]",
+        "simulationResourceName": "[concat(deployment().name, '.edge')]",
         "identity": {
             "type": "UserAssigned",
             "userAssignedIdentities": {
@@ -348,7 +349,7 @@
             "comments": "Deploy factory network simulation.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-08-01",
-            "name": "[concat(variables('simulationName'), copyIndex())]",
+            "name": "[concat(variables('simulationResourceName'), copyIndex())]",
             "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
             "copy": {
                 "count": "[if(not(equals(0, parameters('numberOfSimulations'))), parameters('numberOfSimulations'), 1)]",

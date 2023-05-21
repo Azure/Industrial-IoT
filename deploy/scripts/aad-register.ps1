@@ -667,32 +667,30 @@ Function ConfigureApplications() {
 
     # Add current user as Writer, Approver and Administrator for service application
     if ($user) {
-        try {
-            $allAppRoles = $currentServicePrincipal.AppRoles
-            $app_role_name = "Readers"
-            $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
-            if ($app_role) {
-                New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
-                    -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id | Out-Null
-                Write-Host "  Assigned Reader role to $($user.UserPrincipalName)."
-            }
-            $app_role_name = "Writers"
-            $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
-            if ($app_role) {
-                New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
-                    -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id | Out-Null
-                Write-Host "  Assigned Writer role to $($user.UserPrincipalName)."
-            }
-            $app_role_name = "Administrators"
-            $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
-            if ($app_role) {
-                New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
-                    -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id | Out-Null
-                Write-Host "  Assigned Admin role to $($user.UserPrincipalName)."
-            }
+        $allAppRoles = $currentServicePrincipal.AppRoles
+        $app_role_name = "Readers"
+        $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+        if ($app_role) {
+            New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
+                -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id `
+                -ErrorAction SilentlyContinue | Out-Null
+            Write-Host "  Assigned Reader role to $($user.UserPrincipalName)."
         }
-        catch {
-            Write-Host "User $($user.UserPrincipalName) already has all app roles assigned."
+        $app_role_name = "Writers"
+        $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+        if ($app_role) {
+            New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
+                -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id `
+                -ErrorAction SilentlyContinue | Out-Null
+            Write-Host "  Assigned Writer role to $($user.UserPrincipalName)."
+        }
+        $app_role_name = "Administrators"
+        $app_role = $allAppRoles | Where-Object { $_.DisplayName -eq $app_role_name }
+        if ($app_role) {
+            New-MgUserAppRoleAssignment -UserId $user.Id -PrincipalId $user.Id `
+                -ResourceId $currentServicePrincipal.Id -AppRoleID $app_role.Id `
+                -ErrorAction SilentlyContinue | Out-Null
+            Write-Host "  Assigned Admin role to $($user.UserPrincipalName)."
         }
     }
 

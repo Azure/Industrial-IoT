@@ -19,15 +19,13 @@ echo Installing Az...
 %PWSH% -Command "Install-Module -Name Az -AllowClobber -Scope CurrentUser"
 goto :check-ad
 :check-ad
-echo Az installed.
 set test=
 for /f %%i in ('%PWSH% -Command "Get-Module -ListAvailable -Name Microsoft.Graph | ForEach-Object Name"') do set test=%%i
 if not "%test%" == "" goto :main
-echo Installing AzureAD
+echo Installing Microsoft.Graph
 %PWSH% -Command "Install-Module -Name Microsoft.Graph -AllowClobber -Scope CurrentUser"
 goto :main
 :main
-echo AzureAD installed.
 set test=
 pushd %current-path%\deploy\scripts
 

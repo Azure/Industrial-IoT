@@ -54,6 +54,18 @@
                 "description": "The size of the simulation VM to provision."
             }
         },
+        "dpsIdScope": {
+            "type": "string",
+            "metadata": {
+                "description": "Device provisioning service id scope."
+            }
+        },
+        "dpsConnString": {
+            "type": "secureString",
+            "metadata": {
+                "description": "Azure Device Provisioning service connection string."
+            }
+        },
         "edgeUserName": {
             "type": "string",
             "defaultValue": "sandboxuser",
@@ -80,12 +92,6 @@
             "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
             "metadata": {
                 "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
-            }
-        },
-        "keyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "A user created keyvault containing service and client configuration."
             }
         },
         "managedIdentityResourceId": {
@@ -138,6 +144,8 @@
         }
     },
     "variables": {
+		"linuxSimulationName": "[concat(deployment().name, '.linux')]",
+		"windowsSimulationName": "[concat(deployment().name, '.windows')]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
     },
     "resources": [
@@ -145,7 +153,7 @@
             "comments": "Deploy linux edge gateway and factory network simulation.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-08-01",
-            "name": "[concat('simulation.linux.', copyIndex())]",
+            "name": "[concat(variables('linuxSimulationName'), '.', copyIndex())]",
             "condition": "[not(equals(0, parameters('numberOfLinuxGateways')))]",
             "copy": {
                 "count": "[if(not(equals(0, parameters('numberOfLinuxGateways'))), parameters('numberOfLinuxGateways'), 1)]",
@@ -201,20 +209,10 @@
                         "value": "[parameters('simulationVmSize')]"  
                     },
                     "dpsIdScope": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                            },
-                            "secretName": "pcs-dps-idscope"
-                        }
+                        "value": "[parameters('dpsIdScope')]"  
                     },
                     "dpsConnString": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                            },
-                            "secretName": "pcs-dps-connstring"
-                        }
+                        "value": "[parameters('dpsConnString')]"  
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
@@ -235,7 +233,7 @@
             "comments": "Deploy windows edge gateway and factory network simulation.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-08-01",
-            "name": "[concat('simulation.windows.', copyIndex())]",
+            "name": "[concat(variables('windowsSimulationName'), '.', copyIndex())]",
             "condition": "[not(equals(0, parameters('numberOfWindowsGateways')))]",
             "copy": {
                 "count": "[if(not(equals(0, parameters('numberOfWindowsGateways'))), parameters('numberOfWindowsGateways'), 1)]",
@@ -291,20 +289,10 @@
                         "value": "[parameters('simulationVmSize')]"  
                     },
                     "dpsIdScope": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                            },
-                            "secretName": "pcs-dps-idscope"
-                        }
+                        "value": "[parameters('dpsIdScope')]"  
                     },
                     "dpsConnString": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-                            },
-                            "secretName": "pcs-dps-connstring"
-                        }
+                        "value": "[parameters('dpsConnString')]"  
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"

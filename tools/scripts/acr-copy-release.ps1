@@ -152,11 +152,7 @@ foreach ($Repository in $BuildRepositories) {
         if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
             throw "IsMajorUpdate and IsLatest is not allowed when PreviewVersion is specified."
         }
-<<<<<<< Updated upstream
-        $versionTag = $script:ReleaseVersion
-=======
         $versionTag = "$($script:ReleaseVersion)-preview$($script:PreviewVersion)"
->>>>>>> Stashed changes
         $ReleaseTags += $versionTag
     }
     else {
