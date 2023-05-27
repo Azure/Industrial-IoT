@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -20,10 +22,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the session.
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="sessionClosing"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask ReapplyToSessionAsync(IOpcUaSession session,
-            CancellationToken ct = default);
+        ValueTask SyncWithSessionAsync(IOpcUaSession session,
+            bool sessionClosing, CancellationToken ct = default);
 
         /// <summary>
         /// Called to signal the underlying session is
@@ -36,5 +39,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="connectionAttempts"></param>
         void OnSubscriptionStateChanged(bool online,
             int connectionAttempts);
+
+        /// <summary>
+        /// Try get the current position in the out stream.
+        /// </summary>
+        /// <param name="subscriptionId"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <returns></returns>
+        bool TryGetCurrentPosition(out uint subscriptionId,
+            out uint sequenceNumber);
     }
 }

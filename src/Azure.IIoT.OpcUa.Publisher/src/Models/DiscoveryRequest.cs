@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         public void Cancel()
         {
-            Try.Op(() => _cts.Cancel());
+            Try.Op(_cts.Cancel);
         }
 
         /// <inheritdoc/>

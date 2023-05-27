@@ -51,7 +51,7 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 
 To use the OPC UA PubSub format specify a value for `--mm` on the command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format. You should always use PubSub format specified in the OPC UA Standard. We will not support the non standards compliant Samples mode in versions greater than 2.*.
 
-This section covers data value change messages (Message type `ua-deltaframe` and `ua-keyframe`). Details for OPC UA Alarms and Events messages (`ua-event`) can be found [in this seperate document](./telemetry-events-format.md).
+This section covers data value change messages (Message type `ua-deltaframe` and `ua-keyframe`). Details for OPC UA Alarms and Events messages (`ua-event`) can be found [further on](#event-messages).
 
 The following messages are emitted for data value changes in a subscription if `--mm=PubSub` message mode is used with `--me=Json`:
 
@@ -425,7 +425,7 @@ This JSON contains the metadata information to decode each variant value.
 
 ### Pending Alarm snapshots
 
-The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect.
+The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./readme.md#configuring-event-subscriptions). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect.
 
 When running against the OPC Foundation's Alarms & Conditions reference server sample the output will look like this:
 

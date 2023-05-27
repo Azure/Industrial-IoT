@@ -133,7 +133,7 @@ Operations (Mutually exclusive):
                 {
                     Console.WriteLine("Press any key to exit...");
                     Console.TreatControlCAsInput = true;
-                    await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey())).ConfigureAwait(false);
+                    await Task.WhenAny(tcs.Task, Task.Run(Console.ReadKey)).ConfigureAwait(false);
                     return;
                 }
 #endif

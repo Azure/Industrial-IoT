@@ -44,6 +44,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? CreateSessionTimeout { get; set; }
 
         /// <summary>
+        /// How long to at least wait until reconnecting.
+        /// </summary>
+        public TimeSpan? MinReconnectDelay { get; set; }
+
+        /// <summary>
+        /// How long to at most wait until reconnecting.
+        /// </summary>
+        public TimeSpan? MaxReconnectDelay { get; set; }
+
+        /// <summary>
         /// How long to keep clients around after a service call.
         /// </summary>
         public TimeSpan? LingerTimeout { get; set; }

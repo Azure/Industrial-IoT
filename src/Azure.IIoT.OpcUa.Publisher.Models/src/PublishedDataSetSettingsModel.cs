@@ -55,5 +55,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "resolveDisplayName", Order = 5,
             EmitDefaultValue = false)]
         public bool? ResolveDisplayName { get; set; }
+
+        /// <summary>
+        /// Use deferred acknoledgements
+        /// </summary>
+        [DataMember(Name = "useDeferredAcknoledgements", Order = 6,
+            EmitDefaultValue = false)]
+        public bool? UseDeferredAcknoledgements { get; set; }
     }
 }

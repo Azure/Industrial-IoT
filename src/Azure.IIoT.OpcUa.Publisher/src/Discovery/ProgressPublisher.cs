@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     SingleWriter = false
                 });
             _topic = new TopicBuilder(options).EventsTopic;
-            _sender = Task.Factory.StartNew(() => SendProgressAsync(),
+            _sender = Task.Factory.StartNew(SendProgressAsync,
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 

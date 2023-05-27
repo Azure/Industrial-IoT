@@ -33,6 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultQueueSize = "DefaultQueueSize";
         public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
         public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";
+        public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
 
         /// <summary>
         /// Default values
@@ -49,6 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <inheritdoc/>
         public override void PostConfigure(string? name, OpcUaSubscriptionOptions options)
         {
+            if (options.UseDeferredAcknoledgements == null)
+            {
+                options.UseDeferredAcknoledgements = GetBoolOrDefault(UseDeferredAcknoledgementsKey);
+            }
             if (options.DefaultHeartbeatInterval == null)
             {
                 options.DefaultHeartbeatInterval = GetDurationOrNull(

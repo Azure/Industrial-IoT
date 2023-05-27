@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             return new SubscriptionConfigurationModel
             {
                 PublishingInterval = model.PublishingInterval,
+                UseDeferredAcknoledgements = model.UseDeferredAcknoledgements,
                 LifetimeCount = model.LifetimeCount,
                 KeepAliveCount = model.KeepAliveCount,
                 Priority = model.Priority,

@@ -83,6 +83,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
+        /// Use deferred acnkoledgement (experimental)
+        /// </summary>
+        public bool? UseDeferredAcknoledgements { get; set; }
+
+        /// <summary>
         /// set the default data change filter for monitored items. Default is
         /// status and value change triggering.
         /// </summary>

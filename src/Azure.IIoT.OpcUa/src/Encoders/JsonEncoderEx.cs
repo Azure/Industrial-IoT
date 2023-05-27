@@ -1012,7 +1012,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void WriteStringDictionary(string? property,
             IEnumerable<KeyValuePair<string, string?>> values)
         {
-            WriteDictionary(property, values, (k, v) => WriteString(k, v));
+            WriteDictionary(property, values, WriteString);
         }
 
         /// <inheritdoc/>

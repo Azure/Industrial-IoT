@@ -50,7 +50,7 @@ Support for OPC UA helps lower the barrier for customers to achieve their goals 
 ## Next steps
 
 * [Learn more about OPC Publisher](./opc-publisher/readme.md)
-* [Learn more about the Web API](./web.api/readme.md)
-* [Discover a server and browse its address space using the CLI](./web.api/tut-use-cli.md)
-* [Discover a server and browse its address space using Postman](./web.api/tut-use-postman.md)
+* [Learn more about the Web API](./web-api/readme.md)
+* [Discover a server and browse its address space using the CLI](./web-api/tut-use-cli.md)
+* [Discover a server and browse its address space using Postman](./web-api/tut-use-postman.md)
 * [Release announcements](./release-announcement.md)

@@ -122,7 +122,7 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
       - 1 [IoT Hub](https://azure.microsoft.com/services/iot-hub/) to communicate with the edge and ingress raw OPC UA telemetry data
       - 1 [Key Vault](https://azure.microsoft.com/services/key-vault/), Premium SKU (to manage secrets and certificates)
       - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
-      - App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the cloud micro-services [all-in-one](../services/all-in-one.md)
+      - App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the web api service.
       - App Service Plan (shared with microservices), 1 [App Service](https://azure.microsoft.com/services/app-service/) for hosting the Industrial IoT Engineering Tool cloud application
     - Simulation:
       - 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
@@ -139,7 +139,7 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-1. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
+1. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](./tut-use-cli.md) or for debugging.
 
 ### Azure Active Directory application registrations
 

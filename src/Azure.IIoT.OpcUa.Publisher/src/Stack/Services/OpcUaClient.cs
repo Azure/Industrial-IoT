@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -40,10 +41,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// The connect and reconnect timeout and periodic
-        /// retry delay to use in ms.
+        /// Min time to wait until reconnect.
         /// </summary>
-        public TimeSpan? ReconnectPeriod { get; set; }
+        public TimeSpan? MinReconnectDelay { get; set; }
+
+        /// <summary>
+        /// Timeout for session creation
+        /// </summary>
+        public TimeSpan? CreateSessionTimeout { get; set; }
 
         /// <summary>
         /// The session lifetime.
@@ -76,6 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="notifier"></param>
         /// <param name="cache"></param>
         /// <param name="sessionFactory"></param>
+        /// <param name="maxReconnectPeriod"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
@@ -83,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ILoggerFactory loggerFactory, IMetricsContext metrics,
             EventHandler<EndpointConnectivityState>? notifier,
             IMemoryCache cache, ISessionFactory sessionFactory,
-            string? sessionName = null)
+            TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
             {
@@ -109,7 +115,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
             _subscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
-
+            _maxReconnectPeriod = maxReconnectPeriod ?? TimeSpan.Zero;
+            if (_maxReconnectPeriod == TimeSpan.Zero)
+            {
+                _maxReconnectPeriod = TimeSpan.FromSeconds(30);
+            }
+            _reconnectHandler = new SessionReconnectHandler(true,
+                (int)_maxReconnectPeriod.TotalMilliseconds);
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
@@ -215,11 +227,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _cts.Cancel();
 
                 await _sessionManager.ConfigureAwait(false);
+                _reconnectHandler.Dispose();
 
                 if (_session != null)
                 {
                     await _session.CloseAsync(default).ConfigureAwait(false);
-                    UnsetSession();
+                    await CloseSessionAsync().ConfigureAwait(false);
                 }
 
                 _lastState = EndpointConnectivityState.Disconnected;
@@ -390,11 +403,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var currentSessionState = SessionState.Disconnected;
             var currentSubscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
 
-            using var connectTimer = new Timer(_ =>
-                TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
-            var reconnectPeriod = ReconnectPeriod ?? TimeSpan.FromSeconds(5);
-
-            SessionReconnectHandler? reconnectHandler = null;
+            var reconnectPeriod = 0;
+            using var reconnectTimer =
+                new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
             try
             {
                 await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
@@ -404,19 +415,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     switch (trigger)
                     {
-                        case ConnectionEvent.ConnectRetry:
                         case ConnectionEvent.Connect:
+                        case ConnectionEvent.ConnectRetry:
+                            reconnectPeriod = trigger == ConnectionEvent.Connect ? GetMinReconnectPeriod() :
+                                _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                             switch (currentSessionState)
                             {
                                 case SessionState.Disconnected:
-                                    Debug.Assert(reconnectHandler == null);
+                                    Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
                                     Debug.Assert(_disconnectLock != null);
                                     Debug.Assert(_session == null);
 
-                                    if (!await TryConnectAsync(reconnectPeriod, ct).ConfigureAwait(false))
+                                    if (!await TryConnectAsync(ct).ConfigureAwait(false))
                                     {
-                                        // Reschedule connecting. Todo: Exponential retry
-                                        connectTimer.Change(reconnectPeriod, Timeout.InfiniteTimeSpan);
+                                        // Reschedule connecting
+                                        var retryDelay = _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod);
+                                        reconnectTimer.Change(retryDelay, Timeout.Infinite);
                                         break;
                                     }
 
@@ -477,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             switch (currentSessionState)
                             {
                                 case SessionState.Connected: // only valid when connected.
-                                    Debug.Assert(reconnectHandler == null);
+                                    Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
 
                                     await ApplySubscriptionAsync(currentSubscriptions, false,
                                         ct).ConfigureAwait(false);
@@ -486,24 +500,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     Debug.Assert(_disconnectLock == null);
                                     _disconnectLock = await _lock.WriterLockAsync(ct);
 
-                                    _logger.LogInformation("Reconnecting session {Name} in {Period} ms.",
-                                        _sessionName, reconnectPeriod);
-
-                                    reconnectHandler = new SessionReconnectHandler(true);
-                                    reconnectHandler.BeginReconnect(_session!.Session,
-                                        (int)reconnectPeriod.TotalMilliseconds, (sender, evt) =>
+                                    _logger.LogInformation("Reconnecting session {Name}...", _sessionName);
+                                    var state = _reconnectHandler.BeginReconnect(_session!.Session,
+                                        GetMinReconnectPeriod(), (sender, evt) =>
                                         {
                                             // ignore callbacks from discarded objects.
-                                            if (ReferenceEquals(sender, reconnectHandler))
+                                            if (ReferenceEquals(sender, _reconnectHandler))
                                             {
                                                 TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
-                                                    reconnectHandler.Session);
+                                                    _reconnectHandler.Session);
                                             }
                                         });
 
-                                    // Unset session - do not dispose the session while reconnecting.
-                                    UnsetSession(true);
-                                    Debug.Assert(_session == null);
+                                    // Save session while reconnecting.
+                                    Debug.Assert(_reconnectingSession == null);
+                                    _reconnectingSession = _session;
+                                    _session = null;
                                     NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                                     currentSessionState = SessionState.Reconnecting;
                                     break;
@@ -516,9 +528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         case ConnectionEvent.ReconnectComplete:
                             // if session recovered, Session property is not null
-                            var newSession = reconnectHandler?.Session as Session;
-                            reconnectHandler?.Dispose();
-                            reconnectHandler = null;
+                            var newSession = _reconnectHandler.Session as Session;
 
                             switch (currentSessionState)
                             {
@@ -532,14 +542,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                         // Schedule a full reconnect immediately
                                         newSession?.Dispose();
+                                        await CloseSessionAsync().ConfigureAwait(false);
                                         currentSessionState = SessionState.Disconnected;
                                         TriggerConnectionEvent(ConnectionEvent.Connect);
                                         break;
                                     }
 
-                                    SetSession(newSession);
-                                    _logger.LogInformation("Client {Client} RECONNECTED!", this);
-                                    _numberOfConnectRetries++;
+                                    var isNew = await UpdateSessionAsync(newSession).ConfigureAwait(false);
+                                    Debug.Assert(_session != null);
+                                    Debug.Assert(_reconnectingSession == null);
+                                    if (isNew)
+                                    {
+                                        _logger.LogInformation("Client {Client} RECONNECTED!", this);
+                                        _numberOfConnectRetries++;
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation("Client {Client} RECOVERED!", this);
+                                    }
                                     NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
 
                                     // Allow access to session again
@@ -566,8 +586,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         case ConnectionEvent.Disconnect:
 
                             // If currently reconnecting, dispose the reconnect handler
-                            reconnectHandler?.Dispose();
-                            reconnectHandler = null;
+                            _reconnectHandler.CancelReconnect();
 
                             await ApplySubscriptionAsync(currentSubscriptions, false,
                                 ct).ConfigureAwait(false);
@@ -595,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
 
                             // Clean up
-                            UnsetSession();
+                            await CloseSessionAsync().ConfigureAwait(false);
                             Debug.Assert(_session == null);
 
                             NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
@@ -615,8 +634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                reconnectHandler?.Dispose();
-                reconnectHandler = null;
+                _reconnectHandler.CancelReconnect();
             }
 
             async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
@@ -628,7 +646,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         if (online != false)
                         {
-                            await subscription.ReapplyToSessionAsync(_session!,
+                            await subscription.SyncWithSessionAsync(_session!, false,
                                 cancellationToken).ConfigureAwait(false);
                         }
                         if (online != null)
@@ -647,16 +665,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
             }
+
+            int GetMinReconnectPeriod()
+            {
+                var reconnectPeriod = MinReconnectDelay ?? TimeSpan.Zero;
+                if (reconnectPeriod == TimeSpan.Zero)
+                {
+                    reconnectPeriod = TimeSpan.FromSeconds(1);
+                }
+                if (reconnectPeriod > _maxReconnectPeriod)
+                {
+                    reconnectPeriod = _maxReconnectPeriod;
+                }
+                return (int)reconnectPeriod.TotalMilliseconds;
+            }
         }
 
         /// <summary>
         /// Connect client
         /// </summary>
-        /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<bool> TryConnectAsync(TimeSpan timeout, CancellationToken ct)
+        private async ValueTask<bool> TryConnectAsync(CancellationToken ct)
         {
+            var timeout = CreateSessionTimeout ?? TimeSpan.FromSeconds(10);
+
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
 
             var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
@@ -671,7 +704,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var attempt = 0;
             foreach (var endpointUrl in endpointUrlCandidates)
             {
-                UnsetSession(); // Ensure any previous session is disposed here.
+                await CloseSessionAsync().ConfigureAwait(false); // Ensure any previous session is disposed here.
                 ct.ThrowIfCancellationRequested();
                 try
                 {
@@ -722,7 +755,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         (uint)sessionTimeout.TotalMilliseconds,
                         userIdentity, preferredLocales, ct).ConfigureAwait(false);
                     // Assign the created session
-                    SetSession(session);
+                    var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
+                    Debug.Assert(isNew);
                     _logger.LogInformation(
                         "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
@@ -743,6 +777,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Feed back acknoledgements
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        private void Session_PublishSequenceNumbersToAcknowledge(ISession session,
+            PublishSequenceNumbersToAcknowledgeEventArgs e)
+        {
+            var acks = e.AcknowledgementsToSend
+                .Concat(e.DeferredAcknowledgementsToSend)
+                .ToHashSet();
+            if (acks.Count == 0)
+            {
+                return;
+            }
+            e.AcknowledgementsToSend.Clear();
+            e.DeferredAcknowledgementsToSend.Clear();
+            foreach (var subscription in _subscriptions)
+            {
+                if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
+                {
+                    // No deferrals
+                    e.AcknowledgementsToSend.AddRange(acks.Where(a => a.SubscriptionId == sid));
+                }
+                else
+                {
+                    // Ack all messages before this one for the subscriptoin
+                    e.AcknowledgementsToSend.AddRange(acks.Where(a => a.SubscriptionId == sid
+                        && (int)a.SequenceNumber <= (int)seq));
+                }
+            }
+            e.DeferredAcknowledgementsToSend.AddRange(acks.Except(
+                e.AcknowledgementsToSend));
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Sending {Acks} acks and deferring {Deferrals} acks.",
+                    ToString(e.AcknowledgementsToSend),
+                    ToString(e.DeferredAcknowledgementsToSend));
+                static string ToString(SubscriptionAcknowledgementCollection acks)
+                {
+                    return acks.Count == 0 ? "no" : acks
+                        .OrderBy(a => a.SubscriptionId)
+                        .Select(a => $"{a.SubscriptionId}:{a.SequenceNumber}")
+                        .Aggregate((a, b) => $"{a}, {b}");
+                }
+            }
         }
 
         /// <summary>
@@ -787,37 +870,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Update session state
         /// </summary>
         /// <param name="session"></param>
-        private void SetSession(ISession session)
+        private async ValueTask<bool> UpdateSessionAsync(ISession session)
         {
-            if (ReferenceEquals(_session?.Session, session))
+            if (_session == null)
             {
-                return;
+                _session = _reconnectingSession;
+                _reconnectingSession = null;
             }
 
-            UnsetSession();
+            Debug.Assert(_reconnectingSession == null);
+            if (ReferenceEquals(_session?.Session, session))
+            {
+                // Not a new session
+                return false;
+            }
+
+            await CloseSessionAsync().ConfigureAwait(false);
             _session = new OpcUaSession(session, Session_KeepAlive,
                 KeepAliveInterval ?? TimeSpan.FromSeconds(5),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
-                _serializer, _loggerFactory.CreateLogger<OpcUaSession>());
+                _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+                Session_PublishSequenceNumbersToAcknowledge);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             kSessions.Add(1, _metrics.TagList);
+            return true;
         }
 
         /// <summary>
         /// Unset and dispose existing session
         /// </summary>
-        /// <param name="noDispose"></param>
-        private void UnsetSession(bool noDispose = false)
+        private async ValueTask CloseSessionAsync()
         {
-            if (_session == null)
+            if (_reconnectingSession != null)
             {
-                return;
+                await DisposeAsync(_reconnectingSession).ConfigureAwait(false);
+                _reconnectingSession = null;
             }
-            _session.DoNotDisposeSessionWhenDisposing = noDispose;
-            _session.Dispose();
-            _session = null;
-            kSessions.Add(-1, _metrics.TagList);
+
+            if (_session != null)
+            {
+                await DisposeAsync(_session).ConfigureAwait(false);
+                _session = null;
+            }
+
+            async ValueTask DisposeAsync(OpcUaSession session)
+            {
+                //
+                // Notify the subscription so it can reflect close state
+                // in the original session.
+                //
+                foreach (var subscription in _subscriptions)
+                {
+                    await subscription.SyncWithSessionAsync(session, true,
+                        default).ConfigureAwait(false);
+                    subscription.OnSubscriptionStateChanged(false,
+                        _numberOfConnectRetries);
+                }
+                session.Dispose();
+                kSessions.Add(-1, _metrics.TagList);
+            }
         }
 
         /// <summary>
@@ -970,6 +1082,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             "iiot_edge_publisher_session_count", "Number of active sessions.");
 
         private OpcUaSession? _session;
+        private OpcUaSession? _reconnectingSession;
         private IDisposable? _disconnectLock;
         private EndpointConnectivityState _lastState;
         private ImmutableHashSet<ISubscriptionHandle> _subscriptions;
@@ -985,10 +1098,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly string _sessionName;
         private readonly ConnectionModel _connection;
         private readonly IMetricsContext _metrics;
-        private readonly EventHandler<EndpointConnectivityState>? _notifier;
         private readonly ILogger _logger;
+        private readonly SessionReconnectHandler _reconnectHandler;
+        private readonly TimeSpan _maxReconnectPeriod;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
+        private readonly EventHandler<EndpointConnectivityState>? _notifier;
         private readonly Task _sessionManager;
     }
 }

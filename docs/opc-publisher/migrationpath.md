@@ -94,14 +94,14 @@ The full schema of published nodes JSON file that works in all versions since 2.
 ]
 ```
 
-For details of each field you can consult the [direct methods API documentation](publisher-directmethods.md) as the fields of published nodes JSON schema map directly to that of direct method API calls.
+For details of each field you can consult the [direct methods API documentation](./directmethods.md) as the fields of published nodes JSON schema map directly to that of direct method API calls.
 The only difference is that `OpcAuthenticationUsername` and `OpcAuthenticationPassword` are refereed to as `UserName` and `Password` in direct method API calls.
 
 Please note that OPC Publisher 2.9 can still consume legacy `NodeId`-based node definitions (as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)), but we strongly recommend to use `OpcNodes`-based definitions instead. Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
 
 ## Command Line Arguments
 
-To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
+To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](./commandline.md) doc.
 
 ### OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
 

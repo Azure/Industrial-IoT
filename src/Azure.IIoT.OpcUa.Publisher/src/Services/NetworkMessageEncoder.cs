@@ -66,98 +66,114 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IEvent> Encode(Func<IEvent> factory,
-            IEnumerable<SubscriptionNotificationModel> notifications, int maxMessageSize, bool asBatch)
+        public IEnumerable<(IEvent Event, Action OnSent)> Encode(Func<IEvent> factory,
+            IEnumerable<IOpcUaSubscriptionNotification> notifications, int maxMessageSize, bool asBatch)
         {
-            //
-            // by design all messages are generated in the same session context, therefore it is safe to
-            // get the first message's context
-            //
-            var encodingContext = notifications
-                .FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
-            var chunkedMessages = new List<IEvent>();
-            if (encodingContext == null)
+            try
             {
-                // Drop all messages
-                Drop(notifications);
+                //
+                // by design all messages are generated in the same session context, therefore it is safe to
+                // get the first message's context
+                //
+                var encodingContext = notifications
+                    .FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
+                var chunkedMessages = new List<(IEvent, Action)>();
+                if (encodingContext == null)
+                {
+                    // Drop all messages
+                    Drop(notifications);
+                    return chunkedMessages;
+                }
+
+                var networkMessages = GetNetworkMessages(notifications, asBatch);
+                foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl, onSent) in networkMessages)
+                {
+                    var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
+                    var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
+                    var validChunks = 0;
+                    foreach (var body in chunks)
+                    {
+                        if (body.Length == 0)
+                        {
+                            //
+                            // Failed to press a notification into message size limit
+                            // This is somewhat correct as the smallest dropped chunk is
+                            // a message containing only a single data set message which
+                            // contains (parts) of a notification.
+                            //
+                            _logger.LogWarning("Resulting chunk is too large, dropped a notification.");
+                            continue;
+                        }
+                        validChunks++;
+                        AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + body.Length) /
+                            (MessagesProcessedCount + 1);
+                        AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
+                            notificationsPerChunk) / (MessagesProcessedCount + 1);
+                        MessagesProcessedCount++;
+                    }
+
+                    if (validChunks > 0)
+                    {
+                        var chunkedMessage = factory()
+                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, networkMessage.MessageSchema)
+                            .SetTimestamp(DateTime.UtcNow)
+                            .SetContentEncoding(networkMessage.ContentEncoding)
+                            .SetContentType(networkMessage.ContentType)
+                            .SetTopic(topic)
+                            .SetRetain(retain)
+                            .SetTtl(ttl)
+                            .AddBuffers(chunks)
+                            ;
+
+                        if (_options.Value.UseStandardsCompliantEncoding != true)
+                        {
+                            chunkedMessage = chunkedMessage
+                                .AddProperty("$$ContentType", networkMessage.ContentType)
+                                .AddProperty("$$ContentEncoding", networkMessage.ContentEncoding);
+                        }
+                        if (_options.Value.EnableDataSetRoutingInfo ?? false)
+                        {
+                            chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                                networkMessage.DataSetWriterGroup);
+                        }
+                        chunkedMessages.Add((chunkedMessage, onSent));
+                    }
+                    else
+                    {
+                        // Nothing to send, complete here
+                        onSent();
+                    }
+
+                    // We dropped a number of notifications but processed the remainder successfully
+                    var tooBig = chunks.Count - validChunks;
+                    NotificationsDroppedCount += tooBig;
+                    if (notificationsPerMessage > tooBig)
+                    {
+                        NotificationsProcessedCount += notificationsPerMessage - tooBig;
+                    }
+
+                    //
+                    // how many notifications per message resulted in how many buffers. We track the
+                    // split size to provide users with an indication how many times chunks had to
+                    // be created so they can configure publisher to improve performance.
+                    //
+                    if (notificationsPerMessage > 0 && notificationsPerMessage < validChunks)
+                    {
+                        var splitSize = validChunks / notificationsPerMessage;
+                        if (splitSize > MaxMessageSplitRatio)
+                        {
+                            MaxMessageSplitRatio = splitSize;
+                        }
+                    }
+                }
                 return chunkedMessages;
             }
-
-            var networkMessages = GetNetworkMessages(notifications, asBatch);
-            foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl) in networkMessages)
+            finally
             {
-                var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
-                var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
-                var validChunks = 0;
-                foreach (var body in chunks)
-                {
-                    if (body.Length == 0)
-                    {
-                        //
-                        // Failed to press a notification into message size limit
-                        // This is somewhat correct as the smallest dropped chunk is
-                        // a message containing only a single data set message which
-                        // contains (parts) of a notification.
-                        //
-                        _logger.LogWarning("Resulting chunk is too large, dropped a notification.");
-                        continue;
-                    }
-                    validChunks++;
-                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + body.Length) /
-                        (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
-                        notificationsPerChunk) / (MessagesProcessedCount + 1);
-                    MessagesProcessedCount++;
-                }
-
-                if (validChunks > 0)
-                {
-                    var chunkedMessage = factory()
-                        .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, networkMessage.MessageSchema)
-                        .SetTimestamp(DateTime.UtcNow)
-                        .SetContentEncoding(networkMessage.ContentEncoding)
-                        .SetContentType(networkMessage.ContentType)
-                        .SetTopic(topic)
-                        .SetRetain(retain)
-                        .SetTtl(ttl)
-                        .AddBuffers(chunks);
-                    if (_options.Value.UseStandardsCompliantEncoding != true)
-                    {
-                        chunkedMessage = chunkedMessage
-                            .AddProperty("$$ContentType", networkMessage.ContentType)
-                            .AddProperty("$$ContentEncoding", networkMessage.ContentEncoding);
-                    }
-                    if (_options.Value.EnableDataSetRoutingInfo ?? false)
-                    {
-                        chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                            networkMessage.DataSetWriterGroup);
-                    }
-                    chunkedMessages.Add(chunkedMessage);
-                }
-
-                // We dropped a number of notifications but processed the remainder successfully
-                var tooBig = chunks.Count - validChunks;
-                NotificationsDroppedCount += tooBig;
-                if (notificationsPerMessage > tooBig)
-                {
-                    NotificationsProcessedCount += notificationsPerMessage - tooBig;
-                }
-
-                //
-                // how many notifications per message resulted in how many buffers. We track the
-                // split size to provide users with an indication how many times chunks had to
-                // be created so they can configure publisher to improve performance.
-                //
-                if (notificationsPerMessage > 0 && notificationsPerMessage < validChunks)
-                {
-                    var splitSize = validChunks / notificationsPerMessage;
-                    if (splitSize > MaxMessageSplitRatio)
-                    {
-                        MaxMessageSplitRatio = splitSize;
-                    }
-                }
+#if DEBUG
+                notifications.ToList().ForEach(a => a.DebugAssertProcessed());
+#endif
             }
-            return chunkedMessages;
         }
 
         /// <summary>
@@ -166,11 +182,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage, string, bool, TimeSpan)> GetNetworkMessages(
-            IEnumerable<SubscriptionNotificationModel> messages, bool isBatched)
+        private List<(int, PubSubMessage, string, bool, TimeSpan, Action)> GetNetworkMessages(
+            IEnumerable<IOpcUaSubscriptionNotification> messages, bool isBatched)
         {
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
-            var result = new List<(int, PubSubMessage, string, bool, TimeSpan)>();
+            var result = new List<(int, PubSubMessage, string, bool, TimeSpan, Action)>();
             // Group messages by publisher, then writer group and then by dataset class id
             foreach (var topics in messages
                 .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
@@ -204,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var dataSetClassId = dataSetClass.Key;
                             var currentMessage = CreateMessage(writerGroup, encoding,
                                 networkMessageContentMask, dataSetClassId, publisherId);
-                            var currentNotificationCount = 0;
+                            var currentNotifications = new List<IOpcUaSubscriptionNotification>();
                             foreach (var (Notification, Context) in dataSetClass)
                             {
                                 if (Context.Writer == null ||
@@ -227,12 +243,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         .GroupBy(m => m.DataSetFieldName)
                                         .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
                                         .ToArray();
-
-                                    while (notificationQueues.Any(q => q.Count > 0))
+                                    var notComplete = notificationQueues.Any(q => q.Count > 0);
+                                    if (!notComplete)
+                                    {
+                                        // Already completed so we cannot complete it as an encoded message.
+                                        Drop(Notification.YieldReturn());
+                                        continue;
+                                    }
+                                    while (notComplete)
                                     {
                                         var orderedNotifications = notificationQueues
                                             .Select(q => q.Count > 0 ? q.Dequeue() : null!)
-                                            .Where(s => s?.DataSetFieldName != null);
+                                            .Where(s => s?.DataSetFieldName != null)
+                                            .ToList()
+                                            ;
+                                        notComplete = notificationQueues.Any(q => q.Count > 0);
 
                                         if (!hasSamplesPayload)
                                         {
@@ -256,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
 
-                                            AddMessage(dataSetMessage);
+                                            AddMessage(dataSetMessage, notComplete ? null : Notification);
                                         }
                                         else
                                         {
@@ -314,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             Payload = new DataSet(notification.DataSetFieldName,
                                                                 notification.Value, (uint)dataSetFieldContentMask)
                                                         };
-                                                        AddMessage(dataSetMessage);
+                                                        AddMessage(dataSetMessage, notComplete ? null : Notification);
                                                     }
                                                 }
                                             }
@@ -324,31 +349,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Add message and number of notifications processed count to method result.
                                         // Checks current length and splits if max items reached if configured.
                                         //
-                                        void AddMessage(BaseDataSetMessage dataSetMessage)
+                                        void AddMessage(BaseDataSetMessage dataSetMessage, IOpcUaSubscriptionNotification? notification)
                                         {
                                             currentMessage.Messages.Add(dataSetMessage);
                                             var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
                                                 _options.Value.DefaultMaxMessagesPerPublish;
                                             if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                             {
-                                                result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                                result.Add((currentNotifications.Count, currentMessage, topic, false, default,
+                                                    () => currentNotifications.ForEach(n => n.Dispose())));
+#if DEBUG
+                                                currentNotifications.ForEach(n => n.MarkProcessed());
+#endif
                                                 currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                                     dataSetClassId, publisherId);
-                                                currentNotificationCount = 0;
+                                                currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                             }
                                         }
                                     }
-                                    currentNotificationCount++;
+                                    currentNotifications.Add(Notification);
                                 }
                                 else if (Notification.MetaData != null && !hasSamplesPayload)
                                 {
                                     if (currentMessage.Messages.Count > 0)
                                     {
                                         // Start a new message but first emit current
-                                        result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                        result.Add((currentNotifications.Count, currentMessage, topic, false, default,
+                                            () => currentNotifications.ForEach(n => n.Dispose())));
+#if DEBUG
+                                        currentNotifications.ForEach(n => n.MarkProcessed());
+#endif
                                         currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                             dataSetClassId, publisherId);
-                                        currentNotificationCount = 0;
+                                        currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                     }
                                     PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
                                         ? new JsonMetaDataMessage
@@ -368,12 +401,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
                                     result.Add((0, metadataMessage, Context.MetaDataTopic, true,
-                                        Context.Writer.MetaDataUpdateTime ?? default));
+                                        Context.Writer.MetaDataUpdateTime ?? default, Notification.Dispose));
+#if DEBUG
+                                    Notification.MarkProcessed();
+#endif
                                 }
                             }
                             if (currentMessage.Messages.Count > 0)
                             {
-                                result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                result.Add((currentNotifications.Count, currentMessage, topic, false, default,
+                                    () => currentNotifications.ForEach(n => n.Dispose())));
+#if DEBUG
+                                currentNotifications.ForEach(n => n.MarkProcessed());
+#endif
+                            }
+                            else
+                            {
+                                Debug.Assert(currentNotifications.Count == 0);
                             }
 
                             BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
@@ -408,11 +452,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return result;
         }
 
-        private void Drop(IEnumerable<SubscriptionNotificationModel> messages)
+        private void Drop(IEnumerable<IOpcUaSubscriptionNotification> messages)
         {
-            var totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
-            NotificationsDroppedCount += totalNotifications;
+            var totalNotifications = 0;
+            foreach (var message in messages)
+            {
+                totalNotifications += message.Notifications?.Count ?? 0;
+#if DEBUG
+                message.MarkProcessed();
+#endif
+                message.Dispose();
+            }
             _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
+            NotificationsDroppedCount += totalNotifications;
         }
 
         /// <summary>

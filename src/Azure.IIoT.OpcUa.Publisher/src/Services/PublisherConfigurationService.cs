@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 SingleReader = true,
                 SingleWriter = false
             });
-            _fileChangeProcessor = Task.Factory.StartNew(() => ProcessFileChangesAsync(),
+            _fileChangeProcessor = Task.Factory.StartNew(ProcessFileChangesAsync,
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _fileChanges.Writer.TryWrite(false); // Read from file
         }

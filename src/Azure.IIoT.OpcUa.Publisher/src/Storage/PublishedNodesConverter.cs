@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
                 // Group by endpoints
                 var endpoints = items.GroupBy(
-                    item => ToConnectionModel(item),
+                    ToConnectionModel,
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item, configuration.ScaleTestCount ?? 1),
                     // Comparer for connection information
@@ -271,8 +271,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
-                                PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
-                                Priority = 0 // TODO
+                                PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
+                                // ...
                             },
                             PublishedVariables = new PublishedDataItemsModel
                             {

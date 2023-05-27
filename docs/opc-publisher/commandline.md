@@ -371,6 +371,11 @@ Subscription settings
                              Minimum subscription lifetime in seconds as per
                                OPC UA definition.
                                Default: `not set`.
+      --da, --deferredacks, --UseDeferredAcknoledgements[=VALUE]
+                             (Experimental) Acknoledge subscription
+                               notifications only when the data has been
+                               successfully published.
+                               Default: `false`.
 
 OPC UA Client configuration
 ---------------------------
@@ -386,10 +391,16 @@ OPC UA Client configuration
                                production environments!
       --ct, --createsessiontimeout, --CreateSessionTimeout=VALUE
                              Amount of time in seconds to wait until a session
-                               is connected. This is also the delay between
-                               client reconnecting to the server to re-
-                               establish connectivity.
+                               is connected.
                                Default: `5` seconds.
+      --mr, --reconnectperiod, --MinReconnectDelay=VALUE
+                             The minimum amount of time in milliseconds to wait
+                               reconnection of session is attempted again.
+                               Default: `1000` milliseconds.
+      --xr, --maxreconnectperiod, --MaxReconnectDelay=VALUE
+                             The maximum amount of time in millseconds to wait
+                               between reconnection attempts of the session.
+                               Default: `60000` milliseconds.
       --sto, --sessiontimeout, --DefaultSessionTimeout=VALUE
                              Maximum amount of time in seconds that a session
                                should remain open by the OPC server without any

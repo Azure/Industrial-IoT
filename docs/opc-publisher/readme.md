@@ -321,7 +321,7 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 OPC Publisher has several interfaces that can be used to configure it.  
 
 - [Configuration via configuration file](#configuration-via-configuration-file)
-- [Command Line options configuration](./ommandline.md)
+- [Command Line options configuration](./commandline.md)
 - [Direct method runtime configuration](./directmethods.md)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
@@ -349,8 +349,6 @@ The simplest way to configure OPC Publisher is via a configuration file. A basic
 Other example configuration files are provided via [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
 
 The configuration file syntax has been enhanced over time. OPC Publisher read old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
-
-When OPC Publisher reads the file, it's validated against the [reference schema](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src/Schemas/publishednodesschema.json). Refer to the [OPC Publisher manual](https://github.com/Azure/Industrial-IoT/blob/main/docs/manual/readme.md) for schema validation details.
 
 OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher supports a "heartbeat" for every configured telemetry event that can be enabled by specifying the `HeartbeatInterval` key in the data item's configuration. The interval is specified in seconds:
 

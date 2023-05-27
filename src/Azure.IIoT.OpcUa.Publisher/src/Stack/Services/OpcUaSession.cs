@@ -50,11 +50,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal ISession Session { get; }
 
         /// <summary>
-        /// Dispose session when disposing
-        /// </summary>
-        internal bool DoNotDisposeSessionWhenDisposing { get; set; }
-
-        /// <summary>
         /// Create session
         /// </summary>
         /// <param name="session"></param>
@@ -63,19 +58,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="operationTimeout"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="ackHandler"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
             TimeSpan keepAliveInterval, TimeSpan operationTimeout,
-            IJsonSerializer serializer, ILogger<OpcUaSession> logger)
+            IJsonSerializer serializer, ILogger<OpcUaSession> logger,
+            PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _keepAlive = keepAlive ??
                 throw new ArgumentNullException(nameof(keepAlive));
-
             Session = session ??
                 throw new ArgumentNullException(nameof(session));
 
+            // support transfer
+            Session.DeleteSubscriptionsOnClose = false;
+            Session.TransferSubscriptionsOnReconnect = true;
+            Session.MinPublishRequestCount = 3;
             Session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
             Session.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
 
@@ -86,6 +86,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ?? NodeId.Null;
 
             Codec = new JsonVariantEncoder(session.MessageContext, serializer);
+            if (ackHandler != null)
+            {
+                Session.PublishSequenceNumbersToAcknowledge += ackHandler;
+                _ackHandler = ackHandler;
+            }
             Session.KeepAlive += keepAlive;
             _complexTypeSystem = LoadComplexTypeSystemAsync();
         }
@@ -105,12 +110,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public void Dispose()
         {
             Session.KeepAlive -= _keepAlive;
-
-            if (!DoNotDisposeSessionWhenDisposing)
+            if (_ackHandler != null)
             {
-                Session.Dispose();
-                _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
+                Session.PublishSequenceNumbersToAcknowledge -= _ackHandler;
             }
+
+            Session.Dispose();
+            _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
 
             _activitySource.Dispose();
         }
@@ -1044,6 +1050,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly NodeId _authenticationToken;
         private readonly KeepAliveEventHandler _keepAlive;
         private readonly ILogger _logger;
+        private readonly PublishSequenceNumbersToAcknowledgeEventHandler? _ackHandler;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

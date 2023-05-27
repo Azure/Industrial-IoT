@@ -51,6 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
         public const string CreateSessionTimeoutKey = "CreateSessionTimeout";
+        public const string MaxReconnectDelayKey = "MaxReconnectDelay";
+        public const string MinReconnectDelayKey = "MinReconnectDelay";
         public const string SubscriptionErrorRetryDelayKey = "SubscriptionErrorRetryDelay";
         public const string InvalidMonitoredItemRetryDelayKey = "InvalidMonitoredItemRetryDelay";
         public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
@@ -78,6 +80,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int DefaultSessionTimeoutDefaultSec = 60;
         public const int KeepAliveIntervalDefaultSec = 10;
         public const int CreateSessionTimeoutDefaultSec = 5;
+        public const int MaxReconnectDelayDefault = 60 * 1000;
+        public const int MinReconnectDelayDefault = 1000;
         public const int MinimumCertificateKeySizeDefault = 1024;
         public const bool AutoAcceptUntrustedCertificatesDefault = false;
         public const bool RejectSha1SignedCertificatesDefault = false;
@@ -134,6 +138,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (createSessionTimeout > 0)
                 {
                     options.CreateSessionTimeout = TimeSpan.FromSeconds(createSessionTimeout);
+                }
+            }
+
+            if (options.MinReconnectDelay == null)
+            {
+                var reconnectDelay = GetIntOrDefault(MinReconnectDelayKey,
+                    MinReconnectDelayDefault);
+                if (reconnectDelay > 0)
+                {
+                    options.MinReconnectDelay = TimeSpan.FromMilliseconds(reconnectDelay);
+                }
+            }
+
+            if (options.MaxReconnectDelay == null)
+            {
+                var reconnectDelay = GetIntOrDefault(MaxReconnectDelayKey,
+                    MaxReconnectDelayDefault);
+                if (reconnectDelay > 0)
+                {
+                    options.MaxReconnectDelay = TimeSpan.FromMilliseconds(reconnectDelay);
                 }
             }
 

@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // into a message or write all messages as array in batch mode. If
             // single message is desired, single message mode should be set (see next test).
 
-            Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
+            Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(20, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(1, encoder.MessagesProcessedCount);
@@ -119,8 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            var count = networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count(b => b.Length != 0));
-            Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m).Buffers,
+            var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count(b => b.Length != 0));
+            Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m.Event).Buffers,
                 m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString(CultureInfo.InvariantCulture))));
             Assert.InRange(count, 66, 68);
             Assert.Equal(95, encoder.NotificationsProcessedCount);
@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
 
-            Assert.Equal(20, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
+            Assert.Equal(20, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(20, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(20, encoder.MessagesProcessedCount);
@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
+            Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(20, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(1, encoder.MessagesProcessedCount);
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
 
             // Single message, no array envelope due to batching resulting in 210 events from 20 notifications.
-            Assert.Equal(210, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
+            Assert.Equal(210, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(20, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(210, encoder.MessagesProcessedCount);
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(3, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
+            Assert.Equal(3, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(19, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(3, encoder.MessagesProcessedCount);

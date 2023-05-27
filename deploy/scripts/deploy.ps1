@@ -830,6 +830,15 @@ Function New-Deployment() {
     $StartTime = $(get-date)
     write-host "Start time: $($StartTime.ToShortTimeString())"
 
+    if ([string]::IsNullOrEmpty($script:version)) {
+        if ($script:branchName.StartsWith("release/")) {
+            $script:version = $script:branchName.Replace("release/", "")
+        }
+        else {
+            $script:version = "latest"
+        }
+    }
+
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
 
@@ -850,15 +859,6 @@ Function New-Deployment() {
                     }
                     $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
                 }
-            }
-        }
-
-        if ([string]::IsNullOrEmpty($script:version)) {
-            if ($script:branchName.StartsWith("release/")) {
-                $script:version = $script:branchName.Replace("release/", "")
-            }
-            else {
-                $script:version = "latest"
             }
         }
 

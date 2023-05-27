@@ -42,5 +42,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// The metadata header information or null if disabled.
         /// </summary>
         public DataSetMetaDataModel? MetaData { get; set; }
+
+        /// <summary>
+        /// Use deferred acknoledgements
+        /// </summary>
+        public bool? UseDeferredAcknoledgements { get; set; }
     }
 }

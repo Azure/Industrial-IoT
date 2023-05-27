@@ -64,10 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public async Task SendAsync(IEvent message)
         {
-            if (message == null)
-            {
-                return;
-            }
             try
             {
                 var sw = Stopwatch.StartNew();

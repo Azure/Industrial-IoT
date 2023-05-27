@@ -39,6 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? configuration?.DefaultPublishingInterval,
                 ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
                     ?? configuration?.ResolveDisplayName,
+                UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
+                    ?? configuration?.UseDeferredAcknoledgements,
                 MetaData = configuration?.DisableDataSetMetaData == true
                     ? null : dataSetMetaData
             };

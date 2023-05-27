@@ -582,7 +582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     break;
                 case "RELATEDTO":
                     filterOp = FilterOperatorType.RelatedTo;
-                    validator = l => ValidateRelatedTo(l);
+                    validator = ValidateRelatedTo;
                     break;
                 case "ISNULL":
                     filterOp = FilterOperatorType.IsNull;

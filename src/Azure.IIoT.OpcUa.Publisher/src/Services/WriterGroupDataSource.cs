@@ -5,12 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -27,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     public sealed class WriterGroupDataSource : IMessageSource, IDisposable
     {
         /// <inheritdoc/>
-        public event EventHandler<SubscriptionNotificationModel>? OnMessage;
+        public event EventHandler<IOpcUaSubscriptionNotification>? OnMessage;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? OnCounterReset;
@@ -520,18 +522,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notification"></param>
-            private void OnSubscriptionDataChangeNotification(object? sender, SubscriptionNotificationModel notification)
+            private void OnSubscriptionDataChangeNotification(object? sender, IOpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
 
-                SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification)
+                IOpcUaSubscriptionNotification ProcessKeyFrame(IOpcUaSubscriptionNotification notification)
                 {
                     if (_keyFrameCount > 0)
                     {
                         var frameCount = Interlocked.Increment(ref _frameCount);
                         if ((frameCount % _keyFrameCount) == 0)
                         {
-                            Subscription?.TryUpgradeToKeyFrame(notification);
+                            notification.TryUpgradeToKeyFrame();
                         }
                     }
                     return notification;
@@ -570,7 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notification"></param>
-            private void OnSubscriptionEventNotification(object? sender, SubscriptionNotificationModel notification)
+            private void OnSubscriptionEventNotification(object? sender, IOpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(sender, notification);
             }
@@ -609,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="notification"></param>
             /// <param name="metaDataTimer"></param>
             private void CallMessageReceiverDelegates(object? sender,
-                SubscriptionNotificationModel notification, bool metaDataTimer = false)
+                IOpcUaSubscriptionNotification notification, bool metaDataTimer = false)
             {
                 try
                 {
@@ -632,19 +634,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                             if (sendMetadata)
                             {
-                                var metadata = new SubscriptionNotificationModel
+                                var metadata = new MetadataNotificationModel(notification)
                                 {
                                     Context = CreateMessageContext(
-                                        () => Interlocked.Increment(ref _metadataSequenceNumber)),
-                                    MessageType = Encoders.PubSub.MessageType.Metadata,
-                                    SequenceNumber = notification.SequenceNumber,
-                                    ServiceMessageContext = notification.ServiceMessageContext,
-                                    MetaData = notification.MetaData,
-                                    Timestamp = notification.Timestamp,
-                                    SubscriptionId = notification.SubscriptionId,
-                                    SubscriptionName = notification.SubscriptionName,
-                                    ApplicationUri = notification.ApplicationUri,
-                                    EndpointUrl = notification.EndpointUrl
+                                        () => Interlocked.Increment(ref _metadataSequenceNumber))
                                 };
                                 _outer.OnMessage?.Invoke(sender, metadata);
                                 InitializeMetaDataTrigger();
@@ -660,8 +653,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 notification.ToString());
                             _outer.OnMessage?.Invoke(sender, notification);
 
-                            if (notification.MessageType != Encoders.PubSub.MessageType.DeltaFrame &&
-                                notification.MessageType != Encoders.PubSub.MessageType.KeepAlive)
+                            if (notification.MessageType != MessageType.DeltaFrame &&
+                                notification.MessageType != MessageType.KeepAlive)
                             {
                                 // Reset keyframe trigger for events, keyframe, and conditions
                                 // which are all key frame like messages
@@ -686,6 +679,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Topic = _topic,
                         MetaDataTopic = _metadataTopic
                     };
+                }
+            }
+
+            /// <summary>
+            /// Data set metadata notification
+            /// </summary>
+            public sealed record class MetadataNotificationModel :
+                IOpcUaSubscriptionNotification
+            {
+                /// <inheritdoc/>
+                public uint SequenceNumber { get; }
+
+                /// <inheritdoc/>
+                public MessageType MessageType => MessageType.Metadata;
+
+                /// <inheritdoc/>
+                public DataSetMetaDataType? MetaData { get; }
+
+                /// <inheritdoc/>
+                public string? SubscriptionName { get; }
+
+                /// <inheritdoc/>
+                public ushort SubscriptionId { get; }
+
+                /// <inheritdoc/>
+                public string? EndpointUrl { get; }
+
+                /// <inheritdoc/>
+                public string? ApplicationUri { get; }
+
+                /// <inheritdoc/>
+                public DateTime Timestamp { get; }
+
+                /// <inheritdoc/>
+                public object? Context { get; set; }
+
+                /// <inheritdoc/>
+                public IServiceMessageContext? ServiceMessageContext { get; set; }
+
+                /// <inheritdoc/>
+                public IList<MonitoredItemNotificationModel> Notifications { get; }
+
+                /// <inheritdoc/>
+                public MetadataNotificationModel(IOpcUaSubscriptionNotification notification)
+                {
+                    SequenceNumber = notification.SequenceNumber;
+                    ServiceMessageContext = notification.ServiceMessageContext;
+                    MetaData = notification.MetaData;
+                    Timestamp = notification.Timestamp;
+                    SubscriptionId = notification.SubscriptionId;
+                    SubscriptionName = notification.SubscriptionName;
+                    ApplicationUri = notification.ApplicationUri;
+                    EndpointUrl = notification.EndpointUrl;
+                    Notifications = Array.Empty<MonitoredItemNotificationModel>();
+                }
+
+                /// <inheritdoc/>
+                public bool TryUpgradeToKeyFrame()
+                {
+                    // Not supported
+                    return false;
+                }
+
+                /// <inheritdoc/>
+                public void Dispose()
+                {
+                    // Nothing to do
                 }
             }
 

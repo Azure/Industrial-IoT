@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
@@ -71,27 +72,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _options.Value.MaxEgressMessages ?? 4096; // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], IEvent>(
-                input =>
-                {
-                    try
-                    {
-                        return _messageEncoder.Encode(_messageSink.CreateMessage,
-                            input, _maxEncodedMessageSize, _notificationBufferSize != 1);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, "Encoding failure.");
-                        return Enumerable.Empty<IEvent>();
-                    }
-                },
-                new ExecutionDataflowBlockOptions());
-            _batchDataSetMessageBlock = new BatchBlock<SubscriptionNotificationModel>(
-                _notificationBufferSize,
-                new GroupingDataflowBlockOptions());
-            _sinkBlock = new ActionBlock<IEvent>(
-                input => _messageSink.SendAsync(input),
-                new ExecutionDataflowBlockOptions());
+            _encodingBlock = new TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)>(
+                EncodeNotifications, new ExecutionDataflowBlockOptions());
+            _batchDataSetMessageBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
+                _notificationBufferSize, new GroupingDataflowBlockOptions());
+            _sinkBlock = new ActionBlock<(IEvent, Action)>(
+                SendEventAsync, new ExecutionDataflowBlockOptions());
 
             _batchDataSetMessageBlock.LinkTo(_encodingBlock);
             _encodingBlock.LinkTo(_sinkBlock);
@@ -134,6 +120,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Encode notifications
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private IEnumerable<(IEvent, Action)> EncodeNotifications(IOpcUaSubscriptionNotification[] input)
+        {
+            try
+            {
+                return _messageEncoder.Encode(_messageSink.CreateMessage,
+                    input, _maxEncodedMessageSize, _notificationBufferSize != 1);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Encoding failure.");
+                input.ForEach(a => a.Dispose());
+                return Enumerable.Empty<(IEvent, Action)>();
+            }
+        }
+
+        /// <summary>
+        /// Send event
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task SendEventAsync((IEvent evt, Action onComplete) message)
+        {
+            try
+            {
+                await _messageSink.SendAsync(message.evt).ConfigureAwait(false);
+            }
+            finally
+            {
+                message.onComplete();
+            }
+        }
+
+        /// <summary>
         /// Batch trigger interval
         /// </summary>
         /// <param name="state"></param>
@@ -151,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private void OnMessageReceived(object? sender, SubscriptionNotificationModel args)
+        private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
         {
             if (_dataFlowStartTime == DateTime.MinValue)
             {
@@ -173,15 +196,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     LogNotification(args, true);
                 }
+
+                // Dispose arg
+                args.Dispose();
             }
             else
             {
-                _batchDataSetMessageBlock.Post(args);
-
                 if (_logNotifications)
                 {
                     LogNotification(args);
                 }
+
+                _batchDataSetMessageBlock.Post(args);
             }
         }
 
@@ -200,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="args"></param>
         /// <param name="dropped"></param>
-        private void LogNotification(SubscriptionNotificationModel args, bool dropped = false)
+        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
         {
             _logger.LogInformation("{Action}Notification#{Seq} from Subscription {Subscription}{Items}",
                 dropped ? "!!!! Dropped " : string.Empty, args.SequenceNumber,
@@ -218,6 +244,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Append(item.DataSetFieldName ?? item.DisplayName)
                         .Append('|')
                         .Append(item.Value?.Value)
+                        .Append('|')
+                        .Append(item.Value?.SourceTimestamp)
                         .Append('|')
                         .Append(item.Value?.StatusCode)
                         .Append('|')
@@ -263,9 +291,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
-        private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
-        private readonly TransformManyBlock<SubscriptionNotificationModel[], IEvent> _encodingBlock;
-        private readonly ActionBlock<IEvent> _sinkBlock;
+        private readonly BatchBlock<IOpcUaSubscriptionNotification> _batchDataSetMessageBlock;
+        private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
+        private readonly ActionBlock<(IEvent, Action)> _sinkBlock;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }

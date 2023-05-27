@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     try
                     {
                         _pending.Remove(request);
-                        Try.Op(() => request.Dispose());
+                        Try.Op(request.Dispose);
                     }
                     finally
                     {
@@ -709,7 +709,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var request in _pending)
                 {
                     _progress.OnDiscoveryCancelled(request.Request);
-                    Try.Op(() => request.Dispose());
+                    Try.Op(request.Dispose);
                 }
                 _pending.Clear();
             }

@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using Timer = System.Timers.Timer;
+    using static Azure.IIoT.OpcUa.Publisher.Stack.Services.OpcUaSubscription;
 
     /// <summary>
     /// Monitored item
@@ -717,26 +718,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="message"></param>
         /// <param name="notification"></param>
-        public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message,
+        internal void ProcessMonitoredItemNotification(OpcUaNotification message,
             MonitoredItemNotification? notification)
         {
             Debug.Assert(Item != null);
             Debug.Assert(DataTemplate != null);
+
             var shouldHeartbeat = ValidateHeartbeat(message.Timestamp);
             if (notification == null)
             {
                 if (shouldHeartbeat)
                 {
-                    var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(Item,
-                        () => new MonitoredItemNotificationModel
+                    var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(
+                        Item, () => new MonitoredItemNotificationModel
                         {
-                            DataSetFieldName = string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName,
+                            DataSetFieldName = string.IsNullOrEmpty(Item.DisplayName) ?
+                                Template.Id : Item.DisplayName,
                             Id = Template.Id,
                             DisplayName = Item.DisplayName,
                             NodeId = Template.StartNodeId,
                             AttributeId = Item.AttributeId,
-                            Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid)
+                            Value = new DataValue(Item.Status?.Error?.StatusCode
+                                ?? StatusCodes.BadMonitoredItemIdInvalid)
                         });
+                    var notifications = new List<MonitoredItemNotificationModel>();
                     foreach (var heartbeat in heartbeatValues)
                     {
                         var heartbeatValue = heartbeat.Clone();
@@ -744,19 +749,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             heartbeatValue.SequenceNumber = 0;
                             heartbeatValue.IsHeartbeat = true;
-                            Debug.Assert(message.Notifications != null);
-                            message.Notifications.Add(heartbeatValue);
-                            message.MessageType = Encoders.PubSub.MessageType.KeyFrame;
+                            notifications.Add(heartbeatValue);
                         }
                     }
+                    message.Notifications.AddRange(notifications);
+                    message.MessageType = Encoders.PubSub.MessageType.KeyFrame;
                 }
             }
             else
             {
-                foreach (var n in notification.ToMonitoredItemNotifications(Item))
-                {
-                    message.Notifications.Add(n);
-                }
+                message.Notifications.AddRange(notification
+                    .ToMonitoredItemNotifications(Item));
             }
 
             bool ValidateHeartbeat(DateTime currentPublish)
@@ -785,7 +788,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="message"></param>
         /// <param name="notification"></param>
-        public void ProcessEventNotification(SubscriptionNotificationModel message, EventFieldList notification)
+        internal void ProcessEventNotification(IOpcUaSubscriptionNotification message,
+            EventFieldList notification)
         {
             Debug.Assert(Item != null);
             Debug.Assert(EventTemplate != null);

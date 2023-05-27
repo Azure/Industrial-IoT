@@ -63,7 +63,7 @@ We are pleased to announce the first **preview** release of version 2.9.0 of OPC
 
 ### Changes 2.9.0 Preview 1
 
-- [OPC Publisher] [Alarms and Events](./modules/publisher-event-configuration.md) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
+- [OPC Publisher] [Alarms and Events](./opc-publisher/readme.md#configuring-event-subscriptions) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
 - [OPC Publisher] Full Deadband filtering. We introduced data change triggers in 2.8.4 and are now supporting the full data change filter configuration to configure percent and absolute deadband as defined in OPC UA.
 - [OPC Publisher] Support setting discard new configuration on command line.
 - [OPC Publisher] Full support for UADP network message encoding, as well as reversible Json profiles (JsonReversible)
@@ -102,7 +102,7 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 
 - IoT Edge 1.1 LTS will be going out of support on 12/13/2022, please [update your IoT Edge gateways to IoT Edge 1.4 LTS](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-update-iot-edge).
 
-  > To continue deploying the 1.1 LTS modules to your environment follow [these instructions](./deploy/howto-install-iot-edge.md).
+  > To continue deploying the 1.1 LTS modules to your environment follow [these instructions](./opc-publisher/readme.md#getting-started).
 
 - Windows container images are no longer supported in IoT Edge 1.4 and consequentially have been removed from this release. Please use [IoT Edge for Linux on Windows (EFLOW) 1.4](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) as your IoT Edge environment on Windows.  
 
@@ -110,7 +110,7 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 
   - You must update your Windows based IoT Edge environment to EFLOW **ahead of deploying the platform**.  
   - Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on a Windows VM Host (Preview Feature).  This requires nested virtualization.  The Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of simulated Windows gateway will be skipped.
-  - Network scanning on IoT Edge 1.4 LTS EFLOW using OPC Discovery is not supported yet. This applies to the deployed [simulation environment](./deploy/howto-deploy-all-in-one.md) and [engineering tool](./services/engineeringtool.md) experience. You can register servers using a discovery url using the [registry service's registration REST API](./services/registry.md).
+  - Network scanning on IoT Edge 1.4 LTS EFLOW using OPC Discovery is not supported yet. This applies to the deployed [simulation environment](./web-api/readme.md#getting-started) and engineering tool. You can register servers using a discovery url using the [registry service's registration REST API](./web-api/api.md).
 
 ### Changes in 2.8.4
 
@@ -173,7 +173,7 @@ We are pleased to announce the release of version 2.8.2 of our Industrial IoT Pl
 
 ### Fundamentals related fixes in 2.8.2
 
-- [OPC Publisher] Implemented the backwards compatible [Direct Methods API](modules/publisher-directmethods.md) of 2.5.x publisher. The migration path is documented [here](modules/publisher-migrationpath.md)
+- [OPC Publisher] Implemented the backwards compatible [Direct Methods API](./opc-publisher/directmethods.md) of 2.5.x publisher. The migration path is documented [here](./opc-publisher/migrationpath.md)
 - [OPC Publisher] Optimizations in opc subscriptions/monitored items management in case of configuration changes. Only incremental changes are applied to a subscription.
 - [OPC Publisher] Added support for setting QueueSize on monitored items for publisher in standalone mode.
 - [OPC Publisher] Hardened the retry mechanism for activating monitored items.

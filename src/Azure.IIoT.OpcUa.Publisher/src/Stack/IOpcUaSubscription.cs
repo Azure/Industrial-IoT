@@ -19,12 +19,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Subscription data change events
         /// </summary>
-        event EventHandler<SubscriptionNotificationModel>? OnSubscriptionDataChange;
+        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionDataChange;
 
         /// <summary>
         /// Subscription event change events
         /// </summary>
-        event EventHandler<SubscriptionNotificationModel>? OnSubscriptionEventChange;
+        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
 
         /// <summary>
         /// Subscription data change diagnostics events
@@ -55,14 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Create a keep alive notification
         /// </summary>
         /// <returns></returns>
-        SubscriptionNotificationModel? CreateKeepAlive();
-
-        /// <summary>
-        /// Adds a snapshot of all values to the notification
-        /// </summary>
-        /// <param name="notification"></param>
-        /// <returns></returns>
-        bool TryUpgradeToKeyFrame(SubscriptionNotificationModel notification);
+        IOpcUaSubscriptionNotification? CreateKeepAlive();
 
         /// <summary>
         /// Apply desired state of the subscription and its monitored items.

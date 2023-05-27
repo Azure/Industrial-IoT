@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Msal
                 .WithAuthority($"{instance.TrimEnd('/')}/{tenantId}")
                 .WithRedirectUri("http://localhost")
                 .Build();
-            _lazyCacheInitialization = new Lazy<Task>(() => InitializeCacheAsync());
+            _lazyCacheInitialization = new Lazy<Task>(InitializeCacheAsync);
         }
 
         /// <summary>
