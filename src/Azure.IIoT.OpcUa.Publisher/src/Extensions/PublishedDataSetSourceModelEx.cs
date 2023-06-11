@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             return new SubscriptionConfigurationModel
             {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
+                MaxNotificationsPerPublish = dataSetSource.SubscriptionSettings?.MaxNotificationsPerPublish,
                 LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount
                     ?? configuration?.DefaultLifeTimeCount,
                 KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount

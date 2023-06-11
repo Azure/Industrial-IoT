@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
-    using Azure.IIoT.OpcUa.Publisher.Tests.Stack;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
     using System.Linq;
     using Xunit;
 
-    public class GetSimpleEventFilterTests : EventTestsBase
+    public class GetSimpleEventFilterTests : OpcUaMonitoredItemTestsBase
     {
         [Fact]
         public void SetupSimpleFilterForBaseEventType()
@@ -23,14 +23,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
             // Arrange
             var template = new EventMonitoredItemModel
             {
-                EventFilter = new EventFilterModel()
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel
                 {
                     TypeDefinitionId = ObjectTypeIds.BaseEventType.ToString()
                 }
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -63,14 +64,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
             // Arrange
             var template = new EventMonitoredItemModel
             {
-                EventFilter = new EventFilterModel()
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel
                 {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString()
                 }
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -115,6 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
             // Arrange
             var template = new EventMonitoredItemModel
             {
+                StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString()
@@ -126,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Tests
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);

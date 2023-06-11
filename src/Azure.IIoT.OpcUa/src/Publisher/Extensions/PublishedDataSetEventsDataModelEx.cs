@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 PublishedEventName = model.PublishedEventName,
+                ReadEventNameFromNode = model.ReadEventNameFromNode,
                 WhereClause = model.WhereClause.Clone(),
                 QueueSize = model.QueueSize,
                 BrowsePath = model.BrowsePath,

@@ -16,9 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
         private readonly BaseMonitoredItemModel _dataModel = new DataMonitoredItemModel
         {
             StartNodeId = "DataStartNodeId",
-            AggregateFilter = new AggregateFilterModel()
+            AggregateFilter = new AggregateFilterModel
             {
-                AggregateConfiguration = new AggregateConfigurationModel()
+                AggregateConfiguration = new AggregateConfigurationModel
                 {
                     PercentDataBad = 10,
                     PercentDataGood = 20,
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,
             AttributeId = NodeAttribute.DataType,
-            DataChangeFilter = new DataChangeFilterModel()
+            DataChangeFilter = new DataChangeFilterModel
             {
                 DataChangeTrigger = DataChangeTriggerType.StatusValue,
                 DeadbandType = DeadbandType.Absolute,
@@ -41,9 +41,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
             },
             DiscardNew = true,
             SkipFirst = true,
-            DisplayName = "DataDisplayName",
+            DataSetFieldName = "DataSetFieldName",
             HeartbeatInterval = TimeSpan.FromMilliseconds(30000),
-            Id = "Id",
+            DataSetFieldId = "DataSetFieldId",
             IndexRange = "DataIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" }
@@ -51,19 +51,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
         private readonly BaseMonitoredItemModel _eventModel = new EventMonitoredItemModel
         {
             StartNodeId = "EventStartNodeId",
-            SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,
             AttributeId = NodeAttribute.DataType,
             DiscardNew = true,
-            DisplayName = "EventDisplayName",
-            Id = "Id",
-            IndexRange = "EventIndexRange",
+            DataSetFieldName = "EventDataSetFieldName",
+            DataSetFieldId = "DataSetFieldId",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "EventRelativePath" },
-            EventFilter = new EventFilterModel()
+            EventFilter = new EventFilterModel
             {
-                SelectClauses = new List<SimpleAttributeOperandModel>() {
-                    new SimpleAttributeOperandModel() {
+                SelectClauses = new List<SimpleAttributeOperandModel>
+                {
+                    new SimpleAttributeOperandModel
+                    {
                         AttributeId = NodeAttribute.DataType,
                         BrowsePath = new string[] { "EventBrowsePath "},
                         IndexRange = "SelectClauseIndexRange",

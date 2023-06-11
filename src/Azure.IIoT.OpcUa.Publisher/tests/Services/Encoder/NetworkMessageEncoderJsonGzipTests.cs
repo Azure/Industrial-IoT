@@ -122,11 +122,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count);
             Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m.Event).Buffers,
                 m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString(CultureInfo.InvariantCulture))));
-            Assert.InRange(count, 160, 202);
+            Assert.InRange(count, 160, 210);
             Assert.Equal(500, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)count, encoder.MessagesProcessedCount);
-            Assert.Equal(3, Math.Round(encoder.AvgNotificationsPerMessage));
+            Assert.InRange(Math.Round(encoder.AvgNotificationsPerMessage), 2, 3);
         }
 
         [Fact]

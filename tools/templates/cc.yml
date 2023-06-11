@@ -38,17 +38,13 @@ jobs:
       command: test
       projects: '**/tests/*.csproj'
       arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
-      publishTestResults: false
-    continueOnError: true
   - script: |
       tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:Industrial IoT Test Coverage" "-assemblyfilters:-*.Tests"
       cp $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.html 
 
     displayName: Create Code coverage report
-    condition: succeeded()
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage'
-    condition: succeeded()
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'

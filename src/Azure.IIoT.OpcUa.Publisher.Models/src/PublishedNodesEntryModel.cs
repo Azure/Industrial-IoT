@@ -113,6 +113,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? EndpointUrl { get; set; }
 
         /// <summary>
+        /// When the publishing timer has expired this number of
+        /// times without requiring any Notification to be sent,
+        /// to the writer a keep-alive message is sent.
+        /// </summary>
+        [DataMember(Name = "MaxKeepAliveCount", Order = 14,
+            EmitDefaultValue = false)]
+        public uint? MaxKeepAliveCount { get; set; }
+
+        /// <summary>
         /// The optional description of the dataset.
         /// </summary>
         [DataMember(Name = "DataSetDescription", Order = 15,
@@ -120,18 +129,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? DataSetDescription { get; set; }
 
         /// <summary>
-        /// The messaging mode to use for the group
+        /// Priority of the writer subscription.
         /// </summary>
-        [DataMember(Name = "MessagingMode", Order = 16,
+        [DataMember(Name = "Priority", Order = 16,
+            EmitDefaultValue = false)]
+        public byte? Priority { get; set; }
+
+        /// <summary>
+        /// The messaging mode to use for the data sets
+        /// in hte writer group
+        /// </summary>
+        [DataMember(Name = "MessagingMode", Order = 20,
             EmitDefaultValue = false)]
         public MessagingMode? MessagingMode { get; set; }
 
         /// <summary>
-        /// The messaging encoding to use for the group
+        /// The messaging encoding to use for the data sets
+        /// in hte writer group
         /// </summary>
-        [DataMember(Name = "MessageType", Order = 17,
+        [DataMember(Name = "MessageEncoding", Order = 21,
             EmitDefaultValue = false)]
-        public MessageEncoding? MessageType { get; set; }
+        public MessageEncoding? MessageEncoding { get; set; }
+
+        /// <summary>
+        /// Send network messages when the notification queue
+        /// exceeds this number. Causes this many notifications
+        /// to be added to network messages
+        /// </summary>
+        [DataMember(Name = "BatchSize", Order = 22,
+            EmitDefaultValue = false)]
+        public uint? BatchSize { get; set; }
+
+        /// <summary>
+        /// Send network messages at the specified publishing
+        /// interval.
+        /// </summary>
+        [DataMember(Name = "BatchTriggerInterval", Order = 23,
+            EmitDefaultValue = false)]
+        public int? BatchTriggerInterval { get; set; }
+
+        /// <summary>
+        /// Send network messages at the specified publishing
+        /// interval.
+        /// Takes precedence over <see cref="BatchTriggerInterval"/>
+        /// if defined.
+        /// </summary>
+        [DataMember(Name = "BatchTriggerIntervalTimespan", Order = 24,
+            EmitDefaultValue = false)]
+        public TimeSpan? BatchTriggerIntervalTimespan { get; set; }
+
+        /// <summary>
+        /// The writer group transport to use
+        /// </summary>
+        [DataMember(Name = "WriterGroupTransport", Order = 29,
+            EmitDefaultValue = false)]
+        public WriterGroupTransport? WriterGroupTransport { get; set; }
 
         /// <summary>
         /// Secure transport should be used to connect to

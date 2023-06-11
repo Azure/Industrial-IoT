@@ -85,5 +85,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishedEventName", Order = 11,
             EmitDefaultValue = false)]
         public string? PublishedEventName { get; set; }
+
+        /// <summary>
+        /// Read event name from node
+        /// </summary>
+        [DataMember(Name = "readEventNameFromNode", Order = 12,
+            EmitDefaultValue = false)]
+        public bool? ReadEventNameFromNode { get; set; }
     }
 }

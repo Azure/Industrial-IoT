@@ -46,20 +46,25 @@ namespace Azure.IIoT.OpcUa.Publisher
         public MessagingProfile? MessagingProfile { get; set; }
 
         /// <summary>
-        /// Batch size
+        /// Default max notifications to queue up until a
+        /// network message is generated. Defaults to 1 if
+        /// no writer group publishing interval is specified.
+        /// Otherwise 4096 which is heuristically large enough
+        /// to let the publishing interval clear the queue.
         /// </summary>
         public int? BatchSize { get; set; }
 
         /// <summary>
-        /// Batch Trigger Interval
+        /// Writer group publishing interval cycle. This is
+        /// the timeout until a network message is generated
+        /// from the queue of notifications.
         /// </summary>
         public TimeSpan? BatchTriggerInterval { get; set; }
 
         /// <summary>
-        /// Maximum mesage size for the encoded messages
-        /// typically the IoT Hub's mas D2C message size
+        /// Default maximum network message size to use.
         /// </summary>
-        public int? MaxMessageSize { get; set; }
+        public int? MaxNetworkMessageSize { get; set; }
 
         /// <summary>
         /// Diagnostics interval
@@ -72,10 +77,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? DebugLogNotifications { get; set; }
 
         /// <summary>
-        /// Define the maximum number of messages in outgress buffer,
+        /// Define the maximum number of messages in egress buffer,
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>
-        public int? MaxEgressMessages { get; set; }
+        public int? MaxNetworkMessageSendQueueSize { get; set; }
 
         /// <summary>
         /// Flag to use reversible encoding for messages
@@ -108,9 +113,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? DataSetMetaDataTopicTemplate { get; set; }
 
         /// <summary>
-        /// Default Max messages per publish
+        /// Default transport to use if not found
         /// </summary>
-        public uint? DefaultMaxMessagesPerPublish { get; set; }
+        public WriterGroupTransport? DefaultTransport { get; set; }
+
+        /// <summary>
+        /// Default Max data set messages per published network
+        /// message.
+        /// </summary>
+        public uint? DefaultMaxDataSetMessagesPerPublish { get; set; }
 
         /// <summary>
         /// Configuration flag for enabling/disabling

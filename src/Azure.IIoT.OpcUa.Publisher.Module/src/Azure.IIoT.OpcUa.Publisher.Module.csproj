@@ -25,17 +25,18 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.34" />
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.34" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.34" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.31" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.38" />
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.38" />
+    <PackageReference Include="Furly.Extensions.Dapr" Version="0.4.38" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.38" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.33" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.4.0-rc.4" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.5.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.14" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.1.0-rc.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />

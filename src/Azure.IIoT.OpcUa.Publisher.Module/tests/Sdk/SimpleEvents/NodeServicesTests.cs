@@ -9,9 +9,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.SimpleEvents
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
+    using Autofac;
     using System.Threading.Tasks;
     using Xunit;
-    using Autofac;
 
     public sealed class NodeServicesTests : IClassFixture<SimpleEventsServer>, IClassFixture<PublisherModuleFixture>
     {

@@ -138,6 +138,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 MessageType = encoding
             };
             var seq = 1u;
+
+            var dataItem = new OpcUaMonitoredItem.DataItem(new DataMonitoredItemModel
+            {
+                StartNodeId = "i=2258"
+            }, Log.Console<OpcUaMonitoredItem.DataItem>());
+            var eventItem = new OpcUaMonitoredItem.EventItem(new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel()
+            }, Log.Console<OpcUaMonitoredItem.EventItem>());
+            eventItem.Fields.Add(("1", default));
+            eventItem.Fields.Add(("2", default));
+            eventItem.Fields.Add(("3", default));
+            eventItem.Fields.Add(("4", default));
+            eventItem.Fields.Add(("5", default));
+            eventItem.Fields.Add(("6", default));
+
             for (uint i = 0; i < numOfMessages; i++)
             {
                 var suffix = $"-{i}";
@@ -148,22 +165,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     var notificationSuffix = suffix + $"-{k}";
 
-                    var monitoredItem = new MonitoredItem
-                    {
-                        DisplayName = "DisplayName" + notificationSuffix,
-                        StartNodeId = new NodeId("NodeId" + notificationSuffix),
-                        AttributeId = k
-                    };
+                    var displayName = "DisplayName" + notificationSuffix;
+                    var nodeId = "NodeId" + notificationSuffix;
                     if (eventList)
                     {
-                        var handle = new OpcUaMonitoredItem(new EventMonitoredItemModel(), Log.Console<OpcUaMonitoredItem>());
-                        handle.Fields.Add(("1", default));
-                        handle.Fields.Add(("2", default));
-                        handle.Fields.Add(("3", default));
-                        handle.Fields.Add(("4", default));
-                        handle.Fields.Add(("5", default));
-                        handle.Fields.Add(("6", default));
-                        monitoredItem.Handle = handle;
                         var eventFieldList = new EventFieldList
                         {
                             ClientHandle = k,
@@ -173,8 +178,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                                 SequenceNumber = seq++
                             }
                         };
-                        var notification = eventFieldList.ToMonitoredItemNotifications(monitoredItem);
-                        notifications.AddRange(notification);
+                        // Fake the item to be created as part of the subscription and grab the data
+                        eventItem.Template = eventItem.Template with
+                        {
+                            StartNodeId = nodeId,
+                            DataSetFieldId = nodeId,
+                            DataSetFieldName = displayName,
+                        };
+                        eventItem.Item = new MonitoredItem
+                        {
+                            DisplayName = displayName,
+                            StartNodeId = new NodeId(nodeId),
+                            Handle = eventItem
+                        };
+                        eventItem.TryGetMonitoredItemNotifications(DateTime.UtcNow, eventFieldList, notifications);
                     }
                     else
                     {
@@ -187,8 +204,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                                 SequenceNumber = seq++
                             }
                         };
-                        var notification = monitoredItemNotification.ToMonitoredItemNotifications(monitoredItem);
-                        notifications.AddRange(notification);
+                        // Fake the item to be created as part of the subscription and grab the data
+                        dataItem.Template = dataItem.Template with
+                        {
+                            StartNodeId = nodeId,
+                            DataSetFieldId = nodeId,
+                            DataSetFieldName = displayName,
+                        };
+                        dataItem.Item = new MonitoredItem
+                        {
+                            DisplayName = displayName,
+                            StartNodeId = new NodeId(nodeId),
+                            Handle = dataItem
+                        };
+                        dataItem.TryGetMonitoredItemNotifications(DateTime.UtcNow, monitoredItemNotification, notifications);
                     }
                 }
 

@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;
@@ -27,7 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static System.Collections.Specialized.BitVector32;
+    using System.Collections.Concurrent;
+    using DotNetty.Common.Utilities;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -79,7 +79,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
-        /// <param name="cache"></param>
         /// <param name="sessionFactory"></param>
         /// <param name="maxReconnectPeriod"></param>
         /// <param name="sessionName"></param>
@@ -88,8 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, IMetricsContext metrics,
             EventHandler<EndpointConnectivityState>? notifier,
-            IMemoryCache cache, ISessionFactory sessionFactory,
-            TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
+            ISessionFactory sessionFactory, TimeSpan? maxReconnectPeriod = null,
+            string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
             {
@@ -105,13 +104,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
-            _cache = cache ??
-                throw new ArgumentNullException(nameof(cache));
             _sessionFactory = sessionFactory ??
                 throw new ArgumentNullException(nameof(sessionFactory));
             _notifier = notifier;
 
             _logger = _loggerFactory.CreateLogger<OpcUaClient>();
+            _tokens = new Dictionary<string, CancellationTokenSource>();
             _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
             _subscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
@@ -229,9 +227,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _sessionManager.ConfigureAwait(false);
                 _reconnectHandler.Dispose();
 
+                foreach (var sampler in _samplers.Values)
+                {
+                    await sampler.DisposeAsync().ConfigureAwait(false);
+                }
+
+                _samplers.Clear();
+
                 if (_session != null)
                 {
-                    await _session.CloseAsync(default).ConfigureAwait(false);
                     await CloseSessionAsync().ConfigureAwait(false);
                 }
 
@@ -268,6 +272,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
                     if (_session != null)
                     {
+                        // Ensure type system is loaded
+                        if (!_session.IsTypeSystemLoaded)
+                        {
+                            await _session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                        }
+
                         var context = new ServiceCallContext(_session);
                         var result = await service(context).ConfigureAwait(false);
 
@@ -320,6 +330,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
                     if (_session != null)
                     {
+                        // Ensure type system is loaded
+                        if (!_session.IsTypeSystemLoaded)
+                        {
+                            await _session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                        }
+
                         var context = new ServiceCallContext(_session);
                         results = await stack.Peek()(context).ConfigureAwait(false);
 
@@ -347,6 +363,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Register sampling of values through this client.
+        /// </summary>
+        /// <param name="samplingRate"></param>
+        /// <param name="item"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        internal IAsyncDisposable RegisterSampler(TimeSpan samplingRate, ReadValueId item,
+            Action<DataValue> callback)
+        {
+            lock (_samplers)
+            {
+                if (!_samplers.TryGetValue(samplingRate, out var sampler))
+                {
+                    sampler = new Sampler(this, samplingRate, item, callback);
+                }
+                else
+                {
+                    sampler.Add(item, callback);
+                }
+
+                // Remove sampler
+                return Nito.Disposables.AsyncDisposable.Create(async () =>
+                {
+                    lock (_samplers)
+                    {
+                        if (!sampler.Remove(item))
+                        {
+                            return;
+                        }
+                        _samplers.Remove(samplingRate);
+                    }
+                    await sampler.DisposeAsync().ConfigureAwait(false);
+                });
+            }
+        }
+
+        /// <summary>
         /// Connect
         /// </summary>
         /// <param name="token"></param>
@@ -354,22 +407,74 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal void AddRef(string? token = null, TimeSpan? expiresAfter = null)
         {
+            // If token provided create a registered release
+            CancellationTokenSource? cts = null;
+            if (token != null)
+            {
+                lock (_tokens)
+                {
+                    //
+                    // Get any registered token and see if we can just re-arm
+                    // the timer (when the cancellation has not been requested
+                    // yet. If so we do not need to add ref at all and just
+                    // re-use the existing registered token. If there is a
+                    // token id collision then there is the potential that
+                    // tokens get removed too early using the release(token)
+                    // api. Since that is only used in the case of continuation
+                    // tokens we expect that not to happen on the same session.
+                    //
+                    if (_tokens.TryGetValue(token, out cts))
+                    {
+                        cts.CancelAfter(expiresAfter ?? TimeSpan.FromSeconds(10));
+
+                        if (!cts.IsCancellationRequested)
+                        {
+                            // Re-armed the current timer no need to add ref
+                            return;
+                        }
+
+                        _tokens.Remove(token);
+                    }
+
+                    cts = new CancellationTokenSource();
+                    _tokens.Add(token, cts);
+                }
+            }
+
             if (Interlocked.Increment(ref _refCount) == 1)
             {
                 // Post connection request
                 TriggerConnectionEvent(ConnectionEvent.Connect);
             }
-            if (token != null)
+
+            if (cts != null)
             {
-                // _cache.Remove(token);
-                using var entry = _cache.CreateEntry(token)
-                    .SetValue(this)
-                    .SetAbsoluteExpiration(expiresAfter ?? TimeSpan.FromSeconds(10))
-                    .SetPriority(CacheItemPriority.NeverRemove)
-                    .SetSize(1)
-                    .RegisterPostEvictionCallback(
-                        (_, o, _, _) => (o as OpcUaClient)?.Release())
-                    ;
+                //
+                // Now that we took a reference register callback that removes
+                // registered token source under lock if it is the current one
+                // and then cancel and call release. After release dispose the
+                // token source to free the timer.
+                //
+                cts.Token.Register(() =>
+                {
+                    Debug.Assert(token != null, "Captured token should not be null");
+                    lock (_tokens)
+                    {
+                        if (_tokens.TryGetValue(token, out var registered) &&
+                            registered == cts)
+                        {
+                            _tokens.Remove(token);
+                        }
+                    }
+
+                    Release();
+                    cts.Dispose();
+                });
+                //
+                // Start the cancellation token source timer now and
+                // take a new reference.
+                //
+                cts.CancelAfter(expiresAfter ?? TimeSpan.FromSeconds(10));
             }
         }
 
@@ -379,18 +484,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="token"></param>
         internal void Release(string? token = null)
         {
-            if (token != null)
+            if (token == null)
             {
-                _cache.Remove(token);
-                return;
+                // Decrement reference count
+                if (Interlocked.Decrement(ref _refCount) == 0)
+                {
+                    // Post disconnect request
+                    TriggerConnectionEvent(ConnectionEvent.Disconnect);
+                }
             }
 
-            // Decrement reference count
-            if (Interlocked.Decrement(ref _refCount) == 0)
+            else if (_tokens.TryGetValue(token, out var cts))
             {
-                // Post disconnect request
-                TriggerConnectionEvent(ConnectionEvent.Disconnect);
+                //
+                // Cancel will callback back into here, unregister from
+                // tokens cache, release the reference (above) and then
+                // dispose the tracked cancellation token source.
+                //
+                cts.Cancel();
             }
+
+            // No token so we either expired or never registered
+            // the first is expected, the second is a bug, we cannot
+            // tell the difference though.
         }
 
         /// <summary>
@@ -500,11 +616,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     Debug.Assert(_disconnectLock == null);
                                     _disconnectLock = await _lock.WriterLockAsync(ct);
 
-                                    _logger.LogInformation("Reconnecting session {Name}...", _sessionName);
+                                    _logger.LogInformation("Reconnecting session {Session}...", _sessionName);
                                     var state = _reconnectHandler.BeginReconnect(_session!.Session,
                                         GetMinReconnectPeriod(), (sender, evt) =>
                                         {
-                                            // ignore callbacks from discarded objects.
                                             if (ReferenceEquals(sender, _reconnectHandler))
                                             {
                                                 TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
@@ -528,45 +643,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         case ConnectionEvent.ReconnectComplete:
                             // if session recovered, Session property is not null
-                            var newSession = _reconnectHandler.Session as Session;
-
+                            var reconnected = _reconnectHandler.Session as Session;
                             switch (currentSessionState)
                             {
                                 case SessionState.Reconnecting:
-                                    if (newSession?.Connected != true)
+                                    //
+                                    // Behavior of the reconnect handler is as follows:
+                                    // 1) newSession == null
+                                    //  => then the old session is still good, we must missed keep alive.
+                                    // 2) newSession != null but equal to previous session
+                                    //  => new channel was opened but the existing session was reactivated
+                                    // 3) newSession != previous Session
+                                    //  => everything reconnected and new session was activated.
+                                    //
+                                    if (reconnected == null)
                                     {
-                                        // Failed to reconnect.
-                                        _logger.LogInformation(
-                                            "Client {Client} failed to reconnect. Creating new connection...",
-                                            this);
-
-                                        // Schedule a full reconnect immediately
-                                        newSession?.Dispose();
-                                        await CloseSessionAsync().ConfigureAwait(false);
-                                        currentSessionState = SessionState.Disconnected;
-                                        TriggerConnectionEvent(ConnectionEvent.Connect);
-                                        break;
+                                        Debug.Assert(_reconnectingSession != null);
+                                        reconnected = _reconnectingSession?.Session as Session;
                                     }
 
-                                    var isNew = await UpdateSessionAsync(newSession).ConfigureAwait(false);
+                                    Debug.Assert(reconnected != null, "reconnected should never be null");
+                                    Debug.Assert(reconnected.Connected, "reconnected should always be connected");
+
+                                    // Handles all 3 cases above.
+                                    var isNew = await UpdateSessionAsync(reconnected).ConfigureAwait(false);
+
                                     Debug.Assert(_session != null);
                                     Debug.Assert(_reconnectingSession == null);
-                                    if (isNew)
+                                    if (!isNew)
                                     {
-                                        _logger.LogInformation("Client {Client} RECONNECTED!", this);
-                                        _numberOfConnectRetries++;
+                                        // Case 1) and 2)
+                                        _logger.LogInformation("Client {Client} RECOVERED!", this);
                                     }
                                     else
                                     {
-                                        _logger.LogInformation("Client {Client} RECOVERED!", this);
+                                        // Case 3)
+                                        _logger.LogInformation("Client {Client} RECONNECTED!", this);
+                                        _numberOfConnectRetries++;
                                     }
-                                    NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
 
-                                    // Allow access to session again
+                                    // If not already ready, signal we are ready again and ...
+                                    NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+                                    // ... allow access to the client again
                                     Debug.Assert(_disconnectLock != null);
                                     _disconnectLock.Dispose();
                                     _disconnectLock = null;
 
+                                    // TODO: Only needed for isNew = true, but we do it anyway for now....
                                     currentSubscriptions = _subscriptions;
                                     await ApplySubscriptionAsync(currentSubscriptions, true,
                                         ct).ConfigureAwait(false);
@@ -578,7 +701,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     Debug.Fail("Should not signal reconnected when already connected.");
                                     break;
                                 case SessionState.Disconnected:
-                                    newSession?.Dispose();
+                                    Debug.Assert(_reconnectingSession == null);
+                                    reconnected?.Dispose();
                                     break;
                             }
                             break;
@@ -622,15 +746,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                     }
 
-                    _logger.LogDebug("Event {Event} in State {State} processed.",
-                        trigger, currentSessionState);
+                    _logger.LogDebug("Event {Event} in State {State} processed.", trigger,
+                        currentSessionState);
                 }
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Client {Client} connection manager exited unexpectedly...", this);
+                _logger.LogError(ex, "Client {Client} connection manager exited unexpectedly...", this);
             }
             finally
             {
@@ -646,7 +769,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         if (online != false)
                         {
-                            await subscription.SyncWithSessionAsync(_session!, false,
+                            await subscription.SyncWithSessionAsync(_session!,
                                 cancellationToken).ConfigureAwait(false);
                         }
                         if (online != null)
@@ -780,6 +903,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Handle publish errors
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        private void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
+        {
+            if (e.Status.Code == StatusCodes.BadTooManyOperations)
+            {
+                SetCode(e.Status, StatusCodes.BadServerHalted);
+            }
+
+            // Reach into the private field and update it.
+            static void SetCode(ServiceResult status, uint fixup)
+            {
+                typeof(ServiceResult).GetField("m_code",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance)?.SetValue(status, fixup);
+            }
+        }
+
+        /// <summary>
         /// Feed back acknoledgements
         /// </summary>
         /// <param name="session"></param>
@@ -810,14 +954,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         && (int)a.SequenceNumber <= (int)seq));
                 }
             }
-            e.DeferredAcknowledgementsToSend.AddRange(acks.Except(
-                e.AcknowledgementsToSend));
+            e.DeferredAcknowledgementsToSend.AddRange(acks.Except(e.AcknowledgementsToSend));
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Sending {Acks} acks and deferring {Deferrals} acks.",
-                    ToString(e.AcknowledgementsToSend),
-                    ToString(e.DeferredAcknowledgementsToSend));
+                _logger.LogDebug(
+                    "#{ThreadId}: Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})",
+                    Environment.CurrentManagedThreadId, ToString(e.AcknowledgementsToSend),
+                    ToString(e.DeferredAcknowledgementsToSend), session.GoodPublishRequestCount);
                 static string ToString(SubscriptionAcknowledgementCollection acks)
                 {
                     return acks.Count == 0 ? "no" : acks
@@ -890,6 +1034,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 KeepAliveInterval ?? TimeSpan.FromSeconds(5),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+                Session_HandlePublishError,
                 Session_PublishSequenceNumbersToAcknowledge);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
@@ -916,17 +1061,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             async ValueTask DisposeAsync(OpcUaSession session)
             {
-                //
-                // Notify the subscription so it can reflect close state
-                // in the original session.
-                //
-                foreach (var subscription in _subscriptions)
-                {
-                    await subscription.SyncWithSessionAsync(session, true,
-                        default).ConfigureAwait(false);
-                    subscription.OnSubscriptionStateChanged(false,
-                        _numberOfConnectRetries);
-                }
+                await session.CloseAsync(default).ConfigureAwait(false);
                 session.Dispose();
                 kSessions.Add(-1, _metrics.TagList);
             }
@@ -1036,6 +1171,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return state;
         }
 
+        private enum ConnectionEvent
+        {
+            Connect,
+            ConnectRetry,
+            Disconnect,
+            StartReconnect,
+            ReconnectComplete,
+            SubscriptionChange,
+            SubscriptionManage
+        }
+
+        private enum SessionState
+        {
+            Disconnected,
+            Connected,
+            Reconnecting
+        }
+
         /// <summary>
         /// A locked handle
         /// </summary>
@@ -1060,22 +1213,151 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly IDisposable _readerLock;
             private readonly OpcUaClient _client;
         }
-        private enum ConnectionEvent
-        {
-            Connect,
-            ConnectRetry,
-            Disconnect,
-            StartReconnect,
-            ReconnectComplete,
-            SubscriptionChange,
-            SubscriptionManage
-        }
 
-        private enum SessionState
+        /// <summary>
+        /// A set of client sampled values
+        /// </summary>
+        private sealed class Sampler : IAsyncDisposable
         {
-            Disconnected,
-            Connected,
-            Reconnecting
+            /// <summary>
+            /// Creates the sampler
+            /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="samplingRate"></param>
+            /// <param name="initialValue"></param>
+            /// <param name="callback"></param>
+            public Sampler(OpcUaClient outer, TimeSpan samplingRate,
+                ReadValueId initialValue, Action<DataValue> callback)
+            {
+                initialValue.Handle = callback;
+                _values = ImmutableHashSet<ReadValueId>.Empty.Add(initialValue);
+
+                _outer = outer;
+                _cts = new CancellationTokenSource();
+                _samplingRate = samplingRate;
+                _timer = new PeriodicTimer(_samplingRate);
+                _sampler = RunAsync(_cts.Token);
+            }
+
+            /// <inheritdoc/>
+            public async ValueTask DisposeAsync()
+            {
+                try
+                {
+                    _cts.Cancel();
+                    _timer.Dispose();
+                    await _sampler.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    _cts.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Add value to sampler
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="callback"></param>
+            public Sampler Add(ReadValueId value, Action<DataValue> callback)
+            {
+                value.Handle = callback;
+                _values = _values.Add(value);
+                return this;
+            }
+
+            /// <summary>
+            /// Remove value
+            /// </summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public bool Remove(ReadValueId value)
+            {
+                _values = _values.Remove(value);
+                return _values.Count == 0;
+            }
+
+            /// <summary>
+            /// Run sampling of values on the periodic timer
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task RunAsync(CancellationToken ct)
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    var nodesToRead = new ReadValueIdCollection(_values);
+                    try
+                    {
+                        // Wait until period completed
+                        if (!await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
+
+                        // Grab the current session
+                        var session = _outer._session;
+                        if (session == null)
+                        {
+                            NotifyAll(nodesToRead, StatusCodes.BadNotConnected);
+                            continue;
+                        }
+
+                        // Ensure type system is loaded
+                        if (!session.IsTypeSystemLoaded)
+                        {
+                            await session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                        }
+
+                        // Perform the read.
+                        var timeout = _samplingRate.TotalMilliseconds / 2;
+                        var response = await session.ReadAsync(new RequestHeader
+                        {
+                            Timestamp = DateTime.UtcNow,
+                            TimeoutHint = (uint)timeout,
+                            ReturnDiagnostics = 0
+                        }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead,
+                            ct).ConfigureAwait(false);
+
+                        var values = response.Validate(response.Results,
+                            r => r.StatusCode, response.DiagnosticInfos, nodesToRead);
+                        if (values.ErrorInfo != null)
+                        {
+                            NotifyAll(nodesToRead, values.ErrorInfo.StatusCode);
+                            continue;
+                        }
+
+                        // Notify clients of the values
+                        values.ForEach(i => ((Action<DataValue>)i.Request.Handle)(
+                            i.Result));
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (ServiceResultException sre)
+                    {
+                        NotifyAll(nodesToRead, sre.StatusCode);
+                    }
+                    catch (Exception ex)
+                    {
+                        var error = new ServiceResult(ex).StatusCode;
+                        NotifyAll(nodesToRead, error.Code);
+                    }
+                }
+                static void NotifyAll(ReadValueIdCollection nodesToRead,
+                    uint statusCode)
+                {
+                    var dataValue = new DataValue(statusCode);
+                    nodesToRead.ForEach(i => ((Action<DataValue>)i.Handle)(
+                        dataValue));
+                }
+            }
+
+            private ImmutableHashSet<ReadValueId> _values;
+            private readonly CancellationTokenSource _cts;
+            private readonly Task _sampler;
+            private readonly OpcUaClient _outer;
+            private readonly TimeSpan _samplingRate;
+            private readonly PeriodicTimer _timer;
         }
 
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
@@ -1089,7 +1371,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
-        private readonly IMemoryCache _cache;
         private readonly ISessionFactory _sessionFactory;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -1104,6 +1385,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityState>? _notifier;
+        private readonly Dictionary<TimeSpan, Sampler> _samplers = new();
+        private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
     }
 }

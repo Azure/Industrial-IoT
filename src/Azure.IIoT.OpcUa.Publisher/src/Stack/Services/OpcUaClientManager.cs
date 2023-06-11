@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -46,21 +45,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
-        /// <param name="memoryCache"></param>
         /// <param name="identity"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionFactory"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
-            IOptions<OpcUaClientOptions> options, IMemoryCache? memoryCache = null,
-            IProcessIdentity? identity = null, IMetricsContext? metrics = null,
-            ISessionFactory? sessionFactory = null)
+            IOptions<OpcUaClientOptions> options, IProcessIdentity? identity = null,
+            IMetricsContext? metrics = null, ISessionFactory? sessionFactory = null)
         {
             _metrics = metrics ?? IMetricsContext.Empty;
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
-            _memoryCache = memoryCache ?? new MemoryCache(new MemoryCacheOptions());
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
@@ -101,6 +97,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = FindClient(connection);
             client?.AddRef();
             return client;
+        }
+
+        /// <inheritdoc/>
+        public IAsyncDisposable Sample(ConnectionModel connection,
+            TimeSpan samplingRate, ReadValueId nodeToRead, Action<DataValue> callback)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            using var client = GetOrAddClient(connection);
+            return client.RegisterSampler(samplingRate, nodeToRead, callback);
         }
 
         /// <inheritdoc/>
@@ -618,7 +623,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Result, id, _serializer,
-                    _loggerFactory, _metrics, OnConnectionStateChange, _memoryCache,
+                    _loggerFactory, _metrics, OnConnectionStateChange,
                     _sessionFactory, _options.Value.MaxReconnectDelay)
                 {
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
@@ -651,7 +656,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kMaxDiscoveryAttempts = 3;
         private bool _disposed;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IMemoryCache _memoryCache;
         private readonly ILogger _logger;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;

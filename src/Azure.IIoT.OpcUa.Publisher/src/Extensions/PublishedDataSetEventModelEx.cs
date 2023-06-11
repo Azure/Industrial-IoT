@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
-    using System;
     using System.Linq;
 
     /// <summary>
@@ -20,11 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert to monitored item
         /// </summary>
         /// <param name="publishedEvent"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public static EventMonitoredItemModel? ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            OpcUaSubscriptionOptions configuration)
+            OpcUaSubscriptionOptions options)
         {
             if (publishedEvent == null)
             {
@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             var eventNotifier = publishedEvent.EventNotifier ?? ObjectIds.Server.ToString();
             return new EventMonitoredItemModel
             {
-                Id = publishedEvent.Id ?? eventNotifier,
-                DisplayName = publishedEvent.PublishedEventName,
+                DataSetFieldId = publishedEvent.Id ?? eventNotifier,
+                DataSetFieldName = publishedEvent.PublishedEventName ?? string.Empty,
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = publishedEvent.SelectClauses?
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
                 DiscardNew = publishedEvent.DiscardNew
-                    ?? configuration?.DefaultDiscardNew,
+                    ?? options?.DefaultDiscardNew,
 
                 //
                 // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
@@ -54,13 +54,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // as revisedQueueSize for event monitored items.
                 //
                 QueueSize = publishedEvent.QueueSize
-                    ?? configuration?.DefaultQueueSize ?? 0,
+                    ?? options?.DefaultQueueSize ?? 0,
+                AttributeId = null,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
-                AttributeId = null,
-                IndexRange = null,
-                SamplingInterval = TimeSpan.Zero,
+                FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
+                    ?? options?.ResolveDisplayName,
                 ConditionHandling = publishedEvent.ConditionHandling.Clone()
             };
         }

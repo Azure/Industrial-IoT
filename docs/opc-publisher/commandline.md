@@ -154,6 +154,19 @@ Messaging configuration
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
                                Default: `4096`
+  -t, --dmt, --defaultmessagetransport, --DefaultTransport=VALUE
+                             The desired transport to use to publish network
+                               messages with.
+                               Requires the transport to be properly configured
+                               (see transport settings).
+                               Allowed values:
+                                   `IoTHub`
+                                   `Mqtt`
+                                   `Dapr`
+                                   `Http`
+                                   `FileSystem`
+                               Default: `IoTHub` or the first configured
+                               transport of the allowed value list.
 
 Transport settings
 ------------------
@@ -165,14 +178,16 @@ Transport settings
                                To connect to an MQTT broker use the format '
                                HostName=<IPorDnsName>;Port=<Port>[;Username=<
                                Username>;Password=<Password>;Protocol=<'v5'|'
-                               v311'>]'.
+                               v311'>]'. To publish via MQTT by default specify
+                               `-t=Mqtt`.
                                Default: `not set`.
-      --ec, --edgehubconnectionstring, --dc, --deviceconnectionstring, --EdgeHubConnectionString=VALUE
+  -e, --ec, --edgehubconnectionstring, --dc, --deviceconnectionstring, --EdgeHubConnectionString=VALUE
                              A edge hub or iot hub connection string to use if
                                you run OPC Publisher outside of IoT Edge. The
                                connection string can be obtained from the IoT
                                Hub portal. It is not required to use this
-                               option if running inside IoT Edge.
+                               option if running inside IoT Edge. To publish
+                               through IoT Edge by default specify `-t=IoTHub`.
                                Default: `not set`.
       --ht, --ih, --iothubprotocol, --Transport=VALUE
                              Protocol to use for communication with EdgeHub.
@@ -189,6 +204,35 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
+  -d, --dcs, --daprconnectionstring, --DaprConnectionString=VALUE
+                             Connect the OPC Publisher to a dapr pub sub
+                               component using a connection string.
+                               The connection string specifies the PubSub
+                               component to use and allows you to configure the
+                               side car connection if needed.
+                               Use the format 'PubSubComponent=<PubSubComponent>
+                               [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>][;
+                               ApiKey=<ApiKey>]'. To publish through dapr by
+                               default specify `-t=Dapr`.
+                               Default: `not set`.
+  -w, --hcs, --httpconnectionstring, --HttpConnectionString=VALUE
+                             Allows OPC Publisher to publish multipart messages
+                               to a topic path using the http protocol (web
+                               hook). Specify the target host and configure the
+                               optional connection settings using a connection
+                               string of the format 'HostName=<IPorDnsName>[;
+                               Port=<Port>][;Scheme=<'https'|'http'>][;Put=true]
+                               [;ApiKey=<ApiKey>]'. To publish via HTTP by
+                               default specify `-t=Http`.
+                               Default: `not set`.
+  -o, --outdir, --OutputRoot=VALUE
+                             A folder to write messages into.
+                               Use this option to have OPC Publisher write
+                               messages to a folder structure under this folder.
+                                The structure reflects the topic tree. To
+                               publish into the file system folder by default
+                               specify `-t=FileSystem`.
+                               Default: `not set`.
       --dh, --disablehttp, --DisableHttpServer[=VALUE]
                              Specify this to disable the OPC Publisher HTTP
                                server and with it the REST api and Prometheus
@@ -375,6 +419,11 @@ Subscription settings
                              (Experimental) Acknoledge subscription
                                notifications only when the data has been
                                successfully published.
+                               Default: `false`.
+      --ucr, --usecyclicreads, --DefaultSamplingUsingCyclicRead[=VALUE]
+                             (Experimental) All nodes should be sampled using
+                               periodical client reads instead of subscriptions
+                               services, unless otherwise configured.
                                Default: `false`.
 
 OPC UA Client configuration

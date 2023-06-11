@@ -72,6 +72,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
+            if (model.Transport != other.Transport)
+            {
+                return false;
+            }
+            if (model.PublishQueueSize != other.PublishQueueSize)
+            {
+                return false;
+            }
+            if (model.NotificationPublishThreshold != other.NotificationPublishThreshold)
+            {
+                return false;
+            }
             return true;
         }
     }

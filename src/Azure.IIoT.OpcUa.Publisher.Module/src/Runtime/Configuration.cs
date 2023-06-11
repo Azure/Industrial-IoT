@@ -10,7 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Configuration;
+    using Furly.Extensions.Dapr;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Mqtt;
     using Furly.Tunnel.Router.Services;
     using Microsoft.AspNetCore.Hosting;
@@ -104,6 +106,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 builder.AddIoTEdgeServices();
                 builder.RegisterType<IoTEdge>()
+                    .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add file system client
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddFileSystemEventClient(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var fsOptions = new FileSystemOptions();
+            new FileSystem(configuration).Configure(fsOptions);
+            if (fsOptions.OutputFolder != null)
+            {
+                builder.AddFileSystemEventClient();
+                builder.RegisterType<FileSystem>()
+                    .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add http event client
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddHttpEventClient(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var httpOptions = new HttpOptions();
+            new Http(configuration).Configure(httpOptions);
+            if (httpOptions.HostName != null)
+            {
+                builder.AddHttpEventClient();
+                builder.RegisterType<Http>()
+                    .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add dapr client
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddDaprClient(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var daprOptions = new DaprOptions();
+            new Dapr(configuration).Configure(daprOptions);
+            if (daprOptions.PubSubComponent != null &&
+                daprOptions.ApiToken != null)
+            {
+                builder.AddDaprClient();
+                builder.RegisterType<Dapr>()
                     .AsImplementedInterfaces();
             }
         }
@@ -259,6 +316,148 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             private readonly IOptions<PublisherOptions> _options;
+        }
+
+        /// <summary>
+        /// Configure the Dapr event client
+        /// </summary>
+        internal sealed class Dapr : ConfigureOptionBase<DaprOptions>
+        {
+            public const string PubSubComponentKey = "PubSubComponent";
+            public const string HttpPortKey = "HttpPort";
+            public const string GrpcPortKey = "GrpcPort";
+            public const string DaprConnectionStringKey = "DaprConnectionString";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, DaprOptions options)
+            {
+                var daprConnectionString = GetStringOrDefault(DaprConnectionStringKey);
+                if (daprConnectionString != null)
+                {
+                    var properties = ToDictionary(daprConnectionString);
+                    options.PubSubComponent = properties[PubSubComponentKey];
+
+                    // Permit the port to be set if provided, otherwise use defaults.
+                    if (properties.TryGetValue(GrpcPortKey, out var value) &&
+                        int.TryParse(value, CultureInfo.InvariantCulture, out var port))
+                    {
+                        options.GrpcEndpoint = "https://localhost:" + port;
+                    }
+
+                    if (properties.TryGetValue(HttpPortKey, out value) &&
+                        int.TryParse(value, CultureInfo.InvariantCulture, out port))
+                    {
+                        options.HttpEndpoint = "https://localhost:" + port;
+                    }
+                }
+                else
+                {
+                    options.PubSubComponent ??= GetStringOrDefault(PubSubComponentKey);
+                }
+
+                // The api token should be part of the environment if dapr is supported
+                if (options.ApiToken == null)
+                {
+                    options.ApiToken = GetStringOrDefault(EnvironmentVariable.DAPRAPITOKEN);
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public Dapr(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure the http event client
+        /// </summary>
+        internal sealed class Http : ConfigureOptionBase<HttpOptions>
+        {
+            public const string HttpConnectionStringKey = "HttpConnectionString";
+            public const string WebHookHostUrlKey = "WebHookHostUrl";
+            public const string HostNameKey = "HostName";
+            public const string PortKey = "Port";
+            public const string SchemeKey = "Scheme";
+            public const string PutKey = "Put";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, HttpOptions options)
+            {
+                var httpConnectionString = GetStringOrDefault(HttpConnectionStringKey);
+                if (httpConnectionString != null)
+                {
+                    var properties = ToDictionary(httpConnectionString);
+                    options.HostName = properties[HostNameKey];
+
+                    // Permit the port to be set if provided, otherwise use defaults.
+                    if (properties.TryGetValue(PortKey, out var value) &&
+                        int.TryParse(value, CultureInfo.InvariantCulture, out var port))
+                    {
+                        options.Port = port;
+                    }
+
+                    if (properties.TryGetValue(SchemeKey, out value) &&
+                        value.Equals("http", StringComparison.OrdinalIgnoreCase))
+                    {
+                        options.UseHttpScheme = true;
+                    }
+
+                    if (properties.TryGetValue(PutKey, out _))
+                    {
+                        options.UseHttpPutMethod = true;
+                    }
+                }
+                else
+                {
+                    var url = GetStringOrDefault(WebHookHostUrlKey);
+                    if (!string.IsNullOrEmpty(url) &&
+                        Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                    {
+                        options.HostName = uri.Host;
+                        options.Port = uri.Port;
+                        options.UseHttpScheme = uri.Scheme == Uri.UriSchemeHttp;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public Http(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure the file based event client
+        /// </summary>
+        internal sealed class FileSystem : ConfigureOptionBase<FileSystemOptions>
+        {
+            public const string OutputRootKey = "OutputRoot";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, FileSystemOptions options)
+            {
+                if (options.OutputFolder == null)
+                {
+                    options.OutputFolder = GetStringOrDefault(OutputRootKey);
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public FileSystem(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
         }
 
         /// <summary>

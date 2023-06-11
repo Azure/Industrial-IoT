@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
+        public const string DefaultTransportKey = "DefaultTransport";
 
         /// <summary>
         /// Variables in templates
@@ -128,9 +129,9 @@ namespace Azure.IIoT.OpcUa.Publisher
                         BatchTriggerIntervalDefaultMillis));
             }
 
-            if (options.MaxEgressMessages == null)
+            if (options.MaxNetworkMessageSendQueueSize == null)
             {
-                options.MaxEgressMessages = GetIntOrDefault(MaxEgressMessagesKey,
+                options.MaxNetworkMessageSendQueueSize = GetIntOrDefault(MaxEgressMessagesKey,
                     MaxEgressMessagesDefault);
             }
 
@@ -163,6 +164,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DataSetMetaDataTopicTemplate = GetStringOrDefault(
                     DataSetMetaDataTopicTemplateKey);
+            }
+
+            if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
+                GetStringOrDefault(DefaultTransportKey), out var transport))
+            {
+                options.DefaultTransport = transport;
             }
 
             if (options.EnableRuntimeStateReporting == null)
@@ -201,9 +208,9 @@ namespace Azure.IIoT.OpcUa.Publisher
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
             }
 
-            if (options.MaxMessageSize == null) // Max encoder message size
+            if (options.MaxNetworkMessageSize == null) // Max encoder message size
             {
-                options.MaxMessageSize = GetIntOrNull(IoTHubMaxMessageSize);
+                options.MaxNetworkMessageSize = GetIntOrNull(IoTHubMaxMessageSize);
             }
 
             if (options.UseStandardsCompliantEncoding == null)
@@ -212,9 +219,9 @@ namespace Azure.IIoT.OpcUa.Publisher
                     UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
             }
 
-            if (options.DefaultMaxMessagesPerPublish == null)
+            if (options.DefaultMaxDataSetMessagesPerPublish == null)
             {
-                options.DefaultMaxMessagesPerPublish = (uint?)GetIntOrNull(
+                options.DefaultMaxDataSetMessagesPerPublish = (uint?)GetIntOrNull(
                     DefaultMaxMessagesPerPublishKey);
             }
 

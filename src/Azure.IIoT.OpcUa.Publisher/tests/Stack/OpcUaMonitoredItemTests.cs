@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Opc.Ua;
     using DeadbandType = OpcUa.Publisher.Models.DeadbandType;
     using MonitoringMode = OpcUa.Publisher.Models.MonitoringMode;
@@ -15,19 +16,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System.Linq;
     using Xunit;
 
-    public class OpcUaMonitoredItemTests : EventTestsBase
+    public class OpcUaMonitoredItemTests : OpcUaMonitoredItemTestsBase
     {
         [Fact]
         public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate()
         {
             var template = new DataMonitoredItemModel
             {
-                AttributeId = null,
-                MonitoringMode = null,
-                SamplingInterval = null,
+                StartNodeId = "i=2258",
                 DiscardNew = null
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
 
             Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
@@ -41,13 +40,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
-                AttributeId = null,
-                MonitoringMode = null,
-                SamplingInterval = null,
-                DiscardNew = null,
+                StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
             Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
@@ -65,13 +61,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
-                AttributeId = null,
-                MonitoringMode = null,
-                SamplingInterval = null,
-                DiscardNew = null,
+                StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
             Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             // This is allowed since it does not matter
@@ -87,12 +80,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
-                AttributeId = null,
-                MonitoringMode = null,
-                SamplingInterval = null,
-                DiscardNew = null
+                StartNodeId = "i=2258"
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
             Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
@@ -103,8 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
-                Id = "i=2258",
-                DisplayName = "DisplayName",
+                DataSetFieldId = "i=2258",
+                DataSetFieldName = "DisplayName",
                 AttributeId = (NodeAttribute)Attributes.Value,
                 IndexRange = "5:20",
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
@@ -116,12 +106,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
 
             Assert.Equal("DisplayName", monitoredItemWrapper.Item.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal("5:20", monitoredItemWrapper.Item.IndexRange);
-            Assert.Equal("RelativePath1RelativePath2", monitoredItemWrapper.Item.RelativePath);
+            Assert.Null(monitoredItemWrapper.Item.RelativePath);
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItemWrapper.Item.MonitoringMode);
             Assert.Equal("i=2258", monitoredItemWrapper.Item.StartNodeId);
             Assert.Equal(10u, monitoredItemWrapper.Item.QueueSize);
@@ -136,6 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                StartNodeId = "i=2258",
                 DataChangeFilter = new DataChangeFilterModel
                 {
                     DataChangeTrigger = DataChangeTriggerType.StatusValue,
@@ -143,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     DeadbandValue = 10.0
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<DataChangeFilter>(monitoredItemWrapper.Item.Filter);
@@ -159,6 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
@@ -182,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     }
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -206,26 +198,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
                 ConditionHandling = new ConditionHandlingOptionsModel
                 {
                     SnapshotInterval = 10,
                     UpdateInterval = 20
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
 
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(3, eventFilter.SelectClauses.Count);
-            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[1].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[1].BrowsePath);
-            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[2].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[2].BrowsePath.FirstOrDefault());
+            Assert.Equal(11, eventFilter.SelectClauses.Count);
+            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[9].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[9].TypeDefinitionId);
+            Assert.Empty(eventFilter.SelectClauses[9].BrowsePath);
+            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[10].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[10].TypeDefinitionId);
+            Assert.Equal("Retain", eventFilter.SelectClauses[10].BrowsePath.FirstOrDefault());
         }
 
         [Fact]
@@ -233,6 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
@@ -266,24 +261,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 "http://opcfoundation.org/UA/Diagnostics",
                 "http://opcfoundation.org/Quickstarts/SimpleEvents"
             });
-            var nodeCache = GetNodeCache(namespaceTable);
-            var context = new ServiceMessageContext();
-            context.NamespaceUris = nodeCache.NamespaceUris;
-            var monitoredItemWrapper = GetMonitoredItem(template, messageContext: context, nodeCache: nodeCache);
+            var eventItem = GetMonitoredItem(template, namespaceTable) as OpcUaMonitoredItem.EventItem;
 
-            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.Fields[0].Name);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.Fields[1].Name);
+            Assert.Equal(((EventFilter)eventItem.Item.Filter).SelectClauses.Count, eventItem.Fields.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", eventItem.Fields[1].Name);
         }
 
         [Fact]
         public void UseDefaultFieldNameWhenNamespaceTableIsEmpty()
         {
-            var messageContext = new ServiceMessageContext();
-            messageContext.NamespaceUris.Append("http://test");
-            messageContext.NamespaceUris.Append("http://opcfoundation.org/Quickstarts/SimpleEvents");
+            var namespaceUris = new NamespaceTable();
+            namespaceUris.Append("http://test");
+            namespaceUris.Append("http://opcfoundation.org/Quickstarts/SimpleEvents");
+
             var template = new EventMonitoredItemModel
             {
+                StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
@@ -312,11 +306,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 }
             };
 
-            var monitoredItemWrapper = GetMonitoredItem(template, messageContext);
+            var eventItem = GetMonitoredItem(template, namespaceUris) as OpcUaMonitoredItem.EventItem;
 
-            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
-            Assert.Equal("2:CycleId", monitoredItemWrapper.Fields[0].Name);
-            Assert.Equal("2:CurrentStep", monitoredItemWrapper.Fields[1].Name);
+            Assert.Equal(((EventFilter)eventItem.Item.Filter).SelectClauses.Count, eventItem.Fields.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", eventItem.Fields[1].Name);
         }
     }
 }

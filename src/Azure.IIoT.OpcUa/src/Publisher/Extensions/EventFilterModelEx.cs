@@ -18,16 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this EventFilterModel? model, EventFilterModel? other)
+        public static bool IsSameAs(this EventFilterModel model, EventFilterModel other)
         {
-            if (model == null && other == null)
-            {
-                return true;
-            }
-            if (model == null || other == null)
-            {
-                return false;
-            }
             if (!model.SelectClauses.SetEqualsSafe(other.SelectClauses,
                 (x, y) => x.IsSameAs(y)))
             {

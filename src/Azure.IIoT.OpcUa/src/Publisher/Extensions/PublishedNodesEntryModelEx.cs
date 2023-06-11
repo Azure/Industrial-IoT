@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,
-                MessageType = MessageEncoding.Json,
+                MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
                 OpcNodes = new List<OpcNodeModel>()
             };
@@ -147,12 +147,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 MetaDataUpdateTime = model.MetaDataUpdateTime,
                 MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
                 LastChangeTimespan = model.LastChangeTimespan,
+                Priority = model.Priority,
+                MaxKeepAliveCount = model.MaxKeepAliveCount,
                 OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                 OpcAuthenticationMode = model.OpcAuthenticationMode,
                 UseSecurity = model.UseSecurity,
                 Version = model.Version,
-                MessageType = model.MessageType,
+                MessageEncoding = model.MessageEncoding,
                 MessagingMode = model.MessagingMode,
+                WriterGroupTransport = model.WriterGroupTransport,
+                BatchSize = model.BatchSize,
+                BatchTriggerInterval = model.BatchTriggerInterval,
+                BatchTriggerIntervalTimespan = model.BatchTriggerIntervalTimespan,
                 NodeId = null,
                 EncryptedAuthPassword = null,
                 OpcAuthenticationPassword = null,
@@ -195,11 +201,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.MetaDataUpdateTimeTimespan != that.MetaDataUpdateTimeTimespan)
+            if (model.GetNormalizedMetaDataUpdateTime() !=
+                that.GetNormalizedMetaDataUpdateTime())
             {
                 return false;
             }
-            if (model.MessageType != that.MessageType)
+            if (model.WriterGroupTransport != that.WriterGroupTransport)
+            {
+                return false;
+            }
+            if (model.BatchSize != that.BatchSize)
+            {
+                return false;
+            }
+            if (model.GetNormalizedBatchTriggerInterval() !=
+                that.GetNormalizedBatchTriggerInterval())
+            {
+                return false;
+            }
+            if (model.MessageEncoding != that.MessageEncoding)
             {
                 return false;
             }
@@ -208,6 +228,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's MetaDataUpdateTime
+        /// </summary>
+        /// <param name="model"></param>
+        public static TimeSpan? GetNormalizedMetaDataUpdateTime(
+            this PublishedNodesEntryModel model)
+        {
+            return model.MetaDataUpdateTimeTimespan
+                .GetTimeSpanFromMiliseconds(model.MetaDataUpdateTime);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's BatchTriggerInterval
+        /// </summary>
+        /// <param name="model"></param>
+        public static TimeSpan? GetNormalizedBatchTriggerInterval(
+            this PublishedNodesEntryModel model)
+        {
+            return model.BatchTriggerIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.BatchTriggerInterval);
         }
 
         /// <summary>

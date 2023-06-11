@@ -7,23 +7,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
-    using MonitoringMode = Publisher.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Subscription implementation
@@ -52,30 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
-        /// Get subscription from session (no lock)
-        /// </summary>
-        /// <returns></returns>
-        private Subscription? Subscription
-        {
-            get
-            {
-                var connection = _subscription?.Id.Connection;
-                if (connection == null)
-                {
-                    return null;
-                }
-
-                using var client = _clients.GetClient(connection);
-                if (client is not ISessionAccessor accessor ||
-                    !accessor.TryGetSession(out var session))
-                {
-                    return null;
-                }
-                return session.Subscriptions.SingleOrDefault(s => s.Handle == this);
-            }
-        }
-
-        /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="clients"></param>
@@ -97,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = loggerFactory.CreateLogger<OpcUaSubscription>();
             _lock = new SemaphoreSlim(1, 1);
-            _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
+            _currentlyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             InitializeMetrics();
@@ -130,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return _subscription?.Id?.ToString() ?? "<new>";
+            return $"{_subscription?.Id?.ToString() ?? "<new>"}:{_currentSubscription?.Id ?? 0}";
         }
 
         /// <inheritdoc/>
@@ -139,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _connectionAttempts = connectionAttempts;
             _online = online;
 
-            foreach (var monitoredItem in _currentlyMonitored.Values)
+            foreach (var monitoredItem in _currentlyMonitored)
             {
                 monitoredItem.OnMonitoredItemStateChanged(online);
             }
@@ -148,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public bool TryGetCurrentPosition(out uint subscriptionId, out uint sequenceNumber)
         {
-            subscriptionId = _currentSubscriptionId;
+            subscriptionId = _currentSubscription?.Id ?? 0;
             sequenceNumber = _currentSequenceNumber;
             return _useDeferredAcknoledge;
         }
@@ -159,12 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _lock.Wait();
             try
             {
-                var subscription = Subscription;
+                var subscription = _currentSubscription;
                 if (subscription == null)
                 {
                     return null;
                 }
-                return new OpcUaNotification(this, _currentSubscriptionId, 0)
+                return new Notification(this, subscription.Id, 0)
                 {
                     ServiceMessageContext = subscription.Session.MessageContext,
                     ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
@@ -242,8 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask SyncWithSessionAsync(IOpcUaSession handle, bool sessionClosed,
-            CancellationToken ct)
+        public async ValueTask SyncWithSessionAsync(IOpcUaSession handle, CancellationToken ct)
         {
             if (_closed)
             {
@@ -256,12 +230,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await SyncWithSessionInternalAsync(handle, sessionClosed, ct).ConfigureAwait(false);
+                    await SyncWithSessionInternalAsync(handle, ct).ConfigureAwait(false);
                     return;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e,
+                    _logger.LogDebug(e,
                         "Failed to apply state to Subscription {Subscription} in session {Session}...",
                         this, handle);
 
@@ -294,39 +268,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (client == null)
                 {
                     _logger.LogWarning(
-                        "Failed to close subscription '{Subscription}'. " +
+                        "Failed to unregister subscription '{Subscription}'. " +
                         "The client for the connection could not be found.", this);
                     return;
                 }
 
                 // Unregister subscription from session
-                _currentSubscriptionId = 0;
                 client.UnregisterSubscription(this);
             }
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
-                _lock.Release();
-            }
-
-            if (client == null)
-            {
-                // Session already closed.
-                return;
-            }
-            try
-            {
-                // Get raw subscription from underlying session and close that one too
-                using var handle = await client.GetSessionHandleAsync().ConfigureAwait(false);
-                if (handle.Handle is ISessionAccessor accessor &&
-                    accessor.TryGetSession(out var session))
+                // Synchronize subscription first then close the synchronized subscription
+                if (client is ISessionAccessor accessor && accessor.TryGetSession(out var session))
                 {
-                    await RemoveSubscriptionInSessionAsync(handle.Handle, session).ConfigureAwait(false);
+                    _currentSubscription = await SynchronizeCurrentSubscriptionAsync(
+                        session).ConfigureAwait(false);
                 }
-            }
-            finally
-            {
-                client.Dispose();
+                // Does not throw
+                await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                _lock.Release();
             }
         }
 
@@ -346,382 +307,498 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Send condition notification
+        /// Send notification
         /// </summary>
-        /// <param name="subscription"></param>
+        /// <param name="messageType"></param>
         /// <param name="notifications"></param>
-        internal void SendConditionNotification(Subscription subscription,
+        internal void SendNotification(MessageType messageType,
             IEnumerable<MonitoredItemNotificationModel> notifications)
         {
-            var onSubscriptionEventChange = OnSubscriptionEventChange;
-            if (onSubscriptionEventChange == null || !(subscription?.Session?.Connected ?? false))
+            var subscription = _currentSubscription;
+            if (subscription == null || subscription.Id == 0)
             {
                 return;
             }
-            var message = new OpcUaNotification(this, _currentSubscriptionId, 0, notifications)
+            if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
-                ServiceMessageContext = subscription?.Session?.MessageContext,
-                ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                SubscriptionName = Name,
-                SubscriptionId = Id,
-                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                MessageType = MessageType.Condition,
-                Timestamp = DateTime.UtcNow
-            };
-            onSubscriptionEventChange.Invoke(this, message);
-            var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
-            onSubscriptionEventDiagnosticsChange?.Invoke(this, 1);
+                var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
+                var onSubscriptionEventChange = OnSubscriptionEventChange;
+                if (onSubscriptionEventChange == null)
+                {
+                    return;
+                }
+                onSubscriptionEventChange.Invoke(this,
+                    CreateMessage(notifications, messageType, subscription));
+                onSubscriptionEventDiagnosticsChange?.Invoke(this, 1);
+            }
+            else
+            {
+                var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
+                var onSubscriptionDataChange = OnSubscriptionDataChange;
+                if (onSubscriptionDataChange == null)
+                {
+                    return;
+                }
+                onSubscriptionDataChange.Invoke(this,
+                    CreateMessage(notifications, messageType, subscription));
+                onSubscriptionDataDiagnosticsChange?.Invoke(this, 1);
+            }
+
+            Notification CreateMessage(IEnumerable<MonitoredItemNotificationModel> notifications,
+                MessageType messageType, Subscription subscription)
+            {
+                return new Notification(this, subscription.Id, 0, notifications)
+                {
+                    ServiceMessageContext = subscription.Session?.MessageContext,
+                    ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                    SubscriptionName = Name,
+                    SubscriptionId = Id,
+                    SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = messageType,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
         }
 
         /// <summary>
-        /// Destroy subscription
+        /// Close subscription
         /// </summary>
-        /// <param name="subscription"></param>
-        private async Task CloseSubscriptionAsync(Subscription subscription)
+        /// <returns></returns>
+        private async Task CloseCurrentSubscriptionAsync()
         {
+            Debug.Assert(_lock.CurrentCount == 0); // Should be always under lock
+            var subscription = _currentSubscription;
+            if (subscription == null)
+            {
+                // Already closed
+                return;
+            }
+            _currentSubscription = null;
             try
             {
                 subscription.FastDataChangeCallback = null;
                 subscription.FastEventCallback = null;
+                subscription.Handle = null;
 
-                _logger.LogInformation("Closing subscription '{Subscription}'...", this);
-                _currentSubscriptionId = 0;
+                _logger.LogDebug("Closing subscription '{Subscription}'...", this);
                 _currentSequenceNumber = 0;
 
-                Try.Op(() => subscription.SetPublishingMode(false));
-                await Try.Async(() => subscription.ApplyChangesAsync()).ConfigureAwait(false);
-                await Try.Async(() => subscription.DeleteItemsAsync(default)).ConfigureAwait(false);
-                await Try.Async(() => subscription.ApplyChangesAsync()).ConfigureAwait(false);
-                _logger.LogDebug("Deleted monitored items for {Subscription}", this);
+                await Try.Async(
+                    () => subscription.SetPublishingModeAsync(false)).ConfigureAwait(false);
+                await Try.Async(
+                    () => subscription.DeleteItemsAsync(default)).ConfigureAwait(false);
+                await Try.Async(
+                    () => subscription.ApplyChangesAsync()).ConfigureAwait(false);
+                _logger.LogDebug("Deleted monitored items for '{Subscription}'.", this);
 
-                await Try.Async(() => subscription.DeleteAsync(true)).ConfigureAwait(false);
-                _logger.LogDebug("Deleted subscription {Subscription}", this);
+                await Try.Async(
+                    () => subscription.DeleteAsync(true)).ConfigureAwait(false);
+
+                subscription.Session?.RemoveSubscription(subscription);
+                _logger.LogInformation("Subscription '{Subscription}' closed.", this);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Failed to close subscription {Subscription}", this);
             }
+            finally
+            {
+                subscription.Dispose();
+            }
         }
 
         /// <summary>
-        /// Reads the display name of the nodes to be monitored
+        /// Synchronize monitored items in subscription (no lock)
         /// </summary>
-        /// <param name="session"></param>
-        private void ResolveDisplayNames(ISession session)
+        /// <param name="rawSubscription"></param>
+        /// <param name="sessionHandle"></param>
+        /// <param name="monitoredItems"></param>
+        /// <param name="ct"></param>
+        private async Task<bool> SynchronizeMonitoredItemsAsync(Subscription rawSubscription,
+            IOpcUaSession sessionHandle, IEnumerable<BaseMonitoredItemModel> monitoredItems,
+            CancellationToken ct)
         {
-            if (_subscription?.MonitoredItems == null ||
-                !(_subscription.Configuration?.ResolveDisplayName ?? false))
-            {
-                return;
-            }
+            Debug.Assert(_lock.CurrentCount == 0);
 
-            var unresolvedMonitoredItems = _subscription.MonitoredItems
-                .OfType<DataMonitoredItemModel>()
-                .Where(mi => string.IsNullOrEmpty(mi.DisplayName));
-            if (!unresolvedMonitoredItems.Any())
+            TriggerSubscriptionManagementCallbackIn(Timeout.InfiniteTimeSpan);
+
+            // Get limits to batch requests during resolve
+            var operationLimits = await sessionHandle.GetOperationLimitsAsync(
+                ct).ConfigureAwait(false);
+
+            var desired = OpcUaMonitoredItem
+                .Create(monitoredItems, _loggerFactory, _clients,
+                    _subscription?.Id.Connection == null ? null :
+                        new ConnectionIdentifier(_subscription.Id.Connection))
+                .ToHashSet();
+            var previouslyMonitored = _currentlyMonitored;
+
+            var remove = previouslyMonitored.Except(desired);
+            var add = desired.Except(previouslyMonitored).ToImmutableHashSet();
+            var same = previouslyMonitored.ToHashSet();
+            same.IntersectWith(desired);
+
+            //
+            // Resolve the browse paths for all nodes first.
+            //
+            // We shortcut this only through the added items since the identity (hash)
+            // of the monitored item is dependent on the node and browse path, so any
+            // update of either results in a newly added monitored item and the old
+            // one removed.
+            //
+            var allResolvers = add
+                .Select(a => a.Resolve)
+                .Where(a => a != null)
+                .ToList();
+            if (allResolvers.Count > 0)
             {
-                return;
-            }
-            try
-            {
-                var nodeIds = unresolvedMonitoredItems.Select(n =>
+                foreach (var resolvers in allResolvers.Batch(
+                    (int?)operationLimits.MaxNodesPerTranslatePathsToNodeIds ?? 1))
                 {
-                    try
+                    var response = await sessionHandle.Services.TranslateBrowsePathsToNodeIdsAsync(
+                        new RequestHeader(), new BrowsePathCollection(resolvers
+                            .Select(a => new BrowsePath
+                            {
+                                StartingNode = a!.Value.NodeId.ToNodeId(
+                                    sessionHandle.MessageContext),
+                                RelativePath = a.Value.Path.ToRelativePath(
+                                    sessionHandle.MessageContext)
+                            })), ct).ConfigureAwait(false);
+
+                    var results = response.Validate(response.Results, s => s.StatusCode,
+                        response.DiagnosticInfos, resolvers);
+                    if (results.ErrorInfo != null)
                     {
-                        return n.StartNodeId.ToNodeId(session.MessageContext);
-                    }
-                    catch (ServiceResultException sre)
-                    {
+                        // Could not do anything...
                         _logger.LogWarning(
-                            "Failed to resolve display name for '{MonitoredItem}' " +
-                            "in {Subscription} due to '{Message}'",
-                            n.StartNodeId, this, sre.Message);
+                            "Failed to resolve browse path in {Subscription} due to {ErrorInfo}...",
+                            this, results.ErrorInfo);
+                        return false;
                     }
-                    catch (Exception e)
+                    foreach (var result in results)
                     {
-                        _logger.LogError(e, "Failed to resolve display name for " +
-                            "'{MonitoredItem}' in {Subscription} ", n.StartNodeId, this);
-                        throw;
-                    }
-                    return null;
-                });
-                if (nodeIds.Any())
-                {
-                    session.ReadDisplayName(nodeIds.ToList(), out var displayNames, out var errors);
-                    var index = 0;
-                    foreach (var monitoredItem in unresolvedMonitoredItems)
-                    {
-                        if (StatusCode.IsGood(errors[index].StatusCode))
+                        string? resolvedId = null;
+                        if (result.ErrorInfo == null && result.Result.Targets.Count == 1)
                         {
-                            monitoredItem.DisplayName = displayNames[index];
+                            resolvedId = result.Result.Targets[0].TargetId.AsString(
+                                sessionHandle.MessageContext);
                         }
                         else
                         {
-                            monitoredItem.DisplayName = null;
-                            _logger.LogWarning(
-                                "Failed to read display name for '{MonitoredItem}' " +
-                                "in {Subscription} due to '{StatusCode}'",
-                                monitoredItem.StartNodeId, this, errors[index].StatusCode);
+                            _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
+                                "in {Subscription} due to '{ServiceResult}'",
+                                result.Request!.Value.NodeId, this, result.ErrorInfo);
                         }
-                        index++;
+                        result.Request!.Value.Updater(resolvedId ?? string.Empty);
                     }
                 }
             }
-            catch (ServiceResultException sre)
-            {
-                _logger.LogWarning(
-                    "Failed to resolve display names for monitored items in {Subscription} due to '{Message}'.",
-                    this, sre.Message);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e,
-                    "Failed to resolve display names for monitored items in {Subscription}.", this);
-                throw;
-            }
-        }
 
-        /// <summary>
-        /// Synchronize monitored items and triggering configuration in subscription (no lock)
-        /// </summary>
-        /// <param name="sessionHandle"></param>
-        /// <param name="rawSubscription"></param>
-        /// <param name="monitoredItems"></param>
-        /// <param name="ct"></param>
-        private async Task<bool> SetMonitoredItemsAsync(IOpcUaSession sessionHandle,
-            Subscription rawSubscription, IEnumerable<BaseMonitoredItemModel> monitoredItems,
-            CancellationToken ct)
-        {
-            TriggerSubscriptionManagementCallbackIn(Timeout.InfiniteTimeSpan);
-
-            var currentState = rawSubscription.MonitoredItems
-                .Select(m => m.Handle)
-                .OfType<OpcUaMonitoredItem>()
-                .ToHashSet();
-
-            var noErrorFound = true;
-            var count = 0;
-            var session = rawSubscription.Session;
-            if (monitoredItems?.Any() != true)
+            //
+            // Register nodes for reading if needed. This is needed anytime the session
+            // changes as the registration is only valid in the context of the session
+            //
+            // TODO: For now we do it every time for both added and merged item, but
+            // this should be fixed to only be done when the session changed.
+            //
+            var allRegistrations = add.Concat(same)
+                .Select(a => a.Register)
+                .Where(a => a != null)
+                .ToList();
+            if (allRegistrations.Count > 0)
             {
-                // cleanup entire subscription
-                var toCleanupList = currentState
-                    .Where(t => t.Item != null)
-                    .Select(t => t.Item!)
-                    .ToList();
-                if (toCleanupList.Count > 0)
+                foreach (var registrations in allRegistrations.Batch(
+                    (int?)operationLimits.MaxNodesPerRegisterNodes ?? 1))
                 {
-                    // Remove monitored items not in desired state
-                    foreach (var toRemove in toCleanupList)
+                    var response = await sessionHandle.Services.RegisterNodesAsync(
+                        new RequestHeader(), new NodeIdCollection(registrations
+                            .Select(a => a!.Value.NodeId.ToNodeId(sessionHandle.MessageContext))),
+                        ct).ConfigureAwait(false);
+                    foreach (var result in response.RegisteredNodeIds.Zip(registrations))
                     {
-                        _logger.LogDebug(
-                            "Removing monitored item '{Item}' from subscription {Subscription}....",
-                            toRemove.StartNodeId, this);
-                        ((OpcUaMonitoredItem)toRemove.Handle).Dispose();
-                        count++;
+                        Debug.Assert(result.Second != null);
+                        var registeredId = result.First.AsString(sessionHandle.MessageContext);
+                        if (registeredId != null)
+                        {
+                            result.Second.Value.Updater(registeredId);
+                        }
                     }
-                    rawSubscription.RemoveItems(toCleanupList);
-                    _logger.LogInformation(
-                        "Removed {Count} monitored items from subscription {Subscription}.",
-                        count, this);
                 }
-                _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
-                UpdateState(0);
-
-                // TODO: Set metadata to empty here
-                await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-                await rawSubscription.SetPublishingModeAsync(false, ct).ConfigureAwait(false);
-                if (rawSubscription.MonitoredItemCount != 0)
-                {
-                    _logger.LogWarning(
-                        "Failed to remove {Count} monitored items from subscription {Subscription}",
-                        rawSubscription.MonitoredItemCount, this);
-                }
-                return noErrorFound;
             }
-
-            // Synchronize the desired items with the state of the raw subscription
-            var desiredState = monitoredItems
-                .Select(m => new OpcUaMonitoredItem(m, _loggerFactory.CreateLogger<OpcUaMonitoredItem>()))
-                .ToHashSet();
 
             var metadataChanged = false;
             var applyChanges = false;
+            var session = rawSubscription.Session;
+            var updated = 0;
+            var errors = 0;
 
-            var toRemoveList = currentState.Except(desiredState)
-                .Where(t => t.Item != null)
-                .Select(t => t.Item!)
-                .ToList();
-            if (toRemoveList.Count > 0)
+            foreach (var toUpdate in same)
             {
-                count = 0;
-                // Remove monitored items not in desired state
-                foreach (var toRemove in toRemoveList)
+                if (!desired.TryGetValue(toUpdate, out var theUpdate))
                 {
-                    _logger.LogDebug(
-                        "Removing monitored item '{Item}' from subscription {Subscription}....",
-                        toRemove.StartNodeId, this);
-                    ((OpcUaMonitoredItem)toRemove.Handle).Dispose();
-                    count++;
+                    errors++;
+                    continue;
                 }
-                rawSubscription.RemoveItems(toRemoveList);
-                applyChanges = true;
-                metadataChanged = true;
-
-                _logger.LogInformation(
-                    "Removed {Count} monitored items from subscription {Subscription}",
-                    count, this);
-            }
-
-            // todo re-associate detached handles!?
-            var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null).ToList();
-            if (toRemoveDetached.Count > 0)
-            {
-                rawSubscription.RemoveItems(toRemoveDetached);
-                _logger.LogInformation(
-                    "Removed {Count} detached monitored items from subscription {Subscription}",
-                    toRemoveDetached.Count, this);
-            }
-
-            var nowMonitored = new List<OpcUaMonitoredItem>();
-            var toAddList = desiredState.Except(currentState).ToList();
-            var invalidItems = 0;
-            count = 0;
-            if (toAddList.Count > 0)
-            {
-                // Add new monitored items not in current state
-                foreach (var toAdd in toAddList)
+                desired.Remove(theUpdate);
+                Debug.Assert(toUpdate.GetType() == theUpdate.GetType());
+                try
                 {
-                    // Create monitored item
-                    try
+                    if (toUpdate.MergeWith(theUpdate, sessionHandle, out var metadata))
                     {
-                        toAdd.Create(session, sessionHandle.Codec);
-                        if (toAdd.Item == null)
-                        {
-                            _logger.LogError("Failed to create new monitored item '{Item}' to " +
-                                "add to subscription {Subscription}.", toAdd.Template.StartNodeId);
-                            continue;
-                        }
-                        if (toAdd.EventTemplate != null)
-                        {
-                            toAdd.Item.AttributeId = Attributes.EventNotifier;
-                        }
-                        nowMonitored.Add(toAdd);
-                        count++;
                         _logger.LogDebug(
-                            "Adding new monitored item '{Item}' to subscription {Subscription}...",
-                            toAdd.Item.StartNodeId, this);
+                            "Trying to update monitored item '{Item}' in {Subscription}...",
+                            toUpdate, this);
+                        updated++;
+                        applyChanges = true;
                     }
-                    catch (Exception sre)
+                    if (metadata)
                     {
-                        _logger.LogWarning("Failed to process new monitored item '{Item}' to be " +
-                            "added to subscription {Subscription} due to '{Message}'.",
-                            toAdd.Template.StartNodeId, this, sre.Message);
+                        metadataChanged = true;
                     }
                 }
-
-                var validItems = toAddList.Where(t => t?.Item != null).Select(t => t.Item).ToList();
-                invalidItems = toAddList.Count - validItems.Count;
-                rawSubscription.AddItems(validItems);
-
-                applyChanges = true;
-                metadataChanged = true;
-
-                _logger.LogInformation(
-                    "Trying to add {Count} of total {Total} monitored items to subscription {Subscription}...",
-                    validItems.Count, toAddList.Count, this);
-            }
-
-            // Update monitored items that have changed
-            var desiredUpdates = desiredState.Intersect(currentState)
-                .ToDictionary(k => k, v => v);
-            foreach (var toUpdate in currentState.Intersect(desiredState))
-            {
-                if (toUpdate.MergeWith(session.MessageContext, session.NodeCache, session.TypeTree,
-                    sessionHandle.Codec, desiredUpdates[toUpdate], out var metadata))
+                catch (Exception ex)
                 {
-                    _logger.LogDebug(
-                        "Trying to update monitored item '{Item}' in subscription {Subscription}...",
+                    _logger.LogWarning(ex,
+                        "Failed to update monitored item '{Item}' in {Subscription}...",
                         toUpdate, this);
-                    count++;
+                    errors++;
                 }
-                if (metadata)
+                finally
                 {
-                    metadataChanged = true;
+                    theUpdate.Dispose();
                 }
-                nowMonitored.Add(toUpdate);
-            }
-            if (count > 0)
-            {
-                applyChanges = true;
-                _logger.LogInformation(
-                    "Trying to add or update {Count} monitored items in subscription {Subscription}...",
-                    count, this);
             }
 
-            var currentlyMonitored = _currentlyMonitored;
+            var removed = 0;
+            foreach (var toRemove in remove)
+            {
+                try
+                {
+                    if (toRemove.RemoveFrom(rawSubscription, out var metadata))
+                    {
+                        _logger.LogDebug(
+                            "Trying to remove monitored item '{Item}' from {Subscription}...",
+                            toRemove, this);
+                        removed++;
+                        applyChanges = true;
+                    }
+                    if (metadata)
+                    {
+                        metadataChanged = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Failed to remove monitored item '{Item}' from {Subscription}...",
+                        toRemove, this);
+                    errors++;
+                }
+            }
+
+            var added = 0;
+            foreach (var toAdd in add)
+            {
+                desired.Remove(toAdd);
+                try
+                {
+                    if (toAdd.AddTo(rawSubscription, sessionHandle, out var metadata))
+                    {
+                        _logger.LogDebug(
+                            "Adding monitored item '{Item}' to {Subscription}...",
+                            toAdd, this);
+                        added++;
+                        applyChanges = true;
+                    }
+                    if (metadata)
+                    {
+                        metadataChanged = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Failed to add monitored item '{Item}' to {Subscription}...",
+                        toAdd, this);
+                    errors++;
+                }
+            }
+
+            Debug.Assert(desired.Count == 0, "We should have processed all desired updates.");
+            var noErrorFound = errors == 0;
+
             if (applyChanges)
             {
                 await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-
-                _currentlyMonitored = currentlyMonitored = nowMonitored
-                    .Where(m => m.Item != null)
-                    .ToImmutableDictionary(m => m.Item!.ClientHandle, m => m);
-
-                // sanity check
-                foreach (var monitoredItem in currentlyMonitored.Values)
+                if (rawSubscription.MonitoredItemCount == 0)
                 {
-                    if (monitoredItem.Item?.Status.Error != null &&
-                        StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))
-                    {
-                        _logger.LogWarning("Error monitoring node {Id} due to '{Status}' ({Code:X8}) " +
-                            "in subscription {Subscription}.", monitoredItem.Item.StartNodeId,
-                            monitoredItem.Item.Status.Error.StatusCode,
-                            monitoredItem.Item.Status.Error.StatusCode.Code, this);
-                        monitoredItem.Template = monitoredItem.Template with
-                        {
-                            MonitoringMode = MonitoringMode.Disabled
-                        };
-                        noErrorFound = false;
-                    }
-                }
-
-                count = currentlyMonitored.Values.Count(m => m.Item!.Status.Error == null);
-                _logger.LogInformation("Now monitoring {Count} nodes in subscription {Subscription}.",
-                    count, this);
-                if (currentlyMonitored.Count != rawSubscription.MonitoredItemCount)
-                {
-                    _logger.LogError("Monitored items mismatch: Monitoring: {Existing} != " +
-                        "In Subscription {Subscription}: {Items}.",
-                        currentlyMonitored.Count, this, rawSubscription.MonitoredItemCount);
+                    await rawSubscription.SetPublishingModeAsync(false, ct).ConfigureAwait(false);
                 }
             }
-            else
+
+            // Perform second pass over all monitored items and complete.
+            applyChanges = false;
+            var invalidItems = 0;
+
+            var desiredMonitoredItems = same;
+            desiredMonitoredItems.UnionWith(add);
+
+            //
+            // Resolve display names for all nodes that still require a name
+            // other than the node id string.
+            //
+            // Note that we use the desired set hereand  update the display
+            // name after AddTo/MergeWith as it only effects the messages
+            // and metadata emitted and not the item as it is set up in the
+            // subscription (like what we do when resolving nodes). This
+            // supports the scenario where the user sets a desired display
+            // name of null to force reading the display name from the node
+            // and updating the existing display name (previously set) and
+            // at the same time is quite effective to only update what is
+            // necessary.
+            //
+            var allDisplayNameUpdates = desiredMonitoredItems
+                .Select(a => a.DisplayName)
+                .Where(a => a != null)
+                .ToList();
+            if (allDisplayNameUpdates.Count > 0)
             {
-                // do a sanity check
-                foreach (var monitoredItem in currentlyMonitored.Values)
+                foreach (var displayNameUpdates in allDisplayNameUpdates.Batch(
+                    (int?)operationLimits.MaxNodesPerRead ?? 1))
                 {
-                    if (monitoredItem.Item?.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
-                        (monitoredItem.Item?.Status.Error != null &&
-                        StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)))
-                    {
-                        monitoredItem.Template = monitoredItem.Template with
+                    var response = await sessionHandle.Services.ReadAsync(new RequestHeader(),
+                        0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
+                        displayNameUpdates.Select(a => new ReadValueId
                         {
-                            MonitoringMode = MonitoringMode.Disabled
-                        };
+                            NodeId = a!.Value.NodeId.ToNodeId(sessionHandle.MessageContext),
+                            AttributeId = (uint)NodeAttribute.DisplayName
+                        })), ct).ConfigureAwait(false);
+                    var results = response.Validate(response.Results,
+                        s => s.StatusCode, response.DiagnosticInfos, displayNameUpdates);
+
+                    if (results.ErrorInfo != null)
+                    {
+                        _logger.LogWarning(
+                            "Failed to resolve display name in {Subscription} due to {ErrorInfo}...",
+                            this, results.ErrorInfo);
+
+                        // We will retry later.
                         noErrorFound = false;
-                        applyChanges = true;
                     }
-                }
-                if (applyChanges)
-                {
-                    await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+                    else
+                    {
+                        foreach (var result in results)
+                        {
+                            string? displayName = null;
+                            if (result.Result.Value is not null)
+                            {
+                                displayName =
+                                    (result.Result.Value as LocalizedText)?.ToString();
+                                metadataChanged = true;
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Failed to read display name for {NodeId} " +
+                                    "in {Subscription} due to '{ServiceResult}'",
+                                    result.Request!.Value.NodeId, this, result.ErrorInfo);
+                            }
+                            result.Request!.Value.Updater(displayName ?? string.Empty);
+                        }
+                    }
                 }
             }
 
-            UpdateState(invalidItems);
+            var successfullyCompletedItems = new List<IOpcUaMonitoredItem>();
+            foreach (var monitoredItem in desiredMonitoredItems)
+            {
+                if (!monitoredItem.TryCompleteChanges(
+                    rawSubscription, ref applyChanges, SendNotification))
+                {
+                    // Apply any changes from this second pass
+                    invalidItems++;
+                }
+                else
+                {
+                    successfullyCompletedItems.Add(monitoredItem);
+                }
+            }
 
+            if (applyChanges)
+            {
+                // Apply any additional changes
+                await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+            }
+
+            //
+            // Finally change the monitoring mode as required. Batch the requests
+            // on the update of monitored item state from monitored items. On AddTo
+            // the monitoring mode was already configured. This is for updates as
+            // they are not applied through ApplyChanges
+            //
+            foreach (var change in successfullyCompletedItems.GroupBy(i => i.MonitoringModeChange))
+            {
+                if (change.Key == null)
+                {
+                    // Not a valid item
+                    continue;
+                }
+
+                foreach (var itemsBatch in change.Select(t => t.Item!).Batch(
+                    (int?)operationLimits.MaxMonitoredItemsPerCall ?? 1))
+                {
+                    var itemsToChange = itemsBatch.ToList();
+                    _logger.LogInformation(
+                        "Set monitoring to {Value} for {Count} items in subscription {Subscription}.",
+                        change.Key.Value, itemsToChange.Count, this);
+
+                    var results = await rawSubscription.SetMonitoringModeAsync(
+                        change.Key.Value, itemsToChange.ToList(), ct).ConfigureAwait(false);
+                    if (results != null)
+                    {
+                        var erroneousResultsCount = results
+                            .Count(r => r != null && StatusCode.IsNotGood(r.StatusCode));
+
+                        // Check the number of erroneous results and log.
+                        if (erroneousResultsCount > 0)
+                        {
+                            _logger.LogWarning(
+                                "Failed to set monitoring for {Count} items in subscription {Subscription}.",
+                                erroneousResultsCount, this);
+                            for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i)
+                            {
+                                if (StatusCode.IsNotGood(results[i].StatusCode))
+                                {
+                                    _logger.LogWarning("Set monitoring for item '{Item}' in subscription "
+                                        + "{Subscription} failed with '{Status}'.", itemsToChange[i].StartNodeId,
+                                        this, results[i].StatusCode);
+                                }
+                            }
+                            noErrorFound = false;
+                        }
+                    }
+                }
+            }
+
+            // Cleanup all items that are not in the currently monitoring list
+            var currentlyMonitored = successfullyCompletedItems.ToImmutableHashSet();
+            previouslyMonitored
+                .Except(currentlyMonitored)
+                .ToList()
+                .ForEach(m => m.Dispose());
+            previouslyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
+
+            // Update subscription state
+            NumberOfNotCreatedItems = invalidItems;
+            NumberOfCreatedItems = currentlyMonitored.Count - invalidItems;
+
+            _logger.LogInformation(
+                "Now monitoring {Count} nodes in subscription {Subscription}.",
+                currentlyMonitored.Count, this);
+            // Assign the currently monitored item list
+            _currentlyMonitored = currentlyMonitored;
+
+            // Get metadata
             if (metadataChanged && _subscription?.Configuration?.MetaData != null)
             {
                 //
@@ -740,10 +817,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var typeSystem = await sessionHandle.GetComplexTypeSystemAsync().ConfigureAwait(false);
                 var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                 var fields = new FieldMetaDataCollection();
-                foreach (var monitoredItem in currentlyMonitored.Values)
+                foreach (var monitoredItem in currentlyMonitored)
                 {
-                    monitoredItem.GetMetaData(session.MessageContext, session.NodeCache,
-                        session.TypeTree, typeSystem, fields, dataTypes);
+                    monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
                 }
 
                 _currentMetaData = new DataSetMetaDataType
@@ -764,150 +840,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 };
             }
 
-            if (currentlyMonitored.Count > 0)
+            // Refresh condition
+            if (currentlyMonitored.OfType<OpcUaMonitoredItem.Condition>().Any())
             {
-                // Change monitoring mode of all valid items if needed
-                var validItems = currentlyMonitored.Values.Where(v => v.Item?.Created ?? false);
-                foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange()))
+                _logger.LogInformation(
+                    "Issuing ConditionRefresh on subscription {Subscription}", this);
+                try
                 {
-                    if (change.Key == null)
-                    {
-                        continue;
-                    }
-                    var changeList = change.ToList();
-                    _logger.LogInformation(
-                        "Set monitoring to {Value} for {Count} items in subscription {Subscription}.",
-                        change.Key.Value, changeList.Count, this);
-
-                    var itemsToChange = changeList.ConvertAll(t => t.Item!);
-                    var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
-                    if (results != null)
-                    {
-                        var erroneousResultsCount = results
-                            .Count(r => r != null && StatusCode.IsNotGood(r.StatusCode));
-
-                        // Check the number of erroneous results and log.
-                        if (erroneousResultsCount > 0)
-                        {
-                            _logger.LogWarning(
-                                "Failed to set monitoring for {Count} items in subscription {Subscription}.",
-                                erroneousResultsCount, this);
-
-                            for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i)
-                            {
-                                if (StatusCode.IsNotGood(results[i].StatusCode))
-                                {
-                                    _logger.LogWarning("Set monitoring for item '{Item}' in subscription "
-                                        + "{Subscription} failed with '{Status}'.", itemsToChange[i].StartNodeId,
-                                        this, results[i].StatusCode);
-                                    changeList[i].Template = changeList[i].Template with
-                                    {
-                                        MonitoringMode = MonitoringMode.Disabled
-                                    };
-                                    changeList[i].Item!.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
-                                }
-                            }
-                            noErrorFound = false;
-                        }
-                    }
-                    if (change.Any(x => x.EventTemplate != null))
-                    {
-                        _logger.LogInformation(
-                            "Now issuing ConditionRefresh for item {Item} on subscription {Subscription}",
-                            change.FirstOrDefault()?.Item?.DisplayName ?? "", this);
-                        try
-                        {
-                            rawSubscription.ConditionRefresh();
-                        }
-                        catch (ServiceResultException e)
-                        {
-                            _logger.LogInformation("ConditionRefresh for item {Item} on subscription " +
-                                "{Subscription} failed with a ServiceResultException '{Message}'",
-                                change.FirstOrDefault()?.Item?.DisplayName ?? "", this, e.Message);
-                            noErrorFound = false;
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogInformation("ConditionRefresh for item {Item} on subscription " +
-                                "{Subscription} failed with an exception '{Message}'",
-                                change.FirstOrDefault()?.Item?.DisplayName ?? "", this, e.Message);
-                            noErrorFound = false;
-                        }
-                        if (noErrorFound)
-                        {
-                            _logger.LogInformation(
-                                "ConditionRefresh for item {Item} on subscription {Subscription} has completed",
-                                change.FirstOrDefault()?.Item?.DisplayName ?? "", this);
-                        }
-                    }
+                    await rawSubscription.ConditionRefreshAsync(ct).ConfigureAwait(false);
+                    _logger.LogInformation("ConditionRefresh on subscription " +
+                    "{Subscription} has completed.", this);
                 }
-                foreach (var item in validItems)
+                catch (Exception e)
                 {
-                    Debug.Assert(item.Item != null);
-                    if (item.Item.SamplingInterval != item.Item.Status.SamplingInterval ||
-                        item.Item.QueueSize != item.Item.Status.QueueSize)
-                    {
-                        _logger.LogInformation(@"Server has revised '{Item}' in subscription {Subscription}
-The item's actual/desired states:
-SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},
-QueueSize {CurrentQueueSize}/{QueueSize}",
-                            item.Item.StartNodeId, this,
-                            item.Item.Status.SamplingInterval,
-                            item.Item.SamplingInterval, item.Item.Status.QueueSize, item.Item.QueueSize);
-                    }
+                    _logger.LogInformation("ConditionRefresh on subscription " +
+                        "{Subscription} failed with an exception '{Message}'",
+                        this, e.Message);
+                    noErrorFound = false;
+                }
+                if (noErrorFound)
+                {
+                    _logger.LogInformation("ConditionRefresh on subscription " +
+                        "{Subscription} has completed.", this);
                 }
             }
+
+            // Set up subscription management trigger
+            if (invalidItems != 0)
+            {
+                // Retry applying invalid items every 5 minutes
+                TriggerSubscriptionManagementCallbackIn(
+                    _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
+            }
+            else if (desiredMonitoredItems.Count != currentlyMonitored.Count)
+            {
+                // Try to periodically update the subscription
+                // TODO: Trigger on address space model changes...
+
+                TriggerSubscriptionManagementCallbackIn(
+                    _options.Value.BadMonitoredItemRetryDelay, TimeSpan.FromMinutes(30));
+            }
+            else
+            {
+                // Nothing to do
+                TriggerSubscriptionManagementCallbackIn(
+                    _options.Value.SubscriptionManagementInterval, Timeout.InfiniteTimeSpan);
+            }
+
             return noErrorFound;
-
-            void UpdateState(int invalidItems)
-            {
-                var monitored = _currentlyMonitored.Count;
-                var created = _currentlyMonitored.Values.Count(x => StatusCode.IsGood(x.Status));
-
-                NumberOfNotCreatedItems = invalidItems + (monitored - created);
-                NumberOfCreatedItems = created;
-
-                // Set up subscription management trigger
-                if (monitored == 0 && invalidItems == 0)
-                {
-                    // Nothing monitored, turn off timer
-                    TriggerSubscriptionManagementCallbackIn(Timeout.InfiniteTimeSpan);
-                }
-                else if (invalidItems != 0)
-                {
-                    // Retry applying invalid items every 5 minutes
-                    TriggerSubscriptionManagementCallbackIn(
-                        _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
-                }
-                else if (monitored != created)
-                {
-                    // Try to periodically update the subscription
-                    // TODO: Trigger on address space model changes...
-
-                    TriggerSubscriptionManagementCallbackIn(
-                        _options.Value.BadMonitoredItemRetryDelay, TimeSpan.FromMinutes(30));
-                }
-                else
-                {
-                    TriggerSubscriptionManagementCallbackIn(
-                        _options.Value.SubscriptionManagementInterval, Timeout.InfiniteTimeSpan);
-                }
-            }
         }
 
         /// <summary>
-        /// Helper to calculate greatest common divisor for the parameter of keep alive
-        /// count used to allow the trigger of heart beats in a given interval.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        private static uint GreatCommonDivisor(uint a, uint b)
-        {
-            return b == 0 ? a : GreatCommonDivisor(b, a % b);
-        }
-
-        /// <summary>
-        /// Resets the operation timeout on the session accrding to the publishing intervals on all subscriptions
+        /// Resets the operation timeout on the session accrding to the
+        /// publishing intervals on all subscriptions.
         /// </summary>
         /// <param name="session"></param>
         /// <param name="newSubscription"></param>
@@ -928,8 +913,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             foreach (var subscription in session.Subscriptions)
             {
-                localMaxOperationTimeout =
-                    (int)subscription.CurrentPublishingInterval * (int)subscription.CurrentKeepAliveCount;
+                localMaxOperationTimeout = (int)subscription.CurrentPublishingInterval
+                    * (int)subscription.CurrentKeepAliveCount;
                 if (currentOperationTimeout < localMaxOperationTimeout)
                 {
                     currentOperationTimeout = localMaxOperationTimeout;
@@ -945,11 +930,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// Apply state to session
         /// </summary>
         /// <param name="handle"></param>
-        /// <param name="removeFromSession"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask SyncWithSessionInternalAsync(IOpcUaSession handle,
-            bool removeFromSession, CancellationToken ct)
+            CancellationToken ct)
         {
             // Get the raw session object from the session handle to do the heart surgery
             if (handle is not ISessionAccessor accessor ||
@@ -958,17 +942,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _logger.LogInformation(
                     "Failed to access session in {Session} to update subscription {Subscription}.",
                     handle, this);
-                if (!removeFromSession) // Otherwise give up
-                {
-                    TriggerSubscriptionManagementCallbackIn(
-                        _options.Value.CreateSessionTimeout, TimeSpan.FromSeconds(10));
-                }
-                return;
-            }
-
-            if (removeFromSession)
-            {
-                await RemoveSubscriptionInSessionAsync(handle, session, ct).ConfigureAwait(false);
+                TriggerSubscriptionManagementCallbackIn(
+                    _options.Value.CreateSessionTimeout, TimeSpan.FromSeconds(10));
                 return;
             }
 
@@ -981,6 +956,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             // Should not happen since we are called under lock.
             Debug.Assert(_subscription != null, "No subscription during apply");
+
             // Create or update the subscription inside the raw session object.
             var subscription = await AddOrUpdateSubscriptionInSessionAsync(handle, session,
                 ct).ConfigureAwait(false);
@@ -996,16 +972,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 return;
             }
 
-            if (!subscription.PublishingEnabled)
-            {
-                // Initialized subscription, resolve display names first
-                ResolveDisplayNames(session);
-            }
-
             if (_subscription.MonitoredItems != null)
             {
-                // Set the monitored items in the subscription
-                await SetMonitoredItemsAsync(handle, subscription,
+                // Resolves and sets the monitored items in the subscription
+                await SynchronizeMonitoredItemsAsync(subscription, handle,
                     _subscription.MonitoredItems, ct).ConfigureAwait(false);
             }
 
@@ -1015,30 +985,19 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     "Enabling subscription {Subscription} in session {Session}...",
                     this, handle);
 
-                subscription.SetPublishingMode(true);
-                await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+                if (subscription.ChangesPending)
+                {
+                    await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+                }
+
+                if (!subscription.PublishingEnabled)
+                {
+                    await subscription.SetPublishingModeAsync(true, ct).ConfigureAwait(false);
+                }
 
                 _logger.LogInformation(
                     "Subscription {Subscription} in session {Session} enabled.",
                     this, handle);
-            }
-        }
-
-        /// <summary>
-        /// Remove subscription from session
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <param name="session"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask RemoveSubscriptionInSessionAsync(IOpcUaSession handle,
-            ISession session, CancellationToken ct = default)
-        {
-            var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
-            if (subscription != null)
-            {
-                // This does not throw
-                await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
             }
         }
 
@@ -1054,54 +1013,31 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             IOpcUaSession handle, ISession session, CancellationToken ct)
         {
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
+            Debug.Assert(_lock.CurrentCount == 0); // Under lock
 
-            var configuredPublishingInterval = (int)(_subscription?.Configuration?.PublishingInterval)
-                .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
-            var normedPublishingInterval =
-                (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
+            var subscription = await SynchronizeCurrentSubscriptionAsync(session).ConfigureAwait(false);
 
-            // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
-            var revisedKeepAliveCount = (_subscription?.Configuration?.KeepAliveCount) ?? 10;
+            GetSubscriptionConfiguration(subscription ?? session.DefaultSubscription,
+                out var configuredPublishingInterval, out var configuredPriority,
+                out var configuredKeepAliveCount, out var configuredLifetimeCount,
+                out var configuredMaxNotificationsPerPublish);
 
-            _subscription?.MonitoredItems?.ForEach(m =>
-            {
-                if (m is DataMonitoredItemModel dataItem)
-                {
-                    var heartbeat = (uint)(dataItem?.HeartbeatInterval)
-                        .GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
-                    if (heartbeat != 0)
-                    {
-                        var itemKeepAliveCount = heartbeat / normedPublishingInterval;
-                        revisedKeepAliveCount = GreatCommonDivisor(
-                            revisedKeepAliveCount, itemKeepAliveCount);
-                    }
-                }
-            });
-
-            var configuredMaxNotificationsPerPublish =
-                session.DefaultSubscription.MaxNotificationsPerPublish;
-            var configuredLifetimeCount = (_subscription?.Configuration?.LifetimeCount)
-                ?? session.DefaultSubscription.LifetimeCount;
-            var configuredPriority = (_subscription?.Configuration?.Priority)
-                ?? session.DefaultSubscription.Priority;
-
-            var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
             if (subscription == null)
             {
-                Debug.Assert(_currentSubscriptionId == 0);
+                Debug.Assert(_currentSubscription == null);
 
                 subscription = new Subscription(session.DefaultSubscription)
                 {
                     Handle = this,
                     DisplayName = Name,
                     PublishingEnabled = false, // false on initialization
-                    KeepAliveCount = revisedKeepAliveCount,
+                    KeepAliveCount = configuredKeepAliveCount,
                     PublishingInterval = configuredPublishingInterval,
                     MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish,
                     LifetimeCount = configuredLifetimeCount,
                     Priority = configuredPriority,
                     SequentialPublishing = true, // TODO: Make configurable
-                    DisableMonitoredItemCache = false,
+                    DisableMonitoredItemCache = false, // = true, // Not needed anymore
                     RepublishAfterTransfer = true,
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
                     FastEventCallback = OnSubscriptionEventNotificationList
@@ -1133,23 +1069,24 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 LogRevisedValues(subscription, true);
                 Debug.Assert(subscription.Id != 0);
-                _currentSubscriptionId = subscription.Id;
                 _useDeferredAcknoledge = _subscription?.Configuration?.UseDeferredAcknoledgements
                     ?? false;
             }
             else
             {
-                Debug.Assert(_currentSubscriptionId == subscription.Id);
+                Debug.Assert(_currentSubscription != null);
+                Debug.Assert(_currentSubscription.Id == subscription.Id);
+
                 // Apply new configuration on configuration on original subscription
                 var modifySubscription = false;
 
-                if (revisedKeepAliveCount != subscription.KeepAliveCount)
+                if (configuredKeepAliveCount != subscription.KeepAliveCount)
                 {
                     _logger.LogInformation(
                         "Change KeepAliveCount to {New} in Subscription {Subscription}...",
-                        revisedKeepAliveCount, this);
+                        configuredKeepAliveCount, this);
 
-                    subscription.KeepAliveCount = revisedKeepAliveCount;
+                    subscription.KeepAliveCount = configuredKeepAliveCount;
                     modifySubscription = true;
                 }
                 if (subscription.PublishingInterval != configuredPublishingInterval)
@@ -1195,6 +1132,66 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     LogRevisedValues(subscription, false);
                 }
             }
+            _currentSubscription = subscription;
+            return subscription;
+        }
+
+        /// <summary>
+        /// <para>
+        /// We must ensure that our subscription is in the session we were passed.
+        /// If not, then we close the current subscription and re-create the subscription.
+        /// </para>
+        /// <para>
+        /// When session is created there are no subscriptions in it. When session is
+        /// reconnected, the reconnected session already contains our subscriptions
+        /// (copy constructure of session invoked).
+        /// </para>
+        /// <para>
+        /// When the session is recreated using Session.Recreate then the subscriptions
+        /// are transferred to it. If they cannot be transferred then the subscriptions
+        /// are recreated using Create and are then again correctly associated with us.
+        /// If that all fails and the reconnect handler returns with error the reconnect
+        /// handler is started again right away and the process restarts until the client
+        /// is forcefully disconnected.
+        /// </para>
+        /// <para>
+        /// This is just a precaution since reconnecthandler should work all the time and
+        /// if we ever get here we are dealing with a bug in the stack.
+        /// </para>
+        /// <para>
+        /// Note that we cannot use the id on the server as unique identity because the
+        /// same id might refer to a different subscription after a restart of the server.
+        /// We use the Handle to reference OpcUaSubscription instance and then validate
+        /// correctness here.
+        /// </para>
+        /// </summary>
+        /// <param name="session">
+        /// The session containing the correct subscription associated with this object.
+        /// </param>
+        /// <returns>
+        /// The actual subscription as the one that was valid in the session that was passed.
+        /// </returns>
+        private async Task<Subscription?> SynchronizeCurrentSubscriptionAsync(ISession session)
+        {
+            var subscription = _currentSubscription;
+            if (subscription != null)
+            {
+                // Ensure the session contains the subscription
+                subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
+
+                // If it does not, close the current subscription
+                if (subscription == null)
+                {
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                }
+                else if (_currentSubscription!.Id != subscription.Id)
+                {
+                    Debug.Assert(_currentSubscription.Session.Handle != subscription.Session.Handle);
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                }
+            }
             return subscription;
         }
 
@@ -1216,6 +1213,31 @@ Actual (revised) state/desired state:
                 subscription.CurrentPublishingInterval, subscription.PublishingInterval,
                 subscription.CurrentKeepAliveCount, subscription.KeepAliveCount,
                 subscription.CurrentLifetimeCount, subscription.LifetimeCount);
+        }
+
+        /// <summary>
+        /// Get configuration
+        /// </summary>
+        /// <param name="defaultSubscription"></param>
+        /// <param name="publishingInterval"></param>
+        /// <param name="priority"></param>
+        /// <param name="keepAliveCount"></param>
+        /// <param name="lifetimeCount"></param>
+        /// <param name="maxNotificationsPerPublish"></param>
+        private void GetSubscriptionConfiguration(Subscription defaultSubscription,
+            out int publishingInterval, out byte priority, out uint keepAliveCount,
+            out uint lifetimeCount, out uint maxNotificationsPerPublish)
+        {
+            publishingInterval = (int)((_subscription?.Configuration?.PublishingInterval) ??
+                TimeSpan.FromSeconds(1)).TotalMilliseconds;
+            keepAliveCount = (_subscription?.Configuration?.KeepAliveCount) ??
+                defaultSubscription.KeepAliveCount;
+            maxNotificationsPerPublish = (_subscription?.Configuration?.MaxNotificationsPerPublish) ??
+                defaultSubscription.MaxNotificationsPerPublish;
+            lifetimeCount = (_subscription?.Configuration?.LifetimeCount) ??
+                defaultSubscription.LifetimeCount;
+            priority = (_subscription?.Configuration?.Priority) ??
+                defaultSubscription.Priority;
         }
 
         /// <summary>
@@ -1266,7 +1288,7 @@ Actual (revised) state/desired state:
         private void OnSubscriptionEventNotificationList(Subscription subscription,
             EventNotificationList notification, IList<string>? stringTable)
         {
-            if (subscription == null || subscription.Id != _currentSubscriptionId)
+            if (subscription == null || subscription.Id != _currentSubscription?.Id)
             {
                 _logger.LogWarning(
                     "EventChange for wrong subscription {Id} received on {Subscription}.",
@@ -1307,7 +1329,7 @@ Actual (revised) state/desired state:
                     _logger.LogInformation("Keep alive for subscription {Subscription} " +
                         "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on Event callback.",
                         this, sequenceNumber, publishTime);
-                    var message = new OpcUaNotification(this,
+                    var message = new Notification(this,
                         subscription.Id, notification.Events.Max(n => n.Message.SequenceNumber))
                     {
                         ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1327,11 +1349,11 @@ Actual (revised) state/desired state:
                     var missingSequenceNumbers = Array.Empty<uint>();
                     for (var i = 0; i < notification.Events.Count; i++)
                     {
-                        var eventNotification = notification.Events[i];
-                        Debug.Assert(eventNotification != null);
+                        var eventFieldList = notification.Events[i];
+                        Debug.Assert(eventFieldList != null);
 
-                        var monitoredItem = subscription.FindItemByClientHandle(eventNotification.ClientHandle);
-                        var sequenceNumber = eventNotification.Message.SequenceNumber;
+                        var monitoredItem = subscription.FindItemByClientHandle(eventFieldList.ClientHandle);
+                        var sequenceNumber = eventFieldList.Message.SequenceNumber;
 
                         if (sequenceNumber == 1)
                         {
@@ -1344,19 +1366,19 @@ Actual (revised) state/desired state:
                             _logger.LogWarning("Event for monitored item {ClientHandle} subscription " +
                                 "{Subscription} has unexpected sequenceNumber {SequenceNumber} missing " +
                                 "{ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
-                                eventNotification.ClientHandle, this, sequenceNumber,
+                                eventFieldList.ClientHandle, this, sequenceNumber,
                                 SequenceNumber.ToString(missingSequenceNumbers), dropped ?
-                                "dropped" : "already received", eventNotification.Message.PublishTime);
+                                "dropped" : "already received", eventFieldList.Message.PublishTime);
                         }
 
                         _logger.LogTrace("Event for subscription: {Subscription}, sequence#: " +
                             "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                             subscription.DisplayName, sequenceNumber, isKeepAlive,
-                            eventNotification.Message.PublishTime);
+                            eventFieldList.Message.PublishTime);
 
-                        if (monitoredItem?.Handle is OpcUaMonitoredItem wrapper)
+                        if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
                         {
-                            var message = new OpcUaNotification(this, subscription.Id, sequenceNumber)
+                            var message = new Notification(this, subscription.Id, sequenceNumber)
                             {
                                 ServiceMessageContext = subscription.Session?.MessageContext,
                                 ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
@@ -1365,10 +1387,10 @@ Actual (revised) state/desired state:
                                 SubscriptionId = Id,
                                 SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                                 MessageType = MessageType.Event,
-                                Timestamp = eventNotification.Message.PublishTime
+                                Timestamp = eventFieldList.Message.PublishTime
                             };
 
-                            wrapper.ProcessEventNotification(message, eventNotification);
+                            wrapper.TryGetMonitoredItemNotifications(message.Timestamp, eventFieldList, message.Notifications);
 
                             if (message.Notifications.Count > 0)
                             {
@@ -1382,8 +1404,8 @@ Actual (revised) state/desired state:
                                 "Monitored item not found with client handle {ClientHandle} " +
                                 "for Event received for subscription {Subscription} + " +
                                 "{SequenceNumber}, publishTime {PublishTime}",
-                                eventNotification.ClientHandle, this,
-                                sequenceNumber, eventNotification.Message.PublishTime);
+                                eventFieldList.ClientHandle, this,
+                                sequenceNumber, eventFieldList.Message.PublishTime);
                         }
                     }
                     var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
@@ -1406,7 +1428,7 @@ Actual (revised) state/desired state:
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
             DataChangeNotification notification, IList<string>? stringTable)
         {
-            if (subscription == null || subscription.Id != _currentSubscriptionId)
+            if (subscription == null || subscription.Id != _currentSubscription?.Id)
             {
                 _logger.LogWarning(
                     "DataChange for wrong subscription {Id} received on {Subscription}.",
@@ -1432,7 +1454,7 @@ Actual (revised) state/desired state:
                 var isKeepAlive = notification.MonitoredItems.Count == 1
                     && notification.MonitoredItems[0].ClientHandle == 0
                     && notification.MonitoredItems[0].Message?.NotificationData?.Count == 0;
-                OpcUaNotification message;
+                Notification message;
                 if (isKeepAlive)
                 {
                     var sequenceNumber = notification.MonitoredItems[0].Message.SequenceNumber;
@@ -1443,7 +1465,7 @@ Actual (revised) state/desired state:
                         "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on data change.",
                         this, sequenceNumber, publishTime);
 
-                    message = new OpcUaNotification(this, subscription.Id,
+                    message = new Notification(this, subscription.Id,
                         notification.MonitoredItems.Max(n => n.Message.SequenceNumber))
                     {
                         ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1458,7 +1480,7 @@ Actual (revised) state/desired state:
                 }
                 else
                 {
-                    message = new OpcUaNotification(this, subscription.Id,
+                    message = new Notification(this, subscription.Id,
                         notification.MonitoredItems.Max(n => n.Message.SequenceNumber))
                     {
                         ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1502,9 +1524,9 @@ Actual (revised) state/desired state:
                             "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                             subscription.DisplayName, sequenceNumber, isKeepAlive, message.Timestamp);
 
-                        if (monitoredItem?.Handle is OpcUaMonitoredItem wrapper)
+                        if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
                         {
-                            wrapper.ProcessMonitoredItemNotification(message, item);
+                            wrapper.TryGetMonitoredItemNotifications(message.Timestamp, item, message.Notifications);
                         }
                         else
                         {
@@ -1515,14 +1537,6 @@ Actual (revised) state/desired state:
                                 sequenceNumber, message.Timestamp);
                         }
                     }
-                }
-
-                // add a heartbeat for monitored items that did not receive a datachange notification
-                var currentlyMonitored = _currentlyMonitored.ToBuilder();
-                currentlyMonitored.RemoveRange(notification.MonitoredItems.Select(m => m.ClientHandle));
-                foreach (var wrapper in currentlyMonitored.Values)
-                {
-                    wrapper.ProcessMonitoredItemNotification(message, null);
                 }
 
                 onSubscriptionDataChange.Invoke(this, message);
@@ -1550,22 +1564,24 @@ Actual (revised) state/desired state:
             _lock.Wait();
             try
             {
-                var subscription = Subscription;
+                var subscription = _currentSubscription;
                 if (subscription == null)
                 {
                     notifications = null;
                     return false;
                 }
-                notifications = subscription.MonitoredItems
-                        .SelectMany(m => m.LastValue.ToMonitoredItemNotifications(m))
-                        .ToList();
+                notifications = new List<MonitoredItemNotificationModel>();
+                foreach (var item in _currentlyMonitored)
+                {
+                    item.TryGetLastMonitoredItemNotifications(notifications);
+                }
                 return true;
             }
             catch (Exception ex)
             {
                 notifications = null;
                 _logger.LogError(ex, "Failed to get a notifications from monitored " +
-                    "item cache in subscription {Subscription}.", this);
+                    "items in subscription {Subscription}.", this);
                 return false;
             }
             finally
@@ -1581,7 +1597,7 @@ Actual (revised) state/desired state:
         /// <param name="sequenceNumber"></param>
         private void AdvancePosition(uint subscriptionId, uint sequenceNumber)
         {
-            if (_currentSubscriptionId == subscriptionId)
+            if (_currentSubscription?.Id == subscriptionId)
             {
                 _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
@@ -1592,7 +1608,7 @@ Actual (revised) state/desired state:
         /// <summary>
         /// Subscription notification container
         /// </summary>
-        internal sealed record class OpcUaNotification : IOpcUaSubscriptionNotification
+        internal sealed record class Notification : IOpcUaSubscriptionNotification
         {
             /// <inheritdoc/>
             public object? Context { get; set; }
@@ -1634,7 +1650,7 @@ Actual (revised) state/desired state:
             /// <param name="subscriptionId"></param>
             /// <param name="sequenceNumber"></param>
             /// <param name="notifications"></param>
-            public OpcUaNotification(
+            public Notification(
                 OpcUaSubscription outer, uint subscriptionId, uint sequenceNumber,
                 IEnumerable<MonitoredItemNotificationModel>? notifications = null)
             {
@@ -1706,17 +1722,17 @@ Actual (revised) state/desired state:
                 () => new Measurement<long>(_connectionAttempts, _metrics.TagList),
                 "Connection attempts", "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(_online ? 1 : 0, _metrics.TagList),
+                () => new Measurement<int>(_online && !_closed ? 1 : 0, _metrics.TagList),
                 "", "OPC UA connection success flag.");
         }
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
-        private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
+        private ImmutableHashSet<IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
         private DataSetMetaDataType? _currentMetaData;
+        private Subscription? _currentSubscription;
         private bool _online;
         private long _connectionAttempts;
-        private uint _currentSubscriptionId;
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;

@@ -34,6 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public byte? Priority { get; set; }
 
         /// <summary>
+        /// Max notification per publish
+        /// </summary>
+        public uint? MaxNotificationsPerPublish { get; set; }
+
+        /// <summary>
         /// Resolves the display names for the monitored items
         /// </summary>
         public bool? ResolveDisplayName { get; set; }

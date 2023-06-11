@@ -298,8 +298,7 @@ Options:
 
                             args = args.Concat(new[]
                             {
-                                $"--pf={publishedNodesFilePath}",
-                                "--ln"
+                                $"--pf={publishedNodesFilePath}"
                             }).ToArray();
                         }
                     }

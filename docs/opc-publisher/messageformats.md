@@ -1,4 +1,4 @@
-# Telemetry Message Formats
+# Telemetry Message Formats <!-- omit in toc -->
 
 [Home](./readme.md)
 
@@ -6,15 +6,14 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
-- [Telemetry Message Formats](#telemetry-message-formats)
-  - [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
-  - [Data value change messages](#data-value-change-messages)
-  - [Event messages](#event-messages)
-    - [Reversible encoding](#reversible-encoding)
-    - [Pending Alarm snapshots](#pending-alarm-snapshots)
-  - [Samples mode encoding (Legacy)](#samples-mode-encoding-legacy)
-    - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
-    - [Event messages in Samples mode](#event-messages-in-samples-mode)
+- [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
+- [Data value change messages](#data-value-change-messages)
+- [Event messages](#event-messages)
+  - [Reversible encoding](#reversible-encoding)
+  - [Pending Alarm snapshots](#pending-alarm-snapshots)
+- [Samples mode encoding (Legacy)](#samples-mode-encoding-legacy)
+  - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
+  - [Event messages in Samples mode](#event-messages-in-samples-mode)
 
 OPC Publisher supports a rich set of message formats, including legacy formats supported.
 

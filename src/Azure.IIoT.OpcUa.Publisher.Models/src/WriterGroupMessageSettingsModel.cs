@@ -52,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Max messages per publish
         /// </summary>
-        [DataMember(Name = "maxMessagesPerPublish", Order = 5,
+        [DataMember(Name = "maxDataSetMessagesPerPublish", Order = 5,
             EmitDefaultValue = false)]
-        public uint? MaxMessagesPerPublish { get; set; }
+        public uint? MaxDataSetMessagesPerPublish { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using System.Threading;
     using System.Threading.Tasks;
@@ -41,6 +42,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Get the type tree
         /// </summary>
         ITypeTable TypeTree { get; }
+
+        /// <summary>
+        /// Get the node cache
+        /// </summary>
+        INodeCache NodeCache { get; }
 
         /// <summary>
         /// Get the message context

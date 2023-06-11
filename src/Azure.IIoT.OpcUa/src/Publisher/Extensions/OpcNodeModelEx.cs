@@ -116,11 +116,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
 
-            if (!model.EventFilter.IsSameAs(that.EventFilter))
+            if (!(model.EventFilter ?? new EventFilterModel()).IsSameAs(
+                that.EventFilter ?? new EventFilterModel()))
             {
                 return false;
             }
-
             return true;
         }
 

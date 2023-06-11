@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.MaxMessagesPerPublish != other.MaxMessagesPerPublish)
+            if (model.MaxDataSetMessagesPerPublish != other.MaxDataSetMessagesPerPublish)
             {
                 return false;
             }
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 GroupVersion = model.GroupVersion,
                 NetworkMessageContentMask = model.NetworkMessageContentMask,
                 PublishingOffset = model.PublishingOffset,
-                MaxMessagesPerPublish = model.MaxMessagesPerPublish,
+                MaxDataSetMessagesPerPublish = model.MaxDataSetMessagesPerPublish,
                 SamplingOffset = model.SamplingOffset
             };
         }

@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -22,11 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the session.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="sessionClosing"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask SyncWithSessionAsync(IOpcUaSession session,
-            bool sessionClosing, CancellationToken ct = default);
+            CancellationToken ct = default);
 
         /// <summary>
         /// Called to signal the underlying session is

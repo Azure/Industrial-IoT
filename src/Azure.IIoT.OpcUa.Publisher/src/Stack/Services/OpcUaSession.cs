@@ -39,6 +39,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ITypeTable TypeTree => Session.TypeTree;
 
         /// <inheritdoc/>
+        public INodeCache NodeCache => Session.NodeCache;
+
+        /// <inheritdoc/>
         public IServiceMessageContext MessageContext => Session.MessageContext;
 
         /// <inheritdoc/>
@@ -50,6 +53,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal ISession Session { get; }
 
         /// <summary>
+        /// Type system has loaded
+        /// </summary>
+        internal bool IsTypeSystemLoaded => _complexTypeSystem?.IsCompleted ?? false;
+
+        /// <summary>
         /// Create session
         /// </summary>
         /// <param name="session"></param>
@@ -58,11 +66,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="operationTimeout"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="errorHandler"></param>
         /// <param name="ackHandler"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
             TimeSpan keepAliveInterval, TimeSpan operationTimeout,
             IJsonSerializer serializer, ILogger<OpcUaSession> logger,
+            PublishErrorEventHandler? errorHandler = null,
             PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null)
         {
             _logger = logger ??
@@ -86,39 +96,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ?? NodeId.Null;
 
             Codec = new JsonVariantEncoder(session.MessageContext, serializer);
+            if (errorHandler != null)
+            {
+                Session.PublishError += errorHandler;
+                _errorHandler = errorHandler;
+            }
             if (ackHandler != null)
             {
                 Session.PublishSequenceNumbersToAcknowledge += ackHandler;
                 _ackHandler = ackHandler;
             }
             Session.KeepAlive += keepAlive;
+
+            _cts = new CancellationTokenSource();
             _complexTypeSystem = LoadComplexTypeSystemAsync();
-        }
-
-        /// <inheritdoc/>
-        internal async ValueTask OpenAsyncAsync(CancellationToken ct)
-        {
-            _limits = await FetchOperationLimitsAsync(new RequestHeader(),
-                ct).ConfigureAwait(false);
-
-            // Try and load type system - does not throw but logs error
-            Debug.Assert(_complexTypeSystem != null);
-            await _complexTypeSystem.ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            Session.KeepAlive -= _keepAlive;
-            if (_ackHandler != null)
+            try
             {
-                Session.PublishSequenceNumbersToAcknowledge -= _ackHandler;
+                _cts.Cancel();
+                Session.KeepAlive -= _keepAlive;
+                if (_ackHandler != null)
+                {
+                    Session.PublishSequenceNumbersToAcknowledge -= _ackHandler;
+                }
+                if (_errorHandler != null)
+                {
+                    Session.PublishError -= _errorHandler;
+                }
+
+                Session.Dispose();
+                _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
             }
-
-            Session.Dispose();
-            _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
-
-            _activitySource.Dispose();
+            finally
+            {
+                _activitySource.Dispose();
+                _cts.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -186,13 +203,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             try
             {
-                _complexTypeSystem ??= LoadComplexTypeSystemAsync();
+                Debug.Assert(_complexTypeSystem != null);
                 return await _complexTypeSystem.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Failed to get complex type system for client {Client}.", this);
+
+                // Try again. TODO: Throttle using a timer or so...
+                _complexTypeSystem = LoadComplexTypeSystemAsync();
                 return null;
             }
         }
@@ -832,9 +852,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Load complex type system
         /// </summary>
         /// <returns></returns>
-        private async Task<ComplexTypeSystem?> LoadComplexTypeSystemAsync()
+        private Task<ComplexTypeSystem> LoadComplexTypeSystemAsync()
         {
-            try
+            return Task.Run(async () =>
             {
                 if (Session?.Connected == true)
                 {
@@ -844,13 +864,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "Complex type system loaded into client {Client}.", this);
                     return complexTypeSystem;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to load complex type system into client {Client}.", this);
-            }
-            return null;
+                throw new ServiceResultException(StatusCodes.BadNotConnected);
+            }, _cts.Token);
         }
 
         /// <summary>
@@ -1046,10 +1061,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private ServerCapabilitiesModel? _server;
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;
-        private Task<ComplexTypeSystem?>? _complexTypeSystem;
+        private Task<ComplexTypeSystem>? _complexTypeSystem;
+        private readonly CancellationTokenSource _cts;
         private readonly NodeId _authenticationToken;
         private readonly KeepAliveEventHandler _keepAlive;
         private readonly ILogger _logger;
+        private readonly PublishErrorEventHandler? _errorHandler;
         private readonly PublishSequenceNumbersToAcknowledgeEventHandler? _ackHandler;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }

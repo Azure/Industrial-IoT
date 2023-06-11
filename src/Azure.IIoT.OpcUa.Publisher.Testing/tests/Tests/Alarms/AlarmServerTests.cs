@@ -8,12 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Alarms;
+    using FluentAssertions;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using FluentAssertions;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Alarms server node tests

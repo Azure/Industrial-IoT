@@ -1,4 +1,4 @@
-# Configuration via IoT Hub Direct methods
+# Configuration API <!-- omit in toc -->
 
 [Home](./readme.md)
 
@@ -6,150 +6,30 @@ OPC Publisher version 2.8.2 and later implements [IoT Hub Direct Methods](https:
 
 The following direct methods are exposed:
 
-- PublishNodes_V1
-- UnpublishNodes_V1
-- UnpublishAllNodes_V1
-- GetConfiguredEndpoints_V1
-- GetConfiguredNodesOnEndpoint_V1
-- GetDiagnosticInfo_V1
-- AddOrUpdateEndpoints_V1
+- [PublishNodes\_V1](#publishnodes_v1)
+- [AddOrUpdateEndpoints\_V1](#addorupdateendpoints_v1)
+- [UnpublishNodes\_V1](#unpublishnodes_v1)
+- [UnpublishAllNodes\_V1](#unpublishallnodes_v1)
+- [GetConfiguredEndpoints\_V1](#getconfiguredendpoints_v1)
+- [SetConfiguredEndpoints\_V1](#setconfiguredendpoints_v1)
+- [GetConfiguredNodesOnEndpoint\_V1](#getconfigurednodesonendpoint_v1)
+- [GetDiagnosticInfo\_V1](#getdiagnosticinfo_v1)
 
 The corresponding REST API of OPC Publisher 2.9 (with same operation names and [type definitions](./definitions.md)) is documented [here](./api.md). In addition to calling the API through HTTP REST calls (Preview) you can call the configuration API through MQTT v5 (Preview) in OPC Publisher 2.9.
 
 If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or later, we provide the needed information in a [separate document](./migrationpath.md).
 
-## Terminology
-
-The definitions of the important terms used are described below:
-
-- __DataSet__ is a group of nodes within one OPC UA server, publishing of data value changes of those nodes is done with the same publishing interval.
-
-- __DataSetWriter__ has one DataSet and contains all information to establish a connection to an OPC UA server.
-
-- __DatSetWriterGroup__ is used to group several DataSetWriter's for a specific OPC UA server.
-
-Below we will dicuss which attributes of payload schema will define a DatSetWriterGroup and DataSetWriter.
-
-## Payload Schema
-
-The `_V1` direct methods use the payload schema as described below:
-
-```json
-{
-  "EndpointUrl": "string",
-  "UseSecurity": "boolean",
-  "OpcAuthenticationMode": "string",
-  "UserName": "string",
-  "Password": "string",
-  "DataSetWriterGroup": "string",
-  "DataSetWriterId": "string",
-  "DataSetClassId": "Guid",
-  "DataSetName": "string",
-  "DataSetDescription": "string",
-  "DataSetPublishingInterval": "integer",
-  "DataSetPublishingIntervalTimespan": "string",
-  "DataSetKeyFrameCount": "integer",
-  "MetaDataUpdateTime": "integer",
-  "MetaDataUpdateTimeTimespan": "string",
-  "OpcNodes":
-  [
-    {
-      "Id": "string",
-      "ExpandedNodeId": "string",
-      "OpcSamplingInterval": "integer",
-      "OpcSamplingIntervalTimespan": "string",
-      "OpcPublishingInterval": "integer",
-      "OpcPublishingIntervalTimespan": "string",
-      "DataSetFieldId ": "string",
-      "DataSetClassFieldId ": "Guid",
-      "DisplayName": "string",
-      "SkipFirst": "bool",
-      "DiscardNew": "bool",
-      "HeartbeatInterval": "integer",
-      "HeartbeatIntervalTimespan": "string",
-      "QueueSize": "integer",
-      "DataChangeTrigger": "string",
-      "DeadbandType": "string",
-      "DeadbandValue": "decimal",
-      "EventFilter": {
-        (*)
-      }
-    }
-  ],
-  "Version": "integer",
-  "LastChangeTimespan": "string",
-}
-```
-
-(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md).
-
-Method call's request attributes are as follows:
-
-| Attribute                           | Mandatory | Type            | Default                     | Description |
-|-------------------------------------|-----------|-----------------|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Version`                           | No        | Integer         | `null`                      | A monotonically increasing number identifying the change version.<br>NOTE: At this point the version number is informational only, but should be provided in requests if available. |
-| `LastChangeTimespan`                | No        | String          | `null`                      | The time the Publisher configuration was last updated.<br>Informational only. |
-| `EndpointUrl`                       | Yes       | String          | N/A                         | The OPC UA server endpoint URL |
-| `UseSecurity`                       | No        | Boolean         | `false`                     | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
-| `OpcAuthenticationMode`             | No        | Enum            | `Anonymous`                 | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
-| `UserName`                          | No        | String          | `null`                      | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
-| `Password`                          | No        | String          | `null`                      | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
-| `DataSetWriterGroup`                | No        | String          | `EndpointUrl`               | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
-| `DataSetWriterId`                   | No        | String          | `DataSetPublishingInterval` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
-| `DataSetName`                       | No        | String          | `null`                      | The optional name of the data set as it will appear in the dataset metadata. |
-| `DataSetDescription`                | No        | String          | `null`                      | The optional description for the data set as it will appear in the dataset metadata. |
-| `DataSetClassId`                    | No        | Guid            | Guid.Empty                  | The optional dataset class id as it shall appear in dataset messages and dataset metadata. |
-| `DataSetPublishingInterval`         | No        | Integer         | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
-| `DataSetPublishingIntervalTimespan` | No        | String          | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
-| `DataSetKeyFrameCount`              | No        | Integer         | `null`                      | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames  |
-| `MetaDataUpdateTime`                | No        | Integer         | `null`                      | The optional interval at which meta data messages should be sent even if the meta data has not chnaged.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
-| `MetaDataUpdateTimeTimespan`        | No        | String          | `null`                      | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
-| `OpcNodes`                          | No        | List\<OpcNode\> | empty                       | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
-
-_Note_: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
-
-OpcNode attributes are as follows:
-
-| Attribute                       | Mandatory | Type    | Default | Description |
-|---------------------------------|-----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Id`                            | Yes*      | String  | N/A     | The OPC UA NodeId in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>*_Note_: `Id` field may be omitted when `ExpandedNodeId` is present. |
-| `ExpandedNodeId`                | No        | String  | null    | Enables backwards compatibility. <br>Must be specified as ExpandedNodeId as per OPC UA specification. <br>*_Note_: when `ExpandedNodeId` is present `Id` field may be omitted. |
-| `OpcSamplingInterval`           | No        | Integer | 1000    | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present. |
-| `OpcSamplingIntervalTimespan`   | No        | String  | null    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification. |
-| `OpcPublishingInterval`         | No        | Integer | 1000    | The publishing interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcPublishingIntervalTimespan` is present. |
-| `OpcPublishingIntervalTimespan` | No        | String  | null    | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
-| `DataSetFieldId`                | No        | String  | null    | A user defined tag used to identify the field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
-| `DataSetClassFieldId`           | No        | Guid    | Empty   | A user defined Guid that identifies the field in the data set class of the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode.<br>This value is ignored when subscribing to events, in which case a `DataSetClassFieldId` can be applied to each select clause that select the content of the event dataset. |
-| `DisplayName`                   | No        | String  | null    | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
-| `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present. |
-| `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
-| `SkipFirst`                     | No        | boolean | false   | Whether the first received data change for the monitored item should not be sent. This can avoid large initial messages since all values are sent by a server as the first notification.<br>If an `EventFilter` is specified, this value is ignored |
-| `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published.  |
-| `DiscardNew`                    | No        | boolean | false   | Whether the server shall discard new values when the queue is full. Default is false, it will discard values that have not been sent yet. |
-| `DataChangeTrigger`             | No        | String  | null    | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./commandline.md). This value is ignored if an EventFilter is configured. |
-| `DeadbandType`                  | No        | String  | 1       | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
-| `DeadbandValue`                 | No        | Decimal | 1       | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
-| `EventFilter`                   | No        | [EventFilter](./readme.md) | null | An [event filter](./readme.md) configuration to use when subscribing to events instead of data changes.  |
-
-In the implementation of OPC Publisher, DatSetWriterGroup is defined by combination of `DataSetWriterGroup` attribute and details of OPC UA server endpoint (`EndpointUrl` and connection details).
-Each unique DatSetWriterGroup will result in one session to OPC UA server. This session will contain several subscriptions within it for each DataSetWriter of DatSetWriterGroup.
-Where DataSetWriter is defined by `DataSetWriterId` and effective `DataSetPublishingInterval` attributes.
-
-Note that you can have several entries in OPC Publisher configuration for the same OPC UA server endpoint with the same `DataSetWriterGroup` atributes if you need to introduce semantic grouping of DataSetWriters.
-You can also have entries for the same OPC UA server endpoint with different `DataSetWriterGroup` atributes if you need to separate DataSetWriters into several groups. For example, this can be used to have one DataSetWriterGroup per assets in OPC UA server.
-The one consideration to keep in mind here is that each unique DataSetWriterGroup will define a separate session to an OPC UA server which can incur a small computational overhead.
+It is important to understand the [configuration schema](./readme.md#configuration-schema) as it is the foundation of the OPC Publisher configuration surface and represented by the [PublishedNodesEntryModel](./definitions.md#publishednodesentrymodel).
 
 Now let's dive into each direct method request and response payloads with examples.
 
-## Direct methods
+## PublishNodes_V1
 
-### PublishNodes_V1
+PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](./readme.md#configuration-schema) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
 
-PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](#terminology) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
+When a `DataSetWriter` already exists, the nodes are incrementally added to the same [`dataset`](./readme.md#configuration-schema). When it doesn't already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request. When working with `DataSetWriterGroup`s it is important to note that all groups not part of the publish request are removed.  To incrementally update `DataSetWriterGroup`s of `DataSetWriter`s use [`AddOrUpdateEndpoints_v1`](#addorupdateendpoints_v1) API instead.
 
-When a `DataSetWriter` already exists, the nodes are incrementally added to the same [`dataset`](#terminology). When it doesn't already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request. When working with `DataSetWriterGroup`s it is important to note that all groups not part of the publish request are removed.  To incrementally update `DataSetWriterGroup`s of `DataSetWriter`s use [`AddOrUpdateEndpoints_v1`](#addorupdateendpoints_v1) API instead.
-
-  _Request_: follows strictly the request [payload schema](#payload-schema), the `OpcNodes` attribute being mandatory.
+  _Request_: follows strictly the request [payload schema](./definitions.md#publishednodesentrymodel), the `OpcNodes` attribute being mandatory.
 
   _Response_: when successful Status 200 and an empty json (`{}`) as payload
 
@@ -184,7 +64,61 @@ When a `DataSetWriter` already exists, the nodes are incrementally added to the 
   > }
   > ```
 
-### UnpublishNodes_V1
+More information can be found in the [API documentation](./api.md#handler-for-publishnodes-direct-method)
+
+## AddOrUpdateEndpoints_V1
+
+This method allows updating multiple endpoints (`DataSetWriter`s) without effecting others. Unlike `PublishNodes_V1` method, `AddOrUpdateEndpoints_V1` replaces the nodes of an endpoint (`DataSetWriter`) with the one provided in the method's request payload. By providing an empty list of nodes in a request, a endpoint (`DataSetWriter`) can be removed from a `DataSetWriterGroup`. Removing the last from a group removes the group.
+
+  _Request_: represents a list of objects, which should strictly follow the request payload schema as described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal request for that endpoint (`DataSetWriter`).
+
+  _Response_: when successful - Status 200 and an empty json (`{}`) as payload
+
+  _Exceptions_: a response corresponding to an exception will be returned if:
+
+- request payload contains deletion request for an endpoint (`DataSetWriter`) that isn't present in publisher configuration
+
+- request payload contains two or more entries for the same endpoint (`DataSetWriter`)
+
+  _Example_:
+  > _Method Name_: `AddOrUpdateEndpoints_V1`
+  >
+  > _Payload_:
+  >
+  > ```json
+  > [
+  >    {
+  >       "EndpointUrl": "opc.tcp://opcplc:50000",
+  >       "DataSetWriterGroup": "Asset1",
+  >       "DataSetWriterId": "DataFlow1",
+  >       "DataSetPublishingInterval": 5000,
+  >       "OpcNodes": [
+  >          {
+  >             "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >          }
+  >       ]
+  >    },
+  >    {
+  >       "EndpointUrl": "opc.tcp://opcplc:50001",
+  >       "DataSetWriterGroup": "Asset2",
+  >       "DataSetWriterId": "DataFlow2",
+  >       "OpcNodes": []
+  >    }
+  > ]
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > {
+  >    "status": 200,
+  >    "payload": {}
+  > }
+  > ```
+
+More information can be found in the [API documentation](./api.md#handler-for-addorupdateendpoints-direct-method)
+
+## UnpublishNodes_V1
 
 UnpublishNodes method enables a client to remove nodes from a previously configured `DataSetWriter`. A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId` and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
 If value of the `OpcNodes` attribute is `null` or an empty list, then the whole DataSetWriter entity is removed.
@@ -230,7 +164,9 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   > }
   > ```
 
-### UnpublishAllNodes_V1
+More information can be found in the [API documentation](./api.md#handler-for-unpublishallnodes-direct-method)
+
+## UnpublishAllNodes_V1
 
 UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter.
 The DataSetWriter entity will be removed from the configuration storage.
@@ -270,7 +206,9 @@ When an empty payload is set or the endpoint in payload is null, the complete co
   > }
   > ```
 
-### GetConfiguredEndpoints_V1
+More information can be found in the [API documentation](./api.md#handler-for-unpublishallnodes-direct-method)
+
+## GetConfiguredEndpoints_V1
 
 Returns the configured endpoints (`DataSetWriter`s)
 
@@ -305,7 +243,52 @@ Returns the configured endpoints (`DataSetWriter`s)
   > }
   > ```
 
-### GetConfiguredNodesOnEndpoint_V1
+More information can be found in the [API documentation](./api.md#handler-for-getconfiguredendpoints-direct-method)
+
+## SetConfiguredEndpoints_V1
+
+Sets the configured endpoints (`DataSetWriter`s) and thus allows to update all configuration at once. The configuration on the OPC Publisher is replaced with the request payload content. Use empty array of endpoints to clear the entire content of the published nodes file.
+
+  _Request_: A list of configured endpoints (and optional parameters).
+
+  _Response_: empty json (`{}`)
+
+  _Exceptions_: an exception is thrown when method call returns status other than 200
+
+  _Example_:
+
+  > _Method Name_: `SetConfiguredEndpoints_V1`
+  >
+  > _Payload_:
+  >
+  > ```json
+  > {
+  >    "endpoints": [
+  >       {
+  >          "endpointUrl": "opc.tcp://opcplc:50000",
+  >          "dataSetWriterGroup": "Asset1",
+  >          "dataSetWriterId": "DataFlow1",
+  >          "dataSetPublishingInterval": 5000,
+  >        },
+  >        {
+  >           "endpointUrl": "opc.tcp://opcplc:50001"
+  >        }
+  >    ]
+  > }
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > {
+  >    "status": 200,
+  >    "payload": {}
+  > }
+  > ```
+
+More information can be found in the [API documentation](./api.md#handler-for-setconfiguredendpoints-direct-method)
+
+## GetConfiguredNodesOnEndpoint_V1
 
 Returns the nodes configured for one Endpoint (`DataSetWriter`s).
 
@@ -347,7 +330,9 @@ Returns the nodes configured for one Endpoint (`DataSetWriter`s).
   > }
   > ```
 
-### GetDiagnosticInfo_V1
+More information can be found in the [API documentation](./api.md#handler-for-getconfigurednodesonendpoint-direct-method)
+
+## GetDiagnosticInfo_V1
 
 Returns a list of actual metrics for all concrete `DataSetWriter`s. This includes virtual `DataSetWriter`s created due to different publishing intervals configured.  The name of these contain the original name provided and a hash value.
 
@@ -406,52 +391,4 @@ Returns a list of actual metrics for all concrete `DataSetWriter`s. This include
   > }
   > ```
 
-### AddOrUpdateEndpoints_V1
-
-This method allows updating multiple endpoints (`DataSetWriter`s) without effecting others. Unlike `PublishNodes_V1` method, `AddOrUpdateEndpoints_V1` replaces the nodes of an endpoint (`DataSetWriter`) with the one provided in the method's request payload. By providing an empty list of nodes in a request, a endpoint (`DataSetWriter`) can be removed from a `DataSetWriterGroup`. Removing the last from a group removes the group.
-
-  _Request_: represents a list of objects, which should strictly follow the request payload schema as described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal request for that endpoint (`DataSetWriter`).
-
-  _Response_: when successful - Status 200 and an empty json (`{}`) as payload
-
-  _Exceptions_: a response corresponding to an exception will be returned if:
-
-- request payload contains deletion request for an endpoint (`DataSetWriter`) that isn't present in publisher configuration
-
-- request payload contains two or more entries for the same endpoint (`DataSetWriter`)
-
-  _Example_:
-  > _Method Name_: `AddOrUpdateEndpoints_V1`
-  >
-  > _Payload_:
-  >
-  > ```json
-  > [
-  >    {
-  >       "EndpointUrl": "opc.tcp://opcplc:50000",
-  >       "DataSetWriterGroup": "Asset1",
-  >       "DataSetWriterId": "DataFlow1",
-  >       "DataSetPublishingInterval": 5000,
-  >       "OpcNodes": [
-  >          {
-  >             "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
-  >          }
-  >       ]
-  >    },
-  >    {
-  >       "EndpointUrl": "opc.tcp://opcplc:50001",
-  >       "DataSetWriterGroup": "Asset2",
-  >       "DataSetWriterId": "DataFlow2",
-  >       "OpcNodes": []
-  >    }
-  > ]
-  > ```
-  >
-  > _Response_:
-  >
-  > ```json
-  > {
-  >    "status": 200,
-  >    "payload": {}
-  > }
-  > ```
+More information can be found in the [API documentation](./api.md#handler-for-getdiagnosticinfo-direct-method)

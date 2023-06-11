@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Id of the subscription
         /// </summary>
-        public SubscriptionIdentifier Id { get; set; } = null!;
+        public required SubscriptionIdentifier Id { get; set; }
 
         /// <summary>
         /// Subscription configuration
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public SubscriptionConfigurationModel? Configuration { get; set; }
 
         /// <summary>
-        /// Monitored items in the subscription
+        /// Monitored item templates for the subscription
         /// </summary>
         public List<BaseMonitoredItemModel>? MonitoredItems { get; set; }
 

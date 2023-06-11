@@ -48,9 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static EventFilter? Decode(this IVariantEncoder encoder, EventFilterModel? model,
             bool noDefaultFilter = false)
         {
-            if (model == null || !(model.SelectClauses?.Any() ?? false))
+            if (model == null)
             {
                 return noDefaultFilter ? null : GetDefaultEventFilter();
+            }
+            if (!(model.SelectClauses?.Any() ?? false))
+            {
+                return noDefaultFilter ? throw new ArgumentException("Missing select clause")
+                    : GetDefaultEventFilter();
             }
             return new EventFilter
             {

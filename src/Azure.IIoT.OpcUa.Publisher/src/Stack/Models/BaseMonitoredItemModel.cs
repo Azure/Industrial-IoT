@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -17,28 +16,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Identifier for this monitored item
         /// Prio 1: Id = DataSetFieldId - if already configured
-        /// Prio 2: Id = DisplayName - if already configured
+        /// Prio 2: Id = DataSetFieldName - if already configured
         /// Prio 3: NodeId as configured
         /// </summary>
         public string Id
         {
             get =>
-                !string.IsNullOrEmpty(_id) ? _id :
-                !string.IsNullOrEmpty(DisplayName) ? DisplayName :
+                !string.IsNullOrEmpty(DataSetFieldId) ? DataSetFieldId :
+                !string.IsNullOrEmpty(DataSetFieldName) ? DataSetFieldName :
                 StartNodeId;
-            init => _id = value;
         }
-        private string? _id;
+
+        /// <summary>
+        /// Data set field id
+        /// </summary>
+        public string? DataSetFieldId { get; init; }
 
         /// <summary>
         /// Display name
+        /// Prio 1: DisplayName = DataSetFieldName - if already configured
+        /// Prio 2: DisplayName = DataSetFieldId  - if already configured
+        /// Prio 3: NodeId as configured
         /// </summary>
-        public string? DisplayName { get; set; }
+        public string DisplayName
+        {
+            get =>
+                !string.IsNullOrEmpty(DataSetFieldName) ? DataSetFieldName :
+                !string.IsNullOrEmpty(DataSetFieldId) ? DataSetFieldId :
+                StartNodeId;
+        }
+
+        /// <summary>
+        /// Data set name
+        /// </summary>
+        public string? DataSetFieldName { get; set; }
+
+        /// <summary>
+        /// Fetch dataset name
+        /// </summary>
+        public bool? FetchDataSetFieldName { get; init; }
 
         /// <summary>
         /// Node id
         /// </summary>
-        public string StartNodeId { get; init; } = null!;
+        public required string StartNodeId { get; init; }
 
         /// <summary>
         /// Path from node
@@ -49,16 +70,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Attribute
         /// </summary>
         public NodeAttribute? AttributeId { get; init; }
-
-        /// <summary>
-        /// Range of value to report
-        /// </summary>
-        public string? IndexRange { get; init; }
-
-        /// <summary>
-        /// Sampling interval
-        /// </summary>
-        public TimeSpan? SamplingInterval { get; init; }
 
         /// <summary>
         /// Queue size

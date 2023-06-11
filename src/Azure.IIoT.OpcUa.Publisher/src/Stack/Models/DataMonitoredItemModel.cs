@@ -14,6 +14,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     public sealed record class DataMonitoredItemModel : BaseMonitoredItemModel
     {
         /// <summary>
+        /// Sampling interval
+        /// </summary>
+        public TimeSpan? SamplingInterval { get; init; }
+
+        /// <summary>
+        /// Range of value to report
+        /// </summary>
+        public string? IndexRange { get; init; }
+
+        /// <summary>
+        /// Register read for this item. Registerd read is
+        /// a hint, it can fail.
+        /// </summary>
+        public bool RegisterRead { get; init; }
+
+        /// <summary>
         /// Field id in class
         /// </summary>
         public Guid DataSetClassFieldId { get; init; }
@@ -32,6 +48,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// heartbeat interval not present if zero
         /// </summary>
         public TimeSpan? HeartbeatInterval { get; init; }
+
+        /// <summary>
+        /// Sample using cyclic reads
+        /// </summary>
+        public bool SamplingUsingCyclicRead { get; set; }
 
         /// <summary>
         /// Skip first value

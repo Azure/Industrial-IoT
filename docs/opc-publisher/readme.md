@@ -4,6 +4,8 @@
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
 
+> This documentation applies to version 2.9 or higher.
+
 Here you find information about
 
 ## Table Of Contents <!-- omit in toc -->
@@ -18,19 +20,21 @@ Here you find information about
 - [How OPC Publisher works](#how-opc-publisher-works)
 - [Configuring OPC Publisher](#configuring-opc-publisher)
   - [Configuration via Configuration File](#configuration-via-configuration-file)
+    - [Configuration Schema](#configuration-schema)
+    - [Writer group configuration](#writer-group-configuration)
+    - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
     - [Configuring Security](#configuring-security)
     - [Configuring event subscriptions](#configuring-event-subscriptions)
       - [Simple event filter](#simple-event-filter)
       - [Advanced event filter configuration](#advanced-event-filter-configuration)
       - [Condition handling options](#condition-handling-options)
-  - [Persisting OPC Publisher Configuration](#persisting-opc-publisher-configuration)
-- [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
-  - [Discovery Configuration](#discovery-configuration)
-  - [One-time discovery](#one-time-discovery)
-  - [Discovery Progress](#discovery-progress)
-- [OPC UA Client (OPC Twin)](#opc-ua-client-opc-twin)
-- [OPC Publisher API](#opc-publisher-api)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
+- [Programming OPC Publisher using the OPC Publisher API](#programming-opc-publisher-using-the-opc-publisher-api)
+  - [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
+    - [Discovery Configuration](#discovery-configuration)
+    - [One-time discovery](#one-time-discovery)
+    - [Discovery Progress](#discovery-progress)
+  - [OPC UA command and control (OPC Twin)](#opc-ua-command-and-control-opc-twin)
 - [OPC UA Certificates management](#opc-ua-certificates-management)
   - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
 - [OPC UA stack](#opc-ua-stack)
@@ -42,7 +46,7 @@ Microsoft OPC Publisher runs on Azure [IoT Edge](https://docs.microsoft.com/azur
 
 OPC Publisher is a feature rich OPC UA client/server to OPC UA Pub/Sub translator. Per configuration it sets up OPC UA subscriptions to monitor data (OPC UA nodes) using an integrated [OPC UA stack](#opc-ua-stack). When a data value change or event of an OPC UA node is reported, it transcodes the OPC UA notification using the configured encoding and publishes it to IoT Hub or MQTT broker of choice.
 
-With OPC Publisher you can also browse a server's data model, read and write ad-hoc data, or call methods on your assets. This [capability](#opc-ua-client-opc-twin) can be accessed from the cloud. OPC Publisher also supports [discovering](#discovering-opc-ua-servers-with-opc-publisher) OPC UA-enabled assets on the shop floor. When it finds an asset either through a discovery url or (optionally) active network scanning, it queries the assets endpoints (including its security configuration) and reports the results to IoT Hub or returns them from the respective [API call as response](api.md#find-server-with-endpoint).
+With OPC Publisher you can also browse a server's data model, read and write ad-hoc data, or call methods on your assets. This [capability](#opc-ua-client-opc-twin) can be accessed programmatically from the cloud or through other applications running alongside. OPC Publisher also supports [discovering](#discovering-opc-ua-servers-with-opc-publisher) OPC UA-enabled assets on the shop floor. When it finds an asset either through a discovery url or (optionally) active network scanning, it queries the assets endpoints (including its security configuration) and reports the results to IoT Hub or returns them from the respective [API call as response](api.md#find-server-with-endpoint).
 
 The IoT Edge gateways support nested ISA 95 (Purdue) topologies. It needs to be placed where it has access to all industrial assets that are to be connected, and a IoT Edge device needs to be placed at every layer leading to the internet.
 
@@ -54,18 +58,29 @@ The IoT Edge gateways support nested ISA 95 (Purdue) topologies. It needs to be 
 
 The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway.
 
+> While OPC Publisher can run outside of Azure IoT Edge, the only Microsoft supported hosting environment is Azure IoT Edge. If you want to use OPC Publisher outside of Azure IoT Edge, support is through GitHub issues and community only.
+
 You can purchase industrial gateways compatible with IoT Edge. Please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={"3":["2","9"],"18":["1"]}) for a selection of industrial-grade gateways. Alternatively, you can setup a local VM.
 
 You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). The IoT Edge Runtime can be installed on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-for-linux-on-windows).
 
-For more information check out:
+You can find out more about Azure IoT Edge here:
 
 - [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
 - [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
+- [Run IoT Edge on Kubernetes](https://github.com/Azure-Samples/IoT-Edge-K8s-KubeVirt-Deployment/)
 
 ### Deploy OPC Publisher from Azure Marketplace
 
-Use our released docker container for OPC Publisher available in the Microsoft Container Registry rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
+Use the Microsoft supported docker containers for OPC Publisher available in the Microsoft Container Registry rather than building from sources:
+
+``` bash
+docker pull mcr.microsoft.com/iotedge/opc-publisher:latest
+```
+
+> We recommend to use a floating version tag ("2.9") when deploying the OPC Publisher container images instead of "latest". You can also use a fixed tag such as "2.9.0" but this will require you to manually update your edge deployment to keep up with the latest secure and supported version.
+
+The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
 
 Select the "Get It Now" button to log into the [Azure portal](https://portal.azure.com) and deploy OPC Publisher. The following steps are required:
 
@@ -75,8 +90,6 @@ Select the "Get It Now" button to log into the [Azure portal](https://portal.azu
 4. Select "Create". The "Set modules on Device" page for the selected IoT Edge device opens.
 5. Select on "OPCPublisher" to open the OPC Publisher's "Update IoT Edge Module" page and then select "Container Create Options".
 6. Validate "container create options" based on your usage of OPC Publisher. For more information, see next section.
-
-> We recommend to use a floating version tag ("2.9") when deploying the web api container but not "latest".
 
 ### Specifying Container Create Options in the Azure portal
 
@@ -109,14 +122,11 @@ Container create options are used to specify the container and configuration com
 }
 ```
 
-With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/published_nodes.json` inside its container.
-OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory.
+To not loose the OPC Publisher configuration across restarts all configuration files should be persisted. This requires a bind mount. A bind mound makes folders in the IoT Edge host file system available to the OPC Publisher. In above example the **Mounts** section maps the `/mount` folder inside the container to the folder `/opcpublisher` on the host file system. Without it all configuration changes will be applied to the container file system which lives in memory and thus will be lost when the OPC Publisher module is restarted. With above options specified however, OPC Publisher will use the configuration file `published_nodes.json` inside the `/mount` folder and thus on the `/opcpublisher` folder on IoT Edge host. The `CertificateStores` directory (used for OPC UA certificates) will also be created in the `pki` directory of the `/mount` folder.
 
-To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher`. To not loose the OPC Publisher configuration across restarts [all configuration files should be persisted](#persisting-opc-publisher-configuration). This requires a bind mount. Without it all configuration changes will be lost when OPC Publisher is restarted.
+> IMPORTANT: The `/opcpublisher` directory must be present on the host file system, otherwise OPC Publisher will fail to start. Also, the folder contains security sensitive information. Any username and password configured inside the configuration are stored in plain text. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the certificate and private key of OPC Publisher.
 
-> IMPORTANT: The `/opcpublisher` directory must be present on the host file system, otherwise OPC Publisher will fail to start.
-
-The `CapDrop` option will drop the CHOWN (user can’t makes arbitrary changes to file UIDs and GIDs) and SETUID (user can’t makes arbitrary manipulations of process UIDs) capabilities for security reason.
+The `CapDrop` option drops the CHOWN (user can’t makes arbitrary changes to file UIDs and GIDs) and SETUID (user can’t makes arbitrary manipulations of process UIDs) capabilities for security reason.
 
 A connection to an OPC UA server using its hostname without a DNS server configured on the network can be achieved by adding an `ExtraHosts` entry to the `HostConfig` section:
 
@@ -290,7 +300,7 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
 1. The OPC Publisher can be configured to connect to one or more selected OPC UA server endpoints. Based on the configuration the OPC Publisher OPC UA client creates subscriptions requesting to be notified when the value of the specified nodes change or an event occurs.
 
-1. The publisher groups nodes in the configuration into groups of `Dataset Writers` which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, `DataSetWriterGroup` and `Heartbeat` (keep-alive key frames)
+1. The publisher groups nodes in the configuration into groups of `Dataset Writers` which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, and `DataSetWriterGroup`.
 
    - `DataSetWriterId`: A logical name of a subscription to an endpoint on a OPC UA server. A writer can only have 1 publishing interval andin case of event subscription, 1 event node. Should multiple be specified then the writer is broken into smaller writers. A data set writer writes data sets, which are a set of OPC UA data values or events inside a OPC UA PubSub network message.
 
@@ -300,21 +310,15 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
    - `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
 
-   - `Heartbeat`: Cyclic time in seconds, in which to send keep-alive messages to indicate that the connection is still being used, in case no notifications are available
-
-1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` settings.
+1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` options or read the values using `UseCyclicRead` [options](#configuration-schema) instead of subscriptions.
 
 1. The OPC Publisher can be configured to send notifications as soon as they arrive or batch them before sending which saves bandwidth and increases throughput. Sending a batch is triggered by exceeding the threshold of a specified number of messages or by exceeding a specified time interval.
 
 1. OPC Publisher groups and encodes the telemetry events using the specified messaging mode and message encoding format. More information can be found [here](./messageformats.md).
 
-1. The encoded telemetry events are added as the network message, which cannot exceed 256kB, the maximum size of an IoT Hub message. The publisher will try to split messages to avoid loosing data, but has a runtime cost.
+1. The encoded telemetry events are sent over the configured [transport](./transports.md) as OPC UA network messages. The default tranport is Azure IoT which has a message limit of 256kB. The publisher tries to split messages to avoid loosing data, but has a runtime cost. OPC Publisher also emits Metadata messages in case of PubSub encoding which can be used to learn more about the message content and support decoding in some cases.
 
-1. OPC Publisher also emits Metadata messages in case of PubSub encoding which can be used to learn more about the message content and support decoding in some cases.
-
-1. The network and metadata messages are sent to the northbound destination chosen. By default IoT Hub stores them for the configured retention time (default: 1 day, max: 7 days, dependent on the size of the ingested messages as well, see [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-messages-read-builtin) for more details).
-
-1. Messages can be consumed by applications or other services at the northbound destination.
+1. Azure IoT Hub stores messages using a configured retention time (default: 1 day, max: 7 days, dependent on the size of the ingested messages as well, see [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-messages-read-builtin) for more details). Messages can be consumed by applications or other services from IoT Hub.
 
 ## Configuring OPC Publisher
 
@@ -322,12 +326,12 @@ OPC Publisher has several interfaces that can be used to configure it.
 
 - [Configuration via configuration file](#configuration-via-configuration-file)
 - [Command Line options configuration](./commandline.md)
-- [Direct method runtime configuration](./directmethods.md)
+- [Configuration via API](./directmethods.md)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
 
-The simplest way to configure OPC Publisher is via a configuration file. A basic configuration file looks like this:
+The simplest way to configure OPC Publisher is via a file. A basic configuration file looks like this:
 
 ``` json
 [
@@ -346,20 +350,188 @@ The simplest way to configure OPC Publisher is via a configuration file. A basic
 ]
 ```
 
-Other example configuration files are provided via [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
+Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
 
-The configuration file syntax has been enhanced over time. OPC Publisher read old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
+#### Configuration Schema
 
-OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher supports a "heartbeat" for every configured telemetry event that can be enabled by specifying the `HeartbeatInterval` key in the data item's configuration. The interval is specified in seconds:
+The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md). The following items are part of a configuration file JSON array (or API payload).
 
-``` json
- "HeartbeatInterval": 3600,
+```json
+{
+  "EndpointUrl": "string",
+  "UseSecurity": "Boolean",
+  "OpcAuthenticationMode": "string",
+  "UserName": "string",
+  "Password": "string",
+  "DataSetWriterId": "string",
+  "DataSetClassId": "Guid",
+  "DataSetName": "string",
+  "DataSetDescription": "string",
+  "DataSetPublishingInterval": "integer",
+  "DataSetPublishingIntervalTimespan": "string",
+  "DataSetKeyFrameCount": "integer",
+  "MetaDataUpdateTime": "integer",
+  "MetaDataUpdateTimeTimespan": "string",
+  "DataSetWriterGroup": "string",
+  "MessageEncoding": "string",
+  "MessagingMode": "string",
+  "WriterGroupTransport": "string",
+  "BatchSize": "integer",
+  "BatchTriggerInterval": "integer",
+  "BatchTriggerIntervalTimespan": "string",
+  "OpcNodes":
+  [
+    {
+      "Id": "string",
+      "ExpandedNodeId": "string",
+      "AttributeId": "string",
+      "IndexRange": "string",
+      "UseCyclicRead": "bool",
+      "RegisterNode": "bool",
+      "FetchDisplayName": "bool",
+      "OpcSamplingInterval": "integer",
+      "OpcSamplingIntervalTimespan": "string",
+      "OpcPublishingInterval": "integer",
+      "OpcPublishingIntervalTimespan": "string",
+      "DataSetFieldId ": "string",
+      "DataSetClassFieldId ": "Guid",
+      "DisplayName": "string",
+      "SkipFirst": "bool",
+      "DiscardNew": "bool",
+      "HeartbeatInterval": "integer",
+      "HeartbeatIntervalTimespan": "string",
+      "QueueSize": "integer",
+      "DataChangeTrigger": "string",
+      "DeadbandType": "string",
+      "DeadbandValue": "decimal",
+      "EventFilter": {
+        (*)
+      }
+    }
+  ],
+  "Version": "integer",
+  "LastChangeTimespan": "string",
+}
 ```
 
-OPC UA sends the current data value when OPC Publisher connects to the OPC UA server. To prevent publishing this telemetry on startup to IoT Hub, the `SkipFirst` key can be additionally specified in the data item's configuration:
+(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md).
+
+Each [published nodes entry model](./definitions.md#publishednodesentrymodel) has the following attributes:
+
+| Attribute | Mandatory | Type | Default | Description |
+| ----------| --------- | -----| ------- | ----------- |
+| `Version` | No | Integer | `null` | A monotonically increasing number identifying the change version.<br>NOTE: At this point the version number is informational only, but should be provided in API requests if available. It is not used inside file based configuration. |
+| `LastChangeTimespan` | No | String | `null` | The time the Publisher configuration was last updated.<br>Read only and informational only. |
+| `EndpointUrl` | Yes | String | N/A | The OPC UA server endpoint URL |
+| `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
+| `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
+| `UserName` | No | String | `null` | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
+| `Password` | No | String | `null` | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
+| `DataSetWriterGroup` | No | String | `"<<UnknownWriterGroup>>"` | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
+| `DataSetWriterId` | No | String | `"<<UnknownDataSet>>"` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
+| `DataSetName` | No | String | `null` | The optional name of the data set as it will appear in the dataset metadata. |
+| `DataSetDescription` | No | String | `null` | The optional description for the data set as it will appear in the dataset metadata. |
+| `DataSetClassId` | No | Guid | `Guid.Empty` | The optional dataset class id as it shall appear in dataset messages and dataset metadata. |
+| `DataSetPublishingInterval` | No | Integer | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
+| `DataSetPublishingIntervalTimespan` | No | String | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
+| `DataSetKeyFrameCount` | No | Integer | `null` | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames |
+| `MetaDataUpdateTime` | No | Integer | `null` | The optional interval at which meta data messages should be sent even if the meta data has not chnaged.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
+| `MetaDataUpdateTimeTimespan` | No | String | `null` | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
+| `MessageEncoding` | No | String | `null` | The message encoding to use when publishing the data sets. <br>For the list of supported message type names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
+| `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
+| `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
+| `BatchSize` | No | Integer | `null` | The optional number of notifications that are queued before a network message is generated. <br>For historic reasons the default value is 50 unless otherwise configured via `--bs` command line option. |
+| `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
+| `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |
+| `OpcNodes` | No | `List<OpcNode>` | empty | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
+
+*Note*: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
+
+Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
+
+| Attribute | Mandatory | Type | Default | Description |
+| --------- | --------- | ---- | ------- | ----------- |
+| `Id` | Yes* | String | N/A | The OPC UA NodeId in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>**Note*: `Id` field may be omitted when `ExpandedNodeId` is present. |
+| `ExpandedNodeId` | No | String | `null` | Enables backwards compatibility. <br>Must be specified as ExpandedNodeId as per OPC UA specification. <br>**Note*: when `ExpandedNodeId` is present `Id` field may be omitted. |
+| `AttributeId` | No | String | `Value` | The node attribute to sample in case the node is a variable value (data item). <br>The allowed values are defined in the OPC UA specification. <br>Ignored when subscribing to events. |
+| `IndexRange` | No | String | `null` | The index range of the value to publish. <br>Value expressed as a numeric range as defined in the OPC UA specification. <br>Ignored when subscribing to events. |
+| `OpcSamplingInterval` | No | Integer | `1000` | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present. |
+| `OpcSamplingIntervalTimespan` | No | String | `null`    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification. |
+| `OpcPublishingInterval` | No | Integer | `null` | The publishing interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcPublishingIntervalTimespan` is present. |
+| `OpcPublishingIntervalTimespan` | No | String | `null` | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
+| `DataSetFieldId` | No | String | `null` | A user defined tag used to identify the field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
+| `DataSetClassFieldId` | No | Guid | `Guid.Empty`  | A user defined Guid that identifies the field in the data set class of the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode.<br>This value is ignored when subscribing to events, in which case a `DataSetClassFieldId` can be applied to each select clause that select the content of the event dataset. |
+| `DisplayName` | No | String | `null` | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
+| `HeartbeatInterval` | No | Integer | `0` | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present. |
+| `HeartbeatIntervalTimespan` | No | String | `null` | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
+| `SkipFirst` | No | Boolean | `false` | Whether the first received data change for the monitored item should not be sent. This can avoid large initial messages since all values are sent by a server as the first notification.<br>If an `EventFilter` is specified, this value is ignored |
+| `QueueSize` | No | Integer | `1` | The desired QueueSize for the monitored item to be published. |
+| `FetchDisplayName` | No | Boolean | `false` | Whether the server shall fetch display names of monitored variable nodes and use those inside messages as field names. Default is to use the `DisplayName` value if provided even if this option is set to `true`, if not provided or `false`, and no `DisplayName` specified, the node id is used. |
+| `DiscardNew` | No | Boolean | `false` | Whether the server shall discard new values when the queue is full. Default is false, it will discard values that have not been sent yet. |
+| `UseCyclicRead` | No | Boolean | `false` | Read the value periodically at the sampling rate insteead of subscribing through subscriptions.<br>Ignored when subscribing to events. |
+| `RegisterNode` | No | Boolean | `false` | Register the node to sample using the Register service call before accessing. Some servers then support faster reads, but this is not guaranteed.<br>The service is defined in the OPC UA specification. <br>Ignored when subscribing to events. |
+| `DataChangeTrigger` | No | String | `null` | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./commandline.md). This value is ignored if an EventFilter is configured. |
+| `DeadbandType` | No | String | `1` | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
+| `DeadbandValue` | No | Decimal | `1` | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
+| `EventFilter` | No | [EventFilter](./definitions.md#eventfiltermodel) | `null` | An [event filter](./readme.md) configuration to use when subscribing to events instead of data changes. |
+
+> The configuration file syntax has been enhanced over time. OPC Publisher reads old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
+
+#### Writer group configuration
+
+**DataSets** are a group of nodes within one OPC UA server. Datasets contain data value changes for nodes that all share a common [publishing interval](#sampling-and-publishing-interval-configuration). A `DataSetWriter` emits **DataSetMessages** cotaining a DataSet. The Writer has all information to establish a connection to an OPC UA server.
+
+A `DataSetWriterGroup` is used to group several DataSetWriter's for a specific OPC UA server. A DataSetWriterGroup emits what is called a **NetworkMessage** containing the **DataSetMessages**.
+
+In the implementation of OPC Publisher, a Writer group is defined by the `DataSetWriterGroup` name attribute in the configuration. Due to the limitations of the configuration schema, for attributes that apply to the Writer group the value of the first configuration entry object will be used. All other values in further entries will be discarded. The following values apply to the Writer group:
+
+- Messaging profile (`MessageEncoding`, `MessagingMode`)
+- Desired transport (`WriterGroupTransport`)
+- FUTURE: Batch size and batch publishing interval (`WriterGroupBatchSize`, `WriterGroupPublishingInterval`)
+
+It is recommended to use the same values for the writer group related attributes in all entries for a consistent and deterministic behavior.
+
+A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSetPublishingInterval` of the writer. A group of nodes with the same publishing interval becomes a writer inside a writer group, regardless of using the same `DataSetWriterId`. If the same `DataSetWriterId` is used but with nodes that have different effective publishing intervals, then a postfix string is added to the name to further disambiguate.
+
+OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created.
+
+#### Sampling and Publishing Interval configuration
+
+The OPC UA reference specification provides a detailed overview of the OPC UA [monitored item](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.12) and [subscription](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.13.1) service model.
+
+A `DataSetWriter` is a group of (variable or event notifier) nodes inside an OPC UA server that constitute a data set. Four parameters can be configured for each node that tell the Server how the node is to be sampled, evaluated and reported. These [attributes](#configuration-schema) are
+
+- Sampling interval (`OpcSamplingInterval` or `OpcSamplingIntervalTimespan`)
+- Filter definition (`DeadbandValue`, `DeadbandType`, and `DataChangeTrigger` for variables, or [EventFilter](./definitions.md#eventfiltermodel) in case the monitored item is an event notifier)
+- Queue mode (`DiscardNew`) and
+- Queue length (`QueueSize`)
+
+The following overview diagram courtesy of the OPC Foundation shows how the server operates based on the configuration:
+
+![Reference](https://reference.opcfoundation.org/api/image/get/17/image018.png)
+
+A subscription is created for each unique `DataSetWriter`. The publishing interval (configured using the `DataSetPublishingInterval` or `OpcPublishingInterval` values) is an attribute of the subscription (hence multiple writers are instantiated if there are multiple different publishing intervals). It defines the cyclic rate at which it collects values from the monitored item queues. Each time it attempts to send a Notification Message to OPC Publisher containing new values or events of its monitored items.
+
+Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
+
+OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in seconds (but can also be specified as a timespan value):
 
 ``` json
- "SkipFirst": true,
+  "HeartbeatInterval": 3600,
+```
+
+> In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription. In 2.9 and higher the heartbeat is emitted every heartbeat interval fram the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome.
+
+Similar use cases require cyclic read based sampling using read service calls on a periodic timer. The `UseCyclicRead` property of a configured node tells OPC Publisher to sample the value periodically when the timer expires. Note that a batch read operation of all nodes at the same sampling rate when no previous read operation is in progress. While the sampler configures a timeout of half the sampling rate in case of high frequency sampling a value every time the sampling rate expires cannot be guaranteed.
+
+``` json
+  "UseCyclicRead": true,
+```
+
+The OPC UA server always sends the first data value to OPC Publisher when the subscription is created. To prevent publishing all of these values during startup, the `SkipFirst` value can be specified in the data item's configuration:
+
+``` json
+  "SkipFirst": true,
 ```
 
 #### Configuring Security
@@ -377,16 +549,14 @@ Encrypted communication can be enabled per endpoint via the `"UseSecurity": true
 By default OPC Publisher does use no user authentication (anonymous). However, OPC Publisher supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
 
 ``` json
-"OpcAuthenticationMode": "UsernamePassword",
-"OpcAuthenticationUsername": "usr",
-"OpcAuthenticationPassword": "pwd",
+  "OpcAuthenticationMode": "UsernamePassword",
+  "OpcAuthenticationUsername": "usr",
+  "OpcAuthenticationPassword": "pwd",
 ```
 
-OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
+> OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
 
 #### Configuring event subscriptions
-
-> Starting from version 2.9
 
 OPC Publisher supports two types of event filter configurations you can specify:
 
@@ -495,9 +665,11 @@ Here is an example of a configuration file that selects events using an advanced
 ]
 ```
 
-The exact syntax allowed can be found in the OPC UA reference documentation. Note that not all servers support all filter capabilities. You can troubleshoot issues using the OPC Publisher logs.
+The exact syntax allowed can be found in the [OPC UA reference documentation](https://reference.opcfoundation.org/Core/Part4/v105/docs/7.22.3). Note that not all servers support all filter capabilities. You can [troubleshoot](./troubleshooting.md) issues using the OPC Publisher logs.
 
 ##### Condition handling options
+
+> This feature is in preview
 
 In addition to event subscription, you can also configure events to enable condition handling.
 
@@ -534,96 +706,6 @@ The `ConditionHandling` section consists of the following properties:
 One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
 Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows seperating condition snapshots from regular `ua-event` data set messages.
-
-### Persisting OPC Publisher Configuration
-
-To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
-
-- the file system based directory store
-- the telemetry configuration file
-
-In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
-
-## Discovering OPC UA servers with OPC Publisher
-
-> Starting from version 2.9
-
-OPC Publisher provides discovery services (formerly [OPC Discovery](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) to find assets (OPC UA servers) on the local shop floor network where the IoT Edge device is deployed. This can be programmatically controlled using API calls documented [here](./api.md). The optional [Web service](../web-api/readme.md) subscribes to the events and registers the discovered assets in Azure IoT Hub as device identities.
-
-Example use cases:
-
-- An industrial solution wants to detect assets which are unknown by its asset management system.
-- A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
-- A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
-
-Discovery supports two modes of operation:
-
-- Active Scan mode: The local network is actively scanned by the Discovery module.
-- Targeted discovery mode: A list of asset addresses can be specified to be checked.
-
-Discovery is based on native OPC UA server functionality as specified in the OPC UA specification, which allows discovery of endpoint information including security profile information without establishing an OPC UA authenticated and encrypted OPC UA session.
-
-The results of the discovery process are sent to cloud via the IoT Edge Hub’s and IoT Hub’s telemetry path. The optional cloud web service processes the results and onboards the discovered entities as IoT Hub identities.
-
-The Discovery can be configured via the OPC Registry REST API and allows a fine-grained configuration of the discovery process for recurring as well as one-time scans.
-
-### Discovery Configuration
-
-The Discovery capability of OPC Publisher can be configured to do active network and port scanning. The following parameters can be configured for active scanning:
-
-- address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
-- port ranges (to narrow or widen scanning to a list of known ports)
-- number of workers and time between scans (Advanced)
-
-> Active scanning should be used with care since it causes load on the local network and might be identified by network security software as a threat.
-
-For a targeted discovery, the configuration requires a specific list of discovery URLs. Please note that targeted discovery disables the use of address and port ranges as only the specific list of discovery URLs are checked.
-
-### One-time discovery
-
-One-time discovery is supported by the OPC Publisher module and can be initiated through a API call over IoT Hub direct methods or MQTT/HTTPS (Preview).  The API is documented [here](./api.md).
-
-A discovery configuration is part of the API request payload. All one-time discovery requests are serialized in the Discovery module at the edge, i.e. will be performed one by one.
-
-Using the targeted discovery mode, servers can be registered using a well-known discovery URL without active scanning.
-
-### Discovery Progress
-
-The discovery progress as well as current request queue size is reported via the telemetry path and available in the cloud for applications by the Registry services REST interface.
-
-## OPC UA Client (OPC Twin)
-
-> Starting from version 2.9
-
-The control services (formerly [OPC Twin services](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) are provided using IoT Hub device method API as well as Web API and MQTT based request response API (Preview).
-
-The API enables you to write applications that invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../json.md) encoding and decoding in a consistent JSON format.
-
-Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response. This allows fast and large value writes and reads, as well as returning large browse results.  
-
-A single session is opened on demand per endpoint so the OPC UA server is not overburdened with 100’s of simultaneous requests.
-
-The API is documented [here](./api.md).
-
-Example use cases:
-
-- A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
-- A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
-- An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
-
-## OPC Publisher API
-
-OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md).
-
-> Starting from version 2.9
-
-In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) that can be called via
-
-- Azure IoT Hub direct methods. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
-
-- The same API can also be called via the HTTP Server built into OPC Publisher (Preview). The API supports browse and histrian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key can be read from the OPC Publisher module's module twin.
-
-- API can also be invoked through MQTT v5 RPC calls (Preview). The API is mounted on top of tje method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
 
 ## OPC Publisher Telemetry Formats
 
@@ -669,7 +751,7 @@ OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of t
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
-All versions of OPC Publisher support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
+All versions of OPC Publisher also support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
 
 ``` json
 [
@@ -702,9 +784,84 @@ All versions of OPC Publisher support a non-standard, simple JSON telemetry form
 ]
 ```
 
-**Warning: The `Samples` format changed over time**
+**Warning: The `Samples` format changed over time and is now deprecated**
 
 More detailed information about the supported message formats can be found [here](./messageformats.md)
+
+## Programming OPC Publisher using the OPC Publisher API
+
+OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md). In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) and [a number of different transports](./transports.md) that can be used to receive messages or invoke these API services. The transports can be configured using the [command line arguments](./commandline.md). The API can be invoked through
+
+- Azure **IoT Hub direct methods**. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
+
+- The same API can also be called via the **HTTP Server** built into OPC Publisher (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key is generated at start up and can be read from the OPC Publisher module's module twin.
+
+- The API can also be invoked through **MQTT v5 RPC calls** (Preview). The API is mounted on top of the method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
+
+### Discovering OPC UA servers with OPC Publisher
+
+> This feature is in preview
+
+Starting from version 2.9 OPC Publisher provides discovery services (formerly [OPC Discovery](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) to find assets (OPC UA servers) on the local shop floor network where the IoT Edge device is deployed. This can be programmatically controlled using API calls documented [here](./api.md). The optional [Web service](../web-api/readme.md) subscribes to the events and registers the discovered assets in Azure IoT Hub as device identities.
+
+Example use cases:
+
+- An industrial solution wants to detect assets which are unknown by its asset management system.
+- A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
+- A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
+
+Discovery supports two modes of operation:
+
+- Active Scan mode: The local network is actively scanned by the Discovery module.
+- Targeted discovery mode: A list of asset addresses can be specified to be checked.
+
+Discovery is based on native OPC UA server functionality as specified in the OPC UA specification, which allows discovery of endpoint information including security profile information without establishing an OPC UA authenticated and encrypted OPC UA session.
+
+The results of the discovery process are sent to cloud via the IoT Edge Hub’s and IoT Hub’s telemetry path. The optional cloud web service processes the results and onboards the discovered entities as IoT Hub identities.
+
+The Discovery can be configured via the OPC Registry REST API and allows a fine-grained configuration of the discovery process for recurring as well as one-time scans.
+
+#### Discovery Configuration
+
+The Discovery capability of OPC Publisher can be configured to do active network and port scanning. The following parameters can be configured for active scanning:
+
+- address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
+- port ranges (to narrow or widen scanning to a list of known ports)
+- number of workers and time between scans (Advanced)
+
+> Active scanning should be used with care since it causes load on the local network and might be identified by network security software as a threat.
+
+For a targeted discovery, the configuration requires a specific list of discovery URLs. Please note that targeted discovery disables the use of address and port ranges as only the specific list of discovery URLs are checked.
+
+#### One-time discovery
+
+One-time discovery is supported by the OPC Publisher module and can be initiated through a API call over IoT Hub direct methods or MQTT/HTTPS (Preview).  The API is documented [here](./api.md).
+
+A discovery configuration is part of the API request payload. All one-time discovery requests are serialized in the Discovery module at the edge, i.e. will be performed one by one.
+
+Using the targeted discovery mode, servers can be registered using a well-known discovery URL without active scanning.
+
+#### Discovery Progress
+
+The discovery progress as well as current request queue size is reported via the telemetry path and available in the cloud for applications by the Registry services REST interface.
+
+### OPC UA command and control (OPC Twin)
+
+> This feature is in preview
+
+The control services (formerly [OPC Twin services](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)) are provided using IoT Hub device method API as well as Web API and MQTT based request response API (Preview).
+
+Example use cases:
+
+- A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
+- A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
+- An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
+
+The API enables you to write applications that invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../json.md) encoding and decoding in a consistent JSON format.
+
+Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response. This allows fast and large value writes and reads, as well as returning large browse results.  
+
+A single session is opened on demand per endpoint so the OPC UA server is not overburdened with 100’s of simultaneous requests. The client linger option can be configured using the [command line](./commandline.md) option `--cl` so that clients stay open for a while after the service call completes avoiding re-establishment of the session.
 
 ## OPC UA Certificates management
 

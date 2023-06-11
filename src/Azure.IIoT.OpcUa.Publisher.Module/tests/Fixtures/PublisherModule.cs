@@ -149,6 +149,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     "--aa"
                 }).ToArray();
 
+            if (_useMqtt)
+            {
+                arguments = arguments.Append("-t=Mqtt").ToArray();
+            }
+
             var configBuilder = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {

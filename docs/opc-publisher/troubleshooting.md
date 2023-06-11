@@ -47,13 +47,13 @@ Another feature of OPC UA that is often turned off by OT administrators is user 
 
 To troubleshoot an IoT Edge device run the following commands in a terminal session on the IoT Edge device or over a remote SSH session:
 
-* `sudo iotedge check` to check the state of the installation.
-* `systemctl status iotedge` to view the status of the IoT Edge security manager.
-* `systemctl restart iotedge` to restart the IoT Edge Security Daemon.
-* `iotedge logs <publisher container name>` to check the logs.
-* `iotedge restart <publisher container name>` to restart OPC Publisher.
-* `iotedge restart edgeAgent && iotedge restart edgeHub` to restart the IoT Edge runtime containers.
-* `docker stats` to retrieve statistics from the docker runtime.
+- `sudo iotedge check` to check the state of the installation.
+- `systemctl status iotedge` to view the status of the IoT Edge security manager.
+- `systemctl restart iotedge` to restart the IoT Edge Security Daemon.
+- `iotedge logs <publisher container name>` to check the logs.
+- `iotedge restart <publisher container name>` to restart OPC Publisher.
+- `iotedge restart edgeAgent && iotedge restart edgeHub` to restart the IoT Edge runtime containers.
+- `docker stats` to retrieve statistics from the docker runtime.
 
 For more detailed description on how to troubleshoot IoT Edge device, please refer to [here](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot-common-errors) and [here](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot).
 
@@ -121,7 +121,7 @@ Moreover, enabling the diagnostic settings provides more data to troubleshoot an
 
 As a next step the Azure IoT Explorer can be used to validate that messages for a particular Publisher job are delivered to IoT Hub. To install Azure IoT Explorer, please follow the steps here:
 
-* [Install and use Azure IoT Explorer](https://docs.microsoft.com/en-us/azure/iot-pnp/howto-use-iot-explorer)
+- [Install and use Azure IoT Explorer](https://docs.microsoft.com/en-us/azure/iot-pnp/howto-use-iot-explorer)
 
 To view the telemetry of OPC Publisher in Azure IoT Explorer, go to its Telemetry and start monitoring telemetry from that publisher module of choice. If you do not receive any messages for that device after a long period since starting monitoring, then there is a problem which causes telemetry messages not to be delivered to IoT Hub.
 

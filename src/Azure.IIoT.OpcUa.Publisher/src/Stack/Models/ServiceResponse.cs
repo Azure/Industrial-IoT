@@ -114,7 +114,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                             $" but {_requests.Length} elements were expected."
                     };
                 }
-                _results = new TResult[_requests.Length];
+                if (_results.Length > _requests.Length)
+                {
+                    // Limit the results
+                    _results = _results[0.._requests.Length];
+                }
+                else
+                {
+                    _results = Array.Empty<TResult>();
+                }
             }
             if (diagnostics == null || diagnostics.Count == 0)
             {

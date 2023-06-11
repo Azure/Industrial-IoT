@@ -460,9 +460,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
                 var n = Assert.Single(nodes.OpcNodes);
 
-                // TODO: Fix
-                if (n != null) return;
-
                 // Wait until it was applied and we receive normal events again
                 messages = await WaitForMessagesAsync(
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"

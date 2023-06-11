@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
@@ -30,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Timers;
-    using Azure.IIoT.OpcUa.Publisher.Parser;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests

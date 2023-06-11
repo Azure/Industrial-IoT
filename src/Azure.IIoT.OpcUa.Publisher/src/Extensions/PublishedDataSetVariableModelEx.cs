@@ -30,15 +30,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             return new DataMonitoredItemModel
             {
-                Id = publishedVariable.Id ?? publishedVariable.PublishedVariableNodeId,
+                DataSetFieldId = publishedVariable.Id ?? publishedVariable.PublishedVariableNodeId,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
-                DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
+                DataSetFieldName = displayName ?? publishedVariable.PublishedVariableDisplayName
+                    ?? string.Empty,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable, options),
-                AggregateFilter = null,
+                SamplingUsingCyclicRead = publishedVariable.SamplingUsingCyclicRead
+                    ?? options?.DefaultSamplingUsingCyclicRead ?? false,
                 SkipFirst = publishedVariable.SkipFirst
                     ?? options?.DefaultSkipFirst ?? false,
                 DiscardNew = publishedVariable.DiscardNew
                     ?? options?.DefaultDiscardNew,
+                RegisterRead = publishedVariable.RegisterNodeForSampling
+                    ?? false,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
 
                 //
@@ -54,10 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 MonitoringMode = publishedVariable.MonitoringMode,
+                FetchDataSetFieldName = publishedVariable.ReadDisplayNameFromNode
+                    ?? options?.ResolveDisplayName,
                 SamplingInterval = publishedVariable.SamplingInterval
                     ?? options?.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
-                    ?? options?.DefaultHeartbeatInterval
+                    ?? options?.DefaultHeartbeatInterval,
+                AggregateFilter = null
             };
         }
 

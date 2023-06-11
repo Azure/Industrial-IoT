@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Event filter
         /// </summary>
-        public EventFilterModel EventFilter { get; init; } = null!;
+        public required EventFilterModel EventFilter { get; init; }
 
         /// <summary>
         /// Condition handling settings

@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         Value = new EncodeableDictionary(notificationsInGroup
                                                             .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
                                                     };
-                                                    eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
+                                                    eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
                                                     notificationsInGroup = new List<MonitoredItemNotificationModel>
                                                     {
                                                         eventNotification
@@ -352,8 +352,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         void AddMessage(BaseDataSetMessage dataSetMessage, IOpcUaSubscriptionNotification? notification)
                                         {
                                             currentMessage.Messages.Add(dataSetMessage);
-                                            var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
-                                                _options.Value.DefaultMaxMessagesPerPublish;
+                                            var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
+                                                _options.Value.DefaultMaxDataSetMessagesPerPublish;
                                             if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                             {
                                                 result.Add((currentNotifications.Count, currentMessage, topic, false, default,

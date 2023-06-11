@@ -94,14 +94,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public List<ConnectionModel>? SecurityKeyServices { get; set; }
 
         /// <summary>
-        /// Max network message size
+        /// Max network message size. The max size is limited
+        /// by the capabilities of the underlying event client
+        /// transport, e.g., 256k in the case of IoT Hub.
         /// </summary>
         [DataMember(Name = "maxNetworkMessageSize", Order = 11,
             EmitDefaultValue = false)]
         public uint? MaxNetworkMessageSize { get; set; }
 
         /// <summary>
-        /// Publishing interval
+        /// Publishing interval is the time to wait before
+        /// generating a network message from the queue of
+        /// collected notifications. The default is set to
+        /// the value of the BatchTriggerInterval option.
         /// </summary>
         [DataMember(Name = "publishingInterval", Order = 12,
             EmitDefaultValue = false)]
@@ -113,5 +118,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "keepAliveTime", Order = 13,
             EmitDefaultValue = false)]
         public TimeSpan? KeepAliveTime { get; set; }
+
+        /// <summary>
+        /// Number of notifications to queue before
+        /// sending a batch (Publisher extension).
+        /// The default is set to the value of the
+        /// BatchSize option.
+        /// </summary>
+        [DataMember(Name = "notificationPublishThreshold", Order = 14,
+            EmitDefaultValue = false)]
+        public uint? NotificationPublishThreshold { get; set; }
+
+        /// <summary>
+        /// Max publish queue size
+        /// </summary>
+        [DataMember(Name = "publishQueueSize", Order = 15,
+            EmitDefaultValue = false)]
+        public uint? PublishQueueSize { get; set; }
+
+        /// <summary>
+        /// Desired Transport to use. If transport is
+        /// not registered the default (first) registered
+        /// transport is used (Publisher extension).
+        /// </summary>
+        [DataMember(Name = "transport", Order = 16,
+            EmitDefaultValue = false)]
+        public WriterGroupTransport? Transport { get; set; }
     }
 }

@@ -31,10 +31,10 @@ OPC Unified Architecture (UA), released in 2008, is a platform-independent, serv
 
 The [OPC Foundation](https://opcfoundation.org/) is a not-for-profit organization with more than 440 members. The goal of the organization is to use OPC specifications to facilitate multi-vendor, multi-platform, secure and reliable interoperability through:
 
-* Infrastructure
-* Specifications
-* Technology
-* Processes
+- Infrastructure
+- Specifications
+- Technology
+- Processes
 
 ### Why did Microsoft choose OPC UA as Industrial IoT Protocol?
 
@@ -44,13 +44,13 @@ Support for OPC UA helps lower the barrier for customers to achieve their goals 
 
 ### How can I learn more?
 
-* Visit the OPC Foundation [Website](https://opcfoundation.org/).
-* Browse version [1.04 of the OPC UA specification](https://reference.opcfoundation.org/v104/).
+- Visit the OPC Foundation [Website](https://opcfoundation.org/).
+- Browse version [1.04 of the OPC UA specification](https://reference.opcfoundation.org/v104/).
 
 ## Next steps
 
-* [Learn more about OPC Publisher](./opc-publisher/readme.md)
-* [Learn more about the Web API](./web-api/readme.md)
-* [Discover a server and browse its address space using the CLI](./web-api/tut-use-cli.md)
-* [Discover a server and browse its address space using Postman](./web-api/tut-use-postman.md)
-* [Release announcements](./release-announcement.md)
+- [Learn more about OPC Publisher](./opc-publisher/readme.md)
+- [Learn more about the Web API](./web-api/readme.md)
+- [Discover a server and browse its address space using the CLI](./web-api/tut-use-cli.md)
+- [Discover a server and browse its address space using Postman](./web-api/tut-use-postman.md)
+- [Release announcements](./release-announcement.md)

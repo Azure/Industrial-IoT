@@ -15,10 +15,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using System.Collections.Generic;
     using System.Data;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Builds event filter and query filters from a syntax tree.

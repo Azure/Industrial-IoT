@@ -133,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? HeartbeatInterval { get; set; }
 
         /// <summary>
-        /// Instruct the monitored item to skip the first received value
+        /// Instruct the monitored item to skip the first
+        /// received value (Publisher extension)
         /// </summary>
         [DataMember(Name = "skipFirst", Order = 17,
             EmitDefaultValue = false)]
@@ -145,5 +146,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "dataSetClassFieldId", Order = 18,
             EmitDefaultValue = false)]
         public Guid DataSetClassFieldId { get; set; }
+
+        /// <summary>
+        /// Try and perform a cyclic read using the client
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "samplingUsingCyclicRead", Order = 19,
+            EmitDefaultValue = false)]
+        public bool? SamplingUsingCyclicRead { get; set; }
+
+        /// <summary>
+        /// Try and register the node before sampling
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "registerNodeForSampling", Order = 20,
+            EmitDefaultValue = false)]
+        public bool? RegisterNodeForSampling { get; set; }
+
+        /// <summary>
+        /// Read the display name from the node
+        /// </summary>
+        [DataMember(Name = "readDisplayNameFromNode", Order = 21,
+            EmitDefaultValue = false)]
+        public bool? ReadDisplayNameFromNode { get; set; }
     }
 }

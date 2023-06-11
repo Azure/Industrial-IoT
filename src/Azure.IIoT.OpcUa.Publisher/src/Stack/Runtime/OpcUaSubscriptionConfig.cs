@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
         public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
+        public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
 
         /// <summary>
         /// Default values
@@ -44,6 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const bool DefaultSkipFirstDefault = false;
+        public const bool DefaultSamplingUsingCyclicReadDefault = false;
+        public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -52,12 +55,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         {
             if (options.UseDeferredAcknoledgements == null)
             {
-                options.UseDeferredAcknoledgements = GetBoolOrDefault(UseDeferredAcknoledgementsKey);
+                options.UseDeferredAcknoledgements = GetBoolOrDefault(
+                    UseDeferredAcknoledgementsKey, UseDeferredAcknoledgementsDefault);
             }
             if (options.DefaultHeartbeatInterval == null)
             {
                 options.DefaultHeartbeatInterval = GetDurationOrNull(
                     DefaultHeartbeatIntervalKey);
+            }
+            if (options.DefaultSamplingUsingCyclicRead == null)
+            {
+                options.DefaultSamplingUsingCyclicRead = GetBoolOrDefault(
+                    DefaultSamplingUsingCyclicReadKey, DefaultSamplingUsingCyclicReadDefault);
             }
             if (options.DefaultSkipFirst == null)
             {

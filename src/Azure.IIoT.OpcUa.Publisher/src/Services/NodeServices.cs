@@ -6,10 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -858,7 +858,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataEncoding = null
                     }
                 };
-                var response = await context.Session.Services.ReadAsync(request.Header.ToRequestHeader(),
+                var response = await context.Session.Services.ReadAsync(
+                    request.Header.ToRequestHeader(),
                     request.MaxAge?.TotalMilliseconds ?? 0,
                     request.TimestampsToReturn.ToStackType(),
                     nodesToRead, ct).ConfigureAwait(false);

@@ -28,19 +28,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? DataSetFieldName { get; set; }
 
         /// <summary>
+        /// Display name of the data set this item is part of.
+        /// Applicable only for events in sample mode at this point.
+        /// </summary>
+        public string? DataSetName { get; internal set; }
+
+        /// <summary>
         /// Node Id in string format as configured
         /// </summary>
         public string? NodeId { get; internal set; }
-
-        /// <summary>
-        /// Attribute monitored
-        /// </summary>
-        public uint AttributeId { get; internal set; }
-
-        /// <summary>
-        /// Display name
-        /// </summary>
-        public string? DisplayName { get; internal set; }
 
         /// <summary>
         /// Sequence number
@@ -51,10 +47,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Value of variable change notification
         /// </summary>
         public DataValue? Value { get; set; }
-
-        /// <summary>
-        /// Is heartbeat?
-        /// </summary>
-        public bool IsHeartbeat { get; set; }
     }
 }

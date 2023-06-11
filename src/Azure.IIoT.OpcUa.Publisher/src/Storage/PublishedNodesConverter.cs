@@ -107,8 +107,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
                             MessagingMode = item.WriterGroup.HeaderLayoutUri == null ? null :
                                 Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
-                            MessageType = item.WriterGroup.MessageType,
+                            MessageEncoding = item.WriterGroup.MessageType,
+                            WriterGroupTransport = item.WriterGroup.Transport,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
+                            MetaDataUpdateTime = null,
+                            BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
+                            BatchTriggerInterval = null,
+                            Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
+                            MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
+                            BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup = item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
                                 null : item.WriterGroup.WriterGroupId,
@@ -126,6 +133,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     Id = variable.PublishedVariableNodeId,
                                     DisplayName = variable.PublishedVariableDisplayName,
                                     DataSetFieldId = variable.Id,
+                                    AttributeId = variable.Attribute,
+                                    IndexRange = variable.IndexRange,
+                                    RegisterNode = variable.RegisterNodeForSampling,
+                                    FetchDisplayName = variable.ReadDisplayNameFromNode,
+                                    BrowsePath = variable.BrowsePath,
+                                    UseCyclicRead = variable.SamplingUsingCyclicRead,
                                     DiscardNew = variable.DiscardNew,
                                     QueueSize = variable.QueueSize,
                                     DataChangeTrigger = variable.DataChangeTrigger,
@@ -138,8 +151,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
                                         item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval,
                                     SkipFirst = variable.SkipFirst,
-                                    // MonitoringMode
-                                    //...
+
+                                    // MonitoringMode = variable.MonitoringMode,
+                                    // ...
 
                                     ExpandedNodeId = null,
                                     ConditionHandling = null,
@@ -159,11 +173,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     ConditionHandling = evt.ConditionHandling.Clone(),
                                     DataSetFieldId = evt.Id,
                                     DisplayName = evt.PublishedEventName,
+                                    FetchDisplayName = evt.ReadEventNameFromNode,
+                                    BrowsePath = evt.BrowsePath,
                                     DiscardNew = evt.DiscardNew,
                                     QueueSize = evt.QueueSize,
-                                    // BrowsePath =
-                                    // MonitoringMode
-                                    //...
+
+                                    // MonitoringMode = evt.MonitoringMode,
+                                    // ...
                                     DeadbandType = null,
                                     DataChangeTrigger = null,
                                     DataSetClassFieldId = Guid.Empty,
@@ -173,6 +189,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     HeartbeatIntervalTimespan = null,
                                     OpcSamplingInterval = null,
                                     OpcSamplingIntervalTimespan = null,
+                                    AttributeId = null,
+                                    RegisterNode = null,
+                                    UseCyclicRead = null,
+                                    IndexRange = null,
                                     OpcPublishingInterval = preferTimeSpan ? null : (int?)
                                         item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval?.TotalMilliseconds,
                                     OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
@@ -271,6 +291,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
+                                MaxKeepAliveCount = opcNodes.First().Header.MaxKeepAliveCount,
+                                Priority = opcNodes.First().Header.Priority,
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
                                 // ...
                             },
@@ -290,8 +312,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         HeartbeatInterval = node.Node.HeartbeatIntervalTimespan,
                                         QueueSize = node.Node.QueueSize,
                                         DiscardNew = node.Node.DiscardNew,
-                                        // BrowsePath =
-                                        // MonitoringMode
+                                        SamplingUsingCyclicRead = node.Node.UseCyclicRead,
+                                        Attribute = node.Node.AttributeId,
+                                        IndexRange = node.Node.IndexRange,
+                                        RegisterNodeForSampling = node.Node.RegisterNode,
+                                        BrowsePath = node.Node.BrowsePath,
+                                        ReadDisplayNameFromNode = node.Node.FetchDisplayName,
+                                        MonitoringMode = null,
+                                        SubstituteValue = null,
+                                        MetaDataProperties = null,
                                         SkipFirst = node.Node.SkipFirst,
                                         DataChangeTrigger = node.Node.DataChangeTrigger,
                                         DeadbandValue = node.Node.DeadbandValue,
@@ -308,8 +337,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         QueueSize = node.Node.QueueSize,
                                         DiscardNew = node.Node.DiscardNew,
                                         PublishedEventName = node.Node.DisplayName,
-                                        // BrowsePath =
-                                        // MonitoringMode
+                                        ReadEventNameFromNode = node.Node.FetchDisplayName,
+                                        BrowsePath = node.Node.BrowsePath,
+                                        MonitoringMode = null,
                                         TypeDefinitionId = node.Node.EventFilter?.TypeDefinitionId,
                                         SelectClauses = node.Node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
                                         WhereClause = node.Node.EventFilter?.WhereClause.Clone(),
@@ -330,15 +360,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
                     .Select(dataSetBatches => new WriterGroupModel
                     {
-                        MessageType = dataSetBatches.First.Header.MessageType,
+                        MessageType = dataSetBatches.First.Header.MessageEncoding,
+                        Transport = dataSetBatches.First.Header.WriterGroupTransport,
                         HeaderLayoutUri = dataSetBatches.First.Header.MessagingMode?.ToString(),
                         WriterGroupId = dataSetBatches.First.Source.Connection?.Group,
+                        NotificationPublishThreshold = dataSetBatches.First.Header.BatchSize,
+                        PublishingInterval = dataSetBatches.First.Header.GetNormalizedBatchTriggerInterval(),
                         DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel
                         {
                             DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
                                 dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
                             MetaDataUpdateTime =
-                                dataSet.Header.MetaDataUpdateTimeTimespan,
+                                dataSet.Header.GetNormalizedMetaDataUpdateTime(),
                             KeyFrameCount =
                                 dataSet.Header.DataSetKeyFrameCount,
                             DataSet = new PublishedDataSetModel
@@ -573,6 +606,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 .GetNormalizedSamplingInterval(),
                             QueueSize = node.QueueSize,
                             DiscardNew = node.DiscardNew,
+                            BrowsePath = node.BrowsePath,
+                            AttributeId = node.AttributeId,
+                            FetchDisplayName = node.FetchDisplayName,
+                            IndexRange = node.IndexRange,
+                            RegisterNode = node.RegisterNode,
+                            UseCyclicRead = node.UseCyclicRead,
                             SkipFirst = node.SkipFirst,
                             DataChangeTrigger = node.DataChangeTrigger,
                             DeadbandType = node.DeadbandType,
@@ -603,6 +642,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 QueueSize = node.QueueSize,
                                 SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
+                                BrowsePath = node.BrowsePath,
+                                AttributeId = node.AttributeId,
+                                FetchDisplayName = node.FetchDisplayName,
+                                IndexRange = node.IndexRange,
+                                RegisterNode = node.RegisterNode,
+                                UseCyclicRead = node.UseCyclicRead,
                                 DeadbandType = node.DeadbandType,
                                 DeadbandValue = node.DeadbandValue,
                                 DiscardNew = node.DiscardNew,

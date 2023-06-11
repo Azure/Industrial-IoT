@@ -1,21 +1,20 @@
-# Observability
+# Observability <!-- omit in toc -->
 
 [Home](./readme.md)
 
 ## Table Of Contents <!-- omit in toc -->
 
-- [Observability](#observability)
-  - [Logging](#logging)
-  - [Runtime diagnostics output](#runtime-diagnostics-output)
-  - [Available metrics](#available-metrics)
-  - [Metrics collector](#metrics-collector)
-  - [Metrics Dashboard](#metrics-dashboard)
-    - [Setup Steps](#setup-steps)
-      - [Create docker images](#create-docker-images)
-      - [Create IoT Edge modules](#create-iot-edge-modules)
-    - [View Prometheus dashboard](#view-prometheus-dashboard)
-    - [View Grafana dashboard](#view-grafana-dashboard)
-  - [Distributed Tracing](#distributed-tracing)
+- [Logging](#logging)
+- [Runtime diagnostics output](#runtime-diagnostics-output)
+- [Available metrics](#available-metrics)
+- [Metrics collector](#metrics-collector)
+- [Metrics Dashboard](#metrics-dashboard)
+  - [Setup Steps](#setup-steps)
+    - [Create docker images](#create-docker-images)
+    - [Create IoT Edge modules](#create-iot-edge-modules)
+  - [View Prometheus dashboard](#view-prometheus-dashboard)
+  - [View Grafana dashboard](#view-grafana-dashboard)
+- [Distributed Tracing](#distributed-tracing)
 
 ## Logging
 

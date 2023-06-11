@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

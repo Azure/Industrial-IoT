@@ -86,14 +86,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .As<IJsonSerializer>()
                         .ExternallyOwned();
 
-                    // Register data flow - source, encode, sink
-                    builder.RegisterType<WriterGroupDataFlow>()
+                    // Register data flow, source, encode
+                    builder.RegisterType<NetworkMessageSink>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<WriterGroupDataSource>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<NetworkMessageEncoder>()
-                        .AsImplementedInterfaces();
-                    builder.RegisterType<NetworkMessageSink>()
                         .AsImplementedInterfaces();
                 });
 

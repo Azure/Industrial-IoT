@@ -137,10 +137,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder)
         {
-            // Register publisher services
+            // Register publisher services and transports
             builder.AddPublisherServices();
 
-            // Register transport services
+            //
+            // Order is important here because we want
+            // to fall back in the reverse order for
+            // sending operational and discovery events!
+            //
+            builder.AddFileSystemEventClient(Configuration);
+            builder.AddHttpEventClient(Configuration);
+            builder.AddDaprClient(Configuration);
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
 

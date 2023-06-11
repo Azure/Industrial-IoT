@@ -88,6 +88,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? UseDeferredAcknoledgements { get; set; }
 
         /// <summary>
+        /// Always use cyclic reads for sampling
+        /// </summary>
+        public bool? DefaultSamplingUsingCyclicRead { get; set; }
+
+        /// <summary>
         /// set the default data change filter for monitored items. Default is
         /// status and value change triggering.
         /// </summary>

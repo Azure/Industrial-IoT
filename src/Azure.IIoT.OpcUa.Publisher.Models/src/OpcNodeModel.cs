@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -115,6 +116,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
         /// <summary>
+        /// Browse path from the node to reach the actual node
+        /// to monitor.
+        /// </summary>
+        [DataMember(Name = "BrowsePath", Order = 14,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<string>? BrowsePath { get; set; }
+
+        /// <summary>
+        /// Attribute id to read, defaults to Value.
+        /// </summary>
+        [DataMember(Name = "AttributeId", Order = 15,
+            EmitDefaultValue = false)]
+        public NodeAttribute? AttributeId { get; set; }
+
+        /// <summary>
+        /// Index range to read, default to null.
+        /// </summary>
+        [DataMember(Name = "IndexRange", Order = 16,
+            EmitDefaultValue = false)]
+        public string? IndexRange { get; set; }
+
+        /// <summary>
         /// Heartbeat interval in seconds
         /// </summary>
         [DataMember(Name = "HeartbeatInterval", Order = 20,
@@ -149,6 +172,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "OpcPublishingIntervalTimespan", Order = 24,
             EmitDefaultValue = false)]
         public TimeSpan? OpcPublishingIntervalTimespan { get; set; }
+
+        /// <summary>
+        /// Use cyclic read to sample.
+        /// </summary>
+        [DataMember(Name = "UseCyclicRead", Order = 25,
+            EmitDefaultValue = false)]
+        public bool? UseCyclicRead { get; set; }
+
+        /// <summary>
+        /// Register node for reading before sampling.
+        /// </summary>
+        [DataMember(Name = "RegisterNode", Order = 26,
+            EmitDefaultValue = false)]
+        public bool? RegisterNode { get; set; }
+
+        /// <summary>
+        /// Fetch display name from the node
+        /// </summary>
+        [DataMember(Name = "FetchDisplayName", Order = 27,
+            EmitDefaultValue = false)]
+        public bool? FetchDisplayName { get; set; }
 
         /// <summary>
         /// Expanded Node identifier (same as <see cref="Id"/>)

@@ -38,16 +38,16 @@ We provided backwards compatibility (e.g., you need to use the `-c`, `--strict` 
 
 However, if you were using the 2.8 micro services before then you must be aware of the following breaking changes:
 
-* Due to the simplification of the cloud services we **removed the IAI installer and Helm chart** support. It is still possible to deploy the web api container in AKS but we do not provide any tooling to do that.
-* OPC Publisher 2.9 **removes "orchestrated mode"**. This means you must [migrate your Cosmos DB job definitions](#migrating-cosmos-db-job-definitions) using the migration tooling.
-* We also removed the **telemetry processors** and the secondary event hub to read the proprietary data set messages from. To migrate change your event hub processor or ingestion code to read OPC Publisher telemetry messages directly from IoT Hub event hub compatible endpoint.
-* We retained Open API compatibility to the 2.8 cloud service API in the new OPC Publisher cloud web service's API. This includes using the same route paths as in the AKS hosted version of the 2.8 platform. However, the following **API changes** were made:
-  * OPC Publisher 2.9 does not support activation and deactivation of Endpoint Twins, which allowed OPC Twin endpoints to be addressed with a IoT Hub device id. Instead all API's must be invoked with a `ConnectionModel` parameter (`connection`) and the original request model.
-  * The concept of supervisor (the OPC Twin module instance) and discoverer (the OPC Discovery module instance) are completely equivalent to the publisher concept in 2.9. The supervisor, discovery, and publisher REST APIs have been retained for backwards compatibility and return the same information which is the twin of the Publisher module.  However, this also means there is no migration from OPC Twin or OPC Discovery to OPC Publisher 2.9, settings have to be re-applied.
-  * With removal of the database and orchestrated mode we changed the existing Publishing API to directly update the publisher configuration which has different performance characteristics than in 2.8 especially for the bulk publishing API.
-  * The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
-  * GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of a byte array in 2.8.
-  * OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
+- Due to the simplification of the cloud services we **removed the IAI installer and Helm chart** support. It is still possible to deploy the web api container in AKS but we do not provide any tooling to do that.
+- OPC Publisher 2.9 **removes "orchestrated mode"**. This means you must [migrate your Cosmos DB job definitions](#migrating-cosmos-db-job-definitions) using the migration tooling.
+- We also removed the **telemetry processors** and the secondary event hub to read the proprietary data set messages from. To migrate change your event hub processor or ingestion code to read OPC Publisher telemetry messages directly from IoT Hub event hub compatible endpoint.
+- We retained Open API compatibility to the 2.8 cloud service API in the new OPC Publisher cloud web service's API. This includes using the same route paths as in the AKS hosted version of the 2.8 platform. However, the following **API changes** were made:
+  - OPC Publisher 2.9 does not support activation and deactivation of Endpoint Twins, which allowed OPC Twin endpoints to be addressed with a IoT Hub device id. Instead all API's must be invoked with a `ConnectionModel` parameter (`connection`) and the original request model.
+  - The concept of supervisor (the OPC Twin module instance) and discoverer (the OPC Discovery module instance) are completely equivalent to the publisher concept in 2.9. The supervisor, discovery, and publisher REST APIs have been retained for backwards compatibility and return the same information which is the twin of the Publisher module.  However, this also means there is no migration from OPC Twin or OPC Discovery to OPC Publisher 2.9, settings have to be re-applied.
+  - With removal of the database and orchestrated mode we changed the existing Publishing API to directly update the publisher configuration which has different performance characteristics than in 2.8 especially for the bulk publishing API.
+  - The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
+  - GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of a byte array in 2.8.
+  - OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
 
 ### Migrating Cosmos DB job definitions
 

@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// Access to clients
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal interface IClientAccessor<T>
+    internal interface IClientAccessor<T> : IClientSampler<T>
     {
         /// <summary>
         /// Get a client handle. The client handle must be
