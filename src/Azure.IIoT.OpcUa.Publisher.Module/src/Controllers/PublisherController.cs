@@ -11,17 +11,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Threading.Tasks;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Publisher controller
+    /// </summary>
     [Version("_V2")]
     [Version("")]
     [RouterExceptionFilter]
-    public class RestartMethodsController : IMethodController
+    public class PublisherController : IMethodController
     {
         /// <summary>
         /// Support restarting the module
         /// </summary>
         /// <param name="logger"></param>
-        public RestartMethodsController(ILogger logger)
+        public PublisherController(ILogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

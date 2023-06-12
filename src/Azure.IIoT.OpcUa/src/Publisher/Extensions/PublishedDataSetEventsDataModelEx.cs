@@ -33,10 +33,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EventNotifier = model.EventNotifier,
                 PublishedEventName = model.PublishedEventName,
                 ReadEventNameFromNode = model.ReadEventNameFromNode,
-                WhereClause = model.WhereClause.Clone(),
+                Filter = model.Filter.Clone(),
                 QueueSize = model.QueueSize,
                 BrowsePath = model.BrowsePath,
-                SelectClauses = model.SelectClauses?
+                SelectedFields = model.SelectedFields?
                     .Select(f => f.Clone())
                     .ToList(),
                 ConditionHandling = model.ConditionHandling.Clone(),

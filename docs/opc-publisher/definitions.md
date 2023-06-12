@@ -1272,6 +1272,8 @@ Describing an entry in the node list
 
 |Name|Description|Schema|
 |---|---|---|
+|**AttributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
+|**BrowsePath**  <br>*optional*|Browse path from the node to reach the actual node<br>to monitor.|< string > array|
 |**ConditionHandling**  <br>*optional*||[ConditionHandlingOptionsModel](definitions.md#conditionhandlingoptionsmodel)|
 |**DataChangeTrigger**  <br>*optional*||[DataChangeTriggerType](definitions.md#datachangetriggertype)|
 |**DataSetClassFieldId**  <br>*optional*|The identifier of the field in the dataset class.<br>Allows correlation to the data set class.|string (uuid)|
@@ -1282,15 +1284,19 @@ Describing an entry in the node list
 |**DisplayName**  <br>*optional*|Display name|string|
 |**EventFilter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
 |**ExpandedNodeId**  <br>*optional*|Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)|string|
+|**FetchDisplayName**  <br>*optional*|Fetch display name from the node|boolean|
 |**HeartbeatInterval**  <br>*optional*|Heartbeat interval in seconds|integer (int32)|
 |**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
 |**Id**  <br>*optional*|Node Identifier|string|
+|**IndexRange**  <br>*optional*|Index range to read, default to null.|string|
 |**OpcPublishingInterval**  <br>*optional*|Publishing interval in milliseconds|integer (int32)|
 |**OpcPublishingIntervalTimespan**  <br>*optional*|OpcPublishingInterval as TimeSpan.|string (date-span)|
 |**OpcSamplingInterval**  <br>*optional*|Sampling interval in milliseconds|integer (int32)|
 |**OpcSamplingIntervalTimespan**  <br>*optional*|OpcSamplingInterval as TimeSpan.|string (date-span)|
 |**QueueSize**  <br>*optional*|Queue Size for the monitored item on the server.<br>Specifies how many values are queued on the server<br>before undelivered ones are discarded.|integer (int64)|
+|**RegisterNode**  <br>*optional*|Register node for reading before sampling.|boolean|
 |**SkipFirst**  <br>*optional*|Do not send the first value that is always provided<br>by the server when the monitored item is created.|boolean|
+|**UseCyclicRead**  <br>*optional*|Use cyclic read to sample.|boolean|
 
 
 <a name="operationcontextmodel"></a>
@@ -1528,6 +1534,9 @@ Contains the nodes which should be published
 
 |Name|Description|Schema|
 |---|---|---|
+|**BatchSize**  <br>*optional*|Send network messages when the notification queue<br>exceeds this number. Causes this many notifications<br>to be added to network messages|integer (int64)|
+|**BatchTriggerInterval**  <br>*optional*|Send network messages at the specified publishing<br>interval.|integer (int32)|
+|**BatchTriggerIntervalTimespan**  <br>*optional*|Send network messages at the specified publishing<br>interval.<br>Takes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval<br>if defined.|string (date-span)|
 |**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
 |**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
 |**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
@@ -1540,7 +1549,8 @@ Contains the nodes which should be published
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointUrl**  <br>*optional*|The endpoint URL of the OPC UA server.|string|
 |**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
-|**MessageType**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
+|**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
+|**MessageEncoding**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
 |**MessagingMode**  <br>*optional*||[MessagingMode](definitions.md#messagingmode)|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
 |**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
@@ -1549,8 +1559,10 @@ Contains the nodes which should be published
 |**OpcAuthenticationPassword**  <br>*optional*|plain password|string|
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+|**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+|**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
 
 
 <a name="publishednodesresponsemodel"></a>
@@ -2287,6 +2299,13 @@ Result of attribute write
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
 |**results**  <br>*optional*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
+
+
+<a name="writergrouptransport"></a>
+### WriterGroupTransport
+Desired writer group transport
+
+*Type* : enum (IoTHub, Mqtt, Dapr, Http, FileSystem)
 
 
 <a name="x509certificatechainmodel"></a>

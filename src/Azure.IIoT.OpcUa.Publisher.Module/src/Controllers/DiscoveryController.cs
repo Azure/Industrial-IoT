@@ -14,7 +14,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Discovery methods controller
+    /// <para>OPC UA and network discovery related API.</para>
+    /// <para>
+    /// The method name for all transports other than HTTP (which uses the shown
+    /// HTTP methods and resource uris) is the name of the subsection header.
+    /// To use the version specific method append "_V1" or "_V2" to the method
+    /// </para>
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
@@ -24,14 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/discovery")]
     [ApiController]
-    public class DiscoveryMethodsController : ControllerBase, IMethodController
+    public class DiscoveryController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
-        public DiscoveryMethodsController(INetworkDiscovery discover,
+        public DiscoveryController(INetworkDiscovery discover,
             IServerDiscovery servers)
         {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
@@ -39,11 +44,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Find server with endpoint
+        /// FindServer
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <remarks>
+        /// Find servers matching the specified endpoint query spec.
+        /// </remarks>
+        /// <param name="endpoint">The endpoint query specifying the
+        /// matching criteria for the discovered endpoints.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The application information of a found server.
+        /// Endpoints are only included in the response if they match
+        /// the query specification. If no server is found the call
+        /// returns 404 NotFound error.
+        /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
         /// is <c>null</c>.</exception>
         [HttpPost("findserver")]
@@ -55,11 +68,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Start server registration
+        /// Register
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Start server registration. The results of the registration
+        /// are published as events to the default event transport.
+        /// </remarks>
+        /// <param name="request">Contains all information to perform
+        /// the registration request including discovery url to use.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>Returns true if the registration request was
+        /// processed.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("register")]
@@ -72,11 +91,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Discover application
+        /// Discover
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Start network discovery using the provided discovery request
+        /// configuration. The discovery results are published to the
+        /// configured default event transport.
+        /// </remarks>
+        /// <param name="request">The discovery configuration to use
+        /// during the discovery run.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>Returns true if the discovery operation started.
+        /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost]
@@ -89,11 +115,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Cancel discovery
+        /// Cancel
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Cancel a discovery run that is ongoing using the discovery
+        /// request token specified in the discover operation.
+        /// </remarks>
+        /// <param name="request">The information needed to cancel the
+        /// discovery operation.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>Returns true if the cancellation request was processed.
+        /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("cancel")]

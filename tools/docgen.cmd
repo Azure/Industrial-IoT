@@ -66,7 +66,7 @@ echo swagger2markup.separatedDefinitionsEnabled=false           >> config.proper
 echo swagger2markup.separatedOperationsEnabled=false            >> config.properties
 docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:1.3.1 convert -i /opt/openapi.json -d /opt -c /opt/config.properties
 if exist security_save.md move security_save.md security.md
-if exist paths.md type paths.md >> api.md
+if exist paths.md type paths.md > api.md
 if exist paths.md del /f paths.md
 if exist overview.md del /f overview.md
 if exist config.properties del /f config.properties

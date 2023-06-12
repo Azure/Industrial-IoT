@@ -26,8 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
-    using DotNetty.Common.Utilities;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -493,7 +491,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     TriggerConnectionEvent(ConnectionEvent.Disconnect);
                 }
             }
-
             else if (_tokens.TryGetValue(token, out var cts))
             {
                 //
@@ -827,7 +824,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var attempt = 0;
             foreach (var endpointUrl in endpointUrlCandidates)
             {
-                await CloseSessionAsync().ConfigureAwait(false); // Ensure any previous session is disposed here.
+                // Ensure any previous session is disposed here.
+                await CloseSessionAsync().ConfigureAwait(false);
                 ct.ThrowIfCancellationRequested();
                 try
                 {
@@ -1343,8 +1341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         NotifyAll(nodesToRead, error.Code);
                     }
                 }
-                static void NotifyAll(ReadValueIdCollection nodesToRead,
-                    uint statusCode)
+                static void NotifyAll(ReadValueIdCollection nodesToRead, uint statusCode)
                 {
                     var dataValue = new DataValue(statusCode);
                     nodesToRead.ForEach(i => ((Action<DataValue>)i.Handle)(

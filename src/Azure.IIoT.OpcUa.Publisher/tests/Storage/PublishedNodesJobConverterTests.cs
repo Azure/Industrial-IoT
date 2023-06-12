@@ -1165,7 +1165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(2000, j
              .DataSetWriters.Single()
              .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
-             .SamplingInterval.Value.TotalMilliseconds);
+             .SamplingIntervalHint.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -1633,7 +1633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
             Assert.Single(j.DataSetWriters, dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Any(
-                    p => TimeSpan.FromMinutes(15) == p.SamplingInterval));
+                    p => TimeSpan.FromMinutes(15) == p.SamplingIntervalHint));
             Assert.Equal(3, j.DataSetWriters.Sum(dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
@@ -1683,7 +1683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval));
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
-                    p => Assert.Null(p.SamplingInterval)));
+                    p => Assert.Null(p.SamplingIntervalHint)));
             Assert.All(j.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
@@ -1749,7 +1749,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
-                    p => Assert.Null(p.SamplingInterval)));
+                    p => Assert.Null(p.SamplingIntervalHint)));
             Assert.All(j.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
@@ -1826,27 +1826,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("i=2258", model.EventNotifier);
 
             // Check select clauses
-            Assert.Single(model.SelectClauses);
-            Assert.Equal("i=2041", model.SelectClauses[0].TypeDefinitionId);
-            Assert.Single(model.SelectClauses[0].BrowsePath);
-            Assert.Equal("EventId", model.SelectClauses[0].BrowsePath[0]);
-            Assert.Equal(NodeAttribute.BrowseName, model.SelectClauses[0].AttributeId.Value);
-            Assert.Equal("5:20", model.SelectClauses[0].IndexRange);
-            Assert.NotNull(model.WhereClause);
-            Assert.Single(model.WhereClause.Elements);
-            Assert.Equal(FilterOperatorType.OfType, model.WhereClause.Elements[0].FilterOperator);
-            Assert.Single(model.WhereClause.Elements[0].FilterOperands);
-            Assert.Equal("i=2041", model.WhereClause.Elements[0].FilterOperands[0].NodeId);
-            Assert.Equal("ns=2;i=235", model.WhereClause.Elements[0].FilterOperands[0].Value);
+            Assert.Single(model.SelectedFields);
+            Assert.Equal("i=2041", model.SelectedFields[0].TypeDefinitionId);
+            Assert.Single(model.SelectedFields[0].BrowsePath);
+            Assert.Equal("EventId", model.SelectedFields[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.SelectedFields[0].AttributeId.Value);
+            Assert.Equal("5:20", model.SelectedFields[0].IndexRange);
+            Assert.NotNull(model.Filter);
+            Assert.Single(model.Filter.Elements);
+            Assert.Equal(FilterOperatorType.OfType, model.Filter.Elements[0].FilterOperator);
+            Assert.Single(model.Filter.Elements[0].FilterOperands);
+            Assert.Equal("i=2041", model.Filter.Elements[0].FilterOperands[0].NodeId);
+            Assert.Equal("ns=2;i=235", model.Filter.Elements[0].FilterOperands[0].Value);
 
             // Check where clause
-            Assert.Single(model.WhereClause.Elements[0].FilterOperands[0].BrowsePath);
-            Assert.Equal("EventId", model.WhereClause.Elements[0].FilterOperands[0].BrowsePath[0]);
-            Assert.Equal(NodeAttribute.BrowseName, model.WhereClause.Elements[0].FilterOperands[0].AttributeId.Value);
-            Assert.Equal("5:20", model.WhereClause.Elements[0].FilterOperands[0].IndexRange);
-            Assert.NotNull(model.WhereClause.Elements[0].FilterOperands[0].Index);
-            Assert.Equal((uint)10, model.WhereClause.Elements[0].FilterOperands[0].Index.Value);
-            Assert.Equal("Test", model.WhereClause.Elements[0].FilterOperands[0].Alias);
+            Assert.Single(model.Filter.Elements[0].FilterOperands[0].BrowsePath);
+            Assert.Equal("EventId", model.Filter.Elements[0].FilterOperands[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.Filter.Elements[0].FilterOperands[0].AttributeId.Value);
+            Assert.Equal("5:20", model.Filter.Elements[0].FilterOperands[0].IndexRange);
+            Assert.NotNull(model.Filter.Elements[0].FilterOperands[0].Index);
+            Assert.Equal((uint)10, model.Filter.Elements[0].FilterOperands[0].Index.Value);
+            Assert.Equal("Test", model.Filter.Elements[0].FilterOperands[0].Alias);
         }
 
         [Fact]
@@ -1949,15 +1949,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotEmpty(writers[3].DataSet.DataSetSource.PublishedEvents.PublishedData);
             var eventModel = writers[3].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2253", eventModel.EventNotifier);
-            Assert.Single(eventModel.SelectClauses);
-            Assert.Equal("i=2041", eventModel.SelectClauses[0].TypeDefinitionId);
-            Assert.Single(eventModel.SelectClauses[0].BrowsePath);
-            Assert.Equal("EventId", eventModel.SelectClauses[0].BrowsePath[0]);
-            Assert.NotNull(eventModel.WhereClause);
-            Assert.Single(eventModel.WhereClause.Elements);
-            Assert.Equal(FilterOperatorType.OfType, eventModel.WhereClause.Elements[0].FilterOperator);
-            Assert.Single(eventModel.WhereClause.Elements[0].FilterOperands);
-            Assert.Equal("ns=2;i=235", eventModel.WhereClause.Elements[0].FilterOperands[0].Value);
+            Assert.Single(eventModel.SelectedFields);
+            Assert.Equal("i=2041", eventModel.SelectedFields[0].TypeDefinitionId);
+            Assert.Single(eventModel.SelectedFields[0].BrowsePath);
+            Assert.Equal("EventId", eventModel.SelectedFields[0].BrowsePath[0]);
+            Assert.NotNull(eventModel.Filter);
+            Assert.Single(eventModel.Filter.Elements);
+            Assert.Equal(FilterOperatorType.OfType, eventModel.Filter.Elements[0].FilterOperator);
+            Assert.Single(eventModel.Filter.Elements[0].FilterOperands);
+            Assert.Equal("ns=2;i=235", eventModel.Filter.Elements[0].FilterOperands[0].Value);
 
             Assert.NotEmpty(writers[4].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Empty(writers[4].DataSet.DataSetSource.PublishedEvents.PublishedData);
@@ -2089,8 +2089,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var eventModel = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("DisplayName2253", eventModel.PublishedEventName);
             Assert.Equal("i=2253", eventModel.EventNotifier);
-            Assert.Equal(11, eventModel.SelectClauses.Count);
-            Assert.All(eventModel.SelectClauses, x =>
+            Assert.Equal(11, eventModel.SelectedFields.Count);
+            Assert.All(eventModel.SelectedFields, x =>
             {
                 Assert.Equal("i=2041", x.TypeDefinitionId);
                 Assert.Single(x.BrowsePath);
@@ -2107,7 +2107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 "Severity",
                 "2:CycleId",
                 "2:CurrentStep"
-            }, eventModel.SelectClauses.Select(x => x.BrowsePath[0]));
+            }, eventModel.SelectedFields.Select(x => x.BrowsePath[0]));
         }
 
         [Fact]

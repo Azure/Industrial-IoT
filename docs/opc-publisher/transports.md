@@ -54,7 +54,9 @@ OPC Publisher 2.9 can be connected to an MQTT broker using MQTT 3.11 and MQTT 5 
 
 MQTT v5 supports RPC which allows a client to call the OPC Publisher [API](./api.md) over MQTT. Like in the case of [IoT Edge](#azure-iot-hub-and-azure-iot-edge), streaming HDA and browse results are not supported.
 
-OPC Publisher supports rich configuration of topic templates that are used when publishing data to MQTT broker, or to specify the root of the RPC server endpoint on which API requests are received. For more information see the [command line](./commandline.md) documentation for the `--rtt`, `--mtt`, `--ett`, `--ttt` and `--mdt` arguments.
+OPC Publisher supports rich configuration of topic templates that are used when publishing data to MQTT broker, or to specify the root of the RPC server endpoint on which API requests are received. For more information how to configure MQTT topic trees see the [command line](./commandline.md) documentation for the `--rtt`, `--mtt`, `--ett`, `--ttt` and `--mdt` arguments.
+
+OPC Publisher will subscribe to the configured RPC server topic and handle method calls. The sub topic name is the name of the method. The response topic is specified as part of the MQTTv5 message header. Upon handling the method call the response payload will be published to the response topic. The request and response payload as well as the method name are defined in the API documentation.
 
 The following table shows the supported features of the MQTT transport implementation inside OPC Publisher:
 

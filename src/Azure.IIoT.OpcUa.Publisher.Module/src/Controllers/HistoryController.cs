@@ -15,7 +15,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// History methods controller
+    /// <para>
+    /// This section lists all OPC UA HDA or Historian related API provided by
+    /// OPC Publisher.
+    /// </para>
+    /// <para>
+    /// The method name for all transports other than HTTP (which uses the shown
+    /// HTTP methods and resource uris) is the name of the subsection header.
+    /// To use the version specific method append "_V1" or "_V2" to the method
+    /// name.
+    /// </para>
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
@@ -25,23 +34,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/history")]
     [ApiController]
-    public class HistoryMethodsController : ControllerBase, IMethodController
+    public class HistoryController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public HistoryMethodsController(IHistoryServices<ConnectionModel> historian)
+        public HistoryController(IHistoryServices<ConnectionModel> historian)
         {
             _history = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
         /// <summary>
-        /// Replace events
+        /// HistoryReplaceEvents
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Replace events in a timeseries in the historian of the OPC UA server. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to replace with in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/replace")]
@@ -57,11 +73,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Insert events
+        /// HistoryInsertEvents
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Insert event entries into a specified timeseries of the historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to insert into the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/insert")]
@@ -77,11 +100,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Upsert events
+        /// HistoryUpsertEvents
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Upsert events into a time series of the opc server historian.  See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to upsert into the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/upsert")]
@@ -97,11 +127,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Delete events
+        /// HistoryDeleteEvents
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Delete event entries in a timeseries of the server historian.  See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to delete in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/delete")]
@@ -117,11 +154,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Delete values at specified times
+        /// HistoryDeleteValuesAtTimes
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Delete value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to delete in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete/attimes")]
@@ -137,11 +181,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Delete modified values
+        /// HistoryDeleteModifiedValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Delete value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to delete in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete/modified")]
@@ -157,11 +208,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Delete values
+        /// HistoryDeleteValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Delete value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to delete in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete")]
@@ -177,11 +235,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Replace values
+        /// HistoryReplaceValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Replace value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to replace with in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/replace")]
@@ -197,11 +262,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Insert values
+        /// HistoryInsertValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Insert value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to insert into the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/insert")]
@@ -217,11 +289,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Upsert values
+        /// HistoryUpsertValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Upsert value change entries in a timeseries of the server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to upsert into the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/upsert")]
@@ -237,11 +316,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read historic events
+        /// HistoryReadEvents
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read an event timeseries inside the OPC UA server historian. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The events read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/read/first")]
@@ -257,11 +343,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read next set of events
+        /// HistoryReadEventsNext
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Continue reading an event timeseries inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The continuation from a previous read request.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The events read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/read/next")]
@@ -276,11 +369,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read historic values
+        /// HistoryReadValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read a data change timeseries inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The values read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first")]
@@ -296,11 +396,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read historic values at times
+        /// HistoryReadValuesAtTimes
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read parts of a timeseries inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The values read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/attimes")]
@@ -316,11 +423,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read processed historic values
+        /// HistoryReadProcessedValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read processed timeseries data inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The processed values read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/processed")]
@@ -336,11 +450,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read modified values
+        /// HistoryReadModifiedValues
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read modified changes in a timeseries inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The modified values read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/modified")]
@@ -356,11 +477,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read next set of historic values
+        /// HistoryReadValuesNext
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Continue reading a timeseries inside the OPC UA server historian.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The continuation token from a previous read operation.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The values read from the historian.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/next")]
@@ -375,11 +503,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stream values
+        /// HistoryStreamValues (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read an entire timeseries from an OPC UA server historian as stream.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The values read from the historian as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read")]
@@ -394,11 +529,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stream modified historic values
+        /// HistoryStreamModifiedValues (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read an entire modified series from an OPC UA server historian as stream.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The modified values read from the historian as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/modified")]
@@ -413,11 +555,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stream historic values at times
+        /// HistoryStreamValuesAtTimes (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read specific timeseries data from an OPC UA server historian as stream.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The values read from the historian as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/attimes")]
@@ -432,11 +581,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stream processed historic values
+        /// HistoryStreamProcessedValues (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read processed timeseries data from an OPC UA server historian as stream.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The values to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The processed values read from the historian as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/processed")]
@@ -451,11 +607,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stream modified historic events
+        /// HistoryStreamEvents (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read an entire event timeseries from an OPC UA server historian as stream.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/">
+        /// the relevant section of the OPC UA reference specification</a> and
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// respective service documentation</a> for more information.
+        /// </remarks>
+        /// <param name="request">The events to read in the timeseries.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The events read from the historian as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("events/read")]

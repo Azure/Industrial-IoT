@@ -224,6 +224,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
+            // If we get here we are online
+            _online = true;
+
             // Lock access to the subscription state while we are applying the state.
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -235,6 +238,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception e)
                 {
+                    _online = false; // Set true when retry comes back in
+
                     _logger.LogDebug(e,
                         "Failed to apply state to Subscription {Subscription} in session {Session}...",
                         this, handle);
@@ -356,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     SubscriptionId = Id,
                     SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = messageType,
-                    Timestamp = DateTime.UtcNow
+                    PublishTimestamp = DateTime.UtcNow
                 };
             }
         }
@@ -1337,7 +1342,7 @@ Actual (revised) state/desired state:
                         EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         SubscriptionName = Name,
-                        Timestamp = publishTime,
+                        PublishTimestamp = publishTime,
                         SubscriptionId = Id,
                         MessageType = MessageType.KeepAlive
                     };
@@ -1387,10 +1392,10 @@ Actual (revised) state/desired state:
                                 SubscriptionId = Id,
                                 SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                                 MessageType = MessageType.Event,
-                                Timestamp = eventFieldList.Message.PublishTime
+                                PublishTimestamp = eventFieldList.Message.PublishTime
                             };
 
-                            wrapper.TryGetMonitoredItemNotifications(message.Timestamp, eventFieldList, message.Notifications);
+                            wrapper.TryGetMonitoredItemNotifications(message.PublishTimestamp, eventFieldList, message.Notifications);
 
                             if (message.Notifications.Count > 0)
                             {
@@ -1472,7 +1477,7 @@ Actual (revised) state/desired state:
                         ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SubscriptionName = Name,
-                        Timestamp = publishTime,
+                        PublishTimestamp = publishTime,
                         SubscriptionId = Id,
                         SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         MessageType = MessageType.KeepAlive
@@ -1501,7 +1506,7 @@ Actual (revised) state/desired state:
 
                         var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
                         var sequenceNumber = item.Message.SequenceNumber;
-                        message.Timestamp = item.Message.PublishTime;
+                        message.PublishTimestamp = item.Message.PublishTime;
 
                         // All notifications have the same message and thus sequence number
                         if (sequenceNumber == 1)
@@ -1522,11 +1527,11 @@ Actual (revised) state/desired state:
 
                         _logger.LogTrace("Data change for subscription: {Subscription}, sequence#: " +
                             "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
-                            subscription.DisplayName, sequenceNumber, isKeepAlive, message.Timestamp);
+                            subscription.DisplayName, sequenceNumber, isKeepAlive, message.PublishTimestamp);
 
                         if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
                         {
-                            wrapper.TryGetMonitoredItemNotifications(message.Timestamp, item, message.Notifications);
+                            wrapper.TryGetMonitoredItemNotifications(message.PublishTimestamp, item, message.Notifications);
                         }
                         else
                         {
@@ -1534,7 +1539,7 @@ Actual (revised) state/desired state:
                                 "for DataChange received for subscription {Subscription} + " +
                                 "{SequenceNumber}, publishTime {PublishTime}",
                                 item.ClientHandle, this,
-                                sequenceNumber, message.Timestamp);
+                                sequenceNumber, message.PublishTimestamp);
                         }
                     }
                 }
@@ -1635,7 +1640,10 @@ Actual (revised) state/desired state:
             public string? ApplicationUri { get; internal set; }
 
             /// <inheritdoc/>
-            public DateTime Timestamp { get; internal set; }
+            public DateTime PublishTimestamp { get; internal set; }
+
+            /// <inheritdoc/>
+            public uint? PublishSequenceNumber => _sequenceNumber;
 
             /// <inheritdoc/>
             public IServiceMessageContext? ServiceMessageContext { get; internal set; }

@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 MonitoringMode = publishedVariable.MonitoringMode,
                 FetchDataSetFieldName = publishedVariable.ReadDisplayNameFromNode
                     ?? options?.ResolveDisplayName,
-                SamplingInterval = publishedVariable.SamplingInterval
+                SamplingInterval = publishedVariable.SamplingIntervalHint
                     ?? options?.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
                     ?? options?.DefaultHeartbeatInterval,

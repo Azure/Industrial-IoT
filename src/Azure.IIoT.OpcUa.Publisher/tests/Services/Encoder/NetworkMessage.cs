@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Writer = writer,
                         WriterGroup = writerGroup
                     },
-                    Timestamp = DateTime.UtcNow,
+                    PublishTimestamp = DateTime.UtcNow,
                     MetaData = null,
                     MessageType = eventList ? Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
                     ServiceMessageContext = new ServiceMessageContext(),

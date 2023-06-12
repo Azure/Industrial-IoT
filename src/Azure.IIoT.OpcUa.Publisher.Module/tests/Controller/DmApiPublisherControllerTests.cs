@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             CopyContent("Resources/empty_pn.json", _tempFile);
             using var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             using var configService = InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -227,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             CopyContent("Resources/empty_pn.json", _tempFile);
             using var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
@@ -492,13 +492,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <param name="predicate"></param>
-        private async Task<(PublisherConfigurationService, PublisherMethodsController)> PublishNodeAsync(string publishedNodesFile,
+        private async Task<(PublisherConfigurationService, ConfigurationController)> PublishNodeAsync(string publishedNodesFile,
             Func<PublishedNodesEntryModel, bool> predicate = null)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -521,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             using var configService = InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
@@ -573,7 +573,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             using var configService = InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(configService);
+            var methodsController = new ConfigurationController(configService);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController

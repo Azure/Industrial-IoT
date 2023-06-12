@@ -16,7 +16,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Publisher methods controller
+    /// <para>
+    /// This section contains the API to configure OPC Publisher.
+    /// </para>
+    /// <para>
+    /// The method name for all transports other than HTTP (which uses the shown
+    /// HTTP methods and resource uris) is the name of the subsection header.
+    /// To use the version specific method append "_V1" or "_V2" to the method
+    /// name.
+    /// </para>
     /// </summary>
     [Version("_V2")]
     [Version("_V1")]
@@ -26,23 +34,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/configuration")]
     [ApiController]
-    public class PublisherMethodsController : ControllerBase, IMethodController
+    public class ConfigurationController : ControllerBase, IMethodController
     {
         /// <summary>
-        /// Create controller
+        /// Create publisher methods controller
         /// </summary>
         /// <param name="configServices"></param>
-        public PublisherMethodsController(IConfigurationServices configServices)
+        public ConfigurationController(IConfigurationServices configServices)
         {
             _configServices = configServices ??
                 throw new ArgumentNullException(nameof(configServices));
         }
 
         /// <summary>
-        /// Start publishing values from a node
+        /// PublishStart
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// Start publishing values from a node ona server.
+        /// </remarks>
+        /// <param name="request">The server and node to publish.</param>
+        /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("start")]
@@ -57,10 +68,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Stop publishing values from a node
+        /// PublishStop
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// Stop publishing values from a node on the specified server.
+        /// </remarks>
+        /// <param name="request">The node to stop publishing</param>
+        /// <returns>The result of the stop operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("stop")]
@@ -75,10 +89,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Configure node values to publish and unpublish in bulk
+        /// PublishBulk
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// Configure node values to publish and unpublish in bulk
+        /// </remarks>
+        /// <param name="request">The nodes to publish or unpublish.</param>
+        /// <returns>The result for each operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("bulk")]
@@ -93,10 +110,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get all published nodes for a server endpoint.
+        /// PublishList
         /// </summary>
+        /// <remarks>
+        /// Get all published nodes for a server endpoint.
+        /// </remarks>
         /// <param name="request"></param>
-        /// <returns></returns>
+        /// <returns>The list of published nodes.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("list")]
@@ -111,10 +131,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for PublishNodes direct method
+        /// [PublishNodes](./directmethods.md#publishnodes_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// PublishNodes enables a client to add a set of nodes to be published.
+        /// Further information is provided in the OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The request contains the nodes to publish.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("nodes")]
@@ -127,10 +152,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for UnpublishNodes direct method
+        /// [UnpublishNodes](./directmethods.md#unpublishnodes_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// UnpublishNodes method enables a client to remove nodes from a previously
+        /// configured DataSetWriter. Further information is provided in the
+        /// OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The request payload specifying the nodes to
+        /// unpublish.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish")]
@@ -143,10 +175,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for UnpublishAllNodes direct method
+        /// [UnpublishAllNodes](./directmethods.md#unpublishallnodes_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Unpublish all specified nodes or all nodes in the publisher
+        /// configuration.  Further information is provided in the
+        /// OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The request contains the parts of the
+        /// configuration to remove.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish/all")]
@@ -159,10 +198,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for AddOrUpdateEndpoints direct method
+        /// [AddOrUpdateEndpoints](./directmethods.md#addorupdateendpoints_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Add or update endpoint configuration and nodes on a server.
+        /// Further information is provided in the OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The parts of the configuration to add or
+        /// update.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPatch]
@@ -176,10 +221,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for GetConfiguredEndpoints direct method
+        /// [GetConfiguredEndpoints](./directmethods.md#getconfigurednodesonendpoint_v)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Get a list of nodes under a configured endpoint in the configuration.
+        /// Further information is provided in the OPC Publisher documentation.
+        /// configuration.
+        /// </remarks>
+        /// <param name="request">Optional but can be spcified to include
+        /// the nodes in the response.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         [HttpGet]
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
             [FromQuery] GetConfiguredEndpointsRequestModel? request = null, CancellationToken ct = default)
@@ -193,10 +245,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for SetConfiguredEndpoints direct method
+        /// [SetConfiguredEndpoints](./directmethods.md#setconfiguredendpoints_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Enables clients to update the entire published nodes configuration
+        /// in one call. This includes clearing the existing configuration.
+        /// Further information is provided in the OPC Publisher documentation.
+        /// configuration.
+        /// </remarks>
+        /// <param name="request">The new published nodes configuration</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPut]
@@ -210,10 +269,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for GetConfiguredNodesOnEndpoint direct method
+        /// [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Get the nodes of a published nodes entry object returned earlier from
+        /// a call to GetConfiguredEndpoints. Further information is provided in
+        /// the OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The entry model from a call to GetConfiguredEndpoints
+        /// for which to gather the nodes.</param>
         /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("endpoints/list/nodes")]
@@ -230,9 +296,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Handler for GetDiagnosticInfo direct method
+        /// [GetDiagnosticInfo](./directmethods.md#getdiagnosticinfo_v1)
         /// </summary>
+        /// <remarks>
+        /// Get the list of diagnostics info for all dataset writers in the OPC Publisher
+        /// at the point the call is received. Further information is provided in the
+        /// OPC Publisher documentation.
+        /// </remarks>
         /// <param name="ct"></param>
+        /// <returns>The list of diagnostic infos for currently active writers.</returns>
         [HttpPost("diagnostics")]
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default)

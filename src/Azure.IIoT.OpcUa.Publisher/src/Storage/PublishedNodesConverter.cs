@@ -144,8 +144,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     DataChangeTrigger = variable.DataChangeTrigger,
                                     HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
                                     HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
-                                    OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingInterval?.TotalMilliseconds,
-                                    OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingInterval,
+                                    OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
+                                    OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingIntervalHint,
                                     OpcPublishingInterval = preferTimeSpan ? null : (int?)
                                         item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval?.TotalMilliseconds,
                                     OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
@@ -167,8 +167,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     EventFilter = new EventFilterModel
                                     {
                                         TypeDefinitionId = evt.TypeDefinitionId,
-                                        SelectClauses = evt.SelectClauses?.Select(s => s.Clone()).ToList(),
-                                        WhereClause = evt.WhereClause.Clone()
+                                        SelectClauses = evt.SelectedFields?.Select(s => s.Clone()).ToList(),
+                                        WhereClause = evt.Filter.Clone()
                                     },
                                     ConditionHandling = evt.ConditionHandling.Clone(),
                                     DataSetFieldId = evt.Id,
@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         // At this point in time the next values are ensured to be filled in with
                                         // the appropriate value: configured or default
                                         PublishedVariableDisplayName = node.Node.DisplayName,
-                                        SamplingInterval = node.Node.OpcSamplingIntervalTimespan,
+                                        SamplingIntervalHint = node.Node.OpcSamplingIntervalTimespan,
                                         HeartbeatInterval = node.Node.HeartbeatIntervalTimespan,
                                         QueueSize = node.Node.QueueSize,
                                         DiscardNew = node.Node.DiscardNew,
@@ -341,8 +341,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         BrowsePath = node.Node.BrowsePath,
                                         MonitoringMode = null,
                                         TypeDefinitionId = node.Node.EventFilter?.TypeDefinitionId,
-                                        SelectClauses = node.Node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
-                                        WhereClause = node.Node.EventFilter?.WhereClause.Clone(),
+                                        SelectedFields = node.Node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
+                                        Filter = node.Node.EventFilter?.WhereClause.Clone(),
                                         ConditionHandling = node.Node.ConditionHandling.Clone()
                                     }).ToList()
                             }

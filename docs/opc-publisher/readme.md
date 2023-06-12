@@ -20,14 +20,14 @@ Here you find information about
 - [How OPC Publisher works](#how-opc-publisher-works)
 - [Configuring OPC Publisher](#configuring-opc-publisher)
   - [Configuration via Configuration File](#configuration-via-configuration-file)
-    - [Configuration Schema](#configuration-schema)
-    - [Writer group configuration](#writer-group-configuration)
-    - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
-    - [Configuring Security](#configuring-security)
-    - [Configuring event subscriptions](#configuring-event-subscriptions)
-      - [Simple event filter](#simple-event-filter)
-      - [Advanced event filter configuration](#advanced-event-filter-configuration)
-      - [Condition handling options](#condition-handling-options)
+  - [Configuration Schema](#configuration-schema)
+  - [Writer group configuration](#writer-group-configuration)
+  - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
+  - [Configuring Security](#configuring-security)
+  - [Configuring event subscriptions](#configuring-event-subscriptions)
+    - [Simple event filter](#simple-event-filter)
+    - [Advanced event filter configuration](#advanced-event-filter-configuration)
+    - [Condition handling options](#condition-handling-options)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
 - [Programming OPC Publisher using the OPC Publisher API](#programming-opc-publisher-using-the-opc-publisher-api)
   - [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
@@ -284,7 +284,7 @@ To deploy OPC Puublisher to the IoT Edge Gateway using the Azure Portal...
 
     and select **Next**
 
-1. Review your deployment information and manifest.  It should look like the deployment manifest found in the [previous section](#deploy-opc-publisher-using-azure-cli).  Select **Submit**.
+1. Review your deployment information and manifest. It should look like the deployment manifest found in the [previous section](#deploy-opc-publisher-using-azure-cli).  Select **Submit**.
 
 1. Once you've deployed modules to your device, you can view all of them in the **Device details** page of the portal. This page displays the name of each deployed module, as well as useful information like the deployment status and exit code.
 
@@ -294,13 +294,17 @@ For more in depth information check out [the Azure IoT Edge Portal documentation
 
 ## How OPC Publisher works
 
+The following diagram courtesy of the OPC Foundation's [Part 14 of the OPC UA specification](https://reference.opcfoundation.org/Core/Part14/v105/docs/5) illustrates the inner workings of the OPC Publisher process:
+
+![Publisher](https://reference.opcfoundation.org/api/image/get/307/image006.png)
+
 Publishing OPC UA telemetry from an OPC UA server works as follows:
 
 1. An OPC UA server exposes variable nodes (also sometimes called "tags") which make sensor readings accessible, or nodes that allow a client to subscribe to events.
 
 1. The OPC Publisher can be configured to connect to one or more selected OPC UA server endpoints. Based on the configuration the OPC Publisher OPC UA client creates subscriptions requesting to be notified when the value of the specified nodes change or an event occurs.
 
-1. The publisher groups nodes in the configuration into groups of `Dataset Writers` which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, and `DataSetWriterGroup`.
+1. The publisher groups nodes in the configuration into groups of `Dataset Writers` called [`Writer Groups`](https://reference.opcfoundation.org/Core/Part14/v105/docs/5) which are akin to OPC UA subscriptions. These subscriptions refer to node ids (in OPC UA also called monitored items). Nodes can be configured with `SamplingInterval`, `PublishingInterval`, `DataSetWriterId`, and `DataSetWriterGroup`.
 
    - `DataSetWriterId`: A logical name of a subscription to an endpoint on a OPC UA server. A writer can only have 1 publishing interval andin case of event subscription, 1 event node. Should multiple be specified then the writer is broken into smaller writers. A data set writer writes data sets, which are a set of OPC UA data values or events inside a OPC UA PubSub network message.
 
@@ -310,7 +314,7 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
    - `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
 
-1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` options or read the values using `UseCyclicRead` [options](#configuration-schema) instead of subscriptions.
+1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` options or read the values using `UseCyclicRead` [options](#configuration-schema) instead of subscriptions. OPC Publisher also emits meta data messages for all configured data sets inside a data set writer group unless disabled or not supported by the chosen [message format](./messageformats.md).
 
 1. The OPC Publisher can be configured to send notifications as soon as they arrive or batch them before sending which saves bandwidth and increases throughput. Sending a batch is triggered by exceeding the threshold of a specified number of messages or by exceeding a specified time interval.
 
@@ -352,7 +356,7 @@ The simplest way to configure OPC Publisher is via a file. A basic configuration
 
 Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
 
-#### Configuration Schema
+### Configuration Schema
 
 The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md). The following items are part of a configuration file JSON array (or API payload).
 
@@ -477,25 +481,27 @@ Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 
 > The configuration file syntax has been enhanced over time. OPC Publisher reads old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
 
-#### Writer group configuration
+### Writer group configuration
 
 **DataSets** are a group of nodes within one OPC UA server. Datasets contain data value changes for nodes that all share a common [publishing interval](#sampling-and-publishing-interval-configuration). A `DataSetWriter` emits **DataSetMessages** cotaining a DataSet. The Writer has all information to establish a connection to an OPC UA server.
 
-A `DataSetWriterGroup` is used to group several DataSetWriter's for a specific OPC UA server. A DataSetWriterGroup emits what is called a **NetworkMessage** containing the **DataSetMessages**.
+A `DataSetWriterGroup` is used to group several DataSetWriter's for a specific OPC UA server. A DataSetWriterGroup emits what is called a **NetworkMessage** containing the **DataSetMessages**. The following diagram courtesy of the OPC Foundation reference specification hows the relationship between these concepts and the messages emitted over the specified transport protocol:
 
-In the implementation of OPC Publisher, a Writer group is defined by the `DataSetWriterGroup` name attribute in the configuration. Due to the limitations of the configuration schema, for attributes that apply to the Writer group the value of the first configuration entry object will be used. All other values in further entries will be discarded. The following values apply to the Writer group:
+![Messages](https://reference.opcfoundation.org/api/image/get/307/image023.png)
+
+In the implementation of OPC Publisher, a Writer group is defined by the `DataSetWriterGroup` name attribute in the configuration. Due to the limitations of the configuration schema, for attributes that apply to the Writer group the value of the first configuration entry object will be used. All other values in further entries with the same `DataSetWriterGroup` value are discarded. It is recommended to use the same values for all writer group related attributes in all entries for a consistent and deterministic behavior.
+
+The following configuration properties of the published nodes entry model apply to the Writer group:
 
 - Messaging profile (`MessageEncoding`, `MessagingMode`)
+- Batch size and batch publishing interval (`BatchSize`, `BatchTriggerIntervalTimespan`)
 - Desired transport (`WriterGroupTransport`)
-- FUTURE: Batch size and batch publishing interval (`WriterGroupBatchSize`, `WriterGroupPublishingInterval`)
-
-It is recommended to use the same values for the writer group related attributes in all entries for a consistent and deterministic behavior.
 
 A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSetPublishingInterval` of the writer. A group of nodes with the same publishing interval becomes a writer inside a writer group, regardless of using the same `DataSetWriterId`. If the same `DataSetWriterId` is used but with nodes that have different effective publishing intervals, then a postfix string is added to the name to further disambiguate.
 
 OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created.
 
-#### Sampling and Publishing Interval configuration
+### Sampling and Publishing Interval configuration
 
 The OPC UA reference specification provides a detailed overview of the OPC UA [monitored item](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.12) and [subscription](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.13.1) service model.
 
@@ -534,7 +540,7 @@ The OPC UA server always sends the first data value to OPC Publisher when the su
   "SkipFirst": true,
 ```
 
-#### Configuring Security
+### Configuring Security
 
 IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates for:
 
@@ -556,7 +562,7 @@ By default OPC Publisher does use no user authentication (anonymous). However, O
 
 > OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
 
-#### Configuring event subscriptions
+### Configuring event subscriptions
 
 OPC Publisher supports two types of event filter configurations you can specify:
 
@@ -567,7 +573,7 @@ In the configuration file you can specify how many event configurations as you l
 
 In addition you can configure optional [Condition](#condition-handling-options) reporting where OPC Publisher reports retaind conditions at a configured time periodic rate in seconds.
 
-##### Simple event filter
+#### Simple event filter
 
 As highlighted in the example above you can specify namespaces both by using the index or the full name for the namespace. Also look at how the BrowsePath can be configured.
 
@@ -597,7 +603,7 @@ When you use the simple configuration option above, the OPC Publisher does two t
 - It looks at the TypeDefinitionId of the event type to monitor and traverses the inheritance tree for that event type, collecting all fields. Then it constructs a select clause with all the fields it finds.
 - It creates a where clause that is OfType(TypeDefinitionId) to filter the events to just the selected event type.
 
-##### Advanced event filter configuration
+#### Advanced event filter configuration
 
 To configure an advanced event filter you have to specify a full event filter which at minimum consists of three things:
 
@@ -667,7 +673,7 @@ Here is an example of a configuration file that selects events using an advanced
 
 The exact syntax allowed can be found in the [OPC UA reference documentation](https://reference.opcfoundation.org/Core/Part4/v105/docs/7.22.3). Note that not all servers support all filter capabilities. You can [troubleshoot](./troubleshooting.md) issues using the OPC Publisher logs.
 
-##### Condition handling options
+#### Condition handling options
 
 > This feature is in preview
 

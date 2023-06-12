@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Configure discovery
+    /// Discovery
     /// </summary>
     [ApiVersion("2")]
     [Route("registry/v{version:apiVersion}/discovery")]

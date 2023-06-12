@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
                                                 ?? kEmptyConfiguration;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
-                                            dataSetMessage.Timestamp = Notification.Timestamp;
+                                            dataSetMessage.Timestamp = Notification.PublishTimestamp;
                                             dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
@@ -333,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             NodeId = notification.NodeId,
                                                             MessageType = Notification.MessageType,
                                                             DataSetMessageContentMask = dataSetMessageContentMask,
-                                                            Timestamp = Notification.Timestamp,
+                                                            Timestamp = Notification.PublishTimestamp,
                                                             SequenceNumber = Context.NextWriterSequenceNumber(),
                                                             ExtensionFields = Context.Writer.DataSet?.ExtensionFields,
                                                             Payload = new DataSet(notification.DataSetFieldName,

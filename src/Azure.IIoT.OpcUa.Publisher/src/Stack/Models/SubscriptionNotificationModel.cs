@@ -38,7 +38,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? ApplicationUri { get; set; }
 
         /// <inheritdoc/>
-        public DateTime Timestamp { get; set; }
+        public DateTime PublishTimestamp { get; set; }
+
+        /// <inheritdoc/>
+        public uint? PublishSequenceNumber { get; set; }
 
         /// <inheritdoc/>
         public object? Context { get; set; }

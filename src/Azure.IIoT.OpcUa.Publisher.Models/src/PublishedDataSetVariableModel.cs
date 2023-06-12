@@ -63,9 +63,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Sampling Interval hint - default is best effort
         /// </summary>
-        [DataMember(Name = "samplingInterval", Order = 6,
+        [DataMember(Name = "samplingIntervalHint", Order = 6,
             EmitDefaultValue = false)]
-        public TimeSpan? SamplingInterval { get; set; }
+        public TimeSpan? SamplingIntervalHint { get; set; }
 
         /// <summary>
         /// Data change trigger

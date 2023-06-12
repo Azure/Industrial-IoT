@@ -16,7 +16,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Twin methods controller
+    /// <para>
+    /// This section lists the general APi provided by OPC Publisher providing
+    /// all connection, endpoint and address space related API methods.
+    /// </para>
+    /// <para>
+    /// The method name for all transports other than HTTP (which uses the shown
+    /// HTTP methods and resource uris) is the name of the subsection header.
+    /// To use the version specific method append "_V1" or "_V2" to the method
+    /// name.
+    /// </para>
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
@@ -26,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}")]
     [ApiController]
-    public class TwinMethodsController : ControllerBase, IMethodController
+    public class GeneralController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -34,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="endpoints"></param>
         /// <param name="certificates"></param>
         /// <param name="nodes"></param>
-        public TwinMethodsController(IConnectionServices<ConnectionModel> endpoints,
+        public GeneralController(IConnectionServices<ConnectionModel> endpoints,
             ICertificateServices<EndpointModel> certificates,
             INodeServices<ConnectionModel> nodes)
         {
@@ -47,11 +56,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get the capabilities of the server
+        /// GetServerCapabilities
         /// </summary>
-        /// <param name="connection"></param>
+        /// <remarks>
+        /// Get the capabilities of the server. The server capabilities are exposed
+        /// as a property of the server object and this method provides a convinient
+        /// way to retrieve them.
+        /// </remarks>
+        /// <param name="connection">The connection information identifying the
+        /// server to connect to perform the operation.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The server capabilities.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="connection"/>
         /// is <c>null</c>.</exception>
         [HttpPost("capabilities")]
@@ -66,9 +81,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Browse
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Browse a a node to discover its references. For more information consult
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.2">
+        /// the relevant section of the OPC UA reference specification</a>.
+        /// The operation might return a continuation token. The continuation token
+        /// can be used in the BrowseNext method call to retrieve the remainder of
+        /// references or additional continuation tokens.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The references and optional continuation token</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("browse/first")]
@@ -84,11 +108,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Browse next
+        /// BrowseNext
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Browse next
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The references and optional continuation token</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("browse/next")]
@@ -104,11 +132,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Browse next
+        /// BrowseStream (only HTTP transport)
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Recursively browse a node to discover its references and nodes.
+        /// The results are returned as a stream of nodes and references. Consult
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.2">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The nodes and references as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("browse")]
@@ -123,11 +159,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Browse by path
+        /// BrowsePath
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Translate a start node and browse path into 0 or more target nodes.
+        /// Allows programming aginst types in OPC UA. For more information consult
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.4">
+        /// the relevant section of the OPC UA reference specification</a>.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The target nodes found.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("browse/path")]
@@ -143,11 +186,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read value
+        /// ValueRead
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read the value of a variable node. This uses the service detailed in the
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.1">
+        /// relevant section of the OPC UA reference specification</a>.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The value read from the node variable or error information.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("read")]
@@ -163,11 +212,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Write value
+        /// ValueWrite
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Write the value of a variable node. This uses the service detailed in
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.4">
+        /// the relevant section of the OPC UA reference specification</a>.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The result of the write operation or error information.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("write")]
@@ -182,11 +237,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get node metadata.
+        /// GetMetadata
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Get the type metadata for a any node. For data type nodes the
+        /// response contains the data type metadata including fields. For
+        /// method nodes the output and input arguments metadata is provided.
+        /// For objects and object types the instance declaration is returned.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The meta data of the node and optionally error information
+        /// in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("metadata")]
@@ -201,15 +264,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Compile query
+        /// CompileQuery
         /// </summary>
         /// <remarks>
         /// Compile a query string into a query spec that can be used when
         /// setting up event filters on monitored items that monitor events.
         /// </remarks>
-        /// <param name="request">The compilation request</param>
+        /// <param name="request">The compilation request and connection
+        /// information.</param>
         /// <param name="ct"></param>
-        /// <returns>The compilation response</returns>
+        /// <returns>The compilation response.</returns>
         [HttpPost("query/compile")]
         public async Task<QueryCompilationResponseModel> CompileQueryAsync(
             RequestEnvelope<QueryCompilationRequestModel> request, CancellationToken ct = default)
@@ -222,16 +286,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get method meta data
+        /// MethodMetadata
         /// </summary>
         /// <remarks>
-        /// Get the metadata for calling the method. This API is obsolete. Use the more powerful
-        /// <see cref="GetMetadataAsync(RequestEnvelope{NodeMetadataRequestModel}, CancellationToken)"/>
-        /// instead.
+        /// Get the metadata for calling the method. This API is obsolete.
+        /// Use the more powerful GetMetadata method instead.
         /// </remarks>
-        /// <param name="request"></param>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The method meta data and optionally error information
+        /// in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("call/$metadata")]
@@ -246,16 +311,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Call method
+        /// MethodCall
         /// </summary>
         /// <remarks>
-        /// Call a method on the OPC UA server endpoint with the specified
-        /// input arguments and received the result in the form of the
-        /// method output arguments.
+        /// Call a method on the OPC UA server endpoint with the specified input
+        /// arguments and received the result in the form of the method output arguments.
+        /// See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.11.2">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information.
         /// </remarks>
-        /// <param name="request"></param>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The output argument values of the method call and optionally
+        /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("call")]
@@ -270,15 +339,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read attributes
+        /// NodeRead
         /// </summary>
         /// <remarks>
-        /// Read an attribute of a node. The attributes supported by the node
-        /// are dependend on the node class of the node.
+        /// Read any writeable attribute of a specified node on the server. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.2">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information. The attributes supported by the node are dependend
+        /// on the node class of the node.
         /// </remarks>
-        /// <param name="request"></param>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The value of the attribute read and optionally
+        /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("read/attributes")]
@@ -293,11 +367,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Write attributes
+        /// NodeWrite
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Write any writeable attribute of a specified node on the server. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.4">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information. The attributes supported by the node are dependend
+        /// on the node class of the node.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The write operation result and optionally
+        /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("write/attributes")]
@@ -312,9 +395,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read history
+        /// HistoryRead
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read the history using the respective OPC UA service call. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information. If continuation is returned the remaining results
+        /// of the operation can be read using the HistoryReadNext method.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
@@ -332,11 +423,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Read next history
+        /// HistoryReadNext
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Read next history using the respective OPC UA service call. See
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3">
+        /// the relevant section of the OPC UA reference specification</a> for more
+        /// information.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The history read results.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("historyread/next")]
@@ -351,11 +449,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Update history
+        /// HistoryUpdate
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Update history using the respective OPC UA service call. Consult the
+        /// <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5">
+        /// relevant section of the OPC UA reference specification</a> for more
+        /// information.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The update result.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("historyupdate")]
@@ -371,11 +476,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get endpoint certificate
+        /// GetEndpointCertificate
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <remarks>
+        /// Get a server endpoint's certificate and certificate chain if
+        /// available.
+        /// </remarks>
+        /// <param name="endpoint">The server endpoint to get the certificate
+        /// for.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The certificate of the server endpoint</returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
         /// is <c>null</c>.</exception>
         [HttpPost("certificate")]
@@ -388,11 +498,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get the historian capabilities of the server
+        /// HistoryGetServerCapabilities
         /// </summary>
-        /// <param name="connection"></param>
+        /// <remarks>
+        /// Get the historian capabilities exposed as part of the OPC UA server
+        /// server object.
+        /// </remarks>
+        /// <param name="connection">The connection information identifying the
+        /// server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The historian capabilities of the server.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="connection"/>
         /// is <c>null</c>.</exception>
         [HttpPost("history/capabilities")]
@@ -405,11 +520,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Get the historian configuration
+        /// HistoryGetConfiguration
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Get the historian configuration of a historizing node in the OPC UA server
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The node historian configuration.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("history/configuration")]
@@ -427,7 +546,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Connect
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Connect to a server using the provided connection request information.
+        /// The connection is established and held active until cancelled or the
+        /// publisher process is restarted.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
@@ -445,11 +570,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Test connection
+        /// TestConnection
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Test connection to an opc ua server. The call will not establish
+        /// any persistent connection but will just allow a client to test
+        /// that the server is available.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <returns>The test results.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("test")]
@@ -467,9 +598,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Disconnect
         /// </summary>
-        /// <param name="request"></param>
+        /// <remarks>
+        /// Can be used to disconnect a previously established connection.
+        /// </remarks>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("disconnect")]

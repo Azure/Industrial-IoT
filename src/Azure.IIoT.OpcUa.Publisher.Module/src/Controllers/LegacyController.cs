@@ -13,13 +13,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Legacy methods controller
+    /// Legacy controller
     /// </summary>
     [Version("_V2")]
     [Version("_V1")]
     [Version("")]
     [ControllerExceptionFilter]
-    public class LegacyMethodsController : IMethodController
+    public class LegacyController : IMethodController
     {
         /// <summary>
         /// Handler for GetInfo direct method

@@ -2,9708 +2,27 @@
 <a name="paths"></a>
 ## Resources
 
-<a name="discoverymethods_resource"></a>
-### DiscoveryMethods
-Discovery methods controller
-
-
-<a name="discover"></a>
-#### Discover application
-```
-POST /v2/discovery
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="cancel"></a>
-#### Cancel discovery
-```
-POST /v2/discovery/cancel
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="findserver"></a>
-#### Find server with endpoint
-```
-POST /v2/discovery/findserver
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="register"></a>
-#### Start server registration
-```
-POST /v2/discovery/register
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historymethods_resource"></a>
-### HistoryMethods
-History methods controller
-
-
-<a name="historydeleteevents"></a>
-#### Delete events
-```
-POST /v2/history/events/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertevents"></a>
-#### Insert events
-```
-POST /v2/history/events/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamevents"></a>
-#### Stream modified historic events
-```
-POST /v2/history/events/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadevents"></a>
-#### Read historic events
-```
-POST /v2/history/events/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadeventsnext"></a>
-#### Read next set of events
-```
-POST /v2/history/events/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplaceevents"></a>
-#### Replace events
-```
-POST /v2/history/events/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertevents"></a>
-#### Upsert events
-```
-POST /v2/history/events/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevalues"></a>
-#### Delete values
-```
-POST /v2/history/values/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevaluesattimes"></a>
-#### Delete values at specified times
-```
-POST /v2/history/values/delete/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletemodifiedvalues"></a>
-#### Delete modified values
-```
-POST /v2/history/values/delete/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertvalues"></a>
-#### Insert values
-```
-POST /v2/history/values/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvalues"></a>
-#### Stream values
-```
-POST /v2/history/values/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvaluesattimes"></a>
-#### Stream historic values at times
-```
-POST /v2/history/values/read/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvalues"></a>
-#### Read historic values
-```
-POST /v2/history/values/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesattimes"></a>
-#### Read historic values at times
-```
-POST /v2/history/values/read/first/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadmodifiedvalues"></a>
-#### Read modified values
-```
-POST /v2/history/values/read/first/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadprocessedvalues"></a>
-#### Read processed historic values
-```
-POST /v2/history/values/read/first/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreammodifiedvalues"></a>
-#### Stream modified historic values
-```
-POST /v2/history/values/read/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesnext"></a>
-#### Read next set of historic values
-```
-POST /v2/history/values/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamprocessedvalues"></a>
-#### Stream processed historic values
-```
-POST /v2/history/values/read/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplacevalues"></a>
-#### Replace values
-```
-POST /v2/history/values/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertvalues"></a>
-#### Upsert values
-```
-POST /v2/history/values/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishermethods_resource"></a>
-### PublisherMethods
-Publisher methods controller
-
-
-<a name="publishbulk"></a>
-#### Configure node values to publish and unpublish in bulk
-```
-POST /v2/publish/bulk
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getdiagnosticinfo"></a>
-#### Handler for GetDiagnosticInfo direct method
-```
-POST /v2/publish/diagnostics
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="addorupdateendpoints"></a>
-#### Handler for AddOrUpdateEndpoints direct method
-```
-POST /v2/publish/endpoints/addorupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
+<a name="configuration_resource"></a>
+### Configuration
+<br>
+            This section contains the API to configure OPC Publisher.
+            
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
 
 
 <a name="getconfiguredendpoints"></a>
-#### Handler for GetConfiguredEndpoints direct method
-```
-POST /v2/publish/endpoints/list
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfigurednodesonendpoint"></a>
-#### Handler for GetConfiguredNodesOnEndpoint direct method
-```
-POST /v2/publish/endpoints/list/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishlist"></a>
-#### Get all published nodes for a server endpoint.
-```
-POST /v2/publish/list
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishnodes"></a>
-#### Handler for PublishNodes direct method
-```
-POST /v2/publish/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishnodes"></a>
-#### Handler for UnpublishNodes direct method
-```
-POST /v2/publish/nodes/unpublish
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishallnodes"></a>
-#### Handler for UnpublishAllNodes direct method
-```
-POST /v2/publish/nodes/unpublish/all
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstart"></a>
-#### Start publishing values from a node
-```
-POST /v2/publish/start
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstop"></a>
-#### Stop publishing values from a node
-```
-POST /v2/publish/stop
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="twinmethods_resource"></a>
-### TwinMethods
-Twin methods controller
-
-
-<a name="browsestream"></a>
-#### Browse next
-```
-POST /v2/browse
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browse"></a>
-#### Browse
-```
-POST /v2/browse/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsenext"></a>
-#### Browse next
-```
-POST /v2/browse/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsepath"></a>
-#### Browse by path
-```
-POST /v2/browse/path
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodcall"></a>
-#### Call method
-```
-POST /v2/call
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodmetadata"></a>
-#### Get method meta data
-```
-POST /v2/call/$metadata
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getservercapabilities"></a>
-#### Get the capabilities of the server
-```
-POST /v2/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getendpointcertificate"></a>
-#### Get endpoint certificate
-```
-POST /v2/certificate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[EndpointModel](definitions.md#endpointmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="connect"></a>
-#### Connect
-```
-POST /v2/connect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ConnectResponseModel](definitions.md#connectresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="disconnect"></a>
-#### Disconnect
-```
-POST /v2/disconnect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-<a name="historygetservercapabilities"></a>
-#### Get the historian capabilities of the server
-```
-POST /v2/history/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historygetconfiguration"></a>
-#### Get the historian configuration
-```
-POST /v2/history/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyread"></a>
-#### Read history
-```
-POST /v2/historyread/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadnext"></a>
-#### Read next history
-```
-POST /v2/historyread/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupdate"></a>
-#### Update history
-```
-POST /v2/historyupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getmetadata"></a>
-#### Get node metadata.
-```
-POST /v2/metadata
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valueread"></a>
-#### Read value
-```
-POST /v2/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="noderead"></a>
-#### Read attributes
-```
-POST /v2/read/attributes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="testconnection"></a>
-#### Test connection
-```
-POST /v2/test
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valuewrite"></a>
-#### Write value
-```
-POST /v2/write
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="nodewrite"></a>
-#### Write attributes
-```
-POST /v2/write/attributes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-
-
-<a name="paths"></a>
-## Resources
-
-<a name="discoverymethods_resource"></a>
-### DiscoveryMethods
-Discovery methods controller
-
-
-<a name="discover"></a>
-#### Discover application
-```
-POST /v2/discovery
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="cancel"></a>
-#### Cancel discovery
-```
-POST /v2/discovery/cancel
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="findserver"></a>
-#### Find server with endpoint
-```
-POST /v2/discovery/findserver
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="register"></a>
-#### Start server registration
-```
-POST /v2/discovery/register
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historymethods_resource"></a>
-### HistoryMethods
-History methods controller
-
-
-<a name="historydeleteevents"></a>
-#### Delete events
-```
-POST /v2/history/events/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertevents"></a>
-#### Insert events
-```
-POST /v2/history/events/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamevents"></a>
-#### Stream modified historic events
-```
-POST /v2/history/events/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadevents"></a>
-#### Read historic events
-```
-POST /v2/history/events/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadeventsnext"></a>
-#### Read next set of events
-```
-POST /v2/history/events/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplaceevents"></a>
-#### Replace events
-```
-POST /v2/history/events/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertevents"></a>
-#### Upsert events
-```
-POST /v2/history/events/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevalues"></a>
-#### Delete values
-```
-POST /v2/history/values/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevaluesattimes"></a>
-#### Delete values at specified times
-```
-POST /v2/history/values/delete/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletemodifiedvalues"></a>
-#### Delete modified values
-```
-POST /v2/history/values/delete/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertvalues"></a>
-#### Insert values
-```
-POST /v2/history/values/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvalues"></a>
-#### Stream values
-```
-POST /v2/history/values/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvaluesattimes"></a>
-#### Stream historic values at times
-```
-POST /v2/history/values/read/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvalues"></a>
-#### Read historic values
-```
-POST /v2/history/values/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesattimes"></a>
-#### Read historic values at times
-```
-POST /v2/history/values/read/first/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadmodifiedvalues"></a>
-#### Read modified values
-```
-POST /v2/history/values/read/first/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadprocessedvalues"></a>
-#### Read processed historic values
-```
-POST /v2/history/values/read/first/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreammodifiedvalues"></a>
-#### Stream modified historic values
-```
-POST /v2/history/values/read/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesnext"></a>
-#### Read next set of historic values
-```
-POST /v2/history/values/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamprocessedvalues"></a>
-#### Stream processed historic values
-```
-POST /v2/history/values/read/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplacevalues"></a>
-#### Replace values
-```
-POST /v2/history/values/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertvalues"></a>
-#### Upsert values
-```
-POST /v2/history/values/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishermethods_resource"></a>
-### PublisherMethods
-Publisher methods controller
-
-
-<a name="publishbulk"></a>
-#### Configure node values to publish and unpublish in bulk
-```
-POST /v2/publish/bulk
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getdiagnosticinfo"></a>
-#### Handler for GetDiagnosticInfo direct method
-```
-POST /v2/publish/diagnostics
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="addorupdateendpoints"></a>
-#### Handler for AddOrUpdateEndpoints direct method
-```
-POST /v2/publish/endpoints/addorupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfiguredendpoints"></a>
-#### Handler for GetConfiguredEndpoints direct method
-```
-POST /v2/publish/endpoints/list
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfigurednodesonendpoint"></a>
-#### Handler for GetConfiguredNodesOnEndpoint direct method
-```
-POST /v2/publish/endpoints/list/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishlist"></a>
-#### Get all published nodes for a server endpoint.
-```
-POST /v2/publish/list
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishnodes"></a>
-#### Handler for PublishNodes direct method
-```
-POST /v2/publish/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishnodes"></a>
-#### Handler for UnpublishNodes direct method
-```
-POST /v2/publish/nodes/unpublish
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishallnodes"></a>
-#### Handler for UnpublishAllNodes direct method
-```
-POST /v2/publish/nodes/unpublish/all
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstart"></a>
-#### Start publishing values from a node
-```
-POST /v2/publish/start
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstop"></a>
-#### Stop publishing values from a node
-```
-POST /v2/publish/stop
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="twinmethods_resource"></a>
-### TwinMethods
-Twin methods controller
-
-
-<a name="browsestream"></a>
-#### Browse next
-```
-POST /v2/browse
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browse"></a>
-#### Browse
-```
-POST /v2/browse/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsenext"></a>
-#### Browse next
-```
-POST /v2/browse/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsepath"></a>
-#### Browse by path
-```
-POST /v2/browse/path
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodcall"></a>
-#### Call method
-```
-POST /v2/call
-```
-
-
-##### Description
-Call a method on the OPC UA server endpoint with the specified input arguments and received the result in the form of the method output arguments.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodmetadata"></a>
-#### Get method meta data
-```
-POST /v2/call/$metadata
-```
-
-
-##### Description
-Get the metadata for calling the method. This API is obsolete. Use the more powerful M:Azure.IIoT.OpcUa.Publisher.Module.Controllers.TwinMethodsController.GetMetadataAsync(Azure.IIoT.OpcUa.Publisher.Models.RequestEnvelope{Azure.IIoT.OpcUa.Publisher.Models.NodeMetadataRequestModel},System.Threading.CancellationToken) instead.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getservercapabilities"></a>
-#### Get the capabilities of the server
-```
-POST /v2/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getendpointcertificate"></a>
-#### Get endpoint certificate
-```
-POST /v2/certificate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[EndpointModel](definitions.md#endpointmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="connect"></a>
-#### Connect
-```
-POST /v2/connect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ConnectResponseModel](definitions.md#connectresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="disconnect"></a>
-#### Disconnect
-```
-POST /v2/disconnect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-<a name="historygetservercapabilities"></a>
-#### Get the historian capabilities of the server
-```
-POST /v2/history/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historygetconfiguration"></a>
-#### Get the historian configuration
-```
-POST /v2/history/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyread"></a>
-#### Read history
-```
-POST /v2/historyread/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadnext"></a>
-#### Read next history
-```
-POST /v2/historyread/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupdate"></a>
-#### Update history
-```
-POST /v2/historyupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getmetadata"></a>
-#### Get node metadata.
-```
-POST /v2/metadata
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="compilequery"></a>
-#### Compile query
-```
-POST /v2/query/compile
-```
-
-
-##### Description
-Compile a query string into a query spec that can be used when setting up event filters on monitored items that monitor events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The compilation request|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valueread"></a>
-#### Read value
-```
-POST /v2/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="noderead"></a>
-#### Read attributes
-```
-POST /v2/read/attributes
-```
-
-
-##### Description
-Read an attribute of a node. The attributes supported by the node are dependend on the node class of the node.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="testconnection"></a>
-#### Test connection
-```
-POST /v2/test
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valuewrite"></a>
-#### Write value
-```
-POST /v2/write
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="nodewrite"></a>
-#### Write attributes
-```
-POST /v2/write/attributes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-
-
-<a name="paths"></a>
-## Resources
-
-<a name="discoverymethods_resource"></a>
-### DiscoveryMethods
-Discovery methods controller
-
-
-<a name="discover"></a>
-#### Discover application
-```
-POST /v2/discovery
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="cancel"></a>
-#### Cancel discovery
-```
-POST /v2/discovery/cancel
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="findserver"></a>
-#### Find server with endpoint
-```
-POST /v2/discovery/findserver
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="register"></a>
-#### Start server registration
-```
-POST /v2/discovery/register
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historymethods_resource"></a>
-### HistoryMethods
-History methods controller
-
-
-<a name="historydeleteevents"></a>
-#### Delete events
-```
-POST /v2/history/events/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertevents"></a>
-#### Insert events
-```
-POST /v2/history/events/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamevents"></a>
-#### Stream modified historic events
-```
-POST /v2/history/events/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadevents"></a>
-#### Read historic events
-```
-POST /v2/history/events/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadeventsnext"></a>
-#### Read next set of events
-```
-POST /v2/history/events/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplaceevents"></a>
-#### Replace events
-```
-POST /v2/history/events/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertevents"></a>
-#### Upsert events
-```
-POST /v2/history/events/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevalues"></a>
-#### Delete values
-```
-POST /v2/history/values/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevaluesattimes"></a>
-#### Delete values at specified times
-```
-POST /v2/history/values/delete/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletemodifiedvalues"></a>
-#### Delete modified values
-```
-POST /v2/history/values/delete/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertvalues"></a>
-#### Insert values
-```
-POST /v2/history/values/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvalues"></a>
-#### Stream values
-```
-POST /v2/history/values/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvaluesattimes"></a>
-#### Stream historic values at times
-```
-POST /v2/history/values/read/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvalues"></a>
-#### Read historic values
-```
-POST /v2/history/values/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesattimes"></a>
-#### Read historic values at times
-```
-POST /v2/history/values/read/first/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadmodifiedvalues"></a>
-#### Read modified values
-```
-POST /v2/history/values/read/first/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadprocessedvalues"></a>
-#### Read processed historic values
-```
-POST /v2/history/values/read/first/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreammodifiedvalues"></a>
-#### Stream modified historic values
-```
-POST /v2/history/values/read/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesnext"></a>
-#### Read next set of historic values
-```
-POST /v2/history/values/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamprocessedvalues"></a>
-#### Stream processed historic values
-```
-POST /v2/history/values/read/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplacevalues"></a>
-#### Replace values
-```
-POST /v2/history/values/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertvalues"></a>
-#### Upsert values
-```
-POST /v2/history/values/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishermethods_resource"></a>
-### PublisherMethods
-Publisher methods controller
-
-
-<a name="publishbulk"></a>
-#### Configure node values to publish and unpublish in bulk
-```
-POST /v2/publish/bulk
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getdiagnosticinfo"></a>
-#### Handler for GetDiagnosticInfo direct method
-```
-POST /v2/publish/diagnostics
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="addorupdateendpoints"></a>
-#### Handler for AddOrUpdateEndpoints direct method
-```
-POST /v2/publish/endpoints/addorupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfiguredendpoints"></a>
-#### Handler for GetConfiguredEndpoints direct method
-```
-POST /v2/publish/endpoints/list
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfigurednodesonendpoint"></a>
-#### Handler for GetConfiguredNodesOnEndpoint direct method
-```
-POST /v2/publish/endpoints/list/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishlist"></a>
-#### Get all published nodes for a server endpoint.
-```
-POST /v2/publish/list
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishnodes"></a>
-#### Handler for PublishNodes direct method
-```
-POST /v2/publish/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishnodes"></a>
-#### Handler for UnpublishNodes direct method
-```
-POST /v2/publish/nodes/unpublish
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishallnodes"></a>
-#### Handler for UnpublishAllNodes direct method
-```
-POST /v2/publish/nodes/unpublish/all
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstart"></a>
-#### Start publishing values from a node
-```
-POST /v2/publish/start
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstop"></a>
-#### Stop publishing values from a node
-```
-POST /v2/publish/stop
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="twinmethods_resource"></a>
-### TwinMethods
-Twin methods controller
-
-
-<a name="browsestream"></a>
-#### Browse next
-```
-POST /v2/browse
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browse"></a>
-#### Browse
-```
-POST /v2/browse/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsenext"></a>
-#### Browse next
-```
-POST /v2/browse/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsepath"></a>
-#### Browse by path
-```
-POST /v2/browse/path
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodcall"></a>
-#### Call method
-```
-POST /v2/call
-```
-
-
-##### Description
-Call a method on the OPC UA server endpoint with the specified input arguments and received the result in the form of the method output arguments.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodmetadata"></a>
-#### Get method meta data
-```
-POST /v2/call/$metadata
-```
-
-
-##### Description
-Get the metadata for calling the method. This API is obsolete. Use the more powerful M:Azure.IIoT.OpcUa.Publisher.Module.Controllers.TwinMethodsController.GetMetadataAsync(Azure.IIoT.OpcUa.Publisher.Models.RequestEnvelope{Azure.IIoT.OpcUa.Publisher.Models.NodeMetadataRequestModel},System.Threading.CancellationToken) instead.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getservercapabilities"></a>
-#### Get the capabilities of the server
-```
-POST /v2/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getendpointcertificate"></a>
-#### Get endpoint certificate
-```
-POST /v2/certificate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[EndpointModel](definitions.md#endpointmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="connect"></a>
-#### Connect
-```
-POST /v2/connect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ConnectResponseModel](definitions.md#connectresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="disconnect"></a>
-#### Disconnect
-```
-POST /v2/disconnect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-<a name="historygetservercapabilities"></a>
-#### Get the historian capabilities of the server
-```
-POST /v2/history/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historygetconfiguration"></a>
-#### Get the historian configuration
-```
-POST /v2/history/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyread"></a>
-#### Read history
-```
-POST /v2/historyread/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadnext"></a>
-#### Read next history
-```
-POST /v2/historyread/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupdate"></a>
-#### Update history
-```
-POST /v2/historyupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getmetadata"></a>
-#### Get node metadata.
-```
-POST /v2/metadata
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="compilequery"></a>
-#### Compile query
-```
-POST /v2/query/compile
-```
-
-
-##### Description
-Compile a query string into a query spec that can be used when setting up event filters on monitored items that monitor events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The compilation request|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valueread"></a>
-#### Read value
-```
-POST /v2/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="noderead"></a>
-#### Read attributes
-```
-POST /v2/read/attributes
-```
-
-
-##### Description
-Read an attribute of a node. The attributes supported by the node are dependend on the node class of the node.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="testconnection"></a>
-#### Test connection
-```
-POST /v2/test
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valuewrite"></a>
-#### Write value
-```
-POST /v2/write
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="nodewrite"></a>
-#### Write attributes
-```
-POST /v2/write/attributes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-
-
-<a name="paths"></a>
-## Resources
-
-<a name="discoverymethods_resource"></a>
-### DiscoveryMethods
-Discovery methods controller
-
-
-<a name="discover"></a>
-#### Discover application
-```
-POST /v2/discovery
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="cancel"></a>
-#### Cancel discovery
-```
-POST /v2/discovery/cancel
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="findserver"></a>
-#### Find server with endpoint
-```
-POST /v2/discovery/findserver
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="register"></a>
-#### Start server registration
-```
-POST /v2/discovery/register
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historymethods_resource"></a>
-### HistoryMethods
-History methods controller
-
-
-<a name="historydeleteevents"></a>
-#### Delete events
-```
-POST /v2/history/events/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertevents"></a>
-#### Insert events
-```
-POST /v2/history/events/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamevents"></a>
-#### Stream modified historic events
-```
-POST /v2/history/events/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadevents"></a>
-#### Read historic events
-```
-POST /v2/history/events/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadeventsnext"></a>
-#### Read next set of events
-```
-POST /v2/history/events/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplaceevents"></a>
-#### Replace events
-```
-POST /v2/history/events/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertevents"></a>
-#### Upsert events
-```
-POST /v2/history/events/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevalues"></a>
-#### Delete values
-```
-POST /v2/history/values/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevaluesattimes"></a>
-#### Delete values at specified times
-```
-POST /v2/history/values/delete/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletemodifiedvalues"></a>
-#### Delete modified values
-```
-POST /v2/history/values/delete/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertvalues"></a>
-#### Insert values
-```
-POST /v2/history/values/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvalues"></a>
-#### Stream values
-```
-POST /v2/history/values/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvaluesattimes"></a>
-#### Stream historic values at times
-```
-POST /v2/history/values/read/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvalues"></a>
-#### Read historic values
-```
-POST /v2/history/values/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesattimes"></a>
-#### Read historic values at times
-```
-POST /v2/history/values/read/first/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadmodifiedvalues"></a>
-#### Read modified values
-```
-POST /v2/history/values/read/first/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadprocessedvalues"></a>
-#### Read processed historic values
-```
-POST /v2/history/values/read/first/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreammodifiedvalues"></a>
-#### Stream modified historic values
-```
-POST /v2/history/values/read/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesnext"></a>
-#### Read next set of historic values
-```
-POST /v2/history/values/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamprocessedvalues"></a>
-#### Stream processed historic values
-```
-POST /v2/history/values/read/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplacevalues"></a>
-#### Replace values
-```
-POST /v2/history/values/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertvalues"></a>
-#### Upsert values
-```
-POST /v2/history/values/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishermethods_resource"></a>
-### PublisherMethods
-Publisher methods controller
-
-
-<a name="getconfiguredendpoints"></a>
-#### Handler for GetConfiguredEndpoints direct method
+#### [GetConfiguredEndpoints](./directmethods.md#getconfigurednodesonendpoint_v)
 ```
 GET /v2/configuration
 ```
 
 
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="setconfiguredendpoints"></a>
-#### Handler for SetConfiguredEndpoints direct method
-```
-PUT /v2/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[SetConfiguredEndpointsRequestModel](definitions.md#setconfiguredendpointsrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-<a name="addorupdateendpoints"></a>
-#### Handler for AddOrUpdateEndpoints direct method
-```
-PATCH /v2/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishbulk"></a>
-#### Configure node values to publish and unpublish in bulk
-```
-POST /v2/configuration/bulk
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getdiagnosticinfo"></a>
-#### Handler for GetDiagnosticInfo direct method
-```
-POST /v2/configuration/diagnostics
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getconfigurednodesonendpoint"></a>
-#### Handler for GetConfiguredNodesOnEndpoint direct method
-```
-POST /v2/configuration/endpoints/list/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishlist"></a>
-#### Get all published nodes for a server endpoint.
-```
-POST /v2/configuration/list
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishnodes"></a>
-#### Handler for PublishNodes direct method
-```
-POST /v2/configuration/nodes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishnodes"></a>
-#### Handler for UnpublishNodes direct method
-```
-POST /v2/configuration/nodes/unpublish
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="unpublishallnodes"></a>
-#### Handler for UnpublishAllNodes direct method
-```
-POST /v2/configuration/nodes/unpublish/all
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstart"></a>
-#### Start publishing values from a node
-```
-POST /v2/configuration/start
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishstop"></a>
-#### Stop publishing values from a node
-```
-POST /v2/configuration/stop
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="twinmethods_resource"></a>
-### TwinMethods
-Twin methods controller
-
-
-<a name="browsestream"></a>
-#### Browse next
-```
-POST /v2/browse
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browse"></a>
-#### Browse
-```
-POST /v2/browse/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsenext"></a>
-#### Browse next
-```
-POST /v2/browse/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="browsepath"></a>
-#### Browse by path
-```
-POST /v2/browse/path
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodcall"></a>
-#### Call method
-```
-POST /v2/call
-```
-
-
 ##### Description
-Call a method on the OPC UA server endpoint with the specified input arguments and received the result in the form of the method output arguments.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="methodmetadata"></a>
-#### Get method meta data
-```
-POST /v2/call/$metadata
-```
-
-
-##### Description
-Get the metadata for calling the method. This API is obsolete. Use the more powerful M:Azure.IIoT.OpcUa.Publisher.Module.Controllers.TwinMethodsController.GetMetadataAsync(Azure.IIoT.OpcUa.Publisher.Models.RequestEnvelope{Azure.IIoT.OpcUa.Publisher.Models.NodeMetadataRequestModel},System.Threading.CancellationToken) instead.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getservercapabilities"></a>
-#### Get the capabilities of the server
-```
-POST /v2/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getendpointcertificate"></a>
-#### Get endpoint certificate
-```
-POST /v2/certificate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[EndpointModel](definitions.md#endpointmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="connect"></a>
-#### Connect
-```
-POST /v2/connect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ConnectResponseModel](definitions.md#connectresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="disconnect"></a>
-#### Disconnect
-```
-POST /v2/disconnect
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-<a name="historygetservercapabilities"></a>
-#### Get the historian capabilities of the server
-```
-POST /v2/history/capabilities
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historygetconfiguration"></a>
-#### Get the historian configuration
-```
-POST /v2/history/configuration
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyread"></a>
-#### Read history
-```
-POST /v2/historyread/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadnext"></a>
-#### Read next history
-```
-POST /v2/historyread/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupdate"></a>
-#### Update history
-```
-POST /v2/historyupdate
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="getmetadata"></a>
-#### Get node metadata.
-```
-POST /v2/metadata
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="compilequery"></a>
-#### Compile query
-```
-POST /v2/query/compile
-```
-
-
-##### Description
-Compile a query string into a query spec that can be used when setting up event filters on monitored items that monitor events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The compilation request|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valueread"></a>
-#### Read value
-```
-POST /v2/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="noderead"></a>
-#### Read attributes
-```
-POST /v2/read/attributes
-```
-
-
-##### Description
-Read an attribute of a node. The attributes supported by the node are dependend on the node class of the node.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="testconnection"></a>
-#### Test connection
-```
-POST /v2/test
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="valuewrite"></a>
-#### Write value
-```
-POST /v2/write
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="nodewrite"></a>
-#### Write attributes
-```
-POST /v2/write/attributes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-
-
-<a name="paths"></a>
-## Resources
-
-<a name="discoverymethods_resource"></a>
-### DiscoveryMethods
-Discovery methods controller
-
-
-<a name="discover"></a>
-#### Discover application
-```
-POST /v2/discovery
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="cancel"></a>
-#### Cancel discovery
-```
-POST /v2/discovery/cancel
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="findserver"></a>
-#### Find server with endpoint
-```
-POST /v2/discovery/findserver
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="register"></a>
-#### Start server registration
-```
-POST /v2/discovery/register
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|boolean|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historymethods_resource"></a>
-### HistoryMethods
-History methods controller
-
-
-<a name="historydeleteevents"></a>
-#### Delete events
-```
-POST /v2/history/events/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertevents"></a>
-#### Insert events
-```
-POST /v2/history/events/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamevents"></a>
-#### Stream modified historic events
-```
-POST /v2/history/events/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadevents"></a>
-#### Read historic events
-```
-POST /v2/history/events/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadeventsnext"></a>
-#### Read next set of events
-```
-POST /v2/history/events/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplaceevents"></a>
-#### Replace events
-```
-POST /v2/history/events/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertevents"></a>
-#### Upsert events
-```
-POST /v2/history/events/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevalues"></a>
-#### Delete values
-```
-POST /v2/history/values/delete
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletevaluesattimes"></a>
-#### Delete values at specified times
-```
-POST /v2/history/values/delete/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historydeletemodifiedvalues"></a>
-#### Delete modified values
-```
-POST /v2/history/values/delete/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyinsertvalues"></a>
-#### Insert values
-```
-POST /v2/history/values/insert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvalues"></a>
-#### Stream values
-```
-POST /v2/history/values/read
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamvaluesattimes"></a>
-#### Stream historic values at times
-```
-POST /v2/history/values/read/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvalues"></a>
-#### Read historic values
-```
-POST /v2/history/values/read/first
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesattimes"></a>
-#### Read historic values at times
-```
-POST /v2/history/values/read/first/attimes
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadmodifiedvalues"></a>
-#### Read modified values
-```
-POST /v2/history/values/read/first/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadprocessedvalues"></a>
-#### Read processed historic values
-```
-POST /v2/history/values/read/first/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreammodifiedvalues"></a>
-#### Stream modified historic values
-```
-POST /v2/history/values/read/modified
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreadvaluesnext"></a>
-#### Read next set of historic values
-```
-POST /v2/history/values/read/next
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historystreamprocessedvalues"></a>
-#### Stream processed historic values
-```
-POST /v2/history/values/read/processed
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyreplacevalues"></a>
-#### Replace values
-```
-POST /v2/history/values/replace
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="historyupsertvalues"></a>
-#### Upsert values
-```
-POST /v2/history/values/upsert
-```
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `text/plain`
-* `application/json`
-* `text/json`
-* `application/x-msgpack`
-
-
-<a name="publishermethods_resource"></a>
-### PublisherMethods
-Publisher methods controller
-
-
-<a name="getconfiguredendpoints"></a>
-#### Handler for GetConfiguredEndpoints direct method
-```
-GET /v2/configuration
-```
+Get a list of nodes under a configured endpoint in the configuration. Further information is provided in the OPC Publisher documentation. configuration.
 
 
 ##### Parameters
@@ -9729,17 +48,21 @@ GET /v2/configuration
 
 
 <a name="setconfiguredendpoints"></a>
-#### Handler for SetConfiguredEndpoints direct method
+#### [SetConfiguredEndpoints](./directmethods.md#setconfiguredendpoints_v1)
 ```
 PUT /v2/configuration
 ```
 
 
+##### Description
+Enables clients to update the entire published nodes configuration in one call. This includes clearing the existing configuration. Further information is provided in the OPC Publisher documentation. configuration.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[SetConfiguredEndpointsRequestModel](definitions.md#setconfiguredendpointsrequestmodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The new published nodes configuration|[SetConfiguredEndpointsRequestModel](definitions.md#setconfiguredendpointsrequestmodel)|
 
 
 ##### Responses
@@ -9758,17 +81,21 @@ PUT /v2/configuration
 
 
 <a name="addorupdateendpoints"></a>
-#### Handler for AddOrUpdateEndpoints direct method
+#### [AddOrUpdateEndpoints](./directmethods.md#addorupdateendpoints_v1)
 ```
 PATCH /v2/configuration
 ```
 
 
+##### Description
+Add or update endpoint configuration and nodes on a server. Further information is provided in the OPC Publisher documentation.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The parts of the configuration to add or update.|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
 
 
 ##### Responses
@@ -9795,17 +122,21 @@ PATCH /v2/configuration
 
 
 <a name="publishbulk"></a>
-#### Configure node values to publish and unpublish in bulk
+#### PublishBulk
 ```
 POST /v2/configuration/bulk
 ```
 
 
+##### Description
+Configure node values to publish and unpublish in bulk
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The nodes to publish or unpublish.|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -9832,10 +163,14 @@ POST /v2/configuration/bulk
 
 
 <a name="getdiagnosticinfo"></a>
-#### Handler for GetDiagnosticInfo direct method
+#### [GetDiagnosticInfo](./directmethods.md#getdiagnosticinfo_v1)
 ```
 POST /v2/configuration/diagnostics
 ```
+
+
+##### Description
+Get the list of diagnostics info for all dataset writers in the OPC Publisher at the point the call is received. Further information is provided in the OPC Publisher documentation.
 
 
 ##### Responses
@@ -9854,17 +189,21 @@ POST /v2/configuration/diagnostics
 
 
 <a name="getconfigurednodesonendpoint"></a>
-#### Handler for GetConfiguredNodesOnEndpoint direct method
+#### [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
 ```
 POST /v2/configuration/endpoints/list/nodes
 ```
 
 
+##### Description
+Get the nodes of a published nodes entry object returned earlier from a call to GetConfiguredEndpoints. Further information is provided in the OPC Publisher documentation.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The entry model from a call to GetConfiguredEndpoints for which to gather the nodes.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -9891,10 +230,14 @@ POST /v2/configuration/endpoints/list/nodes
 
 
 <a name="publishlist"></a>
-#### Get all published nodes for a server endpoint.
+#### PublishList
 ```
 POST /v2/configuration/list
 ```
+
+
+##### Description
+Get all published nodes for a server endpoint.
 
 
 ##### Parameters
@@ -9928,17 +271,21 @@ POST /v2/configuration/list
 
 
 <a name="publishnodes"></a>
-#### Handler for PublishNodes direct method
+#### [PublishNodes](./directmethods.md#publishnodes_v1)
 ```
 POST /v2/configuration/nodes
 ```
 
 
+##### Description
+PublishNodes enables a client to add a set of nodes to be published. Further information is provided in the OPC Publisher documentation.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request contains the nodes to publish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -9965,17 +312,21 @@ POST /v2/configuration/nodes
 
 
 <a name="unpublishnodes"></a>
-#### Handler for UnpublishNodes direct method
+#### [UnpublishNodes](./directmethods.md#unpublishnodes_v1)
 ```
 POST /v2/configuration/nodes/unpublish
 ```
 
 
+##### Description
+UnpublishNodes method enables a client to remove nodes from a previously configured DataSetWriter. Further information is provided in the OPC Publisher documentation.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload specifying the nodes to unpublish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -10002,17 +353,21 @@ POST /v2/configuration/nodes/unpublish
 
 
 <a name="unpublishallnodes"></a>
-#### Handler for UnpublishAllNodes direct method
+#### [UnpublishAllNodes](./directmethods.md#unpublishallnodes_v1)
 ```
 POST /v2/configuration/nodes/unpublish/all
 ```
 
 
+##### Description
+Unpublish all specified nodes or all nodes in the publisher configuration. Further information is provided in the OPC Publisher documentation.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request contains the parts of the configuration to remove.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -10039,17 +394,21 @@ POST /v2/configuration/nodes/unpublish/all
 
 
 <a name="publishstart"></a>
-#### Start publishing values from a node
+#### PublishStart
 ```
 POST /v2/configuration/start
 ```
 
 
+##### Description
+Start publishing values from a node ona server.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The server and node to publish.|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10076,17 +435,21 @@ POST /v2/configuration/start
 
 
 <a name="publishstop"></a>
-#### Stop publishing values from a node
+#### PublishStop
 ```
 POST /v2/configuration/stop
 ```
 
 
+##### Description
+Stop publishing values from a node on the specified server.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The node to stop publishing|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10112,23 +475,208 @@ POST /v2/configuration/stop
 * `application/x-msgpack`
 
 
-<a name="twinmethods_resource"></a>
-### TwinMethods
-Twin methods controller
+<a name="discovery_resource"></a>
+### Discovery
+<br>OPC UA and network discovery related API.
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+
+
+<a name="discover"></a>
+#### Discover
+```
+POST /v2/discovery
+```
+
+
+##### Description
+Start network discovery using the provided discovery request configuration. The discovery results are published to the configured default event transport.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The discovery configuration to use during the discovery run.|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|boolean|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="cancel"></a>
+#### Cancel
+```
+POST /v2/discovery/cancel
+```
+
+
+##### Description
+Cancel a discovery run that is ongoing using the discovery request token specified in the discover operation.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The information needed to cancel the discovery operation.|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|boolean|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="findserver"></a>
+#### FindServer
+```
+POST /v2/discovery/findserver
+```
+
+
+##### Description
+Find servers matching the specified endpoint query spec.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The endpoint query specifying the matching criteria for the discovered endpoints.|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="register"></a>
+#### Register
+```
+POST /v2/discovery/register
+```
+
+
+##### Description
+Start server registration. The results of the registration are published as events to the default event transport.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|Contains all information to perform the registration request including discovery url to use.|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|boolean|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="general_resource"></a>
+### General
+<br>
+            This section lists the general APi provided by OPC Publisher providing
+            all connection, endpoint and address space related API methods.
+            
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
 
 
 <a name="browsestream"></a>
-#### Browse next
+#### BrowseStream (only HTTP transport)
 ```
 POST /v2/browse
 ```
 
 
+##### Description
+Recursively browse a node to discover its references and nodes. The results are returned as a stream of nodes and references. Consult <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.2"> the relevant section of the OPC UA reference specification</a> for more information.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10161,11 +709,15 @@ POST /v2/browse/first
 ```
 
 
+##### Description
+Browse a a node to discover its references. For more information consult <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.2"> the relevant section of the OPC UA reference specification</a>. The operation might return a continuation token. The continuation token can be used in the BrowseNext method call to retrieve the remainder of references or additional continuation tokens.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10192,17 +744,21 @@ POST /v2/browse/first
 
 
 <a name="browsenext"></a>
-#### Browse next
+#### BrowseNext
 ```
 POST /v2/browse/next
 ```
 
 
+##### Description
+Browse next
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10229,17 +785,21 @@ POST /v2/browse/next
 
 
 <a name="browsepath"></a>
-#### Browse by path
+#### BrowsePath
 ```
 POST /v2/browse/path
 ```
 
 
+##### Description
+Translate a start node and browse path into 0 or more target nodes. Allows programming aginst types in OPC UA. For more information consult <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8.4"> the relevant section of the OPC UA reference specification</a>.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10266,21 +826,21 @@ POST /v2/browse/path
 
 
 <a name="methodcall"></a>
-#### Call method
+#### MethodCall
 ```
 POST /v2/call
 ```
 
 
 ##### Description
-Call a method on the OPC UA server endpoint with the specified input arguments and received the result in the form of the method output arguments.
+Call a method on the OPC UA server endpoint with the specified input arguments and received the result in the form of the method output arguments. See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.11.2"> the relevant section of the OPC UA reference specification</a> for more information.
 
 
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10307,21 +867,21 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 
 <a name="methodmetadata"></a>
-#### Get method meta data
+#### MethodMetadata
 ```
 POST /v2/call/$metadata
 ```
 
 
 ##### Description
-Get the metadata for calling the method. This API is obsolete. Use the more powerful M:Azure.IIoT.OpcUa.Publisher.Module.Controllers.TwinMethodsController.GetMetadataAsync(Azure.IIoT.OpcUa.Publisher.Models.RequestEnvelope{Azure.IIoT.OpcUa.Publisher.Models.NodeMetadataRequestModel},System.Threading.CancellationToken) instead.
+Get the metadata for calling the method. This API is obsolete. Use the more powerful GetMetadata method instead.
 
 
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10348,17 +908,21 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 
 <a name="getservercapabilities"></a>
-#### Get the capabilities of the server
+#### GetServerCapabilities
 ```
 POST /v2/capabilities
 ```
 
 
+##### Description
+Get the capabilities of the server. The server capabilities are exposed as a property of the server object and this method provides a convinient way to retrieve them.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The connection information identifying the server to connect to perform the operation.|[ConnectionModel](definitions.md#connectionmodel)|
 
 
 ##### Responses
@@ -10385,17 +949,21 @@ POST /v2/capabilities
 
 
 <a name="getendpointcertificate"></a>
-#### Get endpoint certificate
+#### GetEndpointCertificate
 ```
 POST /v2/certificate
 ```
 
 
+##### Description
+Get a server endpoint's certificate and certificate chain if available.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[EndpointModel](definitions.md#endpointmodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The server endpoint to get the certificate for.|[EndpointModel](definitions.md#endpointmodel)|
 
 
 ##### Responses
@@ -10428,11 +996,15 @@ POST /v2/connect
 ```
 
 
+##### Description
+Connect to a server using the provided connection request information. The connection is established and held active until cancelled or the publisher process is restarted.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10465,11 +1037,15 @@ POST /v2/disconnect
 ```
 
 
+##### Description
+Can be used to disconnect a previously established connection.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10488,17 +1064,21 @@ POST /v2/disconnect
 
 
 <a name="historygetservercapabilities"></a>
-#### Get the historian capabilities of the server
+#### HistoryGetServerCapabilities
 ```
 POST /v2/history/capabilities
 ```
 
 
+##### Description
+Get the historian capabilities exposed as part of the OPC UA server server object.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ConnectionModel](definitions.md#connectionmodel)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The connection information identifying the server to connect to perform the operation on.|[ConnectionModel](definitions.md#connectionmodel)|
 
 
 ##### Responses
@@ -10525,17 +1105,21 @@ POST /v2/history/capabilities
 
 
 <a name="historygetconfiguration"></a>
-#### Get the historian configuration
+#### HistoryGetConfiguration
 ```
 POST /v2/history/configuration
 ```
 
 
+##### Description
+Get the historian configuration of a historizing node in the OPC UA server
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10562,17 +1146,21 @@ POST /v2/history/configuration
 
 
 <a name="historyread"></a>
-#### Read history
+#### HistoryRead
 ```
 POST /v2/historyread/first
 ```
 
 
+##### Description
+Read the history using the respective OPC UA service call. See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> the relevant section of the OPC UA reference specification</a> for more information. If continuation is returned the remaining results of the operation can be read using the HistoryReadNext method.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10599,17 +1187,21 @@ POST /v2/historyread/first
 
 
 <a name="historyreadnext"></a>
-#### Read next history
+#### HistoryReadNext
 ```
 POST /v2/historyread/next
 ```
 
 
+##### Description
+Read next history using the respective OPC UA service call. See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> the relevant section of the OPC UA reference specification</a> for more information.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10636,17 +1228,21 @@ POST /v2/historyread/next
 
 
 <a name="historyupdate"></a>
-#### Update history
+#### HistoryUpdate
 ```
 POST /v2/historyupdate
 ```
 
 
+##### Description
+Update history using the respective OPC UA service call. Consult the <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> relevant section of the OPC UA reference specification</a> for more information.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10673,17 +1269,21 @@ POST /v2/historyupdate
 
 
 <a name="getmetadata"></a>
-#### Get node metadata.
+#### GetMetadata
 ```
 POST /v2/metadata
 ```
 
 
+##### Description
+Get the type metadata for a any node. For data type nodes the response contains the data type metadata including fields. For method nodes the output and input arguments metadata is provided. For objects and object types the instance declaration is returned.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10710,7 +1310,7 @@ POST /v2/metadata
 
 
 <a name="compilequery"></a>
-#### Compile query
+#### CompileQuery
 ```
 POST /v2/query/compile
 ```
@@ -10724,7 +1324,7 @@ Compile a query string into a query spec that can be used when setting up event 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The compilation request|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*optional*|The compilation request and connection information.|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10751,17 +1351,21 @@ Compile a query string into a query spec that can be used when setting up event 
 
 
 <a name="valueread"></a>
-#### Read value
+#### ValueRead
 ```
 POST /v2/read
 ```
 
 
+##### Description
+Read the value of a variable node. This uses the service detailed in the <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.1"> relevant section of the OPC UA reference specification</a>.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10788,21 +1392,21 @@ POST /v2/read
 
 
 <a name="noderead"></a>
-#### Read attributes
+#### NodeRead
 ```
 POST /v2/read/attributes
 ```
 
 
 ##### Description
-Read an attribute of a node. The attributes supported by the node are dependend on the node class of the node.
+Read any writeable attribute of a specified node on the server. See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.2"> the relevant section of the OPC UA reference specification</a> for more information. The attributes supported by the node are dependend on the node class of the node.
 
 
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10829,17 +1433,21 @@ Read an attribute of a node. The attributes supported by the node are dependend 
 
 
 <a name="testconnection"></a>
-#### Test connection
+#### TestConnection
 ```
 POST /v2/test
 ```
 
 
+##### Description
+Test connection to an opc ua server. The call will not establish any persistent connection but will just allow a client to test that the server is available.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10866,17 +1474,21 @@ POST /v2/test
 
 
 <a name="valuewrite"></a>
-#### Write value
+#### ValueWrite
 ```
 POST /v2/write
 ```
 
 
+##### Description
+Write the value of a variable node. This uses the service detailed in <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.4"> the relevant section of the OPC UA reference specification</a>.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10903,17 +1515,21 @@ POST /v2/write
 
 
 <a name="nodewrite"></a>
-#### Write attributes
+#### NodeWrite
 ```
 POST /v2/write/attributes
 ```
 
 
+##### Description
+Write any writeable attribute of a specified node on the server. See <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.4"> the relevant section of the OPC UA reference specification</a> for more information. The attributes supported by the node are dependend on the node class of the node.
+
+
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -10921,6 +1537,921 @@ POST /v2/write/attributes
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="history_resource"></a>
+### History
+<br>
+            This section lists all OPC UA HDA or Historian related API provided by
+            OPC Publisher.
+            
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="historydeleteevents"></a>
+#### HistoryDeleteEvents
+```
+POST /v2/history/events/delete
+```
+
+
+##### Description
+Delete event entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to delete in the timeseries.|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyinsertevents"></a>
+#### HistoryInsertEvents
+```
+POST /v2/history/events/insert
+```
+
+
+##### Description
+Insert event entries into a specified timeseries of the historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to insert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historystreamevents"></a>
+#### HistoryStreamEvents (only HTTP transport)
+```
+POST /v2/history/events/read
+```
+
+
+##### Description
+Read an entire event timeseries from an OPC UA server historian as stream. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadevents"></a>
+#### HistoryReadEvents
+```
+POST /v2/history/events/read/first
+```
+
+
+##### Description
+Read an event timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadeventsnext"></a>
+#### HistoryReadEventsNext
+```
+POST /v2/history/events/read/next
+```
+
+
+##### Description
+Continue reading an event timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The continuation from a previous read request.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreplaceevents"></a>
+#### HistoryReplaceEvents
+```
+POST /v2/history/events/replace
+```
+
+
+##### Description
+Replace events in a timeseries in the historian of the OPC UA server. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to replace with in the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyupsertevents"></a>
+#### HistoryUpsertEvents
+```
+POST /v2/history/events/upsert
+```
+
+
+##### Description
+Upsert events into a time series of the opc server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The events to upsert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historydeletevalues"></a>
+#### HistoryDeleteValues
+```
+POST /v2/history/values/delete
+```
+
+
+##### Description
+Delete value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historydeletevaluesattimes"></a>
+#### HistoryDeleteValuesAtTimes
+```
+POST /v2/history/values/delete/attimes
+```
+
+
+##### Description
+Delete value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historydeletemodifiedvalues"></a>
+#### HistoryDeleteModifiedValues
+```
+POST /v2/history/values/delete/modified
+```
+
+
+##### Description
+Delete value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyinsertvalues"></a>
+#### HistoryInsertValues
+```
+POST /v2/history/values/insert
+```
+
+
+##### Description
+Insert value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to insert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historystreamvalues"></a>
+#### HistoryStreamValues (only HTTP transport)
+```
+POST /v2/history/values/read
+```
+
+
+##### Description
+Read an entire timeseries from an OPC UA server historian as stream. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historystreamvaluesattimes"></a>
+#### HistoryStreamValuesAtTimes (only HTTP transport)
+```
+POST /v2/history/values/read/attimes
+```
+
+
+##### Description
+Read specific timeseries data from an OPC UA server historian as stream. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadvalues"></a>
+#### HistoryReadValues
+```
+POST /v2/history/values/read/first
+```
+
+
+##### Description
+Read a data change timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadvaluesattimes"></a>
+#### HistoryReadValuesAtTimes
+```
+POST /v2/history/values/read/first/attimes
+```
+
+
+##### Description
+Read parts of a timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadmodifiedvalues"></a>
+#### HistoryReadModifiedValues
+```
+POST /v2/history/values/read/first/modified
+```
+
+
+##### Description
+Read modified changes in a timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadprocessedvalues"></a>
+#### HistoryReadProcessedValues
+```
+POST /v2/history/values/read/first/processed
+```
+
+
+##### Description
+Read processed timeseries data inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historystreammodifiedvalues"></a>
+#### HistoryStreamModifiedValues (only HTTP transport)
+```
+POST /v2/history/values/read/modified
+```
+
+
+##### Description
+Read an entire modified series from an OPC UA server historian as stream. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreadvaluesnext"></a>
+#### HistoryReadValuesNext
+```
+POST /v2/history/values/read/next
+```
+
+
+##### Description
+Continue reading a timeseries inside the OPC UA server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The continuation token from a previous read operation.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historystreamprocessedvalues"></a>
+#### HistoryStreamProcessedValues (only HTTP transport)
+```
+POST /v2/history/values/read/processed
+```
+
+
+##### Description
+Read processed timeseries data from an OPC UA server historian as stream. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.3"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyreplacevalues"></a>
+#### HistoryReplaceValues
+```
+POST /v2/history/values/replace
+```
+
+
+##### Description
+Replace value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to replace with in the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="historyupsertvalues"></a>
+#### HistoryUpsertValues
+```
+POST /v2/history/values/upsert
+```
+
+
+##### Description
+Upsert value change entries in a timeseries of the server historian. See <a href="https://reference.opcfoundation.org/Core/Part11/v104/docs/"> the relevant section of the OPC UA reference specification</a> and <a href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.10.5"> respective service documentation</a> for more information.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*optional*|The values to upsert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes

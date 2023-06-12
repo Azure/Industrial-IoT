@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System.Linq;
 
@@ -38,11 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 DataSetFieldName = publishedEvent.PublishedEventName ?? string.Empty,
                 EventFilter = new EventFilterModel
                 {
-                    SelectClauses = publishedEvent.SelectClauses?
+                    SelectClauses = publishedEvent.SelectedFields?
                         .Select(s => s.Clone()!)
                         .Where(s => s != null)
                         .ToList(),
-                    WhereClause = publishedEvent.WhereClause?.Clone(),
+                    WhereClause = publishedEvent.Filter?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
                 DiscardNew = publishedEvent.DiscardNew

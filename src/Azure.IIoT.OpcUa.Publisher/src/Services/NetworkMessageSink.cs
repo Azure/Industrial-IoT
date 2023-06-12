@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -272,7 +273,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 _diagnostics?.ResetWriterGroupDiagnostics();
                 _dataFlowStartTime = DateTime.UtcNow;
-                _logger.LogInformation("Started data flow with message from subscription {Name} on {Endpoint}.",
+                _logger.LogInformation(
+                    "Started data flow with message from subscription {Name} on {Endpoint}.",
                     args.SubscriptionName, args.EndpointUrl);
             }
 
@@ -316,9 +318,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="dropped"></param>
         private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
         {
-            _logger.LogInformation(
-                "{Action}Notification#{Seq} from Subscription {Subscription}{Items}",
-                dropped ? "!!!! Dropped " : string.Empty, args.SequenceNumber,
+            _logger.LogInformation("{Action}{PublishTime:hh.mm.ss.ffffff}: Notification#{Seq}/{PublishSeq} " +
+                "from Subscription {Subscription}{Items}", dropped ? "!!!! Dropped " : string.Empty,
+                args.PublishTimestamp, args.SequenceNumber, args.PublishSequenceNumber ?? 0,
                 args.SubscriptionName, Stringify(args.Notifications));
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
             {
@@ -327,14 +329,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     sb
                         .AppendLine()
-                        .Append("|#")
+                        .Append("   |#")
                         .Append(item.SequenceNumber)
                         .Append('|')
-                        .Append(item.Value?.ServerTimestamp.ToString("hh.mm.ss.ffffff"))
+                        .Append(item.Value?.ServerTimestamp.ToString("hh.mm.ss.ffffff", CultureInfo.CurrentCulture))
                         .Append('|')
                         .Append(item.DataSetFieldName ?? item.DataSetName)
                         .Append('|')
-                        .Append(item.Value?.SourceTimestamp.ToString("hh.mm.ss.ffffff"))
+                        .Append(item.Value?.SourceTimestamp.ToString("hh.mm.ss.ffffff", CultureInfo.CurrentCulture))
                         .Append('|')
                         .Append(item.Value?.Value)
                         .Append('|')
@@ -382,7 +384,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", "milliseconds", "Histogram of message sending durations.");
 
-        private const int kMaxQueueSize = 4096; // = 1 GB
+        /// <summary>
+        /// With 256k limit this is 1 GB.
+        /// TODO: Must be related to the actual limit size
+        /// </summary>
+        private const int kMaxQueueSize = 4096;
 
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private long _messagesSentCount;

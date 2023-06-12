@@ -710,7 +710,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public string? ApplicationUri { get; }
 
                 /// <inheritdoc/>
-                public DateTime Timestamp { get; }
+                public DateTime PublishTimestamp { get; }
+
+                /// <inheritdoc/>
+                public uint? PublishSequenceNumber => null;
 
                 /// <inheritdoc/>
                 public object? Context { get; set; }
@@ -727,7 +730,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     SequenceNumber = notification.SequenceNumber;
                     ServiceMessageContext = notification.ServiceMessageContext;
                     MetaData = notification.MetaData;
-                    Timestamp = notification.Timestamp;
+                    PublishTimestamp = notification.PublishTimestamp;
                     SubscriptionId = notification.SubscriptionId;
                     SubscriptionName = notification.SubscriptionName;
                     ApplicationUri = notification.ApplicationUri;

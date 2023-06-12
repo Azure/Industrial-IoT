@@ -37,14 +37,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Event fields to select
         /// </summary>
-        [DataMember(Name = "selectClauses", Order = 3)]
-        public List<SimpleAttributeOperandModel>? SelectClauses { get; set; }
+        [DataMember(Name = "selectedFields", Order = 3)]
+        public List<SimpleAttributeOperandModel>? SelectedFields { get; set; }
 
         /// <summary>
         /// Filter to use to select event fields
         /// </summary>
-        [DataMember(Name = "whereClause", Order = 4)]
-        public ContentFilterModel? WhereClause { get; set; }
+        [DataMember(Name = "filter", Order = 4)]
+        public ContentFilterModel? Filter { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)

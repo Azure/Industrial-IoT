@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="noDefaultFilter"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         [return: NotNullIfNotNull(nameof(model))]
         public static EventFilter? Decode(this IVariantEncoder encoder, EventFilterModel? model,
             bool noDefaultFilter = false)

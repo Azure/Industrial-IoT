@@ -63,13 +63,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             builder.RegisterType<Router>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<PublisherMethodsController>()
+            builder.RegisterType<ConfigurationController>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinMethodsController>()
+            builder.RegisterType<GeneralController>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistoryMethodsController>()
+            builder.RegisterType<HistoryController>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryMethodsController>()
+            builder.RegisterType<DiscoveryController>()
                 .AsImplementedInterfaces();
         }
 

@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 MetaDataProperties = model.MetaDataProperties?.ToList(),
                 PublishedVariableNodeId = model.PublishedVariableNodeId,
                 PublishedVariableDisplayName = model.PublishedVariableDisplayName,
-                SamplingInterval = model.SamplingInterval,
+                SamplingIntervalHint = model.SamplingIntervalHint,
                 SkipFirst = model.SkipFirst,
                 ReadDisplayNameFromNode = model.ReadDisplayNameFromNode,
                 RegisterNodeForSampling = model.RegisterNodeForSampling,
