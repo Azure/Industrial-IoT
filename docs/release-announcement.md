@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 3](#azure-industrial-iot-opc-publisher-290-community-preview-3)
+  - [Changes in 2.9.0 Preview 3](#changes-in-290-preview-3)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2](#azure-industrial-iot-opc-publisher-290-community-preview-2)
   - [Changes in 2.9.0 Preview 2](#changes-in-290-preview-2)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 1](#azure-industrial-iot-opc-publisher-290-community-preview-1)
@@ -23,6 +25,23 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 3
+
+We are pleased to announce the third **preview** release of version 2.9.0 of OPC Publisher. This release adds several new features including support for cyclic reads.
+
+> IMPORTANT: Preview releases are only supported through GitHub issues. This particular release due to the number of changes included might have backward compatibility breaks that have not yet been documented. Please file issues and we will try to address them ahead of GA release.
+
+### Changes in 2.9.0 Preview 3
+
+- [OPC Publisher] Heartbeat behavior is not deterministic - implement heartbeat as value change watchdog. #1993
+- [OPC Publisher] When enabling client linger in preview2 a failing connection retries forever bugSomething isn't working #1985
+- [OPC Publisher] Alarm condition integration tests have been partially disabled and need to enable again #1989
+- [OPC Publisher] Need OPC Publisher to poll data from server periodically rather than subscribing. #1934
+- [OPC Publisher] Polling mechanism instead of PubSub in OPCPublisher feature request #605
+- [OPC Publisher] Configuration of the published nodes by browse path feature request #47
+- [OPC Publisher] deploy.ps1 fails upon deploying "platform" #1981
+  [OPC Publisher] Updated documentation and nuget dependencies
 
 ## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2
 
