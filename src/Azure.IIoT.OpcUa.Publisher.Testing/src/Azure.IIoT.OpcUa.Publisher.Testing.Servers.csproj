@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Description>Contains several test servers to run tests against</Description>
@@ -55,7 +55,7 @@
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.371-preview.ge89b06e57b" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.371.86" />
     <PackageReference Include="Furly.Extensions" Version="0.4.42" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
