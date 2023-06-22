@@ -73,6 +73,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <summary>
+        /// Convert to endpoint description
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="endpointUrl"></param>
+        /// <returns></returns>
+        public static EndpointDescription ToEndpointDescription(this EndpointModel endpoint,
+            string? endpointUrl = null)
+        {
+            return new EndpointDescription
+            {
+                EndpointUrl = endpointUrl ?? endpoint.Url,
+                SecurityPolicyUri = endpoint.SecurityPolicy,
+                SecurityMode = (endpoint.SecurityMode ?? SecurityMode.Best).ToStackType()
+            };
+        }
+
+        /// <summary>
         /// Convert diagnostics to request header
         /// </summary>
         /// <param name="model"></param>
@@ -99,12 +116,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="type"></param>
         /// <param name="context"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static RolePermissionModel ToServiceModel(this RolePermissionType type,
-            IServiceMessageContext context)
+            IServiceMessageContext context, NamespaceFormat namespaceFormat)
         {
-            var roleId = type.RoleId.AsString(context);
+            var roleId = type.RoleId.AsString(context, namespaceFormat);
             if (roleId == null)
             {
                 throw new ArgumentException("Permission type not a valid node id");
@@ -213,10 +231,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="model"></param>
         /// <param name="context"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
         public static SimpleAttributeOperandModel? ToServiceModel(this SimpleAttributeOperand? model,
-            IServiceMessageContext context)
+            IServiceMessageContext context, NamespaceFormat namespaceFormat)
         {
             if (model == null)
             {
@@ -224,9 +243,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new SimpleAttributeOperandModel
             {
-                TypeDefinitionId = model.TypeDefinitionId.AsString(context),
+                TypeDefinitionId = model.TypeDefinitionId
+                    .AsString(context, namespaceFormat),
                 AttributeId = (NodeAttribute)model.AttributeId,
-                BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
+                BrowsePath = model.BrowsePath?
+                    .Select(p => p.AsString(context, namespaceFormat))
+                    .ToArray(),
                 IndexRange = model.IndexRange
             };
         }

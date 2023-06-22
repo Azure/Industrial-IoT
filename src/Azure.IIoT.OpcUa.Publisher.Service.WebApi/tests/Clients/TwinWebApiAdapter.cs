@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            string endpoint, CancellationToken ct)
+            string endpoint, RequestHeaderModel header, CancellationToken ct)
         {
             return await _client.GetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
         }
@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            string endpoint, CancellationToken ct)
+            string endpoint, RequestHeaderModel header, CancellationToken ct)
         {
             return await _client.HistoryGetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
         }

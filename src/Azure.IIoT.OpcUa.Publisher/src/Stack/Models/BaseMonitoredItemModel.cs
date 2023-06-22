@@ -85,5 +85,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Monitoring mode
         /// </summary>
         public MonitoringMode? MonitoringMode { get; init; }
+
+        /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public NamespaceFormat NamespaceFormat { get; init; }
     }
 }

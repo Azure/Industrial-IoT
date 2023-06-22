@@ -24,12 +24,14 @@ Here you find information about
   - [Writer group configuration](#writer-group-configuration)
   - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
   - [Configuring Security](#configuring-security)
+  - [Using OPC UA reverse connect](#using-opc-ua-reverse-connect)
   - [Configuring event subscriptions](#configuring-event-subscriptions)
     - [Simple event filter](#simple-event-filter)
     - [Advanced event filter configuration](#advanced-event-filter-configuration)
     - [Condition handling options](#condition-handling-options)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
-- [Programming OPC Publisher using the OPC Publisher API](#programming-opc-publisher-using-the-opc-publisher-api)
+- [Programming against OPC Publisher using the OPC Publisher API](#programming-against-opc-publisher-using-the-opc-publisher-api)
+  - [JSON encoding](#json-encoding)
   - [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
     - [Discovery Configuration](#discovery-configuration)
     - [One-time discovery](#one-time-discovery)
@@ -44,11 +46,11 @@ Here you find information about
 
 Microsoft OPC Publisher runs on Azure [IoT Edge](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub) and connects OPC UA-enabled servers to Azure. It can be [configured](#configuring-opc-publisher) using Azure IoT Hub, through MQTT/HTTPS locally (Preview) or via configuration file.
 
-OPC Publisher is a feature rich OPC UA client/server to OPC UA Pub/Sub translator. Per configuration it sets up OPC UA subscriptions to monitor data (OPC UA nodes) using an integrated [OPC UA stack](#opc-ua-stack). When a data value change or event of an OPC UA node is reported, it transcodes the OPC UA notification using the configured encoding and publishes it to IoT Hub or MQTT broker of choice.
+OPC Publisher is a [feature rich OPC UA client/server to OPC UA Pub/Sub translator](./features.md). Per configuration it sets up OPC UA subscriptions to monitor data (OPC UA nodes) using an integrated [OPC UA stack](#opc-ua-stack). When a data value change or event of an OPC UA node is reported, it transcodes the OPC UA notification using the configured encoding and publishes it to IoT Hub or MQTT broker of choice.
 
-With OPC Publisher you can also browse a server's data model, read and write ad-hoc data, or call methods on your assets. This [capability](#opc-ua-client-opc-twin) can be accessed programmatically from the cloud or through other applications running alongside. OPC Publisher also supports [discovering](#discovering-opc-ua-servers-with-opc-publisher) OPC UA-enabled assets on the shop floor. When it finds an asset either through a discovery url or (optionally) active network scanning, it queries the assets endpoints (including its security configuration) and reports the results to IoT Hub or returns them from the respective [API call as response](api.md#find-server-with-endpoint).
+With OPC Publisher you can also browse a server's data model, read and write ad-hoc data, or call methods on your assets. This [capability](#opc-ua-command-and-control-opc-twin) can be accessed programmatically from the cloud or through other applications running alongside. OPC Publisher also supports [discovering](#discovering-opc-ua-servers-with-opc-publisher) OPC UA-enabled assets on the shop floor. When it finds an asset either through a discovery url or (optionally) active network scanning, it queries the assets endpoints (including its security configuration) and reports the results to IoT Hub or returns them from the respective [API call as response](api.md#find-server-with-endpoint).
 
-The IoT Edge gateways support nested ISA 95 (Purdue) topologies. It needs to be placed where it has access to all industrial assets that are to be connected, and a IoT Edge device needs to be placed at every layer leading to the internet.
+Azure IoT Edge gateways support nested ISA 95 (Purdue) topologies. It needs to be placed where it has access to all industrial assets that are to be connected, and a IoT Edge device needs to be placed at every layer leading to the internet. Using OPC UA [reverse connect](#using-opc-ua-reverse-connect) is another option to bridge network layer.
 
 > Note that this might require configuring a specific route from IoT Edge to the public Internet through several on-premise routers. In terms of firewall configuration, IoT Edge just needs a single outbound port to operate, i.e., port 443.
 
@@ -363,10 +365,11 @@ The configuration schema is used with the file based configuration, but also wit
 ```json
 {
   "EndpointUrl": "string",
-  "UseSecurity": "Boolean",
+  "UseSecurity": "bool",
   "OpcAuthenticationMode": "string",
   "UserName": "string",
   "Password": "string",
+  "UseReverseConnect": "bool",
   "DataSetWriterId": "string",
   "DataSetClassId": "Guid",
   "DataSetName": "string",
@@ -428,6 +431,7 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `LastChangeTimespan` | No | String | `null` | The time the Publisher configuration was last updated.<br>Read only and informational only. |
 | `EndpointUrl` | Yes | String | N/A | The OPC UA server endpoint URL |
 | `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
+| `UseReverseConnect` | No | Boolean | `false` | Controls whether to use OPC UA reverse connect to connect to the OPC UA server.<br>A publisher wide default value can be set using the [command line](./commandline.md) |
 | `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
 | `UserName` | No | String | `null` | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
 | `Password` | No | String | `null` | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
@@ -520,7 +524,7 @@ A subscription is created for each unique `DataSetWriter`. The publishing interv
 
 Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
 
-OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in seconds (but can also be specified as a timespan value):
+OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a timespan value):
 
 ``` json
   "HeartbeatInterval": 3600,
@@ -528,7 +532,7 @@ OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when
 
 > In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription. In 2.9 and higher the heartbeat is emitted every heartbeat interval fram the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome.
 
-Similar use cases require cyclic read based sampling using read service calls on a periodic timer. The `UseCyclicRead` property of a configured node tells OPC Publisher to sample the value periodically when the timer expires. Note that a batch read operation of all nodes at the same sampling rate when no previous read operation is in progress. While the sampler configures a timeout of half the sampling rate in case of high frequency sampling a value every time the sampling rate expires cannot be guaranteed.
+Similar use cases require cyclic read based sampling using read service calls on a periodic timer. The `UseCyclicRead` property of a configured node tells OPC Publisher to sample the value periodically when the timer expires. Note that read operations of all nodes at the same sampling rate are batched together for efficiency. They only execute when no previous read operation is in progress when the period expires. While the sampler configures a timeout of half the sampling rate in case of high frequency sampling a value every time the sampling rate expires cannot be guaranteed.
 
 ``` json
   "UseCyclicRead": true,
@@ -552,7 +556,7 @@ OPC Publisher can be configured to store these certificates in a file system bas
 
 Encrypted communication can be enabled per endpoint via the `"UseSecurity": true,` flag. By default OPC Publisher will connect to an endpoint using the least secure mode OPC Publisher and the OPC UA server support.
 
-By default OPC Publisher does use no user authentication (anonymous). However, OPC Publisher supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
+By default OPC Publisher does use anonymous authentication. However, OPC Publisher also supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
 
 ``` json
   "OpcAuthenticationMode": "UsernamePassword",
@@ -560,7 +564,25 @@ By default OPC Publisher does use no user authentication (anonymous). However, O
   "OpcAuthenticationPassword": "pwd",
 ```
 
-> OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
+> OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text. 2.9 allows you to force encryption of credentials at rest (`--fce`) or otherwise cause OPC Publisher to exit.
+
+### Using OPC UA reverse connect
+
+You can let servers connect to OPC Publisher using the OPC UA reverse connect mode. This allows an OPC UA server to connect to OPC Publisher located in a higher layer network instead of opening up inbound ports to let OPC Publisher connect to it. Consequently only an outbound port needs to be opened in the lower layer network. You can find more information in [OPC UA standard Part 6](https://reference.opcfoundation.org/v104/Core/docs/Part6/7.1.3/).
+
+Reverse connect mode can be enabled per endpoint. This can be done using the `UseReverseConnect` property inside the published nodes configuration entry. An OPC Publisher-wide default for the case the property is missing can be configured using the `--urc` command line option.
+
+Reverse connect is only supported for the opc.tcp scheme of endpoint urls. Reverse connecting other transports is not supported. If OPC Publisher cannot find a Url candidate with the opc.tcp scheme to use when reverse connecting it will try to establish a regular connection to any of the other candidate endpoints instead (see [ConnectionModel](./definitions.md#connectionmodel) for more information).
+
+OPC Publisher will listen for reverse connect requests on port 4840, unless a different port is configured through the `--rcp` command line option. You must open the port on the OPC Publisher docker container for external OPC UA servers to be able to access it. This must be done in the IoT Edge deployment manifest's create options. Add a port bnding entry for port 4840 (or otherwise chosen port) container port and the host port you want to open (e.g., 4840):
+
+```json
+    "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"4840/tcp\":[{\"HostPort\":\"4840\"}],  ...
+```
+
+OPC Publisher opens the outbound port when the first reverse connection is required. This happens when at a published nodes entry with a reverse connected endpoint causes a subscription to be created, or by making an API call with a reverse connection model passed as part of the request, whichever happens first. Otherwise the port stays closed.
+
+It is also important to note that the Endpoint URL presented by the server in the RHEL packet must match exactly the endpoint url used to create the OPC UA client inside OPC Publisher (either the `EndpointUrl` property in the published nodes entry or the Url inside the [ConnectionModel](./definitions.md#connectionmodel)). Otherwise connections from the server will be rejected by OPC Publisher. This is important because some OPC UA servers do not use a FQDN host name in the endpoint Url in the RHEL packet they send. In this case, do not specify the FQDN in the Endpoint Url either. Follow instructions to [trouble shoot](./troubleshooting.md) OPC Publisher and in particular enable stack logging using `--sl` to see the endoint url presented by the server when the server connection is rejected, then update the OPC Publisher configuration to match.
 
 ### Configuring event subscriptions
 
@@ -794,7 +816,7 @@ All versions of OPC Publisher also support a non-standard, simple JSON telemetry
 
 More detailed information about the supported message formats can be found [here](./messageformats.md)
 
-## Programming OPC Publisher using the OPC Publisher API
+## Programming against OPC Publisher using the OPC Publisher API
 
 OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md). In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) and [a number of different transports](./transports.md) that can be used to receive messages or invoke these API services. The transports can be configured using the [command line arguments](./commandline.md). The API can be invoked through
 
@@ -803,6 +825,34 @@ OPC Publisher supports remote configuration through Azure IoT Hub [direct method
 - The same API can also be called via the **HTTP Server** built into OPC Publisher (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token. The API key is generated at start up and can be read from the OPC Publisher module's module twin.
 
 - The API can also be invoked through **MQTT v5 RPC calls** (Preview). The API is mounted on top of the method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
+
+### JSON encoding
+
+The REST API uses OPC UA JSON reversible encoding as per standard defined in [OPC UA](../readme.md#what-is-opc-ua) specification 1.04, Part 6, with the exception that default scalar values and `null` values are not encoded except when inside of an array.  A missing value implies `null` or the default of the scalar data type.  
+
+In addition to the standard string encoding using a namespace `Index` (e.g. `ns=4;i=3`) or the `Expanded` format (e.g. `nsu=http://opcfoundation.org/UA/;i=3523`) OPC Publisher also supports the use of `Uri` encoded Node Ids and Qualfied Names (see [RFC 3986](http://tools.ietf.org/html/rfc3986)).
+
+```bash
+<namespace-uri>#<id-type>=<URL-encoded-id-value>
+```
+
+Examples are: `http://opcfoundation.org/UA/#i=3523` or `http://opcfoundation.org/UA/#s=tag1`.
+
+Qualified Names are encoded as a single string the same way as Node Ids, where the name is the ID element of the URI. Examples of qualified names are in `Uri` format e.g. `http://opcfoundation.org/UA/#Browse%20Name`, in `Expanded` format `nsu=http://microsoft.com/;Browse%20Name` and in `Index` format this would be `3:Browse%20Name`.
+
+While the API supports any input format for qualified names (e.g., in browse paths) or node ids, you can select the desired output namespace format through the [header in the request](./definitions.md#requestheadermodel) and its property `NamespaceFormat`.  You can also set a default on the [command line](./commandline.md) using `--nf`. If the publisher is started in `--strict` the namespace format is `Expanded`, otherwise defaults to `Uri`.
+
+Non Uri namespace Uri's must always be encoded using the `Index` or `Expanded` syntax (e.g. `nsu=taglist;i=3523`). Expanded Node Identifiers should be encoded using the OPC UA `Index` or `Expanded` syntax (e.g. `svu=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`).  In the `Uri` format case the server URI is appended as
+
+```bash
+<namespace-uri>&srv=<URL-encoded-server-uri>#<id-type>=<URL-encoded-id-value>
+```
+
+While not always enforced, ensure you **URL encode** the id value or name of Qualified Names, Node Ids and Expanded Node Ids.
+
+All *primitive built-in* values (`integer`, `string`, `int32`, `double`, etc.) and *Arrays* of them can be passed as JSON encoded Variant objects (as per standard) or as JSON Token.  The twin module attempts to coerce the JSON Token in the payload to the expected built-in type of the Variable or Input argument.
+
+The decoder will match JSON variable names case-**in**sensitively.  This means you can write a JSON object property name as `"tyPeiD": ""`, `"typeid": ""`, or `"TYPEID": ""` and all are decoded into a OPC UA structure's `"TypeId"` member.
 
 ### Discovering OPC UA servers with OPC Publisher
 
@@ -863,7 +913,7 @@ Example use cases:
 - A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
 - An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
 
-The API enables you to write applications that invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](../json.md) encoding and decoding in a consistent JSON format.
+The API enables you to write applications that invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service. This includes [Variant](#json-encoding) encoding and decoding in a consistent JSON format.
 
 Payloads that are larger than the Azure IoT Hub supported Device Method payload size are chunked, compressed, sent, then decompressed and reassembled for both request and response. This allows fast and large value writes and reads, as well as returning large browse results.  
 

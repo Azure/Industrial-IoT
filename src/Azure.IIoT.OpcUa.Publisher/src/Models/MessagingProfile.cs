@@ -60,6 +60,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
+        /// Returns true if messaging profiles supports keep alive
+        /// </summary>
+        public bool SupportsKeepAlive
+        {
+            get
+            {
+                switch (MessagingMode)
+                {
+                    case MessagingMode.FullSamples:
+                    case MessagingMode.Samples:
+                        return false;
+                    default:
+                        return true;
+                }
+            }
+        }
+
+        /// <summary>
         /// Messaging encoding
         /// </summary>
         public MessageEncoding MessageEncoding { get; }
@@ -202,6 +220,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 .Append(SupportsMetadata ? "X" : " ")
                 .Append(" | ")
                 .Append(SupportsKeyFrames ? "X" : " ")
+                .Append(" | ")
+                .Append(SupportsKeepAlive ? "X" : " ")
                 .AppendLine(" |")
                 .ToString();
         }
@@ -311,8 +331,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             var builder = new StringBuilder();
             builder.Append(
-@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
-   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|
+@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported | KeepAlive supported |
+   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|---------------------|
 ");
             foreach (var profile in kProfiles)
             {

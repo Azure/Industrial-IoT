@@ -8,14 +8,15 @@ namespace Microsoft.Azure.IIoT.App.Shared
     using Microsoft.AspNetCore.Components;
     using Blazored.Modal;
     using Blazored.Modal.Services;
+    using System.Threading.Tasks;
 
     public partial class HelpContent
     {
         [CascadingParameter] private BlazoredModalInstance BlazoredModal { get; set; }
 
-        private void Close()
+        private Task CloseAsync()
         {
-            BlazoredModal.Close(ModalResult.Ok(true));
+            return BlazoredModal.CloseAsync(ModalResult.Ok(true));
         }
     }
 }

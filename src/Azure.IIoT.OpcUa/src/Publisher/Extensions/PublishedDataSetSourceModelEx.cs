@@ -20,17 +20,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedDataSetSourceModel? Clone(this PublishedDataSetSourceModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new PublishedDataSetSourceModel
+            return model == null ? null : (model with
             {
                 Connection = model.Connection.Clone(),
                 PublishedEvents = model.PublishedEvents.Clone(),
                 PublishedVariables = model.PublishedVariables.Clone(),
                 SubscriptionSettings = model.SubscriptionSettings.Clone()
-            };
+            });
         }
     }
 }

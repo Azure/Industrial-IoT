@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             using var configService = InitPublisherConfigService();
-            Assert.Equal(2, _publisher.WriterGroups.Count());
+            Assert.Equal(2, _publisher.WriterGroups.Count);
         }
 
         [Fact]
@@ -781,7 +781,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .ConfigureAwait(false);
             }
 
-            _publisher.WriterGroups.Count()
+            _publisher.WriterGroups.Count
                 .Should()
                 .Be(1);
         }
@@ -807,7 +807,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .ConfigureAwait(false);
             }
 
-            _publisher.WriterGroups.Count()
+            _publisher.WriterGroups.Count
                 .Should()
                 .Be(1);
         }
@@ -832,7 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .ConfigureAwait(false);
             }
 
-            _publisher.WriterGroups.Count()
+            _publisher.WriterGroups.Count
                 .Should()
                 .Be(1);
         }
@@ -857,7 +857,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .ConfigureAwait(false);
             }
 
-            _publisher.WriterGroups.Count()
+            _publisher.WriterGroups.Count
                 .Should()
                 .Be(0);
         }

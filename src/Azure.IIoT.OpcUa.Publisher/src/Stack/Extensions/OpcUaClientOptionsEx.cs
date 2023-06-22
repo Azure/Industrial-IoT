@@ -10,7 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using System;
+    using System.Net;
     using System.Net.NetworkInformation;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -54,7 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     continue;
                 }
 
-                var hostname = /*!string.IsNullOrWhiteSpace(identity) ? identity : */ Utils.GetHostName();
+                var hostname = !string.IsNullOrWhiteSpace(identity) ?
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+                    new IPAddress(SHA1.HashData(Encoding.UTF8.GetBytes(identity))
+                        .AsSpan().Slice(0, 16), 0).ToString() :
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
+                    Utils.GetHostName();
                 var applicationUri = options.ApplicationUri;
                 if (applicationUri == null)
                 {
@@ -62,8 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 }
                 else
                 {
-                    applicationUri = applicationUri
-                        .Replace("urn:localhost", $"urn:{hostname}", StringComparison.Ordinal);
+                    applicationUri = applicationUri.Replace("urn:localhost", $"urn:{hostname}",
+                        StringComparison.Ordinal);
                 }
                 var appBuilder = appInstance.Build(applicationUri, options.ProductUri)
                     .SetTransportQuotas(options.Quotas.ToTransportQuotas())

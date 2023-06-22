@@ -208,22 +208,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel endpoint,
-            CancellationToken ct)
+            RequestHeaderModel header, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             var uri = new Uri($"{_serviceUri}/v2/capabilities");
             return await _httpClient.PostAsync<ServerCapabilitiesModel>(uri,
-                endpoint, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, header), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel endpoint, CancellationToken ct)
+            ConnectionModel endpoint, RequestHeaderModel header, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             var uri = new Uri($"{_serviceUri}/v2/history/capabilities");
             return await _httpClient.PostAsync<HistoryServerCapabilitiesModel>(uri,
-                endpoint, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, header), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

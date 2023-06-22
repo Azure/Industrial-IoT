@@ -21,10 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Get the capabilities of the server
         /// </summary>
         /// <param name="endpoint">Server endpoint to talk to</param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            T endpoint, CancellationToken ct = default);
+        Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(T endpoint,
+            RequestHeaderModel? header, CancellationToken ct = default);
 
         /// <summary>
         /// Browse nodes on server
@@ -153,10 +154,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Get history server capabilities
         /// </summary>
         /// <param name="endpoint">Server endpoint to talk to</param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            T endpoint, CancellationToken ct = default);
+            T endpoint, RequestHeaderModel? header, CancellationToken ct = default);
 
         /// <summary>
         /// Get a node's history configuration

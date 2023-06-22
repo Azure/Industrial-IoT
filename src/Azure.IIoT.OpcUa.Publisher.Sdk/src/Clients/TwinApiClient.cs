@@ -356,8 +356,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel connection,
-            CancellationToken ct)
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
+            ConnectionModel connection, RequestHeaderModel? header, CancellationToken ct)
         {
             if (connection == null)
             {
@@ -368,7 +368,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             var response = await _methodClient.CallMethodAsync(_target,
-                "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
+                "GetServerCapabilities_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    header
+                }),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<ServerCapabilitiesModel>(response);
         }
@@ -425,7 +429,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct)
+            ConnectionModel connection, RequestHeaderModel? header, CancellationToken ct)
         {
             if (connection == null)
             {
@@ -436,7 +440,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             var response = await _methodClient.CallMethodAsync(_target,
-                "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
+                "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    header
+                }),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryServerCapabilitiesModel>(response);
         }

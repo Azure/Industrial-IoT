@@ -44,6 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? CreateSessionTimeout { get; set; }
 
         /// <summary>
+        /// Reverse connect port to use other than 4840.
+        /// </summary>
+        public int? ReverseConnectPort { get; set; }
+
+        /// <summary>
         /// How long to at least wait until reconnecting.
         /// </summary>
         public TimeSpan? MinReconnectDelay { get; set; }

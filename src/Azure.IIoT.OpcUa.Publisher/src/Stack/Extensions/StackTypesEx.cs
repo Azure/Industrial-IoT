@@ -177,6 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 case SecurityMode.Sign:
                     return UaSecurityMode.Sign;
                 case SecurityMode.SignAndEncrypt:
+                case SecurityMode.Best:
                     return UaSecurityMode.SignAndEncrypt;
                 default:
                     return UaSecurityMode.None;

@@ -20,19 +20,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static DataSetWriterModel? Clone(this DataSetWriterModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new DataSetWriterModel
+            return model == null ? null : (model with
             {
                 DataSet = model.DataSet.Clone(),
-                DataSetFieldContentMask = model.DataSetFieldContentMask,
-                MetaDataUpdateTime = model.MetaDataUpdateTime,
-                DataSetWriterName = model.DataSetWriterName,
-                KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.Clone()
-            };
+            });
+        }
+
+        /// <summary>
+        /// Clone
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [return: NotNullIfNotNull(nameof(model))]
+        private static DataSetWriterMessageSettingsModel? Clone(this DataSetWriterMessageSettingsModel? model)
+        {
+            return model == null ? null : (model with { });
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿[
     {
-        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "EndpointUrl": "{{EndpointUrl}}",
         "DataSetPublishingInterval": 10,
         "UseSecurity": true,
         "OpcNodes": [

@@ -37,7 +37,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Connection group allows splitting connections
         /// per purpose.
         /// </summary>
-        [DataMember(Name = "group", Order = 3)]
+        [DataMember(Name = "group", Order = 3,
+             EmitDefaultValue = false)]
         public string? Group { get; set; }
+
+        /// <summary>
+        /// Connection should be established in reverse to
+        /// transition through proxies.
+        /// </summary>
+        [DataMember(Name = "isReverse", Order = 4,
+             EmitDefaultValue = false)]
+        public bool? IsReverse { get; set; }
     }
 }

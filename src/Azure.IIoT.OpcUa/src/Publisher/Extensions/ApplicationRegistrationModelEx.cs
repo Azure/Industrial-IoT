@@ -82,15 +82,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static ApplicationRegistrationModel? Clone(this ApplicationRegistrationModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new ApplicationRegistrationModel
+            return model == null ? null : (model with
             {
                 Application = model.Application.Clone(),
                 Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList()
-            };
+            });
         }
 
         /// <summary>

@@ -34,5 +34,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "diagnostics", Order = 2,
             EmitDefaultValue = false)]
         public DiagnosticsModel? Diagnostics { get; set; }
+
+        /// <summary>
+        /// Optional namespace format to use when serializing
+        /// nodes and qualified names in responses.
+        /// </summary>
+        [DataMember(Name = "namespaceFormat", Order = 3,
+            EmitDefaultValue = false)]
+        public NamespaceFormat? NamespaceFormat { get; set; }
     }
 }

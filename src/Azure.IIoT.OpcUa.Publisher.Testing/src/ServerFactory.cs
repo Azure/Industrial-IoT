@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
 
         /// <inheritdoc/>
-        private sealed class Server : StandardServer
+        private sealed class Server : ReverseConnectServer
         {
             /// <summary>
             /// Create server
@@ -219,9 +219,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             "PFX", "PEM"
                         },
 
+                        ReverseConnect = new ReverseConnectServerConfiguration
+                        {
+                            ConnectInterval = 1000,
+                            ConnectTimeout = 120000,
+                            RejectTimeout = 120000
+                        },
+
                         NodeManagerSaveFile = "nodes.xml",
                         DiagnosticsEnabled = false,
-                        ShutdownDelay = 5,
+                        ShutdownDelay = 1,
 
                         // Runtime configuration
                         BaseAddresses = new StringCollection(ports
@@ -259,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxRequestThreadCount = 2000,
                         MaxQueuedRequestCount = 2000000,
 
-                        MaxSessionCount = 10000,
+                        MaxSessionCount = 4,
                         MinSessionTimeout = 10000,
                         MaxSessionTimeout = 3600000,
                         MaxBrowseContinuationPoints = 1000,

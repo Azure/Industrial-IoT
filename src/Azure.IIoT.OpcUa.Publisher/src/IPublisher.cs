@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -26,9 +27,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         DateTime LastChange { get; }
 
         /// <summary>
-        /// Current list of writer groups in publisher
+        /// Gets a snapshot of the list of writer groups in publisher.
         /// </summary>
-        IEnumerable<WriterGroupModel> WriterGroups { get; }
+        ImmutableList<WriterGroupModel> WriterGroups { get; }
 
         /// <summary>
         /// Try update configuration

@@ -45,18 +45,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns>Server capabilities</returns>
         /// <exception cref="ArgumentNullException"></exception>
         [HttpGet("capabilities/{endpointId}")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            string endpointId, CancellationToken ct)
+            string endpointId, [FromQuery] NamespaceFormat? namespaceFormat, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            return await _nodes.GetServerCapabilitiesAsync(endpointId, ct).ConfigureAwait(false);
+            return await _nodes.GetServerCapabilitiesAsync(endpointId,
+                new RequestHeaderModel { NamespaceFormat = namespaceFormat }, ct).ConfigureAwait(false);
         }
 
         /// <summary>

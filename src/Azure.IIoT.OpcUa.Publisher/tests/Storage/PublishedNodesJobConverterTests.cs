@@ -7,15 +7,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
+    using Moq;
+    using NuGet.Frameworks;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -41,6 +45,439 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             // No writerGroups
             Assert.Empty(writerGroups);
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void PnPlcPlainTextUserNamePasswordTest(bool withCryptoProvider, bool providerThrows)
+        {
+            const string pn = @"
+[
+    {
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""OpcAuthenticationUsername"": ""OpcAuthenticationUsername"",
+        ""OpcAuthenticationPassword"": ""OpcAuthenticationPassword"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer,
+                cryptoProvider: withCryptoProvider ? providerThrows ? CreateThrowProvider() : CreateMockProvider() : null);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Equal("OpcAuthenticationPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("OpcAuthenticationUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.UserName, credential.Type);
+            Assert.Equal("OpcAuthenticationPassword", credential.Value["password"]);
+            Assert.Equal("OpcAuthenticationUsername", credential.Value["user"]);
+
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Equal("OpcAuthenticationPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("OpcAuthenticationUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcPlainTextUserNamePasswordWithCryptoProviderForceEncryptionTest()
+        {
+            const string pn = @"
+[
+    {
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""OpcAuthenticationUsername"": ""DecryptedAuthUsername"",
+        ""OpcAuthenticationPassword"": ""DecryptedAuthPassword"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.ForceCredentialEncryption = true;
+            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateMockProvider());
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Equal("DecryptedAuthPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("DecryptedAuthUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.UserName, credential.Type);
+            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
+            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
+            var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(encryptedAuthUsername, entry.EncryptedAuthUsername);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithoutCryptoProviderTest()
+        {
+            const string pn = @"
+[
+    {
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""EncryptedAuthUsername"",
+        ""EncryptedAuthPassword"": ""EncryptedAuthPassword"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal("EncryptedAuthUsername", entry.EncryptedAuthUsername);
+            Assert.Equal("EncryptedAuthPassword", entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.None, credential.Type);
+            Assert.Null(credential.Value);
+
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.Anonymous, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithThrowingCryptoProviderTest()
+        {
+            const string pn = @"
+[
+    {
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""EncryptedAuthUsername"",
+        ""EncryptedAuthPassword"": ""EncryptedAuthPassword"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer, cryptoProvider: CreateThrowProvider());
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal("EncryptedAuthUsername", entry.EncryptedAuthUsername);
+            Assert.Equal("EncryptedAuthPassword", entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.None, credential.Type);
+            Assert.Null(credential.Value);
+
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.Anonymous, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithCryptoProviderTest()
+        {
+            var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
+            var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
+            var pn = $@"
+[
+    {{
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
+        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
+        ""OpcNodes"": [
+            {{
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }}
+        ]
+    }}
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer, cryptoProvider: CreateMockProvider());
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal(encryptedAuthUsername, encryptedAuthUsername);
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.UserName, credential.Type);
+            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
+            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+
+            // Now we should have converted back to plain text
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Equal("DecryptedAuthPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("DecryptedAuthUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithCryptoProviderAndForceEncryptionTest()
+        {
+            var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
+            var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
+            var pn = $@"
+[
+    {{
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
+        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
+        ""OpcNodes"": [
+            {{
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }}
+        ]
+    }}
+]
+";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.ForceCredentialEncryption = true;
+            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateMockProvider());
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal(encryptedAuthUsername, encryptedAuthUsername);
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.UserName, credential.Type);
+            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
+            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+
+            // Now we should have converted back to encrypted
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal(encryptedAuthUsername, entry.EncryptedAuthUsername);
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithoutCryptoProviderAndForceEncryptionTest()
+        {
+            var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
+            var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
+            var pn = $@"
+[
+    {{
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
+        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
+        ""OpcNodes"": [
+            {{
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }}
+        ]
+    }}
+]
+";
+            var failFastCalled = false;
+            Publisher.Runtime.FailFast = (_, _) => failFastCalled = true;
+
+            var logger = Log.Console<PublishedNodesConverter>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.ForceCredentialEncryption = true;
+            var converter = new PublishedNodesConverter(logger, _serializer, options);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal(encryptedAuthUsername, encryptedAuthUsername);
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
+            Assert.True(failFastCalled); // Process exited
+            failFastCalled = false;
+
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.None, credential.Type);
+            Assert.Null(credential.Value);
+
+            // Fake credential
+            credential.Value = _serializer.FromObject(new { user = "user", password = "password" });
+            credential.Type = CredentialType.UserName;
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
+            Assert.True(failFastCalled); // Process exited
+            entry = Assert.Single(entries);
+            Assert.Equal("password", entry.OpcAuthenticationPassword);
+            Assert.Equal("user", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+        }
+
+        [Fact]
+        public void PnPlcEncryptedUserNamePasswordWithoutThrowingCryptoProviderAndForceEncryptionTest()
+        {
+            var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
+            var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
+            var pn = $@"
+[
+    {{
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcAuthenticationMode"": ""usernamePassword"",
+        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
+        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
+        ""OpcNodes"": [
+            {{
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }}
+        ]
+    }}
+]
+";
+            var failFastCalled = false;
+            Publisher.Runtime.FailFast = (_, _) => failFastCalled = true;
+
+            var logger = Log.Console<PublishedNodesConverter>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.ForceCredentialEncryption = true;
+            var converter = new PublishedNodesConverter(logger, _serializer, options, CreateThrowProvider());
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Null(entry.OpcAuthenticationUsername);
+            Assert.Equal(encryptedAuthUsername, encryptedAuthUsername);
+            Assert.Equal(encryptedAuthPassword, entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
+            Assert.True(failFastCalled); // Process exited
+            failFastCalled = false;
+
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.None, credential.Type);
+            Assert.Null(credential.Value);
+
+            // Now we should have converted back to encrypted
+            // Fake credential
+            credential.Value = _serializer.FromObject(new { user = "user", password = "password" });
+            credential.Type = CredentialType.UserName;
+            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
+            Assert.True(failFastCalled); // Process exited
+            entry = Assert.Single(entries);
+            Assert.Equal("password", entry.OpcAuthenticationPassword);
+            Assert.Equal("user", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
         }
 
         [Fact]
@@ -2157,6 +2594,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.NotNull(eventModel.ConditionHandling);
             Assert.Equal(10, eventModel.ConditionHandling.UpdateInterval);
             Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
+        }
+
+        private static IIoTEdgeWorkloadApi CreateMockProvider()
+        {
+            var provider = new Mock<IIoTEdgeWorkloadApi>();
+            provider.Setup(p => p.DecryptAsync(It.IsAny<string>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns((string _, ReadOnlyMemory<byte> cipher, CancellationToken _) => ValueTask.FromResult<ReadOnlyMemory<byte>>(
+                    Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(cipher.Span).Replace("Encrypted", "Decrypted", StringComparison.Ordinal)).AsMemory()));
+            provider.Setup(p => p.EncryptAsync(It.IsAny<string>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns((string _, ReadOnlyMemory<byte> plaintext, CancellationToken _) => ValueTask.FromResult<ReadOnlyMemory<byte>>(
+                    Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(plaintext.Span).Replace("Decrypted", "Encrypted", StringComparison.Ordinal)).AsMemory()));
+            return provider.Object;
+        }
+
+        private static IIoTEdgeWorkloadApi CreateThrowProvider()
+        {
+            var provider = new Mock<IIoTEdgeWorkloadApi>();
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            provider.Setup(p => p.DecryptAsync(It.IsAny<string>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromException<ReadOnlyMemory<byte>>(new FormatException("DecryptAsync")));
+            provider.Setup(p => p.EncryptAsync(It.IsAny<string>(), It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromException<ReadOnlyMemory<byte>>(new FormatException("EncryptAsync")));
+#pragma warning restore CA2012 // Use ValueTasks correctly
+            return provider.Object;
         }
 
         private static PublisherOptions GetOptions()

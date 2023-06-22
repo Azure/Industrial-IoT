@@ -15,7 +15,7 @@
 
 
 <a name="getconfiguredendpoints"></a>
-#### [GetConfiguredEndpoints](./directmethods.md#getconfigurednodesonendpoint_v)
+#### [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
 ```
 GET /v2/configuration
 ```
@@ -189,7 +189,7 @@ Get the list of diagnostics info for all dataset writers in the OPC Publisher at
 
 
 <a name="getconfigurednodesonendpoint"></a>
-#### [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
+#### [GetConfiguredNodesOnEndpoint](./directmethods.md#getconfigurednodesonendpoint_v)
 ```
 POST /v2/configuration/endpoints/list/nodes
 ```
@@ -922,7 +922,7 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The connection information identifying the server to connect to perform the operation.|[ConnectionModel](definitions.md#connectionmodel)|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
 
 
 ##### Responses
@@ -1078,7 +1078,7 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The connection information identifying the server to connect to perform the operation on.|[ConnectionModel](definitions.md#connectionmodel)|
+|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
 
 
 ##### Responses

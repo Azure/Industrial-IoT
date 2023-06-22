@@ -63,19 +63,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// as a property of the server object and this method provides a convinient
         /// way to retrieve them.
         /// </remarks>
-        /// <param name="connection">The connection information identifying the
-        /// server to connect to perform the operation.</param>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
         /// <returns>The server capabilities.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("capabilities")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct = default)
+            RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(connection);
-            return await _nodes.GetServerCapabilitiesAsync(connection,
-                ct).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            return await _nodes.GetServerCapabilitiesAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -504,19 +505,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Get the historian capabilities exposed as part of the OPC UA server
         /// server object.
         /// </remarks>
-        /// <param name="connection">The connection information identifying the
-        /// server to connect to perform the operation on.</param>
+        /// <param name="request">The request payload and connection information
+        /// identifying the server to connect to perform the operation on.</param>
         /// <param name="ct"></param>
         /// <returns>The historian capabilities of the server.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct = default)
+            RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(connection);
-            return await _nodes.HistoryGetServerCapabilitiesAsync(connection,
-                ct).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            return await _nodes.HistoryGetServerCapabilitiesAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>

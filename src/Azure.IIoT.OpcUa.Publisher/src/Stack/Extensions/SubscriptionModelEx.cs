@@ -21,11 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static SubscriptionModel? Clone(this SubscriptionModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new SubscriptionModel
+            return model == null ? null : (model with
             {
                 Configuration = model.Configuration.Clone(),
                 Id = model.Id.Clone(),
@@ -33,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     .ToList(),
                 ExtensionFields = model.ExtensionFields?
                     .ToDictionary(k => k.Key, v => v.Value)
-            };
+            });
         }
 
         /// <summary>

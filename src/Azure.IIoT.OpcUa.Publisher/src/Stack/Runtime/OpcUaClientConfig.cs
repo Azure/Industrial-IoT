@@ -58,6 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
         public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
         public const string LingerTimeoutKey = "LingerTimeout";
+        public const string ReverseConnectPortKey = "ReverseConnectPort";
 
         /// <summary>
         /// Default values for transport quotas.
@@ -82,6 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int CreateSessionTimeoutDefaultSec = 5;
         public const int MaxReconnectDelayDefault = 60 * 1000;
         public const int MinReconnectDelayDefault = 1000;
+        public const int ReverseConnectPortDefault = 4840;
         public const int MinimumCertificateKeySizeDefault = 1024;
         public const bool AutoAcceptUntrustedCertificatesDefault = false;
         public const bool RejectSha1SignedCertificatesDefault = false;
@@ -139,6 +141,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 {
                     options.CreateSessionTimeout = TimeSpan.FromSeconds(createSessionTimeout);
                 }
+            }
+
+            if (options.ReverseConnectPort == null)
+            {
+                options.ReverseConnectPort = GetIntOrDefault(ReverseConnectPortKey,
+                    ReverseConnectPortDefault);
             }
 
             if (options.MinReconnectDelay == null)

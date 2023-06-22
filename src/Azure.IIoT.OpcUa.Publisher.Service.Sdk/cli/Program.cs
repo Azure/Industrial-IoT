@@ -202,6 +202,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                                 case "query":
                                     await QueryEndpointsAsync(options).ConfigureAwait(false);
                                     break;
+                                case "info":
+                                    await GetServerCapablitiesAsync(options).ConfigureAwait(false);
+                                    break;
                                 case "validate":
                                     await GetEndpointCertificateAsync(options).ConfigureAwait(false);
                                     break;
@@ -537,6 +540,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new MethodCallRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     MethodId = GetNodeId(options),
                     ObjectId = options.GetValueOrThrow<string>("-o", "--objectid")
 
@@ -555,6 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new MethodMetadataRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     MethodId = GetNodeId(options)
                 }).ConfigureAwait(false);
             PrintResult(options, result);
@@ -570,9 +575,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new ValueWriteRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     NodeId = GetNodeId(options),
                     DataType = options.GetValueOrNull<string>("-t", "--datatype"),
-                    Value = _client.Serializer.FromObject(options.GetValueOrThrow<string>("-v", "--value"))
+                    Value = _client.Serializer.FromObject(
+                        options.GetValueOrThrow<string>("-v", "--value"))
                 }).ConfigureAwait(false);
             PrintResult(options, result);
         }
@@ -587,6 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new ValueReadRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     NodeId = GetNodeId(options)
                 }).ConfigureAwait(false);
             PrintResult(options, result);
@@ -605,6 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
             var request = new BrowseFirstRequestModel
             {
+                Header = GetRequestHeader(options),
                 TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
                 MaxReferencesToReturn = options.GetValueOrNull<uint?>("-x", "--maxrefs"),
@@ -702,6 +711,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new PublishStartRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     Item = new PublishedItemModel
                     {
                         NodeId = GetNodeId(options),
@@ -746,6 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 GetEndpointId(options),
                 new PublishStopRequestModel
                 {
+                    Header = GetRequestHeader(options),
                     NodeId = GetNodeId(options)
                 }).ConfigureAwait(false);
             if (result.ErrorInfo != null)
@@ -762,7 +773,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         {
             if (options.IsSet("-A", "--all"))
             {
-                var result = await _client.Publisher.NodePublishListAllAsync(GetEndpointId(options)).ConfigureAwait(false);
+                var result = await _client.Publisher.NodePublishListAllAsync(
+                    GetEndpointId(options)).ConfigureAwait(false);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
@@ -2110,12 +2122,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         }
 
         /// <summary>
+        /// Get server capabilities
+        /// </summary>
+        /// <param name="options"></param>
+        private async Task GetServerCapablitiesAsync(CliOptions options)
+        {
+            var result = await _client.Twin.GetServerCapabilitiesAsync(
+                GetEndpointId(options)).ConfigureAwait(false);
+            PrintResult(options, result);
+        }
+
+        /// <summary>
         /// Get endpoint certificate
         /// </summary>
         /// <param name="options"></param>
         private async Task GetEndpointCertificateAsync(CliOptions options)
         {
-            var result = await _client.Registry.GetEndpointCertificateAsync(GetEndpointId(options)).ConfigureAwait(false);
+            var result = await _client.Registry.GetEndpointCertificateAsync(
+                GetEndpointId(options)).ConfigureAwait(false);
             PrintResult(options, result);
         }
 
@@ -2125,7 +2149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         private async Task MonitorEndpointsAsync()
         {
             Console.WriteLine("Press any key to stop.");
-            var complete = await _client.Events.SubscribeEndpointEventsAsync(PrintEventAsync).ConfigureAwait(false);
+            var complete = await _client.Events.SubscribeEndpointEventsAsync(
+                PrintEventAsync).ConfigureAwait(false);
             try
             {
                 Console.ReadKey();
@@ -2142,10 +2167,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <param name="options"></param>
         private async Task GetStatusAsync(CliOptions options)
         {
-            Console.WriteLine("Twin:      " + await _client.Twin.GetServiceStatusAsync().ConfigureAwait(false));
-            Console.WriteLine("Registry:  " + await _client.Registry.GetServiceStatusAsync().ConfigureAwait(false));
-            Console.WriteLine("Publisher: " + await _client.Publisher.GetServiceStatusAsync().ConfigureAwait(false));
-            Console.WriteLine("History:   " + await _client.History.GetServiceStatusAsync().ConfigureAwait(false));
+            Console.WriteLine("Twin:      "
+                + await _client.Twin.GetServiceStatusAsync().ConfigureAwait(false));
+            Console.WriteLine("Registry:  "
+                + await _client.Registry.GetServiceStatusAsync().ConfigureAwait(false));
+            Console.WriteLine("Publisher: "
+                + await _client.Publisher.GetServiceStatusAsync().ConfigureAwait(false));
+            Console.WriteLine("History:   "
+                + await _client.History.GetServiceStatusAsync().ConfigureAwait(false));
+        }
+
+        /// <summary>
+        /// Get request header
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static RequestHeaderModel GetRequestHeader(CliOptions options)
+        {
+            var namespaceFormat = options.GetValueOrNull<NamespaceFormat?>("-N", "--ns-format");
+            if (namespaceFormat == null)
+            {
+                return null;
+            }
+            return new RequestHeaderModel
+            {
+                NamespaceFormat = namespaceFormat
+            };
         }
 
         /// <summary>
@@ -2552,6 +2599,12 @@ Commands and Options
         -S, --server    Return only server state (default:false)
         -F, --format    Json format for result
 
+     info        Get server capabilities through endpoint
+        with ...
+        -i, --id        Id of endpoint of the server (mandatory)
+        -N, --ns-format Namespace format for nodes and qualified names.
+        -F, --format    Json format for result
+
      validate    Get endpoint certificate chain and validate
         with ...
         -i, --id        Id of endpoint to retrieve (mandatory)
@@ -2591,6 +2644,7 @@ Commands and Options
         -v, --readvalue Read node values in browse
         -t, --targets   Only return target nodes
         -s, --silent    Only show errors
+        -N, --ns-format Namespace format for nodes and qualified names.
         -F, --format    Json format for result
 
      next        Browse next nodes
@@ -2603,6 +2657,7 @@ Commands and Options
         with ...
         -i, --id        Id of endpoint to read value from (mandatory)
         -n, --nodeid    Node to read value from (mandatory)
+        -N, --ns-format Namespace format for nodes and qualified names.
         -F, --format    Json format for result
 
      write       Write node value on endpoint
@@ -2616,18 +2671,20 @@ Commands and Options
         with ...
         -i, --id        Id of endpoint with meta data (mandatory)
         -n, --nodeid    Method Node to get meta data for (mandatory)
+        -N, --ns-format Namespace format for nodes and qualified names.
         -F, --format    Json format for result
 
      call        Call method node on endpoint
         with ...
         -i, --id        Id of endpoint to call method on (mandatory)
         -n, --nodeid    Method Node to call (mandatory)
+        -N, --ns-format Namespace format for nodes and qualified names.
         -o, --objectid  Object context for method
 
      publish     Publish items from endpoint
         with ...
         -i, --id        Id of endpoint to publish value from (mandatory)
-        -n, --nodeid    Node to browse (mandatory)
+        -n, --nodeid    Node to publish (mandatory)
 
      monitor     Monitor published items on endpoint
         with ...

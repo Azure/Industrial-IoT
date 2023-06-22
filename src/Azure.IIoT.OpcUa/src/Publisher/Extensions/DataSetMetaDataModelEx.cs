@@ -20,16 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static DataSetMetaDataModel? Clone(this DataSetMetaDataModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new DataSetMetaDataModel
-            {
-                Name = model.Name,
-                DataSetClassId = model.DataSetClassId,
-                Description = model.Description
-            };
+            return model == null ? null : (model with { });
         }
     }
 }

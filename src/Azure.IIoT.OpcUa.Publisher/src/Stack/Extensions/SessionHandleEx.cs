@@ -483,11 +483,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="parent"></param>
         /// <param name="instances"></param>
         /// <param name="map"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
             this IOpcUaSession session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
-            IDictionary<ImmutableRelativePath, InstanceDeclarationModel> map, CancellationToken ct)
+            IDictionary<ImmutableRelativePath, InstanceDeclarationModel> map,
+            NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             // find the children of the type.
             var nodeToBrowse = new BrowseDescriptionCollection {
@@ -530,7 +532,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var children = new Dictionary<NodeId, InstanceDeclarationModel>();
                 foreach (var (modellingRule, reference) in referencesWithRules)
                 {
-                    var browseName = reference.BrowseName.AsString(session.MessageContext);
+                    var browseName = reference.BrowseName.AsString(session.MessageContext,
+                        namespaceFormat);
                     var relativePath = ImmutableRelativePath.Create(parent?.BrowsePath,
                         "/" + browseName);
                     var nodeClass = reference.NodeClass.ToServiceType();
@@ -549,16 +552,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         reference.BrowseName.Name : reference.DisplayName.Text;
                     var child = new InstanceDeclarationModel
                     {
-                        RootTypeId = typeId.AsString(session.MessageContext),
-                        NodeId = reference.NodeId.AsString(session.MessageContext),
-                        BrowseName = reference.BrowseName.AsString(session.MessageContext),
+                        RootTypeId = typeId.AsString(session.MessageContext,
+                            namespaceFormat),
+                        NodeId = reference.NodeId.AsString(session.MessageContext,
+                            namespaceFormat),
+                        BrowseName = reference.BrowseName.AsString(session.MessageContext,
+                            namespaceFormat),
                         NodeClass = nodeClass.Value,
                         DisplayPath = parent == null ?
                             displayName : $"{parent.DisplayPath}/{displayName}",
                         DisplayName = displayName,
                         BrowsePath = relativePath.Path,
-                        ModellingRule = modellingRule.Item1.AsString(session.MessageContext),
-                        ModellingRuleId = modellingRule.Item2.AsString(session.MessageContext),
+                        ModellingRule = modellingRule.Item1.AsString(session.MessageContext,
+                            namespaceFormat),
+                        ModellingRuleId = modellingRule.Item2.AsString(session.MessageContext,
+                            namespaceFormat),
                         OverriddenDeclaration = overriden
                     };
 
@@ -579,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     .Select(v => v.Key);
                 var variableMetadata = new List<VariableMetadataModel>();
                 var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
-                    variables, variableMetadata, ct).ConfigureAwait(false);
+                    variables, variableMetadata, namespaceFormat, ct).ConfigureAwait(false);
                 if (errorInfo != null)
                 {
                     return errorInfo;
@@ -595,7 +603,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     .Select(v => v.Key);
                 var methodMetadata = new List<MethodMetadataModel>();
                 errorInfo = await session.CollectMethodMetadataAsync(requestHeader,
-                    variables, methodMetadata, ct).ConfigureAwait(false);
+                    variables, methodMetadata, namespaceFormat, ct).ConfigureAwait(false);
                 if (errorInfo != null)
                 {
                     return errorInfo;
@@ -625,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     instances.Add(child);
                     await session.CollectInstanceDeclarationsAsync(requestHeader,
-                        typeId, child, instances, map, ct).ConfigureAwait(false);
+                        typeId, child, instances, map, namespaceFormat, ct).ConfigureAwait(false);
                 }
             }
             return null;
@@ -637,14 +645,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="session"></param>
         /// <param name="requestHeader"></param>
         /// <param name="nodeId"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(VariableMetadataModel?, ServiceResultModel?)> GetVariableMetadataAsync(
-            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, NamespaceFormat namespaceFormat,
+            CancellationToken ct)
         {
             var results = new List<VariableMetadataModel>();
             var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
-                nodeId.YieldReturn(), results, ct).ConfigureAwait(false);
+                nodeId.YieldReturn(), results, namespaceFormat, ct).ConfigureAwait(false);
             if (errorInfo != null)
             {
                 return (null, errorInfo);
@@ -659,11 +669,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="requestHeader"></param>
         /// <param name="nodeIds"></param>
         /// <param name="metadata"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectVariableMetadataAsync(
             this IOpcUaSession session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
-            List<VariableMetadataModel> metadata, CancellationToken ct)
+            List<VariableMetadataModel> metadata, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             if (!nodeIds.Any())
             {
@@ -687,8 +698,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     .GetValueOrDefault<uint[]>()?.ToList(),
                 DataType = new DataTypeMetadataModel
                 {
-                    DataType = node.Value[Attributes.DataType]
-                        .GetValueOrDefault<NodeId>()?.AsString(session.MessageContext)
+                    DataType = node.Value[Attributes.DataType].GetValueOrDefault<NodeId>()?
+                        .AsString(session.MessageContext, namespaceFormat)
                 },
                 ValueRank = (NodeValueRank?)node.Value[Attributes.ValueRank]
                     .GetValueOrDefault<int?>(v => v == ValueRanks.Any ? null : v)
@@ -702,14 +713,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="session"></param>
         /// <param name="requestHeader"></param>
         /// <param name="nodeId"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(MethodMetadataModel?, ServiceResultModel?)> GetMethodMetadataAsync(
-            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId,
+            NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             var results = new List<MethodMetadataModel>();
             var errorInfo = await session.CollectMethodMetadataAsync(requestHeader,
-                nodeId.YieldReturn(), results, ct).ConfigureAwait(false);
+                nodeId.YieldReturn(), results, namespaceFormat, ct).ConfigureAwait(false);
             if (errorInfo != null)
             {
                 return (null, errorInfo);
@@ -724,11 +737,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="requestHeader"></param>
         /// <param name="nodeIds"></param>
         /// <param name="metadata"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectMethodMetadataAsync(
             this IOpcUaSession session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
-            List<MethodMetadataModel> metadata, CancellationToken ct)
+            List<MethodMetadataModel> metadata, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             if (!nodeIds.Any())
             {
@@ -777,7 +791,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     {
                         if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent)
                         {
-                            objectId = nodeReference.NodeId.AsString(session.MessageContext);
+                            objectId = nodeReference.NodeId.AsString(session.MessageContext, namespaceFormat);
                         }
                         continue;
                     }
@@ -799,7 +813,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     foreach (var argument in argumentsList.Select(a => (Argument)a.Body))
                     {
                         var (dataTypeIdNode, _) = await session.ReadNodeAsync(requestHeader,
-                            argument.DataType, null, false, false, false, ct).ConfigureAwait(false);
+                            argument.DataType, null, false, false, namespaceFormat, false, ct).ConfigureAwait(false);
                         var arg = new MethodMetadataArgumentModel
                         {
                             Name = argument.Name,
@@ -841,17 +855,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="nodeClass"></param>
         /// <param name="skipValue"></param>
         /// <param name="rawMode"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="children"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
             this IOpcUaSession session, RequestHeader header, NodeId nodeId,
-            Opc.Ua.NodeClass? nodeClass, bool skipValue, bool rawMode,
+            Opc.Ua.NodeClass? nodeClass, bool skipValue, bool rawMode, NamespaceFormat namespaceFormat,
             bool? children = null, CancellationToken ct = default)
         {
             if (rawMode)
             {
-                var id = nodeId.AsString(session.MessageContext);
+                var id = nodeId.AsString(session.MessageContext, namespaceFormat);
                 System.Diagnostics.Debug.Assert(id != null);
                 System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(id));
                 return (new NodeModel
@@ -860,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     NodeClass = nodeClass?.ToServiceType()
                 }, null);
             }
-            return await session.ReadNodeAsync(header, nodeId,
+            return await session.ReadNodeAsync(header, nodeId, namespaceFormat,
                 nodeClass, skipValue, children, ct).ConfigureAwait(false);
         }
 
@@ -870,13 +885,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="session"></param>
         /// <param name="header"></param>
         /// <param name="nodeId"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="nodeClass"></param>
         /// <param name="skipValue"></param>
         /// <param name="children"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
-            this IOpcUaSession session, RequestHeader header, NodeId nodeId,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeId, NamespaceFormat namespaceFormat,
             Opc.Ua.NodeClass? nodeClass = null, bool skipValue = true, bool? children = null,
             CancellationToken ct = default)
         {
@@ -884,7 +900,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 nodeClass, ct).ConfigureAwait(false);
             var lookup = results.AsLookupTable();
 
-            var id = nodeId.AsString(session.MessageContext);
+            var id = nodeId.AsString(session.MessageContext, namespaceFormat);
             System.Diagnostics.Debug.Assert(id != null);
             System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(id));
             lookup.TryGetValue(Attributes.Value, out var value);
@@ -908,7 +924,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 BrowseName =
                     lookup[Attributes.BrowseName].Item1?
                         .GetValueOrDefault<QualifiedName>()?
-                        .AsString(session.MessageContext),
+                        .AsString(session.MessageContext, namespaceFormat),
                 DisplayName =
                     lookup[Attributes.DisplayName].Item1?
                         .GetValueOrDefault<LocalizedText>()?
@@ -933,7 +949,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 DataType =
                     lookup[Attributes.DataType].Item1?
                         .GetValueOrDefault<NodeId>()?
-                        .AsString(session.MessageContext),
+                        .AsString(session.MessageContext, namespaceFormat),
                 ArrayDimensions =
                     lookup[Attributes.ArrayDimensions].Item1?
                         .GetValueOrDefault<uint[]?>(),
@@ -989,13 +1005,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         .GetValueOrDefault<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
-                        .Select(p => p.ToServiceModel(session.MessageContext)).ToList(),
+                        .Select(p => p.ToServiceModel(session.MessageContext, namespaceFormat)).ToList(),
                 RolePermissions =
                     lookup[Attributes.RolePermissions].Item1?
                         .GetValueOrDefault<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
-                        .Select(p => p.ToServiceModel(session.MessageContext)).ToList()
+                        .Select(p => p.ToServiceModel(session.MessageContext, namespaceFormat)).ToList()
             };
             return (nodeModel, results.ErrorInfo ?? lookup[Attributes.NodeClass].Item2);
         }

@@ -64,19 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static WriterGroupMessageSettingsModel? Clone(this WriterGroupMessageSettingsModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new WriterGroupMessageSettingsModel
-            {
-                DataSetOrdering = model.DataSetOrdering,
-                GroupVersion = model.GroupVersion,
-                NetworkMessageContentMask = model.NetworkMessageContentMask,
-                PublishingOffset = model.PublishingOffset,
-                MaxDataSetMessagesPerPublish = model.MaxDataSetMessagesPerPublish,
-                SamplingOffset = model.SamplingOffset
-            };
+            return model == null ? null : (model with { });
         }
     }
 }

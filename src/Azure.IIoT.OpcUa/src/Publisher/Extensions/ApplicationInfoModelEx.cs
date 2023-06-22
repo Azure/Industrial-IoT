@@ -121,34 +121,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static ApplicationInfoModel? Clone(this ApplicationInfoModel? model)
         {
-            if (model == null)
+            return model == null ? null : (model with
             {
-                return null;
-            }
-            return new ApplicationInfoModel
-            {
-                ApplicationId = model.ApplicationId,
-                ApplicationName = model.ApplicationName,
-                Locale = model.Locale,
                 LocalizedNames = model.LocalizedNames?
                     .ToDictionary(k => k.Key, v => v.Value),
-                ApplicationType = model.ApplicationType,
-                ApplicationUri = model.ApplicationUri,
                 Capabilities = model.Capabilities
                     .ToHashSetSafe(),
-                DiscoveryProfileUri = model.DiscoveryProfileUri,
                 HostAddresses = model.HostAddresses
                     .ToHashSetSafe(),
                 DiscoveryUrls = model.DiscoveryUrls
                     .ToHashSetSafe(),
-                NotSeenSince = model.NotSeenSince,
-                ProductUri = model.ProductUri,
-                SiteId = model.SiteId,
-                GatewayServerUri = model.GatewayServerUri,
                 Created = model.Created.Clone(),
-                Updated = model.Updated.Clone(),
-                DiscovererId = model.DiscovererId
-            };
+                Updated = model.Updated.Clone()
+            });
         }
 
         /// <summary>

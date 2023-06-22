@@ -17,6 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public interface IOpcUaSubscription : IDisposable
     {
         /// <summary>
+        /// Subscription keep alive events
+        /// </summary>
+        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionKeepAlive;
+
+        /// <summary>
         /// Subscription data change events
         /// </summary>
         event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionDataChange;

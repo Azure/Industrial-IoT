@@ -1,0 +1,14 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "SendKeepAliveDataSetMessages": true,
+        "MessagingMode": "PubSub",
+        "UseSecurity": true,
+        "OpcNodes": [
+            {
+                "Id": "i=2259",
+                "FetchDisplayName": true
+            }
+        ]
+    }
+]

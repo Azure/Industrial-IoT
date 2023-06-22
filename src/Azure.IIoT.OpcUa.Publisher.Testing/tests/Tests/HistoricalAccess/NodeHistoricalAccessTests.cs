@@ -28,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var results = await services.GetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
+            var results = await services.GetServerCapabilitiesAsync(_connection,
+                null, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
@@ -62,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var results = await services.HistoryGetServerCapabilitiesAsync(_connection, ct).ConfigureAwait(false);
+            var results = await services.HistoryGetServerCapabilitiesAsync(_connection,
+                null, ct).ConfigureAwait(false);
 
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);

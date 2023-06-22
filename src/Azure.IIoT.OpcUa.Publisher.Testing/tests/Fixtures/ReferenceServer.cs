@@ -46,15 +46,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         }
 
         /// <inheritdoc/>
-        private ReferenceServer(ILoggerFactory loggerFactory)
-            : base(Reference, loggerFactory)
+        private ReferenceServer(ILoggerFactory loggerFactory,
+            bool useReverseConnect)
+            : base(Reference, loggerFactory, useReverseConnect)
         {
         }
 
         /// <inheritdoc/>
-        public static ReferenceServer Create(ILoggerFactory loggerFactory)
+        public static ReferenceServer Create(ILoggerFactory loggerFactory,
+            bool useReverseConnect = false)
         {
-            return new ReferenceServer(loggerFactory);
+            return new ReferenceServer(loggerFactory, useReverseConnect);
         }
     }
 }

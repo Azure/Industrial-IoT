@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task SwitchServerWithSameWriterGroupTest()
         {
             var server = new ReferenceServer();
-            ServerPort = server.Port;
+            EndpointUrl = server.EndpointUrl;
 
             const string name = nameof(SwitchServerWithSameWriterGroupTest);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Switch to new server
                 var old = server;
                 server = new ReferenceServer();
-                ServerPort = server.Port;
+                EndpointUrl = server.EndpointUrl;
                 old?.Dispose();
 
                 // Point to new server
@@ -75,6 +75,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
                 diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                for (var i = 0; i < 10 && diagnostics.Count == 0; i++)
+                {
+                    _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                }
+
                 diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
             }
@@ -89,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task SwitchServerWithDifferentWriterGroupTest()
         {
             var server = new ReferenceServer();
-            ServerPort = server.Port;
+            EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentWriterGroupTest);
             StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub" });
             try
@@ -113,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Switch to new server
                 var old = server;
                 server = new ReferenceServer();
-                ServerPort = server.Port;
+                EndpointUrl = server.EndpointUrl;
                 old?.Dispose();
 
                 // Point to new server
@@ -133,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
                 diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
-                for (var i = 0; i < 1000 &&
+                for (var i = 0; i < 10 &&
                     (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                 {
                     _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
@@ -157,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod(bool differentPublishingInterval)
         {
             var server = new ReferenceServer();
-            ServerPort = server.Port;
+            EndpointUrl = server.EndpointUrl;
             const string name = nameof(AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod);
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/DataItems2.json");
@@ -229,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         public async Task SwitchServerWithDifferentDataTest()
         {
             var server = new ReferenceServer();
-            ServerPort = server.Port;
+            EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentDataTest);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
             try
@@ -261,7 +268,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Switch to different server
                 var old = server;
                 server = new ReferenceServer();
-                ServerPort = server.Port;
+                EndpointUrl = server.EndpointUrl;
                 old?.Dispose();
 
                 // Point to new server
@@ -294,8 +301,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [Fact]
         public async Task RestartConfigurationTest()
         {
-            var server = new ReferenceServer();
-            ServerPort = server.Port;
+            using var server = new ReferenceServer();
+            EndpointUrl = server.EndpointUrl;
             for (var cycles = 0; cycles < 5; cycles++)
             {
                 const string name = nameof(RestartConfigurationTest);
@@ -309,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     const string name2 = nameof(RestartConfigurationTest) + "new";
                     WritePublishedNodes(name2, "./Resources/DataItems2.json");
                     var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
-                    for (var i = 0; i < 1000 &&
+                    for (var i = 0; i < 10 &&
                         (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                     {
                         _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");

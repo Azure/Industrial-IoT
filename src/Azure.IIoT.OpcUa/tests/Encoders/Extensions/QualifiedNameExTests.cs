@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Extensions
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using Xunit;
 
@@ -95,8 +96,8 @@ namespace Opc.Ua.Extensions
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -111,8 +112,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -128,8 +129,8 @@ namespace Opc.Ua.Extensions
             var expected = new QualifiedName("",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -149,8 +150,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("", 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -171,8 +172,8 @@ namespace Opc.Ua.Extensions
             var expected = new QualifiedName(null,
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -192,8 +193,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new QualifiedName(null, 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);
@@ -213,8 +214,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = QualifiedName.Null;
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToQualifiedName(context);
             var result2 = s2.ToQualifiedName(context);

@@ -43,9 +43,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public IPHostEntry? Host { get; }
 
         /// <summary>
-        /// Port server is listening on
+        /// Use reverse connect
         /// </summary>
-        public int Port { get; }
+        public bool UseReverseConnect { get; }
+
+        /// <summary>
+        /// Client port
+        /// </summary>
+        public int ReverseConnectPort { get; }
 
         /// <summary>
         /// Certificate of the server
@@ -59,12 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             => _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
 
         /// <summary>
-        /// Filter parser
-        /// </summary>
-        public IFilterParser Parser
-            => _container.Resolve<IFilterParser>();
-
-        /// <summary>
         /// Now
         /// </summary>
         public DateTime Now { get; private set; }
@@ -75,23 +74,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public TimeService TimeService => _timeService.Object;
 
         /// <summary>
+        /// Filter parser
+        /// </summary>
+        public IFilterParser Parser => _container.Resolve<IFilterParser>();
+
+        /// <summary>
+        /// EndpointUrl
+        /// </summary>
+        public string EndpointUrl
+            => $"opc.tcp://{HostName}:{_port}/{kSampleServerPath}";
+
+        /// <summary>
+        /// <para>Host name</para>
+        /// <para>
+        /// There is a quirk in registration matching inside the reconnect manager the
+        /// server must present their endpoint in RHEL exactly like it is requested by
+        /// the client. The reconnect manager compares to the endpoint url and if it is
+        /// not the same it will reject.
+        /// </para>
+        /// <para>
+        /// In this test the host name is the FQDN host name here, but the one it matches
+        /// against and presented by the server is just the machine's host name and
+        /// therefore rejects even though it is the same.
+        /// </para>
+        /// </summary>
+        private string HostName
+            => (UseReverseConnect ? Utils.GetHostName() : Host?.HostName) ?? "localhost";
+
+        /// <summary>
         /// Get server connection
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public ConnectionModel GetConnection(string? path = null)
+        public ConnectionModel GetConnection()
         {
             return new ConnectionModel
             {
                 Endpoint = new EndpointModel
                 {
-                    Url = $"opc.tcp://{Host?.HostName ?? "localhost"}:{Port}/{path ?? "UA/SampleServer"}",
+                    Url = EndpointUrl,
                     AlternativeUrls = Host?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                        .Select(ip => $"opc.tcp://{ip}:{Port}/{path ?? "UA/SampleServer"}")
+                        .Select(ip => $"opc.tcp://{ip}:{_port}/{kSampleServerPath}")
                         .ToHashSet(),
                     Certificate = Certificate?.RawData?.ToThumbprint()
-                }
+                },
+                IsReverse = UseReverseConnect
             };
         }
 
@@ -100,9 +128,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </summary>
         /// <param name="nodesFactory"></param>
         /// <param name="loggerFactory"></param>
+        /// <param name="useReverseConnect"></param>
         protected BaseServerFixture(
             Func<ILoggerFactory?, TimeService, IEnumerable<INodeManagerFactory>> nodesFactory,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null, bool useReverseConnect = false)
         {
             Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
@@ -110,7 +139,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 
             Now = new DateTime(2023, 1, 1, 7, 15, 0, DateTimeKind.Utc);
             _timeService = CreateTimeServiceMock(Now);
-            var port = NextPort();
+
+            _port = NextPort();
             var logger = _container.Resolve<ILogger<BaseServerFixture>>();
             var options = _container.Resolve<IOptions<OpcUaClientOptions>>();
             var nodes = nodesFactory(_container.Resolve<ILoggerFactory>(), TimeService);
@@ -119,7 +149,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             {
                 try
                 {
-                    var ep = $"{Host?.HostName ?? "localhost"}:{port}";
                     serverHost = new ServerConsoleHost(new ServerFactory(
                         _container.Resolve<ILogger<ServerFactory>>(), nodes)
                     {
@@ -129,9 +158,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
                     };
-                    logger.LogInformation(
-                        "Starting server host on {Port}...", port);
-                    serverHost.StartAsync(new int[] { port }).Wait();
+                    logger.LogInformation("Starting server host on {Port}...", _port);
+                    serverHost.StartAsync(new int[] { _port }).Wait();
 
                     //
                     // Test server connection. Sometimes the server has not
@@ -144,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     {
                         Endpoint = new EndpointModel
                         {
-                            Url = $"opc.tcp://{ep}/UA/SampleServer"
+                            Url = EndpointUrl
                         }
                     }, new TestConnectionRequestModel()).GetAwaiter().GetResult();
                     if (result.ErrorInfo != null)
@@ -152,17 +180,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         throw new IOException(
                             result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
                     }
+
+                    logger.LogInformation("Server host listening on {EndpointUrl}!",
+                        EndpointUrl);
                     _serverHost = serverHost;
-                    Port = port;
+                    if (!useReverseConnect)
+                    {
+                        break;
+                    }
+
+                    int clientPort;
+                    // Find a port for the client
+                    while (true)
+                    {
+                        clientPort = NextPort();
+                        try
+                        {
+                            logger.LogInformation(
+                                "Try adding reverse connect client on {Port}...", clientPort);
+                            var listener = TcpListener.Create(clientPort);
+                            listener.Start(); // Throws if used and cleans up.
+                            listener.Stop();  // Cleanup
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Port {Port} is not accessible...", clientPort);
+                            kPorts.AddOrUpdate(clientPort, false, (_, _) => false);
+                        }
+                    }
+                    UseReverseConnect = true;
+                    ReverseConnectPort = clientPort;
+                    var clientUrl = $"opc.tcp://{HostName}:{clientPort}";
+                    _serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4).GetAwaiter().GetResult();
+                    logger.LogInformation("Start reverse connect to client at {Url}...", clientUrl);
                     break;
                 }
                 catch (Exception ex)
                 {
-                    kPorts.AddOrUpdate(port, false, (_, _) => false);
-                    port = NextPort();
-                    logger.LogError(ex,
-                        "Failed to start server host, retrying {Port}...", port);
+                    kPorts.AddOrUpdate(_port, false, (_, _) => false);
+                    _port = NextPort();
+                    logger.LogError(ex, "Failed to start server, retrying with port {Port}...",
+                        _port);
                     serverHost?.Dispose();
+                    serverHost = null;
                 }
             }
         }
@@ -197,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     }
                     _container.Dispose();
                     logger.LogInformation("Client disposed - cleaning up client certificates...");
-                    kPorts.TryRemove(Port, out _);
+                    kPorts.TryRemove(_port, out _);
                 }
                 _disposedValue = true;
             }
@@ -341,8 +402,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             EventHandler<FastTimerElapsedEventArgs> handler)> _fastTimers = new();
         private static readonly ConcurrentDictionary<int, bool> kPorts = new();
         private bool _disposedValue;
+        private readonly int _port;
         private readonly IContainer _container;
         private readonly IServerHost _serverHost;
         private readonly Mock<TimeService> _timeService;
+        private const string kSampleServerPath = "UA/SampleServer";
     }
 }

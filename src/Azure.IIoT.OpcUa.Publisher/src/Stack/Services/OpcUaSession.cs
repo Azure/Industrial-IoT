@@ -166,9 +166,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            CancellationToken ct = default)
+            NamespaceFormat namespaceFormat, CancellationToken ct = default)
         {
-            if (_server != null)
+            if (_server != null && namespaceFormat == NamespaceFormat.Uri)
             {
                 return _server;
             }
@@ -177,9 +177,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _limits = await FetchOperationLimitsAsync(new RequestHeader(),
                     ct).ConfigureAwait(false);
             }
-            _server = await FetchServerCapabilitiesAsync(new RequestHeader(),
-                ct).ConfigureAwait(false);
-            return _server ?? new ServerCapabilitiesModel
+            var server = await FetchServerCapabilitiesAsync(new RequestHeader(),
+                namespaceFormat, ct).ConfigureAwait(false);
+            if (namespaceFormat == NamespaceFormat.Uri)
+            {
+                _server = server;
+            }
+            return server ?? new ServerCapabilitiesModel
             {
                 OperationLimits = _limits ?? new OperationLimitsModel()
             };
@@ -187,24 +191,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async ValueTask<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
-            CancellationToken ct = default)
+            NamespaceFormat namespaceFormat, CancellationToken ct = default)
         {
-            if (_history != null)
+            if (_history != null && namespaceFormat == NamespaceFormat.Uri)
             {
                 return _history;
             }
-            _history = await FetchHistoryCapabilitiesAsync(new RequestHeader(),
-                ct).ConfigureAwait(false);
-            return _history ?? new HistoryServerCapabilitiesModel();
+            var history = await FetchHistoryCapabilitiesAsync(new RequestHeader(),
+                namespaceFormat, ct).ConfigureAwait(false);
+            if (namespaceFormat == NamespaceFormat.Uri)
+            {
+                _history = history;
+            }
+            return history ?? new HistoryServerCapabilitiesModel();
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync()
+        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(CancellationToken ct)
         {
             try
             {
                 Debug.Assert(_complexTypeSystem != null);
-                return await _complexTypeSystem.ConfigureAwait(false);
+                return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Throw any cancellation token exception
+                throw;
             }
             catch (Exception ex)
             {
@@ -671,11 +684,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Read the server capabilities if available
         /// </summary>
         /// <param name="requestHeader"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private async Task<ServerCapabilitiesModel?> FetchServerCapabilitiesAsync(
-            RequestHeader requestHeader, CancellationToken ct)
+            RequestHeader requestHeader, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             // load the defaults for the historical capabilities object.
             var config =
@@ -711,13 +725,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var functions = new List<BaseInstanceState>();
             config.AggregateFunctions.GetChildren(SystemContext, functions);
             var aggregateFunctions = functions.OfType<BaseObjectState>().ToDictionary(
-                c => c.BrowseName.AsString(MessageContext),
-                c => c.NodeId.AsString(MessageContext) ?? string.Empty);
+                c => c.BrowseName.AsString(MessageContext, namespaceFormat),
+                c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
             var rules = new List<BaseInstanceState>();
             config.ModellingRules.GetChildren(SystemContext, rules);
             var modellingRules = rules.OfType<BaseObjectState>().ToDictionary(
-                c => c.BrowseName.AsString(MessageContext),
-                c => c.NodeId.AsString(MessageContext) ?? string.Empty);
+                c => c.BrowseName.AsString(MessageContext, namespaceFormat),
+                c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
             return new ServerCapabilitiesModel
             {
                 OperationLimits = _limits ?? new OperationLimitsModel(),
@@ -738,11 +752,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Read the history server capabilities if available
         /// </summary>
         /// <param name="requestHeader"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private async Task<HistoryServerCapabilitiesModel?> FetchHistoryCapabilitiesAsync(
-            RequestHeader requestHeader, CancellationToken ct)
+            RequestHeader requestHeader, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             // load the defaults for the historical capabilities object.
             var config =
@@ -806,8 +821,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var children = new List<BaseInstanceState>();
                 config.AggregateFunctions.GetChildren(SystemContext, children);
                 aggregateFunctions = children.OfType<BaseObjectState>().ToDictionary(
-                    c => c.BrowseName.AsString(MessageContext),
-                    c => c.NodeId.AsString(MessageContext) ?? string.Empty);
+                    c => c.BrowseName.AsString(MessageContext, namespaceFormat),
+                    c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
             }
             return new HistoryServerCapabilitiesModel
             {

@@ -21,27 +21,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedDataSetEventModel? Clone(this PublishedDataSetEventModel? model)
         {
-            if (model == null)
+            return model == null ? null : (model with
             {
-                return null;
-            }
-            return new PublishedDataSetEventModel
-            {
-                Id = model.Id,
-                MonitoringMode = model.MonitoringMode,
-                DiscardNew = model.DiscardNew,
-                EventNotifier = model.EventNotifier,
-                PublishedEventName = model.PublishedEventName,
-                ReadEventNameFromNode = model.ReadEventNameFromNode,
                 Filter = model.Filter.Clone(),
-                QueueSize = model.QueueSize,
-                BrowsePath = model.BrowsePath,
                 SelectedFields = model.SelectedFields?
                     .Select(f => f.Clone())
                     .ToList(),
-                ConditionHandling = model.ConditionHandling.Clone(),
-                TypeDefinitionId = model.TypeDefinitionId
-            };
+                ConditionHandling = model.ConditionHandling.Clone()
+            });
         }
     }
 }

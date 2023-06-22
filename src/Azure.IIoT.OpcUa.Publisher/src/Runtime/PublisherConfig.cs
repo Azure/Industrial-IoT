@@ -45,9 +45,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
+        public const string DefaultNamespaceFormatKey = "DefaultNamespaceFormat";
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
+        public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
         public const string DefaultTransportKey = "DefaultTransport";
 
         /// <summary>
@@ -107,7 +109,8 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.CreatePublishFileIfNotExist == null)
             {
-                options.CreatePublishFileIfNotExist = GetBoolOrNull(CreatePublishFileIfNotExistKey);
+                options.CreatePublishFileIfNotExist = GetBoolOrNull(
+                    CreatePublishFileIfNotExistKey);
             }
 
             if (options.MaxNodesPerDataSet == 0)
@@ -208,15 +211,15 @@ namespace Azure.IIoT.OpcUa.Publisher
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
             }
 
+            if (options.ForceCredentialEncryption == null)
+            {
+                options.ForceCredentialEncryption = GetBoolOrDefault(
+                    ForceCredentialEncryptionKey);
+            }
+
             if (options.MaxNetworkMessageSize == null) // Max encoder message size
             {
                 options.MaxNetworkMessageSize = GetIntOrNull(IoTHubMaxMessageSize);
-            }
-
-            if (options.UseStandardsCompliantEncoding == null)
-            {
-                options.UseStandardsCompliantEncoding = GetBoolOrDefault(
-                    UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
             }
 
             if (options.DefaultMaxDataSetMessagesPerPublish == null)
@@ -225,12 +228,29 @@ namespace Azure.IIoT.OpcUa.Publisher
                     DefaultMaxMessagesPerPublishKey);
             }
 
+            if (options.UseStandardsCompliantEncoding == null)
+            {
+                options.UseStandardsCompliantEncoding = GetBoolOrDefault(
+                    UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
+            }
+
+            if (options.DefaultNamespaceFormat == null)
+            {
+                if (!Enum.TryParse<NamespaceFormat>(GetStringOrDefault(DefaultNamespaceFormatKey),
+                    out var namespaceFormat))
+                {
+                    namespaceFormat = options.UseStandardsCompliantEncoding == true ?
+                        NamespaceFormat.Expanded : NamespaceFormat.Uri;
+                }
+                options.DefaultNamespaceFormat = namespaceFormat;
+            }
+
             if (options.MessagingProfile == null)
             {
                 if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),
                     out var messagingMode))
                 {
-                    messagingMode = options.UseStandardsCompliantEncoding.Value ?
+                    messagingMode = options.UseStandardsCompliantEncoding == true ?
                         MessagingMode.PubSub : MessagingMode.Samples;
                 }
 

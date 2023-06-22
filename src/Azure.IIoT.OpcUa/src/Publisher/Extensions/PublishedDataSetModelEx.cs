@@ -21,18 +21,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedDataSetModel? Clone(this PublishedDataSetModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new PublishedDataSetModel
+            return model == null ? null : (model with
             {
                 DataSetMetaData = model.DataSetMetaData.Clone(),
                 DataSetSource = model.DataSetSource.Clone(),
                 ExtensionFields = model.ExtensionFields?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                Name = model.Name
-            };
+                    .ToDictionary(k => k.Key, v => v.Value)
+            });
         }
     }
 }

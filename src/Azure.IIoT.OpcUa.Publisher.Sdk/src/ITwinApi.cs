@@ -42,10 +42,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// Get the capabilities of the server
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct = default);
+            ConnectionModel connection, RequestHeaderModel? header = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Browse node on a server
@@ -164,10 +166,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// Get history server capabilities
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct = default);
+            ConnectionModel connection, RequestHeaderModel? header = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get a node's history configuration

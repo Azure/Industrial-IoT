@@ -39,6 +39,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ConnectionModel? Connection => _subscription?.Id.Connection;
 
         /// <inheritdoc/>
+        public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionKeepAlive;
+
+        /// <inheritdoc/>
         public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionDataChange;
 
         /// <inheritdoc/>
@@ -139,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return null;
                 }
-                return new Notification(this, subscription.Id, 0)
+                return new Notification(this, subscription.Id)
                 {
                     ServiceMessageContext = subscription.Session.MessageContext,
                     ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
@@ -352,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Notification CreateMessage(IEnumerable<MonitoredItemNotificationModel> notifications,
                 MessageType messageType, Subscription subscription)
             {
-                return new Notification(this, subscription.Id, 0, notifications)
+                return new Notification(this, subscription.Id, notifications)
                 {
                     ServiceMessageContext = subscription.Session?.MessageContext,
                     ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
@@ -483,11 +486,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     foreach (var result in results)
                     {
-                        string? resolvedId = null;
+                        var resolvedId = NodeId.Null;
                         if (result.ErrorInfo == null && result.Result.Targets.Count == 1)
                         {
-                            resolvedId = result.Result.Targets[0].TargetId.AsString(
-                                sessionHandle.MessageContext);
+                            resolvedId = result.Result.Targets[0].TargetId.ToNodeId(
+                                sessionHandle.MessageContext.NamespaceUris);
                         }
                         else
                         {
@@ -495,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 "in {Subscription} due to '{ServiceResult}'",
                                 result.Request!.Value.NodeId, this, result.ErrorInfo);
                         }
-                        result.Request!.Value.Updater(resolvedId ?? string.Empty);
+                        result.Request!.Value.Update(resolvedId, sessionHandle.MessageContext);
                     }
                 }
             }
@@ -523,10 +526,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     foreach (var result in response.RegisteredNodeIds.Zip(registrations))
                     {
                         Debug.Assert(result.Second != null);
-                        var registeredId = result.First.AsString(sessionHandle.MessageContext);
-                        if (registeredId != null)
+                        if (!NodeId.IsNull(result.First))
                         {
-                            result.Second.Value.Updater(registeredId);
+                            result.Second.Value.Update(result.First, sessionHandle.MessageContext);
                         }
                     }
                 }
@@ -708,7 +710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     "in {Subscription} due to '{ServiceResult}'",
                                     result.Request!.Value.NodeId, this, result.ErrorInfo);
                             }
-                            result.Request!.Value.Updater(displayName ?? string.Empty);
+                            result.Request!.Value.Update(displayName ?? string.Empty);
                         }
                     }
                 }
@@ -733,6 +735,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Apply any additional changes
                 await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+            }
+
+            //
+            // Ensure metadata is already available when we enable publishing if this is a new
+            // subscription. This ensures that the meta data is part of the first notification.
+            //
+            // TODO: We need a versioning scheme to align the metadata changes with the
+            // notifications we receive. Right now if not initial change it is possible that
+            // notifications arrive from previous state that already have the new metadata.
+            //
+            _currentlyMonitored = successfullyCompletedItems.ToImmutableHashSet();
+            if (metadataChanged)
+            {
+                _currentMetaData = await BuildMetadataAsync(sessionHandle, session, _currentlyMonitored,
+                    ct).ConfigureAwait(false);
+                metadataChanged = false;
             }
 
             //
@@ -786,67 +804,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Cleanup all items that are not in the currently monitoring list
-            var currentlyMonitored = successfullyCompletedItems.ToImmutableHashSet();
             previouslyMonitored
-                .Except(currentlyMonitored)
+                .Except(_currentlyMonitored)
                 .ToList()
                 .ForEach(m => m.Dispose());
             previouslyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
 
             // Update subscription state
             NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = currentlyMonitored.Count - invalidItems;
+            NumberOfCreatedItems = _currentlyMonitored.Count - invalidItems;
 
             _logger.LogInformation(
                 "Now monitoring {Count} nodes in subscription {Subscription}.",
-                currentlyMonitored.Count, this);
-            // Assign the currently monitored item list
-            _currentlyMonitored = currentlyMonitored;
-
-            // Get metadata
-            if (metadataChanged && _subscription?.Configuration?.MetaData != null)
-            {
-                //
-                // Use the date time to version across reboots. This could be done more elegantly by
-                // saving the last version to persistent storage such as twin, but this is ok for
-                // the sake of being able to have an incremental version number defining metadata changes.
-                //
-                var metaDataVersion = DateTime.UtcNow.ToBinary();
-                var major = (uint)(metaDataVersion >> 32);
-                var minor = (uint)metaDataVersion;
-
-                _logger.LogInformation(
-                    "Metadata changed to {Major}.{Minor} for subscription {Subscription}.",
-                    major, minor, this);
-
-                var typeSystem = await sessionHandle.GetComplexTypeSystemAsync().ConfigureAwait(false);
-                var dataTypes = new NodeIdDictionary<DataTypeDescription>();
-                var fields = new FieldMetaDataCollection();
-                foreach (var monitoredItem in currentlyMonitored)
-                {
-                    monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
-                }
-
-                _currentMetaData = new DataSetMetaDataType
-                {
-                    Name = _subscription.Configuration.MetaData.Name,
-                    DataSetClassId = (Uuid)_subscription.Configuration.MetaData.DataSetClassId,
-                    Namespaces = session.NamespaceUris.ToArray(),
-                    EnumDataTypes = dataTypes.Values.OfType<EnumDescription>().ToArray(),
-                    StructureDataTypes = dataTypes.Values.OfType<StructureDescription>().ToArray(),
-                    SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
-                    Fields = fields,
-                    Description = _subscription.Configuration.MetaData.Description,
-                    ConfigurationVersion = new ConfigurationVersionDataType
-                    {
-                        MajorVersion = major,
-                        MinorVersion = minor
-                    }
-                };
-            }
+                _currentlyMonitored.Count, this);
 
             // Refresh condition
-            if (currentlyMonitored.OfType<OpcUaMonitoredItem.Condition>().Any())
+            if (_currentlyMonitored.OfType<OpcUaMonitoredItem.Condition>().Any())
             {
                 _logger.LogInformation(
                     "Issuing ConditionRefresh on subscription {Subscription}", this);
@@ -877,7 +850,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
-            else if (desiredMonitoredItems.Count != currentlyMonitored.Count)
+            else if (desiredMonitoredItems.Count != _currentlyMonitored.Count)
             {
                 // Try to periodically update the subscription
                 // TODO: Trigger on address space model changes...
@@ -893,6 +866,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             return noErrorFound;
+        }
+
+        /// <summary>
+        /// Collect metadata for the monitored items in the data set
+        /// </summary>
+        /// <param name="sessionHandle"></param>
+        /// <param name="session"></param>
+        /// <param name="monitoredItemsInDataSet"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask<DataSetMetaDataType?> BuildMetadataAsync(IOpcUaSession sessionHandle,
+            ISession session, ImmutableHashSet<IOpcUaMonitoredItem> monitoredItemsInDataSet,
+            CancellationToken ct)
+        {
+            if (_subscription?.Configuration?.MetaData == null)
+            {
+                // Metadata disabled
+                return null;
+            }
+
+            //
+            // Use the date time to version across reboots. This could be done more elegantly by
+            // saving the last version to persistent storage such as twin, but this is ok for
+            // the sake of being able to have an incremental version number defining metadata changes.
+            //
+            var metaDataVersion = DateTime.UtcNow.ToBinary();
+            var major = (uint)(metaDataVersion >> 32);
+            var minor = (uint)metaDataVersion;
+
+            _logger.LogInformation(
+                "Metadata changed to {Major}.{Minor} for subscription {Subscription}.",
+                major, minor, this);
+
+            var typeSystem = await sessionHandle.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+            var dataTypes = new NodeIdDictionary<DataTypeDescription>();
+            var fields = new FieldMetaDataCollection();
+            foreach (var monitoredItem in monitoredItemsInDataSet)
+            {
+                monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
+            }
+
+            return new DataSetMetaDataType
+            {
+                Name = _subscription.Configuration.MetaData.Name,
+                DataSetClassId = (Uuid)_subscription.Configuration.MetaData.DataSetClassId,
+                Namespaces = session.NamespaceUris.ToArray(),
+                EnumDataTypes = dataTypes.Values.OfType<EnumDescription>().ToArray(),
+                StructureDataTypes = dataTypes.Values.OfType<StructureDescription>().ToArray(),
+                SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
+                Fields = fields,
+                Description = _subscription.Configuration.MetaData.Description,
+                ConfigurationVersion = new ConfigurationVersionDataType
+                {
+                    MajorVersion = major,
+                    MinorVersion = minor
+                }
+            };
         }
 
         /// <summary>
@@ -940,6 +970,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask SyncWithSessionInternalAsync(IOpcUaSession handle,
             CancellationToken ct)
         {
+            Debug.Assert(_lock.CurrentCount == 0);
+
             // Get the raw session object from the session handle to do the heart surgery
             if (handle is not ISessionAccessor accessor ||
                 !accessor.TryGetSession(out var session)) // Should never happen.
@@ -1035,15 +1067,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Handle = this,
                     DisplayName = Name,
-                    PublishingEnabled = false, // false on initialization
+                    PublishingEnabled = false, // always false on initialization
+                    TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both,
                     KeepAliveCount = configuredKeepAliveCount,
                     PublishingInterval = configuredPublishingInterval,
                     MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish,
                     LifetimeCount = configuredLifetimeCount,
                     Priority = configuredPriority,
-                    SequentialPublishing = true, // TODO: Make configurable
-                    DisableMonitoredItemCache = false, // = true, // Not needed anymore
+                    // TODO: use a channel and reorder task before calling OnMessage
+                    // to order or else republish is called too often
+                    SequentialPublishing = true,
+                    DisableMonitoredItemCache = true, // Not needed anymore
                     RepublishAfterTransfer = true,
+                    FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
                     FastEventCallback = OnSubscriptionEventNotificationList
                 };
@@ -1185,16 +1221,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
 
                 // If it does not, close the current subscription
-                if (subscription == null)
+                if (subscription == null || _currentSubscription!.Id != subscription.Id)
                 {
                     // Does not throw
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                }
-                else if (_currentSubscription!.Id != subscription.Id)
-                {
-                    Debug.Assert(_currentSubscription.Session.Handle != subscription.Session.Handle);
-                    // Does not throw
-                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                    subscription = null;
                 }
             }
             return subscription;
@@ -1319,108 +1350,130 @@ Actual (revised) state/desired state:
             {
                 return;
             }
+
             try
             {
-                // check if notification is a keep alive
-                var isKeepAlive =
-                    notification.Events[0].ClientHandle == 0 &&
-                    notification.Events[0].Message?.NotificationData?.Count == 0;
-                if (isKeepAlive)
-                {
-                    var sequenceNumber = notification.Events[0].Message.SequenceNumber;
-                    var publishTime = notification.Events[0].Message.PublishTime;
+                var sequenceNumber = notification.SequenceNumber;
+                var publishTime = notification.PublishTime;
 
-                    // in case of a keepalive,the sequence number is not incremented by the servers
-                    _logger.LogInformation("Keep alive for subscription {Subscription} " +
-                        "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on Event callback.",
-                        this, sequenceNumber, publishTime);
-                    var message = new Notification(this,
-                        subscription.Id, notification.Events.Max(n => n.Message.SequenceNumber))
-                    {
-                        ServiceMessageContext = subscription.Session?.MessageContext,
-                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                        SubscriptionName = Name,
-                        PublishTimestamp = publishTime,
-                        SubscriptionId = Id,
-                        MessageType = MessageType.KeepAlive
-                    };
-                    onSubscriptionEventChange.Invoke(this, message);
+                Debug.Assert(notification.Events != null);
+
+                if (sequenceNumber == 1)
+                {
+                    // Do not log when the sequence number is 1 after reconnect
+                    _previousSequenceNumber = 1;
                 }
-                else
+                else if (!SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
+                    out var missingSequenceNumbers, out var dropped))
                 {
-                    var numOfEvents = 0;
-                    var missingSequenceNumbers = Array.Empty<uint>();
-                    for (var i = 0; i < notification.Events.Count; i++)
+                    _logger.LogWarning("Event subscription notification for subscription " +
+                        "{Subscription} has unexpected sequenceNumber {SequenceNumber} missing " +
+                        "{ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
+                        this, sequenceNumber,
+                        SequenceNumber.ToString(missingSequenceNumbers), dropped ?
+                        "dropped" : "already received", publishTime);
+                }
+
+                var numOfEvents = 0;
+                foreach (var eventFieldList in notification.Events)
+                {
+                    Debug.Assert(eventFieldList != null);
+                    var monitoredItem = subscription.FindItemByClientHandle(
+                        eventFieldList.ClientHandle);
+
+                    if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
                     {
-                        var eventFieldList = notification.Events[i];
-                        Debug.Assert(eventFieldList != null);
-
-                        var monitoredItem = subscription.FindItemByClientHandle(eventFieldList.ClientHandle);
-                        var sequenceNumber = eventFieldList.Message.SequenceNumber;
-
-                        if (sequenceNumber == 1)
+                        var message = new Notification(this, subscription.Id, sequenceNumber: sequenceNumber)
                         {
-                            // Do not log when the sequence number is 1 after reconnect
-                            _previousSequenceNumber = 1;
-                        }
-                        else if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
-                            out missingSequenceNumbers, out var dropped))
+                            ServiceMessageContext = subscription.Session?.MessageContext,
+                            ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                            EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                            SubscriptionName = Name,
+                            SubscriptionId = Id,
+                            SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                            MessageType = MessageType.Event,
+                            PublishTimestamp = publishTime
+                        };
+
+                        wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                            message.PublishTimestamp, eventFieldList, message.Notifications);
+
+                        if (message.Notifications.Count > 0)
                         {
-                            _logger.LogWarning("Event for monitored item {ClientHandle} subscription " +
-                                "{Subscription} has unexpected sequenceNumber {SequenceNumber} missing " +
-                                "{ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
-                                eventFieldList.ClientHandle, this, sequenceNumber,
-                                SequenceNumber.ToString(missingSequenceNumbers), dropped ?
-                                "dropped" : "already received", eventFieldList.Message.PublishTime);
-                        }
-
-                        _logger.LogTrace("Event for subscription: {Subscription}, sequence#: " +
-                            "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
-                            subscription.DisplayName, sequenceNumber, isKeepAlive,
-                            eventFieldList.Message.PublishTime);
-
-                        if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
-                        {
-                            var message = new Notification(this, subscription.Id, sequenceNumber)
-                            {
-                                ServiceMessageContext = subscription.Session?.MessageContext,
-                                ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                                EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionName = Name,
-                                SubscriptionId = Id,
-                                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                                MessageType = MessageType.Event,
-                                PublishTimestamp = eventFieldList.Message.PublishTime
-                            };
-
-                            wrapper.TryGetMonitoredItemNotifications(message.PublishTimestamp, eventFieldList, message.Notifications);
-
-                            if (message.Notifications.Count > 0)
-                            {
-                                onSubscriptionEventChange.Invoke(this, message);
-                                numOfEvents++;
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning(
-                                "Monitored item not found with client handle {ClientHandle} " +
-                                "for Event received for subscription {Subscription} + " +
-                                "{SequenceNumber}, publishTime {PublishTime}",
-                                eventFieldList.ClientHandle, this,
-                                sequenceNumber, eventFieldList.Message.PublishTime);
+                            onSubscriptionEventChange.Invoke(this, message);
+                            numOfEvents++;
                         }
                     }
-                    var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
-                    onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Monitored item not found with client handle {ClientHandle} " +
+                            "for Event received for subscription {Subscription}.",
+                            eventFieldList.ClientHandle, this);
+                    }
                 }
+                var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
+                onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
             }
             catch (Exception e)
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
             }
+        }
+
+        /// <summary>
+        /// Handle keep alive messages
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="notification"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void OnSubscriptionKeepAliveNotification(Subscription subscription, NotificationData notification)
+        {
+            if ((_currentSubscription?.Id ?? 0) == 0 || subscription == null)
+            {
+                // Nothing to do here
+                _logger.LogDebug("Got Keep alive without subscription in {Subscription}.",
+                    this);
+                return;
+            }
+
+            Debug.Assert(_currentSubscription != null);
+            if (subscription.Id != _currentSubscription.Id)
+            {
+                _logger.LogWarning(
+                    "Keep alive for wrong subscription {Id} received on {Subscription}.",
+                    subscription.Id, this);
+                return;
+            }
+
+            var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
+            if (onSubscriptionKeepAlive == null)
+            {
+                return;
+            }
+
+            var sequenceNumber = notification.SequenceNumber;
+            var publishTime = notification.PublishTime;
+
+            // in case of a keepalive,the sequence number is not incremented by the servers
+            _logger.LogDebug("Keep alive for subscription {Subscription} " +
+                "with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.",
+                this, sequenceNumber, publishTime);
+
+            var message = new Notification(this, subscription.Id)
+            {
+                ServiceMessageContext = subscription.Session?.MessageContext,
+                ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                SubscriptionName = Name,
+                PublishTimestamp = publishTime,
+                SubscriptionId = Id,
+                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                MessageType = MessageType.KeepAlive
+            };
+
+            onSubscriptionKeepAlive.Invoke(this, message);
+            Debug.Assert(message.Notifications != null);
         }
 
         /// <summary>
@@ -1441,13 +1494,6 @@ Actual (revised) state/desired state:
                 return;
             }
 
-            if (notification?.MonitoredItems == null || notification.MonitoredItems.Count == 0)
-            {
-                _logger.LogWarning(
-                    "DataChange for subscription {Subscription} has empty notification", this);
-                return;
-            }
-
             var onSubscriptionDataChange = OnSubscriptionDataChange;
             if (onSubscriptionDataChange == null)
             {
@@ -1455,92 +1501,55 @@ Actual (revised) state/desired state:
             }
             try
             {
-                // check if notification is a keep alive
-                var isKeepAlive = notification.MonitoredItems.Count == 1
-                    && notification.MonitoredItems[0].ClientHandle == 0
-                    && notification.MonitoredItems[0].Message?.NotificationData?.Count == 0;
-                Notification message;
-                if (isKeepAlive)
+                var sequenceNumber = notification.SequenceNumber;
+                var publishTime = notification.PublishTime;
+
+                var message = new Notification(this, subscription.Id, sequenceNumber: sequenceNumber)
                 {
-                    var sequenceNumber = notification.MonitoredItems[0].Message.SequenceNumber;
-                    var publishTime = notification.MonitoredItems[0].Message.PublishTime;
+                    ServiceMessageContext = subscription.Session?.MessageContext,
+                    ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                    SubscriptionName = Name,
+                    SubscriptionId = Id,
+                    PublishTimestamp = publishTime,
+                    SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = MessageType.DeltaFrame
+                };
 
-                    // in case of a keepalive,the sequence number is not incremented by the servers
-                    _logger.LogInformation("Keep alive for subscription {Subscription} " +
-                        "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on data change.",
-                        this, sequenceNumber, publishTime);
+                Debug.Assert(notification.MonitoredItems != null);
 
-                    message = new Notification(this, subscription.Id,
-                        notification.MonitoredItems.Max(n => n.Message.SequenceNumber))
-                    {
-                        ServiceMessageContext = subscription.Session?.MessageContext,
-                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionName = Name,
-                        PublishTimestamp = publishTime,
-                        SubscriptionId = Id,
-                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                        MessageType = MessageType.KeepAlive
-                    };
+                // All notifications have the same message and thus sequence number
+                if (sequenceNumber == 1)
+                {
+                    // Do not log when the sequence number is 1 after reconnect
+                    _previousSequenceNumber = 1;
                 }
-                else
+                else if (!SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
+                    out var missingSequenceNumbers, out var dropped))
                 {
-                    message = new Notification(this, subscription.Id,
-                        notification.MonitoredItems.Max(n => n.Message.SequenceNumber))
+                    _logger.LogWarning("DataChange notification for subscription " +
+                        "{Subscription} has unexpected sequenceNumber {SequenceNumber} " +
+                        "missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
+                        this, sequenceNumber,
+                        SequenceNumber.ToString(missingSequenceNumbers),
+                        dropped ? "dropped" : "already received", publishTime);
+                }
+
+                foreach (var item in notification.MonitoredItems)
+                {
+                    Debug.Assert(item != null);
+                    var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
+
+                    if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
                     {
-                        ServiceMessageContext = subscription.Session?.MessageContext,
-                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionName = Name,
-                        SubscriptionId = Id,
-                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                        MessageType = MessageType.DeltaFrame
-                    };
-
-                    var missingSequenceNumbers = Array.Empty<uint>();
-                    for (var i = 0; i < notification.MonitoredItems.Count; i++)
+                        wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                            message.PublishTimestamp, item, message.Notifications);
+                    }
+                    else
                     {
-                        Debug.Assert(notification?.MonitoredItems != null);
-                        var item = notification.MonitoredItems[i];
-                        Debug.Assert(item != null);
-
-                        var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
-                        var sequenceNumber = item.Message.SequenceNumber;
-                        message.PublishTimestamp = item.Message.PublishTime;
-
-                        // All notifications have the same message and thus sequence number
-                        if (sequenceNumber == 1)
-                        {
-                            // Do not log when the sequence number is 1 after reconnect
-                            _previousSequenceNumber = 1;
-                        }
-                        else if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
-                            out missingSequenceNumbers, out var dropped))
-                        {
-                            _logger.LogWarning("DataChange for monitored item {ClientHandle} subscription " +
-                                "{Subscription} has unexpected sequenceNumber {SequenceNumber} " +
-                                "missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
-                                item.ClientHandle, this, sequenceNumber,
-                                SequenceNumber.ToString(missingSequenceNumbers),
-                                dropped ? "dropped" : "already received", item.Message.PublishTime);
-                        }
-
-                        _logger.LogTrace("Data change for subscription: {Subscription}, sequence#: " +
-                            "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
-                            subscription.DisplayName, sequenceNumber, isKeepAlive, message.PublishTimestamp);
-
-                        if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
-                        {
-                            wrapper.TryGetMonitoredItemNotifications(message.PublishTimestamp, item, message.Notifications);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Monitored item not found with client handle {ClientHandle} " +
-                                "for DataChange received for subscription {Subscription} + " +
-                                "{SequenceNumber}, publishTime {PublishTime}",
-                                item.ClientHandle, this,
-                                sequenceNumber, message.PublishTimestamp);
-                        }
+                        _logger.LogWarning("Monitored item not found with client handle {ClientHandle} " +
+                            "for DataChange received for subscription {Subscription}",
+                            item.ClientHandle, this);
                     }
                 }
 
@@ -1561,9 +1570,10 @@ Actual (revised) state/desired state:
         /// <summary>
         /// Get notifications
         /// </summary>
+        /// <param name="sequenceNumber"></param>
         /// <param name="notifications"></param>
         /// <returns></returns>
-        private bool TryGetNotifications(
+        private bool TryGetNotifications(uint sequenceNumber,
             [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
         {
             _lock.Wait();
@@ -1578,7 +1588,7 @@ Actual (revised) state/desired state:
                 notifications = new List<MonitoredItemNotificationModel>();
                 foreach (var item in _currentlyMonitored)
                 {
-                    item.TryGetLastMonitoredItemNotifications(notifications);
+                    item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
                 }
                 return true;
             }
@@ -1600,13 +1610,13 @@ Actual (revised) state/desired state:
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <param name="sequenceNumber"></param>
-        private void AdvancePosition(uint subscriptionId, uint sequenceNumber)
+        private void AdvancePosition(uint subscriptionId, uint? sequenceNumber)
         {
-            if (_currentSubscription?.Id == subscriptionId)
+            if (sequenceNumber.HasValue && _currentSubscription?.Id == subscriptionId)
             {
                 _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
-                _currentSequenceNumber = sequenceNumber;
+                _currentSequenceNumber = sequenceNumber.Value;
             }
         }
 
@@ -1643,7 +1653,7 @@ Actual (revised) state/desired state:
             public DateTime PublishTimestamp { get; internal set; }
 
             /// <inheritdoc/>
-            public uint? PublishSequenceNumber => _sequenceNumber;
+            public uint? PublishSequenceNumber { get; }
 
             /// <inheritdoc/>
             public IServiceMessageContext? ServiceMessageContext { get; internal set; }
@@ -1656,14 +1666,14 @@ Actual (revised) state/desired state:
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="subscriptionId"></param>
-            /// <param name="sequenceNumber"></param>
             /// <param name="notifications"></param>
-            public Notification(
-                OpcUaSubscription outer, uint subscriptionId, uint sequenceNumber,
-                IEnumerable<MonitoredItemNotificationModel>? notifications = null)
+            /// <param name="sequenceNumber"></param>
+            public Notification(OpcUaSubscription outer, uint subscriptionId,
+                IEnumerable<MonitoredItemNotificationModel>? notifications = null,
+                uint? sequenceNumber = null)
             {
                 _outer = outer;
-                _sequenceNumber = sequenceNumber;
+                PublishSequenceNumber = sequenceNumber;
                 _subscriptionId = subscriptionId;
 
                 MetaData = _outer._currentMetaData;
@@ -1674,7 +1684,7 @@ Actual (revised) state/desired state:
             /// <inheritdoc/>
             public bool TryUpgradeToKeyFrame()
             {
-                if (!_outer.TryGetNotifications(out var allNotifications))
+                if (!_outer.TryGetNotifications(SequenceNumber, out var allNotifications))
                 {
                     return false;
                 }
@@ -1688,7 +1698,7 @@ Actual (revised) state/desired state:
             /// <inheritdoc/>
             public void Dispose()
             {
-                _outer.AdvancePosition(_subscriptionId, _sequenceNumber);
+                _outer.AdvancePosition(_subscriptionId, PublishSequenceNumber);
             }
 #if DEBUG
             /// <inheritdoc/>
@@ -1706,7 +1716,6 @@ Actual (revised) state/desired state:
 #endif
             private readonly OpcUaSubscription _outer;
             private readonly uint _subscriptionId;
-            private readonly uint _sequenceNumber;
         }
 
         private int NumberOfCreatedItems { get; set; }

@@ -158,7 +158,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[BrowseFirstRequestModel](definitions.md#browsefirstrequestmodel)|
+|**request**  <br>*optional*|[BrowseFirstRequestModel](definitions.md#browsefirstrequestmodel)|
 
 
 <a name="browsefirstresponsemodel"></a>
@@ -199,7 +199,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[BrowseNextRequestModel](definitions.md#browsenextrequestmodel)|
+|**request**  <br>*optional*|[BrowseNextRequestModel](definitions.md#browsenextrequestmodel)|
 
 
 <a name="browsenextresponsemodel"></a>
@@ -238,7 +238,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[BrowsePathRequestModel](definitions.md#browsepathrequestmodel)|
+|**request**  <br>*optional*|[BrowsePathRequestModel](definitions.md#browsepathrequestmodel)|
 
 
 <a name="browsepathresponsemodel"></a>
@@ -285,7 +285,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[BrowseStreamRequestModel](definitions.md#browsestreamrequestmodel)|
+|**request**  <br>*optional*|[BrowseStreamRequestModel](definitions.md#browsestreamrequestmodel)|
 
 
 <a name="browseviewmodel"></a>
@@ -332,7 +332,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ConnectRequestModel](definitions.md#connectrequestmodel)|
+|**request**  <br>*optional*|[ConnectRequestModel](definitions.md#connectrequestmodel)|
 
 
 <a name="connectresponsemodel"></a>
@@ -460,7 +460,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[DeleteEventsDetailsModelHistoryUpdateRequestModel](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[DeleteEventsDetailsModelHistoryUpdateRequestModel](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodel)|
 
 
 <a name="deletevaluesattimesdetailsmodel"></a>
@@ -496,7 +496,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodel)|
 
 
 <a name="deletevaluesdetailsmodel"></a>
@@ -533,7 +533,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[DeleteValuesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[DeleteValuesDetailsModelHistoryUpdateRequestModel](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodel)|
 
 
 <a name="diagnosticslevel"></a>
@@ -576,7 +576,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[DisconnectRequestModel](definitions.md#disconnectrequestmodel)|
+|**request**  <br>*optional*|[DisconnectRequestModel](definitions.md#disconnectrequestmodel)|
 
 
 <a name="discoverycancelrequestmodel"></a>
@@ -846,7 +846,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[HistoryConfigurationRequestModel](definitions.md#historyconfigurationrequestmodel)|
+|**request**  <br>*optional*|[HistoryConfigurationRequestModel](definitions.md#historyconfigurationrequestmodel)|
 
 
 <a name="historyconfigurationresponsemodel"></a>
@@ -882,7 +882,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[HistoryReadNextRequestModel](definitions.md#historyreadnextrequestmodel)|
+|**request**  <br>*optional*|[HistoryReadNextRequestModel](definitions.md#historyreadnextrequestmodel)|
 
 
 <a name="historyservercapabilitiesmodel"></a>
@@ -999,7 +999,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[MethodCallRequestModel](definitions.md#methodcallrequestmodel)|
+|**request**  <br>*optional*|[MethodCallRequestModel](definitions.md#methodcallrequestmodel)|
 
 
 <a name="methodcallresponsemodel"></a>
@@ -1062,7 +1062,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[MethodMetadataRequestModel](definitions.md#methodmetadatarequestmodel)|
+|**request**  <br>*optional*|[MethodMetadataRequestModel](definitions.md#methodmetadatarequestmodel)|
 
 
 <a name="methodmetadataresponsemodel"></a>
@@ -1088,6 +1088,14 @@ Modification information
 |**modificationTime**  <br>*optional*|Modification time|string (date-time)|
 |**updateType**  <br>*optional*||[HistoryUpdateOperation](definitions.md#historyupdateoperation)|
 |**userName**  <br>*optional*|User who made the change|string|
+
+
+<a name="namespaceformat"></a>
+### NamespaceFormat
+Namespace serialization format for node ids
+and qualified names.
+
+*Type* : enum (Uri, Index, Expanded)
 
 
 <a name="nodeaccesslevel"></a>
@@ -1158,7 +1166,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[NodeMetadataRequestModel](definitions.md#nodemetadatarequestmodel)|
+|**request**  <br>*optional*|[NodeMetadataRequestModel](definitions.md#nodemetadatarequestmodel)|
 
 
 <a name="nodemetadataresponsemodel"></a>
@@ -1360,7 +1368,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[PublishBulkRequestModel](definitions.md#publishbulkrequestmodel)|
+|**request**  <br>*optional*|[PublishBulkRequestModel](definitions.md#publishbulkrequestmodel)|
 
 
 <a name="publishbulkresponsemodel"></a>
@@ -1431,7 +1439,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[PublishStartRequestModel](definitions.md#publishstartrequestmodel)|
+|**request**  <br>*optional*|[PublishStartRequestModel](definitions.md#publishstartrequestmodel)|
 
 
 <a name="publishstartresponsemodel"></a>
@@ -1465,7 +1473,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[PublishStopRequestModel](definitions.md#publishstoprequestmodel)|
+|**request**  <br>*optional*|[PublishStopRequestModel](definitions.md#publishstoprequestmodel)|
 
 
 <a name="publishstopresponsemodel"></a>
@@ -1499,7 +1507,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[PublishedItemListRequestModel](definitions.md#publisheditemlistrequestmodel)|
+|**request**  <br>*optional*|[PublishedItemListRequestModel](definitions.md#publisheditemlistrequestmodel)|
 
 
 <a name="publisheditemlistresponsemodel"></a>
@@ -1547,7 +1555,7 @@ Contains the nodes which should be published
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
-|**EndpointUrl**  <br>*optional*|The endpoint URL of the OPC UA server.|string|
+|**EndpointUrl**  <br>*required*|The endpoint URL of the OPC UA server.  <br>**Minimum length** : `1`|string|
 |**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
 |**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
 |**MessageEncoding**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
@@ -1560,6 +1568,7 @@ Contains the nodes which should be published
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
+|**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
@@ -1594,7 +1603,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[QueryCompilationRequestModel](definitions.md#querycompilationrequestmodel)|
+|**request**  <br>*optional*|[QueryCompilationRequestModel](definitions.md#querycompilationrequestmodel)|
 
 
 <a name="querycompilationresponsemodel"></a>
@@ -1653,7 +1662,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadEventsDetailsModelHistoryReadRequestModel](definitions.md#readeventsdetailsmodelhistoryreadrequestmodel)|
+|**request**  <br>*optional*|[ReadEventsDetailsModelHistoryReadRequestModel](definitions.md#readeventsdetailsmodelhistoryreadrequestmodel)|
 
 
 <a name="readmodifiedvaluesdetailsmodel"></a>
@@ -1693,7 +1702,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadModifiedValuesDetailsModelHistoryReadRequestModel](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodel)|
+|**request**  <br>*optional*|[ReadModifiedValuesDetailsModelHistoryReadRequestModel](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodel)|
 
 
 <a name="readprocessedvaluesdetailsmodel"></a>
@@ -1735,7 +1744,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadProcessedValuesDetailsModelHistoryReadRequestModel](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodel)|
+|**request**  <br>*optional*|[ReadProcessedValuesDetailsModelHistoryReadRequestModel](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodel)|
 
 
 <a name="readrequestmodel"></a>
@@ -1759,7 +1768,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadRequestModel](definitions.md#readrequestmodel)|
+|**request**  <br>*optional*|[ReadRequestModel](definitions.md#readrequestmodel)|
 
 
 <a name="readresponsemodel"></a>
@@ -1809,7 +1818,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodel)|
+|**request**  <br>*optional*|[ReadValuesAtTimesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodel)|
 
 
 <a name="readvaluesdetailsmodel"></a>
@@ -1850,7 +1859,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ReadValuesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodel)|
+|**request**  <br>*optional*|[ReadValuesDetailsModelHistoryReadRequestModel](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodel)|
 
 
 <a name="requestheadermodel"></a>
@@ -1863,6 +1872,20 @@ Request header model
 |**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
 |**elevation**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
 |**locales**  <br>*optional*|Optional list of locales in preference order.|< string > array|
+|**namespaceFormat**  <br>*optional*||[NamespaceFormat](definitions.md#namespaceformat)|
+
+
+<a name="requestheadermodelrequestenvelope"></a>
+### RequestHeaderModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*optional*|[RequestHeaderModel](definitions.md#requestheadermodel)|
 
 
 <a name="rolepermissionmodel"></a>
@@ -1991,7 +2014,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[TestConnectionRequestModel](definitions.md#testconnectionrequestmodel)|
+|**request**  <br>*optional*|[TestConnectionRequestModel](definitions.md#testconnectionrequestmodel)|
 
 
 <a name="testconnectionresponsemodel"></a>
@@ -2061,7 +2084,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[UpdateEventsDetailsModelHistoryUpdateRequestModel](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[UpdateEventsDetailsModelHistoryUpdateRequestModel](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodel)|
 
 
 <a name="updatevaluesdetailsmodel"></a>
@@ -2097,7 +2120,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[UpdateValuesDetailsModelHistoryUpdateRequestModel](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModel](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodel)|
 
 
 <a name="valuereadrequestmodel"></a>
@@ -2125,7 +2148,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ValueReadRequestModel](definitions.md#valuereadrequestmodel)|
+|**request**  <br>*optional*|[ValueReadRequestModel](definitions.md#valuereadrequestmodel)|
 
 
 <a name="valuereadresponsemodel"></a>
@@ -2167,7 +2190,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[ValueWriteRequestModel](definitions.md#valuewriterequestmodel)|
+|**request**  <br>*optional*|[ValueWriteRequestModel](definitions.md#valuewriterequestmodel)|
 
 
 <a name="valuewriteresponsemodel"></a>
@@ -2227,7 +2250,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[VariantValueHistoryReadRequestModel](definitions.md#variantvaluehistoryreadrequestmodel)|
+|**request**  <br>*optional*|[VariantValueHistoryReadRequestModel](definitions.md#variantvaluehistoryreadrequestmodel)|
 
 
 <a name="variantvaluehistoryreadresponsemodel"></a>
@@ -2263,7 +2286,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[VariantValueHistoryUpdateRequestModel](definitions.md#variantvaluehistoryupdaterequestmodel)|
+|**request**  <br>*optional*|[VariantValueHistoryUpdateRequestModel](definitions.md#variantvaluehistoryupdaterequestmodel)|
 
 
 <a name="writerequestmodel"></a>
@@ -2287,7 +2310,7 @@ connection endpoint
 |Name|Schema|
 |---|---|
 |**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
-|**request**  <br>*required*|[WriteRequestModel](definitions.md#writerequestmodel)|
+|**request**  <br>*optional*|[WriteRequestModel](definitions.md#writerequestmodel)|
 
 
 <a name="writeresponsemodel"></a>

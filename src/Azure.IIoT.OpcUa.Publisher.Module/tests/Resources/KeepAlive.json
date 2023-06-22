@@ -1,0 +1,17 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseReverseConnect": "{{UseReverseConnect}}",
+        "SendKeepAliveDataSetMessages": true,
+        "MaxKeepAliveCount": 2,
+        "MessagingMode": "PubSub",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2259",
+                "FetchDisplayName": true
+            }
+        ]
+    }
+]

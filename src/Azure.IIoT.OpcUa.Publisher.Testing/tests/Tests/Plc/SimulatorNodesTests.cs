@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var maxValue = 0d;
             var minValue = 0d;
 
-            // take 100 measurements, which is enough that at least a few outliers should be present
+            // take 300 measurements, which is enough that at least a few outliers should be present
             for (var i = 0; i < 300; i++)
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);

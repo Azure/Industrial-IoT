@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         }
 
         /// <inheritdoc/>
-        private sealed class Server : StandardServer
+        private sealed class Server : ReverseConnectServer
         {
             /// <summary>
             /// Create server

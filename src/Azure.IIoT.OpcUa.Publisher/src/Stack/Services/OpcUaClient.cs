@@ -78,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
         /// <param name="sessionFactory"></param>
+        /// <param name="reverseConnectManager"></param>
         /// <param name="maxReconnectPeriod"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -85,14 +86,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, IMetricsContext metrics,
             EventHandler<EndpointConnectivityState>? notifier,
-            ISessionFactory sessionFactory, TimeSpan? maxReconnectPeriod = null,
-            string? sessionName = null)
+            ISessionFactory sessionFactory, ReverseConnectManager? reverseConnectManager,
+            TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
-            if (connection?.Connection?.Endpoint == null)
+            if (connection?.Connection?.Endpoint?.Url == null)
             {
                 throw new ArgumentNullException(nameof(connection));
             }
+
             _connection = connection.Connection;
+            Debug.Assert(_connection.GetEndpointUrls().Any());
+            _reverseConnectManager = reverseConnectManager;
 
             _metrics = metrics ??
                 throw new ArgumentNullException(nameof(metrics));
@@ -273,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // Ensure type system is loaded
                         if (!_session.IsTypeSystemLoaded)
                         {
-                            await _session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                            await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
                         var context = new ServiceCallContext(_session);
@@ -331,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // Ensure type system is loaded
                         if (!_session.IsTypeSystemLoaded)
                         {
-                            await _session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                            await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
                         var context = new ServiceCallContext(_session);
@@ -368,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="callback"></param>
         /// <returns></returns>
         internal IAsyncDisposable RegisterSampler(TimeSpan samplingRate, ReadValueId item,
-            Action<DataValue> callback)
+            Action<uint, DataValue> callback)
         {
             lock (_samplers)
             {
@@ -529,12 +533,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     switch (trigger)
                     {
                         case ConnectionEvent.Connect:
+                            if (currentSessionState == SessionState.Disconnected)
+                            {
+                                // Start connecting
+                                reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                                currentSessionState = SessionState.Connecting;
+                            }
+                            goto case ConnectionEvent.ConnectRetry;
                         case ConnectionEvent.ConnectRetry:
                             reconnectPeriod = trigger == ConnectionEvent.Connect ? GetMinReconnectPeriod() :
                                 _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                             switch (currentSessionState)
                             {
-                                case SessionState.Disconnected:
+                                case SessionState.Connecting:
                                     Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
                                     Debug.Assert(_disconnectLock != null);
                                     Debug.Assert(_session == null);
@@ -559,8 +570,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                     currentSessionState = SessionState.Connected;
                                     break;
+                                case SessionState.Disconnected:
                                 case SessionState.Connected:
-                                    // Nothing to do, already connected
+                                    // Nothing to do, already disconnected or connected
                                     break;
                                 case SessionState.Reconnecting:
                                     Debug.Fail("Should not be connecting during reconnecting.");
@@ -615,7 +627,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                     _logger.LogInformation("Reconnecting session {Session}...", _sessionName);
                                     var state = _reconnectHandler.BeginReconnect(_session!.Session,
-                                        GetMinReconnectPeriod(), (sender, evt) =>
+                                        _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                         {
                                             if (ReferenceEquals(sender, _reconnectHandler))
                                             {
@@ -631,9 +643,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                                     currentSessionState = SessionState.Reconnecting;
                                     break;
+                                case SessionState.Connecting:
                                 case SessionState.Disconnected:
                                 case SessionState.Reconnecting:
-                                    // Nothing to do
+                                    // Nothing to do in this state
                                     break;
                             }
                             break;
@@ -697,6 +710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 case SessionState.Connected:
                                     Debug.Fail("Should not signal reconnected when already connected.");
                                     break;
+                                case SessionState.Connecting:
                                 case SessionState.Disconnected:
                                     Debug.Assert(_reconnectingSession == null);
                                     reconnected?.Dispose();
@@ -706,8 +720,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         case ConnectionEvent.Disconnect:
 
-                            // If currently reconnecting, dispose the reconnect handler
+                            // If currently reconnecting, dispose the reconnect handler and stop timer
                             _reconnectHandler.CancelReconnect();
+                            reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
                             await ApplySubscriptionAsync(currentSubscriptions, false,
                                 ct).ConfigureAwait(false);
@@ -811,31 +826,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var timeout = CreateSessionTimeout ?? TimeSpan.FromSeconds(10);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-
-            var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
-            if (_connection.Endpoint.AlternativeUrls != null)
-            {
-                endpointUrlCandidates = endpointUrlCandidates.Concat(
-                    _connection.Endpoint.AlternativeUrls);
-            }
+            Debug.Assert(_connection.Endpoint != null);
 
             _logger.LogInformation("Connecting Client {Client} to {EndpointUrl}...",
                 this, _connection.Endpoint.Url);
             var attempt = 0;
-            foreach (var endpointUrl in endpointUrlCandidates)
+            foreach (var endpointUrl in _connection.GetEndpointUrls())
             {
                 // Ensure any previous session is disposed here.
                 await CloseSessionAsync().ConfigureAwait(false);
                 ct.ThrowIfCancellationRequested();
                 try
                 {
+                    ITransportWaitingConnection? connection = null;
+                    if (_reverseConnectManager != null)
+                    {
+                        connection = await _reverseConnectManager.WaitForConnection(
+                            endpointUrl, null, ct).ConfigureAwait(false);
+                    }
                     //
                     // Get the endpoint by connecting to server's discovery endpoint.
                     // Try to find the first endpoint with security.
                     //
-                    var endpointDescription = CoreClientUtils.SelectEndpoint(
-                        _configuration, endpointUrl,
-                        _connection.Endpoint.SecurityMode != SecurityMode.None);
+                    var endpointDescription = connection != null ?
+                        CoreClientUtils.SelectEndpoint(_configuration, connection,
+                            _connection.Endpoint.SecurityMode != SecurityMode.None) :
+                        CoreClientUtils.SelectEndpoint(_configuration, endpointUrl.ToString(),
+                            _connection.Endpoint.SecurityMode != SecurityMode.None);
+
                     var endpointConfiguration = EndpointConfiguration.Create(
                         _configuration);
                     endpointConfiguration.OperationTimeout =
@@ -869,11 +887,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
                     var session = await _sessionFactory.CreateAsync(_configuration,
-                        reverseConnectManager: null, endpoint,
-                        updateBeforeConnect: false, // Udpate endpoint through discovery
+                        _reverseConnectManager, endpoint,
+                        // Update endpoint through discovery
+                        updateBeforeConnect: _reverseConnectManager != null,
                         checkDomain: false, // Domain must match on connect
-                        _sessionName,
-                        (uint)sessionTimeout.TotalMilliseconds,
+                        _sessionName, (uint)sessionTimeout.TotalMilliseconds,
                         userIdentity, preferredLocales, ct).ConfigureAwait(false);
                     // Assign the created session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
@@ -1183,6 +1201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private enum SessionState
         {
             Disconnected,
+            Connecting,
             Connected,
             Reconnecting
         }
@@ -1225,7 +1244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="initialValue"></param>
             /// <param name="callback"></param>
             public Sampler(OpcUaClient outer, TimeSpan samplingRate,
-                ReadValueId initialValue, Action<DataValue> callback)
+                ReadValueId initialValue, Action<uint, DataValue> callback)
             {
                 initialValue.Handle = callback;
                 _values = ImmutableHashSet<ReadValueId>.Empty.Add(initialValue);
@@ -1258,7 +1277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="value"></param>
             /// <param name="callback"></param>
-            public Sampler Add(ReadValueId value, Action<DataValue> callback)
+            public Sampler Add(ReadValueId value, Action<uint, DataValue> callback)
             {
                 value.Handle = callback;
                 _values = _values.Add(value);
@@ -1283,8 +1302,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private async Task RunAsync(CancellationToken ct)
             {
-                while (!ct.IsCancellationRequested)
+                for (var sequenceNumber = 1u; !ct.IsCancellationRequested; sequenceNumber++)
                 {
+                    if (sequenceNumber == 0u)
+                    {
+                        continue;
+                    }
+
                     var nodesToRead = new ReadValueIdCollection(_values);
                     try
                     {
@@ -1298,14 +1322,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var session = _outer._session;
                         if (session == null)
                         {
-                            NotifyAll(nodesToRead, StatusCodes.BadNotConnected);
+                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected);
                             continue;
                         }
 
                         // Ensure type system is loaded
                         if (!session.IsTypeSystemLoaded)
                         {
-                            await session.GetComplexTypeSystemAsync().ConfigureAwait(false);
+                            await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
                         // Perform the read.
@@ -1322,30 +1346,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             r => r.StatusCode, response.DiagnosticInfos, nodesToRead);
                         if (values.ErrorInfo != null)
                         {
-                            NotifyAll(nodesToRead, values.ErrorInfo.StatusCode);
+                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode);
                             continue;
                         }
 
                         // Notify clients of the values
-                        values.ForEach(i => ((Action<DataValue>)i.Request.Handle)(
-                            i.Result));
+                        values.ForEach(i => ((Action<uint, DataValue>)i.Request.Handle)(
+                            sequenceNumber, i.Result));
                     }
                     catch (OperationCanceledException) { }
                     catch (ServiceResultException sre)
                     {
-                        NotifyAll(nodesToRead, sre.StatusCode);
+                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode);
                     }
                     catch (Exception ex)
                     {
                         var error = new ServiceResult(ex).StatusCode;
-                        NotifyAll(nodesToRead, error.Code);
+                        NotifyAll(sequenceNumber, nodesToRead, error.Code);
                     }
                 }
-                static void NotifyAll(ReadValueIdCollection nodesToRead, uint statusCode)
+                static void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode)
                 {
                     var dataValue = new DataValue(statusCode);
-                    nodesToRead.ForEach(i => ((Action<DataValue>)i.Handle)(
-                        dataValue));
+                    nodesToRead.ForEach(i => ((Action<uint, DataValue>)i.Handle)(seq, dataValue));
                 }
             }
 
@@ -1368,6 +1391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
+        private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly ISessionFactory _sessionFactory;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;

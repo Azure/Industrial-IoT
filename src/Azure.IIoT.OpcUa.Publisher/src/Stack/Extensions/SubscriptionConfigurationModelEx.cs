@@ -21,20 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static SubscriptionConfigurationModel? Clone(this SubscriptionConfigurationModel? model)
         {
-            if (model == null)
+            return model == null ? null : (model with
             {
-                return null;
-            }
-            return new SubscriptionConfigurationModel
-            {
-                PublishingInterval = model.PublishingInterval,
-                UseDeferredAcknoledgements = model.UseDeferredAcknoledgements,
-                LifetimeCount = model.LifetimeCount,
-                KeepAliveCount = model.KeepAliveCount,
-                Priority = model.Priority,
-                MetaData = model.MetaData.Clone(),
-                ResolveDisplayName = model.ResolveDisplayName
-            };
+                MetaData = model.MetaData.Clone()
+            });
         }
     }
 }

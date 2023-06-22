@@ -4,8 +4,8 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="0.1.51" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.51" />
+    <PackageReference Include="Furly.Azure.IoT" Version="0.1.57" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.57" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
@@ -14,6 +14,9 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Profiles\KeepAlive.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\RegisteredRead.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

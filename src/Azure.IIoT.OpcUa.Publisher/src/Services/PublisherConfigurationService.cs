@@ -647,12 +647,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
+        public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
             bool includeNodes = false, CancellationToken ct = default)
         {
             const string methodName = nameof(GetConfiguredEndpointsAsync);
             _logger.LogInformation("{Method} method triggered...", methodName);
             var sw = Stopwatch.StartNew();
+            await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var endpoints = GetCurrentPublishedNodes();
@@ -660,7 +661,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     endpoints = endpoints.Select(e => e.ToDataSetEntry());
                 }
-                return Task.FromResult(endpoints.ToList());
+                return endpoints.ToList();
             }
             catch (Exception e) when (e is not MethodCallStatusException)
             {
@@ -669,6 +670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
+                _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
@@ -676,7 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
+        public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             _logger.LogInformation("{Method} method triggered...",
@@ -694,6 +696,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             request.PropagatePublishingIntervalToNodes();
             var response = new List<OpcNodeModel>();
+            await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var endpointFound = false;
@@ -722,11 +725,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
+                _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
             }
-            return Task.FromResult(response);
+            return response;
         }
 
         /// <inheritdoc/>
@@ -735,7 +739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _logger.LogInformation("{Method} method triggered...", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
-            await _file.WaitAsync(ct).ConfigureAwait(false);
+            await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var result = new List<PublishDiagnosticInfoModel>();
@@ -790,7 +794,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
-                _file.Release();
+                _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetDiagnosticInfoAsync), sw.Elapsed);
                 sw.Stop();
@@ -954,9 +958,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 var jobs = Enumerable.Empty<WriterGroupModel>();
                                 if (!clear && !string.IsNullOrEmpty(content))
                                 {
-                                    _logger.LogInformation("Published Nodes File changed, " +
-                                        "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                        _lastKnownFileHash, currentFileHash);
+                                    if (string.IsNullOrEmpty(_lastKnownFileHash))
+                                    {
+                                        _logger.LogInformation(
+                                            "Found published Nodes File with hash {NewHash}, loading...",
+                                            currentFileHash);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation("Published Nodes File changed, " +
+                                            "last known hash {LastHash}, new hash {NewHash}, reloading...",
+                                            _lastKnownFileHash, currentFileHash);
+                                    }
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);

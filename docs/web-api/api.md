@@ -462,7 +462,7 @@ A manager can enable an application.
 
 <a name="discovery_resource"></a>
 ### Discovery
-Configure discovery
+Discovery
 
 
 <a name="getlistofdiscoverers"></a>
@@ -1372,6 +1372,7 @@ Gets the capabilities of the connected historian server. The endpoint must be in
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Query**|**namespaceFormat**  <br>*optional*||enum (Uri, Index, Expanded)|
 
 
 ##### Responses
@@ -3321,6 +3322,7 @@ Gets the capabilities of the connected server. The endpoint must be in the regis
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Query**|**namespaceFormat**  <br>*optional*||enum (Uri, Index, Expanded)|
 
 
 ##### Responses

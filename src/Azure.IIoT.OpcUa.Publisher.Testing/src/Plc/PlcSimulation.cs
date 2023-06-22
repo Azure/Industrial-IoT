@@ -129,7 +129,7 @@ namespace Plc
             sb.Append(Environment.NewLine)
                 .AppendLine("[")
                 .AppendLine("  {")
-                .AppendLine("    \"EndpointUrl\": \"opc.tcp://localhost:{{Port}}/UA/SampleServer\",")
+                .AppendLine("    \"EndpointUrl\": \"{{EndpointUrl}}\",")
                 .AppendLine("    \"UseSecurity\": true,")
                 .AppendLine("    \"OpcNodes\": [");
 

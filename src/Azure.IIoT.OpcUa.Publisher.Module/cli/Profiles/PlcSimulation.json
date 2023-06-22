@@ -1,6 +1,6 @@
 ﻿[
     {
-        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "EndpointUrl": "{{EndpointUrl}}",
         "UseSecurity": true,
         "OpcNodes": [
             { "Id": "nsu=http://opcfoundation.org/UA/Plc;s=Plc" },

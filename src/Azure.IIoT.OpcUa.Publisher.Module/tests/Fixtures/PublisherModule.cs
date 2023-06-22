@@ -271,13 +271,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             base.Dispose(disposing);
             if (disposing)
             {
+                // Throw if we cannot dispose
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                Task.Run(InnerDispose, cts.Token).Wait(cts.Token);
+            }
+
+            void InnerDispose()
+            {
                 _connection.Close();
                 _handler1?.Dispose();
                 if (_handler2 != null)
                 {
                     _handler2.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
-
                 if (Directory.Exists(ServerPkiRootPath))
                 {
                     Try.Op(() => Directory.Delete(ServerPkiRootPath, true));

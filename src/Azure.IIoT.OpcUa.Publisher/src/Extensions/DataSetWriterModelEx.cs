@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
-    using System.Diagnostics;
 
     /// <summary>
     /// Data set extensions
@@ -42,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             return new SubscriptionModel
             {
-                Id = ToSubscriptionId(dataSetWriter, writerGroupId),
+                Id = ToSubscriptionId(dataSetWriter, writerGroupId, configuration),
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet?.ExtensionFields,
                 Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
@@ -55,10 +54,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="writerGroupId"></param>
+        /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string? writerGroupId = null)
+            string? writerGroupId, OpcUaSubscriptionOptions options)
         {
             if (dataSetWriter == null)
             {
@@ -77,9 +77,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             if (connection.Group == null)
             {
-                connection = connection.Clone();
-                Debug.Assert(connection != null);
-                connection.Group = writerGroupId;
+                connection = connection with
+                {
+                    Group = writerGroupId
+                };
+            }
+
+            if (connection.IsReverse == null && options.DefaultUseReverseConnect == true)
+            {
+                connection = connection with
+                {
+                    // IsReverse = options.DefaultUseReverseConnect
+                };
             }
             return new SubscriptionIdentifier(connection, dataSetWriter.DataSetWriterName);
         }

@@ -7,6 +7,7 @@ namespace Opc.Ua.Extensions
 {
     using Opc.Ua;
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -42,16 +43,17 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="path"></param>
         /// <param name="context"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         public static IReadOnlyList<string>? AsString(this RelativePath path,
-            IServiceMessageContext context)
+            IServiceMessageContext context, NamespaceFormat namespaceFormat)
         {
             if (path == null)
             {
                 return null;
             }
             return path.Elements
-                .Select(p => FormatRelativePathElement(p, context))
+                .Select(p => FormatRelativePathElement(p, context, namespaceFormat))
                 .ToList();
         }
 
@@ -183,9 +185,10 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="element"></param>
         /// <param name="context"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         private static string FormatRelativePathElement(RelativePathElement element,
-            IServiceMessageContext context)
+            IServiceMessageContext context, NamespaceFormat namespaceFormat)
         {
             var value = string.Empty;
             var writeReference = false;
@@ -220,12 +223,12 @@ namespace Opc.Ua.Extensions
                 }
                 if (string.IsNullOrEmpty(reference))
                 {
-                    reference = element.ReferenceTypeId.AsString(context);
+                    reference = element.ReferenceTypeId.AsString(context, namespaceFormat);
                 }
                 // TODO: Escape <,>,/,:,&,.
                 value += reference + ">";
             }
-            var target = element.TargetName.AsString(context);
+            var target = element.TargetName.AsString(context, namespaceFormat);
             // TODO: Escape <,>,/,:,&,.
             value += target;
             return value;

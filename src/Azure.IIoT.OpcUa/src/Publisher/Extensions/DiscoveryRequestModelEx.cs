@@ -20,17 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static DiscoveryRequestModel? Clone(this DiscoveryRequestModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new DiscoveryRequestModel
+            return model == null ? null : (model with
             {
                 Configuration = model.Configuration.Clone(),
-                Discovery = model.Discovery,
-                Context = model.Context?.Clone(),
-                Id = model.Id
-            };
+                Context = model.Context?.Clone()
+            });
         }
     }
 }

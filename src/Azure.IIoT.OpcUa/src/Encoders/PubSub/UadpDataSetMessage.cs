@@ -211,6 +211,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         case MessageType.Event:
                             _dataSetFlags2 |= DataSetFlags2EncodingMask.Event;
                             break;
+                        case MessageType.KeepAlive:
+                            _dataSetFlags2 |= DataSetFlags2EncodingMask.KeepAlive;
+                            break;
                         case MessageType.Condition:
                             _dataSetFlags2 |= DataSetFlags2EncodingMask.Event | (DataSetFlags2EncodingMask)0x4;
                             break;

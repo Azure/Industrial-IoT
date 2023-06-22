@@ -132,18 +132,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
+            _cts.Cancel();
             try
             {
-                _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 Source.OnCounterReset -= MessageTriggerCounterResetReceived;
                 Source.OnMessage -= OnMessageReceived;
+
+                _batchTriggerIntervalTimer.Dispose();
+
+                //
+                // Do not change this it must be in the order of the data flow,
+                // complete and wait data to flow out to the next block which
+                // is then completed. If blocks are completed downstream first
+                // previous blocks will hang.
+                //
                 _batchDataSetMessageBlock.Complete();
                 await _batchDataSetMessageBlock.Completion.ConfigureAwait(false);
                 _encodingBlock.Complete();
                 await _encodingBlock.Completion.ConfigureAwait(false);
                 _sinkBlock.Complete();
                 await _sinkBlock.Completion.ConfigureAwait(false);
-                _batchTriggerIntervalTimer?.Dispose();
             }
             finally
             {
@@ -157,7 +166,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                _cts.Cancel();
                 _meter.Dispose();
             }
             finally
@@ -255,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _batchTriggerIntervalTimer.Change(_batchTriggerInterval,
                     Timeout.InfiniteTimeSpan);
             }
-            _batchDataSetMessageBlock?.TriggerBatch();
+            _batchDataSetMessageBlock.TriggerBatch();
         }
 
         /// <summary>
@@ -318,10 +326,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="dropped"></param>
         private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
         {
-            _logger.LogInformation("{Action}{PublishTime:hh.mm.ss.ffffff}: Notification#{Seq}/{PublishSeq} " +
-                "from Subscription {Subscription}{Items}", dropped ? "!!!! Dropped " : string.Empty,
-                args.PublishTimestamp, args.SequenceNumber, args.PublishSequenceNumber ?? 0,
+            _logger.LogInformation(
+                "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
+                args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
                 args.SubscriptionName, Stringify(args.Notifications));
+
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
             {
                 var sb = new StringBuilder();
@@ -329,14 +339,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     sb
                         .AppendLine()
-                        .Append("   |#")
-                        .Append(item.SequenceNumber)
-                        .Append('|')
-                        .Append(item.Value?.ServerTimestamp.ToString("hh.mm.ss.ffffff", CultureInfo.CurrentCulture))
+                        .Append("   |")
+                        .Append(item.Value?.ServerTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
                         .Append('|')
                         .Append(item.DataSetFieldName ?? item.DataSetName)
                         .Append('|')
-                        .Append(item.Value?.SourceTimestamp.ToString("hh.mm.ss.ffffff", CultureInfo.CurrentCulture))
+                        .Append(item.Value?.SourceTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
                         .Append('|')
                         .Append(item.Value?.Value)
                         .Append('|')
@@ -354,10 +362,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
-                () => new Measurement<long>(_sinkBlockInputDroppedCount, this._metrics.TagList), "Messages",
+                () => new Measurement<long>(_sinkBlockInputDroppedCount, _metrics.TagList), "Messages",
                 "Telemetry messages dropped due to overflow.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
-                () => new Measurement<long>(_sinkBlock.InputCount, this._metrics.TagList), "Messages",
+                () => new Measurement<long>(_sinkBlock.InputCount, _metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
                 () => new Measurement<long>(_batchDataSetMessageBlock.OutputCount, _metrics.TagList), "Notifications",
@@ -369,13 +377,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_encodingBlock.OutputCount, _metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
-                () => new Measurement<long>(_messagesSentCount, this._metrics.TagList), "Messages",
+                () => new Measurement<long>(_messagesSentCount, _metrics.TagList), "Messages",
                 "Number of IoT messages successfully sent to Sink (IoT Hub or Edge Hub).");
             _meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
-                () => new Measurement<double>(_messagesSentCount / UpTime, this._metrics.TagList), "Messages/second",
+                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList), "Messages/second",
                 "IoT messages/second sent to Sink (IoT Hub or Edge Hub).");
             _meter.CreateObservableGauge("iiot_edge_publisher_estimated_message_chunks_per_day",
-                () => new Measurement<double>(_messagesSentCount, this._metrics.TagList), "Messages/day",
+                () => new Measurement<double>(_messagesSentCount, _metrics.TagList), "Messages/day",
                 "Estimated 4kb message chunks used from daily quota.");
         }
 

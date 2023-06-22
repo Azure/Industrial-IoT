@@ -22,16 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static ContentFilterModel? Clone(this ContentFilterModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new ContentFilterModel
+            return model == null ? null : (model with
             {
                 Elements = model.Elements?
                     .Select(e => e.Clone())
                     .ToList()
-            };
+            });
         }
 
         /// <summary>

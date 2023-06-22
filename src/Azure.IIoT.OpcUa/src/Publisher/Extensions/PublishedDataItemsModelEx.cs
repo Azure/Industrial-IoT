@@ -21,14 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedDataItemsModel? Clone(this PublishedDataItemsModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new PublishedDataItemsModel
+            return model == null ? null : (model with
             {
                 PublishedData = model.PublishedData?.Select(d => d.Clone()).ToList()
-            };
+            });
         }
     }
 }

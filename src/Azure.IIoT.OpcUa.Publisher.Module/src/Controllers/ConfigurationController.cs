@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// [GetConfiguredEndpoints](./directmethods.md#getconfigurednodesonendpoint_v)
+        /// [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
         /// </summary>
         /// <remarks>
         /// Get a list of nodes under a configured endpoint in the configuration.
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// [GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)
+        /// [GetConfiguredNodesOnEndpoint](./directmethods.md#getconfigurednodesonendpoint_v)
         /// </summary>
         /// <remarks>
         /// Get the nodes of a published nodes entry object returned earlier from

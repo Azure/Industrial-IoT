@@ -24,6 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="callback"></param>
         /// <returns></returns>
         IAsyncDisposable Sample(T connection, TimeSpan samplingRate,
-            ReadValueId nodeToRead, Action<DataValue> callback);
+            ReadValueId nodeToRead, Action<uint, DataValue> callback);
     }
 }

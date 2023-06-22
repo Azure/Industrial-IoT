@@ -196,13 +196,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsBoolean);
+            Assert.True(result.Value[0].IsBoolean, $"{result.Value[0]} is not a boolean.");
             Assert.Equal("Boolean", result.DataType);
         }
 
@@ -225,13 +225,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("SByte", result.DataType);
         }
 
@@ -276,13 +276,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int16", result.DataType);
         }
 
@@ -305,13 +305,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt16", result.DataType);
         }
 
@@ -334,13 +334,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int32", result.DataType);
         }
 
@@ -363,13 +363,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt32", result.DataType);
         }
 
@@ -392,13 +392,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int64", result.DataType);
         }
 
@@ -421,13 +421,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("UInt64", result.DataType);
         }
 
@@ -450,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
@@ -479,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
@@ -508,13 +508,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString);
+            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
             Assert.Equal("String", result.DataType);
         }
 
@@ -537,7 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
@@ -566,7 +566,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
@@ -627,7 +627,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
@@ -658,13 +658,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString);
+            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
             Assert.Equal("NodeId", result.DataType);
         }
 
@@ -687,13 +687,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString);
+            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
             Assert.Equal("ExpandedNodeId", result.DataType);
         }
 
@@ -716,13 +716,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsString);
+            Assert.True(result.Value[0].IsString, $"{result.Value[0]} is not a string.");
             Assert.Equal("QualifiedName", result.DataType);
         }
 
@@ -745,13 +745,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject);
+            Assert.True(result.Value[0].IsObject, $"{result.Value[0]} is not an object.");
             Assert.Equal("LocalizedText", result.DataType);
         }
 
@@ -774,14 +774,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
             Assert.True(
                result.Value[0].IsObject ||
-               result.Value[0].IsInteger);
+               result.Value[0].IsInteger, $"{result.Value[0]} is not a integer or object.");
             Assert.Equal("StatusCode", result.DataType);
         }
 
@@ -804,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
         }
 
         public async Task NodeReadStaticArrayEnumerationValueVariableTestAsync(CancellationToken ct = default)
@@ -826,13 +826,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
             Assert.Equal("Int32", result.DataType);
         }
 
@@ -855,13 +855,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject);
+            Assert.True(result.Value[0].IsObject, $"{result.Value[0]} is not an object.");
             // TODO: Assert.Equal(VariantValueType.Bytes, (result.Value)[0].Type);
             Assert.Equal("ExtensionObject", result.DataType);
         }
@@ -913,13 +913,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value.IsListOfValues, $"{result.Value} is not a list.");
             if (result.Value.Count == 0)
             {
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
         }
 
         public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync(CancellationToken ct = default)
@@ -947,7 +947,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger);
+            Assert.True(result.Value[0].IsInteger, $"{result.Value[0]} is not an integer.");
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Extensions
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Xunit;
 
     public class RelativePathExTests
@@ -27,7 +28,7 @@ namespace Opc.Ua.Extensions
 
             var context = new ServiceMessageContext();
             var relative = path.ToRelativePath(context);
-            var result = relative.AsString(context);
+            var result = relative.AsString(context, NamespaceFormat.Uri);
 
             Assert.Equal(path, result);
         }
@@ -50,9 +51,9 @@ namespace Opc.Ua.Extensions
 
             var context = new ServiceMessageContext();
             var relative = path.ToRelativePath(context);
-            var expected = relative.AsString(context);
+            var expected = relative.AsString(context, NamespaceFormat.Uri);
             relative = expected.ToRelativePath(context);
-            var result = relative.AsString(context);
+            var result = relative.AsString(context, NamespaceFormat.Uri);
 
             Assert.Equal(expected, result);
         }

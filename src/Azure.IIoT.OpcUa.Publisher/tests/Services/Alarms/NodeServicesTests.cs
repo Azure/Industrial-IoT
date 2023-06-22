@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Alarms
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
+    using Microsoft.Extensions.Configuration;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
@@ -25,7 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Alarms
         {
             return new AlarmServerTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
-                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
+                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
+                    new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
                 _server.GetConnection());
         }
 

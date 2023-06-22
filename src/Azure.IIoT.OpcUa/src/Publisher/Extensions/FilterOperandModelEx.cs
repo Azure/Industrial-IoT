@@ -22,20 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static FilterOperandModel? Clone(this FilterOperandModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new FilterOperandModel
-            {
-                Alias = model.Alias,
-                AttributeId = model.AttributeId,
-                BrowsePath = model.BrowsePath,
-                Index = model.Index,
-                IndexRange = model.IndexRange,
-                NodeId = model.NodeId,
-                Value = model.Value
-            };
+            return model == null ? null : (model with { });
         }
 
         /// <summary>

@@ -6,6 +6,7 @@
 namespace Opc.Ua.Extensions
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
@@ -18,6 +19,11 @@ namespace Opc.Ua.Extensions
     /// </summary>
     public static class NodeIdEx
     {
+        /// <summary>
+        /// Set to use standards compliant node ids
+        /// </summary>
+        public static bool UseStandardsCompliantNodeIds { get; set; }
+
         /// <summary>
         /// Creates an expanded node id from node id.
         /// </summary>
@@ -108,10 +114,10 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="context"></param>
-        /// <param name="noRelativeUriAllowed"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         public static string? AsString(this NodeId nodeId, IServiceMessageContext context,
-            bool noRelativeUriAllowed = false)
+            NamespaceFormat namespaceFormat)
         {
             if (NodeId.IsNull(nodeId))
             {
@@ -119,7 +125,7 @@ namespace Opc.Ua.Extensions
             }
             return nodeId
                 .ToExpandedNodeId(context.NamespaceUris)
-                .AsString(context, noRelativeUriAllowed);
+                .AsString(context, namespaceFormat);
         }
 
         /// <summary>
@@ -127,17 +133,18 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="context"></param>
-        /// <param name="noRelativeUriAllowed"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         public static string? AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
-            bool noRelativeUriAllowed = false)
+            NamespaceFormat namespaceFormat)
         {
             if (NodeId.IsNull(nodeId))
             {
                 return null;
             }
+
             var nsUri = nodeId.NamespaceUri;
-            if (string.IsNullOrEmpty(nsUri) && (nodeId.NamespaceIndex != 0 || noRelativeUriAllowed))
+            if (string.IsNullOrEmpty(nsUri) && nodeId.NamespaceIndex != 0)
             {
                 nsUri = context.NamespaceUris.GetString(nodeId.NamespaceIndex);
                 if (string.IsNullOrEmpty(nsUri))
@@ -154,12 +161,22 @@ namespace Opc.Ua.Extensions
                     srvUri = null;
                 }
             }
-            if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute))
+            switch (namespaceFormat)
             {
-                // Fall back to nsu= format - but strip indexes
-                return new ExpandedNodeId(nodeId.Identifier, 0, nsUri, 0).ToString();
+                default:
+                    if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute))
+                    {
+                        // Fall back to nsu= format - but strip indexes
+                        return new ExpandedNodeId(nodeId.Identifier, 0, nsUri, 0).ToString();
+                    }
+                    return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
+                case NamespaceFormat.Expanded:
+                    return new ExpandedNodeId(nodeId.Identifier, 0, nsUri,
+                        nodeId.ServerIndex).ToString();
+                case NamespaceFormat.Index:
+                    return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, null,
+                        nodeId.ServerIndex).ToString();
             }
-            return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
         }
 
         /// <summary>

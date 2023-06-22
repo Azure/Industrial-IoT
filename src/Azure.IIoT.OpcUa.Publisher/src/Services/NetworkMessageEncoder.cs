@@ -239,6 +239,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 if (Notification.MessageType != MessageType.Metadata)
                                 {
                                     Debug.Assert(Notification.Notifications != null);
+                                    if (Notification.MessageType == MessageType.KeepAlive)
+                                    {
+                                        Debug.Assert(Notification.Notifications.Count == 0);
+                                        if (hasSamplesPayload)
+                                        {
+                                            Drop(Notification.YieldReturn());
+                                            continue;
+                                        }
+
+                                        // Create regular data set messages
+                                        BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
+                                            ? new JsonDataSetMessage
+                                            {
+                                                UseCompatibilityMode = !standardsCompliant,
+                                                DataSetWriterName = Context.Writer.DataSetWriterName
+                                                    ?? Constants.DefaultDataSetWriterName
+                                            }
+                                            : new UadpDataSetMessage();
+
+                                        dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
+                                        dataSetMessage.MessageType = MessageType.KeepAlive;
+                                        dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
+                                            ?? kEmptyConfiguration;
+                                        dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
+                                        dataSetMessage.Timestamp = Notification.PublishTimestamp;
+                                        dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
+
+                                        AddMessage(dataSetMessage);
+                                        currentNotifications.Add(Notification);
+                                        continue;
+                                    }
+
                                     var notificationQueues = Notification.Notifications
                                         .GroupBy(m => m.DataSetFieldName)
                                         .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
@@ -281,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
 
-                                            AddMessage(dataSetMessage, notComplete ? null : Notification);
+                                            AddMessage(dataSetMessage);
                                         }
                                         else
                                         {
@@ -339,35 +371,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             Payload = new DataSet(notification.DataSetFieldName,
                                                                 notification.Value, (uint)dataSetFieldContentMask)
                                                         };
-                                                        AddMessage(dataSetMessage, notComplete ? null : Notification);
+                                                        AddMessage(dataSetMessage);
                                                     }
                                                 }
                                             }
                                         }
-
-                                        //
-                                        // Add message and number of notifications processed count to method result.
-                                        // Checks current length and splits if max items reached if configured.
-                                        //
-                                        void AddMessage(BaseDataSetMessage dataSetMessage, IOpcUaSubscriptionNotification? notification)
-                                        {
-                                            currentMessage.Messages.Add(dataSetMessage);
-                                            var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
-                                                _options.Value.DefaultMaxDataSetMessagesPerPublish;
-                                            if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
-                                            {
-                                                result.Add((currentNotifications.Count, currentMessage, topic, false, default,
-                                                    () => currentNotifications.ForEach(n => n.Dispose())));
-#if DEBUG
-                                                currentNotifications.ForEach(n => n.MarkProcessed());
-#endif
-                                                currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                                    dataSetClassId, publisherId);
-                                                currentNotifications = new List<IOpcUaSubscriptionNotification>();
-                                            }
-                                        }
                                     }
                                     currentNotifications.Add(Notification);
+
+                                    //
+                                    // Add message and number of notifications processed count to method result.
+                                    // Checks current length and splits if max items reached if configured.
+                                    //
+                                    void AddMessage(BaseDataSetMessage dataSetMessage)
+                                    {
+                                        currentMessage.Messages.Add(dataSetMessage);
+                                        var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
+                                            _options.Value.DefaultMaxDataSetMessagesPerPublish;
+                                        if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
+                                        {
+                                            result.Add((currentNotifications.Count, currentMessage, topic, false, default,
+                                                () => currentNotifications.ForEach(n => n.Dispose())));
+#if DEBUG
+                                            currentNotifications.ForEach(n => n.MarkProcessed());
+#endif
+                                            currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                                dataSetClassId, publisherId);
+                                            currentNotifications = new List<IOpcUaSubscriptionNotification>();
+                                        }
+                                    }
                                 }
                                 else if (Notification.MetaData != null && !hasSamplesPayload)
                                 {
@@ -463,8 +495,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #endif
                 message.Dispose();
             }
-            _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
-            NotificationsDroppedCount += totalNotifications;
+
+            if (totalNotifications > 0)
+            {
+                _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
+                NotificationsDroppedCount += totalNotifications;
+            }
         }
 
         /// <summary>

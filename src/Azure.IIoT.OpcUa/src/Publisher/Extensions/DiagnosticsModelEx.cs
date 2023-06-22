@@ -20,16 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static DiagnosticsModel? Clone(this DiagnosticsModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new DiagnosticsModel
-            {
-                AuditId = model.AuditId,
-                Level = model.Level,
-                TimeStamp = model.TimeStamp
-            };
+            return model == null ? null : (model with { });
         }
     }
 }

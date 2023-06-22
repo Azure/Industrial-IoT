@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Extensions
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Text;
 
@@ -18,30 +19,47 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="qn"></param>
         /// <param name="context"></param>
-        /// <param name="noRelativeUriAllowed"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         public static string AsString(this QualifiedName qn, IServiceMessageContext context,
-            bool noRelativeUriAllowed = false)
+            NamespaceFormat namespaceFormat)
         {
             if (qn == null || qn == QualifiedName.Null)
             {
                 return string.Empty;
             }
+
+            var qnName = qn.Name ?? string.Empty;
+
             var buffer = new StringBuilder();
-            if (qn.NamespaceIndex != 0 || noRelativeUriAllowed)
+            if (qn.NamespaceIndex != 0 || qnName.Contains(':', StringComparison.Ordinal))
             {
                 var nsUri = context.NamespaceUris.GetString(qn.NamespaceIndex);
-                if (!string.IsNullOrEmpty(nsUri))
+                switch (namespaceFormat)
                 {
-                    buffer.Append(nsUri);
-                    if (!string.IsNullOrEmpty(qn.Name))
-                    {
-                        // Append name as fragment
-                        buffer.Append('#');
-                    }
+                    default:
+                        if (!string.IsNullOrEmpty(nsUri))
+                        {
+                            buffer.Append(nsUri);
+                            // Append name as fragment
+                            if (!string.IsNullOrEmpty(qnName))
+                            {
+                                buffer.Append('#');
+                            }
+                        }
+                        break;
+                    case NamespaceFormat.Expanded:
+                        if (!string.IsNullOrEmpty(nsUri))
+                        {
+                            buffer.Append("nsu=").Append(nsUri).Append(';');
+                        }
+                        break;
+                    case NamespaceFormat.Index:
+                        buffer.Append(qn.NamespaceIndex).Append(':');
+                        break;
                 }
             }
-            buffer.Append(qn.Name?.UrlEncode() ?? string.Empty);
+            buffer.Append(qnName.UrlEncode());
             return buffer.ToString();
         }
 
@@ -58,6 +76,28 @@ namespace Opc.Ua.Extensions
                 return QualifiedName.Null;
             }
             string? nsUri = null;
+
+            // Try to parse the index format
+            var parts = value.Split(':');
+            if (ushort.TryParse(parts[0], out var nsIndex))
+            {
+                value = value.Substring(parts[0].Length + 1);
+                return new QualifiedName(
+                    string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
+                    nsIndex);
+            }
+
+            // Try to parse the expanded format
+            if (value.StartsWith("nsu=", StringComparison.Ordinal))
+            {
+                parts = value.Split(';');
+                value = value.Substring(parts[0].Length + 1);
+                return new QualifiedName(
+                    string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
+                    context.NamespaceUris.GetIndexOrAppend(parts[0].Substring(4)));
+            }
+
+            // Try to parse as uri with fragment
             if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
             {
                 if (string.IsNullOrEmpty(uri.Fragment))
@@ -73,7 +113,7 @@ namespace Opc.Ua.Extensions
             else
             {
                 // Not a real namespace uri - split and decode
-                var parts = value.Split('#');
+                parts = value.Split('#');
                 if (parts.Length == 2)
                 {
                     nsUri = parts[0];
@@ -82,7 +122,8 @@ namespace Opc.Ua.Extensions
             }
             if (nsUri != null)
             {
-                return new QualifiedName(string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
+                return new QualifiedName(
+                    string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
                     context.NamespaceUris.GetIndexOrAppend(nsUri));
             }
             try

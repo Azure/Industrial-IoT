@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public string PublisherId { get; }
 
         /// <inheritdoc/>
-        public IEnumerable<WriterGroupModel> WriterGroups { get; private set; }
-            = Enumerable.Empty<WriterGroupModel>();
+        public ImmutableList<WriterGroupModel> WriterGroups { get; private set; }
+            = ImmutableList<WriterGroupModel>.Empty;
 
         /// <inheritdoc/>
         public DateTime LastChange { get; private set; }

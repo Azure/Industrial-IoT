@@ -344,7 +344,7 @@
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "[GetConfiguredEndpoints](./directmethods.md#getconfigurednodesonendpoint_v)",
+                "summary": "[GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)",
                 "description": "Get a list of nodes under a configured endpoint in the configuration. Further information is provided in the OPC Publisher documentation. configuration.",
                 "operationId": "GetConfiguredEndpoints",
                 "produces": [
@@ -405,7 +405,7 @@
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "[GetConfiguredEndpoints](./directmethods.md#getconfiguredendpoints_v1)",
+                "summary": "[GetConfiguredNodesOnEndpoint](./directmethods.md#getconfigurednodesonendpoint_v)",
                 "description": "Get the nodes of a published nodes entry object returned earlier from a call to GetConfiguredEndpoints. Further information is provided in the OPC Publisher documentation.",
                 "operationId": "GetConfiguredNodesOnEndpoint",
                 "consumes": [
@@ -651,9 +651,9 @@
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "The connection information identifying the server to connect to perform the operation.",
+                        "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
                         "schema": {
-                            "$ref": "#/definitions/ConnectionModel"
+                            "$ref": "#/definitions/RequestHeaderModelRequestEnvelope"
                         }
                     }
                 ],
@@ -1331,9 +1331,9 @@
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "The connection information identifying the server to connect to perform the operation on.",
+                        "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
                         "schema": {
-                            "$ref": "#/definitions/ConnectionModel"
+                            "$ref": "#/definitions/RequestHeaderModelRequestEnvelope"
                         }
                     }
                 ],
@@ -2705,8 +2705,7 @@
         "BrowseFirstRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -2777,8 +2776,7 @@
         "BrowseNextRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -2847,8 +2845,7 @@
         "BrowsePathRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -2941,8 +2938,7 @@
         "BrowseStreamRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3011,8 +3007,7 @@
         "ConnectRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3208,8 +3203,7 @@
         "DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3269,8 +3263,7 @@
         "DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3329,8 +3322,7 @@
         "DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3396,8 +3388,7 @@
         "DisconnectRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3942,8 +3933,7 @@
         "HistoryConfigurationRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -3991,8 +3981,7 @@
         "HistoryReadNextRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -4258,8 +4247,7 @@
         "MethodCallRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -4369,8 +4357,7 @@
         "MethodMetadataRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -4425,6 +4412,20 @@
                     "description": "User who made the change",
                     "type": "string"
                 }
+            }
+        },
+        "NamespaceFormat": {
+            "format": "int32",
+            "description": "Namespace serialization format for node ids\r\nand qualified names.",
+            "enum": [
+                "Uri",
+                "Index",
+                "Expanded"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "NamespaceFormat",
+                "modelAsString": false
             }
         },
         "NodeAccessLevel": {
@@ -4567,8 +4568,7 @@
         "NodeMetadataRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5115,8 +5115,7 @@
         "PublishBulkRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5304,8 +5303,7 @@
         "PublishStartRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5346,8 +5344,7 @@
         "PublishStopRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5384,8 +5381,7 @@
         "PublishedItemListRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5449,6 +5445,9 @@
         },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
+            "required": [
+                "EndpointUrl"
+            ],
             "type": "object",
             "properties": {
                 "Version": {
@@ -5510,8 +5509,13 @@
                     "description": "Send metadata at the configured interval even when not\r\nchanging expressed as duration. Takes precedence over\r\nAzure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.",
                     "type": "string"
                 },
+                "SendKeepAliveDataSetMessages": {
+                    "description": "Send a keep alive message when a subscription keep\r\nalive notification is received inside the writer. If keep\r\nalive messages are not supported by the messaging\r\nprofile chosen this value is ignored.",
+                    "type": "boolean"
+                },
                 "EndpointUrl": {
                     "description": "The endpoint URL of the OPC UA server.",
+                    "minLength": 1,
                     "type": "string"
                 },
                 "MaxKeepAliveCount": {
@@ -5608,8 +5612,7 @@
         "QueryCompilationRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5708,8 +5711,7 @@
         "ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5780,8 +5782,7 @@
         "ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5859,8 +5860,7 @@
         "ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5894,8 +5894,7 @@
         "ReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -5982,8 +5981,7 @@
         "ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6058,8 +6056,7 @@
         "ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6087,6 +6084,24 @@
                 },
                 "diagnostics": {
                     "$ref": "#/definitions/DiagnosticsModel"
+                },
+                "namespaceFormat": {
+                    "$ref": "#/definitions/NamespaceFormat"
+                }
+            }
+        },
+        "RequestHeaderModelRequestEnvelope": {
+            "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
+            "required": [
+                "connection"
+            ],
+            "type": "object",
+            "properties": {
+                "connection": {
+                    "$ref": "#/definitions/ConnectionModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/RequestHeaderModel"
                 }
             }
         },
@@ -6326,8 +6341,7 @@
         "TestConnectionRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6456,8 +6470,7 @@
         "UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6516,8 +6529,7 @@
         "UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6564,8 +6576,7 @@
         "ValueReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6650,8 +6661,7 @@
         "ValueWriteRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6745,8 +6755,7 @@
         "VariantValueHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6803,8 +6812,7 @@
         "VariantValueHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {
@@ -6838,8 +6846,7 @@
         "WriteRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
             "required": [
-                "connection",
-                "request"
+                "connection"
             ],
             "type": "object",
             "properties": {

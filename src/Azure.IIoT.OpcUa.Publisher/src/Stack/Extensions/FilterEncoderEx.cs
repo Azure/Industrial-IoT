@@ -76,9 +76,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static EventFilterModel? Encode(this IVariantEncoder encoder, EventFilter? model)
+        public static EventFilterModel? Encode(this IVariantEncoder encoder,
+            EventFilter? model, NamespaceFormat namespaceFormat)
         {
             if (model == null)
             {
@@ -87,9 +89,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             return new EventFilterModel
             {
                 SelectClauses = model.SelectClauses?
-                    .Select(c => c.ToServiceModel(encoder.Context))
+                    .Select(c => c.ToServiceModel(encoder.Context, namespaceFormat))
                     .ToList(),
-                WhereClause = encoder.Encode(model.WhereClause)
+                WhereClause = encoder.Encode(model.WhereClause, namespaceFormat)
             };
         }
 
@@ -120,9 +122,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static ContentFilterModel? Encode(this IVariantEncoder encoder, ContentFilter? model)
+        public static ContentFilterModel? Encode(this IVariantEncoder encoder,
+            ContentFilter? model, NamespaceFormat namespaceFormat)
         {
             if (model == null)
             {
@@ -131,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             return new ContentFilterModel
             {
                 Elements = model.Elements?
-                    .Select(e => encoder.Encode(e))
+                    .Select(e => encoder.Encode(e, namespaceFormat))
                     .ToList()
             };
         }
@@ -166,10 +170,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
         public static ContentFilterElementModel? Encode(this IVariantEncoder encoder,
-            ContentFilterElement? model)
+            ContentFilterElement? model, NamespaceFormat namespaceFormat)
         {
             if (model == null)
             {
@@ -180,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 FilterOperands = model.FilterOperands
                     .Select(e => e.Body)
                     .Cast<FilterOperand>()
-                    .Select(o => encoder.Encode(o))
+                    .Select(o => encoder.Encode(o, namespaceFormat))
                     .ToList(),
                 FilterOperator = model.FilterOperator.ToServiceType()
             };
@@ -252,11 +257,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
         [return: NotNullIfNotNull(nameof(model))]
         public static FilterOperandModel? Encode(this IVariantEncoder encoder,
-            FilterOperand? model)
+            FilterOperand? model, NamespaceFormat namespaceFormat)
         {
             if (model == null)
             {
@@ -277,19 +283,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 case AttributeOperand attr:
                     return new FilterOperandModel
                     {
-                        NodeId = attr.NodeId.AsString(encoder.Context),
+                        NodeId = attr.NodeId.AsString(encoder.Context, namespaceFormat),
                         AttributeId = (NodeAttribute)attr.AttributeId,
-                        BrowsePath = attr.BrowsePath.AsString(encoder.Context),
+                        BrowsePath = attr.BrowsePath.AsString(encoder.Context, namespaceFormat),
                         IndexRange = attr.IndexRange,
                         Alias = attr.Alias
                     };
                 case SimpleAttributeOperand sattr:
                     return new FilterOperandModel
                     {
-                        NodeId = sattr.TypeDefinitionId.AsString(encoder.Context),
+                        NodeId = sattr.TypeDefinitionId.AsString(encoder.Context, namespaceFormat),
                         AttributeId = (NodeAttribute)sattr.AttributeId,
                         BrowsePath = sattr.BrowsePath?
-                            .Select(p => p.AsString(encoder.Context))
+                            .Select(p => p.AsString(encoder.Context, namespaceFormat))
                             .ToArray(),
                         IndexRange = sattr.IndexRange
                     };

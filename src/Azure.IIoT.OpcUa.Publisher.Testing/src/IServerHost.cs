@@ -34,6 +34,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         Task StartAsync(IEnumerable<int> ports);
 
         /// <summary>
+        /// Add reverse connection
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="maxSessionCount"></param>
+        Task AddReverseConnectionAsync(Uri client, int maxSessionCount);
+
+        /// <summary>
+        /// Remove reverse connection
+        /// </summary>
+        /// <param name="client"></param>
+        Task RemoveReverseConnectionAsync(Uri client);
+
+        /// <summary>
         /// Stop server - same as dispose but async.
         /// </summary>
         Task StopAsync();

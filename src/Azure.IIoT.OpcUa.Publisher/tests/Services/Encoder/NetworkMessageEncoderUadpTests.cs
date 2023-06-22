@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
-            messages[0].MessageType = Encoders.PubSub.MessageType.KeepAlive;
+            messages[0].MessageType = Encoders.PubSub.MessageType.KeyFrame;
             messages[0].Notifications.Clear();
 
             var encoder = GetEncoder();
@@ -179,6 +179,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(0, encoder.NotificationsDroppedCount);
             Assert.Equal(0, encoder.MessagesProcessedCount);
             Assert.Equal(0, encoder.AvgNotificationsPerMessage);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void EncodeKeepAliveTest(bool encodeBatchFlag)
+        {
+            const int maxMessageSize = 256 * 1024;
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
+            messages[0].MessageType = Encoders.PubSub.MessageType.KeepAlive;
+            messages[0].Notifications.Clear();
+
+            var encoder = GetEncoder();
+            var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
+
+            Assert.Single(networkMessages);
+            Assert.Equal(1, encoder.NotificationsProcessedCount);
+            Assert.Equal(0, encoder.NotificationsDroppedCount);
+            Assert.Equal(1, encoder.MessagesProcessedCount);
+            Assert.Equal(1, encoder.AvgNotificationsPerMessage);
         }
     }
 }

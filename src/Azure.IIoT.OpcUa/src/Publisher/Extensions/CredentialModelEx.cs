@@ -54,15 +54,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static CredentialModel? Clone(this CredentialModel? model)
         {
-            if (model == null)
+            return model == null ? null : (model with
             {
-                return null;
-            }
-            return new CredentialModel
-            {
-                Value = model.Value?.Copy(),
-                Type = model.Type
-            };
+                Value = model.Value?.Copy()
+            });
         }
     }
 }

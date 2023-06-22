@@ -21,19 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static SimpleAttributeOperandModel? Clone(this SimpleAttributeOperandModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new SimpleAttributeOperandModel
-            {
-                AttributeId = model.AttributeId,
-                BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange,
-                TypeDefinitionId = model.TypeDefinitionId,
-                DisplayName = model.DisplayName,
-                DataSetClassFieldId = model.DataSetClassFieldId
-            };
+            return model == null ? null : (model with { });
         }
 
         /// <summary>

@@ -109,8 +109,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return;
                 }
 
-                var dataSetWriterSubscriptionMap = writerGroup.DataSetWriters
-                    .ToDictionary(w => w.ToSubscriptionId(writerGroup.WriterGroupId), w => w);
+                //
+                // Subscription identifier is the writer name, there should not be duplicate
+                // writer names here, if there are we throw an exception.
+                //
+                var dataSetWriterSubscriptionMap =
+                    new Dictionary<SubscriptionIdentifier, DataSetWriterModel>();
+                foreach (var writerEntry in writerGroup.DataSetWriters)
+                {
+                    var id = writerEntry.ToSubscriptionId(writerGroup.WriterGroupId,
+                        _subscriptionConfig.Value);
+                    if (!dataSetWriterSubscriptionMap.TryAdd(id, writerEntry))
+                    {
+                        throw new ArgumentException(
+                            $"Group {writerGroup.Name} contains duplicate writer {id}.");
+                    }
+                }
+
                 // Update or removed ones that were updated or removed.
                 foreach (var id in _subscriptions.Keys.ToList())
                 {
@@ -181,26 +196,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private WriterGroupModel Copy(WriterGroupModel model)
         {
-            var writerGroup = new WriterGroupModel
+            var writerGroup = model with
             {
-                WriterGroupId = model.WriterGroupId,
                 DataSetWriters = model.DataSetWriters == null ?
                     new List<DataSetWriterModel>() :
                     model.DataSetWriters.ConvertAll(f => f.Clone()),
-                KeepAliveTime = model.KeepAliveTime,
                 LocaleIds = model.LocaleIds?.ToList(),
-                MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.Clone(),
-                MessageType = model.MessageType,
-                Name = model.Name,
-                Priority = model.Priority,
-                PublishingInterval = model.PublishingInterval,
-                SecurityGroupId = model.SecurityGroupId,
-                HeaderLayoutUri = model.HeaderLayoutUri,
                 SecurityKeyServices = model.SecurityKeyServices?
                     .Select(c => c.Clone())
-                    .ToList(),
-                SecurityMode = model.SecurityMode
+                    .ToList()
             };
 
             // Set the messaging profile settings
@@ -342,6 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
+                InitializeKeepAlive();
 
                 // Apply changes
                 await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
@@ -390,7 +396,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
+                InitializeKeepAlive();
 
+                Subscription.OnSubscriptionKeepAlive
+                    += OnSubscriptionKeepAliveNotification;
                 Subscription.OnSubscriptionDataChange
                     += OnSubscriptionDataChangeNotification;
                 Subscription.OnSubscriptionEventChange
@@ -420,6 +429,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
                 await Subscription.CloseAsync().ConfigureAwait(false);
 
+                Subscription.OnSubscriptionKeepAlive
+                    -= OnSubscriptionKeepAliveNotification;
                 Subscription.OnSubscriptionDataChange
                     -= OnSubscriptionDataChangeNotification;
                 Subscription.OnSubscriptionEventChange
@@ -442,13 +453,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void InitializeKeyframeTrigger()
             {
                 _frameCount = 0;
-                _keyFrameCount = _outer._subscriptionConfig.Value.DisableKeyFrames == true
-                    ? 0 : _dataSetWriter.KeyFrameCount
-                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
+                _keyFrameCount = _dataSetWriter.KeyFrameCount
+                    ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
             }
 
             /// <summary>
-            /// /// Initializes the Metadata triggering mechanism from the cconfiguration model
+            /// Initialize sending of keep alive messages
+            /// </summary>
+            private void InitializeKeepAlive()
+            {
+                _sendKeepAlives = _dataSetWriter.DataSet?.SendKeepAlive
+                    ?? _outer._subscriptionConfig.Value.EnableDataSetKeepAlives == true;
+            }
+
+            /// <summary>
+            /// Initializes the Metadata triggering mechanism from the cconfiguration model
             /// </summary>
             private void InitializeMetaDataTrigger()
             {
@@ -537,6 +556,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                     }
                     return notification;
+                }
+            }
+
+            /// <summary>
+            /// Handle subscription keep alive messages
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notification"></param>
+            private void OnSubscriptionKeepAliveNotification(object? sender, IOpcUaSubscriptionNotification notification)
+            {
+                if (_sendKeepAlives)
+                {
+                    CallMessageReceiverDelegates(sender, notification);
                 }
             }
 
@@ -765,6 +797,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private uint _metadataSequenceNumber;
             private uint _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;
+            private bool _sendKeepAlives;
         }
 
         /// <summary>

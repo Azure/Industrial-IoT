@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Text;
     using System.Threading;
 
     /// <summary>
@@ -51,15 +50,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public virtual (string NodeId, Action<string> Updater)? Register
+        public virtual (string NodeId, UpdateNodeId Update)? Register
             => null;
 
         /// <inheritdoc/>
-        public virtual (string NodeId, Action<string> Updater)? DisplayName
+        public virtual (string NodeId, UpdateString Update)? DisplayName
             => null;
 
         /// <inheritdoc/>
-        public virtual (string NodeId, string[] Path, Action<string> Updater)? Resolve
+        public virtual (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
             => null;
 
         /// <summary>
@@ -269,7 +268,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         }
 
         /// <inheritdoc/>
-        public virtual bool TryGetMonitoredItemNotifications(DateTime timestamp,
+        public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
             IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
         {
             var item = Item;
@@ -286,7 +285,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         }
 
         /// <inheritdoc/>
-        public virtual bool TryGetLastMonitoredItemNotifications(
+        public virtual bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
             IList<MonitoredItemNotificationModel> notifications)
         {
             var lastValue = Item?.LastValue;
@@ -294,7 +293,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 return false;
             }
-            return TryGetMonitoredItemNotifications(DateTime.UtcNow,
+            return TryGetMonitoredItemNotifications(sequenceNumber, DateTime.UtcNow,
                 lastValue, notifications);
         }
 
@@ -352,7 +351,20 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // itemChange = true;
             }
 
-            if (updated.DisplayName != desired.DisplayName)
+            if (updated.FetchDataSetFieldName != desired.FetchDataSetFieldName)
+            {
+                updated = updated with
+                {
+                    FetchDataSetFieldName = desired.FetchDataSetFieldName,
+                    DataSetFieldName = desired.FetchDataSetFieldName == true ?
+                        null : updated.DataSetFieldName
+                };
+                // Not a change yet, will be done as display name fetching or below
+                // itemChange = true;
+            }
+
+            if (updated.FetchDataSetFieldName != true &&
+                updated.DisplayName != desired.DisplayName)
             {
                 updated = updated with { DataSetFieldName = desired.DataSetFieldName };
                 Item.DisplayName = updated.DisplayName;
@@ -517,19 +529,21 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         internal class DataItem : OpcUaMonitoredItem
         {
             /// <inheritdoc/>
-            public override (string NodeId, string[] Path, Action<string> Updater)? Resolve
+            public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
                     (ResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(ResolvedNodeId)) ?
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        v => ResolvedNodeId = NodeId = v) : null;
+                        (v, context) => ResolvedNodeId = NodeId
+                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
-            public override (string NodeId, Action<string> Updater)? Register
+            public override (string NodeId, UpdateNodeId Update)? Register
                 => Template.RegisterRead && !string.IsNullOrEmpty(ResolvedNodeId) ?
-                    (ResolvedNodeId, v => NodeId = v) : null;
+                    (ResolvedNodeId, (v, context) => NodeId
+                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
-            public override (string NodeId, Action<string> Updater)? DisplayName
+            public override (string NodeId, UpdateString Update)? DisplayName
                 => Template.FetchDataSetFieldName == true && Template.DataSetFieldName != null &&
                     !string.IsNullOrEmpty(NodeId) ?
                     (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
@@ -699,13 +713,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(DateTime timestamp,
-                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+                DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
                 if (evt is MonitoredItemNotification min &&
-                    base.TryGetMonitoredItemNotifications(timestamp, evt, notifications))
+                    base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
                 {
-                    return ProcessMonitoredItemNotification(timestamp, min, notifications);
+                    return ProcessMonitoredItemNotification(sequenceNumber, timestamp, min, notifications);
                 }
                 return false;
             }
@@ -790,17 +804,18 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Process monitored item notification
             /// </summary>
+            /// <param name="sequenceNumber"></param>
             /// <param name="timestamp"></param>
             /// <param name="monitoredItemNotification"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessMonitoredItemNotification(DateTime timestamp,
-                MonitoredItemNotification monitoredItemNotification,
+            protected virtual bool ProcessMonitoredItemNotification(uint sequenceNumber,
+                DateTime timestamp, MonitoredItemNotification monitoredItemNotification,
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 if (!SkipMonitoredItemNotification())
                 {
-                    notifications.Add(ToMonitoredItemNotification(monitoredItemNotification));
+                    notifications.Add(ToMonitoredItemNotification(sequenceNumber, monitoredItemNotification));
                     return true;
                 }
                 return false;
@@ -809,10 +824,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
+            /// <param name="sequenceNumber"></param>
             /// <param name="notification"></param>
             /// <returns></returns>
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
-                MonitoredItemNotification notification)
+                uint sequenceNumber, MonitoredItemNotification notification)
             {
                 Debug.Assert(Item != null);
                 Debug.Assert(Template != null);
@@ -824,8 +840,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
                     Value = notification.Value,
-                    SequenceNumber = notification.Message?.IsEmpty != false
-                        ? null : notification.Message.SequenceNumber
+                    SequenceNumber = sequenceNumber
                 };
             }
 
@@ -942,8 +957,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            protected override bool ProcessMonitoredItemNotification(DateTime timestamp,
-                MonitoredItemNotification monitoredItemNotification,
+            protected override bool ProcessMonitoredItemNotification(uint sequenceNumber,
+                DateTime timestamp, MonitoredItemNotification monitoredItemNotification,
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Assert(Item != null);
@@ -952,7 +967,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Debug.Assert(monitoredItemNotification == Item.LastValue);
                 _heartbeatTimer.Change(_timerInterval, _timerInterval);
 
-                return base.ProcessMonitoredItemNotification(timestamp,
+                return base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
                     monitoredItemNotification, notifications);
             }
 
@@ -1167,7 +1182,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool TryGetLastMonitoredItemNotifications(
+            public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 // Dont call base implementation as it is not what we want.
@@ -1177,15 +1192,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
-                    SequenceNumber = 0,
+                    SequenceNumber = sequenceNumber,
                     Value = _lastValue ?? new DataValue(StatusCodes.BadNoDataAvailable)
                 });
                 return true;
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(DateTime timestamp,
-                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+                DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Fail("Should never be called since item is disabled.");
                 return false;
@@ -1194,8 +1209,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Called when data is received from the sampler
             /// </summary>
+            /// <param name="sequenceNumber"></param>
             /// <param name="value"></param>
-            private void OnSampledDataValueReceived(DataValue value)
+            private void OnSampledDataValueReceived(uint sequenceNumber, DataValue value)
             {
                 var callback = _callback;
                 if (callback == null)
@@ -1209,7 +1225,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
-                    SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                    SequenceNumber = sequenceNumber,
                     Value = value
                 };
                 callback(MessageType.DeltaFrame, notification.YieldReturn());
@@ -1219,7 +1235,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private readonly IClientSampler<ConnectionModel> _sampler;
             private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
             private IAsyncDisposable? _sampling;
-            private uint _sequenceNumber;
             private DataValue? _lastValue;
         }
 
@@ -1229,7 +1244,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         internal class EventItem : OpcUaMonitoredItem
         {
             /// <inheritdoc/>
-            public override (string NodeId, Action<string> Updater)? DisplayName
+            public override (string NodeId, UpdateString Update)? DisplayName
                 => Template.FetchDataSetFieldName == true &&
                     !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId) &&
                     Template.DataSetFieldName == null ?
@@ -1239,11 +1254,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     }) : null;
 
             /// <inheritdoc/>
-            public override (string NodeId, string[] Path, Action<string> Updater)? Resolve
+            public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
                     (NodeId == Template.StartNodeId || string.IsNullOrEmpty(NodeId)) ?
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        v => NodeId = v) : null;
+                        (v, context) => NodeId
+                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <summary>
             /// Monitored item as event
@@ -1427,13 +1443,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(DateTime timestamp,
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
                 if (evt is EventFieldList eventFields &&
-                    base.TryGetMonitoredItemNotifications(timestamp, evt, notifications))
+                    base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
                 {
-                    return ProcessEventNotification(timestamp, eventFields, notifications);
+                    return ProcessEventNotification(sequenceNumber, timestamp, eventFields, notifications);
                 }
                 return false;
             }
@@ -1441,15 +1457,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Process event notifications
             /// </summary>
+            /// <param name="sequenceNumber"></param>
             /// <param name="timestamp"></param>
             /// <param name="eventFields"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessEventNotification(DateTime timestamp,
+            protected virtual bool ProcessEventNotification(uint sequenceNumber, DateTime timestamp,
                 EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
             {
                 // Send notifications as event
-                foreach (var n in ToMonitoredItemNotifications(eventFields)
+                foreach (var n in ToMonitoredItemNotifications(sequenceNumber, eventFields)
                     .Where(n => n.DataSetFieldName != null))
                 {
                     notifications.Add(n);
@@ -1460,10 +1477,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
+            /// <param name="sequenceNumber"></param>
             /// <param name="eventFields"></param>
             /// <returns></returns>
             protected IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
-                EventFieldList eventFields)
+                uint sequenceNumber, EventFieldList eventFields)
             {
                 Debug.Assert(Item != null);
                 Debug.Assert(Template != null);
@@ -1472,9 +1490,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     for (var i = 0; i < eventFields.EventFields.Count; i++)
                     {
-                        var sequenceNumber = eventFields.Message?.IsEmpty != false
-                                ? (uint?)null
-                                : eventFields.Message.SequenceNumber;
                         yield return new MonitoredItemNotificationModel
                         {
                             Id = Template.Id ?? string.Empty,
@@ -1495,69 +1510,48 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <returns></returns>
             protected virtual EventFilter GetEventFilter(IOpcUaSession session)
             {
-                // set up the timer even if event is not a pending alarms event.
-                var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
-                    ? GetSimpleEventFilter(session) : session.Codec.Decode(Template.EventFilter);
-                TestWhereClause(session, eventFilter);
+                var eventFilter = GetEventFilter(session, out var internalSelectClauses);
+                UpdateFieldNames(session, eventFilter, internalSelectClauses);
+                return eventFilter;
+            }
 
-                // let's keep track of the internal fields we add so that they don't show up in the output
-                var internalSelectClauses = new List<SimpleAttributeOperand>();
-                if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
-                    && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
-                {
-                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
-                    eventFilter.SelectClauses.Add(selectClause);
-                    internalSelectClauses.Add(selectClause);
-                }
-
-                var sb = new StringBuilder();
+            /// <summary>
+            /// Update field names
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="eventFilter"></param>
+            /// <param name="internalSelectClauses"></param>
+            protected void UpdateFieldNames(IOpcUaSession session, EventFilter eventFilter,
+                IReadOnlyList<SimpleAttributeOperand> internalSelectClauses)
+            {
                 // let's loop thru the final set of select clauses and setup the field names used
                 Fields.Clear();
                 foreach (var selectClause in eventFilter.SelectClauses)
                 {
                     if (!internalSelectClauses.Any(x => x == selectClause))
                     {
-                        sb.Clear();
+                        var fieldName = string.Empty;
                         var definedSelectClause = Template.EventFilter.SelectClauses?
                             .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
                         if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
                         {
-                            sb.Append(definedSelectClause.DisplayName);
+                            fieldName = definedSelectClause.DisplayName;
                         }
-                        else
+                        else if (selectClause.BrowsePath != null && selectClause.BrowsePath.Count != 0)
                         {
-                            for (var i = 0; i < selectClause.BrowsePath?.Count; i++)
-                            {
-                                if (i == 0)
-                                {
-                                    if (selectClause.BrowsePath[i].NamespaceIndex != 0)
-                                    {
-                                        if (selectClause.BrowsePath[i].NamespaceIndex < session.NodeCache.NamespaceUris.Count)
-                                        {
-                                            sb
-                                                .Append(session.NodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex))
-                                                .Append('#');
-                                        }
-                                        else
-                                        {
-                                            sb.Append(selectClause.BrowsePath[i].NamespaceIndex).Append(':');
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    sb.Append('/');
-                                }
-                                sb.Append(selectClause.BrowsePath[i].Name);
-                            }
+                            // Format as relative path string
+                            fieldName = selectClause.BrowsePath
+                                .Select(q => q.AsString(session.MessageContext, Template.NamespaceFormat))
+                                .Aggregate((a, b) => $"{a}/{b}");
                         }
 
-                        if (sb.Length == 0 && selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                                selectClause.AttributeId == Attributes.NodeId)
+                        if (fieldName.Length == 0 &&
+                            selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                            selectClause.AttributeId == Attributes.NodeId)
                         {
-                            sb.Append("ConditionId");
+                            fieldName = "ConditionId";
                         }
-                        Fields.Add((sb.ToString(), Guid.NewGuid()));
+                        Fields.Add((fieldName, Guid.NewGuid()));
                     }
                     else
                     {
@@ -1566,6 +1560,29 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     }
                 }
                 Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
+            }
+
+            /// <summary>
+            /// Get event filter
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="selectClauses"></param>
+            /// <returns></returns>
+            protected EventFilter GetEventFilter(IOpcUaSession session, out List<SimpleAttributeOperand> selectClauses)
+            {
+                var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
+                    ? GetSimpleEventFilter(session) : session.Codec.Decode(Template.EventFilter);
+                TestWhereClause(session, eventFilter);
+
+                // let's keep track of the internal fields we add so that they don't show up in the output
+                selectClauses = new List<SimpleAttributeOperand>();
+                if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                    && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
+                {
+                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
+                    eventFilter.SelectClauses.Add(selectClause);
+                    selectClauses.Add(selectClause);
+                }
                 return eventFilter;
             }
 
@@ -1574,7 +1591,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// </summary>
             /// <param name="session"></param>
             /// <returns></returns>
-            protected EventFilter GetSimpleEventFilter(IOpcUaSession session)
+            private EventFilter GetSimpleEventFilter(IOpcUaSession session)
             {
                 Debug.Assert(Template != null);
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
@@ -1638,7 +1655,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// </summary>
             /// <param name="session"></param>
             /// <param name="eventFilter"></param>
-            protected void TestWhereClause(IOpcUaSession session, EventFilter eventFilter)
+            private void TestWhereClause(IOpcUaSession session, EventFilter eventFilter)
             {
                 if (eventFilter.WhereClause != null)
                 {
@@ -1824,7 +1841,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            protected override bool ProcessEventNotification(DateTime timestamp,
+            protected override bool ProcessEventNotification(uint sequenceNumber, DateTime timestamp,
                 EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Assert(Item != null);
@@ -1889,7 +1906,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     }
                 }
 
-                var monitoredItemNotifications = ToMonitoredItemNotifications(eventFields).ToList();
+                var monitoredItemNotifications = ToMonitoredItemNotifications(
+                    sequenceNumber, eventFields).ToList();
                 var conditionIdIndex = state.ConditionIdIndex;
                 var retainIndex = state.RetainIndex;
                 if (conditionIdIndex < monitoredItemNotifications.Count &&
@@ -1987,81 +2005,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <returns></returns>
             protected override EventFilter GetEventFilter(IOpcUaSession session)
             {
-                Debug.Assert(Template != null);
-
-                var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
-                    ? GetSimpleEventFilter(session) : session.Codec.Decode(Template.EventFilter);
-                TestWhereClause(session, eventFilter);
-
-                // let's keep track of the internal fields we add so that they don't show up in the output
-                var internalSelectClauses = new List<SimpleAttributeOperand>();
-                if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
-                    && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
-                {
-                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
-                    eventFilter.SelectClauses.Add(selectClause);
-                    internalSelectClauses.Add(selectClause);
-                }
+                var eventFilter = GetEventFilter(session, out var internalSelectClauses);
 
                 var conditionHandlingState = InitializeConditionHandlingState(
                     eventFilter, internalSelectClauses);
 
-                var sb = new StringBuilder();
-                // let's loop thru the final set of select clauses and setup the field names used
-                Fields.Clear();
-                foreach (var selectClause in eventFilter.SelectClauses)
-                {
-                    if (!internalSelectClauses.Any(x => x == selectClause))
-                    {
-                        sb.Clear();
-                        var definedSelectClause = Template.EventFilter.SelectClauses?
-                            .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
-                        if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
-                        {
-                            sb.Append(definedSelectClause.DisplayName);
-                        }
-                        else
-                        {
-                            for (var i = 0; i < selectClause.BrowsePath?.Count; i++)
-                            {
-                                if (i == 0)
-                                {
-                                    if (selectClause.BrowsePath[i].NamespaceIndex != 0)
-                                    {
-                                        if (selectClause.BrowsePath[i].NamespaceIndex < session.NodeCache.NamespaceUris.Count)
-                                        {
-                                            sb
-                                                .Append(session.NodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex))
-                                                .Append('#');
-                                        }
-                                        else
-                                        {
-                                            sb.Append(selectClause.BrowsePath[i].NamespaceIndex).Append(':');
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    sb.Append('/');
-                                }
-                                sb.Append(selectClause.BrowsePath[i].Name);
-                            }
-                        }
-
-                        if (sb.Length == 0 && selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                                selectClause.AttributeId == Attributes.NodeId)
-                        {
-                            sb.Append("ConditionId");
-                        }
-                        Fields.Add((sb.ToString(), Guid.NewGuid()));
-                    }
-                    else
-                    {
-                        // if a field's nameis empty, it's not written to the output
-                        Fields.Add((null, Guid.Empty));
-                    }
-                }
-                Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
+                UpdateFieldNames(session, eventFilter, internalSelectClauses);
 
                 _conditionHandlingState = conditionHandlingState;
                 _conditionTimer.Change(1000, Timeout.Infinite);

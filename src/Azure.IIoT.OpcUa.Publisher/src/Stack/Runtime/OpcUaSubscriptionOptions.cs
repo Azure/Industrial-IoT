@@ -60,9 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
 
         /// <summary>
-        /// Whether to enable or disable key frames explicitly
+        /// Whether to enable or disable keep alive messages
         /// </summary>
-        public bool? DisableKeyFrames { get; set; }
+        public bool? EnableDataSetKeepAlives { get; set; }
 
         /// <summary>
         /// Default keyframe count
@@ -74,6 +74,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the OPC UA Server.
         /// </summary>
         public bool? ResolveDisplayName { get; set; }
+
+        /// <summary>
+        /// Always default to use or not use reverse connect
+        /// unless overridden by the configuration.
+        /// </summary>
+        public bool? DefaultUseReverseConnect { get; set; }
 
         /// <summary>
         /// set the default queue size for monitored items. If not

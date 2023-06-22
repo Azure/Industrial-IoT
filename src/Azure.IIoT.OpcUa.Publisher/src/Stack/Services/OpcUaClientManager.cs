@@ -60,9 +60,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
-            _configuration = _options.Value.BuildApplicationConfigurationAsync(
-                 identity == null ? "OpcUaClient" : identity.Id, OnValidate, _logger);
             _sessionFactory = sessionFactory ?? new DefaultSessionFactory();
+            _reverseConnectManager = new ReverseConnectManager();
+            _reverseConnectStartException = new Lazy<Exception?>(
+                StartReverseConnectManager, isThreadSafe: true);
+            _configuration = LoadOpcUaClientConfigurationAsync(identity);
             InitializeMetrics();
         }
 
@@ -87,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public IOpcUaClient GetOrCreateClient(ConnectionModel connection)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            connection.ThrowIfInvalid(nameof(connection));
             return GetOrAddClient(connection);
         }
 
@@ -101,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public IAsyncDisposable Sample(ConnectionModel connection,
-            TimeSpan samplingRate, ReadValueId nodeToRead, Action<DataValue> callback)
+            TimeSpan samplingRate, ReadValueId nodeToRead, Action<uint, DataValue> callback)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             using var client = GetOrAddClient(connection);
@@ -389,6 +392,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _meter.Dispose();
 
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
+
+                _reverseConnectManager.Dispose();
             }
         }
 
@@ -545,68 +550,80 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Validate certificates
+        /// Load client configuration
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
+        /// <param name="identity"></param>
+        /// <returns></returns>
+        private Task<ApplicationConfiguration> LoadOpcUaClientConfigurationAsync(
+            IProcessIdentity? identity)
         {
-            if (e.Accept || e.AcceptAll)
+            return _options.Value.BuildApplicationConfigurationAsync(
+                identity == null ? "opc-publisher" : identity.Id, (_, e) => OnValidate(e),
+                _logger);
+
+            void OnValidate(CertificateValidationEventArgs e)
             {
-                return;
-            }
-            var configuration = _configuration.Result;
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
+                if (e.Accept || e.AcceptAll)
                 {
-                    _logger.LogWarning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "due to AutoAccept(UntrustedCertificates) set!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
-                    e.AcceptAll = true;
-                    e.Accept = true;
+                    return;
                 }
-
-                // Validate thumbprint
-                else if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
-                    _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
-                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
+                var configuration = _configuration.Result;
+                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
                 {
-                    e.Accept = true;
-
-                    _logger.LogInformation("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "since the same thumbprint was specified in the connection!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
-
-                    // add the certificate to trusted store
-                    configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
-                    try
+                    if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
                     {
-                        var store = configuration.
-                            SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+                        _logger.LogWarning(
+                            "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                            "due to AutoAccept(UntrustedCertificates) set!",
+                            e.Certificate.Thumbprint, e.Certificate.Subject);
+                        e.AcceptAll = true;
+                        e.Accept = true;
+                    }
 
+                    // Validate thumbprint
+                    else if (e.Certificate.RawData != null &&
+                        !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                        _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
+                        e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
+                    {
+                        e.Accept = true;
+
+                        _logger.LogInformation(
+                            "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                            "since the same thumbprint was specified in the connection!",
+                            e.Certificate.Thumbprint, e.Certificate.Subject);
+
+                        // add the certificate to trusted store
+                        configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
                         try
                         {
-                            store.Delete(e.Certificate.Thumbprint);
-                            store.Add(e.Certificate);
+                            var store = configuration.
+                                SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+
+                            try
+                            {
+                                store.Delete(e.Certificate.Thumbprint);
+                                store.Add(e.Certificate);
+                            }
+                            finally
+                            {
+                                store.Close();
+                            }
                         }
-                        finally
+                        catch (Exception ex)
                         {
-                            store.Close();
+                            _logger.LogWarning(ex,
+                                "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                                "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
-                            "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
                     }
                 }
-            }
-            if (!e.Accept)
-            {
-                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
-                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
-                    e.Error.StatusCode);
+                if (!e.Accept)
+                {
+                    _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
+                        "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
+                        e.Error.StatusCode);
+                }
             }
         }
 
@@ -617,14 +634,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private OpcUaClient GetOrAddClient(ConnectionModel connection)
         {
+            // Lazy start connect manager
+            var reverseConnect = connection.IsReverseConnect();
+            if (reverseConnect && _reverseConnectStartException.Value != null)
+            {
+                throw _reverseConnectStartException.Value;
+            }
+
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
             // try to get an existing session
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Result, id, _serializer,
-                    _loggerFactory, _metrics, OnConnectionStateChange,
-                    _sessionFactory, _options.Value.MaxReconnectDelay)
+                    _loggerFactory, _metrics, OnConnectionStateChange, _sessionFactory,
+                    reverseConnect ? _reverseConnectManager : null,
+                    _options.Value.MaxReconnectDelay)
                 {
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
@@ -644,6 +669,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Start reverse connect manager service
+        /// </summary>
+        /// <returns></returns>
+        private Exception? StartReverseConnectManager()
+        {
+            var port = _options.Value.ReverseConnectPort ?? 4840;
+            try
+            {
+                _reverseConnectManager.StartService(new ReverseConnectClientConfiguration
+                {
+                    HoldTime = 120000,
+                    WaitTimeout = 120000,
+                    ClientEndpoints = new ReverseConnectClientEndpointCollection
+                    {
+                        new ReverseConnectClientEndpoint
+                        {
+                            EndpointUrl = $"opc.tcp://localhost:{port}"
+                        }
+                    }
+                });
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
+        /// <summary>
         /// Create metrics
         /// </summary>
         private void InitializeMetrics()
@@ -659,6 +713,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;
+        private readonly ReverseConnectManager _reverseConnectManager;
+        private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ISessionFactory _sessionFactory;

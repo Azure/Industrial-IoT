@@ -4,9 +4,9 @@
 
 > This documentation applies to version 2.9
 
-The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. CamelCase options can also be provided using environment variables.
+The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceeding `--`).
 
-> IMPORTANT Environment variable (option) names just like the command line options are **case-sensitive**!
+> IMPORTANT The command line of OPC Publisher only understands below command line options. You cannot specify environment variables on the command line (e.g., like `env1=value env2=value`). All option names are **case-sensitive**!
 
 When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
@@ -47,6 +47,16 @@ General
                                If a file was specified but does not exist and
                                should not be created the module exits.
                                Default: `false`
+      --fe, --forceencryptedcredentials, --ForceCredentialEncryption[=VALUE]
+                             If set to true the publisher will never write
+                               plain text credentials into the published nodes
+                               configuration file.
+                               If a credential cannot be written to the file
+                               using the IoT Edge workload API crypto provider
+                               the publisher will exit with an error.
+                               Default: `false` (write secrets as plain text
+                               into the configuration file which should be
+                               properly ACL'ed)
       --id, --publisherid, --PublisherId=VALUE
                              Sets the publisher id of the publisher.
                                Default: `not set` which results in the IoT edge
@@ -69,6 +79,16 @@ Messaging configuration
                                publisher in compliant mode for best
                                interoperability.
                                Default: `False`
+      --nf, --namespaceformat, --DefaultNamespaceFormat=VALUE
+                             The format to use when serializing node ids and
+                               qualified names containing a namespace uri into
+                               a string.
+                               Allowed values:
+                                   `Uri`
+                                   `Index`
+                                   `Expanded`
+                               Default: `Expanded` if `-c` is specified,
+                               otherwise `Uri` for backwards compatibility.
       --mm, --messagingmode, --MessagingMode=VALUE
                              The messaging mode for messages
                                Allowed values:
@@ -131,6 +151,14 @@ Messaging configuration
                                messages are sent, if 1, every message will be a
                                key frame.
                                Default: `0`.
+      --ka, --sendkeepalives, --EnableDataSetKeepAlives[=VALUE]
+                             Enables sending keep alive messages triggered by
+                               writer subscription's keep alive notifications.
+                               This setting can be used to enable the messaging
+                               profile's support for keep alive messages.
+                               If the chosen messaging profile does not support
+                               keep alive messages this setting is ignored.
+                               Default: `False` (to save bandwidth).
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -361,8 +389,9 @@ Subscription settings
                                 environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
       --kt, --keepalivethreshold, --MaxKeepAliveCount=VALUE
-                             Specify the number of keep alive packets a server
-                               can miss, before the session is disconneced.
+                             Specify the default number of keep alive packets a
+                               server can miss, before the session is
+                               disconneced.
                                Default: `50`.
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
@@ -425,6 +454,11 @@ Subscription settings
                                periodical client reads instead of subscriptions
                                services, unless otherwise configured.
                                Default: `false`.
+      --urc, --usereverseconnect, --DefaultUseReverseConnect[=VALUE]
+                             (Experimental) Use reverse connect for all
+                               endpoints that are part of the subscription
+                               configuration unless otherwise configured.
+                               Default: `false`.
 
 OPC UA Client configuration
 ---------------------------
@@ -472,6 +506,10 @@ OPC UA Client configuration
                                Use this setting to speed up multiple subsequent
                                calls to a server.
                                Default: `0` sec (no linger).
+      --rcp, --reverseconnectport, --ReverseConnectPort=VALUE
+                             The port to use when accepting inbound reverse
+                               connect requests from servers.
+                               Default: `4840`.
       --smi, --subscriptionmanagementinterval, --SubscriptionManagementInterval=VALUE
                              The interval in seconds after which the publisher
                                re-applies the desired state of the subscription

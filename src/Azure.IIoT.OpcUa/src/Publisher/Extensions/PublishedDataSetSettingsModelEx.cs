@@ -17,20 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static PublishedDataSetSettingsModel? Clone(this PublishedDataSetSettingsModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new PublishedDataSetSettingsModel
-            {
-                LifeTimeCount = model.LifeTimeCount,
-                MaxKeepAliveCount = model.MaxKeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
-                UseDeferredAcknoledgements = model.UseDeferredAcknoledgements,
-                Priority = model.Priority,
-                PublishingInterval = model.PublishingInterval,
-                ResolveDisplayName = model.ResolveDisplayName
-            };
+            return model == null ? null : (model with { });
         }
     }
 }

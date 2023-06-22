@@ -441,7 +441,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
-                    WriteString(fieldName, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context,
+                        Publisher.Models.NamespaceFormat.Uri));
                 }
                 else
                 {
@@ -506,7 +507,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
-                    WriteString(fieldName, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context,
+                        Publisher.Models.NamespaceFormat.Uri));
                 }
                 else
                 {
@@ -654,7 +656,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (UseUriEncoding && UseAdvancedEncoding)
                 {
-                    WriteString(fieldName, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context,
+                        Publisher.Models.NamespaceFormat.Uri));
                 }
                 else
                 {

@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Request
         /// </summary>
         [DataMember(Name = "request", Order = 1)]
-        [Required]
         public T? Request { get; set; }
     }
 }

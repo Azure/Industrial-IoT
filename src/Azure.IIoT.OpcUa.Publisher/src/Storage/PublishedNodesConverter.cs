@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -31,15 +32,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
+        /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
         public PublishedNodesConverter(ILogger<PublishedNodesConverter> logger,
-            IJsonSerializer serializer, IIoTEdgeWorkloadApi? cryptoProvider = null)
+            IJsonSerializer serializer, IOptions<PublisherOptions>? options = null,
+            IIoTEdgeWorkloadApi? cryptoProvider = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _cryptoProvider = cryptoProvider;
+            _forceCredentialEncryption =
+                options?.Value.ForceCredentialEncryption ?? false;
         }
 
         /// <summary>
@@ -109,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
+                            SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
@@ -287,6 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Endpoint = group.Key.Endpoint.Clone(),
                                 User = group.Key.User.Clone(),
                                 Diagnostics = group.Key.Diagnostics.Clone(),
+                                IsReverse = group.Key.IsReverse,
                                 Group = group.Key.Group
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel
@@ -374,6 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 dataSet.Header.GetNormalizedMetaDataUpdateTime(),
                             KeyFrameCount =
                                 dataSet.Header.DataSetKeyFrameCount,
+
                             DataSet = new PublishedDataSetModel
                             {
                                 Name = dataSet.Header.DataSetName,
@@ -386,6 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     },
                                 // TODO: Add extension information from configuration
                                 ExtensionFields = new Dictionary<string, string?>(),
+                                SendKeepAlive = dataSet.Header.SendKeepAliveDataSetMessages,
                                 DataSetSource = new PublishedDataSetSourceModel
                                 {
                                     Connection = new ConnectionModel
@@ -393,7 +402,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Endpoint = dataSet.Source.Connection?.Endpoint.Clone(),
                                         User = dataSet.Source.Connection?.User.Clone(),
                                         Diagnostics = dataSet.Source.Connection?.Diagnostics.Clone(),
-                                        Group = dataSet.Source.Connection?.Group
+                                        Group = dataSet.Source.Connection?.Group,
+                                        IsReverse = dataSet.Source.Connection?.IsReverse
                                     },
                                     PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
                                     PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
@@ -448,6 +458,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             return new ConnectionModel
             {
                 Group = model.DataSetWriterGroup,
+                IsReverse = model.UseReverseConnect,
                 Endpoint = new EndpointModel
                 {
                     Url = model.EndpointUrl,
@@ -465,23 +476,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="publishedNodesEntryModel"></param>
+        /// <exception cref="NotSupportedException"></exception>
         private PublishedNodesEntryModel AddConnectionModel(ConnectionModel? connection,
             PublishedNodesEntryModel publishedNodesEntryModel)
         {
-            if (connection?.User != null)
+            publishedNodesEntryModel.OpcAuthenticationPassword = null;
+            publishedNodesEntryModel.OpcAuthenticationUsername = null;
+            publishedNodesEntryModel.EncryptedAuthPassword = null;
+            publishedNodesEntryModel.EncryptedAuthUsername = null;
+
+            var credential = connection?.User;
+            switch (credential?.Type ?? CredentialType.None)
             {
-                publishedNodesEntryModel.OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
-                var (user, pw, encrypted) = ToUserNamePasswordCredentialAsync(connection.User).Result;
-                if (encrypted)
-                {
-                    publishedNodesEntryModel.EncryptedAuthPassword = pw;
-                    publishedNodesEntryModel.EncryptedAuthUsername = user;
-                }
-                else
-                {
-                    publishedNodesEntryModel.OpcAuthenticationPassword = pw;
-                    publishedNodesEntryModel.OpcAuthenticationUsername = user;
-                }
+                case CredentialType.UserName:
+                    publishedNodesEntryModel.OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
+
+                    Debug.Assert(credential != null);
+                    var (user, pw, encrypted) = ToUserNamePasswordCredentialAsync(credential.Value).Result;
+                    if (encrypted)
+                    {
+                        publishedNodesEntryModel.EncryptedAuthPassword = pw;
+                        publishedNodesEntryModel.EncryptedAuthUsername = user;
+                    }
+                    else
+                    {
+                        publishedNodesEntryModel.OpcAuthenticationPassword = pw;
+                        publishedNodesEntryModel.OpcAuthenticationUsername = user;
+                    }
+                    break;
+                case CredentialType.None:
+                    publishedNodesEntryModel.OpcAuthenticationMode = OpcAuthenticationMode.Anonymous;
+                    break;
+                default:
+                    throw new NotSupportedException($"Credentials of type {credential?.Type} are not supported.");
             }
             if (connection?.Endpoint != null)
             {
@@ -489,6 +516,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 publishedNodesEntryModel.UseSecurity = connection.Endpoint.SecurityMode != SecurityMode.None;
             }
             return publishedNodesEntryModel;
+
+            async Task<(string? user, string? password, bool encrypted)> ToUserNamePasswordCredentialAsync(
+                VariantValue? credential)
+            {
+                if (credential == null || !credential.TryGetProperty("user", out var user) ||
+                    !user.TryGetString(out var userString, false, CultureInfo.InvariantCulture))
+                {
+                    userString = string.Empty;
+                }
+                if (credential == null || !credential.TryGetProperty("password", out var password) ||
+                    !password.TryGetString(out var passwordString, false, CultureInfo.InvariantCulture))
+                {
+                    passwordString = string.Empty;
+                }
+
+                if (_forceCredentialEncryption)
+                {
+                    if (_cryptoProvider != null)
+                    {
+                        try
+                        {
+                            const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
+                            var userBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
+                                Encoding.UTF8.GetBytes(userString)).ConfigureAwait(false);
+                            var passwordBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
+                                Encoding.UTF8.GetBytes(passwordString)).ConfigureAwait(false);
+
+                            return (Convert.ToBase64String(userBytes.Span),
+                                Convert.ToBase64String(passwordBytes.Span), true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Runtime.FailFast("Attempting to store a credential. " +
+                                "Credential encryption is enforced but crypto provider failed to encrypt!", ex);
+                        }
+                    }
+                    Runtime.FailFast("Attempting to store a credential. " +
+                        "Credential encryption is enforced but no crypto provider present!", null);
+                }
+                return (userString, passwordString, false);
+            }
         }
 
         /// <summary>
@@ -685,83 +753,83 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// Convert to credential model
         /// </summary>
         /// <param name="entry"></param>
-        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(
-            PublishedNodesEntryModel entry)
+        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(PublishedNodesEntryModel entry)
         {
             switch (entry.OpcAuthenticationMode)
             {
                 case OpcAuthenticationMode.UsernamePassword:
                     var user = entry.OpcAuthenticationUsername ?? string.Empty;
                     var password = entry.OpcAuthenticationPassword ?? string.Empty;
-
-                    if (_cryptoProvider != null)
+                    try
                     {
                         const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
-                        var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                            Convert.FromBase64String(entry.EncryptedAuthUsername ?? string.Empty)).ConfigureAwait(false);
-                        user = Encoding.UTF8.GetString(userBytes.Span);
-                        if (entry.EncryptedAuthPassword != null)
+                        if (!string.IsNullOrEmpty(entry.EncryptedAuthUsername) && string.IsNullOrEmpty(user))
                         {
-                            var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
-                            password = Encoding.UTF8.GetString(passwordBytes.Span);
+                            if (_cryptoProvider != null)
+                            {
+                                var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthUsername)).ConfigureAwait(false);
+                                user = Encoding.UTF8.GetString(userBytes.Span);
+                            }
+                            else
+                            {
+                                const string error =
+                                    "No crypto provider to decrypt encrypted username in config.";
+                                if (_forceCredentialEncryption)
+                                {
+                                    Runtime.FailFast("Credential encryption is enforced! " + error, null);
+                                }
+                                _logger.LogError(error + " - not using credential!");
+                                break;
+                            }
                         }
+                        if (!string.IsNullOrEmpty(entry.EncryptedAuthPassword) && string.IsNullOrEmpty(password))
+                        {
+                            if (_cryptoProvider != null)
+                            {
+                                var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
+                                password = Encoding.UTF8.GetString(passwordBytes.Span);
+                            }
+                            else
+                            {
+                                const string error =
+                                    "No crypto provider to decrypt encrypted password in config.";
+                                if (_forceCredentialEncryption)
+                                {
+                                    Runtime.FailFast("Credential encryption is enforced! " + error, null);
+                                }
+                                _logger.LogError(error + " - not using credential!");
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        const string error =
+                            "Failed to decrypt encrypted username and password in config.";
+                        if (_forceCredentialEncryption)
+                        {
+                            Runtime.FailFast("Credential encryption is enforced! " + error, ex);
+                        }
+                        // There is no reason we should use the encrypted credential here as plain
+                        // text so just use none and move on.
+                        _logger.LogError(ex, error + " - not using credential!");
+                        break;
                     }
                     return new CredentialModel
                     {
                         Type = CredentialType.UserName,
                         Value = _serializer.FromObject(new { user, password })
                     };
-                default:
-                    return new CredentialModel
-                    {
-                        Type = CredentialType.None
-                    };
             }
-        }
-
-        /// <summary>
-        /// Convert to credential model
-        /// </summary>
-        /// <param name="credential"></param>
-        /// <exception cref="NotSupportedException"></exception>
-        private async Task<(string? user, string? password, bool encrypted)> ToUserNamePasswordCredentialAsync(
-            CredentialModel? credential)
-        {
-            switch (credential?.Type ?? CredentialType.None)
+            return new CredentialModel
             {
-                case CredentialType.UserName:
-                    if (credential?.Value == null)
-                    {
-                        break;
-                    }
-                    if (!credential.Value.TryGetProperty("user", out var user) ||
-                        !user.TryGetString(out var userString, false, CultureInfo.InvariantCulture))
-                    {
-                        userString = string.Empty;
-                    }
-                    if (!credential.Value.TryGetProperty("password", out var password) ||
-                        !password.TryGetString(out var passwordString, false, CultureInfo.InvariantCulture))
-                    {
-                        passwordString = string.Empty;
-                    }
-                    if (_cryptoProvider != null)
-                    {
-                        const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
-                        var userBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
-                            Encoding.UTF8.GetBytes(userString)).ConfigureAwait(false);
-                        var passwordBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
-                            Encoding.UTF8.GetBytes(passwordString)).ConfigureAwait(false);
-
-                        return (Convert.ToBase64String(userBytes.Span), Convert.ToBase64String(passwordBytes.Span), true);
-                    }
-                    return (userString, passwordString, false);
-                case CredentialType.None:
-                    return (null, null, false);
-            }
-            throw new NotSupportedException($"Credentials of type {credential?.Type} are not supported.");
+                Type = CredentialType.None
+            };
         }
 
+        private readonly bool _forceCredentialEncryption;
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

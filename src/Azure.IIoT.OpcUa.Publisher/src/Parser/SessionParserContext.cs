@@ -32,10 +32,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         /// </summary>
         /// <param name="session"></param>
         /// <param name="header"></param>
-        public SessionParserContext(IOpcUaSession session, RequestHeader header)
+        /// <param name="format"></param>
+        public SessionParserContext(IOpcUaSession session, RequestHeader header,
+            NamespaceFormat format = NamespaceFormat.Index)
         {
             _session = session;
             _header = header;
+            _format = format;
         }
 
         /// <inheritdoc/>
@@ -62,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             {
                 ErrorInfo = await _session.CollectInstanceDeclarationsAsync(
                     _header, (NodeId)superType.NodeId,
-                    null, declarations, map, ct).ConfigureAwait(false);
+                    null, declarations, map, _format, ct).ConfigureAwait(false);
                 if (ErrorInfo != null)
                 {
                     break;
@@ -73,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                 // collect the fields for the selected type.
                 ErrorInfo = await _session.CollectInstanceDeclarationsAsync(
                     _header, nodeId, null,
-                    declarations, map, ct).ConfigureAwait(false);
+                    declarations, map, _format, ct).ConfigureAwait(false);
             }
             if (ErrorInfo != null)
             {
@@ -98,5 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
 
         private readonly IOpcUaSession _session;
         private readonly RequestHeader _header;
+        private readonly NamespaceFormat _format;
     }
 }

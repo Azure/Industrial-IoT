@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         {
             _output = output;
             _fixture = new ReferenceServer();
-            ServerPort = _fixture.Port;
+            EndpointUrl = _fixture.EndpointUrl;
         }
 
         protected override void Dispose(bool disposing)

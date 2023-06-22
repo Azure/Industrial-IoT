@@ -22,11 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static DiscoveryConfigModel? Clone(this DiscoveryConfigModel? model)
         {
-            if (model == null)
-            {
-                return null;
-            }
-            return new DiscoveryConfigModel
+            return model == null ? null : (model with
             {
                 DiscoveryUrls = model.DiscoveryUrls?.Count > 0 ?
                     model.DiscoveryUrls.ToList() : null,
@@ -48,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     null : model.NetworkProbeTimeout,
                 PortProbeTimeout = model.PortProbeTimeout <= TimeSpan.Zero ?
                     null : model.PortProbeTimeout
-            };
+            });
         }
     }
 }

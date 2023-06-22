@@ -8,13 +8,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.5" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.38" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.38" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.38" />
-    <PackageReference Include="Furly.Extensions" Version="0.4.38" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.7" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.42" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.42" />
+    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.42" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.42" />
     <PackageReference Include="Nito.Disposables" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>

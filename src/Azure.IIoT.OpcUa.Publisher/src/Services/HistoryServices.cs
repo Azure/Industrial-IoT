@@ -218,7 +218,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (aggregateType != null)
                 {
                     // TODO: Should be async!
-                    var capabilities = session.GetHistoryCapabilitiesAsync(ct).AsTask().Result;
+                    var capabilities = session.GetHistoryCapabilitiesAsync(
+                        _services.GetNamespaceFormat(request.Header), ct).AsTask().Result;
                     if (capabilities?.AggregateFunctions != null &&
                         capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id))
                     {

@@ -334,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 
         /// <inheritdoc/>
         public Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpoint,
-            CancellationToken ct)
+            RequestHeaderModel? header, CancellationToken ct)
         {
             return Execute("GetServerCapabilities", endpoint, (publisherId, ep) =>
             {
@@ -342,8 +342,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 return client.GetServerCapabilitiesAsync(new ConnectionModel
                 {
                     Endpoint = ep,
+                    User = header?.Elevation,
                     Group = endpoint
-                }, ct);
+                }, header, ct);
             }, ct);
         }
 
@@ -388,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 
         /// <inheritdoc/>
         public Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            string endpoint, CancellationToken ct)
+            string endpoint, RequestHeaderModel? header, CancellationToken ct)
         {
             return Execute("HistoryGetServerCapabilities", endpoint, (publisherId, ep) =>
             {
@@ -397,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 {
                     Endpoint = ep,
                     Group = endpoint
-                }, ct);
+                }, header, ct);
             }, ct);
         }
 

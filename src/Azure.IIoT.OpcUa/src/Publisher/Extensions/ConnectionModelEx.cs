@@ -6,8 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
 
     /// <summary>
     /// Connection endpoint model extensions
@@ -34,6 +36,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
+            if (that.IsReverse != model.IsReverse)
+            {
+                return false;
+            }
             if (!that.Endpoint.IsSameAs(model.Endpoint))
             {
                 return false;
@@ -47,6 +53,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Is this reverse connected
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public static bool IsReverseConnect(this ConnectionModel connection)
+        {
+            return connection.IsReverse == true && connection.GetEndpointUrls().Any();
+        }
+
+        /// <summary>
+        /// Get endpont urls to try from connection
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public static IEnumerable<Uri> GetEndpointUrls(this ConnectionModel connection)
+        {
+            if (connection.Endpoint?.Url == null)
+            {
+                return Enumerable.Empty<Uri>();
+            }
+            var endpoints = new Uri(connection.Endpoint.Url).YieldReturn();
+            if (connection.Endpoint.AlternativeUrls != null)
+            {
+                endpoints = endpoints.Concat(connection.Endpoint.AlternativeUrls
+                    .Where(u => !string.IsNullOrEmpty(u))
+                    .Select(u => new Uri(u)));
+            }
+            return endpoints.Where(u => connection.IsReverse != true ||
+                string.Equals(u.Scheme, "opc.tcp", // Only allow tcp scheme
+                    StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Throw if invalid
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="paramName"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static void ThrowIfInvalid(this ConnectionModel? model, string paramName)
+        {
+            ArgumentNullException.ThrowIfNull(model, paramName);
+            // TODO: add more
+            if (!model.GetEndpointUrls().Any())
+            {
+                throw new ArgumentException("Missing endpoints in connection",
+                    paramName);
+            }
         }
 
         /// <summary>
@@ -65,6 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(model.Group ?? string.Empty);
+            hashCode = (hashCode * -1521134295) +
+                EqualityComparer<bool>.Default.GetHashCode(model.IsReverse ?? false);
             return hashCode;
         }
 
@@ -76,17 +135,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static ConnectionModel? Clone(this ConnectionModel? model)
         {
-            if (model == null)
+            return model == null ? null : (model with
             {
-                return null;
-            }
-            return new ConnectionModel
-            {
-                Group = model.Group,
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),
                 Diagnostics = model.Diagnostics.Clone()
-            };
+            });
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Extensions
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using Xunit;
 
@@ -275,8 +276,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -291,8 +292,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
                 context.NamespaceUris.GetIndexOrAppend("contoso"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -309,8 +310,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new NodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -325,8 +326,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId(Guid.NewGuid(),
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -340,8 +341,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new NodeId(Guid.NewGuid(), 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -356,8 +357,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId(1,
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -371,8 +372,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new NodeId(111111111, 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -387,8 +388,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId(Guid.NewGuid().ToByteArray(),
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -402,8 +403,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new NodeId(Guid.NewGuid().ToByteArray(), 0);
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -418,8 +419,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId("",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -433,8 +434,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var input = new NodeId("", 0);
 
-            var s1 = input.AsString(context);
-            var s2 = input.AsString(context, true);
+            var s1 = input.AsString(context, NamespaceFormat.Uri);
+            var s2 = input.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -449,8 +450,8 @@ namespace Opc.Ua.Extensions
             var expected = new NodeId((string)null,
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -471,8 +472,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var input = new NodeId((string)null, 0); // == NodeId.Null
 
-            var s1 = input.AsString(context);
-            var s2 = input.AsString(context, true);
+            var s1 = input.AsString(context, NamespaceFormat.Uri);
+            var s2 = input.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);
@@ -486,8 +487,8 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = NodeId.Null;
 
-            var s1 = expected.AsString(context);
-            var s2 = expected.AsString(context, true);
+            var s1 = expected.AsString(context, NamespaceFormat.Uri);
+            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
 
             var result1 = s1.ToNodeId(context);
             var result2 = s2.ToNodeId(context);

@@ -1,6 +1,7 @@
 ﻿[
     {
-        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseReverseConnect": "{{UseReverseConnect}}",
         "UseSecurity": false,
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [

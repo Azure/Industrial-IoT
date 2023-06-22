@@ -41,5 +41,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "extensionFields", Order = 3,
             EmitDefaultValue = false)]
         public Dictionary<string, string?>? ExtensionFields { get; set; }
+
+        /// <summary>
+        /// Send keep alive messages for the data set
+        /// </summary>
+        [DataMember(Name = "sendKeepAlive", Order = 4,
+            EmitDefaultValue = false)]
+        public bool? SendKeepAlive { get; set; }
     }
 }

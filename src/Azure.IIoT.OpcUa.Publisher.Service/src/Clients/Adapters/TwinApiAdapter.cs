@@ -100,9 +100,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
 
         /// <inheritdoc/>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel endpoint,
-            CancellationToken ct)
+            RequestHeaderModel? header, CancellationToken ct)
         {
-            return await _client.GetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
+            return await _client.GetServerCapabilitiesAsync(endpoint, header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -121,9 +121,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel endpoint, CancellationToken ct)
+            ConnectionModel endpoint, RequestHeaderModel? header, CancellationToken ct)
         {
-            return await _client.HistoryGetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
+            return await _client.HistoryGetServerCapabilitiesAsync(endpoint, header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

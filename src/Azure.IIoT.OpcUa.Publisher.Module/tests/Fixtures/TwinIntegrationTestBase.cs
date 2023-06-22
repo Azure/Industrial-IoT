@@ -44,7 +44,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             GC.SuppressFinalize(this);
         }
 
-        private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan kTotalTestTimeout =
+#if DEBUG
+            TimeSpan.FromMinutes(10)
+#else
+            TimeSpan.FromMinutes(2)
+#endif
+            ;
         private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
         private bool _disposedValue;

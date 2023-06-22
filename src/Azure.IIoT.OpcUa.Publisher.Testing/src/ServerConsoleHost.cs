@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;
+    using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
@@ -73,6 +74,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Certificate = null;
                     _lock.Release();
                 }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task AddReverseConnectionAsync(Uri client, int maxSessionCount)
+        {
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_server is ReverseConnectServer server)
+                {
+                    server.AddReverseConnection(client, maxSessionCount: maxSessionCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Adding reverse connection failed.");
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveReverseConnectionAsync(Uri client)
+        {
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_server is ReverseConnectServer server)
+                {
+                    server.RemoveReverseConnection(client);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Remove reverse connection failed.");
+            }
+            finally
+            {
+                _lock.Release();
             }
         }
 
