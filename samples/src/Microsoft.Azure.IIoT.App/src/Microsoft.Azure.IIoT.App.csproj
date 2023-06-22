@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.42" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.57" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.58" />
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
     <PackageReference Include="Blazored.Modal" Version="7.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.3.0" />

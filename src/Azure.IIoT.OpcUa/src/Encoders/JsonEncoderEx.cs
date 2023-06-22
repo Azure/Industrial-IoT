@@ -1559,25 +1559,39 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return new List<T?>();
             }
-            if (arr.Length == 1)
+          // if (arr.Length == 1) // TODO: Should this not be covered below?
+          // {
+          //     value = arr.GetValue(0);
+          //     if (value?.GetType()?.IsArray ?? false)
+          //     {
+          //         // Recursively unpack an array in array if needed
+          //         return ToTypedArray(value, defaultValue);
+          //     }
+          // }
+            var result = new T?[arr.Length];
+            for (var index = 0; index < arr.Length; index++)
             {
-                value = arr.GetValue(0);
-                if (value?.GetType()?.IsArray ?? false)
+                try
                 {
-                    // Recursively unpack an array in array if needed
-                    return ToTypedArray(value, defaultValue);
+                    value = arr.GetValue(index);
+                    if (value?.GetType()?.IsArray ?? false)
+                    {
+                        // Recursively unpack an array in array if needed
+                        result[index] = (T?)ToTypedArray(value, defaultValue);
+                    }
+                    else
+                    {
+                        result[index] = (T?)(value ?? defaultValue);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Bad variant: Value '{value}' of type '{value?.GetType().FullName}'" +
+                        $" is not of type '{typeof(T).GetType().FullName}'.", ex);
                 }
             }
-            try
-            {
-                return arr.Cast<T>().ToArray();
-            }
-            catch (Exception ex)
-            {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Bad variant: Value '{value}' of type '{value?.GetType().FullName}' is not " +
-                    $"a one dimensional array of type '{typeof(T).GetType().FullName}'.", ex);
-            }
+            return result;
         }
 
         /// <summary>

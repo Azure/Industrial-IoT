@@ -1377,7 +1377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
                 _serializer.SerializeToString(
-                    results.References.Select(r => r.Target.DisplayName)));
+                    results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -1896,7 +1896,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
                 _serializer.SerializeToString(
-                    results.References.Select(r => r.Target.DisplayName)));
+                    results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
                 reference =>
                 {
