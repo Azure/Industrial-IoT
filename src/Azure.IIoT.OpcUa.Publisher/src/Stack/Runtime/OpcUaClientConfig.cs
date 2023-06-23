@@ -59,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
         public const string LingerTimeoutKey = "LingerTimeout";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
+        public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
 
         /// <summary>
         /// Default values for transport quotas.
@@ -176,6 +177,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 {
                     options.LingerTimeout = TimeSpan.FromSeconds(lingerTimeout);
                 }
+            }
+
+            if (options.DisableComplexTypePreloading == null)
+            {
+                options.DisableComplexTypePreloading = GetBoolOrDefault(DisableComplexTypePreloadingKey);
             }
 
             if (options.SubscriptionErrorRetryDelay == null)

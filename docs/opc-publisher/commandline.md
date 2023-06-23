@@ -530,6 +530,20 @@ OPC UA Client configuration
                              The delay in seconds between attempts to create a
                                subscription in a session.
                                Default: `2` seconds.
+      --dcp, --disablecomplextypepreloading, --DisableComplexTypePreloading[=VALUE]
+                             Complex types (structures, enumerations) a server
+                               exposes are preloaded from the server after the
+                               session is connected. In some cases this can
+                               cause problems either on the client or server
+                               itself. Use this setting to disable pre-loading
+                               support.
+                               Note that since the complex type system is used
+                               for meta data messages it will still be loaded
+                               at the time the subscription is created,
+                               therefore also disable meta data support if you
+                               want to ensure the complex types are never
+                               loaded for an endpoint.
+                               Default: `false`.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.

@@ -69,6 +69,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal bool IsConnected => _session?.Session.Connected ?? false;
 
         /// <summary>
+        /// Disable complex type preloading.
+        /// </summary>
+        public bool? DisableComplexTypePreloading { get; set; }
+
+        /// <summary>
         /// Create client
         /// </summary>
         /// <param name="configuration"></param>
@@ -275,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_session != null)
                     {
                         // Ensure type system is loaded
-                        if (!_session.IsTypeSystemLoaded)
+                        if (!_session.IsTypeSystemLoaded && DisableComplexTypePreloading != true)
                         {
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
@@ -333,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_session != null)
                     {
                         // Ensure type system is loaded
-                        if (!_session.IsTypeSystemLoaded)
+                        if (!_session.IsTypeSystemLoaded && DisableComplexTypePreloading != true)
                         {
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
@@ -1050,8 +1055,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 KeepAliveInterval ?? TimeSpan.FromSeconds(5),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                Session_HandlePublishError,
-                Session_PublishSequenceNumbersToAcknowledge);
+                Session_HandlePublishError, Session_PublishSequenceNumbersToAcknowledge,
+                DisableComplexTypePreloading != true);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             kSessions.Add(1, _metrics.TagList);
@@ -1327,7 +1332,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         // Ensure type system is loaded
-                        if (!session.IsTypeSystemLoaded)
+                        if (!session.IsTypeSystemLoaded && _outer.DisableComplexTypePreloading != true)
                         {
                             await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }

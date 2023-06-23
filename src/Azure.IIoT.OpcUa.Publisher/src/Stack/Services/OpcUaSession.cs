@@ -68,12 +68,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="logger"></param>
         /// <param name="errorHandler"></param>
         /// <param name="ackHandler"></param>
+        /// <param name="preloadComplexTypeSystem"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
             TimeSpan keepAliveInterval, TimeSpan operationTimeout,
             IJsonSerializer serializer, ILogger<OpcUaSession> logger,
             PublishErrorEventHandler? errorHandler = null,
-            PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null)
+            PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null,
+            bool preloadComplexTypeSystem = true)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
@@ -109,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Session.KeepAlive += keepAlive;
 
             _cts = new CancellationTokenSource();
-            _complexTypeSystem = LoadComplexTypeSystemAsync();
+            _complexTypeSystem = preloadComplexTypeSystem ?
+                LoadComplexTypeSystemAsync() : null;
         }
 
         /// <inheritdoc/>

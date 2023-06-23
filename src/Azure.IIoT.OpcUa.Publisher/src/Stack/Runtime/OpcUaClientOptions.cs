@@ -44,9 +44,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? CreateSessionTimeout { get; set; }
 
         /// <summary>
-        /// Reverse connect port to use other than 4840.
+        /// Reverse connect port to use other than the
+        /// default port 4840.
         /// </summary>
         public int? ReverseConnectPort { get; set; }
+
+        /// <summary>
+        /// Disable complex type preloading. The type system
+        /// will still be lazily loaded when requested e.g.,
+        /// during subscription creation.
+        /// </summary>
+        public bool? DisableComplexTypePreloading { get; set; }
 
         /// <summary>
         /// How long to at least wait until reconnecting.
