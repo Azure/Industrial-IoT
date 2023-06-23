@@ -31,6 +31,9 @@ Here you find information about
     - [Condition handling options](#condition-handling-options)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
 - [Programming against OPC Publisher using the OPC Publisher API](#programming-against-opc-publisher-using-the-opc-publisher-api)
+  - [Using IoT Edge Simulation environment](#using-iot-edge-simulation-environment)
+    - [Calling the Direct Methods API](#calling-the-direct-methods-api)
+    - [Calling the API over HTTP](#calling-the-api-over-http)
   - [JSON encoding](#json-encoding)
   - [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
     - [Discovery Configuration](#discovery-configuration)
@@ -39,7 +42,6 @@ Here you find information about
   - [OPC UA command and control (OPC Twin)](#opc-ua-command-and-control-opc-twin)
 - [OPC UA Certificates management](#opc-ua-certificates-management)
   - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
-  - [Using IoT Edge Simulation environment](#using-iot-edge-simulation-environment)
 - [OPC UA stack](#opc-ua-stack)
 - [Performance and Memory Tuning OPC Publisher](#performance-and-memory-tuning-opc-publisher)
 
@@ -819,13 +821,87 @@ More detailed information about the supported message formats can be found [here
 
 ## Programming against OPC Publisher using the OPC Publisher API
 
-OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md). In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) and [a number of different transports](./transports.md) that can be used to receive messages or invoke these API services. The transports can be configured using the [command line arguments](./commandline.md). The API can be invoked through
+OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md). In addition to the configuraton API, OPC Publisher 2.9 also supports additional [APIs](./api.md) and [a number of different transports](./transports.md) that can be used to receive messages or invoke these API services. The transports can be configured using the [command line arguments](./commandline.md).
 
-- Azure **IoT Hub direct methods**. The method name is the operaton name and request payload as documented in the API documentation. Using the provided SDK project it is possible to also transmit and receive payloads that are larger than the 256 KB payload limitation of Azure IoT Hub.
+- The API can be invoked through Azure [**IoT Hub direct methods**](#calling-the-direct-methods-api) from the cloud or from another IoT Edge module running alongside of OPC Publisher or inside a higher layer of a Purdue network setup. The method name is the operaton name and request payload as documented in the API documentation. 
 
-- The same API can also be called via the **HTTP Server** [built into OPC Publisher](./transports.md#built-in-http-api-server) (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token in the Authorization header (`Bearer <api-key>`). The API key is generated at start up and [can be read from the OPC Publisher module's module twin](#using-iot-edge-simulation-environment) (`__apikey__` property).
+- The same API is exposed as [REST API](#calling-the-api-over-http) via the Http**HTTP Server** [built into OPC Publisher](./transports.md#built-in-http-api-server) (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token in the Authorization header (`Bearer <api-key>`). The API key is generated at start up and [can be read from the OPC Publisher module's module twin](#using-iot-edge-simulation-environment) (`__apikey__` property).
 
 - The API can also be invoked through **MQTT v5 RPC calls** (Preview). The API is mounted on top of the method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresonding MQTTv5 PUBLISH packet property.
+
+### Using IoT Edge Simulation environment
+
+A handy way to program against OPC Publisher is inside the IoT Edge Development simulator. You can also use [Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge) to program against OPC Publisher which provides an integrated development experience.
+
+> NOTE: [IoTEdgeHubDev](https://github.com/Azure/iotedgehubdev) is a development tool and in maintanance mode. If you encounter issues please file an issue and we will aim to address.
+
+Follow the instructions to install [IoTEdgeHubDev](https://github.com/Azure/iotedgehubdev). Make sure the docker daaemon is started and accessible. You can now use the official OPC Publisher images on Microsoft container registry (mcr.microsoft.com/iotedge/opc-publisher:latest) or build a local version from the root of this repository as follows:
+
+```bash
+dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj --os linux --arch x64 /p:ContainerImageTags=latest
+```
+
+Doing this will produce the container image `iotedge/opc-publisher:latest`. The [sample deployment manifest](deployment.json?raw=1) already points to the local container image. If you would like to use a different container image (e.g., the official one on MCR or from your private Azure Container Registry) update the name in the manifest accordingly. To start the IoT Edge simulation run
+
+```bash
+iotedgehubdev start -d docs/opc-publisher/deployment.json -v
+```
+
+> If you omit the `-v` command line argument the simulation will run in the background. You can now interact with OPC Publisher the same way as if it was running on a production IoT Edge.
+
+#### Calling the Direct Methods API
+
+IoT Edge Hub Development simulator can be used to deploy other modules side by side with OPC Publisher which can then invoke OPC Publisher [direct methods](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods). The API Payload is described in the [API](./api.md) and [configuration](./directmethods.md) documentation. While the API documentation is based on the OPC Publisher [openapi.json](openapi.json?raw=1) (Swagger), the direct method API uses the same [definitions](./definitions.md) for requests and respones.
+
+The operation name in the the Open API JSON which is also the heading of the individual entry in the API documentation (e.g., [AddOrUpdateEndpoint](./api.md#addorupdateendpoints) or [GetConfiguredEndpoints](./api.md#getconfiguredendpoints)) is the direct method name that must be placed into the IoT Edge / IoT Hub method call. You can try this using the `az iot hub invoke-module-method` command, e.g.,
+
+```bash
+az iot hub invoke-module-method -m publisher -n <hub name> -d <iotedgehubdev device name> --method-name GetConfiguredEndpoints
+{
+  "payload": {
+    "endpoints": []
+  },
+  "status": 200
+}
+```
+
+Direct methods have a payload size limit of 256KB. This means large requests or responses will fail if they are larger than the max payload allowed. It is therefore recommended to use MQTT or HTTP to access the API (locally) or use  the SDK project inside this repository which supports transmitting and receiving payloads that are larger than the 256 KB payload limitation of Azure IoT Hub through compression and request/response chunking.
+
+#### Calling the API over HTTP
+
+> This feature is in preview
+
+You can now send HTTP requests to the publisher module http server at `https://localhost:8081`. The unsecure endpoint is mounted at `https://localhost:8080` for testing purpuses. E.g. to get the swagger definition run:
+
+```bash
+curl http://localhost:8080/swagger/v2/openapi.json
+```
+
+To call the API you must authenticate to the [built in HTTP server](./transports.md#built-in-http-api-server) endpoint using an API Key. You can obtain the API key needed to authenticate from the publisher module twin. e.g., using the [AZ CLI](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-monitor-module-twins?view=iotedge-1.4#monitor-module-twins-in-azure-cli) tool you can run
+
+```bash
+az iot hub module-twin show -m publisher -n <hub name> -d <iotedgehubdev device name>
+```
+
+If the OPC Publisher has successfully started then this will produce e.g., output as follows:
+
+```json
+      ...
+      "$version": 3,
+      "__apikey__": "6dee3fd4-0bb2-4fb1-9736-99bb4435f020",
+      "__type__": "OpcPublisher",
+      "__version__": "2.9.0"
+      ...
+```
+
+You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
+
+```bash
+curl -H "Authorization: Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://localhost:8081/v2/configuration
+{"endpoints":[]}
+```
+
+> The API key is a secret just like passwords or decryption keys. Therefore always use HTTPS in production scenarios since using HTTP endpoint makes the secret visible to everyone. It is also recommended to continuously update the API key (Rolling) which can be done by writing a new key to the module twin or deleting the entry so it is re-generated.
 
 ### JSON encoding
 
@@ -944,56 +1020,6 @@ Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be
 `ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
 
 `ApplicationName ="TEST-PUBLISHER"`
-
-### Using IoT Edge Simulation environment
-
-Follow the instructions to install [IoTEdgeHubDev](https://github.com/Azure/iotedgehubdev). You can also use [Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge) to program against OPC Publisher.
-
-> NOTE: [IoTEdgeHubDev](https://github.com/Azure/iotedgehubdev) is a development tool and in maintanance mode. If you encounter issues please file an issue and we will aim to address.
-
-Make sure the docker daaemon is started and accessible. You can now use the official OPC Publisher images on Microsoft container registry (mcr.microsoft.com/iotedge/opc-publisher:latest) or build a local version from the root of this repository as follows:
-
-```bash
-dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj --os linux --arch x64 /p:ContainerImageTags=latest
-```
-
-Doing this will produce the container image `iotedge/opc-publisher:latest`. The [sample deployment manifest](deployment.json?raw=1) already points to the local container image. If you would like to use a different container image (e.g., the official one on MCR or from your private Azure Container Registry) update the name in the manifest accordingly. To start the IoT Edge simulation run
-
-```bash
-iotedgehubdev start -d docs/opc-publisher/deployment.json -v
-```
-
-> If you omit the `-v` command line argument the simulation will run in the background. You can now interact with OPC Publisher the same way as if it was running on a production IoT Edge.
-
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081`. The unsecure endpoint is mounted at `https://localhost:8080` for testing purpuses. E.g. to get the swagger definition run:
-
-```bash
-curl http://localhost:8080/swagger/v2/openapi.json
-```
-
-To call the API you must authenticate to the [built in HTTP server](./transports.md#built-in-http-api-server) endpoint using an API Key. You can obtain the API key needed to authenticate from the publisher module twin. e.g., using the [AZ CLI](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-monitor-module-twins?view=iotedge-1.4#monitor-module-twins-in-azure-cli) tool you can run
-
-```bash
-az iot hub module-twin show -m publisher -n <hub name> -d <iotedgehubdev device name>
-```
-
-If the OPC Publisher has successfully started then this will produce e.g., output as follows:
-
-```json
-      ...
-      "$version": 3,
-      "__apikey__": "6dee3fd4-0bb2-4fb1-9736-99bb4435f020",
-      "__type__": "OpcPublisher",
-      "__version__": "2.9.0"
-      ...
-```
-
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
-
-```bash
-curl -H "Authorization: Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" http://localhost:8080/v2/configuration
-{"endpoints":[]}
-```
 
 ## OPC UA stack
 
