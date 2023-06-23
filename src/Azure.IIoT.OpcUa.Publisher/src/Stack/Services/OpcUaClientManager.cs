@@ -654,6 +654,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
 
+                    DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading,
                     MinReconnectDelay = _options.Value.MinReconnectDelay,
                     CreateSessionTimeout = _options.Value.CreateSessionTimeout,
                     KeepAliveInterval = _options.Value.KeepAliveInterval,
