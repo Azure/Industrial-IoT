@@ -41,6 +41,9 @@
     <None Update="Resources\KeepAlive.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\KeyFrames.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\PendingAlarms.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

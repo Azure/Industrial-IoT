@@ -34,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 throw new ArgumentException("DataSet source missing,", nameof(dataSetWriter));
             }
-            var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(configuration);
+            var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(
+                configuration, dataSetWriter.DataSet.ExtensionFields);
             if (monitoredItems.Count == 0)
             {
                 throw new ArgumentException("DataSet source empty.", nameof(dataSetWriter));
@@ -43,7 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 Id = ToSubscriptionId(dataSetWriter, writerGroupId, configuration),
                 MonitoredItems = monitoredItems,
-                ExtensionFields = dataSetWriter.DataSet?.ExtensionFields,
                 Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
                     dataSetWriter.DataSet.DataSetMetaData, configuration)
             };

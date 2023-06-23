@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -50,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Extension fields
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string?>>? ExtensionFields { get; set; }
+        public IDictionary<string, VariantValue>? ExtensionFields { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -73,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!wrapper.ExtensionFields.SetEqualsSafe(ExtensionFields,
+            if (!wrapper.ExtensionFields.DictionaryEqualsSafe(ExtensionFields,
                 (a, b) => a.Equals(b)))
             {
                 return false;
@@ -201,7 +202,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     extensionFields = extensionFields.Concat(ExtensionFields
                         .Where(e => e.Key != nameof(DataSetWriterId) &&
-                                    e.Key != nameof(JsonNetworkMessage.PublisherId)));
+                                    e.Key != nameof(JsonNetworkMessage.PublisherId))
+                        .Select(e => new KeyValuePair<string, string?>(e.Key, e.ToString())));
                 }
                 encoder.WriteStringDictionary(nameof(ExtensionFields), extensionFields);
             }
@@ -291,8 +293,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             if (extensionFields != null)
             {
                 DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ExtensionFields;
-                ExtensionFields = extensionFields;
-
+                ExtensionFields = new Dictionary<string, VariantValue>();
+                foreach (var item in extensionFields)
+                {
+                    ExtensionFields.AddOrUpdate(item.Key, item.Value);
+                }
                 if (extensionFields.TryGetValue(nameof(DataSetWriterId), out var dataSetWriterName))
                 {
                     DataSetWriterName = dataSetWriterName;

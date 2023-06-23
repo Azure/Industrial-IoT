@@ -7,10 +7,13 @@
 ## Table Of Contents <!-- omit in toc -->
 
 - [Messaging Profiles supported by OPC Publisher](#messaging-profiles-supported-by-opc-publisher)
-- [Data value change messages](#data-value-change-messages)
-- [Event messages](#event-messages)
+- [OPC UA Pub Sub Encoding](#opc-ua-pub-sub-encoding)
+  - [Standards compliance](#standards-compliance)
+  - [Delta and key frame messages](#delta-and-key-frame-messages)
+  - [Event messages](#event-messages)
   - [Reversible encoding](#reversible-encoding)
   - [Pending Alarm snapshots](#pending-alarm-snapshots)
+  - [Keep Alive messages](#keep-alive-messages)
 - [Samples mode encoding (Legacy)](#samples-mode-encoding-legacy)
   - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
   - [Event messages in Samples mode](#event-messages-in-samples-mode)
@@ -19,36 +22,55 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 
 ## Messaging Profiles supported by OPC Publisher
 
-| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
-   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|
-| Samples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |
-| FullSamples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |
-| PubSub | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X |
-| FullNetworkMessages | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| PubSub | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X |
-| FullNetworkMessages | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| PubSub | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X |
-| PubSub | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X |
-| FullNetworkMessages | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| FullNetworkMessages | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| Samples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |
-| Samples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |
-| FullSamples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |
-| FullSamples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |
-| DataSetMessages | Json | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| DataSetMessages | JsonGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| DataSetMessages | JsonReversible | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| DataSetMessages | JsonReversibleGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| RawDataSets | Json | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X |
-| RawDataSets | JsonGzip | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X |
-| PubSub | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0x18) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X |
-| FullNetworkMessages | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| DataSetMessages | Uadp | DataSetMessageHeader<br>(0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
-| RawDataSets | Uadp | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X |
+| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported | KeepAlive supported |
+   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|---------------------|
+| Samples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
+| FullSamples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
+| PubSub | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
+| FullNetworkMessages | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| PubSub | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
+| FullNetworkMessages | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| PubSub | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
+| PubSub | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
+| FullNetworkMessages | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| FullNetworkMessages | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| Samples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
+| Samples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
+| FullSamples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
+| FullSamples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
+| DataSetMessages | Json | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| DataSetMessages | JsonGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| DataSetMessages | JsonReversible | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| DataSetMessages | JsonReversibleGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| RawDataSets | Json | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
+| RawDataSets | JsonGzip | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
+| PubSub | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0x18) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
+| FullNetworkMessages | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| DataSetMessages | Uadp | DataSetMessageHeader<br>(0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| RawDataSets | Uadp | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
 
-## Data value change messages
+## OPC UA Pub Sub Encoding
 
 To use the OPC UA PubSub format specify a value for `--mm` on the command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format. You should always use PubSub format specified in the OPC UA Standard. We will not support the non standards compliant Samples mode in versions greater than 2.*.
+
+### Standards compliance
+
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` [command line](./commandline.md) option. For backwards compatibilty this option is off by default.
+
+> It is highly recommended to always run OPC Publisher with strict adherence turned on. Strict mode is continuously adjusted as we do interoperability testing and parts of the standard are clarified.  
+
+The following are the key differences between strict compliance and the compatibility mode with previous versions of OPC Publisher:
+
+| Strict mode | Compatibility mode |
+|-------------|--------------------|
+| `PubSub` is the default encoding mode if nothing else is specified | `Samples` is the default encoding mode and `--mm=PubSub` must be explicitly specified |
+| `DataSetWriterId` is a unique integer in the `DataSetWriterGroup` | `DataSetWriterId` is the writer name string |
+| `DataSetWriterName` is the writer name string | `DataSetWriterName` is not used |
+| Network messages contain array of data set messages when batching | Array of network messages is sent when batching |
+| `Status` field is status code integer only (as per Part 14) | `Status` is fully JSON encoded Status code (per Part 6) |
+| JSON encoding compliant with Part 6 | Microsoft [JSON extensions](../json.md) |
+
+### Delta and key frame messages
 
 This section covers data value change messages (Message type `ua-deltaframe` and `ua-keyframe`). Details for OPC UA Alarms and Events messages (`ua-event`) can be found [further on](#event-messages).
 
@@ -167,7 +189,7 @@ The data set is described by a corresponding metadata message (message type `ua-
 
 IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messages can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case they are created but never sent. You can choose to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking. If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
-## Event messages
+### Event messages
 
 This section describes what the output looks like when listening for events in the OPC Publisher.
 
@@ -472,6 +494,35 @@ When running against the OPC Foundation's Alarms & Conditions reference server s
 ```
 
 The important part to highlight here is that the payload is an array of events which have the Retain property set to true. Otherwise it's very similar to value change messages earlier.
+
+### Keep Alive messages
+
+Keep alive messages must be explicitly enabled (since they potentially consume bandwidth and cost). To Enable them for the OPC Publisher use the `--ka` [command line](./commandline.md) argument or enable it for a specific `DataSetWriter` in the [configuration](./readme.md#configuration-schema). [Samples](#samples-mode-encoding-legacy) mode does not support keep alive messages even when enabled.
+
+Keep alive messages are part of the network message. A network message can contain more data sets from other writers that are also keep alive messages or of other message types.  A simple keep alive message is shown here:
+
+```json
+{
+  "body": {
+    "MessageId": "64",
+    "MessageType": "ua-data",
+    "PublisherId": "MyPublisher",
+    "Messages": [
+      {
+        "DataSetWriterId": 1,
+        "DataSetWriterName": "DataSet33",
+        "SequenceNumber": 66,
+        "MetaDataVersion": {
+          "MajorVersion": 1,
+          "MinorVersion": 0
+        },
+        "MessageType": "ua-keepalive",
+        "Timestamp": "2023-03-18T12:55:21.3423234Z"
+      }
+    ]
+  }
+}
+```
 
 ## Samples mode encoding (Legacy)
 

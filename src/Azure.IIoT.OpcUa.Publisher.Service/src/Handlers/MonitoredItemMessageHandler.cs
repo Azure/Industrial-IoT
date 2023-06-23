@@ -64,10 +64,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                     {
                         PublisherId = (extensionFields != null &&
                             extensionFields.TryGetValue("PublisherId", out var publisherId))
-                                ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
+                                ? (string?)publisherId : message.ApplicationUri ?? message.EndpointUrl,
                         DataSetWriterId = (extensionFields != null &&
                             extensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
-                                ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
+                                ? (string?)dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
                         EndpointId = message.WriterGroupId,
                         NodeId = message.NodeId,
                         DisplayName = message.DisplayName,

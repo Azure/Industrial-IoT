@@ -85,7 +85,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | OPC UA Pub/Sub configuration API (Part 14)||-|-||
 | Data contextualization |||||
 | | Add Endpoint/Dataset name to message header (Routing) ||X|X||
-| | Enrichment |-|-|Backlog|
+| | [Enrichment](./readme.md#key-frames-delta-frames-and-extension-fields) |-|X||
 | | Transformation |-|-||
 | | Normalization |-|-||
 | Running as docker outside IoT Edge or K8s ||-|X|Experimental|
@@ -130,11 +130,11 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | [Samples JSON encoding](./messageformats.md#samples-mode-encoding-legacy) – Legacy |X|X|Deprecated|
 | | Samples Binary encoding – Legacy |X|-||
 | | Configurable per writer group |-|X||
-| OPC UA Pub Sub Message types
+| OPC UA Part 14 Pub Sub Message types
 | | [Delta frame messages](./messageformats.md#data-value-change-messages) |-|X||
-| | Key frame messages / Key frame count |-|X||
+| | [Key frame messages](./readme.md#key-frames-delta-frames-and-extension-fields) / Key frame count |-|X||
 | | [Event messages](./messageformats.md#event-messages) |-|X||
 | | Keep alive messages |-|X||
 | | Data Set Metadata messages (on change and periodic) |-|X||
-| | Discovery messages |-|-|Backlog|
-| | Publisher status messages |-|-|Backlog|
+| | Discovery messages |-|-||
+| | Publisher status messages |-|-||

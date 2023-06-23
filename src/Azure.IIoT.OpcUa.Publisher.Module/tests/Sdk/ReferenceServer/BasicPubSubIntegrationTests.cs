@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using NuGet.Frameworks;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -298,6 +299,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal(JsonValueKind.Object, evt.ValueKind);
             Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
 
+            Assert.NotNull(metadata);
+        }
+
+        [Fact]
+        public async Task CanSendKeyFramesWithExtensionFieldsToIoTHubTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(CanSendDataItemToIoTHubTest), "./Resources/KeyFrames.json",
+                messageType: "ua-data").ConfigureAwait(false);
+
+            // Assert
+            var message = Assert.Single(messages).Message;
+            var firstDataSet = message.GetProperty("Messages")[0];
+            Assert.Equal("ua-keyframe", firstDataSet.GetProperty("MessageType").GetString());
+            var payload = firstDataSet.GetProperty("Payload");
+            Assert.NotEqual(JsonValueKind.Null, payload.ValueKind);
+
+            var time = payload.GetProperty("CurrentTime");
+            Assert.NotEqual(JsonValueKind.Null, time.ValueKind);
+            Assert.True(time.GetProperty("Value").GetDateTime() < DateTime.UtcNow);
+            Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
+            Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
+            Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
+            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble());
+            var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
+            Assert.Equal(JsonValueKind.Array, fields.ValueKind);
+            Assert.NotNull(metadata);
+            var fieldNames = fields.EnumerateArray().Select(v => v.GetProperty("Name").GetString());
+            Assert.True(fieldNames.ToHashSet().SetEquals(
+                new[] { "AssetId", "CurrentTime", "EngineeringUnits", "Important", "Variance" }));
+            Assert.Equal(fieldNames, payload.EnumerateObject().Select(p => p.Name));
+            Assert.NotNull(metadata);
+        }
+
+        [Fact]
+        public async Task CanSendKeyFramesToIoTHubTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(CanSendDataItemToIoTHubTest), "./Resources/KeyFrames.json", TimeSpan.FromMinutes(2), 11,
+                messageType: "ua-data").ConfigureAwait(false);
+
+            // Assert
+            var allDataSetMessages = messages.Select(m => m.Message.GetProperty("Messages")).SelectMany(m => m.EnumerateArray());
+            Assert.True(allDataSetMessages.Count() >= 11);
+            var dataSetMessages = allDataSetMessages.Take(11).ToArray();
+            Assert.Equal("ua-keyframe", dataSetMessages[0].GetProperty("MessageType").GetString());
+            Assert.All(dataSetMessages.AsSpan(1, 9).ToArray(), m => Assert.Equal("ua-deltaframe", m.GetProperty("MessageType").GetString()));
+            Assert.Equal("ua-keyframe", dataSetMessages[10].GetProperty("MessageType").GetString());
             Assert.NotNull(metadata);
         }
 

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -145,6 +146,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "Priority", Order = 16,
             EmitDefaultValue = false)]
         public byte? Priority { get; set; }
+
+        /// <summary>
+        /// Optional field and value pairs to insert into the
+        /// data sets emitted by data set writer.
+        /// </summary>
+        [DataMember(Name = "DataSetExtensionFields", Order = 17,
+            EmitDefaultValue = false)]
+        public IDictionary<string, VariantValue>? DataSetExtensionFields { get; set; }
 
         /// <summary>
         /// The messaging mode to use for the data sets

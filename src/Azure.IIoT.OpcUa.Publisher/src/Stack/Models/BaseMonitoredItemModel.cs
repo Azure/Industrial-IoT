@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         }
 
         /// <summary>
-        /// Data set name
+        /// Data set field name
         /// </summary>
         public string? DataSetFieldName { get; set; }
 

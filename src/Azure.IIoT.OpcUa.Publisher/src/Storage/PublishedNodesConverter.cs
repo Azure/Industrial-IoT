@@ -115,6 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
+                            DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
@@ -392,8 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Description = dataSet.Header.DataSetDescription,
                                         Name = dataSet.Header.DataSetName
                                     },
-                                // TODO: Add extension information from configuration
-                                ExtensionFields = new Dictionary<string, string?>(),
+                                ExtensionFields = dataSet.Header.DataSetExtensionFields,
                                 SendKeepAlive = dataSet.Header.SendKeepAliveDataSetMessages,
                                 DataSetSource = new PublishedDataSetSourceModel
                                 {

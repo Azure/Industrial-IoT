@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -26,10 +27,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Monitored item templates for the subscription
         /// </summary>
         public List<BaseMonitoredItemModel>? MonitoredItems { get; set; }
-
-        /// <summary>
-        /// Extra fields in each message
-        /// </summary>
-        public Dictionary<string, string?>? ExtensionFields { get; set; }
     }
 }

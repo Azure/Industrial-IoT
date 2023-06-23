@@ -23,6 +23,8 @@ Here you find information about
   - [Configuration Schema](#configuration-schema)
   - [Writer group configuration](#writer-group-configuration)
   - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
+    - [Key frames, delta frames and extension fields](#key-frames-delta-frames-and-extension-fields)
+    - [Heartbeat and cyclic reading (Client side sampling)](#heartbeat-and-cyclic-reading-client-side-sampling)
   - [Configuring Security](#configuring-security)
   - [Using OPC UA reverse connect](#using-opc-ua-reverse-connect)
   - [Configuring event subscriptions](#configuring-event-subscriptions)
@@ -319,7 +321,7 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
    - `PublishingInterval`: The cyclic time in milliseconds, in which changes to a set of nodes (notifications) are sent to the subscriber (OPC Publisher). A small interval minimizes latency at the cost of network traffic and server load. For low latency it should be set to the smallest sampling interval and appropriate queue size values should be configured to avoid message loss.
 
-1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `KeyFrameCount` or `HeartbeatInterval` options or read the values using `UseCyclicRead` [options](#configuration-schema) instead of subscriptions. OPC Publisher also emits meta data messages for all configured data sets inside a data set writer group unless disabled or not supported by the chosen [message format](./messageformats.md).
+1. Data change notifications or event notifications are published by the OPC UA server to OPC Publisher. OPC UA only sends value changes, that means, if a value has not changed in the publishing cycle it is not send. If you need all values in a message you can use the `DataSetKeyFrameCount` or `HeartbeatInterval` options or read the values using `UseCyclicRead` [options](#configuration-schema) instead of subscriptions. OPC Publisher also emits meta data messages for all configured data sets inside a data set writer group unless disabled or not supported by the chosen [message format](./messageformats.md).
 
 1. The OPC Publisher can be configured to send notifications as soon as they arrive or batch them before sending which saves bandwidth and increases throughput. Sending a batch is triggered by exceeding the threshold of a specified number of messages or by exceeding a specified time interval.
 
@@ -370,18 +372,20 @@ The configuration schema is used with the file based configuration, but also wit
   "EndpointUrl": "string",
   "UseSecurity": "bool",
   "OpcAuthenticationMode": "string",
-  "UserName": "string",
-  "Password": "string",
+  "OpcAuthenticationUsername": "string",
+  "OpcAuthenticationPassword": "string",
   "UseReverseConnect": "bool",
   "DataSetWriterId": "string",
-  "DataSetClassId": "Guid",
+  "DataSetClassId": "guid",
   "DataSetName": "string",
   "DataSetDescription": "string",
   "DataSetPublishingInterval": "integer",
   "DataSetPublishingIntervalTimespan": "string",
   "DataSetKeyFrameCount": "integer",
+  "DataSetExtensionFields": "object",
   "MetaDataUpdateTime": "integer",
   "MetaDataUpdateTimeTimespan": "string",
+  "SendKeepAliveDataSetMessages": "boolean",
   "DataSetWriterGroup": "string",
   "MessageEncoding": "string",
   "MessagingMode": "string",
@@ -396,9 +400,9 @@ The configuration schema is used with the file based configuration, but also wit
       "ExpandedNodeId": "string",
       "AttributeId": "string",
       "IndexRange": "string",
-      "UseCyclicRead": "bool",
-      "RegisterNode": "bool",
-      "FetchDisplayName": "bool",
+      "UseCyclicRead": "boolean",
+      "RegisterNode": "boolean",
+      "FetchDisplayName": "boolean",
       "OpcSamplingInterval": "integer",
       "OpcSamplingIntervalTimespan": "string",
       "OpcPublishingInterval": "integer",
@@ -406,8 +410,8 @@ The configuration schema is used with the file based configuration, but also wit
       "DataSetFieldId ": "string",
       "DataSetClassFieldId ": "Guid",
       "DisplayName": "string",
-      "SkipFirst": "bool",
-      "DiscardNew": "bool",
+      "SkipFirst": "boolean",
+      "DiscardNew": "boolean",
       "HeartbeatInterval": "integer",
       "HeartbeatIntervalTimespan": "string",
       "QueueSize": "integer",
@@ -436,18 +440,20 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
 | `UseReverseConnect` | No | Boolean | `false` | Controls whether to use OPC UA reverse connect to connect to the OPC UA server.<br>A publisher wide default value can be set using the [command line](./commandline.md) |
 | `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
-| `UserName` | No | String | `null` | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
-| `Password` | No | String | `null` | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
+| `OpcAuthenticationUsername` | No | String | `null` | The username for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
+| `OpcAuthenticationPassword` | No | String | `null` | The password for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
 | `DataSetWriterGroup` | No | String | `"<<UnknownWriterGroup>>"` | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
 | `DataSetWriterId` | No | String | `"<<UnknownDataSet>>"` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
 | `DataSetName` | No | String | `null` | The optional name of the data set as it will appear in the dataset metadata. |
 | `DataSetDescription` | No | String | `null` | The optional description for the data set as it will appear in the dataset metadata. |
 | `DataSetClassId` | No | Guid | `Guid.Empty` | The optional dataset class id as it shall appear in dataset messages and dataset metadata. |
+| `DataSetExtensionFields` | No | Object | `null` | An optional JSON object with key value pairs where the value is a Variant in JSON encoding. This can be used to [contextualize data set messages](#key-frames-delta-frames-and-extension-fields) produced by the writer.<br>Each item is added to key frame and meta data messages in the same data set, or in the extension section of samples messages (in samples messages the value is stringified). |
 | `DataSetPublishingInterval` | No | Integer | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
 | `DataSetPublishingIntervalTimespan` | No | String | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
 | `DataSetKeyFrameCount` | No | Integer | `null` | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames |
 | `MetaDataUpdateTime` | No | Integer | `null` | The optional interval at which meta data messages should be sent even if the meta data has not chnaged.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
 | `MetaDataUpdateTimeTimespan` | No | String | `null` | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
+| `SendKeepAliveDataSetMessages` | No | Boolean | `false` | Whether to send keep alive data set messages for this data set when a subscription keep alive notification is received.<br>Only valid if messaging mode supports keep alive messages. |
 | `MessageEncoding` | No | String | `null` | The message encoding to use when publishing the data sets. <br>For the list of supported message type names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
@@ -512,7 +518,7 @@ OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due 
 
 The OPC UA reference specification provides a detailed overview of the OPC UA [monitored item](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.12) and [subscription](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.13.1) service model.
 
-A `DataSetWriter` is a group of (variable or event notifier) nodes inside an OPC UA server that constitute a data set. Four parameters can be configured for each node that tell the Server how the node is to be sampled, evaluated and reported. These [attributes](#configuration-schema) are
+A `DataSetWriter` is a group of (variable or event notifier) nodes inside an OPC UA server that constitute a data set. Several parameters can be configured for each node that tell the Server how the node is to be sampled, evaluated and reported. These [attributes](#configuration-schema) include
 
 - Sampling interval (`OpcSamplingInterval` or `OpcSamplingIntervalTimespan`)
 - Filter definition (`DeadbandValue`, `DeadbandType`, and `DataChangeTrigger` for variables, or [EventFilter](./definitions.md#eventfiltermodel) in case the monitored item is an event notifier)
@@ -527,7 +533,40 @@ A subscription is created for each unique `DataSetWriter`. The publishing interv
 
 Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
 
-OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a timespan value):
+#### Key frames, delta frames and extension fields
+
+OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. These messages are sent as `ua-deltaframe` messages by the data set writer, and the resulting data set messages are sparse. It is desirable to send all other values that have not changed together with a value that changed as a key frame (`ua-keyframe`). To accomplish this a writer can be configured with a `DataSetKeyFrameCount` value other than 0. If this is the case, all values are sent in the first message, and then every `DataSetKeyFrameCount` number of messages later.
+
+The `DataSetExtensionFields` object in the [configuration](#configuration-schema) can be used to insert additional fixed fields into these key frame messages which allows you to contextualize messages with data that is available in external systems only, or that allows your application to understand the context in which the message is produced.  An example configuration is shown here:
+
+```json
+[
+    {
+        ...
+        "MessagingMode": "PubSub",
+        "DataSetExtensionFields": {
+            "EngineeringUnits": "mm/sec",
+            "AssetId": 5,
+            "Important": false,
+            "Variance": {
+              "Value": 0.4,
+              "DataType": "Single"
+            }
+        },
+        "DataSetKeyFrameCount": 3,
+        "OpcNodes": [
+            ...
+        ]
+    }
+]
+
+```
+
+Values are formatted using the extended OPC UA Variant [JSON format](#json-encoding). This encoding is compliant with OPC UA Part 6, however it also allows to use simple JSON types which will be interpreted as Variant values using a simple heuristic, mapping the best OPC UA type possible to it.
+
+#### Heartbeat and cyclic reading (Client side sampling)
+
+Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a timespan value):
 
 ``` json
   "HeartbeatInterval": 3600,

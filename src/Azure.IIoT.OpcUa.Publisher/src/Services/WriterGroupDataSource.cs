@@ -345,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._logger.LogWarning("Writer does not have a subscription to update yet!");
                     return;
                 }
-                InitializeKeyframeTrigger();
+                _frameCount = 0;
                 InitializeMetaDataTrigger();
                 InitializeKeepAlive();
 
@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
                     _subscriptionInfo, this, ct).ConfigureAwait(false);
 
-                InitializeKeyframeTrigger();
+                _frameCount = 0;
                 InitializeMetaDataTrigger();
                 InitializeKeepAlive();
 
@@ -445,16 +445,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 _outer._logger.LogInformation("Writer with subscription {Id} in writer group {Name} closed.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
-            }
-
-            /// <summary>
-            /// Initializes the key frame triggering mechanism from the cconfiguration model
-            /// </summary>
-            private void InitializeKeyframeTrigger()
-            {
-                _frameCount = 0;
-                _keyFrameCount = _dataSetWriter.KeyFrameCount
-                    ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
             }
 
             /// <summary>
@@ -547,10 +537,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 IOpcUaSubscriptionNotification ProcessKeyFrame(IOpcUaSubscriptionNotification notification)
                 {
-                    if (_keyFrameCount > 0)
+                    var keyFrameCount = _dataSetWriter.KeyFrameCount
+                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
+                    if (keyFrameCount > 0)
                     {
                         var frameCount = Interlocked.Increment(ref _frameCount);
-                        if ((frameCount % _keyFrameCount) == 0)
+                        if (((frameCount - 1) % keyFrameCount) == 0)
                         {
                             notification.TryUpgradeToKeyFrame();
                         }
@@ -684,14 +676,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
                             _outer.OnMessage?.Invoke(sender, notification);
-
-                            if (notification.MessageType != MessageType.DeltaFrame &&
-                                notification.MessageType != MessageType.KeepAlive)
-                            {
-                                // Reset keyframe trigger for events, keyframe, and conditions
-                                // which are all key frame like messages
-                                InitializeKeyframeTrigger();
-                            }
                         }
                     }
                 }
@@ -787,7 +771,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly WriterGroupDataSource _outer;
             private readonly object _lock = new();
             private Timer? _metadataTimer;
-            private uint _keyFrameCount;
             private volatile uint _frameCount;
             private readonly string _topic;
             private readonly string _metadataTopic;

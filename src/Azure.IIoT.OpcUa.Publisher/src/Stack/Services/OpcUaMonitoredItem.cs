@@ -19,6 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using Newtonsoft.Json.Linq;
+    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// Monitored item
@@ -124,6 +126,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             yield return new EventItem(emi,
                                 factory.CreateLogger<EventItem>());
                         }
+                        break;
+                    case ExtensionFieldModel efm:
+                        yield return new FieldItem(efm,
+                            factory.CreateLogger<FieldItem>());
                         break;
                     default:
                         Debug.Fail($"Unexpected type of item {item}");
@@ -524,6 +530,155 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         }
 
         /// <summary>
+        /// Extension Field item
+        /// </summary>
+        internal class FieldItem : OpcUaMonitoredItem
+        {
+            /// <summary>
+            /// Item as extension field
+            /// </summary>
+            public ExtensionFieldModel Template { get; protected internal set; }
+
+            /// <summary>
+            /// Create wrapper
+            /// </summary>
+            /// <param name="template"></param>
+            /// <param name="logger"></param>
+            public FieldItem(ExtensionFieldModel template,
+                ILogger<FieldItem> logger) : base(logger, template.StartNodeId)
+            {
+                Template = template;
+            }
+
+            /// <inheritdoc/>
+            public override bool Equals(object? obj)
+            {
+                if (obj is not FieldItem fieldItem)
+                {
+                    return false;
+                }
+                if ((Template.DataSetFieldName ?? string.Empty) !=
+                    (fieldItem.Template.DataSetFieldName ?? string.Empty))
+                {
+                    return false;
+                }
+                if (Template.Value != fieldItem.Template.Value)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override int GetHashCode()
+            {
+                var hashCode = 81523234;
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.DataSetFieldName ?? string.Empty);
+                hashCode = (hashCode * -1521134295) +
+                    Template.Value.GetHashCode();
+                return hashCode;
+            }
+
+            /// <inheritdoc/>
+            public override string ToString()
+            {
+                return $"Field '{Template.DataSetFieldName}' with value {Template.Value}.";
+            }
+
+            /// <inheritdoc/>
+            public override void GetMetaData(IOpcUaSession session,
+                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
+                NodeIdDictionary<DataTypeDescription> dataTypes)
+            {
+                AddVariableField(fields, dataTypes, session, typeSystem, new VariableNode
+                {
+                    DataType = (int)BuiltInType.Variant
+                }, Template.DisplayName, (Uuid)_fieldId);
+            }
+
+            /// <inheritdoc/>
+            public override bool AddTo(Subscription subscription,
+                IOpcUaSession session, out bool metadataChanged)
+            {
+                metadataChanged = true;
+                _value = new DataValue(session.Codec.Decode(Template.Value, BuiltInType.Variant));
+                Item = new MonitoredItem();
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+                out bool metadataChanged)
+            {
+                metadataChanged = false;
+                return false;
+            }
+
+            /// <inheritdoc/>
+            public override bool RemoveFrom(Subscription subscription, out bool metadataChanged)
+            {
+                metadataChanged = true;
+                _value = new DataValue();
+                Item = null;
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges,
+                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+            {
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                if (Item == null)
+                {
+                    return false;
+                }
+                notifications.Add(ToMonitoredItemNotification(sequenceNumber));
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+                DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            {
+                Debug.Fail("Unexpected notification on extension field");
+                return false;
+            }
+
+            /// <summary>
+            /// Convert to monitored item notifications
+            /// </summary>
+            /// <param name="sequenceNumber"></param>
+            /// <returns></returns>
+            protected MonitoredItemNotificationModel ToMonitoredItemNotification(uint sequenceNumber)
+            {
+                Debug.Assert(Item != null);
+                Debug.Assert(Template != null);
+
+                return new MonitoredItemNotificationModel
+                {
+                    Id = Template.Id,
+                    DataSetFieldName = Template.DisplayName,
+                    DataSetName = Template.DisplayName,
+                    NodeId = NodeId,
+                    Value = _value,
+                    SequenceNumber = sequenceNumber
+                };
+            }
+
+            private DataValue _value = new();
+            private readonly Guid _fieldId = Guid.NewGuid();
+        }
+
+        /// <summary>
         /// Data item
         /// </summary>
         internal class DataItem : OpcUaMonitoredItem
@@ -676,8 +831,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+            public override bool AddTo(Subscription subscription, IOpcUaSession session,
+                out bool metadataChanged)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
