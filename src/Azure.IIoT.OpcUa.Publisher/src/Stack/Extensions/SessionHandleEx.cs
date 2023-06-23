@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using NodeClass = OpcUa.Publisher.Models.NodeClass;
+    using NodeClass = Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -1175,16 +1175,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="parent"></param>
         /// <param name="parentPath"></param>
         /// <param name="browsePaths"></param>
-        private static List<Opc.Ua.BrowsePath> GetBrowsePathFromNodeState(
+        private static List<BrowsePath> GetBrowsePathFromNodeState(
             this IOpcUaSession session, NodeId rootId, NodeState parent,
-            RelativePath? parentPath, List<Opc.Ua.BrowsePath>? browsePaths = null)
+            RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
         {
-            browsePaths ??= new List<Opc.Ua.BrowsePath>();
+            browsePaths ??= new List<BrowsePath>();
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.SystemContext, children);
             foreach (var child in children)
             {
-                var browsePath = new Opc.Ua.BrowsePath
+                var browsePath = new BrowsePath
                 {
                     StartingNode = rootId,
                     Handle = child

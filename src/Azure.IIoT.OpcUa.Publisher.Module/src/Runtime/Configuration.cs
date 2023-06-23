@@ -584,7 +584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     if (Enum.TryParse<TransportOption>(GetStringOrDefault(HubTransport),
                             out var transport) ||
-                        Enum.TryParse<TransportOption>(GetStringOrDefault(UpstreamProtocol),
+                        Enum.TryParse(GetStringOrDefault(UpstreamProtocol),
                             out transport))
                     {
                         options.Transport = transport;

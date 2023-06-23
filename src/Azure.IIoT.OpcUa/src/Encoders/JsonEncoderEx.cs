@@ -1559,15 +1559,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return new List<T?>();
             }
-          // if (arr.Length == 1) // TODO: Should this not be covered below?
-          // {
-          //     value = arr.GetValue(0);
-          //     if (value?.GetType()?.IsArray ?? false)
-          //     {
-          //         // Recursively unpack an array in array if needed
-          //         return ToTypedArray(value, defaultValue);
-          //     }
-          // }
+            // if (arr.Length == 1) // TODO: Should this not be covered below?
+            // {
+            //     value = arr.GetValue(0);
+            //     if (value?.GetType()?.IsArray ?? false)
+            //     {
+            //         // Recursively unpack an array in array if needed
+            //         return ToTypedArray(value, defaultValue);
+            //     }
+            // }
             var result = new T?[arr.Length];
             for (var index = 0; index < arr.Length; index++)
             {

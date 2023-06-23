@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Get any changes in the monitoring mode to apply if any.
         /// Otherwise the returned value is null.
         /// </summary>
-        Opc.Ua.MonitoringMode? MonitoringModeChange { get; }
+        MonitoringMode? MonitoringModeChange { get; }
 
         /// <summary>
         /// Monitored item once added to the subscription. Contract:

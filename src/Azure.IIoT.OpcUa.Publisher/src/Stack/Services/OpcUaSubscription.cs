@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Globalization;
 
     /// <summary>
     /// Subscription implementation
