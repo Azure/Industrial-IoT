@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>

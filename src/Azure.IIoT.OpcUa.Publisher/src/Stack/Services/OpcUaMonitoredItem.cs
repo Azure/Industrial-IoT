@@ -13,14 +13,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
-    using MonitoringMode = OpcUa.Publisher.Models.MonitoringMode;
+    using MonitoringMode = Publisher.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
-    using Newtonsoft.Json.Linq;
-    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// Monitored item
@@ -465,8 +463,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                                 dataType.NodeId);
                             if (types == null || types.Count == 0)
                             {
-                                dataTypes.AddOrUpdate<NodeId, DataTypeDescription>(dataType.NodeId,
-                                    GetDefault(dataType, builtInType));
+                                dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(dataType, builtInType));
                                 break;
                             }
                             foreach (var type in types)
@@ -491,12 +488,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                                             },
                                         _ => GetDefault(dataType, builtInType),
                                     };
-                                    dataTypes.AddOrUpdate<NodeId, DataTypeDescription>(type.Key, description);
+                                    dataTypes.AddOrUpdate(type.Key, description);
                                 }
                             }
                             break;
                         default:
-                            dataTypes.AddOrUpdate<NodeId, DataTypeDescription>(dataTypeId, new SimpleTypeDescription
+                            dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescription
                             {
                                 DataTypeId = dataTypeId,
                                 Name = dataType.BrowseName,

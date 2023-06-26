@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Moq;
-    using NuGet.Frameworks;
     using System;
     using System.Collections.Generic;
     using System.IO;

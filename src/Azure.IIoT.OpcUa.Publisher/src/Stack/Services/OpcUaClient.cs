@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 case SessionState.Connected:
                                     var item = context as ISubscriptionHandle;
                                     Debug.Assert(item != null);
-                                    var diff = ImmutableHashSet.Create<ISubscriptionHandle>(item);
+                                    var diff = ImmutableHashSet.Create(item);
                                     await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
                                     break;
                             }

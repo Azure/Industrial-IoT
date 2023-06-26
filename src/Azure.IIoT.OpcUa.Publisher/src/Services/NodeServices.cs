@@ -16,8 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using BrowseDirection = OpcUa.Publisher.Models.BrowseDirection;
-    using NodeClass = OpcUa.Publisher.Models.NodeClass;
+    using BrowseDirection = Models.BrowseDirection;
+    using NodeClass = Models.NodeClass;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -225,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var targets = new List<NodePathTargetModel>();
                 var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
-                    new Opc.Ua.BrowsePath
+                    new BrowsePath
                     {
                         StartingNode = rootId,
                         RelativePath = p.ToRelativePath(context.Session.MessageContext)
@@ -1657,7 +1657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Targets = new List<NodePathTargetModel>()
             };
             var browsepaths = new BrowsePathCollection {
-                new Opc.Ua.BrowsePath {
+                new BrowsePath {
                     StartingNode = rootId,
                     RelativePath = paths.ToRelativePath(session.MessageContext)
                 }

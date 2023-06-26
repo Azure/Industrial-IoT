@@ -322,7 +322,22 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 _writer?.WritePropertyName(fieldName);
             }
-            _writer?.WriteValue(value);
+            if (float.IsPositiveInfinity(value))
+            {
+                _writer?.WriteValue("Infinity");
+            }
+            else if (float.IsNegativeInfinity(value))
+            {
+                _writer?.WriteValue("-Infinity");
+            }
+            else if (float.IsNaN(value))
+            {
+                _writer?.WriteValue("NaN");
+            }
+            else
+            {
+                _writer?.WriteRawValue(value.ToString("G9", CultureInfo.InvariantCulture));
+            }
         }
 
         /// <inheritdoc/>
@@ -336,7 +351,22 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 _writer?.WritePropertyName(fieldName);
             }
-            _writer?.WriteValue(value);
+            if (double.IsPositiveInfinity(value))
+            {
+                _writer?.WriteValue("Infinity");
+            }
+            else if (double.IsNegativeInfinity(value))
+            {
+                _writer?.WriteValue("-Infinity");
+            }
+            else if (double.IsNaN(value))
+            {
+                _writer?.WriteValue("NaN");
+            }
+            else
+            {
+                _writer?.WriteRawValue(value.ToString("G17", CultureInfo.InvariantCulture));
+            }
         }
 
         /// <inheritdoc/>
@@ -1559,15 +1589,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return new List<T?>();
             }
-          // if (arr.Length == 1) // TODO: Should this not be covered below?
-          // {
-          //     value = arr.GetValue(0);
-          //     if (value?.GetType()?.IsArray ?? false)
-          //     {
-          //         // Recursively unpack an array in array if needed
-          //         return ToTypedArray(value, defaultValue);
-          //     }
-          // }
+            // if (arr.Length == 1) // TODO: Should this not be covered below?
+            // {
+            //     value = arr.GetValue(0);
+            //     if (value?.GetType()?.IsArray ?? false)
+            //     {
+            //         // Recursively unpack an array in array if needed
+            //         return ToTypedArray(value, defaultValue);
+            //     }
+            // }
             var result = new T?[arr.Length];
             for (var index = 0; index < arr.Length; index++)
             {
