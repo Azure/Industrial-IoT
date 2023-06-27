@@ -975,6 +975,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroups(entries,
                                         _configuration.Value);
+                                    _logger.LogInformation("{Action} publisher configuration completed.",
+                                        clear ? "Resetting" : "Refreshing");
                                 }
                                 try
                                 {
@@ -998,13 +1000,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // avoid double events from FileSystemWatcher
                                 if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10))
                                 {
-                                    _logger.LogInformation("Published Nodes File changed but " +
+                                    _logger.LogDebug("Published Nodes File changed but " +
                                         "content-hash is equal to last one, nothing to do...");
                                 }
                             }
                             _lastRead = lastWriteTime;
-                            _logger.LogInformation("{Action} publisher configuration completed.",
-                                clear ? "Resetting" : "Refreshing");
                             retryCount = 0;
                             // Success
                         }
@@ -1013,7 +1013,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (++retryCount <= 3)
                             {
                                 Debug.Assert(!clear);
-                                _logger.LogWarning(ex,
+                                _logger.LogDebug(ex,
                                     "Error while loading job from file. Attempt #{Count}...",
                                     retryCount);
 
@@ -1028,7 +1028,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         catch (SerializerException sx)
                         {
                             Debug.Assert(!clear);
-                            _logger.LogError(sx, "SerializerException while loading job from file.");
+                            const string error = "SerializerException while loading job from file.";
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogError(sx, error);
+                            }
+                            else
+                            {
+                                _logger.LogError(error);
+                            }
                             retryCount = 0;
                             _started?.TrySetResult();
                         }

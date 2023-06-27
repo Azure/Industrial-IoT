@@ -16,9 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         /// <summary> Aad Instance </summary>
         public const string PCS_AAD_INSTANCE =
             "PCS_AUTH_INSTANCE";
-        /// <summary> Aad valid audience or null if disabled </summary>
-        public const string PCS_AAD_AUDIENCE =
-            "PCS_AUTH_AUDIENCE";
         /// <summary> Service application id </summary>
         public const string PCS_AAD_SERVICE_APPID =
             "PCS_AUTH_SERVICE_APPID";

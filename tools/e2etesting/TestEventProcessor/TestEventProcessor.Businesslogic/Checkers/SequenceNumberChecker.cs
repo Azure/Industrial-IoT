@@ -15,7 +15,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// Checker to validate that values of sequenceNumber are incrementally increasing.
     /// It will return number duplicates, dropped and reset counts in the recorded progression.
     /// </summary>
-    class SequenceNumberChecker : IDisposable
+    sealed class SequenceNumberChecker : IDisposable
     {
 
         private Dictionary<string, uint> _latestValue = new Dictionary<string, uint>();

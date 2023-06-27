@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests
+namespace IIoTPlatformE2ETests
 {
     /// <summary>
     /// Contains constants using for End 2 End testing

@@ -120,11 +120,7 @@
         "serviceSiteResourceName": "[if(empty(parameters('serviceSiteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('serviceSiteName'))]",
         "serviceSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceSiteResourceName'))]",
         "serviceContainerImageTag": "[if(empty(parameters('imagesTag')), 'latest', parameters('imagesTag'))]",
-        "serviceContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-services-all', ':', variables('serviceContainerImageTag'))]",
-        "appSiteResourceName": "[if(empty(parameters('siteName')), concat('app', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('siteName'))]",
-        "appSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('appSiteResourceName'))]",
-        "appContainerImageTag": "[if(empty(parameters('imagesTag')), 'latest', parameters('imagesTag'))]",
-        "appContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-frontend', ':', variables('appContainerImageTag'))]"
+        "serviceContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-services-all', ':', variables('serviceContainerImageTag'))]"
     },
     "resources": [
         {
@@ -249,90 +245,9 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
             ]
-        },
-        {
-            "comments": "Deploy application container.",
-            "condition": "[not(empty(parameters('siteName')))]",
-            "type": "Microsoft.Web/sites",
-            "kind": "app,linux,container",
-            "name": "[variables('appSiteResourceName')]",
-            "apiVersion": "2018-11-01",
-            "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                   "[parameters('managedIdentityResourceId')]": {}
-                }
-            },
-            "properties": {
-                "enabled": true,
-                "clientAffinityEnabled": true,
-                "serverFarmId": "[parameters('hostingPlanName')]",
-                "httpsOnly": true,
-                "siteConfig": {
-                    "numberOfWorkers": 1,
-                    "linuxFxVersion": "[concat('DOCKER|', parameters('dockerServer'), '/', variables('appContainerImageName'))]",
-                    "managedPipelineMode": "Integrated",
-                    "requestTracingEnabled": true,
-                    "httpLoggingEnabled": true,
-                    "detailedErrorLoggingEnabled": true,
-                    "alwaysOn": true,
-                    "minTlsVersion": "1.2",
-                    "http20Enabled": true,
-                    "xManagedServiceIdentityId": "[parameters('managedIdentityResourceId')]",
-                    "webSocketsEnabled": true,
-                    "appSettings": [
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[concat('https://', parameters('dockerServer'))]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[parameters('dockerUser')]"
-                        },
-                        {
-                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[parameters('dockerPassword')]"
-                        },
-                        {
-                            "name": "PCS_KEYVAULT_URL",
-                            "value": "[parameters('keyVaultUri')]"
-                        },
-                        {
-                            "name": "AZURE_CLIENT_ID",
-                            "value": "[parameters('managedIdentityClientId')]"
-                        },
-                        {
-                            "name": "AZURE_TENANT_ID",
-                            "value": "[parameters('managedIdentityTenantId')]"
-                        },
-                        {
-                            "name": "PCS_AUTH_TENANT",
-                            "value": "[if(not(empty(parameters('authTenantId'))), parameters('authTenantId'), parameters('managedIdentityTenantId'))]"
-                        },
-                        {
-                            "name": "PCS_SERVICE_URL",
-                            "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"
-                        },
-                        {
-                            "name": "PCS_IMAGES_TAG",
-                            "value": "[parameters('imagesTag')]"
-                        }
-                    ]
-                }
-            },
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
-                "[variables('serviceSiteResourceId')]"
-            ]
         }
     ],
     "outputs": {
-        "appUrl": {
-            "type": "string",
-            "value": "[if(empty(parameters('siteName')), '', concat('https://', reference(variables('appSiteResourceId'), '2018-11-01').hostNames[0]))]"
-        },
         "serviceUrl": {
             "type": "string",
             "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"

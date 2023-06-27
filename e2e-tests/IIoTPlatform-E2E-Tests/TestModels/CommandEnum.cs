@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestModels
+namespace IIoTPlatformE2ETests.TestModels
 {
     /// <summary>
     /// Specifies TestEventProcessor command to execute.

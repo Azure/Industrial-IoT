@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions
+namespace IIoTPlatformE2ETests.TestExtensions
 {
     using System;
     using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions
         /// <summary>
         /// Fullname of the TestCollectionOrderer, as constant to be used in assembly info
         /// </summary>
-        public const string FullName = "IIoTPlatform_E2E_Tests.TestExtensions.TestCaseOrderer";
+        public const string FullName = "IIoTPlatformE2ETests.TestExtensions.TestCaseOrderer";
 
         /// <inheritdoc />
         public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
@@ -48,7 +48,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions
             }
         }
 
-        private TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
+        private static TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
         {
             if (dictionary.TryGetValue(key, out var result))
             {

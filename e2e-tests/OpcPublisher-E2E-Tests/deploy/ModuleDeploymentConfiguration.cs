@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy
+namespace OpcPublisherAEE2ETests.Deploy
 {
     using TestExtensions;
 
@@ -21,7 +21,7 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy
         /// Constructor that delegates to the base DeploymentConfiguration.
         /// </summary>
         /// <param name="context"></param>
-        public ModuleDeploymentConfiguration(IIoTPlatformTestContext context)
+        protected ModuleDeploymentConfiguration(IIoTPlatformTestContext context)
             : base(context) { }
     }
 }

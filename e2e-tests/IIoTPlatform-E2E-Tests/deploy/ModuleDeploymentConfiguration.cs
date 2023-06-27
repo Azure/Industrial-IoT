@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Deploy
+namespace IIoTPlatformE2ETests.Deploy
 {
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using IIoTPlatformE2ETests.TestExtensions;
 
     /// <summary>
     /// Configuration that corresponds to a module deployment.
@@ -21,7 +21,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy
         /// Constructor that delegates to the base DeploymentConfiguration.
         /// </summary>
         /// <param name="context"></param>
-        public ModuleDeploymentConfiguration(IIoTPlatformTestContext context)
+        protected ModuleDeploymentConfiguration(IIoTPlatformTestContext context)
             : base(context) { }
     }
 }

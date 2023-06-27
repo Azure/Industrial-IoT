@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestModels
+namespace OpcPublisherAEE2ETests.TestModels
 {
     using Newtonsoft.Json;
     using System;
@@ -12,7 +12,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels
     public class SystemEventTypePayload : BaseEventTypePayload
     {
         /// <summary>Gets or sets the time.</summary>
-        [JsonProperty("Time")]
+        [JsonProperty(nameof(Time))]
         public DataValueObject<DateTime?> Time { get; set; }
     }
 }

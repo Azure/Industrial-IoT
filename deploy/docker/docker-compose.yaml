@@ -1,0 +1,58 @@
+version: "3.9"
+services:
+  opcplc:
+    container_name: opcplc
+    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    command: [ "--sph", "--spf=/shared/pn.json", "--alm", "--ses", "--ei=1000", "--gn=1000", "--fn=49900", "--sn=449900", "--aa" ]
+    volumes:
+      - shared:/shared
+  publisher:
+    container_name: publisher
+    image: iotedge/opc-publisher:latest
+    ports:
+      - "9080:80"
+      - "9081:443"
+    command: [ "-c", "--me=Uadp", "--mm=PubSub", "--aa", "--bs=1", "--bi=0", "--di=60", "--cl=5", "--pki=/shared/pki", "--pf=/shared/pn.json", "--oc=http://collector:4317", "--npd=20000", "--dm" ]
+    environment: 
+      - EdgeHubConnectionString
+    volumes:
+      - shared:/shared
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.42.0
+    container_name: collector
+    command: [ "--config=/etc/collector.yaml" ]
+    ports:
+      - "4317:4317"
+      - "8889:8889"
+    volumes:
+      - ./collector.yaml:/etc/collector.yaml
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+  loki:
+    image: grafana/loki:latest
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
+  grafana:
+    image: grafana/grafana:8.3.3
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana.db:/var/lib/grafana/grafana.db
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+volumes:
+  shared:

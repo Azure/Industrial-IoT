@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone
+namespace OpcPublisherAEE2ETests.Standalone
 {
     using System;
     using System.Collections.Generic;
@@ -51,7 +51,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
             var payloads = await messages
                 .Select(e => e.Payload)
                 .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
-                .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP"))
+                .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP", StringComparison.Ordinal))
                 .Skip(1)
                 .Take(nMessages)
                 .ToListAsync(_timeoutToken).ConfigureAwait(false);

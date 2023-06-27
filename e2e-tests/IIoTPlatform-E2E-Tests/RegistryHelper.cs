@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests
+namespace IIoTPlatformE2ETests
 {
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using IIoTPlatformE2ETests.TestExtensions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using System;
@@ -18,7 +18,7 @@ namespace IIoTPlatform_E2E_Tests
     /// <summary>
     /// Helper for managing IoT Hub device registry.
     /// </summary>
-    public class RegistryHelper : IDisposable
+    public sealed class RegistryHelper : IDisposable
     {
         /// <summary>
         /// Constructor of RegistryHelper class.
@@ -98,8 +98,8 @@ namespace IIoTPlatform_E2E_Tests
 
                     if (activeConfiguration != null
                         && Equals(activeConfiguration, deploymentConfiguration)
-                        && activeConfiguration.SystemMetrics.Results.ContainsKey("reportedSuccessfulCount")
-                        && activeConfiguration.SystemMetrics.Results["reportedSuccessfulCount"] == 1)
+                        && activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
+                        && value == 1)
                     {
                         _context.OutputHelper?.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                         return;
@@ -205,9 +205,8 @@ namespace IIoTPlatform_E2E_Tests
             // After the previous checks we know that both have the same non-zero number of module contents.
             foreach (var moduleName in c1.Content.ModulesContent.Keys)
             {
-                if (c0.Content.ModulesContent.ContainsKey(moduleName))
+                if (c0.Content.ModulesContent.TryGetValue(moduleName, out var moduleContent0))
                 {
-                    var moduleContent0 = c0.Content.ModulesContent[moduleName];
                     var moduleContent1 = c1.Content.ModulesContent[moduleName];
 
                     var diffCount = moduleContent0
@@ -241,7 +240,7 @@ namespace IIoTPlatform_E2E_Tests
         /// <summary>
         /// Default value for IIoT module names.
         /// </summary>
-        public static IEnumerable<string> ModuleNamesDefault = new string[] { "publisher" };
+        public static IEnumerable<string> ModuleNamesDefault { get; } = new string[] { "publisher" };
 
         private readonly IIoTPlatformTestContext _context;
     }

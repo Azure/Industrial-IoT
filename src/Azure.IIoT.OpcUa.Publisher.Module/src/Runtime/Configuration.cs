@@ -12,16 +12,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Mqtt;
+    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router.Services;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.AspNetCore.Server.Kestrel.Https;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using OpenTelemetry.Exporter;
+    using OpenTelemetry.Logs;
+    using OpenTelemetry.Metrics;
+    using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -29,6 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -162,6 +171,149 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddDaprClient();
                 builder.RegisterType<Dapr>()
                     .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add null client
+        /// </summary>
+        /// <param name="builder"></param>
+        public static void AddNullEventClient(this ContainerBuilder builder)
+        {
+            builder.RegisterType<Null>().AsImplementedInterfaces();
+            builder.RegisterInstance(new Dictionary<string, VariantValue>())
+                .As<IDictionary<string, VariantValue>>();
+        }
+
+        /// <summary>
+        /// Add otlp exporter if configured
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddOtlpExporter(this MeterProviderBuilder builder,
+            IConfiguration configuration)
+        {
+            var exporterOptions = new OtlpExporterOptions();
+            new Otlp(configuration).Configure(exporterOptions);
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            {
+                builder.ConfigureServices(services => services.ConfigureOtlpExporter());
+                builder.AddOtlpExporter();
+            }
+        }
+
+        /// <summary>
+        /// Add otlp exporter if configured
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddOtlpExporter(this OpenTelemetryLoggerOptions builder,
+            IConfiguration configuration)
+        {
+            builder.AddOtlpExporter(o => new Otlp(configuration).Configure(o));
+        }
+
+        /// <summary>
+        /// Add open telemetry to the logging builder
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        /// <param name="configure"></param>
+        public static ILoggingBuilder AddOpenTelemetry(this ILoggingBuilder builder,
+            IConfiguration configuration, Action<OpenTelemetryLoggerOptions> configure)
+        {
+            var exporterOptions = new OtlpExporterOptions();
+            var configurator = new Otlp(configuration);
+            configurator.Configure(exporterOptions);
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            {
+                builder.AddOpenTelemetry(configure);
+            }
+            return builder;
+        }
+
+        /// <summary>
+        /// Add otlp exporter if configured
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddOtlpExporter(this TracerProviderBuilder builder,
+            IConfiguration configuration)
+        {
+            var exporterOptions = new OtlpExporterOptions();
+            new Otlp(configuration).Configure(exporterOptions);
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            {
+                builder.ConfigureServices(services => services.ConfigureOtlpExporter());
+                builder.AddOtlpExporter();
+            }
+        }
+
+        /// <summary>
+        /// Configure otlp exporter
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        private static IServiceCollection ConfigureOtlpExporter(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IConfigureOptions<OtlpExporterOptions>, Otlp>()
+                .AddSingleton<IConfigureNamedOptions<OtlpExporterOptions>, Otlp>()
+                .AddSingleton<IConfigureOptions<MetricReaderOptions>, Otlp>()
+                .AddSingleton<IConfigureNamedOptions<MetricReaderOptions>, Otlp>();
+        }
+
+        /// <summary>
+        /// Otlp configuration from environment
+        /// </summary>
+        internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,
+            IConfigureOptions<MetricReaderOptions>, IConfigureNamedOptions<MetricReaderOptions>
+        {
+            public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
+            internal const string OtlpCollectorEndpointDisabled = "disabled";
+
+            /// <summary>
+            /// Create otlp configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public Otlp(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, OtlpExporterOptions options)
+            {
+                var endpoint = GetStringOrDefault(OtlpCollectorEndpointKey);
+                if (!string.IsNullOrEmpty(endpoint) &&
+                    Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out var uri))
+                {
+                    options.Endpoint = uri;
+                }
+                else if (endpoint == null)
+                {
+                    options.Endpoint = new UriBuilder
+                    {
+                        Scheme = Uri.UriSchemeHttp,
+                        Host = Otlp.OtlpCollectorEndpointDisabled
+                    }.Uri;
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Configure(string? name, MetricReaderOptions options)
+            {
+                options.PeriodicExportingMetricReaderOptions =
+                    new PeriodicExportingMetricReaderOptions
+                    {
+                        ExportIntervalMilliseconds = 1000
+                    };
+            }
+
+            /// <inheritdoc/>
+            public void Configure(MetricReaderOptions options)
+            {
+                Configure(null, options);
             }
         }
 
@@ -600,6 +752,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public IoTEdge(IConfiguration configuration)
                 : base(configuration)
             {
+            }
+        }
+
+        /// <summary>
+        /// Nil output client
+        /// </summary>
+        internal sealed class Null : IEventClient, IEvent
+        {
+            /// <inheritdoc/>
+            public string Name => nameof(Null);
+            /// <inheritdoc/>
+            public int MaxEventPayloadSizeInBytes => int.MaxValue;
+            /// <inheritdoc/>
+            public string Identity => Dns.GetHostName();
+
+            /// <inheritdoc/>
+            public IEvent CreateEvent()
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public ValueTask SendAsync(CancellationToken ct)
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+            }
+
+            /// <inheritdoc/>
+            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent AddProperty(string name, string? value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetContentEncoding(string? value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetContentType(string? value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetRetain(bool value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTimestamp(DateTime value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTopic(string? value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTtl(TimeSpan value)
+            {
+                return this;
             }
         }
 

@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 4](#azure-industrial-iot-opc-publisher-290-community-preview-4)
+  - [Changes in 2.9.0 Preview 4](#changes-in-290-preview-4)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 3](#azure-industrial-iot-opc-publisher-290-community-preview-3)
   - [Changes in 2.9.0 Preview 3](#changes-in-290-preview-3)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2](#azure-industrial-iot-opc-publisher-290-community-preview-2)
@@ -25,6 +27,24 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 4
+
+We are pleased to announce the fourth **preview** release of version 2.9.0 of OPC Publisher. This release adds several new features including support for reverse connect.
+
+> IMPORTANT: Preview releases are only supported through GitHub issues. This particular release due to the number of changes included might have backward compatibility breaks that have not yet been documented. Please file issues and we will try to address them ahead of GA release.
+
+### Changes in 2.9.0 Preview 4
+
+- [OPC Publisher] Better documentation for REST API call with API Key #1991
+- [OPC Publisher] Fix Can't run OPC UA Publisher standalone module inside IoT Edge Simulator environment (iotedgehubdev) #1708
+- [OPC Publisher] No BypassCertVerification required in Simulation with VS Code / iotedgehubdev #1922
+- [OPC Publisher] Fix  standalone OPC-Publisher in Edge Simulator doesn't work #1999
+- [OPC Publisher] Fix 2.9 preview 3 not supporting iot edge decrypt of passwords #1998
+- [OPC Publisher] Application uri of the publisher should be unique for the deployment. #1986
+- [OPC Publisher] Better documentation for --strict mode in OPC Publisher, Better documentation for all other message profiles. #1938
+- [OPC Publisher] A way to node id in nsu and ns index format like ns=1;s=CycleCounter using API and telemetry #1057
+- [OPC Publisher] Support for Reverse Connect # 1586
 
 ## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 3
 

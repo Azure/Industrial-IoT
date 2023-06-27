@@ -20,8 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Configuration
         /// </summary>
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string PkiRootPathKey = "PkiRootPath";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string ApplicationNameKey = "ApplicationName";
         public const string ApplicationUriKey = "ApplicationUri";
         public const string ProductUriKey = "ProductUri";
@@ -60,11 +60,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string LingerTimeoutKey = "LingerTimeout";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Default values for transport quotas.
         /// </summary>
         public const string ApplicationNameDefault = "Microsoft.Azure.IIoT";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string ApplicationUriDefault = "urn:localhost:{0}:microsoft:";
         public const string ProductUriDefault = "https://www.github.com/Azure/Industrial-IoT";
         public const string PkiRootPathDefault = "pki";

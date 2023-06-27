@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests
+namespace OpcPublisherAEE2ETests
 {
     /// <summary>
     /// Contains constants using for End 2 End testing

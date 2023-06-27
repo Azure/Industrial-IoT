@@ -7,8 +7,8 @@
     Azure.
 
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation,
-     app, all), defaults to all.
+    The type of deployment (local, services, simulation, all), 
+    defaults to all.
 
  .PARAMETER version
     Set to mcr image tag to deploy - if not set and version can 
@@ -126,7 +126,8 @@
 #>
 
 param(
-    [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "services",
+    [ValidateSet("local", "services", "simulation", "all")]
+    [string] $type = "all",
     [string] $version,
     [string] $repo,
     [string] $branchName,
@@ -684,18 +685,9 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_TENANT=$($var)"
     }
-
-    $var = $deployment.Outputs["tsiUrl"].Value
-    if (![string]::IsNullOrEmpty($var)) {
-        Write-Output "PCS_TSI_URL=$($var)"
-    }
     $var = $deployment.Outputs["serviceUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_SERVICE_URL=$($var)"
-    }
-    $var = $deployment.Outputs["appUrl"].Value
-    if (![string]::IsNullOrEmpty($var)) {
-        Write-Output "PCS_APP_URL=$($var)"
     }
     if (![string]::IsNullOrEmpty($script:version)) {
         Write-Output "PCS_IMAGES_TAG=$($script:version)"
@@ -790,7 +782,7 @@ Function New-Deployment() {
     }
 
     # Select an application name
-    if (($script:type -eq "local") -or ($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
+    if (($script:type -eq "local") -or ($script:type -eq "simulation")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName.Replace('_', '-')
@@ -801,14 +793,14 @@ Function New-Deployment() {
         while ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             if (!$script:interactive) {
-                throw "Invalid application name specified which is mandatory for non-interactive script use."
+                throw "Invalid service name specified which is mandatory for non-interactive script use."
             }
             if ($first -eq $false) {
                 Write-Host "You can only use alphanumeric characters as well as '-'."
             }
             else {
                 Write-Host
-                Write-Host "Please specify a name for your application."
+                Write-Host "Please specify a name for the web-api service."
                 $first = $false
             }
             if ($script:resourceGroupName -match "^[a-z0-9-]*$") {
@@ -819,10 +811,8 @@ Function New-Deployment() {
                 $script:applicationName = $script:resourceGroupName
             }
         }
-        if (($script:type -eq "all") -or ($script:type -eq "app")) {
+        if (($script:type -eq "all") -or ($script:type -eq "services")) {
             $templateParameters.Add("siteName", $script:applicationName)
-        }
-        if ($script:type -eq "services") {
             $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
@@ -840,7 +830,7 @@ Function New-Deployment() {
     }
 
     # Select docker images to use
-    if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
+    if (-not ($script:type -eq "local")) {
 
         $namespace = ""
         if (-not [string]::IsNullOrEmpty($script:imageNamespace)) {
@@ -1137,23 +1127,6 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
                 $app = Get-AzADApplication -ApplicationId $script:aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
-                }
-            }
-            $website = $deployment.Outputs["appUrl"].Value
-            if (![string]::IsNullOrEmpty($website)) {
-                Write-Host
-                Write-Host "The deployed application can be found at:"
-                Write-Host $website
-                Write-Host
-                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
-                    if (!$aadAddReplyUrls) {
-                        Write-Host "To be able to use the application you need to register the following"
-                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppId):"
-                        Write-Host "$($website)/signin-oidc"
-                    }
-                    else {
-                        $replyUrls.Add("$($website)/signin-oidc")
-                    }
                 }
             }
 

@@ -14,7 +14,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// Class to check and report on delay between message source timestamp and time when it was received.
     /// Considerable deviations in this delay will also be reported.
     /// </summary>
-    class MessageDeliveryDelayChecker : IDisposable
+    sealed class MessageDeliveryDelayChecker : IDisposable
     {
 
         /// <summary>

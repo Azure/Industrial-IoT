@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone
+namespace IIoTPlatformE2ETests.Standalone
 {
-    using IIoTPlatform_E2E_Tests.Deploy;
+    using IIoTPlatformE2ETests.Deploy;
     using System.Net;
     using System.Collections.Generic;
     using System.Threading;
@@ -107,7 +107,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
                 model.OpcNodes[0].Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i + 1}";
                 if (incremental)
                 {
-                    model.OpcNodes[0].OpcPublishingInterval = (int)(initialOpcPublishingInterval + i * 1000);
+                    model.OpcNodes[0].OpcPublishingInterval = (int)(initialOpcPublishingInterval + (i * 1000));
                     model.OpcNodes[0].OpcSamplingInterval = model.OpcNodes[0].OpcPublishingInterval / 2;
                 }
 

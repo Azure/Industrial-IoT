@@ -17,7 +17,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// Class to check whether there are missing timestamps in the event timeline.
     /// The validation will be done per nodeId.
     /// </summary>
-    class MissingTimestampsChecker : IDisposable
+    sealed class MissingTimestampsChecker : IDisposable
     {
 
         /// <summary>

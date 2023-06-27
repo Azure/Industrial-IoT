@@ -36,11 +36,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Default values
         /// </summary>
         public const int MaxKeepAliveCountDefault = 10;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const bool ResolveDisplayNameDefault = false;
         public const int MinSubscriptionLifetimeDefaultSec = 10;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
@@ -49,7 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool DefaultSamplingUsingCyclicReadDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
-
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>

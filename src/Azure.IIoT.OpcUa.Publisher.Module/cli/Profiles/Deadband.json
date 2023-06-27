@@ -1,7 +1,7 @@
 ﻿[
     {
         "EndpointUrl": "{{EndpointUrl}}",
-        "UseSecurity": true,
+        "EndpointSecurityMode": "SignAndEncrypt",
         "OpcNodes": [
             {
                 "Id": "http://test.org/UA/Data/#i=11224",

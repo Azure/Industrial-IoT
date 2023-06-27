@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone
+namespace OpcPublisherAEE2ETests.Standalone
 {
     using System;
     using System.Collections.Generic;
@@ -100,8 +100,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
 
             // Assert latency
             var end2EndLatency = eventData
-                .Select(v => v.EnqueuedTime - v.SourceTimestamp)
-                .ToList();
+                .ConvertAll(v => v.EnqueuedTime - v.SourceTimestamp)
+;
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
         }

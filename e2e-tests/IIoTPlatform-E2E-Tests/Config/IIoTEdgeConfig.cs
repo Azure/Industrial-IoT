@@ -3,8 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Config
+namespace IIoTPlatformE2ETests.Config
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// IoT Edge configuration
     /// </summary>
@@ -23,6 +25,6 @@ namespace IIoTPlatform_E2E_Tests.Config
         /// <summary>
         /// Nested edge SSH connection
         /// </summary>
-        string[] NestedEdgeSshConnections { get; }
+        IReadOnlyList<string> NestedEdgeSshConnections { get; }
     }
 }

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestModels
+namespace OpcPublisherAEE2ETests.TestModels
 {
     using System;
     using Newtonsoft.Json;
@@ -13,21 +13,21 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels
     {
         /// <summary>Gets or sets Condition Id.</summary>
         /// <example>"http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=1"</example>
-        [JsonProperty("ConditionId")]
+        [JsonProperty(nameof(ConditionId))]
         public DataValueObject<string> ConditionId { get; set; }
 
         /// <summary>Gets or sets comment source timestamp.</summary>
-        [JsonProperty("Comment")]
+        [JsonProperty(nameof(Comment))]
         public DataValueObject<string> Comment { get; set; }
 
         /// <summary>Gets or sets the condition name.</summary>
         /// <example>"VendingMachine1_DoorOpen"</example>
-        [JsonProperty("ConditionName")]
+        [JsonProperty(nameof(ConditionName))]
         public DataValueObject<string> ConditionName { get; set; }
 
         /// <summary>Gets or sets the enabled state.</summary>
         /// <example>"Enabled"</example>
-        [JsonProperty("EnabledState")]
+        [JsonProperty(nameof(EnabledState))]
         public DataValueObject<string> EnabledState { get; set; }
 
         /// <summary>Gets or sets the enabled state effective display name.</summary>
@@ -50,19 +50,19 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels
 
         /// <summary>Gets or sets the event last severity.</summary>
         /// <example>500</example>
-        [JsonProperty("LastSeverity")]
+        [JsonProperty(nameof(LastSeverity))]
         public DataValueObject<int> LastSeverity { get; set; }
 
         /// <summary>Gets or sets the quality.</summary>
-        [JsonProperty("Quality")]
+        [JsonProperty(nameof(Quality))]
         public DataValueObject<string> Quality { get; set; }
 
         /// <summary>Gets or sets the retain flag.</summary>
-        [JsonProperty("Retain")]
+        [JsonProperty(nameof(Retain))]
         public DataValueObject<bool> Retain { get; set; }
 
         /// <summary>Gets or sets the time.</summary>
-        [JsonProperty("Time")]
+        [JsonProperty(nameof(Time))]
         public DataValueObject<DateTime?> Time { get; set; }
     }
 }

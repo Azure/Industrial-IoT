@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone
+namespace OpcPublisherAEE2ETests.Standalone
 {
     using System.Collections.Generic;
     using System.Linq;

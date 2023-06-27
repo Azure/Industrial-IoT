@@ -9,7 +9,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// <summary>
     /// Result of IncrementalIntValueChecker monitoring.
     /// </summary>
-    class IncrementalIntValueCheckerResult
+    sealed class IncrementalIntValueCheckerResult
     {
 
         /// <summary>

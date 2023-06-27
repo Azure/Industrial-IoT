@@ -295,6 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                client?.Dispose();
                 _lock.Release();
             }
         }
@@ -716,6 +717,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            _logger.LogDebug(
+                "Completing {Count} items in subscription {Subscription}...",
+                desiredMonitoredItems.Count, this);
+
             var successfullyCompletedItems = new List<IOpcUaMonitoredItem>();
             foreach (var monitoredItem in desiredMonitoredItems)
             {
@@ -752,6 +757,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ct).ConfigureAwait(false);
                 metadataChanged = false;
             }
+
+            _logger.LogDebug(
+                "Setting monitoring mode on {Count} items in subscription {Subscription}...",
+                successfullyCompletedItems.Count, this);
 
             //
             // Finally change the monitoring mode as required. Batch the requests
@@ -895,33 +904,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var major = (uint)(metaDataVersion >> 32);
             var minor = (uint)metaDataVersion;
 
-            _logger.LogInformation(
-                "Metadata changed to {Major}.{Minor} for subscription {Subscription}.",
+            _logger.LogDebug("Loading Metadata {Major}.{Minor} for subscription {Subscription}...",
                 major, minor, this);
-
-            var typeSystem = await sessionHandle.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
-            var dataTypes = new NodeIdDictionary<DataTypeDescription>();
-            var fields = new FieldMetaDataCollection();
-            foreach (var monitoredItem in monitoredItemsInDataSet)
+            var sw = Stopwatch.StartNew();
+            try
             {
-                monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
-            }
-            return new DataSetMetaDataType
-            {
-                Name = _subscription.Configuration.MetaData.Name,
-                DataSetClassId = (Uuid)_subscription.Configuration.MetaData.DataSetClassId,
-                Namespaces = session.NamespaceUris.ToArray(),
-                EnumDataTypes = dataTypes.Values.OfType<EnumDescription>().ToArray(),
-                StructureDataTypes = dataTypes.Values.OfType<StructureDescription>().ToArray(),
-                SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
-                Fields = fields,
-                Description = _subscription.Configuration.MetaData.Description,
-                ConfigurationVersion = new ConfigurationVersionDataType
+                var typeSystem = await sessionHandle.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                var dataTypes = new NodeIdDictionary<DataTypeDescription>();
+                var fields = new FieldMetaDataCollection();
+                foreach (var monitoredItem in monitoredItemsInDataSet)
                 {
-                    MajorVersion = major,
-                    MinorVersion = minor
+                    monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
                 }
-            };
+                return new DataSetMetaDataType
+                {
+                    Name = _subscription.Configuration.MetaData.Name,
+                    DataSetClassId = (Uuid)_subscription.Configuration.MetaData.DataSetClassId,
+                    Namespaces = session.NamespaceUris.ToArray(),
+                    EnumDataTypes = dataTypes.Values.OfType<EnumDescription>().ToArray(),
+                    StructureDataTypes = dataTypes.Values.OfType<StructureDescription>().ToArray(),
+                    SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
+                    Fields = fields,
+                    Description = _subscription.Configuration.MetaData.Description,
+                    ConfigurationVersion = new ConfigurationVersionDataType
+                    {
+                        MajorVersion = major,
+                        MinorVersion = minor
+                    }
+                };
+            }
+            finally
+            {
+                _logger.LogInformation(
+                    "Loading Metadata {Major}.{Minor} for subscription {Subscription} took {Duration}.",
+                    major, minor, this, sw.Elapsed);
+            }
         }
 
         /// <summary>
@@ -1032,7 +1049,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 _logger.LogInformation(
-                    "Subscription {Subscription} in session {Session} enabled.",
+                    "Enabled Subscription {Subscription} in session {Session}.",
                     this, handle);
             }
         }
@@ -1428,7 +1445,8 @@ Actual (revised) state/desired state:
         /// <exception cref="NotImplementedException"></exception>
         private void OnSubscriptionKeepAliveNotification(Subscription subscription, NotificationData notification)
         {
-            if ((_currentSubscription?.Id ?? 0) == 0 || subscription == null)
+            var currentSubscriptionId = (_currentSubscription?.Id ?? 0);
+            if (currentSubscriptionId == 0 || subscription == null)
             {
                 // Nothing to do here
                 _logger.LogDebug("Got Keep alive without subscription in {Subscription}.",
@@ -1437,7 +1455,7 @@ Actual (revised) state/desired state:
             }
 
             Debug.Assert(_currentSubscription != null);
-            if (subscription.Id != _currentSubscription.Id)
+            if (subscription.Id != currentSubscriptionId)
             {
                 _logger.LogWarning(
                     "Keep alive for wrong subscription {Id} received on {Subscription}.",

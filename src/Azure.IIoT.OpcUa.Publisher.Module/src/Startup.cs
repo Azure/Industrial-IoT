@@ -16,8 +16,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
+    using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
+    using OpenTelemetry.Trace;
     using System;
 
     /// <summary>
@@ -66,6 +68,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     options.UseUtcTimestamp = true;
                     options.TimestampFormat = "[HH:mm:ss.ffff] ";
                 })
+                .AddOpenTelemetry(Configuration, options =>
+                {
+                    options.IncludeScopes = true;
+                    options.ParseStateValues = true;
+                    options.IncludeFormattedMessage = true;
+                    options.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                        .AddTelemetrySdk()
+                        .AddService(Constants.EntityTypePublisher,
+                            default, GetType().Assembly.GetReleaseVersion().ToString()));
+                    options.AddOtlpExporter(Configuration);
+                })
                 .AddDebug())
                 ;
 
@@ -84,12 +97,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .ConfigureResource(r => r
                     .AddService(Constants.EntityTypePublisher,
                         default, GetType().Assembly.GetReleaseVersion().ToString()))
+                .WithTracing(builder => builder
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(Configuration))
                 .WithMetrics(builder => builder
                     .AddMeter(Diagnostics.Meter.Name)
                     .AddRuntimeInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
-                    .AddPrometheusExporter())
+                    .AddPrometheusExporter()
+                    .AddOtlpExporter(Configuration))
                 ;
 
             services.AddControllers()
@@ -145,6 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // to fall back in the reverse order for
             // sending operational and discovery events!
             //
+            builder.AddNullEventClient();
             builder.AddFileSystemEventClient(Configuration);
             builder.AddHttpEventClient(Configuration);
             builder.AddDaprClient(Configuration);

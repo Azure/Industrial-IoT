@@ -365,12 +365,14 @@ Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.j
 
 ### Configuration Schema
 
-The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md). The following items are part of a configuration file JSON array (or API payload).
+The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md). The following items are part of a configuration file's JSON array (or the API payload).
 
 ```json
 {
   "EndpointUrl": "string",
   "UseSecurity": "bool",
+  "EndpointSecurityMode": "string",
+  "EndpointSecurityPolicy": "string",
   "OpcAuthenticationMode": "string",
   "OpcAuthenticationUsername": "string",
   "OpcAuthenticationPassword": "string",
@@ -437,8 +439,10 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `Version` | No | Integer | `null` | A monotonically increasing number identifying the change version.<br>NOTE: At this point the version number is informational only, but should be provided in API requests if available. It is not used inside file based configuration. |
 | `LastChangeTimespan` | No | String | `null` | The time the Publisher configuration was last updated.<br>Read only and informational only. |
 | `EndpointUrl` | Yes | String | N/A | The OPC UA server endpoint URL |
-| `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
 | `UseReverseConnect` | No | Boolean | `false` | Controls whether to use OPC UA reverse connect to connect to the OPC UA server.<br>A publisher wide default value can be set using the [command line](./commandline.md) |
+| `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint.<br>`true` corresponds to `EndpointSecurityMode` = `SignAndEncrypt`, `false` to `EndpointSecurityMode` = `None` |
+| `EndpointSecurityMode` | No | Enum | `null` | Enum to specify a requested security mode of the chosen session endpoint. Overrides `UseSecurity` value.<br>Options: `Sign`, `SignAndEncrypt`, `None`, and `Best` (security mode possible which might include `None`) |
+| `EndpointSecurityPolicy` | No | String | `null` | String to specify a security policy the chosen endpoint must meet. Refines the endpoint chosen through `EndpointSecurityMode` and overrides `UseSecurity` value. |
 | `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
 | `OpcAuthenticationUsername` | No | String | `null` | The username for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
 | `OpcAuthenticationPassword` | No | String | `null` | The password for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
@@ -588,17 +592,15 @@ The OPC UA server always sends the first data value to OPC Publisher when the su
 
 ### Configuring Security
 
-IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates for:
+IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates fo mutual authentication of both OPC Pulisher clients and the OPC UA server and to establish a secure channel between both. OPC Publisher can be configured to store these certificates in a file system based certificate store which root can be configured using the `--pki` command line argument. During startup, OPC Publisher checks if there's already a private certificate it should use as its identity. If it cannot find one, a self-signed certificate is created.
 
-- mutual authentication of clients and server systems
-- encrypted communication between the systems
-- optionally for user authentication
+> Self-signed certificates don't provide any trust value and we don't recommend using them in production.
 
-OPC Publisher can be configured to store these certificates in a file system based certificate store. During startup, OPC Publisher checks if there's already a private certificate it can use. If not, a self-signed certificate is created. Self-signed certificates don't provide any trust value and we don't recommend using them in production.
+Encrypted communication between OPC Publisher and the OPC UA server can be enabled per endpoint via the `"UseSecurity": true,` flag in the [configuration](#configuration-schema). In addition, a specific security mode and policy can be chosen using the `EndpointSecurityMode` and `EndpointSecurityPolicy` configuration properties which possibly override the `UseSecurity` value. If none of these are specified then OPC Publisher will connect to the endpoint URL using **no security** at all to support backwards compatibility to previous versions of OPC Publisher.
 
-Encrypted communication can be enabled per endpoint via the `"UseSecurity": true,` flag. By default OPC Publisher will connect to an endpoint using the least secure mode OPC Publisher and the OPC UA server support.
+> Use encrypted communication whenever possible. Do not use `Best` as `EndpointSecurityMode` as this can mean that `None` could be chosen if the server does not returns any secure endpoint descriptors during discovery. In this case it is better to fail connecting.
 
-By default OPC Publisher does use anonymous authentication. However, OPC Publisher also supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
+By default OPC Publisher connects to the endpoint using anonymous authentication. However, OPC Publisher also supports user authentication using username and password. These credentials can be specified using the configuration file as follows:
 
 ``` json
   "OpcAuthenticationMode": "UsernamePassword",
@@ -606,7 +608,9 @@ By default OPC Publisher does use anonymous authentication. However, OPC Publish
   "OpcAuthenticationPassword": "pwd",
 ```
 
-> OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text. 2.9 allows you to force encryption of credentials at rest (`--fce`) or otherwise cause OPC Publisher to exit.
+> If user credentials are configured you should always enable encypted communication to ensure the password is not leaked. OPC Publisher does not force encrypted authentication if a password is specified.
+
+OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text. 2.9 allows you to force encryption of credentials at rest (`--fce`) or otherwise cause OPC Publisher to exit.
 
 ### Using OPC UA reverse connect
 

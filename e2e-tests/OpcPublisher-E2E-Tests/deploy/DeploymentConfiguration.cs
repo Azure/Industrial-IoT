@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy
+namespace OpcPublisherAEE2ETests.Deploy
 {
     using Microsoft.Azure.Devices;
     using System;
@@ -14,7 +14,7 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy
 
     public abstract class DeploymentConfiguration : IIoTHubEdgeDeployment
     {
-        public DeploymentConfiguration(IIoTPlatformTestContext context)
+        protected DeploymentConfiguration(IIoTPlatformTestContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }

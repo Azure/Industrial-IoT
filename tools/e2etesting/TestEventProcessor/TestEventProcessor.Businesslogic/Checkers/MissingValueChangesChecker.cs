@@ -14,7 +14,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// <summary>
     /// Checker to validate that expected number of value changes have been received per timestamp.
     /// </summary>
-    class MissingValueChangesChecker : IDisposable
+    sealed class MissingValueChangesChecker : IDisposable
     {
 
         private readonly uint _expectedValueChangesPerTimestamp;

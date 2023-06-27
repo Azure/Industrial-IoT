@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests
+namespace OpcPublisherAEE2ETests
 {
     using Azure.Core;
     using Azure.Identity;
@@ -18,7 +18,7 @@ namespace OpcPublisher_AE_E2E_Tests
     using Microsoft.WindowsAzure.Storage.Auth;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using OpcPublisher_AE_E2E_Tests.Config;
+    using OpcPublisherAEE2ETests.Config;
     using Renci.SshNet;
     using System;
     using System.Collections.Generic;
@@ -826,7 +826,7 @@ namespace OpcPublisher_AE_E2E_Tests
                     writerGroupIdFunc,
                     context.PlcAciDynamicUrls.Count,
                     () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
-                    () => context.OutputHelper?.WriteLine($"Consuming messages...")
+                    () => context.OutputHelper?.WriteLine("Consuming messages...")
                 )
                 .TakeWhile(predicate);
         }

@@ -1,14 +1,14 @@
 ﻿[
     {
         "EndpointUrl": "{{EndpointUrl}}",
-        "UseSecurity": true,
+        "EndpointSecurityMode": "Sign",
         "OpcNodes": [
             {
                 "Id": "ns=23;i=1259",
                 "OpcSamplingInterval": 2000,
                 "OpcPublishingInterval": 2000,
                 "DisplayName": "Output",
-                "SkipFirst":  true
+                "SkipFirst": true
             }
         ]
     }

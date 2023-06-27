@@ -973,10 +973,6 @@
         "serviceUrl": {
             "type": "string",
             "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.serviceUrl.value, '')]"
-        },
-        "appUrl": {
-            "type": "string",
-            "value": "[if (variables('platformDeployment'), reference(variables('platformResourceId'), '2017-05-10').outputs.appUrl.value, '')]"
         }
     }
 }

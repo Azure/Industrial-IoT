@@ -13,8 +13,9 @@ namespace TestEventProcessor
     using BusinessLogic;
     using Microsoft.Extensions.Logging;
     using Serilog.Extensions.Logging;
+    using System.Globalization;
 
-    class Program
+    sealed class Program
     {
         static async Task Main(string[] args)
         {
@@ -46,7 +47,7 @@ namespace TestEventProcessor
             }
 
             Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}][{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}][{Level:u3}] {Message:lj}{NewLine}{Exception}", formatProvider: CultureInfo.InvariantCulture)
             .CreateLogger();
 
             var configuration = new ValidatorConfiguration()

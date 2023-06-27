@@ -156,6 +156,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public IDictionary<string, VariantValue>? DataSetExtensionFields { get; set; }
 
         /// <summary>
+        /// The specific security mode to use for the specified
+        /// endpoint. Overrides <see cref="UseSecurity"/> setting.
+        /// If the security mode is not available with any
+        /// configured security policy connectivity will fail.
+        /// Default: <see cref="SecurityMode.SignAndEncrypt"/> if
+        /// <see cref="UseSecurity"/> is <c>true</c>,
+        /// otherwise <see cref="SecurityMode.None"/>
+        /// </summary>
+        [DataMember(Name = "EndpointSecurityMode", Order = 18,
+            EmitDefaultValue = false)]
+        public SecurityMode? EndpointSecurityMode { get; set; }
+
+        /// <summary>
+        /// The specific security policy to use for the specified
+        /// endpoint. Overrides <see cref="UseSecurity"/> setting.
+        /// If the security policy is not available with the
+        /// specified security mode connectivity will fail.
+        /// </summary>
+        [DataMember(Name = "EndpointSecurityPolicy", Order = 19,
+            EmitDefaultValue = false)]
+        public string? EndpointSecurityPolicy { get; set; }
+
+        /// <summary>
         /// The messaging mode to use for the data sets
         /// in hte writer group
         /// </summary>

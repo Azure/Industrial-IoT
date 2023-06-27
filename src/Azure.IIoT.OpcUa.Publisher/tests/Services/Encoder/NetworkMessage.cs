@@ -83,11 +83,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        ValueTask IEvent.SendAsync(CancellationToken ct)
-        {
-            throw new NotImplementedException();
-        }
-
         public static IEvent Create()
         {
             return new NetworkMessage();
@@ -254,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
         public ValueTask SendAsync(CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            return ValueTask.CompletedTask;
         }
     }
 }

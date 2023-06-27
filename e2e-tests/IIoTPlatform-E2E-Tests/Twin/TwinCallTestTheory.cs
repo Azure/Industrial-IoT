@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin
+namespace IIoTPlatformE2ETests.Twin
 {
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using IIoTPlatformE2ETests.TestExtensions;
     using Microsoft.CSharp.RuntimeBinder;
     using System;
     using System.Collections.Generic;
@@ -83,7 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Twin
             Assert.Null(GetErrorMessage(response));
         }
 
-        private string GetErrorMessage(dynamic content)
+        private static string GetErrorMessage(dynamic content)
         {
             try
             {

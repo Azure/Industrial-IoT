@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone
+namespace IIoTPlatformE2ETests.Standalone
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using IIoTPlatform_E2E_Tests.Deploy;
+    using IIoTPlatformE2ETests.Deploy;
     using System;
     using System.Linq;
     using System.Threading;

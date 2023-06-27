@@ -327,7 +327,9 @@ namespace Opc.Ua.Extensions
             {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
                 const string sepPattern = @"(.+)#([isgb]{1}\=.*)";
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                 var match = Regex.Match(value, sepPattern);
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                 if (match.Success)
                 {
                     nsUri = match.Groups[1].Value;

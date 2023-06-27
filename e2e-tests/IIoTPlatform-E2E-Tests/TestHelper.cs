@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests
+namespace IIoTPlatformE2ETests
 {
-    using IIoTPlatform_E2E_Tests.TestEventProcessor;
+    using IIoTPlatformE2ETests.TestEventProcessor;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -152,7 +152,9 @@ namespace IIoTPlatform_E2E_Tests
                             Assert.NotEmpty(entryModels[0].OpcNodes);
 
                             // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                             string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                             entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
 
                             result.Add(ipAddress, entryModels[0]);

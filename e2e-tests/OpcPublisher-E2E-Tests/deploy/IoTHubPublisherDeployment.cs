@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy
+namespace OpcPublisherAEE2ETests.Deploy
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using Newtonsoft.Json;
     using TestExtensions;
 
@@ -25,14 +26,14 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context)
         {
             MessagingMode = messagingMode;
-            _deploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
+            DeploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
         }
 
         /// <inheritdoc />
         protected override int Priority => 1;
 
         /// <inheritdoc />
-        protected override string DeploymentName => _deploymentName;
+        protected override string DeploymentName { get; }
 
         protected override string TargetCondition => kTargetCondition;
 
@@ -83,7 +84,7 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy
                         "SETUID"
                     }
                 }
-            }).Replace("\"", "\\\"");
+            }).Replace("\"", "\\\"", StringComparison.Ordinal);
 
             var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
                 TestConstants.MicrosoftContainerRegistry : _context.ContainerRegistryConfig.ContainerRegistryServer;
@@ -119,7 +120,5 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";
-
-        private readonly string _deploymentName;
     }
 }

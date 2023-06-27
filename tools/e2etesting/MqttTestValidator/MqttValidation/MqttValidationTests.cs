@@ -8,6 +8,7 @@ namespace MqttValidation
     using FluentAssertions;
     using NUnit.Framework;
     using System;
+    using System.Globalization;
     using System.Net.Http;
     using System.Threading.Tasks;
 
@@ -54,9 +55,9 @@ namespace MqttValidation
             var request = new MqttVerificationRequest();
 
             SetFromEnv(v => request.MqttBroker = v, BrokerEndpointKey);
-            SetFromEnv(v => request.MqttPort = int.Parse(v), BrokerPortKey);
+            SetFromEnv(v => request.MqttPort = int.Parse(v, CultureInfo.InvariantCulture), BrokerPortKey);
             SetFromEnv(v => request.MqttTopic = v, TopicKey);
-            SetFromEnv(v => request.TimeToObserve = int.Parse(v), TimeToObserveKey);
+            SetFromEnv(v => request.TimeToObserve = int.Parse(v, CultureInfo.InvariantCulture), TimeToObserveKey);
 
             MqttVerificationResponse verificationTask = await _swaggerClient.StartVerificationAsync(request).ConfigureAwait(false);
 

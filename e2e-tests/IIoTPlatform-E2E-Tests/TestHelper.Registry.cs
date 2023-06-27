@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests
+namespace IIoTPlatformE2ETests
 {
     using Furly.Exceptions;
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using IIoTPlatformE2ETests.TestExtensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using RestSharp;

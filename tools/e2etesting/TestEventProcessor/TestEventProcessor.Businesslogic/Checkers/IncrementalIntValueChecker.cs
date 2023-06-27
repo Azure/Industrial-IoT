@@ -15,9 +15,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// Checker to validate that values for nodeIds are incrementally increasing integers.
     /// It will return number of values that were either duplicates or indicate that dropped messages.
     /// </summary>
-    class IncrementalIntValueChecker : IDisposable
+    sealed class IncrementalIntValueChecker : IDisposable
     {
-
         private readonly IDictionary<string, int> _latestValuePerNodeId;
         private readonly IDictionary<string, DateTime> _latestDateTimePerNodeId;
         private uint _duplicateValues;

@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin
+namespace IIoTPlatformE2ETests.Twin
 {
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using IIoTPlatformE2ETests.TestExtensions;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -42,9 +42,9 @@ namespace IIoTPlatform_E2E_Tests.Twin
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
-            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId, StringComparison.Ordinal));
 
             Assert.Equal(3, nodes.Count);
         }
@@ -61,16 +61,16 @@ namespace IIoTPlatform_E2E_Tests.Twin
 
             const string nodeId = "i=85";
 
-            Assert.Contains(nodes, n => string.Equals(nodeId, n.NodeId));
+            Assert.Contains(nodes, n => string.Equals(nodeId, n.NodeId, StringComparison.Ordinal));
 
             nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, nodeId).ConfigureAwait(false);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
-            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId, StringComparison.Ordinal));
         }
 
         [Fact, PriorityOrder(3)]
@@ -113,12 +113,12 @@ namespace IIoTPlatform_E2E_Tests.Twin
 
             Assert.True(nodes.Count > 150);
 
-            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId, StringComparison.Ordinal));
         }
 
         [Fact, PriorityOrder(6)]
@@ -133,9 +133,9 @@ namespace IIoTPlatform_E2E_Tests.Twin
 
             Assert.True(nodes.Count > 2000);
 
-            Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
         }
     }
 }

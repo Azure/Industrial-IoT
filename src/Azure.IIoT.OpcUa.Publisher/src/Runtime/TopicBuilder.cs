@@ -113,15 +113,17 @@ namespace Azure.IIoT.OpcUa.Publisher
                 {
                     return string.Empty;
                 }
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                 return Regex.Replace(template, "{([^}]+)}", m =>
+                {
+                    if (Variables.TryGetValue(m.Groups[1].Value, out var v))
                     {
-                        if (Variables.TryGetValue(m.Groups[1].Value, out var v))
-                        {
-                            Variables.Remove(m.Groups[1].Value);
-                            return v.Invoke(this);
-                        }
-                        return m.Groups[1].Value;
-                    });
+                        Variables.Remove(m.Groups[1].Value);
+                        return v.Invoke(this);
+                    }
+                    return m.Groups[1].Value;
+                });
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
             }
         }
 

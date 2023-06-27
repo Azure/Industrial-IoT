@@ -347,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ConcurrentDictionary<string,
             Action<WriterGroupDiagnosticModel, object>> _bindings = new()
             {
-                ["iiot_edge_publisher_sent_iot_messages"] =
+                ["iiot_edge_publisher_messages"] =
                 (d, i) => d.OutgressIoTMessageCount = (long)i,
                 ["iiot_edge_publisher_data_changes"] =
                 (d, i) => d.IngressDataChanges = (long)i,
@@ -363,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (d, i) => d.IngressEventNotifications = (long)i,
                 ["iiot_edge_publisher_estimated_message_chunks_per_day"] =
                 (d, i) => d.EstimatedIoTChunksPerDay = (double)i,
-                ["iiot_edge_publisher_sent_iot_messages_per_second"] =
+                ["iiot_edge_publisher_messages_per_second"] =
                 (d, i) => d.SentMessagesPerSec = (double)i,
                 ["iiot_edge_publisher_chunk_size_average"] =
                 (d, i) => d.EncoderAvgIoTChunkUsage = (double)i,

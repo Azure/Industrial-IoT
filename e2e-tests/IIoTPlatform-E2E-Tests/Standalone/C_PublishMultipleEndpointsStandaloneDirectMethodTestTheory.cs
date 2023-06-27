@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone
+namespace IIoTPlatformE2ETests.Standalone
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
-    using IIoTPlatform_E2E_Tests.Deploy;
+    using IIoTPlatformE2ETests.Deploy;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -561,7 +561,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
             for (int index = 0; index < endpointsCount; ++index)
             {
                 var receivedEndpointUrl = configuredEndpointsResponse.Endpoints[index].EndpointUrl;
-                Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.Equals(receivedEndpointUrl)));
+                Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.Equals(receivedEndpointUrl, StringComparison.Ordinal)));
             }
 
             // Check that all expected nodes on endpoints are present.
@@ -751,7 +751,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
                 Assert.Equal(endpointsCount - 1 - index, configuredEndpointsResponse.Endpoints.Count);
 
                 var removedEndpointUrl = currentNodes[index].EndpointUrl;
-                Assert.Null(configuredEndpointsResponse.Endpoints.Find(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl)));
+                Assert.Null(configuredEndpointsResponse.Endpoints.Find(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl, StringComparison.Ordinal)));
 
                 await Task.Delay(2_000).ConfigureAwait(false);
             }

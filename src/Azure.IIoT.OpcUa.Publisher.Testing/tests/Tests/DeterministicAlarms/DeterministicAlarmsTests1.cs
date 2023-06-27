@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             _services = services;
             _connection = connection;
-            _server = server;
         }
 
         public async Task BrowseAreaPathVendingMachine1DoorOpenTestAsync(CancellationToken ct = default)
@@ -400,10 +399,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             await services.NodeShouldHaveStatesAsync(_connection, lightOff2,
                 "Active", "Enabled").ConfigureAwait(false);
         }
+        private readonly DeterministicAlarmsServer1 _server;
 #endif
 
         private readonly Func<INodeServices<T>> _services;
-        private readonly DeterministicAlarmsServer1 _server;
         private readonly T _connection;
     }
 }

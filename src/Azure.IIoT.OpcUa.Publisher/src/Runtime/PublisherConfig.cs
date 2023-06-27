@@ -22,8 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Configuration
         /// </summary>
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string PublisherIdKey = "PublisherId";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
@@ -51,23 +51,27 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
         public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
         public const string DefaultTransportKey = "DefaultTransport";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Variables in templates
         /// </summary>
         public const string PublisherIdVariableName = "PublisherId";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string RootTopicVariableName = "RootTopic";
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetClassIdVariableName = "DataSetClassId";
         //public const string TelemetryTopicVariableName = "TelemetryTopic";
         //public const string SiteIdVariableName = "SiteId";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Default values
         /// </summary>
         public const string TelemetryTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/messages/{{{DataSetWriterGroupVariableName}}}";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string MethodTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/methods";
         public const string EventsTopicTemplateDefault =

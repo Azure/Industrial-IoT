@@ -113,8 +113,7 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
     - `local`: Just what is necessary to run the services locally
     - `services`: `local` and the service container
     - `simulation`: `local` and the simulation components
-    - `app`: `services` and the engineering tool
-    - `all` (default): all components
+    - `all`: `services` and `simulation`
 
     Depending on the chosen deployment type the following services will be deployed:
 
@@ -166,8 +165,7 @@ Use the following command to run `aad-register.ps1` script for creation of the A
 Specify desired application name instead of the `<application-name>` and your tenant id.
 Follow the script commands and provide additional details where needed.
 
-> Note: `ReplyUrl` has the following format `https://<application-name>.azurewebsites.net/`, as we are using
-> an instance of App Service to host Engineering Tool.
+> Note: `ReplyUrl` has the following format `https://<application-name>.azurewebsites.net/`, as we are using an instance of App Service to host the web api service.
 
 ```bash
 cd deploy/scripts
@@ -938,22 +936,6 @@ Click on this App Registration and go to its Authentication page:
 ![AAD](./media/image48.png)
 
 The App registration page reveals that there is a mismatch between the Redirect URI that the authentication request provided and from what is expected based on the App Registration settings. To resolve this issue the erroneous link should be fixed, or a new entry can be added. In this case, the first entry has been set incorrectly and has to be fixed by removing the_error part.
-
-It should be noted that there are two groups of Redirect URIs here, one is for authentication from the Swagger UI and the second one is for authentication from the Engineering Tool. The endpoint for the Swagger UIs should have the following structure:
-
-`https://<hostname>/<component>/swagger/oauth2-redirect.html`
-
-And the one for the Engineering Tool has the following structure:
-
-`https://<hostname>/frontend/signin-oidc`
-
-When the incorrect Redirect URI is changed from the first Uri to the second Uri, the authentication from the Swagger UI of the OPC Publisher to access the publisher cloud services should start to work:
-
-```cmd
-https://azure-iiot-27180.westeurope.cloudapp.azure.com/publisher_error/swagger/oauth2-redirect.html
-
-https://azure-iiot-27180.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-redirect.html
-```
 
 References:
 

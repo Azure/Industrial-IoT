@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestExtensions
+namespace OpcPublisherAEE2ETests.TestExtensions
 {
-    using OpcPublisher_AE_E2E_Tests.Deploy;
+    using OpcPublisherAEE2ETests.Deploy;
 
     /// <summary>
     /// Test context to pass data between test cases for standalone tests.

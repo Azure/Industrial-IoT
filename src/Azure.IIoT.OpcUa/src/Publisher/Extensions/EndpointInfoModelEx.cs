@@ -31,11 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             url = url.ToLowerInvariant();
-
-            if (!mode.HasValue || mode.Value == SecurityMode.None)
-            {
-                mode = SecurityMode.Best;
-            }
+            mode ??= SecurityMode.SignAndEncrypt;
             securityPolicy = securityPolicy?.ToLowerInvariant() ?? "";
 
             var id = $"{url}-{applicationId}-{mode}-{securityPolicy}";

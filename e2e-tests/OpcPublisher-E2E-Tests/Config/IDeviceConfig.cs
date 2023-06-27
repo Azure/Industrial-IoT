@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Config
+namespace OpcPublisherAEE2ETests.Config
 {
     /// <summary>
     /// IoT Edge device configuration

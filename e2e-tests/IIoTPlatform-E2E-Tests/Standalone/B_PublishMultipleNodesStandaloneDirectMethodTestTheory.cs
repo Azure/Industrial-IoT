@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone
+namespace IIoTPlatformE2ETests.Standalone
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
-    using IIoTPlatform_E2E_Tests.Deploy;
+    using IIoTPlatformE2ETests.Deploy;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -26,7 +26,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class BPublishMultipleNodesStandaloneDirectMethodTestTheory : DirectMethodTestBase
     {
-        private CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _cts;
 
         public BPublishMultipleNodesStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
@@ -212,7 +212,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null)
             {
-                var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
+                var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.ConvertAll(n => n.Id);
                 foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
                 {
                     var propertyName = property.Key;

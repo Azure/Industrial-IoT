@@ -216,6 +216,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             OpcAuthenticationPassword = null,
                             EndpointUrl = null,
                             UseSecurity = false,
+                            UseReverseConnect = null,
+                            EndpointSecurityPolicy = null,
+                            EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
                             EncryptedAuthUsername = null
                         }));
@@ -462,9 +465,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 Endpoint = new EndpointModel
                 {
                     Url = model.EndpointUrl,
-                    SecurityMode = model.UseSecurity
-                        ? SecurityMode.Best
-                        : SecurityMode.None
+                    SecurityPolicy = model.EndpointSecurityPolicy,
+                    SecurityMode = model.EndpointSecurityMode ?? (model.UseSecurity
+                        //
+                        // This is a break in backwards compatibility. Previously we would allow
+                        // also no security because SecurityMode.Best was used for UseSecurity.
+                        // However, the expectation is that highest security is going to be used
+                        // or to fail.
+                        //
+                        ? SecurityMode.SignAndEncrypt
+                        : SecurityMode.None)
                 },
                 User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
                     null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult()
@@ -510,10 +520,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 default:
                     throw new NotSupportedException($"Credentials of type {credential?.Type} are not supported.");
             }
-            if (connection?.Endpoint != null)
+            if (connection != null)
             {
-                publishedNodesEntryModel.EndpointUrl = connection.Endpoint.Url;
-                publishedNodesEntryModel.UseSecurity = connection.Endpoint.SecurityMode != SecurityMode.None;
+                if (connection.Endpoint != null)
+                {
+                    publishedNodesEntryModel.EndpointUrl = connection.Endpoint.Url;
+                    publishedNodesEntryModel.UseSecurity = connection.Endpoint.SecurityMode != SecurityMode.None;
+                    publishedNodesEntryModel.EndpointSecurityMode = connection.Endpoint.SecurityMode;
+                    publishedNodesEntryModel.EndpointSecurityPolicy = connection.Endpoint.SecurityPolicy;
+                    if (connection.Endpoint.SecurityPolicy == null &&
+                        connection.Endpoint.SecurityMode != SecurityMode.Sign)
+                    {
+                        // Fall back to let UseSecurity decide on security (legacy)
+                        publishedNodesEntryModel.EndpointSecurityMode = null;
+                    }
+                }
+                publishedNodesEntryModel.UseReverseConnect = connection.IsReverse;
             }
             return publishedNodesEntryModel;
 

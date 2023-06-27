@@ -376,15 +376,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
                 () => new Measurement<long>(_encodingBlock.OutputCount, _metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
-            _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
+            _meter.CreateObservableCounter("iiot_edge_publisher_messages",
                 () => new Measurement<long>(_messagesSentCount, _metrics.TagList), "Messages",
-                "Number of IoT messages successfully sent to Sink (IoT Hub or Edge Hub).");
-            _meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
+                "Number of IoT messages successfully sent via transport.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_messages_per_second",
                 () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList), "Messages/second",
-                "IoT messages/second sent to Sink (IoT Hub or Edge Hub).");
-            _meter.CreateObservableGauge("iiot_edge_publisher_estimated_message_chunks_per_day",
-                () => new Measurement<double>(_messagesSentCount, _metrics.TagList), "Messages/day",
-                "Estimated 4kb message chunks used from daily quota.");
+                "Messages/second sent via transport.");
         }
 
         static readonly Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(

@@ -16,10 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
     public class AdvancedPubSubIntegrationTests : PublisherIntegrationTestBase
     {
-        internal const string kEventId = "EventId";
-        internal const string kMessage = "Message";
-        internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
-        internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
         public AdvancedPubSubIntegrationTests(ITestOutputHelper output) : base(output)

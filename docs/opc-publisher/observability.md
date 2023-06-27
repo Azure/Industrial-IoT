@@ -71,46 +71,46 @@ The following table describes the actual instruments that are logged per endpoin
 
 By convention, all instrument names start with _"iiot"_, e.g., `iiot_<component>_<metric>`. Metrics are collected through the .net Observability infrastructure. For backwards compatibility and to support IoT Edge metrics collector, metrics from OPC Publisher are exposed in Prometheus format on path _/metrics_ on the default HTTP server port (see `-p` [command line argument](./commandline.md). When binding the HTTPS port to 9072 on the host machine, the URL becomes <https://localhost:9072/metrics>.
 
-![metrics](./media/metrics.jpeg)
-
 One can combine information from multiple metrics to understand and paint a bigger picture of the state of the publisher. The following table describes the individual default metrics which are in Prometheus format.
 
 | Instrument Name | Dimensions | Description | Type |
 |-----------------|------------|-------------|------|
-| iiot_edge_module_start                                  | module, version, deviceid, timestamp_utc, runid | Edge modules start timestamp with version. Used to calculate uptime, device restarts.   | gauge     |
-| iiot_edge_publisher_monitored_items                     | subscription                                     | Total monitored items per subscription                                                  | gauge     |
-| iiot_edge_device_reconnected                             | device, timestamp_utc                           | OPC UA server reconnection count                                                        | gauge     |
-| iiot_edge_device_disconnected                            | device, timestamp_utc                           | OPC UA server disconnection count                                                       | gauge     |
-| iiot_edge_reconnected                                     | module, device, timestamp_utc                   | Edge device reconnection count                                                          | gauge     |
-| iiot_edge_disconnected                                    | module, device, timestamp_utc                   | Edge device disconnection count                                                         | gauge     |
-| iiot_edge_publisher_messages_duration                   | le (less than equals)                            | Time taken to send messages from publisher. Used to calculate P50, P90, P95, P99, P99.9 | histogram |
-| iiot_edge_publisher_value_changes                       | deviceid, module, triggerid                      | OPC UA server ValuesChanges delivered for processing                                    | gauge     |
-| iiot_edge_publisher_value_changes_per_second          | deviceid, module, triggerid                      | OPC UA server ValuesChanges delivered for processing per second                         | gauge     |
-| iiot_edge_publisher_data_changes                        | deviceid, module, triggerid                      | OPC UA server DataChanges delivered for processing                                      | gauge     |
-| iiot_edge_publisher_data_changes_per_second           | deviceid, module, triggerid                      | OPC UA server DataChanges delivered for processing                                      | gauge     |
-| iiot_edge_publisher_iothub_queue_size                  | deviceid, module, triggerid                      | Queued messages to IoTHub                                                               | gauge     |
-| iiot_edge_publisher_iothub_queue_dropped_count        | deviceid, module, triggerid                      | IoTHub dropped messages count                                                           | gauge     |
-| iiot_edge_publisher_sent_iot_messages                  | deviceid, module, triggerid                      | Messages sent to IoTHub                                                                 | gauge     |
-| iiot_edge_publisher_sent_iot_messages_per_second     | deviceid, module, triggerid                      | Messages sent to IoTHub per second                                                      | gauge     |
-| iiot_edge_publisher_connection_retries                  | deviceid, module, triggerid                      | Connection retries to OPC UA server                                                     | gauge     |
-| iiot_edge_publisher_encoded_notifications               | deviceid, module, triggerid                      | Encoded OPC UA server notifications count                                               | gauge     |
-| iiot_edge_publisher_dropped_notifications               | deviceid, module, triggerid                      | Dropped OPC UA server notifications count                                               | gauge     |
-| iiot_edge_publisher_processed_messages                  | deviceid, module, triggerid                      | Processed IoT messages count                                                            | gauge     |
-| iiot_edge_publisher_notifications_per_message_average | deviceid, module, triggerid                      | OPC UA sever notifications per IoT message average                                      | gauge     |
-| iiot_edge_publisher_encoded_message_size_average      | deviceid, module, triggerid                      | Encoded IoT message body size average                                                   | gauge     |
-| iiot_edge_publisher_chunk_size_average                 | deviceid, module, triggerid                      | IoT Hub chunk size average                                                              | gauge     |
-| iiot_edge_publisher_estimated_message_chunks_per_day | deviceid, module, triggerid                      | Estimated IoT Hub chunks charged per day                                                | gauge     |
-| iiot_edge_publisher_is_connection_ok                 | deviceid, module, triggerid                      | Is the endpoint connection ok?                                                          | gauge     |
-| iiot_edge_publisher_good_nodes                       | deviceid, module, triggerid                      | How many nodes are receiving data for this endpoint?                                    | gauge     |
-| iiot_edge_publisher_bad_nodes                        | deviceid, module, triggerid                      | How many nodes are misconfigured for this endpoint?                                     | gauge     |
+| iiot_edge_module_start                                  | Edge modules start timestamp with version. Used to calculate uptime, device restarts.   | gauge     |
+| iiot_edge_publisher_monitored_items                     | Total monitored items per subscription                                                  | gauge     |
+| iiot_edge_device_reconnected                             | OPC UA server reconnection count                                                        | gauge     |
+| iiot_edge_device_disconnected                            | OPC UA server disconnection count                                                       | gauge     |
+| iiot_edge_reconnected                                     | Edge device reconnection count                                                          | gauge     |
+| iiot_edge_disconnected                                   | Edge device disconnection count                                                         | gauge     |
+| iiot_edge_publisher_messages_duration                  | Time taken to send messages from publisher. Used to calculate P50, P90, P95, P99, P99.9 | histogram |
+| iiot_edge_publisher_value_changes                                             | OPC UA server ValuesChanges delivered for processing                                    | gauge     |
+| iiot_edge_publisher_value_changes_per_second                                | OPC UA server ValuesChanges delivered for processing per second                         | gauge     |
+| iiot_edge_publisher_data_changes                                              | OPC UA server DataChanges delivered for processing                                      | gauge     |
+| iiot_edge_publisher_data_changes_per_second                                 | OPC UA server DataChanges delivered for processing                                      | gauge     |
+| iiot_edge_publisher_iothub_queue_size                                        | Queued messages to IoTHub                                                               | gauge     |
+| iiot_edge_publisher_iothub_queue_dropped_count                              | IoTHub dropped messages count                                                           | gauge     |
+| iiot_edge_publisher_messages                                        | Messages sent to IoTHub                                                                 | gauge     |
+| iiot_edge_publisher_messages_per_second                           | Messages sent to IoTHub per second                                                      | gauge     |
+| iiot_edge_publisher_connection_retries                                        | Connection retries to OPC UA server                                                     | gauge     |
+| iiot_edge_publisher_encoded_notifications                                     | Encoded OPC UA server notifications count                                               | gauge     |
+| iiot_edge_publisher_dropped_notifications                                     | Dropped OPC UA server notifications count                                               | gauge     |
+| iiot_edge_publisher_processed_messages                                        | Processed IoT messages count                                                            | gauge     |
+| iiot_edge_publisher_notifications_per_message_average                       | OPC UA sever notifications per IoT message average                                      | gauge     |
+| iiot_edge_publisher_encoded_message_size_average                            | Encoded IoT message body size average                                                   | gauge     |
+| iiot_edge_publisher_chunk_size_average                                       | IoT Hub chunk size average                                                              | gauge     |
+| iiot_edge_publisher_estimated_message_chunks_per_day                       | Estimated IoT Hub chunks charged per day                                                | gauge     |
+| iiot_edge_publisher_is_connection_ok                                       | Is the endpoint connection ok?                                                          | gauge     |
+| iiot_edge_publisher_good_nodes                                             | How many nodes are receiving data for this endpoint?                                    | gauge     |
+| iiot_edge_publisher_bad_nodes                                              | How many nodes are misconfigured for this endpoint?                                     | gauge     |
 
-You can use the IoT Edge [Metrics Collector](#metrics-collector) module to collect the metrics.
+You can use the IoT Edge [Metrics Collector](#iot-edge-metrics-collector) module to collect the metrics.
 
 Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Kusto, we could then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
 
-## Metrics collector
+## IoT Edge Metrics collector
 
 The metrics collector module pulls metrics exposed by OPC Publisher and pushes them to the Log Analytics workspace.
+
+![metrics](./media/metrics.jpeg)
 
 The default configuration to enable scraping metrics is:
 
@@ -128,17 +128,23 @@ The default configuration to enable scraping metrics is:
 
 > This assumes the http server in OPC Pubilsher has not been disabled. Disabling the internal HTTP server also disables the Prometheus endpoint.
 
-## Metrics Dashboard
+## OpenTelemetry
 
-**Please note: This feature is only available in OPC Publisher's version 2.7 and above.**
+It is possible to export all [metrics](#available-metrics), traces and [logs](#logging) to an OpenTelemtry collector. To specifiy the OTLP GRPC endpoint to export to, use the `--oc` [command line argument](./commandline.md). 
 
-OPC Publisher is instrumented with Prometheus metrics. For troubleshooting and debugging, a local dashboard on Azure IoT Edge can be configured.
-This tutorial guides through the complete setup of viewing a Grafana dashboard displaying OPC Publisher and EdgeHub metrics for bird's eye view to quickly drill down into the issues in case of failures.
-In a nutshell, two Docker images (Prometheus and Grafana) must be created and deployed as Azure IoT Edge Modules. The Prometheus Module scrapes the metrics from OPC Publisher and EdgeHub, while Grafana is used for visualization of metrics.
+An example setup using the OTEL Contrib Collector and Grafana stack can be found in the `/deploy/docker` folder.
 
-### Setup Steps
+## Prometheus
 
-#### Create docker images
+OPC Publisher module also exposes all [metrics](#available-metrics) to a Prometheus scraper (at the standard `/metrics` path). For troubleshooting and debugging, a local Grafana dashboard can be configured on Azure IoT Edge.
+
+> It is recommended to use the OpenTelemetry collector and expose metrics from the collector to Prometheus.
+
+This section shows you how to setup and view OPC Publisher and EdgeHub metrics as bird's eye view and how to quickly drill down into the issues in case of failures.
+
+In this tuturial two preconfigured docker images (for Prometheus and Grafana) must be created and deployed as Azure IoT Edge Modules. The Prometheus Module scrapes the metrics from OPC Publisher and EdgeHub, while Grafana is used for visualization of metrics.
+
+### Setup
 
 1. Create and configure [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal) to have an admin account enabled.  **Registry name** and **password**  are needed for pushing the docker images of Prometheus and Grafana.
 
@@ -164,9 +170,7 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
 
    ![04](./media/04.JPG)
 
-#### Create IoT Edge modules
-
-1. IoT Edge should now be configured to expose metrics. Navigate to the IoT Edge device to be used and perform the following steps:
+4. IoT Edge should now be configured to expose metrics. Navigate to the IoT Edge device to be used and perform the following steps:
 
     - Select **Set Modules** to update the configuration
 
@@ -199,7 +203,7 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
 
       - Select **Update** to complete the changes made to the OPC publisher module.
 
-2. Now add new modules based on the Prometheus and Grafana images created previously.
+5. Now add new modules based on the Prometheus and Grafana images created previously.
 
     - Prometheus:
 
@@ -310,7 +314,3 @@ In a nutshell, two Docker images (Prometheus and Grafana) must be created and de
   ![14](./media/14.JPG)
 
 - One could easily add/remove more panels to this dashboard as per the needs.
-
-## Distributed Tracing
-
-Distributed tracing will be supported in a future release.

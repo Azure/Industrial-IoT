@@ -55,6 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 EndpointUrl = model.Endpoint?.Url,
                 UseSecurity = model.Endpoint?.SecurityMode != SecurityMode.None,
+                EndpointSecurityMode = model.Endpoint?.SecurityMode,
+                EndpointSecurityPolicy = model.Endpoint?.SecurityPolicy,
                 OpcAuthenticationMode = (model.User?.Type ?? CredentialType.None)
                     == CredentialType.None ?
                         OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,
@@ -95,6 +97,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.UseSecurity != that.UseSecurity)
+            {
+                return false;
+            }
+            if ((model.EndpointSecurityMode ??
+                    (model.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None)) !=
+                (that.EndpointSecurityMode ??
+                    (that.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None)))
+            {
+                return false;
+            }
+            if (model.EndpointSecurityPolicy != that.EndpointSecurityPolicy)
             {
                 return false;
             }

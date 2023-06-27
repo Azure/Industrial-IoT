@@ -206,11 +206,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (!_subscriptions.Contains(subscription))
                     {
+                        _logger.LogWarning("Subscription {Subscription} not found in {Client}.",
+                            subscription, this);
                         return;
                     }
                     _subscriptions = _subscriptions.Remove(subscription);
                 }
                 Release();
+
+                _logger.LogDebug(
+                    "Subscription {Subscription} unregistered from {Client} (remaining:{Now}).",
+                    subscription, this, _subscriptions.Count);
             }
             finally
             {
@@ -780,7 +786,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
                 bool? online = null, CancellationToken cancellationToken = default)
             {
+                _logger.LogDebug("Applying changes to {Count} subscriptions...",
+                    subscriptions.Count);
+                var sw = Stopwatch.StartNew();
+
+                // Enable when parallel access to node cache is enabled
+#if PARALLEL
+                await Task.WhenAll(subscriptions.Select(async subscription =>
+#else
                 foreach (var subscription in subscriptions)
+#endif
                 {
                     try
                     {
@@ -797,13 +812,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (OperationCanceledException)
                     {
+#if !PARALLEL
                         break;
+#endif
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to apply subscription to session.");
                     }
                 }
+#if PARALLEL
+                    )).ConfigureAwait(false);
+#endif
+                _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
+                    subscriptions.Count, sw.Elapsed);
             }
 
             int GetMinReconnectPeriod()
@@ -853,12 +875,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Get the endpoint by connecting to server's discovery endpoint.
                     // Try to find the first endpoint with security.
                     //
-                    var endpointDescription = connection != null ?
-                        CoreClientUtils.SelectEndpoint(_configuration, connection,
-                            _connection.Endpoint.SecurityMode != SecurityMode.None) :
-                        CoreClientUtils.SelectEndpoint(_configuration, endpointUrl.ToString(),
-                            _connection.Endpoint.SecurityMode != SecurityMode.None);
-
+                    var endpointDescription = await SelectEndpointAsync(endpointUrl,
+                        connection, _connection.Endpoint.SecurityMode ?? SecurityMode.Best,
+                        _connection.Endpoint.SecurityPolicy).ConfigureAwait(false);
+                    if (endpointDescription == null)
+                    {
+                        continue;
+                    }
                     var endpointConfiguration = EndpointConfiguration.Create(
                         _configuration);
                     endpointConfiguration.OperationTimeout =
@@ -1123,6 +1146,87 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception during state callback");
+            }
+        }
+
+        /// <summary>
+        /// Select the endpoint to use
+        /// </summary>
+        /// <param name="discoveryUrl"></param>
+        /// <param name="connection"></param>
+        /// <param name="securityMode"></param>
+        /// <param name="securityPolicy"></param>
+        /// <returns></returns>
+        private async Task<EndpointDescription?> SelectEndpointAsync(Uri? discoveryUrl,
+            ITransportWaitingConnection? connection, SecurityMode securityMode, string? securityPolicy)
+        {
+            var endpointConfiguration = EndpointConfiguration.Create();
+            endpointConfiguration.OperationTimeout = (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
+
+            // needs to add the /discovery onto http urls
+            if (connection == null)
+            {
+                if (discoveryUrl == null)
+                {
+                    return null;
+                }
+                if (discoveryUrl.Scheme == Utils.UriSchemeHttp &&
+                    !discoveryUrl.AbsolutePath.EndsWith("/discovery", StringComparison.OrdinalIgnoreCase))
+                {
+                    discoveryUrl = new UriBuilder(discoveryUrl)
+                    {
+                        Path = discoveryUrl.AbsolutePath.TrimEnd('/') + "/discovery"
+                    }.Uri;
+                }
+            }
+
+            using (DiscoveryClient client = connection != null ?
+                DiscoveryClient.Create(_configuration, connection, endpointConfiguration) :
+                DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
+            {
+                var uri = new Uri(client.Endpoint.EndpointUrl);
+                var endpoints = await client.GetEndpointsAsync(null).ConfigureAwait(false);
+
+                var filtered = endpoints
+                    .Where(ep =>
+                        SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
+                        (securityMode == SecurityMode.Best ||
+                            ep.SecurityMode == securityMode.ToStackType()) &&
+                        (securityPolicy == null || string.Equals(ep.SecurityPolicyUri,
+                            securityPolicy, StringComparison.OrdinalIgnoreCase)))
+                    //
+                    // The security level is a relative measure assigned by the server to the
+                    // endpoints that it returns. Clients should always pick the highest level
+                    // unless they have a reason not too. Some servers however, mess this up a bit.
+                    // So group SecurityLevel by security mode and pick the highest.
+                    //
+                    .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
+                    .ToList();
+
+                var selectedEndpoint = filtered
+                    .Find(ep => Utils.ParseUri(ep.EndpointUrl)?.Scheme == uri.Scheme);
+                if (connection != null)
+                {
+                    // Only alow same uri scheme (== opc.tcp) for when reverse connection is used.
+                    return selectedEndpoint;
+                }
+                if (selectedEndpoint == null)
+                {
+                    // Fall back to first supported endpoint even if not discovery url scheme
+                    selectedEndpoint = filtered.FirstOrDefault();
+                }
+                if (selectedEndpoint != null)
+                {
+                    var endpointUrl = Utils.ParseUri(selectedEndpoint.EndpointUrl);
+                    if (endpointUrl != null && endpointUrl.Scheme == uri.Scheme)
+                    {
+                        UriBuilder builder = new UriBuilder(endpointUrl);
+                        builder.Host = uri.DnsSafeHost;
+                        builder.Port = uri.Port;
+                        selectedEndpoint.EndpointUrl = builder.ToString();
+                    }
+                }
+                return selectedEndpoint;
             }
         }
 

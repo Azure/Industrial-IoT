@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum SecurityMode
     {
         /// <summary>
-        /// Use best security mode
+        /// Use any security mode
         /// </summary>
         [EnumMember(Value = "Best")]
         Best,

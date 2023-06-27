@@ -1,4 +1,4 @@
-﻿namespace IIoTPlatform_E2E_Tests.Config
+﻿namespace IIoTPlatformE2ETests.Config
 {
     /// <summary>
     /// The configuration of the TestEventProcessor

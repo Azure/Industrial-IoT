@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy
+namespace OpcPublisherAEE2ETests.Deploy
 {
     using Microsoft.Azure.Devices;
     using System.Threading;

@@ -2,7 +2,7 @@
     {
         "EndpointUrl": "{{EndpointUrl}}",
         "UseReverseConnect": "{{UseReverseConnect}}",
-        "UseSecurity": false,
+        "EndpointSecurityMode": "None",
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {

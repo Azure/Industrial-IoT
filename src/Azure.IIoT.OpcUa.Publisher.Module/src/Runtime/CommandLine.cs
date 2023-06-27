@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
-    using Furly.Extensions.Mqtt;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Mono.Options;
@@ -297,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ser|subscriptionerrorretrydelay=|{OpcUaClientConfig.SubscriptionErrorRetryDelayKey}=",
                     $"The delay in seconds between attempts to create a subscription in a session.\nDefault: `{OpcUaClientConfig.SubscriptionErrorRetryDelayDefaultSec}` seconds.\n",
                     (int i) => this[OpcUaClientConfig.SubscriptionErrorRetryDelayKey] = TimeSpan.FromSeconds(i).ToString() },
-               { $"dcp|disablecomplextypepreloading:|{OpcUaClientConfig.DisableComplexTypePreloadingKey}:",
+                { $"dcp|disablecomplextypepreloading:|{OpcUaClientConfig.DisableComplexTypePreloadingKey}:",
                     "Complex types (structures, enumerations) a server exposes are preloaded from the server after the session is connected. In some cases this can cause problems either on the client or server itself. Use this setting to disable pre-loading support.\nNote that since the complex type system is used for meta data messages it will still be loaded at the time the subscription is created, therefore also disable meta data support if you want to ensure the complex types are never loaded for an endpoint.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaClientConfig.DisableComplexTypePreloadingKey] = b?.ToString() ?? "True" },
 
@@ -389,6 +388,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "ln|lognotifications:",
                     "Log ingress subscription notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
                     (bool? b) => this[PublisherConfig.DebugLogNotificationsKey] = b?.ToString() ?? "True" },
+                { $"oc|otlpcollector=|{Configuration.Otlp.OtlpCollectorEndpointKey}=",
+                    "Specifiy the OpenTelemetry collector grpc endpoint url to export diagnostics to.\nDefault: `disabled`.\n",
+                    s => this[Configuration.Otlp.OtlpCollectorEndpointKey] = s },
 
                 // testing purposes
 
@@ -491,15 +493,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // Validate edge configuration
                 var iotEdgeOptions = new IoTEdgeClientOptions();
                 new Configuration.IoTEdge(configuration).Configure(iotEdgeOptions);
-                var mqttOptions = new MqttOptions();
-                new Configuration.MqttBroker(configuration).Configure(mqttOptions);
 
                 // Check that the important values are provided
-                if (iotEdgeOptions.EdgeHubConnectionString == null && mqttOptions.HostName == null)
+                if (iotEdgeOptions.EdgeHubConnectionString == null)
                 {
-                    Warning("You must specify connection strings or run inside IoT Edge context, " +
-                            "please use -h option to get all the supported options.");
-                    ExitProcess(180);
+                    Warning(
+                        "To connect to Azure IoT Hub you must run as module inside IoT Edge or " +
+                        "specify a device connection string using EdgeHubConnectionString " +
+                        "environment variable or command line.");
                 }
             }
             else

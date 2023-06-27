@@ -293,13 +293,26 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             IList<MonitoredItemNotificationModel> notifications)
         {
             var lastValue = Item?.LastValue;
-            if (lastValue == null)
+            if (lastValue == null || Item?.Status?.Error != null)
             {
-                return false;
+                return TryGetErrorMonitoredItemNotifications(sequenceNumber,
+                    Item?.Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
+                    notifications);
             }
             return TryGetMonitoredItemNotifications(sequenceNumber, DateTime.UtcNow,
                 lastValue, notifications);
         }
+
+        /// <summary>
+        /// Add error to notification list
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="notifications"></param>
+        /// <returns></returns>
+        protected abstract bool TryGetErrorMonitoredItemNotifications(
+            uint sequenceNumber, StatusCode statusCode,
+            IList<MonitoredItemNotificationModel> notifications);
 
         /// <summary>
         /// Merge item
@@ -650,6 +663,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 return false;
             }
 
+            /// <inheritdoc/>
+            protected override bool TryGetErrorMonitoredItemNotifications(
+                uint sequenceNumber, StatusCode statusCode,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                Debug.Fail("Unexpected notification on extension field");
+                return false;
+            }
+
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
@@ -953,6 +975,25 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 return itemChange;
             }
 
+            /// <inheritdoc/>
+            public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                SkipMonitoredItemNotification(); // Key frames should always be sent
+                return base.TryGetLastMonitoredItemNotifications(sequenceNumber,
+                    notifications);
+            }
+
+            /// <inheritdoc/>
+            protected override bool TryGetErrorMonitoredItemNotifications(
+                uint sequenceNumber, StatusCode statusCode,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                notifications.Add(ToMonitoredItemNotification(sequenceNumber,
+                    new DataValue(statusCode)));
+                return true;
+            }
+
             /// <summary>
             /// Process monitored item notification
             /// </summary>
@@ -967,7 +1008,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 if (!SkipMonitoredItemNotification())
                 {
-                    notifications.Add(ToMonitoredItemNotification(sequenceNumber, monitoredItemNotification));
+                    notifications.Add(ToMonitoredItemNotification(sequenceNumber,
+                        monitoredItemNotification.Value));
                     return true;
                 }
                 return false;
@@ -977,10 +1019,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// Convert to monitored item notifications
             /// </summary>
             /// <param name="sequenceNumber"></param>
-            /// <param name="notification"></param>
+            /// <param name="dataValue"></param>
             /// <returns></returns>
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
-                uint sequenceNumber, MonitoredItemNotification notification)
+                uint sequenceNumber, DataValue dataValue)
             {
                 Debug.Assert(Item != null);
                 Debug.Assert(Template != null);
@@ -991,7 +1033,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
-                    Value = notification.Value,
+                    Value = dataValue,
                     SequenceNumber = sequenceNumber
                 };
             }
@@ -1191,9 +1233,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 // If last value is null create a error value.
                 var lastValue = (item.LastValue as MonitoredItemNotification)?.Value ??
-                    new DataValue(item.Status?.Error?.StatusCode
-                        ?? StatusCodes.BadMonitoredItemIdInvalid);
-
+                    new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
                 var heartbeat = new MonitoredItemNotificationModel
                 {
                     Id = Template.Id,
@@ -1345,7 +1385,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
                     SequenceNumber = sequenceNumber,
-                    Value = _lastValue ?? new DataValue(StatusCodes.BadNoDataAvailable)
+                    Value = _lastValue ?? new DataValue(StatusCodes.GoodNoData)
                 });
                 return true;
             }
@@ -1604,6 +1644,30 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return ProcessEventNotification(sequenceNumber, timestamp, eventFields, notifications);
                 }
                 return false;
+            }
+
+            /// <inheritdoc/>
+            protected override bool TryGetErrorMonitoredItemNotifications(
+                uint sequenceNumber, StatusCode statusCode,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                foreach (var field in Fields)
+                {
+                    if (field.Name == null)
+                    {
+                        continue;
+                    }
+                    notifications.Add(new MonitoredItemNotificationModel
+                    {
+                        Id = Template.Id ?? string.Empty,
+                        DataSetName = Template.DisplayName,
+                        DataSetFieldName = field.Name,
+                        NodeId = Template.StartNodeId,
+                        Value = new DataValue(statusCode),
+                        SequenceNumber = sequenceNumber
+                    });
+                }
+                return true;
             }
 
             /// <summary>
@@ -2084,7 +2148,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             state.Dirty = true;
                             monitoredItemNotifications.ForEach(n =>
                             {
-                                n.Value ??= new DataValue(StatusCodes.BadNoData);
+                                n.Value ??= new DataValue(StatusCodes.GoodNoData);
                                 // Set SourceTimestamp to publish time
                                 n.Value.SourceTimestamp = timestamp;
                             });
@@ -2135,8 +2199,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ref bool applyChanges,
                 Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges,
-                    cb);
+                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 if (Item?.Handle == null || !result)
                 {
                     _callback = null;
