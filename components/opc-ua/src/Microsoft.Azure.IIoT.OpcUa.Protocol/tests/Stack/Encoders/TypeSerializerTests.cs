@@ -50,7 +50,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteEmptyIntArray(string encoderType, string decoderType) {
-            var expected = new int[0];
+            var expected = Array.Empty<int>();
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt32Array("test", expected));
@@ -298,7 +298,7 @@ namespace Opc.Ua.Encoders {
         public void ReadWriteArgument(string encoderType, string decoderType) {
             var expected = new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") {
-                ArrayDimensions = new uint[0]
+                ArrayDimensions = Array.Empty<uint>()
             };
             CreateSerializers(out var encoder, out var decoder);
 
@@ -322,13 +322,13 @@ namespace Opc.Ua.Encoders {
         public void ReadWriteArgumentArray(string encoderType, string decoderType) {
             var expected = new[] {
                 new Argument("something1",
-                    new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                    new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something2",
-                    new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                    new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something3",
-                    new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                    new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something4",
-                    new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                    new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
             };
             CreateSerializers(out var encoder, out var decoder);
 
@@ -373,7 +373,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteEmptyStringArray(string encoderType, string decoderType) {
-            var expected = new string[0];
+            var expected = Array.Empty<string>();
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStringArray("test", expected));
@@ -713,13 +713,13 @@ namespace Opc.Ua.Encoders {
                 LastMethodCallTime = DateTime.UtcNow,
                 LastMethodInputArguments = new ArgumentCollection {
                     new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodInputValues = new VariantCollection {
                     new Variant(4L),
@@ -729,13 +729,13 @@ namespace Opc.Ua.Encoders {
                 },
                 LastMethodOutputArguments = new ArgumentCollection {
                     new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodOutputValues = new VariantCollection {
                     new Variant(4L),

@@ -451,7 +451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         t.Result.Job.JobConfiguration, t.Result.Job.JobConfigurationType) as WriterGroupJobModel);
                 writerGroups.Select(
                         jobModel => jobModel.WriterGroup.DataSetWriters
-                        .Select(writer => writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count())
+                        .Select(writer => writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count)
                         .Sum()
                      ).Count(v => v == expectedNumberOfNodes)
                      .Should()

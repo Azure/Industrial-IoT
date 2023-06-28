@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             var template = new StringBuilder();
             template.Append("[{event}] {level}: ");
             foreach (var name in eventData.PayloadNames) {
-                template.Append("{");
+                template.Append('{');
                 template.Append(name);
                 template.Append("} ");
             }

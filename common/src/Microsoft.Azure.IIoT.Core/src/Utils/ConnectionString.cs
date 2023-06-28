@@ -291,9 +291,9 @@ namespace Microsoft.Azure.IIoT.Utils {
             var b = new StringBuilder();
             foreach (var kv in _items.Where(kv => kv.Value != null)) {
                 b.Append(kv.Key.ToString());
-                b.Append("=");
+                b.Append('=');
                 b.Append(kv.Value);
-                b.Append(";");
+                b.Append(';');
             }
             return b.ToString().TrimEnd(';');
         }

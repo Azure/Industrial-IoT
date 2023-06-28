@@ -1091,7 +1091,6 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         private static IEnumerable<PortRange> Merge(IEnumerable<PortRange> ranges) {
             var results = new Stack<PortRange>();
             if (ranges != null) {
-                ranges.OrderBy(k => k._lower);
                 foreach (var range in ranges.OrderBy(k => k._lower)) {
                     if (results.Count == 0) {
                         results.Push(range);

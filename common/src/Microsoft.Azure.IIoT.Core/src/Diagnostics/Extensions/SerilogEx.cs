@@ -36,7 +36,7 @@ namespace Serilog {
             if (!string.IsNullOrEmpty(path)) {
                 configuration = configuration.WriteTo.File(Path.Combine(path,
                     Process.GetCurrentProcess().ProcessName +
-                    Process.GetCurrentProcess().Id + ".log"),
+                    Environment.ProcessId + ".log"),
                     flushToDiskInterval: TimeSpan.FromSeconds(1),
                     outputTemplate: kDefaultTemplate);
             }

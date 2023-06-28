@@ -194,7 +194,7 @@ namespace Opc.Ua.Extensions {
             if (nsUri != null) {
                 buffer.Append(nsUri);
                 // Append node id as fragment
-                buffer.Append("#");
+                buffer.Append('#');
             }
             switch (idType) {
                 case IdType.Numeric:
@@ -205,7 +205,7 @@ namespace Opc.Ua.Extensions {
                     }
                     buffer.Append("i=");
                     if (identifier == null) {
-                        buffer.Append("0"); // null
+                        buffer.Append('0'); // null
                         break;
                     }
                     buffer.AppendFormat(CultureInfo.InvariantCulture,

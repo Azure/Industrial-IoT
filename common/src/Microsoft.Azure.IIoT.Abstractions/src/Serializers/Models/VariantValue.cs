@@ -763,7 +763,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
                 else {
                     sb.Append(raw.ToString());
                 }
-                sb.Append("\"");
+                sb.Append('"');
             }
 
             // Append tests to inspect value recognition
@@ -790,7 +790,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
             AppendProperty(sb, nameof(IsDateTime), IsDateTime);
             AppendProperty(sb, nameof(IsTimeSpan), IsTimeSpan);
             sb.AppendLine();
-            sb.Append("}");
+            sb.Append('}');
 
             return sb.ToString();
         }

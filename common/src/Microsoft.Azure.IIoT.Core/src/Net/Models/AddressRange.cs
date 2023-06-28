@@ -301,7 +301,6 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         private static IEnumerable<AddressRange> Merge(IEnumerable<AddressRange> ranges) {
             var results = new Stack<AddressRange>();
             if (ranges != null) {
-                ranges.OrderBy(k => k.Low);
                 foreach (var range in ranges.OrderBy(k => k.Low)) {
                     if (results.Count == 0) {
                         results.Push(range);
@@ -355,12 +354,12 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 }
                 first = false;
                 sb.Append(ip);
-                sb.Append("/");
+                sb.Append('/');
                 sb.Append(subnetSize);
                 if (Nic != kNullNicName) {
                     sb.Append(" [");
                     sb.Append(Nic);
-                    sb.Append("]");
+                    sb.Append(']');
                 }
                 start += 1L << (32 - subnetSize);
             }

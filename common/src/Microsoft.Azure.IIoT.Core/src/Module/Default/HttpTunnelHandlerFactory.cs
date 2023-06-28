@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 request.Completion.TrySetResult(httpResponse);
                 request.Dispose();
             }
-            return Task.FromResult(new byte[0]);
+            return Task.FromResult(Array.Empty<byte>());
         }
 
         /// <summary>

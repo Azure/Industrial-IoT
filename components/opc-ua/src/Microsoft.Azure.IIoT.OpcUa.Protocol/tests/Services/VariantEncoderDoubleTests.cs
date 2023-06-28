@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[0]);
+            var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Number);
-            var expected = new Variant(new Variant[0]);
+            var expected = new Variant(System.Array.Empty<Variant>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
@@ -279,10 +279,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = _serializer.FromObject(new {
                 Type = "Double",
-                Body = new double[0]
+                Body = System.Array.Empty<double>()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new double[0]);
+            var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
@@ -353,10 +353,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = _serializer.FromObject(new {
                 Type = "Double",
-                Body = new double[0]
+                Body = System.Array.Empty<double>()
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[0]);
+            var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);

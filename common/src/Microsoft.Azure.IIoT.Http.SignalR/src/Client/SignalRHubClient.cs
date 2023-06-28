@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
 
         /// <inheritdoc/>
         public void Dispose() {
-            DisposeAsync().GetAwaiter().GetResult();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <summary>

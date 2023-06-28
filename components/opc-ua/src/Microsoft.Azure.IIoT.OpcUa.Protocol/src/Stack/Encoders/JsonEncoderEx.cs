@@ -1075,7 +1075,7 @@ namespace Opc.Ua.Encoders {
                         WriteGuid(null, ToTypedScalar<Uuid>(value));
                         return;
                     case BuiltInType.ByteString:
-                        WriteByteString(null, ToTypedScalar<byte[]>(value ?? new byte[0]));
+                        WriteByteString(null, ToTypedScalar<byte[]>(value ?? Array.Empty<byte>()));
                         return;
                     case BuiltInType.XmlElement:
                         WriteXmlElement(null, ToTypedScalar<XmlElement>(value));

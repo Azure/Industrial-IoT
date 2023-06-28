@@ -27,6 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using System;
+
 namespace Opc.Ua.Design.Schema {
     using System;
     using System.Collections.Generic;
@@ -235,7 +237,7 @@ namespace Opc.Ua.Design.Schema {
                         var result = WriteTemplate(
                             context.Target,
                             token,
-                            context.Prefix + line.Substring(0, index));
+                            string.Concat(context.Prefix, line.AsSpan(0, index)));
 
                         if (result) {
                             written = true;

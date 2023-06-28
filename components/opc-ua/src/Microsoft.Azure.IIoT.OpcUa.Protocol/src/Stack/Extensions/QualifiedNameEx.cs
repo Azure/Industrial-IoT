@@ -31,7 +31,7 @@ namespace Opc.Ua.Extensions {
                     buffer.Append(nsUri);
                     if (!string.IsNullOrEmpty(qn.Name)) {
                         // Append name as fragment
-                        buffer.Append("#");
+                        buffer.Append('#');
                     }
                 }
             }

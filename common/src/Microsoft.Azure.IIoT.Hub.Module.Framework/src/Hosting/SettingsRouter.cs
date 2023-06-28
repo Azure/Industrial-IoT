@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (_applyMethod == null) {
                         return Task.CompletedTask;
                     }
-                    return (Task)_applyMethod.Invoke(Target, new object[] { });
+                    return (Task)_applyMethod.Invoke(Target, Array.Empty<object>());
                 }
                 catch (Exception e) {
                     return Task.FromException(e);
@@ -488,7 +488,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 try {
                     if (_property.CanRead && _indexed && _indexer != null) {
                         // Get property names
-                        var indexes = _indexer.Invoke(_controller.Target, new object[0]);
+                        var indexes = _indexer.Invoke(_controller.Target, Array.Empty<object>());
                         if (indexes is IEnumerable<string> properties) {
                             var results = new Dictionary<string, VariantValue>();
 

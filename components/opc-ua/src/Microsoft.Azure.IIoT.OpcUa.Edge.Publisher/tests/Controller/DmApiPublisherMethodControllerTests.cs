@@ -340,7 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.OpcNodes.Count()
+            response.Subject.OpcNodes.Count
                 .Should()
                 .Be(2);
             response.Subject.OpcNodes.First().Id
@@ -379,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.OpcNodes.Count()
+            response.Subject.OpcNodes.Count
                 .Should()
                 .Be(1);
             response.Subject.OpcNodes.First().Id
@@ -451,7 +451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.OpcNodes.Count()
+            response.Subject.OpcNodes.Count
                 .Should()
                 .Be(1);
             response.Subject.OpcNodes.First().Id
@@ -485,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.OpcNodes.Count()
+            response.Subject.OpcNodes.Count
                 .Should()
                 .Be(1);
             response.Subject.OpcNodes.First().Id
@@ -517,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.OpcNodes.Count()
+            response.Subject.OpcNodes.Count
                 .Should()
                 .Be(2);
             response.Subject.OpcNodes.First().Id
@@ -658,7 +658,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             endpoints.Subject.Endpoints[4].Tag.Should().BeNull();
 
             var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
-            Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
+            Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count);
         }
 
         [Theory]

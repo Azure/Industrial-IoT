@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Services.Processor.Onboarding": {
-      "commandName": "Project"
-    }
-  }
-}

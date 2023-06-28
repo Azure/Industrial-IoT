@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using System;
+
 namespace System {
     using System.Collections.Generic;
     using System.Diagnostics.Contracts;
@@ -162,10 +164,10 @@ namespace System {
             if (value == null || value.Length <= 1) {
                 return value;
             }
-            var words = value.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
-            var result = words[0].Substring(0, 1).ToLower() + words[0].Substring(1);
+            var words = value.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
+            var result = string.Concat(words[0].Substring(0, 1).ToLower(), words[0].AsSpan(1));
             for (var i = 1; i < words.Length; i++) {
-                result += words[i].Substring(0, 1).ToUpper() + words[i].Substring(1);
+                result += string.Concat(words[i].Substring(0, 1).ToUpper(), words[i].AsSpan(1));
             }
             return result;
         }
