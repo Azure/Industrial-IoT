@@ -13,10 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Collections.Generic;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Storage;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="properties"></param>
         public RuntimeStateReporter(IEventClient events, IJsonSerializer serializer,
             IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger,
-            IDictionary<string, VariantValue>? properties = null)
+            IKeyValueStore? properties = null)
         {
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -48,18 +48,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_properties != null)
             {
                 // Set runtime state in twin properties
-                _properties[OpcUa.Constants.TwinPropertySiteKey] =
+                _properties.State[OpcUa.Constants.TwinPropertySiteKey] =
                     _options.Value.Site;
-                _properties[OpcUa.Constants.TwinPropertyTypeKey] =
+                _properties.State[OpcUa.Constants.TwinPropertyTypeKey] =
                     OpcUa.Constants.EntityTypePublisher;
-                _properties[OpcUa.Constants.TwinPropertyVersionKey] =
+                _properties.State[OpcUa.Constants.TwinPropertyVersionKey] =
                     GetType().Assembly.GetReleaseVersion().ToString();
 
-                if (!_properties.ContainsKey(OpcUa.Constants.TwinPropertyApiKeyKey))
+                if (!_properties.State.ContainsKey(OpcUa.Constants.TwinPropertyApiKeyKey))
                 {
                     _logger.LogInformation("Generating new Api Key ...");
                     var apiKey = Guid.NewGuid().ToString();
-                    _properties.Add(OpcUa.Constants.TwinPropertyApiKeyKey, apiKey);
+                    _properties.State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, apiKey);
                 }
             }
 
@@ -92,6 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IEventClient _events;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
-        private readonly IDictionary<string, VariantValue>? _properties;
+        private readonly IKeyValueStore? _properties;
     }
 }

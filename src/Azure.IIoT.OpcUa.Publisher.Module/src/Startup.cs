@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Microsoft.OpenApi.Models;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
@@ -116,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AddMessagePackSerializer()
                 ;
 
-            services.AddSwagger(Constants.EntityTypePublisher, string.Empty);
+            services.AddOpenApi();
         }
 
         /// <summary>
@@ -134,10 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-#if DEBUG
-            app.UseSwagger();
-#endif
+            app.UseOpenApi();
             app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             app.UseEndpoints(endpoints =>
@@ -164,10 +160,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // to fall back in the reverse order for
             // sending operational and discovery events!
             //
+            builder.AddMemoryKeyValueStore();
+            builder.AddDaprStateStoreClient(Configuration);
+
             builder.AddNullEventClient();
             builder.AddFileSystemEventClient(Configuration);
             builder.AddHttpEventClient(Configuration);
-            builder.AddDaprClient(Configuration);
+            builder.AddDaprPubSubClient(Configuration);
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
 

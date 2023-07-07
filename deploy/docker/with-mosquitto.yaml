@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  ############################
+  # OPC Publisher
+  ############################
+  publisher:
+    environment: 
+      MqttClientConnectionString: "HostName=mosquitto;Port=1883;UseTls=false;Protocol=v5"
+    depends_on:
+      - mosquitto
+  ############################
+  # Mosqitto
+  ############################
+  mosquitto:
+    container_name: mosquitto
+    image: "eclipse-mosquitto:latest"
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto:/mosquitto/data
+      - "./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf"
+  ############################
+  # MQTT explorer
+  ############################
+  mqtt-explorer:
+    container_name: mqtt-explorer
+    image: "smeagolworms4/mqtt-explorer:latest"
+    ports:
+      - "4000:4000"
+    volumes:
+      - "./mosquitto/settings.json:/mqtt-explorer/config/settings.json"
+    depends_on:
+      - mosquitto
+volumes:
+  mosquitto:

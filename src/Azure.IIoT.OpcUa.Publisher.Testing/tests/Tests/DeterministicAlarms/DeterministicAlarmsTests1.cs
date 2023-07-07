@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=236", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=226", target.Target.NodeId);
         }
 
         public async Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync(CancellationToken ct = default)
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=115", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=110", target.Target.NodeId);
         }
 
         public async Task BrowseAreaPathVendingMachine2LightOffTestAsync(CancellationToken ct = default)
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=350", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=335", target.Target.NodeId);
         }
 
 #if UNUSED

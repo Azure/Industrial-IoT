@@ -1,1 +1,2 @@
 dotnet publish ../../src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj -c Release --os linux --arch x64 /p:ContainerImageTag=latest
+dotnet publish ../../src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj -c Debug --os linux --arch x64 /p:ContainerImageTag=debug

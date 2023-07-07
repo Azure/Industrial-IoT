@@ -140,7 +140,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var mqttOptions = ClientContainer.Resolve<IOptions<MqttOptions>>();
             var mqttCs = $"HostName={mqttOptions.Value.HostName};Port={mqttOptions.Value.Port};" +
                 $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
-                $"UseTls={mqttOptions.Value.UseTls}";
+                $"UseTls={mqttOptions.Value.UseTls};Protocol={mqttOptions.Value.Protocol};" +
+                $"Partitions={mqttOptions.Value.NumberOfClientPartitions}";
             arguments = arguments.Concat(
                 new[]
                 {
@@ -226,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             });
 
             // Api key
-            var apiKey = _connection.Twin[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
+            var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("api-key", apiKey);
             client.Timeout = TimeSpan.FromMinutes(10);
@@ -415,8 +416,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 options.AllowUntrustedCertificates = true;
                 options.UseTls = false;
-                options.Version = mqttVersion ?? MqttVersion.v5;
+                options.Protocol = mqttVersion ?? MqttVersion.v5;
                 options.KeepAlivePeriod = TimeSpan.Zero;
+                options.NumberOfClientPartitions = 1;
                 options.Port = Interlocked.Increment(ref _mqttPort);
             });
 

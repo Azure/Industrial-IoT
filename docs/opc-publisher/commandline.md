@@ -68,6 +68,10 @@ General
                                reports its runtime state using a restart
                                message.
                                Default: `False` (disabled)
+      --doa, --disableopenapi, --DisableOpenApiEndpoint[=VALUE]
+                             Disable the OPC Publisher Open API endpoint
+                               exposed by the built-in HTTP server.
+                               Default: `enabled`.
 
 Messaging configuration
 -----------------------
@@ -159,6 +163,14 @@ Messaging configuration
                                If the chosen messaging profile does not support
                                keep alive messages this setting is ignored.
                                Default: `False` (to save bandwidth).
+      --eip, --immediatepublishing, --EnableImmediatePublishing[=VALUE]
+                             By default OPC Publisher will create a
+                               subscription with publishing disabled and only
+                               enable it after it has filled it with all
+                               configured monitored items. Use this setting to
+                               create the subscription with publishing already
+                               enabled.
+                               Default: `False`.
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -178,6 +190,17 @@ Messaging configuration
                                Default: `False` if the messaging profile
                                selected supports sending metadata, `True`
                                otherwise.
+      --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
+                             The default threshold of monitored items in a
+                               subscription under which meta data is loaded
+                               synchronously during subscription creation.
+                               Loaded metadata guarantees a metadata message is
+                               sent before the first message is sent but
+                               loading of metadata takes time during
+                               subscription setup. Set to `0` to always load
+                               metadata asynchronously.
+                               Only used if meta data is supported and enabled.
+                               Default: `30`.
       --om, --maxoutgressmessages, --MaxOutgressMessages=VALUE
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
@@ -261,11 +284,6 @@ Transport settings
                                publish into the file system folder by default
                                specify `-t=FileSystem`.
                                Default: `not set`.
-      --dh, --disablehttp, --DisableHttpServer[=VALUE]
-                             Specify this to disable the OPC Publisher HTTP
-                               server and with it the REST api and Prometheus
-                               metrics endpoint.
-                               Default: `enabled`.
   -p, --httpserverport, --HttpServerPort=VALUE
                              The port on which the http server of OPC Publisher
                                is listening.
@@ -278,6 +296,11 @@ Transport settings
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
                                `9071` port is used.
+      --useopenapiv3, --UseOpenApiV3[=VALUE]
+                             If enabled exposes the open api schema of OPC
+                               Publisher using v3 schema (yaml).
+                               Only valid if Open API endpoint is not disabled.
+                               Default: `v2` (json).
 
 Routing configuration
 ---------------------
@@ -682,6 +705,14 @@ Diagnostic options
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
                                Default: `disabled`.
+      --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
+                             Specifiy the OpenTelemetry collector grpc endpoint
+                               url to export diagnostics to.
+                               Default: `disabled`.
+      --oxi, --otlpexportinterval, --OtlpExportIntervalMilliseconds=VALUE
+                             The interval in milliseconds when OpenTelemetry is
+                               exported to the collector endpoint.
+                               Default: `15000` (15000000 seconds).
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

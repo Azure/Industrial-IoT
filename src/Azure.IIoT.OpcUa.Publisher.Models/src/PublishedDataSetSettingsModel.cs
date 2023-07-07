@@ -62,5 +62,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "useDeferredAcknoledgements", Order = 6,
             EmitDefaultValue = false)]
         public bool? UseDeferredAcknoledgements { get; set; }
+
+        /// <summary>
+        /// The number of items in a subscription for which
+        /// loading of metadata should be done inline during
+        /// subscription creation (otherwise will be completed
+        /// asynchronously). If the number of items in the
+        /// subscription is below this value it is guaranteed
+        /// that the first notification contains metadata.
+        /// </summary>
+        [DataMember(Name = "asyncMetaDataLoadThreshold", Order = 7,
+            EmitDefaultValue = false)]
+        public int? AsyncMetaDataLoadThreshold { get; set; }
+
+        /// <summary>
+        /// Will set the subscription to have publishing
+        /// enabled and every monitored item created to be
+        /// in desired monitoring mode.
+        /// </summary>
+        [DataMember(Name = "enableImmediatePublishing", Order = 8,
+            EmitDefaultValue = false)]
+        public bool? EnableImmediatePublishing { get; set; }
     }
 }

@@ -42,3 +42,4 @@ coverage.cobertura.xml
 /api/csharp-api/api/*.manifest
 /api/csharp-api/_site
 node_modules
+.sonarqube/**

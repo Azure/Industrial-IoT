@@ -221,17 +221,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         kMessagesErrors.Add(1, _metrics.TagList);
 
                         var delay = TimeSpan.FromMilliseconds(attempt * 100);
+                        const string error = "#{Attempt}: Error '{Error}' during " +
+                            "sending network message. Retrying in {Delay}...";
                         if (_logger.IsEnabled(LogLevel.Debug))
                         {
-                            _logger.LogDebug(e, "#{Attempt}: Error during attempt sending " +
-                                "network message. Retrying in {Delay}...", attempt, delay);
+                            _logger.LogDebug(e, error, attempt, e.Message, delay);
+                        }
+                        else if (attempt % 10 == 0)
+                        {
+                            _logger.LogError(e, error, attempt, e.Message, delay);
                         }
                         else
                         {
-                            _logger.LogError("#{Attempt}: Error '{Error}' sending network " +
-                                "message. Retrying in {Delay}...", attempt, e.Message, delay);
+                            _logger.LogError(error, attempt, e.Message, delay);
                         }
-
                         // Throws if cancelled
                         await Task.Delay(delay, _cts.Token).ConfigureAwait(false);
                     }

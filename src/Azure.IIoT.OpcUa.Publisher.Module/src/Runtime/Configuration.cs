@@ -9,14 +9,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
+    using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router.Services;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.AspNetCore.Server.Kestrel.Https;
@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.OpenApi.Models;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
@@ -36,8 +37,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -160,29 +159,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void AddDaprClient(this ContainerBuilder builder,
+        public static void AddDaprPubSubClient(this ContainerBuilder builder,
             IConfiguration configuration)
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
-            if (daprOptions.PubSubComponent != null &&
-                daprOptions.ApiToken != null)
+            if (daprOptions.PubSubComponent != null)
             {
-                builder.AddDaprClient();
+                builder.AddDaprPubSubClient();
                 builder.RegisterType<Dapr>()
                     .AsImplementedInterfaces();
             }
         }
 
         /// <summary>
-        /// Add null client
+        /// Add dapr client
         /// </summary>
         /// <param name="builder"></param>
-        public static void AddNullEventClient(this ContainerBuilder builder)
+        /// <param name="configuration"></param>
+        public static void AddDaprStateStoreClient(this ContainerBuilder builder,
+            IConfiguration configuration)
         {
-            builder.RegisterType<Null>().AsImplementedInterfaces();
-            builder.RegisterInstance(new Dictionary<string, VariantValue>())
-                .As<IDictionary<string, VariantValue>>();
+            var daprOptions = new DaprOptions();
+            new Dapr(configuration).Configure(daprOptions);
+            if (daprOptions.StateStoreName != null)
+            {
+                builder.AddDaprStateStoreClient();
+                builder.RegisterType<Dapr>()
+                    .AsImplementedInterfaces();
+            }
         }
 
         /// <summary>
@@ -200,6 +205,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.ConfigureServices(services => services.ConfigureOtlpExporter());
                 builder.AddOtlpExporter();
             }
+        }
+
+        /// <summary>
+        /// Add open api
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddOpenApi(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IConfigureOptions<OpenApiOptions>, OpenApi>()
+                .AddSingleton<IConfigureNamedOptions<OpenApiOptions>, OpenApi>()
+                .AddSwagger(Constants.EntityTypePublisher, string.Empty);
+        }
+
+        /// <summary>
+        /// Use open api
+        /// </summary>
+        /// <param name="builder"></param>
+        public static IApplicationBuilder UseOpenApi(this IApplicationBuilder builder)
+        {
+            var options = builder.ApplicationServices.GetService<IOptions<PublisherOptions>>();
+            if (options?.Value.DisableOpenApiEndpoint != true)
+            {
+                return builder.UseSwagger();
+            }
+            return builder;
         }
 
         /// <summary>
@@ -270,7 +301,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             IConfigureOptions<MetricReaderOptions>, IConfigureNamedOptions<MetricReaderOptions>
         {
             public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
+            public const string OtlpExportIntervalMillisecondsKey = "OtlpExportIntervalMilliseconds";
             internal const string OtlpCollectorEndpointDisabled = "disabled";
+            public const int OtlpExportIntervalMillisecondsDefault = 15000;
 
             /// <summary>
             /// Create otlp configuration
@@ -295,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.Endpoint = new UriBuilder
                     {
                         Scheme = Uri.UriSchemeHttp,
-                        Host = Otlp.OtlpCollectorEndpointDisabled
+                        Host = OtlpCollectorEndpointDisabled
                     }.Uri;
                 }
             }
@@ -306,7 +339,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 options.PeriodicExportingMetricReaderOptions =
                     new PeriodicExportingMetricReaderOptions
                     {
-                        ExportIntervalMilliseconds = 1000
+                        ExportIntervalMilliseconds = GetIntOrDefault(
+                            OtlpExportIntervalMillisecondsKey, OtlpExportIntervalMillisecondsDefault)
                     };
             }
 
@@ -332,7 +366,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Configuration
             /// </summary>
-            public const string DisableHttpServerKey = "DisableHttpServer";
             public const string HttpServerPortKey = "HttpServerPort";
             public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
 
@@ -356,12 +389,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, KestrelServerOptions options)
             {
-                var disableHttp = GetBoolOrDefault(DisableHttpServerKey);
-                if (disableHttp)
-                {
-                    return;
-                }
-
                 var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
                 options.ListenAnyIP(httpPort ?? HttpPortDefault);
 
@@ -476,6 +503,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         internal sealed class Dapr : ConfigureOptionBase<DaprOptions>
         {
             public const string PubSubComponentKey = "PubSubComponent";
+            public const string StateStoreKey = "StateStore";
             public const string HttpPortKey = "HttpPort";
             public const string GrpcPortKey = "GrpcPort";
             public const string DaprConnectionStringKey = "DaprConnectionString";
@@ -486,8 +514,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 var daprConnectionString = GetStringOrDefault(DaprConnectionStringKey);
                 if (daprConnectionString != null)
                 {
+                    options.PubSubComponent = string.Empty;
+                    options.StateStoreName = string.Empty;
+
                     var properties = ToDictionary(daprConnectionString);
-                    options.PubSubComponent = properties[PubSubComponentKey];
+                    if (properties.TryGetValue(PubSubComponentKey, out var component))
+                    {
+                        options.PubSubComponent = component;
+                    }
+
+                    if (properties.TryGetValue(StateStoreKey, out var stateStore))
+                    {
+                        options.StateStoreName = stateStore;
+                    }
 
                     // Permit the port to be set if provided, otherwise use defaults.
                     if (properties.TryGetValue(GrpcPortKey, out var value) &&
@@ -505,6 +544,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 else
                 {
                     options.PubSubComponent ??= GetStringOrDefault(PubSubComponentKey);
+                    options.StateStoreName ??= GetStringOrDefault(StateStoreKey);
                 }
 
                 // The api token should be part of the environment if dapr is supported
@@ -543,10 +583,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 if (httpConnectionString != null)
                 {
                     var properties = ToDictionary(httpConnectionString);
-                    options.HostName = properties[HostNameKey];
+
+                    if (properties.TryGetValue(HostNameKey, out var value))
+                    {
+                        options.HostName = value;
+                    }
 
                     // Permit the port to be set if provided, otherwise use defaults.
-                    if (properties.TryGetValue(PortKey, out var value) &&
+                    if (properties.TryGetValue(PortKey, out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
                         options.Port = port;
@@ -587,6 +631,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Open api configuration
+        /// </summary>
+        internal sealed class OpenApi : ConfigureOptionBase<OpenApiOptions>
+        {
+            public const string DisableSwaggerUIKey = "DisableSwaggerUI";
+            public const string UseOpenApiV3Key = "UseOpenApiV3";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, OpenApiOptions options)
+            {
+                if (_isDisabled)
+                {
+                    options.UIEnabled = false;
+                }
+                else
+                {
+                    var uiEnabled = GetBoolOrNull(DisableSwaggerUIKey);
+                    if (uiEnabled != null)
+                    {
+                        options.UIEnabled = uiEnabled.Value;
+                    }
+
+                    var useV3 = GetBoolOrNull(UseOpenApiV3Key);
+                    if (useV3 != null)
+                    {
+                        options.Version = useV3.Value ? 3 : 2;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            /// <param name="options"></param>
+            public OpenApi(IConfiguration configuration,
+                IOptions<PublisherOptions>? options = null)
+                : base(configuration)
+            {
+                _isDisabled = options?.Value.DisableOpenApiEndpoint == true;
+            }
+
+            private readonly bool _isDisabled;
+        }
+
+        /// <summary>
         /// Configure the file based event client
         /// </summary>
         internal sealed class FileSystem : ConfigureOptionBase<FileSystemOptions>
@@ -621,6 +711,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Configuration
             /// </summary>
             public const string MqttClientConnectionStringKey = "MqttClientConnectionString";
+            public const string ClientPartitionsKey = "MqttClientPartitions";
             public const string ClientIdKey = "MqttClientId";
             public const string UserNameKey = "MqttBrokerUserName";
             public const string PasswordKey = "MqttBrokerPasswordKey";
@@ -636,10 +727,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 if (mqttClientConnectionString != null)
                 {
                     var properties = ToDictionary(mqttClientConnectionString);
-                    options.HostName = properties[nameof(options.HostName)];
-
-                    // Permit the port to be set if provided, otherwise use defaults.
-                    if (properties.TryGetValue(nameof(options.Port), out var value) &&
+                    if (properties.TryGetValue(nameof(options.HostName), out var value))
+                    {
+                        options.HostName = value;
+                    }
+                    if (properties.TryGetValue(nameof(options.Port), out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
                         options.Port = port;
@@ -652,15 +744,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         options.Password = properties[nameof(options.Password)];
                     }
-                    if (properties.TryGetValue(nameof(options.Version), out value) &&
+                    if (properties.TryGetValue(nameof(options.Protocol), out value) &&
                         Enum.TryParse<MqttVersion>(value, true, out var version))
                     {
-                        options.Version = version;
+                        options.Protocol = version;
                     }
                     if (properties.TryGetValue(nameof(options.UseTls), out value) &&
                         bool.TryParse(value, out var useTls))
                     {
                         options.UseTls = useTls;
+                    }
+                    if (properties.TryGetValue("Partitions", out value) &&
+                        int.TryParse(value, out var partitions))
+                    {
+                        options.NumberOfClientPartitions = partitions;
                     }
                 }
                 else
@@ -684,14 +781,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     if (Enum.TryParse<MqttVersion>(GetStringOrDefault(ProtocolKey),
                         true, out var version))
                     {
-                        options.Version = version;
+                        options.Protocol = version;
                     }
                     if (options.UseTls == null)
                     {
                         options.UseTls = GetBoolOrNull(UseTlsKey);
                     }
+                    if (options.NumberOfClientPartitions == null)
+                    {
+                        options.NumberOfClientPartitions = GetIntOrNull(ClientPartitionsKey);
+                    }
                 }
-
                 if (string.IsNullOrEmpty(options.ClientId))
                 {
                     options.ClientId = GetStringOrDefault(ClientIdKey);
@@ -752,84 +852,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public IoTEdge(IConfiguration configuration)
                 : base(configuration)
             {
-            }
-        }
-
-        /// <summary>
-        /// Nil output client
-        /// </summary>
-        internal sealed class Null : IEventClient, IEvent
-        {
-            /// <inheritdoc/>
-            public string Name => nameof(Null);
-            /// <inheritdoc/>
-            public int MaxEventPayloadSizeInBytes => int.MaxValue;
-            /// <inheritdoc/>
-            public string Identity => Dns.GetHostName();
-
-            /// <inheritdoc/>
-            public IEvent CreateEvent()
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public ValueTask SendAsync(CancellationToken ct)
-            {
-                return ValueTask.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-            }
-
-            /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent AddProperty(string name, string? value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetContentEncoding(string? value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetContentType(string? value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetRetain(bool value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetTopic(string? value)
-            {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public IEvent SetTtl(TimeSpan value)
-            {
-                return this;
             }
         }
 

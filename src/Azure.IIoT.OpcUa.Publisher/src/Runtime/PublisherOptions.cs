@@ -141,11 +141,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? EnableDataSetRoutingInfo { get; set; }
 
         /// <summary>
-        /// Scale test option
-        /// </summary>
-        public int? ScaleTestCount { get; set; }
-
-        /// <summary>
         /// Force encryption of credentials in publisher configuration
         /// or dont store credentials. Default is false.
         /// </summary>
@@ -157,5 +152,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// responses.
         /// </summary>
         public NamespaceFormat? DefaultNamespaceFormat { get; set; }
+
+        /// <summary>
+        /// Disable open api endpoint
+        /// </summary>
+        public bool? DisableOpenApiEndpoint { get; set; }
+
+        /// <summary>
+        /// Scale test option
+        /// </summary>
+        public int? ScaleTestCount { get; set; }
     }
 }

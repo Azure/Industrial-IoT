@@ -67,6 +67,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         protected string NodeId { get; set; }
 
         /// <summary>
+        /// Last saved value
+        /// </summary>
+        public IEncodeable? LastValue { get; private set; }
+
+        /// <summary>
         /// Create item
         /// </summary>
         /// <param name="logger"></param>
@@ -280,11 +285,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 return false;
             }
-            var lastValue = item.LastValue;
-            if (lastValue != evt)
-            {
-                item.SaveValueInCache(evt);
-            }
+            LastValue = evt;
             return true;
         }
 
@@ -292,7 +293,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         public virtual bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
             IList<MonitoredItemNotificationModel> notifications)
         {
-            var lastValue = Item?.LastValue;
+            var lastValue = LastValue;
             if (lastValue == null || Item?.Status?.Error != null)
             {
                 return TryGetErrorMonitoredItemNotifications(sequenceNumber,
@@ -755,6 +756,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // from the registered and thus effective node id
                 //
                 ResolvedNodeId = template.StartNodeId;
+
+                LastValue = new MonitoredItemNotification
+                {
+                    Value = new DataValue(StatusCodes.GoodNoData)
+                };
             }
 
             /// <inheritdoc/>
@@ -1135,7 +1141,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Data Item '{Template.StartNodeId}' (Heartbeat: '{_timerInterval}') " +
+                return $"Data Item '{Template.StartNodeId}' (with Heartbeat) " +
                     $"with server id {ServerId} - {(Item?.Status?.Created == true ? "" :
                         "not ")}created";
             }
@@ -1158,7 +1164,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Debug.Assert(Item != null);
 
                 // Last value should be this notification
-                Debug.Assert(monitoredItemNotification == Item.LastValue);
+                Debug.Assert(monitoredItemNotification == LastValue);
                 _heartbeatTimer.Change(_timerInterval, _timerInterval);
 
                 return base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
@@ -1232,7 +1238,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
 
                 // If last value is null create a error value.
-                var lastValue = (item.LastValue as MonitoredItemNotification)?.Value ??
+                var lastValue = (LastValue as MonitoredItemNotification)?.Value ??
                     new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
                 var heartbeat = new MonitoredItemNotificationModel
                 {
@@ -1385,7 +1391,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
                     SequenceNumber = sequenceNumber,
-                    Value = _lastValue ?? new DataValue(StatusCodes.GoodNoData)
+                    Value = LastSampledValue
                 });
                 return true;
             }
@@ -1410,7 +1416,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     return;
                 }
-                _lastValue = value;
+
+                LastSampledValue = value;
+
                 var notification = new MonitoredItemNotificationModel
                 {
                     Id = Template.Id,
@@ -1423,11 +1431,28 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 callback(MessageType.DeltaFrame, notification.YieldReturn());
             }
 
+            /// <summary>
+            /// Last sampled value
+            /// </summary>
+            internal DataValue LastSampledValue
+            {
+                get
+                {
+                    Debug.Assert(LastValue is MonitoredItemNotification);
+                    return ((MonitoredItemNotification)LastValue).Value
+                        ?? new DataValue(StatusCodes.GoodNoData);
+                }
+                set
+                {
+                    Debug.Assert(LastValue is MonitoredItemNotification);
+                    ((MonitoredItemNotification)LastValue).Value = value;
+                }
+            }
+
             private readonly ConnectionIdentifier _connection;
             private readonly IClientSampler<ConnectionModel> _sampler;
             private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
             private IAsyncDisposable? _sampling;
-            private DataValue? _lastValue;
         }
 
         /// <summary>

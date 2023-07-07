@@ -54,6 +54,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
+        /// Current metadata
+        /// </summary>
+        internal DataSetMetaDataType? CurrentMetaData =>
+            _currentMetaData.IsCompletedSuccessfully ? _currentMetaData.Result : null;
+
+        /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="clients"></param>
@@ -76,6 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = loggerFactory.CreateLogger<OpcUaSubscription>();
             _lock = new SemaphoreSlim(1, 1);
             _currentlyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
+            _currentMetaData = Task.FromResult<DataSetMetaDataType?>(null);
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             InitializeMetrics();
@@ -639,7 +646,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (applyChanges)
             {
                 await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-                if (rawSubscription.MonitoredItemCount == 0)
+                if (rawSubscription.MonitoredItemCount == 0 &&
+                    _subscription?.Configuration?.EnableImmediatePublishing != true)
                 {
                     await rawSubscription.SetPublishingModeAsync(false, ct).ConfigureAwait(false);
                 }
@@ -743,18 +751,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             //
-            // Ensure metadata is already available when we enable publishing if this is a new
-            // subscription. This ensures that the meta data is part of the first notification.
+            // Ensure metadata is already available when we enable publishing if this
+            // is a new subscription. This ensures that the meta data is part of the
+            // first notification if we want. We store the metadata in a task variable
+            // and materialize it first time we need it.
             //
             // TODO: We need a versioning scheme to align the metadata changes with the
-            // notifications we receive. Right now if not initial change it is possible that
-            // notifications arrive from previous state that already have the new metadata.
+            // notifications we receive. Right now if not initial change it is possible
+            // that notifications arrive from previous state that already have the new
+            // metadata. Then we need a way to retain the previous metadata until
+            // switching over.
             //
+            _currentMetaDataCancellation?.Cancel();
             _currentlyMonitored = successfullyCompletedItems.ToImmutableHashSet();
             if (metadataChanged)
             {
-                _currentMetaData = await BuildMetadataAsync(sessionHandle, session, _currentlyMonitored,
-                    ct).ConfigureAwait(false);
+                var cancellationToken = ct;
+                var threshold =
+                    _subscription?.Configuration?.AsyncMetaDataLoadThreshold
+                        ?? 30; // Synchronous loading for 30 or less items
+
+                if (_currentlyMonitored.Count > threshold)
+                {
+                    _currentMetaDataCancellation = new CancellationTokenSource();
+                    cancellationToken = _currentMetaDataCancellation.Token;
+                }
+
+                _currentMetaData = RunMetaDataBuilderAsync(sessionHandle, session,
+                    _currentlyMonitored, cancellationToken);
+
+                if (_currentlyMonitored.Count <= threshold)
+                {
+                    // Await completion
+                    await _currentMetaData.ConfigureAwait(false);
+                }
+
                 metadataChanged = false;
             }
 
@@ -885,7 +916,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="monitoredItemsInDataSet"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<DataSetMetaDataType?> BuildMetadataAsync(IOpcUaSession sessionHandle,
+        private async Task<DataSetMetaDataType?> RunMetaDataBuilderAsync(IOpcUaSession sessionHandle,
             ISession session, ImmutableHashSet<IOpcUaMonitoredItem> monitoredItemsInDataSet,
             CancellationToken ct)
         {
@@ -1032,21 +1063,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _subscription.MonitoredItems, ct).ConfigureAwait(false);
             }
 
-            if (!subscription.PublishingEnabled || subscription.ChangesPending)
+            if (subscription.ChangesPending)
             {
-                _logger.LogDebug(
-                    "Enabling subscription {Subscription} in session {Session}...",
-                    this, handle);
+                await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
+            }
 
-                if (subscription.ChangesPending)
-                {
-                    await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-                }
-
-                if (!subscription.PublishingEnabled)
-                {
-                    await subscription.SetPublishingModeAsync(true, ct).ConfigureAwait(false);
-                }
+            if (!subscription.PublishingEnabled)
+            {
+                await subscription.SetPublishingModeAsync(true, ct).ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "Enabled Subscription {Subscription} in session {Session}.",
@@ -1078,12 +1102,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (subscription == null)
             {
                 Debug.Assert(_currentSubscription == null);
+                var enablePublishing =
+                    _subscription?.Configuration?.EnableImmediatePublishing ?? false;
 
                 subscription = new Subscription(session.DefaultSubscription)
                 {
                     Handle = this,
                     DisplayName = Name,
-                    PublishingEnabled = false, // always false on initialization
+                    PublishingEnabled = enablePublishing,
                     TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both,
                     KeepAliveCount = configuredKeepAliveCount,
                     PublishingInterval = configuredPublishingInterval,
@@ -1112,10 +1138,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 _logger.LogInformation(
-                    "Create new subscription '{Subscription}' in session {Session}",
-                    this, handle);
+                    "Creating new {State} subscription {Subscription} in session {Session}.",
+                    subscription.PublishingEnabled ? "enabled" : "disabled", this, handle);
 
-                Debug.Assert(!subscription.PublishingEnabled);
+                Debug.Assert(enablePublishing == subscription.PublishingEnabled);
                 await subscription.CreateAsync(ct).ConfigureAwait(false);
 
                 if (!subscription.Created)
@@ -1126,6 +1152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 LogRevisedValues(subscription, true);
                 Debug.Assert(subscription.Id != 0);
+
                 _useDeferredAcknoledge = _subscription?.Configuration?.UseDeferredAcknoledgements
                     ?? false;
             }
@@ -1239,9 +1266,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // If it does not, close the current subscription
                 if (subscription == null || _currentSubscription!.Id != subscription.Id)
                 {
+                    _logger.LogWarning("Found subscription {New} in session {Session} " +
+                        "but we have {Id} - Closing current.", subscription?.Id,
+                        session, _currentSubscription!.Id);
+
                     // Does not throw
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                    subscription = null;
                 }
             }
             return subscription;
@@ -1693,7 +1723,7 @@ Actual (revised) state/desired state:
                 PublishSequenceNumber = sequenceNumber;
                 _subscriptionId = subscriptionId;
 
-                MetaData = _outer._currentMetaData;
+                MetaData = _outer.CurrentMetaData;
                 Notifications = notifications?.ToList() ??
                     new List<MonitoredItemNotificationModel>();
             }
@@ -1705,7 +1735,7 @@ Actual (revised) state/desired state:
                 {
                     return false;
                 }
-                MetaData = _outer._currentMetaData;
+                MetaData = _outer.CurrentMetaData;
                 MessageType = MessageType.KeyFrame;
                 Notifications.Clear();
                 Notifications.AddRange(allNotifications);
@@ -1763,7 +1793,8 @@ Actual (revised) state/desired state:
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private ImmutableHashSet<IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
-        private DataSetMetaDataType? _currentMetaData;
+        private Task<DataSetMetaDataType?> _currentMetaData;
+        private CancellationTokenSource? _currentMetaDataCancellation;
         private Subscription? _currentSubscription;
         private bool _online;
         private long _connectionAttempts;

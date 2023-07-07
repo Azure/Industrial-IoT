@@ -60,6 +60,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
 
         /// <summary>
+        /// The number of items in a subscription for which
+        /// loading of metadata should be done inline.
+        /// </summary>
+        public int? AsyncMetaDataLoadThreshold { get; set; }
+
+        /// <summary>
+        /// Enable publishing and monitored items when created
+        /// rather than when publishing should start.
+        /// </summary>
+        public bool? EnableImmediatePublishing { get; set; }
+
+        /// <summary>
         /// Whether to enable or disable keep alive messages
         /// </summary>
         public bool? EnableDataSetKeepAlives { get; set; }

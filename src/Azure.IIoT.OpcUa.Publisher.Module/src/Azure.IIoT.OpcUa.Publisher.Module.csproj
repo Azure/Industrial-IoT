@@ -31,17 +31,18 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.42" />
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.42" />
-    <PackageReference Include="Furly.Extensions.Dapr" Version="0.4.42" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.42" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.36" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.49" />
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.49" />
+    <PackageReference Include="Furly.Extensions.Dapr" Version="0.4.49" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.49" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.41" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol.Logs" Version="1.5.0-rc.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.4.0-rc.4" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.5.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.5.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.14" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.5.0" />

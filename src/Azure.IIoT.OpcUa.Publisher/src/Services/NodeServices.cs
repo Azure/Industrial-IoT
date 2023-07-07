@@ -14,10 +14,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua;
-    using Opc.Ua.Extensions;
     using BrowseDirection = Models.BrowseDirection;
     using NodeClass = Models.NodeClass;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections;
     using System.Collections.Generic;

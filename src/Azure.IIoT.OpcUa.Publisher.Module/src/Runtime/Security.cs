@@ -5,14 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Storage;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Collections.Generic;
     using System.Net.Http.Headers;
     using System.Security.Claims;
     using System.Text.Encodings.Web;
@@ -54,14 +53,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <param name="encoder"></param>
             /// <param name="clock"></param>
             /// <param name="context"></param>
-            /// <param name="twin"></param>
+            /// <param name="stateStore"></param>
             public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
                 ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-                IHttpContextAccessor context, IDictionary<string, VariantValue> twin) :
+                IHttpContextAccessor context, IKeyValueStore stateStore) :
                 base(options, logger, encoder, clock)
             {
                 _context = context;
-                _twin = twin;
+                _stateStore = stateStore;
             }
 
             /// <inheritdoc/>
@@ -87,8 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         return Task.FromResult(AuthenticateResult.NoResult());
                     }
-                    if (!_twin.TryGetValue(Constants.TwinPropertyApiKeyKey, out var key) ||
-                        key != header.Parameter?.Trim())
+                    if (!_stateStore.State.TryGetValue(Constants.TwinPropertyApiKeyKey,
+                        out var key) || key != header.Parameter?.Trim())
                     {
                         throw new UnauthorizedAccessException();
                     }
@@ -110,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             private readonly IHttpContextAccessor _context;
-            private readonly IDictionary<string, VariantValue> _twin;
+            private readonly IKeyValueStore _stateStore;
         }
     }
 }

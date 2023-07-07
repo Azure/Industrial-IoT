@@ -19,7 +19,8 @@ Microsoft provides pre-built Docker containers in the Microsoft Container Regist
 ## Get started
 
 * Learn about [OPC Publisher](docs/opc-publisher/readme.md) and how to use it.
-* Check out all of the [Industrial IoT documentation](docs/readme.md).
+* See all [Features](docs/opc-publisher/features.md) of OPC Publisher and their support level.
+* More [Industrial IoT documentation](docs/readme.md).
 * Find [release announcements](docs/release-announcement.md) and all [releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 
 ## Get support
@@ -32,14 +33,13 @@ Otherwise, please report bugs, feature requests, or suggestions as [GitHub issue
 
 ### Supported releases and support policy
 
-Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Minor releases and patch releases address customer reported issues and receive security updates. Minor releases are either regular releases or LTS (Long term support) releases. Currently only the 2.8 release is receiving long-term support (2 years of support after release, only security fixes in the second year). Regular (non-LTS) releases are supported for 6 months after the subsequent major.minor release, or for 1 year after its release whichever comes first. This is reflected in the following table. Releases not shown in the table (e.g., 2.3, 2.4, or 2.6) are out of support already.
+Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Minor releases and patch releases address customer reported issues and receive security updates. Minor releases are either regular releases or LTS (Long term support) releases. Currently only the 2.8 release is receiving long-term support (2 years of support after release, only security fixes in the second year). Regular (non-LTS) releases are supported for 6 months after the subsequent major.minor release, or for 1 year after its release whichever comes first. This is reflected in the following table. Releases not shown in the table (e.g., 2.4.*, 2.5.*, 2.6.*, or 2.7.*) are out of support already.
 
-| Release (tag)                               | Latest patch release (tag) | End of support | Successor (tag)       | Update instructions                                       |
-|---------------------------------------------|----------------------------|----------------|-----------------------|-----------------------------------------------------------|
-| 2.5                                         | 2.5.5                      | 12/1/2021      | 2.8  (LTS) (>= 2.8.2) | [Migration Path](docs/opc-publisher/migrationpath.md) |
-| 2.7                                         | 2.7.206                    | 1/15/2022      | 2.8  (LTS) (>= 2.8.0) | N/A                                                       |
-| 2.8 (LTS)                                   | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023      | 2.9                   | N/A                                                       |
-| [2.9](https://github.com/Azure/Industrial-IoT)| 2.9.0-preview3             | N/A            | 2.10 (LTS)            | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| Release (tag)     | Last release (tag) | End of support | Successor (tag)       | Update instructions |
+|-------------------|--------------------|----------------|-----------------------|---------------------|
+| Industrial IoT 2.8 (LTS) | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6)         | 7/15/2023      | OPC Publisher 2.9     | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| OPC Publisher 2.8 (LTS) | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 10/15/2023 | OPC Publisher 2.9 | N/A |
+| OPC Publisher [2.9](https://github.com/Azure/Industrial-IoT) | 2.9.0-preview4 | N/A | OPC Publisher 2.10 (LTS) | [Migration Path](docs/opc-publisher/migrationpath.md) |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases are only supported through GitHub issues. If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 

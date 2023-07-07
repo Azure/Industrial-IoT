@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
+        public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
         public const string DefaultNamespaceFormatKey = "DefaultNamespaceFormat";
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
@@ -177,6 +178,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                 GetStringOrDefault(DefaultTransportKey), out var transport))
             {
                 options.DefaultTransport = transport;
+            }
+
+            if (options.DisableOpenApiEndpoint == null)
+            {
+                options.DisableOpenApiEndpoint = GetBoolOrNull(DisableOpenApiEndpointKey);
             }
 
             if (options.EnableRuntimeStateReporting == null)

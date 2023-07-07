@@ -36,6 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
+        public const string AsyncMetaDataLoadThresholdKey = "AsyncMetaDataLoadThreshold";
+        public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int MinSubscriptionLifetimeDefaultSec = 10;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
+        public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
         public const bool DefaultSamplingUsingCyclicReadDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
@@ -107,9 +110,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DisableDataSetMetaData = GetBoolOrDefault(DisableDataSetMetaDataKey);
             }
+            if (options.AsyncMetaDataLoadThreshold == null)
+            {
+                options.AsyncMetaDataLoadThreshold = GetIntOrDefault(
+                    AsyncMetaDataLoadThresholdKey, AsyncMetaDataLoadThresholdDefault);
+            }
             if (options.DefaultMetaDataUpdateTime == null)
             {
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
+            }
+            if (options.EnableImmediatePublishing == null)
+            {
+                options.EnableImmediatePublishing = GetBoolOrNull(EnableImmediatePublishingKey);
             }
             if (options.EnableDataSetKeepAlives == null)
             {

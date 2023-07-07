@@ -647,7 +647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Result, id, _serializer,
-                    _loggerFactory, _metrics, OnConnectionStateChange, _sessionFactory,
+                    _loggerFactory, _meter, _metrics, OnConnectionStateChange, _sessionFactory,
                     reverseConnect ? _reverseConnectManager : null,
                     _options.Value.MaxReconnectDelay)
                 {

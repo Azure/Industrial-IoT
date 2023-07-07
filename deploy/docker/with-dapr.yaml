@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  ############################
+  # OPC Publisher
+  ############################
+  publisher:
+    environment: 
+      DaprConnectionString: "PubSubComponent=redis-pubsub"
+  ############################
+  # Dapr sidecar for publisher
+  ############################
+  publisher-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "-app-id", "publisher",
+      "-placement-host-address", "placement:50006",
+      "-components-path", "/components"
+      ]
+    volumes:
+      - "./dapr:/components"
+    depends_on:
+      - publisher
+    network_mode: "service:publisher"
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    container_name: redis
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  ############################
+  # Dapr placement service
+  ############################
+  placement:
+    image: "daprio/dapr"
+    command: ["./placement", "-port", "50006"]
+    ports:
+      - "50006:50006"
+  ############################
+  # Redis dashboard
+  ############################
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - 5000:8001
+    volumes:
+      - shared:/db 

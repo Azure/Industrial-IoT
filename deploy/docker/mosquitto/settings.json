@@ -1,0 +1,26 @@
+{
+  "ConnectionManager_connections": {
+    "mosquitto": {
+      "configVersion": 1,
+      "certValidation": false,
+      "clientId": "mqtt-explorer",
+      "id": "6b3e0a76-c99d-464d-a74c-9c0d1c483edf",
+      "name": "mosquitto",
+      "encryption": false,
+      "subscriptions": [
+        {
+          "topic": "#",
+          "qos": 0
+        },
+        {
+          "topic": "$SYS/#",
+          "qos": 0
+        }
+      ],
+      "type": "mqtt",
+      "host": "mosquitto",
+      "port": 1883,
+      "protocol": "mqtt"
+    }
+  }
+}

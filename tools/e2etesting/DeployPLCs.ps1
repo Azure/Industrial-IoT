@@ -33,7 +33,7 @@ Param(
 $ErrorActionPreference = "Stop"
 
 if (!$PLCImage) {
-    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.7"
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest"
 }
 
 if (!$ResourceGroupName) {
