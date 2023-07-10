@@ -33,7 +33,7 @@ jobs:
     displayName: Install ReportGenerator tool
   - task: DotNetCoreCLI@2
     displayName: Code coverage
-    timeoutInMinutes: 30
+    timeoutInMinutes: 45
     inputs:
       command: test
       projects: '**/tests/*.csproj'

@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(results.UpdateDataCapability);
             Assert.False(results.UpdateEventCapability);
             Assert.NotNull(results.MaxReturnDataValues);
-            Assert.Equal(uint.MaxValue, results.MaxReturnDataValues.Value);
+            Assert.Equal(uint.MaxValue, results.MaxReturnDataValues!.Value);
             Assert.Null(results.MaxReturnEventValues);
         }
 

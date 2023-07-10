@@ -38,7 +38,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _timeoutToken,
                 "opc-plc-files/sc001.json").ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken, _context);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -64,11 +64,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                 ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
                 EnabledState = DataValueObject.Create("Enabled"),
                 EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
-                EnabledStateId = DataValueObject.Create(true),
+                EnabledStateId = DataValueObject.Create<bool?>(true),
                 EventType = DataValueObject.Create("i=10751"),
-                LastSeverity = DataValueObject.Create(500),
+                LastSeverity = DataValueObject.Create<int?>(500),
                 Message = DataValueObject.Create("Door Open"),
-                Retain = DataValueObject.Create(true),
+                Retain = DataValueObject.Create<bool?>(true),
                 Severity = DataValueObject.Create(900),
                 SourceName = DataValueObject.Create("VendingMachine1"),
                 SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
@@ -83,11 +83,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                     ConditionName = DataValueObject.Create("VendingMachine2_LightOff"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
-                    EnabledStateId = DataValueObject.Create(true),
+                    EnabledStateId = DataValueObject.Create<bool?>(true),
                     EventType = DataValueObject.Create("i=10637"),
-                    LastSeverity = DataValueObject.Create(500),
+                    LastSeverity = DataValueObject.Create<int?>(500),
                     Message = DataValueObject.Create("Light Off in machine"),
-                    Retain = DataValueObject.Create(true),
+                    Retain = DataValueObject.Create<bool?>(true),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine2"),
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2")
@@ -101,11 +101,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                     ConditionName = DataValueObject.Create("VendingMachine1_AD_Lamp_Off"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Enabled"),
-                    EnabledStateId = DataValueObject.Create(true),
+                    EnabledStateId = DataValueObject.Create<bool?>(true),
                     EventType = DataValueObject.Create("i=2782"),
-                    LastSeverity = DataValueObject.Create(500),
+                    LastSeverity = DataValueObject.Create<int?>(500),
                     Message = DataValueObject.Create("AD Lamp Off"),
-                    Retain = DataValueObject.Create(true),
+                    Retain = DataValueObject.Create<bool?>(true),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine1"),
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
@@ -119,11 +119,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                     ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Inactive | Unacknowledged"),
-                    EnabledStateId = DataValueObject.Create(true),
+                    EnabledStateId = DataValueObject.Create<bool?>(true),
                     EventType = DataValueObject.Create("i=10751"),
-                    LastSeverity = DataValueObject.Create(900),
+                    LastSeverity = DataValueObject.Create<int?>(900),
                     Message = DataValueObject.Create("Door Closed"),
-                    Retain = DataValueObject.Create(false),
+                    Retain = DataValueObject.Create<bool?>(false),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine1"),
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
@@ -137,11 +137,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                     ConditionName = DataValueObject.Create("VendingMachine1_TemperatureHigh"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
-                    EnabledStateId = DataValueObject.Create(true),
+                    EnabledStateId = DataValueObject.Create<bool?>(true),
                     EventType = DataValueObject.Create("i=2955"),
-                    LastSeverity = DataValueObject.Create(900),
+                    LastSeverity = DataValueObject.Create<int?>(900),
                     Message = DataValueObject.Create("Temperature is HIGH (LAST EVENT IN LOOP)"),
-                    Retain = DataValueObject.Create(true),
+                    Retain = DataValueObject.Create<bool?>(true),
                     Severity = DataValueObject.Create(900),
                     SourceName = DataValueObject.Create("VendingMachine1"),
                     SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")

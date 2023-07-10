@@ -1597,6 +1597,21 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges,
+                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+            {
+                if (!base.TryCompleteChanges(subscription, ref applyChanges, cb))
+                {
+                    return false;
+                }
+                Debug.Assert(Item != null);
+
+                // TODO: Instead figure out how to get the filter status and inspect
+                return TestWhereClause(subscription.Session, Item.Filter as EventFilter);
+            }
+
+            /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session, out bool metadataChanged)
             {
@@ -1813,7 +1828,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
                     ? GetSimpleEventFilter(session) : session.Codec.Decode(Template.EventFilter);
-                TestWhereClause(session, eventFilter);
 
                 // let's keep track of the internal fields we add so that they don't show up in the output
                 selectClauses = new List<SimpleAttributeOperand>();
@@ -1896,41 +1910,54 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// </summary>
             /// <param name="session"></param>
             /// <param name="eventFilter"></param>
-            private void TestWhereClause(IOpcUaSession session, EventFilter eventFilter)
+            private bool TestWhereClause(ISession session, EventFilter? eventFilter)
             {
-                if (eventFilter.WhereClause != null)
+                var isValid = eventFilter != null;
+                try
                 {
-                    foreach (var element in eventFilter.WhereClause.Elements)
+                    if (eventFilter?.WhereClause != null)
                     {
-                        if (element.FilterOperator != FilterOperator.OfType)
+                        foreach (var element in eventFilter.WhereClause.Elements)
                         {
-                            continue;
-                        }
-                        if (element.FilterOperands == null)
-                        {
-                            continue;
-                        }
-                        foreach (var filterOperand in element.FilterOperands)
-                        {
-                            var nodeId = default(NodeId);
-                            try
+                            if (element.FilterOperator != FilterOperator.OfType)
                             {
-                                nodeId = (filterOperand.Body as LiteralOperand)?.Value
-                                    .ToString().ToNodeId(session.MessageContext);
-                                // it will throw an exception if it doesn't work
-                                session.NodeCache.FetchNode(nodeId?.ToExpandedNodeId(
-                                    session.MessageContext.NamespaceUris));
+                                continue;
                             }
-                            catch (Exception ex)
+                            if (element.FilterOperands == null)
                             {
-                                _logger.LogWarning(
-                                    "{Item}: Where clause is doing OfType({NodeId}) and " +
-                                    "we got this message {Message} while looking it up",
-                                    this, nodeId, ex.Message);
+                                continue;
+                            }
+                            foreach (var filterOperand in element.FilterOperands)
+                            {
+                                var nodeId = default(NodeId);
+                                try
+                                {
+                                    nodeId = (filterOperand.Body as LiteralOperand)?.Value
+                                        .ToString().ToNodeId(session.MessageContext);
+                                    // it will throw an exception if it doesn't work
+                                    session.NodeCache.FetchNode(nodeId?.ToExpandedNodeId(
+                                        session.MessageContext.NamespaceUris));
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogWarning(
+                                        "{Item}: Where clause is doing OfType({NodeId}) and " +
+                                        "we got this message {Message} while looking it up",
+                                        this, nodeId, ex.Message);
+
+                                    isValid = false;
+                                }
                             }
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError("{Item}: Failed to validate filter with error {Message}.",
+                        this, ex.Message);
+                    isValid = false;
+                }
+                return isValid;
             }
 
             /// <summary>

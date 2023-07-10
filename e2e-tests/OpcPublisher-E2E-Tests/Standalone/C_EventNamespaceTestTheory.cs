@@ -28,7 +28,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(10)]
         public Task TestDeployAci()
         {
-            return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept -ses --pn=50000" }, _timeoutToken);
+            return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000" }, _timeoutToken);
         }
 
         [Fact, PriorityOrder(11)]
@@ -38,9 +38,9 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = SimpleEvents(
                 "ns=0;i=2041",
                 "0:Message",
-                "ns=5;i=2",
-                "5:CycleId",
-                "ns=5;i=2");
+                "ns=6;i=2",
+                "6:CycleId",
+                "ns=6;i=2");
 
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);
@@ -80,7 +80,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
+                TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=6;i=2"));
 
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, 1, _timeoutToken);

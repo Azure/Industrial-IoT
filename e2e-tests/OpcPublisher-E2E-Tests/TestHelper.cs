@@ -339,7 +339,7 @@ namespace OpcPublisherAEE2ETests
                 new JArray(
                     context.PlcAciDynamicUrls.Select(host => new JObject(
                         new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
-                        new JProperty("UseSecurity", false),
+                        new JProperty("UseSecurity", true),
                         new JProperty("DataSetWriterGroup", Guid.NewGuid().ToString()),
                         new JProperty("DataSetWriterId", writerId),
                         new JProperty("OpcNodes", opcNodes)))
@@ -595,8 +595,8 @@ namespace OpcPublisherAEE2ETests
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId,
-            int numberOfBatchesToRead, CancellationToken cancellationToken) where T : BaseEventTypePayload
-            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, cancellationToken)
+            int numberOfBatchesToRead, CancellationToken cancellationToken, IIoTPlatformTestContext context = null) where T : BaseEventTypePayload
+            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, context, cancellationToken)
                 .Select(x =>
                     new EventData<T>
                     {
@@ -624,12 +624,13 @@ namespace OpcPublisherAEE2ETests
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="dataSetWriterId"></param>
         /// <param name="numberOfBatchesToRead"></param>
+        /// <param name="context"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<PendingConditionEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer,
-            string dataSetWriterId, int numberOfBatchesToRead, CancellationToken cancellationToken) where T : BaseEventTypePayload
+            string dataSetWriterId, int numberOfBatchesToRead, CancellationToken cancellationToken, IIoTPlatformTestContext context = null) where T : BaseEventTypePayload
         {
-            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, cancellationToken)
+            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, context, cancellationToken)
                 .Select(x =>
                     new PendingConditionEventData<T>
                     {
@@ -657,10 +658,11 @@ namespace OpcPublisherAEE2ETests
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="dataSetWriterId"></param>
         /// <param name="numberOfBatchesToRead"></param>
+        /// <param name="context"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
         public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
-            int numberOfBatchesToRead, [EnumeratorCancellation] CancellationToken cancellationToken)
+            int numberOfBatchesToRead, IIoTPlatformTestContext context, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
@@ -690,6 +692,11 @@ namespace OpcPublisherAEE2ETests
                 else
                 {
                     json = partitionEvent.DeserializeJson<JToken>();
+                }
+
+                if (context?.OutputHelper != null)
+                {
+                    context.OutputHelper.WriteLine(json.ToString(Formatting.Indented));
                 }
 
                 List<dynamic> batchedMessages;

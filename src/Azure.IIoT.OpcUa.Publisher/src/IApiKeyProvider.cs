@@ -3,20 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models
+namespace Azure.IIoT.OpcUa.Publisher
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
-    /// Enum of valid values for MessageType.
+    /// Provide api key
     /// </summary>
-    [DataContract]
-    public enum RuntimeStateEventType
+    public interface IApiKeyProvider
     {
         /// <summary>
-        /// Defines a message of restart announcement type.
+        /// Api key
         /// </summary>
-        [EnumMember(Value = "RestartAnnouncement")]
-        RestartAnnouncement
+        string? ApiKey { get; }
     }
 }

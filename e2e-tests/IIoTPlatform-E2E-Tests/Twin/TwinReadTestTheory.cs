@@ -39,7 +39,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             var attributes = new List<object> {
                 new {
-                    nodeId = "http://microsoft.com/Opc/OpcPlc/#s=FastUInt1",
+                    nodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
                     attribute = "DisplayName"
                 },
                 new {

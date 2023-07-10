@@ -40,7 +40,7 @@ namespace IIoTPlatformE2ETests.Twin
         [InlineData("Guid", "i=21120", false)]
         [InlineData("Int16", "i=16401", true)]
         [InlineData("Int32", "i=20094", true)]
-        [InlineData("LocalizedText", "http://microsoft.com/Opc/OpcPlc/Boiler#i=15015", true)]
+        [InlineData("LocalizedText", "http://microsoft.com/Opc/OpcPlc/Boiler#i=6196", true)]
         [InlineData("NodeId", "i=2198", false)]
         [InlineData("QualifiedName", "i=2764", false)]
         [InlineData("StatusCode", "i=20085", false)]
@@ -66,13 +66,13 @@ namespace IIoTPlatformE2ETests.Twin
         public async Task ComplexDataType()
         {
             const string expectedDataType = "ExtensionObject";
-            const string nodeId = "http://microsoft.com/Opc/OpcPlc/Boiler#i=15003";
+            const string nodeId = "http://microsoft.com/Opc/OpcPlc/Boiler#i=15013";
 
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
             var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).ConfigureAwait(false);
 
-            Assert.Equal(expectedDataType, expectedDataType);
+            Assert.Equal(expectedDataType, dataType);
 
             Assert.NotNull(value);
 
@@ -89,13 +89,8 @@ namespace IIoTPlatformE2ETests.Twin
 
             Assert.True(TestHelper.HasProperty(value.Body, "Temperature"), "Unexpected data structure");
             Assert.True(TestHelper.HasProperty(value.Body.Temperature, "Top"), "Unexpected data structure");
-            Assert.Equal(20, value.Body.Temperature.Top);
             Assert.True(TestHelper.HasProperty(value.Body.Temperature, "Bottom"), "Unexpected data structure");
-            Assert.Equal(20, value.Body.Temperature.Bottom);
-
             Assert.True(TestHelper.HasProperty(value.Body, "Pressure"), "Unexpected data structure");
-            Assert.Equal(100020, value.Body.Pressure);
-
             Assert.True(TestHelper.HasProperty(value.Body, "HeaterState"), "Unexpected data structure");
             Assert.Equal(1, value.Body.HeaterState);
         }

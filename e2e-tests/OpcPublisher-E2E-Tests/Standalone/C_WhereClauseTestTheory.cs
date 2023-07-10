@@ -33,7 +33,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken).ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -58,7 +58,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken).ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -82,7 +82,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken).ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
             // Act
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],

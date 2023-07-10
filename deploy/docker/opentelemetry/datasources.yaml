@@ -4,6 +4,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
+    uid: PBFA97CFB590B2093
     url: http://prometheus:9090
     basicAuth: false
     isDefault: false

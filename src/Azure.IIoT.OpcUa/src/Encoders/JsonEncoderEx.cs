@@ -1558,7 +1558,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        private IList<T> ToTypedArray<T>(object value) where T : struct
+        private static IList<T> ToTypedArray<T>(object value) where T : struct
         {
             return ToTypedArray(value, default(T));
         }
@@ -1571,7 +1571,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private IList<T?> ToTypedArray<T>(object? value, T? defaultValue)
+        private static IList<T?> ToTypedArray<T>(object? value, T? defaultValue)
         {
             if (value == null)
             {
@@ -1592,18 +1592,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             var result = new T?[arr.Length];
             for (var index = 0; index < arr.Length; index++)
             {
+                var item = arr.GetValue(index);
+                if (item == null)
+                {
+                    result[index] = defaultValue;
+                    continue;
+                }
                 try
                 {
-                    value = arr.GetValue(index);
-                    if (value?.GetType()?.IsArray ?? false)
-                    {
-                        // Recursively unpack an array in array if needed
-                        result[index] = (T?)ToTypedArray(value, defaultValue);
-                    }
-                    else
-                    {
-                        result[index] = (T?)(value ?? defaultValue);
-                    }
+                    result[index] = item.As<T?>();
                 }
                 catch (Exception ex)
                 {

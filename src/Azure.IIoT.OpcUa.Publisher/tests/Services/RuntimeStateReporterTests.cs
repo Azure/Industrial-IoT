@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Extensions.Storage;
+    using Furly.Extensions.Storage.Services;
     using Microsoft.Extensions.Configuration;
     using Moq;
     using System;
@@ -38,11 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                client.Object,
+                client.Object.YieldReturn(),
                 _serializer,
+                new MemoryKVStore().YieldReturn(),
                 options,
-                _logger
-            );
+                _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
@@ -66,16 +68,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                client.Object,
+                client.Object.YieldReturn(),
                 _serializer,
+                new MemoryKVStore().YieldReturn(),
                 options,
-                _logger
-            );
+                _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
                 .Should()
-                .ThrowAsync<Exception>()
+                .NotThrowAsync()
                 .ConfigureAwait(false);
         }
 
@@ -128,11 +130,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                _client.Object,
+                _client.Object.YieldReturn(),
                 _serializer,
+                new MemoryKVStore().YieldReturn(),
                 options,
-                _logger
-            );
+                _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
@@ -147,9 +149,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(ContentMimeType.Json, contentType);
             Assert.Equal(Encoding.UTF8.WebName, contentEncoding);
 
-            Assert.Equal(1, buffers.Count);
+            Assert.Single(buffers);
             var body = Encoding.UTF8.GetString(buffers[0].Span);
-            Assert.Equal("{\"MessageType\":\"restartAnnouncement\",\"MessageVersion\":1}", body);
+            Assert.Equal("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1}", body);
         }
     }
 }

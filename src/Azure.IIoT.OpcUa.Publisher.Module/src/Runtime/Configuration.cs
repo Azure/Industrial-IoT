@@ -656,7 +656,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     var useV3 = GetBoolOrNull(UseOpenApiV3Key);
                     if (useV3 != null)
                     {
-                        options.Version = useV3.Value ? 3 : 2;
+                        options.SchemaVersion = useV3.Value ? 3 : 2;
                     }
                 }
             }

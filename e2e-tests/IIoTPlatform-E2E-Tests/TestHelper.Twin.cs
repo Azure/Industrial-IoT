@@ -14,6 +14,7 @@ namespace IIoTPlatformE2ETests
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -125,11 +126,29 @@ namespace IIoTPlatformE2ETests
 
                 foreach (var node in json.references)
                 {
-                    result.Add(
-                        (
-                            node.target?.nodeId?.ToString(),
-                            node.target?.nodeClass?.ToString(),
-                            string.Equals(node.target?.children?.ToString(), "true", StringComparison.OrdinalIgnoreCase)));
+                    try
+                    {
+                        var targetId = node.target.nodeId.ToString();
+                        var nodeClass = node.target.nodeClass.ToString();
+                        var children = node.target.children.ToString();
+                        var hasChildren = (bool)string.Equals(children,
+                            "true", StringComparison.OrdinalIgnoreCase);
+                        result.Add((targetId, nodeClass, hasChildren));
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            var errorInfo = node.target.errorInfo.symbolicId.ToString();
+                            Assert.Equal("BadSecurityModeInsufficient", errorInfo);
+                        }
+                        catch
+                        {
+                            context.OutputHelper.WriteLine(
+                                JsonConvert.SerializeObject(node, Formatting.Indented));
+                            throw;
+                        }
+                    }
                 }
 
                 var responseContinuationToken = HasProperty(json, "continuationToken") ? json.continuationToken : null;

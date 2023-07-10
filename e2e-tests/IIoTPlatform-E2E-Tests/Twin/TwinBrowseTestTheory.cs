@@ -69,8 +69,8 @@ namespace IIoTPlatformE2ETests.Twin
             Assert.NotEmpty(nodes);
 
             Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
         }
 
         [Fact, PriorityOrder(3)]
@@ -115,8 +115,8 @@ namespace IIoTPlatformE2ETests.Twin
 
             Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
             Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
             Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId, StringComparison.Ordinal));
             Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId, StringComparison.Ordinal));
         }
@@ -135,7 +135,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
             Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
+            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
         }
     }
 }

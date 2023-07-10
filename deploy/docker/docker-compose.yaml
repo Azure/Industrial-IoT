@@ -89,7 +89,8 @@ services:
       - "3000:3000"
     volumes:
       - ./opentelemetry/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./opentelemetry/grafana.db:/var/lib/grafana/grafana.db
+      - ./opentelemetry/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./opentelemetry/dashboards/:/etc/dashboards/
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin

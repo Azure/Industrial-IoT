@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     }
                     catch
                     {
-                        Assert.True(false, $"{value.Item2.GetType()} failed to be sent.");
+                        Assert.Fail($"{value.Item2.GetType()} failed to be sent.");
                     }
                 }
             }

@@ -42,7 +42,7 @@ namespace OpcPublisherAEE2ETests.TestModels
         /// <summary>Gets or sets the enabled state Id.</summary>
         /// <example>true</example>
         [JsonProperty("EnabledState/Id")]
-        public DataValueObject<bool> EnabledStateId { get; set; }
+        public DataValueObject<bool?> EnabledStateId { get; set; }
 
         /// <summary>Gets or sets the enabled state transition time.</summary>
         [JsonProperty("EnabledState/TransitionTime")]
@@ -51,7 +51,7 @@ namespace OpcPublisherAEE2ETests.TestModels
         /// <summary>Gets or sets the event last severity.</summary>
         /// <example>500</example>
         [JsonProperty(nameof(LastSeverity))]
-        public DataValueObject<int> LastSeverity { get; set; }
+        public DataValueObject<int?> LastSeverity { get; set; }
 
         /// <summary>Gets or sets the quality.</summary>
         [JsonProperty(nameof(Quality))]
@@ -59,7 +59,7 @@ namespace OpcPublisherAEE2ETests.TestModels
 
         /// <summary>Gets or sets the retain flag.</summary>
         [JsonProperty(nameof(Retain))]
-        public DataValueObject<bool> Retain { get; set; }
+        public DataValueObject<bool?> Retain { get; set; }
 
         /// <summary>Gets or sets the time.</summary>
         [JsonProperty(nameof(Time))]

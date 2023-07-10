@@ -726,7 +726,7 @@ namespace IIoTPlatformE2ETests
                 model = new PublishedNodesEntryModel
                 {
                     EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
-                    UseSecurity = false,
+                    UseSecurity = true,
                     OpcNodes = new List<OpcNodeModel> {
                         new OpcNodeModel {
                             Id = "ns=2;s=SlowUInt1",
@@ -805,7 +805,7 @@ namespace IIoTPlatformE2ETests
                 nodesToPublish = new PublishedNodesEntryModel
                 {
                     EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
-                    UseSecurity = false
+                    UseSecurity = true
                 };
 
                 var nodes = new List<OpcNodeModel>();

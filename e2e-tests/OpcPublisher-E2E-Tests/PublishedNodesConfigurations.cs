@@ -17,7 +17,7 @@ namespace OpcPublisherAEE2ETests
                 [
                     {{
                         ""EndpointUrl"": ""opc.tcp://{host}:{port}"",
-                        ""UseSecurity"": false,
+                        ""UseSecurity"": true,
                         ""DataSetWriterId"":""{writerId}"",
                         ""OpcNodes"": [
                             {{

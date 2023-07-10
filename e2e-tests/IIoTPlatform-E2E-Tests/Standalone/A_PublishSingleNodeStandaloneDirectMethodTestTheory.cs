@@ -299,8 +299,7 @@ namespace IIoTPlatformE2ETests.Standalone
             // Stop monitoring and check that restart announcement was received.
             var monitoringResult = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
-            // TODO: Reneable when fixed
-            // Assert.True(monitoringResult.RestartAnnouncementReceived);
+            Assert.True(monitoringResult.RestartAnnouncementReceived);
         }
     }
 }

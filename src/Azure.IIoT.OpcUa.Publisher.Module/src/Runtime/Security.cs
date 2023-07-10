@@ -53,14 +53,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <param name="encoder"></param>
             /// <param name="clock"></param>
             /// <param name="context"></param>
-            /// <param name="stateStore"></param>
+            /// <param name="apiKeyProvider"></param>
             public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
                 ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-                IHttpContextAccessor context, IKeyValueStore stateStore) :
+                IHttpContextAccessor context, IApiKeyProvider apiKeyProvider) :
                 base(options, logger, encoder, clock)
             {
                 _context = context;
-                _stateStore = stateStore;
+                _apiKeyProvider = apiKeyProvider;
             }
 
             /// <inheritdoc/>
@@ -86,8 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         return Task.FromResult(AuthenticateResult.NoResult());
                     }
-                    if (!_stateStore.State.TryGetValue(Constants.TwinPropertyApiKeyKey,
-                        out var key) || key != header.Parameter?.Trim())
+
+                    if (_apiKeyProvider.ApiKey != header.Parameter?.Trim())
                     {
                         throw new UnauthorizedAccessException();
                     }
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             private readonly IHttpContextAccessor _context;
-            private readonly IKeyValueStore _stateStore;
+            private readonly IApiKeyProvider _apiKeyProvider;
         }
     }
 }
