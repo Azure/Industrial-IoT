@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.0](#azure-industrial-iot-opc-publisher-290)
+  - [Changes in 2.9.0](#changes-in-290)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 4](#azure-industrial-iot-opc-publisher-290-community-preview-4)
   - [Changes in 2.9.0 Preview 4](#changes-in-290-preview-4)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 3](#azure-industrial-iot-opc-publisher-290-community-preview-3)
@@ -9,7 +11,7 @@
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 2](#azure-industrial-iot-opc-publisher-290-community-preview-2)
   - [Changes in 2.9.0 Preview 2](#changes-in-290-preview-2)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 1](#azure-industrial-iot-opc-publisher-290-community-preview-1)
-  - [Changes 2.9.0 Preview 1](#changes-290-preview-1)
+  - [Changes in 2.9.0 Preview 1](#changes-in-290-preview-1)
 - [Azure Industrial IoT Platform Release 2.8.6](#azure-industrial-iot-platform-release-286)
   - [Changes in 2.8.6](#changes-in-286)
 - [Azure Industrial IoT Platform Release 2.8.5](#azure-industrial-iot-platform-release-285)
@@ -27,6 +29,35 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.0
+
+We are pleased to announce the release of version 2.9.0 of OPC Publisher. This release adds several new features including support for reverse connect.
+
+### Changes in 2.9.0
+
+For the list of changes released so far in preview releases please see:
+
+- [Changes in 2.9.0 Preview 4](#changes-in-290-preview-4)
+- [Changes in 2.9.0 Preview 3](#changes-in-290-preview-3)
+- [Changes in 2.9.0 Preview 2](#changes-in-290-preview-2)
+- [Changes in 2.9.0 Preview 1](#changes-in-290-preview-1)
+
+The final release contains the following changes:
+
+- Restart announcement tests are disabled and need to work again #1988
+- Event item filter errors should be an error condition and re-evaluated periodically. #2014
+- Feedback / Message / Metric on OPC Server down or wrong credentials provided in OPC Publisher 2.8+ #1445
+- Option to directly enable subscription during create rather than using SetPublishingMode request. (BadNodeIdUnkown OPCPublisher) #1773
+- Option to enable swagger UI in release build publishers. (OPCPublisher:latest API Server not working) #2009
+- Publisher should try first to select the endpoint matching the configured url in Connection model. #2013
+- Select security mode and profile in configuration #2008
+- Using G8/17 to serialize float/double for precision Float/Double Serializer #1709
+- Send extension fields as part of datasetmessage and enable free form configuration of extension fields (move to Variant value) #1940
+- Command line option to disable complex type loading. #1953
+- publishednodes.json: When OpcAuthenticationUsername is set but OpcAuthenticationPassword is erroneously not, a misleading error message appears #1059
+- OPC Publisher REST API and Direct Methods Reference (Publish, Twin, Discovery) documentation  #1976/#1504
+- AAD-Register fails on converting System.String to type "System.Security.SecureString" #2015
 
 ## Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 4
 
@@ -55,11 +86,11 @@ We are pleased to announce the third **preview** release of version 2.9.0 of OPC
 ### Changes in 2.9.0 Preview 3
 
 - [OPC Publisher] Heartbeat behavior is not deterministic - implement heartbeat as value change watchdog. #1993
-- [OPC Publisher] When enabling client linger in preview2 a failing connection retries forever bugSomething isn't working #1985
+- [OPC Publisher] When enabling client linger in preview2 a failing connection retries forever  #1985
 - [OPC Publisher] Alarm condition integration tests have been partially disabled and need to enable again #1989
 - [OPC Publisher] Need OPC Publisher to poll data from server periodically rather than subscribing. #1934
-- [OPC Publisher] Polling mechanism instead of PubSub in OPCPublisher feature request #605
-- [OPC Publisher] Configuration of the published nodes by browse path feature request #47
+- [OPC Publisher] Polling mechanism instead of PubSub in OPCPublisher #605
+- [OPC Publisher] Configuration of the published nodes by browse path #47
 - [OPC Publisher] deploy.ps1 fails upon deploying "platform" #1981
   [OPC Publisher] Updated documentation and nuget dependencies
 
@@ -100,7 +131,7 @@ We are pleased to announce the first **preview** release of version 2.9.0 of OPC
 
 > IMPORTANT: Preview releases are only supported through GitHub issues.
 
-### Changes 2.9.0 Preview 1
+### Changes in 2.9.0 Preview 1
 
 - [OPC Publisher] [Alarms and Events](./opc-publisher/readme.md#configuring-event-subscriptions) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
 - [OPC Publisher] Full Deadband filtering. We introduced data change triggers in 2.8.4 and are now supporting the full data change filter configuration to configure percent and absolute deadband as defined in OPC UA.

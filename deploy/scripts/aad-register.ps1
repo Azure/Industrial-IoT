@@ -22,7 +22,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Name,
     [object] $Context,
-    [string] $TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18",
+    [string] $TenantId,
     [string] $Output,
     [string] $EnvironmentName = "AzureCloud"
 )
