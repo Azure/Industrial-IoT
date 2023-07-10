@@ -343,7 +343,14 @@ Function Connect-MicrosoftGraph() {
     try {
         $token = Get-AzAccessToken -ResourceTypeName MSGraph
         if ($token) {
-            Connect-MgGraph -AccessToken $token.Token | Out-Null
+            try {
+                $secureToken = ConvertTo-SecureString -AsPlainText -Force -String $token.Token
+                Connect-MgGraph -AccessToken $secureToken | Out-Null
+            }
+            catch {
+                # Fall back to Connect-MgGraph 1.x behavior and pass access token as plain text
+                Connect-MgGraph -AccessToken $token.Token | Out-Null
+            }
             return
         }
     }
