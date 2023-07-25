@@ -1,0 +1,34 @@
+version: "3.9"
+services:
+  ############################
+  # OPC PLC Simulation
+  ############################
+  opcplc:
+    command: [ 
+      "--sph",
+      "--spf=/shared/pn.json",
+      "--pn=50000",
+      "--fn=1", 
+      "--sn=0",
+      "--gn=0",
+      "--nd",
+      "--nn",
+      "--ns",
+      "--np",
+      "--nv",
+      "--aa" 
+      ]
+  ############################
+  # OPC Publisher
+  ############################
+  publisher:
+    cpus: "0.5"
+    mem_limit: 50m
+    environment: 
+      EnableMetrics: false
+      MaxNetworkMessageSendQueueSize: 4
+      DOTNET_ReadyToRun: 1
+      DOTNET_TieredPGO: 0
+      DOTNET_TC_QuickJitForLoops: 0
+      DOTNET_GCConserveMemory: 9
+      DOTNET_GCHeapHardLimitPercent: 30

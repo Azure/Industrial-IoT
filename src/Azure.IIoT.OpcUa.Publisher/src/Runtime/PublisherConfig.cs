@@ -37,11 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EventsTopicTemplateKey = "EventsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
+        public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
         public const string IoTHubMaxMessageSize = "IoTHubMaxMessageSize";
-        public const string MaxEgressMessagesKey = "MaxOutgressMessages";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
@@ -63,8 +63,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetClassIdVariableName = "DataSetClassId";
-        //public const string TelemetryTopicVariableName = "TelemetryTopic";
-        //public const string SiteIdVariableName = "SiteId";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -87,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
         public const int MaxNodesPerDataSetDefault = 1000;
         public const int BatchSizeDefault = 100;
-        public const int MaxEgressMessagesDefault = 4096;
+        public const int MaxNetworkMessageSendQueueSizeDefault = 4096;
         public const int BatchTriggerIntervalDefaultMillis = 1 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
         public const int ScaleTestCountDefault = 1;
@@ -139,8 +137,8 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.MaxNetworkMessageSendQueueSize == null)
             {
-                options.MaxNetworkMessageSendQueueSize = GetIntOrDefault(MaxEgressMessagesKey,
-                    MaxEgressMessagesDefault);
+                options.MaxNetworkMessageSendQueueSize = GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
+                    MaxNetworkMessageSendQueueSizeDefault);
             }
 
             if (options.RootTopicTemplate == null)

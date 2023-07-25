@@ -201,7 +201,7 @@ Messaging configuration
                                metadata asynchronously.
                                Only used if meta data is supported and enabled.
                                Default: `30`.
-      --om, --maxoutgressmessages, --MaxOutgressMessages=VALUE
+      --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
                                Default: `4096`
@@ -495,6 +495,13 @@ OPC UA Client configuration
                                and connection will always be rejected.
                                WARNING: This setting should never be used in
                                production environments!
+      --rur, --rejectunknownrevocationstatus, --RejectUnknownRevocationStatus[=VALUE]
+                             Set this to `False` to accept certificates
+                               presented by a server that have an unknown
+                               revocation status.
+                               WARNING: This setting should never be used in
+                               production environments!
+                               Default: `True`.
       --ct, --createsessiontimeout, --CreateSessionTimeout=VALUE
                              Amount of time in seconds to wait until a session
                                is connected.
@@ -606,13 +613,13 @@ OPC UA Client configuration
                                presented to the server.
                                Default: `not set`.
       --rejectsha1, --RejectSha1SignedCertificates=VALUE
-                             If set OPC Publisher will reject SHA1 certificates
-                               which have been officially deprecated and are
-                               unsafe to use.
-                               Note: It is recommended to always set this value
-                               to `True` if the connected OPC UA servers does
-                               not use Sha1 signed certificates.
-                               Default: `False` (to support older equipment).
+                             If set to `False` OPC Publisher will accept SHA1
+                               certificates which have been officially
+                               deprecated and are unsafe to use.
+                               Note: Set this to `False` to support older
+                               equipment that uses Sha1 signed certificates
+                               rather than using no security.
+                               Default: `True`.
       --mks, --minkeysize, --MinimumCertificateKeySize=VALUE
                              Minimum accepted certificate size.
                                Note: It is recommended to this value to the
@@ -713,6 +720,11 @@ Diagnostic options
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
                                Default: `15000` (15000000 seconds).
+      --em, --enableprometheusendpoint, --EnableMetrics=VALUE
+                             Explicitly enable or disable exporting prometheus
+                               metrics directly on the standard path.
+                               Default: `disabled` if Otlp collector is
+                               configured, otherwise `enabled`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

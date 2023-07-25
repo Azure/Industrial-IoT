@@ -31,6 +31,8 @@
 
  .PARAMETER ReleaseVersion
     The build version for the development image that is being released.
+ .PARAMETER RepositoryPattern
+    A pattern to filter the repositories through.
 
  .PARAMETER IsLatest
     Release as latest image
@@ -53,6 +55,7 @@ Param(
     [string] $ResourceGroupName = $null,
     [string] $ResourceGroupLocation = $null,
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
+    [string] $RepositoryPattern = $null,
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
     [string] $PreviewVersion,
@@ -126,6 +129,15 @@ foreach ($Repository in $BuildRepositories) {
     $BuildTag = "$($Repository):$($script:ReleaseVersion)"
     if (![string]::IsNullOrEmpty($script:BuildNamespace) -and `
         !$Repository.StartsWith($script:BuildNamespace)) {
+        continue
+    }
+    if (![string]::IsNullOrEmpty($script:RepositoryPattern) -and `
+        ($Repository -notlike $script:RepositoryPattern)) {
+        continue
+    }
+
+    if ($Repository -like "*/opc-plc") {
+        # do not break the opc plc releases
         continue
     }
 

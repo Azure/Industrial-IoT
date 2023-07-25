@@ -793,18 +793,18 @@ Function ConfigureApplications() {
 #*******************************************************************************************************
 # Script body
 #*******************************************************************************************************
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 # Import modules
 Import-Module Az.Accounts
 
 try {
-    Import-Module Microsoft.Graph.Authentication
-    Import-Module Microsoft.Graph.Identity.DirectoryManagement
-    Import-Module Microsoft.Graph.Applications
-    Import-Module Microsoft.Graph.Groups
-    Import-Module Microsoft.Graph.Users
+    Import-Module Microsoft.Graph.Authentication -MinimumVersion 2.0.0
+    Import-Module Microsoft.Graph.Identity.DirectoryManagement -MinimumVersion 2.0.0
+    Import-Module Microsoft.Graph.Applications -MinimumVersion 2.0.0
+    Import-Module Microsoft.Graph.Groups -MinimumVersion 2.0.0
+    Import-Module Microsoft.Graph.Users -MinimumVersion 2.0.0
 }
 catch {
     $ex = $_

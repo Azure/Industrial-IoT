@@ -683,7 +683,7 @@ namespace Opc.Ua.Test
         public Variant GetRandomVariant(bool allowArrays = true)
         {
             var builtInType = BuiltInType.Variant;
-            while (builtInType == BuiltInType.Variant || builtInType == BuiltInType.DataValue)
+            while (builtInType == BuiltInType.Variant || builtInType == BuiltInType.DataValue || builtInType == BuiltInType.Null)
             {
                 builtInType = (BuiltInType)_random.NextInt32(24);
             }

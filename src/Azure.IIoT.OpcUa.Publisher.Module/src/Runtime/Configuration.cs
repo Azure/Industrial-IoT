@@ -195,16 +195,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void AddOtlpExporter(this MeterProviderBuilder builder,
+        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder,
             IConfiguration configuration)
         {
             var exporterOptions = new OtlpExporterOptions();
             new Otlp(configuration).Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
             {
                 builder.ConfigureServices(services => services.ConfigureOtlpExporter());
                 builder.AddOtlpExporter();
             }
+            return builder;
+        }
+
+        /// <summary>
+        /// Add prometheus exporter if configured
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static MeterProviderBuilder AddPrometheusExporter(this MeterProviderBuilder builder,
+            IConfiguration configuration)
+        {
+            if (new Otlp(configuration).AddPrometheusEndpoint)
+            {
+                builder.ConfigureServices(services => services.AddSingleton<Otlp>());
+                builder.AddPrometheusExporter();
+            }
+            return builder;
+        }
+
+        /// <summary>
+        /// Use prometheus endpoint
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseOpenTelemetryPrometheusEndpoint(this IApplicationBuilder app)
+        {
+            if (app.ApplicationServices.GetService<Otlp>()?.AddPrometheusEndpoint == true)
+            {
+                app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            }
+            return app;
         }
 
         /// <summary>
@@ -238,10 +269,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void AddOtlpExporter(this OpenTelemetryLoggerOptions builder,
-            IConfiguration configuration)
+        public static OpenTelemetryLoggerOptions AddOtlpExporter(
+            this OpenTelemetryLoggerOptions builder, IConfiguration configuration)
         {
             builder.AddOtlpExporter(o => new Otlp(configuration).Configure(o));
+            return builder;
         }
 
         /// <summary>
@@ -256,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var exporterOptions = new OtlpExporterOptions();
             var configurator = new Otlp(configuration);
             configurator.Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
             {
                 builder.AddOpenTelemetry(configure);
             }
@@ -268,16 +300,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void AddOtlpExporter(this TracerProviderBuilder builder,
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder,
             IConfiguration configuration)
         {
             var exporterOptions = new OtlpExporterOptions();
             new Otlp(configuration).Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpCollectorEndpointDisabled)
+            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
             {
                 builder.ConfigureServices(services => services.ConfigureOtlpExporter());
                 builder.AddOtlpExporter();
             }
+            return builder;
         }
 
         /// <summary>
@@ -301,9 +334,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             IConfigureOptions<MetricReaderOptions>, IConfigureNamedOptions<MetricReaderOptions>
         {
             public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
+            public const string EnableMetricsKey = "EnableMetrics";
             public const string OtlpExportIntervalMillisecondsKey = "OtlpExportIntervalMilliseconds";
-            internal const string OtlpCollectorEndpointDisabled = "disabled";
+            internal const string OtlpEndpointDisabled = "disabled";
             public const int OtlpExportIntervalMillisecondsDefault = 15000;
+
+            /// <summary>
+            /// Use prometheus
+            /// </summary>
+            public bool AddPrometheusEndpoint
+            {
+                get
+                {
+                    return GetBoolOrDefault(EnableMetricsKey,
+                        GetStringOrDefault(OtlpCollectorEndpointKey) == null);
+                }
+            }
 
             /// <summary>
             /// Create otlp configuration
@@ -328,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.Endpoint = new UriBuilder
                     {
                         Scheme = Uri.UriSchemeHttp,
-                        Host = OtlpCollectorEndpointDisabled
+                        Host = OtlpEndpointDisabled
                     }.Uri;
                 }
             }

@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         /// <inheritdoc/>
-        public new object MemberwiseClone()
+        public object Clone()
         {
             var clone = (KeyDataValuePair)base.MemberwiseClone();
             clone.Key = (string)Utils.Clone(Key);

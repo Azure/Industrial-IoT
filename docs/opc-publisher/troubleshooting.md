@@ -10,6 +10,7 @@ In this document you find information about
   - [Check OPC UA server](#check-opc-ua-server)
   - [Check IoT Edge](#check-iot-edge)
   - [Check OPC Publisher](#check-opc-publisher)
+    - [BadNodeIdUnknown](#badnodeidunknown)
   - [Check EdgeHub](#check-edgehub)
   - [Check data arriving in IoT Hub](#check-data-arriving-in-iot-hub)
     - [IoT Hub Metrics](#iot-hub-metrics)
@@ -70,6 +71,21 @@ To increase the log level and see debug logs use the `--ll Debug` switch
 To log informational an debug messages of the OPC UA stack to the log, use the `--sl` switch.
 
 To diagnose throughput issues see the [limits and monitoring](#limits-and-contributing-factors) section.
+
+When OPC Publisher cannot subscribe to a node in the OPC UA server address space the number of failing nodes are logged in the metrics. To understand what happened you need to look at the logs that are emitted during connect.
+
+#### BadNodeIdUnknown
+
+A typical error shown in the log is `BadNodeIdUnknown` which means the server could not resolve the node id to a node in its address space to subscribe to.
+
+Reasons why the node id specified in the configuration cannot be resolved inside the server during connect can be as follows:
+
+- The Node Id string in the configuration is incorrect, e.g., escaping of characters, extra spaces, missing semicolon.
+- Use an OPC UA Client like UA Expert or other to connect to the server with exactly the same security configuration (same user name, encryption settings, etc. that OPC Publisher uses, if you do not know, default to SecurityMode = none and anonymous user).  Find the node by browsing and copy the node id exactly from the tool.
+- If it still does not work, please send the node id string.
+- The namespace id in the node id has changed from last time.  Namespace ids are typically always static, but that is not guaranteed by the spec, quite the opposite. se the nsu= format of node id (expanded node id) to specify the namespace string instead of the id then.
+- The node is a dynamic node and comes and goes. You can configure OPC Publisher to re-evaluate periodically.
+- The node is only accessible to a particular user or user with role or on a particular endpoint with a special security profile.  If we know what that is, then I can make suggestion what to do next, but might require upgrading to 2.9
 
 ### Check EdgeHub
 

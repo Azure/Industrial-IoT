@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -99,6 +100,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
                 return false;
             }
             return true;
+        }
+
+        /// <inheritdoc/>
+        public object Clone()
+        {
+            return new EncodeableDictionary(this);
         }
     }
 }

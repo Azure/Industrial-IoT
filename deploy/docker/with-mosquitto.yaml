@@ -6,10 +6,14 @@ services:
   publisher:
     environment: 
       MqttClientConnectionString: "HostName=mosquitto;Port=1883;UseTls=false;Protocol=v5"
+      TelemetryTopicTemplate: "{RootTopic}/{Site}/{DataSetWriterGroup}"
+      DataSetMetaDataTopicTemplate: "{TelemetryTopic}/{DataSetWriterName}/metadata"
+      PublisherId: Microsoft
+      SiteId: Munich
     depends_on:
       - mosquitto
   ############################
-  # Mosqitto
+  # Mosquitto
   ############################
   mosquitto:
     container_name: mosquitto
@@ -30,6 +34,23 @@ services:
       - "4000:4000"
     volumes:
       - "./mosquitto/settings.json:/mqtt-explorer/config/settings.json"
+    depends_on:
+      - mosquitto
+  ############################
+  # UA Cloud dashboard
+  ############################
+  dashboard:
+    container_name: dashboard
+    image: "ghcr.io/opcfoundation/ua-clouddashboard:main"
+    ports:
+      - "8000:80"
+    environment:
+      IGNORE_MISSING_METADATA: 1
+      USE_MQTT: 1
+      CLIENT_NAME: "dashboard"
+      BROKER_NAME: "mosquitto"
+      BROKER_PORT: "1883"
+      TOPIC: Microsoft/factory1/#
     depends_on:
       - mosquitto
 volumes:

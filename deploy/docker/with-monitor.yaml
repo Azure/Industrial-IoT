@@ -3,9 +3,9 @@ services:
   ############################
   # OPC PLC Simulation
   ############################
-  opcplc:
-    environment: 
-      DOTNET_DiagnosticPorts: /shared/diag/dotnet-monitor.sock
+  # opcplc:
+  #  environment: 
+  #   DOTNET_DiagnosticPorts: /shared/diag/dotnet-monitor.sock
   ############################
   # OPC Publisher
   ############################

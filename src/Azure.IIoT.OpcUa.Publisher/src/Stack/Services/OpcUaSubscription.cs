@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Subscription implementation
@@ -81,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = loggerFactory.CreateLogger<OpcUaSubscription>();
             _lock = new SemaphoreSlim(1, 1);
-            _currentlyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
+            _currentlyMonitored = ImmutableDictionary<uint, IOpcUaMonitoredItem>.Empty;
             _currentMetaData = Task.FromResult<DataSetMetaDataType?>(null);
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
@@ -115,7 +116,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_subscription?.Id?.ToString() ?? "<new>"}:{_currentSubscription?.Id ?? 0}";
+            var subscriptionName = _subscription?.Id?.ToString() ?? "<new>";
+            var subscriptionId = _currentSubscription?.Id.ToString(CultureInfo.CurrentCulture) ?? "<new>";
+            return $"{subscriptionName}:{subscriptionId}";
         }
 
         /// <inheritdoc/>
@@ -124,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _connectionAttempts = connectionAttempts;
             _online = online;
 
-            foreach (var monitoredItem in _currentlyMonitored)
+            foreach (var monitoredItem in _currentlyMonitored.Values)
             {
                 monitoredItem.OnMonitoredItemStateChanged(online);
             }
@@ -227,7 +230,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask SyncWithSessionAsync(IOpcUaSession handle, CancellationToken ct)
+        public async ValueTask SyncWithSessionAsync(IOpcUaSession handle, bool sessionIsNew,
+            CancellationToken ct)
         {
             if (_closed)
             {
@@ -243,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await SyncWithSessionInternalAsync(handle, ct).ConfigureAwait(false);
+                    await SyncWithSessionInternalAsync(handle, sessionIsNew, ct).ConfigureAwait(false);
                     return;
                 }
                 catch (Exception e)
@@ -294,12 +298,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
-                // Synchronize subscription first then close the synchronized subscription
-                if (client is ISessionAccessor accessor && accessor.TryGetSession(out var session))
-                {
-                    _currentSubscription = await SynchronizeCurrentSubscriptionAsync(
-                        session).ConfigureAwait(false);
-                }
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 client?.Dispose();
@@ -395,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 subscription.FastDataChangeCallback = null;
                 subscription.FastEventCallback = null;
-                subscription.Handle = null;
+                Debug.Assert(subscription.Handle == null);
 
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
                 _currentSequenceNumber = 0;
@@ -448,8 +446,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _subscription?.Id.Connection == null ? null :
                         new ConnectionIdentifier(_subscription.Id.Connection))
                 .ToHashSet();
-            var previouslyMonitored = _currentlyMonitored;
 
+            var previouslyMonitored = _currentlyMonitored.Values.ToImmutableHashSet();
             var remove = previouslyMonitored.Except(desired);
             var add = desired.Except(previouslyMonitored).ToImmutableHashSet();
             var same = previouslyMonitored.ToHashSet();
@@ -763,7 +761,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // switching over.
             //
             _currentMetaDataCancellation?.Cancel();
-            _currentlyMonitored = successfullyCompletedItems.ToImmutableHashSet();
+            var set = successfullyCompletedItems.ToImmutableHashSet();
             if (metadataChanged)
             {
                 var cancellationToken = ct;
@@ -771,16 +769,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _subscription?.Configuration?.AsyncMetaDataLoadThreshold
                         ?? 30; // Synchronous loading for 30 or less items
 
-                if (_currentlyMonitored.Count > threshold)
+                if (set.Count > threshold)
                 {
                     _currentMetaDataCancellation = new CancellationTokenSource();
                     cancellationToken = _currentMetaDataCancellation.Token;
                 }
 
                 _currentMetaData = RunMetaDataBuilderAsync(sessionHandle, session,
-                    _currentlyMonitored, cancellationToken);
+                    set, cancellationToken);
 
-                if (_currentlyMonitored.Count <= threshold)
+                if (set.Count <= threshold)
                 {
                     // Await completion
                     await _currentMetaData.ConfigureAwait(false);
@@ -845,21 +843,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Cleanup all items that are not in the currently monitoring list
             previouslyMonitored
-                .Except(_currentlyMonitored)
+                .Except(set)
                 .ToList()
                 .ForEach(m => m.Dispose());
-            previouslyMonitored = ImmutableHashSet<IOpcUaMonitoredItem>.Empty;
+
+            // Create currently monitored items list
+            Debug.Assert(set.Select(m => m.Item?.ClientHandle).Distinct().Count() == set.Count,
+                "Client handles are not distinct or one of the items is null");
+            _currentlyMonitored = ImmutableDictionary<uint, IOpcUaMonitoredItem>.Empty.SetItems(
+                set.Select(m =>
+                    new KeyValuePair<uint, IOpcUaMonitoredItem>(m.Item!.ClientHandle, m)));
 
             // Update subscription state
             NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = _currentlyMonitored.Count - invalidItems;
+            NumberOfCreatedItems = set.Count - invalidItems;
 
             _logger.LogInformation(
                 "Now monitoring {Count} nodes in subscription {Subscription}.",
-                _currentlyMonitored.Count, this);
+                set.Count, this);
 
             // Refresh condition
-            if (_currentlyMonitored.OfType<OpcUaMonitoredItem.Condition>().Any())
+            if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
             {
                 _logger.LogInformation(
                     "Issuing ConditionRefresh on subscription {Subscription}", this);
@@ -890,7 +894,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
-            else if (desiredMonitoredItems.Count != _currentlyMonitored.Count)
+            else if (desiredMonitoredItems.Count != set.Count)
             {
                 // Try to periodically update the subscription
                 // TODO: Trigger on address space model changes...
@@ -1012,12 +1016,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Apply state to session
         /// </summary>
         /// <param name="handle"></param>
+        /// <param name="sessionIsNew"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask SyncWithSessionInternalAsync(IOpcUaSession handle,
+        private async ValueTask SyncWithSessionInternalAsync(IOpcUaSession handle, bool sessionIsNew,
             CancellationToken ct)
         {
             Debug.Assert(_lock.CurrentCount == 0);
+
+            // If session is new close any current subscription now.
+            if (sessionIsNew)
+            {
+                // Does not throw
+                await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+            }
 
             // Get the raw session object from the session handle to do the heart surgery
             if (handle is not ISessionAccessor accessor ||
@@ -1092,22 +1104,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
             Debug.Assert(_lock.CurrentCount == 0); // Under lock
 
-            var subscription = await SynchronizeCurrentSubscriptionAsync(session).ConfigureAwait(false);
-
-            GetSubscriptionConfiguration(subscription ?? session.DefaultSubscription,
+            GetSubscriptionConfiguration(_currentSubscription ?? session.DefaultSubscription,
                 out var configuredPublishingInterval, out var configuredPriority,
                 out var configuredKeepAliveCount, out var configuredLifetimeCount,
                 out var configuredMaxNotificationsPerPublish);
 
-            if (subscription == null)
+            if (_currentSubscription == null)
             {
-                Debug.Assert(_currentSubscription == null);
                 var enablePublishing =
                     _subscription?.Configuration?.EnableImmediatePublishing ?? false;
 
-                subscription = new Subscription(session.DefaultSubscription)
+                var subscription = new Subscription(session.DefaultSubscription)
                 {
-                    Handle = this,
                     DisplayName = Name,
                     PublishingEnabled = enablePublishing,
                     TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both,
@@ -1134,6 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogError(
                         "Failed to add subscription '{Subscription}' to session {Session}",
                         this, handle);
+
                     return null;
                 }
 
@@ -1146,6 +1155,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (!subscription.Created)
                 {
+                    session.RemoveSubscription(subscription);
+
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
                         $"Failed to create subscription {this} in session {session}");
                 }
@@ -1155,11 +1166,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _useDeferredAcknoledge = _subscription?.Configuration?.UseDeferredAcknoledgements
                     ?? false;
+                _currentSubscription = subscription;
             }
             else
             {
-                Debug.Assert(_currentSubscription != null);
-                Debug.Assert(_currentSubscription.Id == subscription.Id);
+                var subscription = _currentSubscription;
 
                 // Apply new configuration on configuration on original subscription
                 var modifySubscription = false;
@@ -1216,65 +1227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     LogRevisedValues(subscription, false);
                 }
             }
-            _currentSubscription = subscription;
-            return subscription;
-        }
-
-        /// <summary>
-        /// <para>
-        /// We must ensure that our subscription is in the session we were passed.
-        /// If not, then we close the current subscription and re-create the subscription.
-        /// </para>
-        /// <para>
-        /// When session is created there are no subscriptions in it. When session is
-        /// reconnected, the reconnected session already contains our subscriptions
-        /// (copy constructure of session invoked).
-        /// </para>
-        /// <para>
-        /// When the session is recreated using Session.Recreate then the subscriptions
-        /// are transferred to it. If they cannot be transferred then the subscriptions
-        /// are recreated using Create and are then again correctly associated with us.
-        /// If that all fails and the reconnect handler returns with error the reconnect
-        /// handler is started again right away and the process restarts until the client
-        /// is forcefully disconnected.
-        /// </para>
-        /// <para>
-        /// This is just a precaution since reconnecthandler should work all the time and
-        /// if we ever get here we are dealing with a bug in the stack.
-        /// </para>
-        /// <para>
-        /// Note that we cannot use the id on the server as unique identity because the
-        /// same id might refer to a different subscription after a restart of the server.
-        /// We use the Handle to reference OpcUaSubscription instance and then validate
-        /// correctness here.
-        /// </para>
-        /// </summary>
-        /// <param name="session">
-        /// The session containing the correct subscription associated with this object.
-        /// </param>
-        /// <returns>
-        /// The actual subscription as the one that was valid in the session that was passed.
-        /// </returns>
-        private async Task<Subscription?> SynchronizeCurrentSubscriptionAsync(ISession session)
-        {
-            var subscription = _currentSubscription;
-            if (subscription != null)
-            {
-                // Ensure the session contains the subscription
-                subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
-
-                // If it does not, close the current subscription
-                if (subscription == null || _currentSubscription!.Id != subscription.Id)
-                {
-                    _logger.LogWarning("Found subscription {New} in session {Session} " +
-                        "but we have {Id} - Closing current.", subscription?.Id,
-                        session, _currentSubscription!.Id);
-
-                    // Does not throw
-                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                }
-            }
-            return subscription;
+            return _currentSubscription;
         }
 
         /// <summary>
@@ -1351,13 +1304,17 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnSubscriptionManagementTriggered(object? state)
         {
-            var connection = _subscription?.Id.Connection;
-            if (connection != null)
+            try
             {
-                // try to get a session using the provided configuration
-                using var client = _clients.GetClient(connection);
-                client?.ManageSubscription(this);
+                var connection = _subscription?.Id.Connection;
+                if (connection != null)
+                {
+                    // try to get a session using the provided configuration
+                    using var client = _clients.GetClient(connection);
+                    client?.ManageSubscription(this);
+                }
             }
+            catch (ObjectDisposedException) { }
         }
 
         /// <summary>
@@ -1424,10 +1381,7 @@ Actual (revised) state/desired state:
                 foreach (var eventFieldList in notification.Events)
                 {
                     Debug.Assert(eventFieldList != null);
-                    var monitoredItem = subscription.FindItemByClientHandle(
-                        eventFieldList.ClientHandle);
-
-                    if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
+                    if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var wrapper))
                     {
                         var message = new Notification(this, subscription.Id, sequenceNumber: sequenceNumber)
                         {
@@ -1585,9 +1539,7 @@ Actual (revised) state/desired state:
                 foreach (var item in notification.MonitoredItems)
                 {
                     Debug.Assert(item != null);
-                    var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
-
-                    if (monitoredItem?.Handle is IOpcUaMonitoredItem wrapper)
+                    if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))
                     {
                         wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             message.PublishTimestamp, item, message.Notifications);
@@ -1633,7 +1585,7 @@ Actual (revised) state/desired state:
                     return false;
                 }
                 notifications = new List<MonitoredItemNotificationModel>();
-                foreach (var item in _currentlyMonitored)
+                foreach (var item in _currentlyMonitored.Values)
                 {
                     item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
                 }
@@ -1791,7 +1743,7 @@ Actual (revised) state/desired state:
         }
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
-        private ImmutableHashSet<IOpcUaMonitoredItem> _currentlyMonitored;
+        private ImmutableDictionary<uint, IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
         private Task<DataSetMetaDataType?> _currentMetaData;
         private CancellationTokenSource? _currentMetaDataCancellation;

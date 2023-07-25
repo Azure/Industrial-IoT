@@ -20,10 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the session.
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="sessionIsNew"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask SyncWithSessionAsync(IOpcUaSession session,
-            CancellationToken ct = default);
+            bool sessionIsNew, CancellationToken ct = default);
 
         /// <summary>
         /// Called to signal the underlying session is

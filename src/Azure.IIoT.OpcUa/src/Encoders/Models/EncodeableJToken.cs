@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
+    using Furly.Extensions.Serializers;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
@@ -68,6 +69,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
                     JToken.EqualityComparer.Equals(wrapper.JToken, JToken);
             }
             return false;
+        }
+
+        /// <inheritdoc/>
+        public object Clone()
+        {
+            return new EncodeableJToken(JToken, TypeId);
         }
     }
 }

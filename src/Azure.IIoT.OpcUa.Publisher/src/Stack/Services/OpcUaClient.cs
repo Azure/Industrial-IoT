@@ -537,8 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var currentSubscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
 
             var reconnectPeriod = 0;
-            using var reconnectTimer =
-                new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
+            using var reconnectTimer = new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
             try
             {
                 await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
@@ -581,8 +580,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     _disconnectLock = null;
 
                                     currentSubscriptions = _subscriptions;
-                                    await ApplySubscriptionAsync(currentSubscriptions,
-                                        true, ct).ConfigureAwait(false);
+                                    await ApplySubscriptionAsync(currentSubscriptions, true, true,
+                                        ct).ConfigureAwait(false);
 
                                     currentSessionState = SessionState.Connected;
                                     break;
@@ -634,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 case SessionState.Connected: // only valid when connected.
                                     Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
 
-                                    await ApplySubscriptionAsync(currentSubscriptions, false,
+                                    await ApplySubscriptionAsync(currentSubscriptions, false, false,
                                         ct).ConfigureAwait(false);
 
                                     // Ensure no more access to the session through reader locks
@@ -670,7 +669,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         case ConnectionEvent.ReconnectComplete:
                             // if session recovered, Session property is not null
-                            var reconnected = _reconnectHandler.Session as Session;
+                            var reconnected = _reconnectHandler.Session;
                             switch (currentSessionState)
                             {
                                 case SessionState.Reconnecting:
@@ -686,7 +685,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     if (reconnected == null)
                                     {
                                         Debug.Assert(_reconnectingSession != null);
-                                        reconnected = _reconnectingSession?.Session as Session;
+                                        reconnected = _reconnectingSession?.Session;
                                     }
 
                                     Debug.Assert(reconnected != null, "reconnected should never be null");
@@ -716,9 +715,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     _disconnectLock.Dispose();
                                     _disconnectLock = null;
 
-                                    // TODO: Only needed for isNew = true, but we do it anyway for now....
                                     currentSubscriptions = _subscriptions;
-                                    await ApplySubscriptionAsync(currentSubscriptions, true,
+                                    //
+                                    // The session is new but the old subscriptions were transferred
+                                    // by the stack, so we pass a false to the subscription handle
+                                    // to prevent the inner subscription to be closed and removed.
+                                    //
+                                    // TODO: Only needed for isNew = true, but we do it anyway for now....
+                                    await ApplySubscriptionAsync(currentSubscriptions, true, false,
                                         ct).ConfigureAwait(false);
 
                                     currentSessionState = SessionState.Connected;
@@ -741,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             _reconnectHandler.CancelReconnect();
                             reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
-                            await ApplySubscriptionAsync(currentSubscriptions, false,
+                            await ApplySubscriptionAsync(currentSubscriptions, false, false,
                                 ct).ConfigureAwait(false);
                             currentSubscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
 
@@ -790,7 +794,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
-                bool? online = null, CancellationToken cancellationToken = default)
+                bool? online = null, bool newSession = false, CancellationToken cancellationToken = default)
             {
                 _logger.LogDebug("Applying changes to {Count} subscriptions...",
                     subscriptions.Count);
@@ -801,7 +805,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         if (online != false)
                         {
-                            await subscription.SyncWithSessionAsync(_session!,
+                            await subscription.SyncWithSessionAsync(_session!, newSession,
                                 cancellationToken).ConfigureAwait(false);
                         }
                         if (online != null)
@@ -816,8 +820,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogError(ex, "Failed to apply subscription to session.");
                     }
                 })).ConfigureAwait(false);
-                _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
-                    subscriptions.Count, sw.Elapsed);
+
+                if (subscriptions.Count > 1)
+                {
+                    // Clear the node cache - TODO: we should have a real node cache here
+                    _session!.NodeCache.Clear();
+
+                    _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
+                        subscriptions.Count, sw.Elapsed);
+                }
             }
 
             int GetMinReconnectPeriod()

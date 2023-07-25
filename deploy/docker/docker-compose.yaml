@@ -5,17 +5,20 @@ services:
   ############################
   opcplc:
     container_name: opcplc
-    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-latest}
+    image: ${OPC_PLC_REGISTRY-mcr.microsoft.com/}iotedge/opc-plc:${OPC_PLC_TAG:-latest}
+    ports:
+      - "50000:50000"
     command: [ 
       "--sph",
       "--spf=/shared/pn.json",
-      "--alm", 
-      "--ses", 
-      "--ei=${EVENT_NODES:-100}", 
-      "--gn=${GUID_NODES:-100}", 
-      "--fn=${FAST_NODES:-49900}", 
-      "--sn=${SLOW_NODES:-49900}", 
-      "--aa" 
+      "--pn=50000",
+      "--alm",
+      "--ses",
+      "--ei=${EVENT_NODES:-100}",
+      "--gn=${GUID_NODES:-100}",
+      "--fn=${FAST_NODES:-49900}",
+      "--sn=${SLOW_NODES:-49900}",
+      "--aa"
       ]
     volumes:
       - shared:/shared
@@ -24,7 +27,7 @@ services:
   ############################
   publisher:
     container_name: publisher
-    image: ${DOCKER_REGISTRY-}iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-latest}
+    image: ${DOCKER_REGISTRY-mcr.microsoft.com/}iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
     ports:
       - "9080:80"
       - "9081:443"
@@ -37,67 +40,11 @@ services:
       "--cl=5", 
       "--pki=/shared/pki", 
       "--pf=/shared/pn.json",
-      "--oc=http://collector:4317",
-      "--npd=${NODES_PER_DATASET:-5000}", 
-      "--sl", 
-      "--dm" 
+      "--npd=${NODES_PER_DATASET:-5000}"
       ]
     environment: 
       EdgeHubConnectionString:
     volumes:
       - shared:/shared
-  ############################
-  # OTEL Collector
-  ############################
-  collector:
-    image: otel/opentelemetry-collector-contrib:0.42.0
-    container_name: collector
-    command: [ "--config=/etc/collector.yaml" ]
-    ports:
-      - "4317:4317"
-      - "8889:8889"
-    volumes:
-      - ./opentelemetry/collector.yaml:/etc/collector.yaml
-  ############################
-  # Prometheus for collector
-  ############################
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./opentelemetry/prometheus.yml:/etc/prometheus/prometheus.yml
-  ############################
-  # tempo for collector
-  ############################
-  tempo:
-    image: grafana/tempo:latest
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - ./opentelemetry/tempo.yaml:/etc/tempo.yaml
-  ############################
-  # Loki for collector
-  ############################
-  loki:
-    image: grafana/loki:latest
-    command: [ "-config.file=/etc/loki/local-config.yaml" ]
-  ############################
-  # Dashboarding
-  ############################
-  grafana:
-    image: grafana/grafana:8.3.3
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./opentelemetry/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./opentelemetry/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
-      - ./opentelemetry/dashboards/:/etc/dashboards/
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-    depends_on:
-      - prometheus
-      - tempo
-      - loki
 volumes:
   shared:

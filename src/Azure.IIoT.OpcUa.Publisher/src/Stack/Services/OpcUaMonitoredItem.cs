@@ -34,11 +34,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public MonitoredItem? Item { get; protected internal set; }
 
         /// <inheritdoc/>
+        public bool AttachedToSubscription { get; protected internal set; }
+
+        /// <inheritdoc/>
         public Opc.Ua.MonitoringMode? MonitoringModeChange
         {
             get
             {
-                if (Item?.Handle == null)
+                if (!AttachedToSubscription || Item == null)
                 {
                     return null;
                 }
@@ -167,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (disposing && Item != null)
             {
-                if (Item.Handle != null)
+                if (AttachedToSubscription)
                 {
                     // The item should have been removed from the subscription
                     _logger.LogError("Unexpected state: Item {Item} must " +
@@ -187,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                Item.Handle = this;
+                AttachedToSubscription = true;
                 metadataChanged = true;
                 return true;
             }
@@ -203,13 +206,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public virtual bool RemoveFrom(Subscription subscription,
             out bool metadataChanged)
         {
-            if (Item?.Handle != null)
+            if (AttachedToSubscription)
             {
                 subscription.RemoveItem(Item);
                 _logger.LogDebug(
                     "Removed monitored item {Item} from subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                Item.Handle = null;
+                AttachedToSubscription = false;
                 metadataChanged = true;
                 return true;
             }
@@ -227,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return false;
             }
 
-            if (Item.Handle == null)
+            if (!AttachedToSubscription)
             {
                 _logger.LogDebug(
                     "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
@@ -235,8 +238,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Complete removal
                 return true;
             }
-
-            Debug.Assert(Item.Handle == this);
 
             if (Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
@@ -437,8 +438,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="session"></param>
         /// <param name="typeSystem"></param>
         protected void AddDataTypes(NodeIdDictionary<DataTypeDescription> dataTypes,
-            NodeId dataTypeId, IOpcUaSession session,
-            ComplexTypeSystem? typeSystem)
+            NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem)
         {
             var baseType = dataTypeId;
             while (!Opc.Ua.NodeId.IsNull(baseType))
@@ -868,7 +868,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 Item = new MonitoredItem
                 {
-                    Handle = this,
                     DisplayName = Template.DisplayName,
                     AttributeId = (uint)(Template.AttributeId ??
                         (NodeAttribute)Attributes.Value),
@@ -1204,7 +1203,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 var result = base.TryCompleteChanges(subscription, ref applyChanges,
                     cb);
 
-                if (Item?.Handle == null || !result)
+                if (!AttachedToSubscription || !result)
                 {
                     _callback = null;
                     // Stop heartbeat
@@ -1213,8 +1212,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 else
                 {
+                    Debug.Assert(AttachedToSubscription);
                     _callback = cb;
-                    if (Item.Handle == this && _timerInterval != _heartbeatInterval)
+                    if (_timerInterval != _heartbeatInterval)
                     {
                         // Start heartbeat after completion
                         _heartbeatTimer.Change(_heartbeatInterval, _heartbeatInterval);
@@ -1345,7 +1345,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return false;
                 }
 
-                if (Item?.Handle == null)
+                if (!AttachedToSubscription)
                 {
                     // Disabling sampling
                     if (_sampling != null)
@@ -1623,7 +1623,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 Item = new MonitoredItem
                 {
-                    Handle = this,
                     DisplayName = Template.DisplayName,
                     AttributeId = (uint)(Template.AttributeId
                         ?? (NodeAttribute)Attributes.EventNotifier),
@@ -2252,7 +2251,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
-                if (Item?.Handle == null || !result)
+                if (!AttachedToSubscription || !result)
                 {
                     _callback = null;
                     _conditionTimer.Change(Timeout.Infinite, Timeout.Infinite);

@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddRuntimeInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
-                    .AddPrometheusExporter()
+                    .AddPrometheusExporter(Configuration)
                     .AddOtlpExporter(Configuration))
                 ;
 
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseOpenApi();
-            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            app.UseOpenTelemetryPrometheusEndpoint();
 
             app.UseEndpoints(endpoints =>
             {

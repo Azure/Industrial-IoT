@@ -880,6 +880,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await complexTypeSystem.Load().ConfigureAwait(false);
                     _logger.LogInformation(
                         "Complex type system loaded into client {Client}.", this);
+
+                    // Clear cache to release memory.
+                    // TODO: we should have a real node cache here
+                    NodeCache.Clear();
                     return complexTypeSystem;
                 }
                 throw new ServiceResultException(StatusCodes.BadNotConnected);

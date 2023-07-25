@@ -99,6 +99,12 @@ namespace Opc.Ua
                 case 1:
                     return missingSequenceNumbers[0].ToString(CultureInfo.InvariantCulture);
                 default:
+                    var length = missingSequenceNumbers.Length;
+                    if (length > 6)
+                    {
+                        var last = missingSequenceNumbers[length - 1];
+                        return $"{missingSequenceNumbers[0]}...{last}";
+                    }
                     return missingSequenceNumbers
                         .Select(a => a.ToString(CultureInfo.InvariantCulture))
                         .Aggregate((a, b) => $"{a}, {b}");

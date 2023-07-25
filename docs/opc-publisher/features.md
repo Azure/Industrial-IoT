@@ -21,6 +21,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | User authentication |||||
 | | Username / Password authentication |X|X||
 | | X509 based user authentication |-|-|Backlog|
+| | Token based user authentication |-|-||
 | Local persisted user credential |||||
 | | As plain text |X|X||
 | | Securely encrypted |-|-||
@@ -50,16 +51,22 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Subscribe to [value changes](./readme.md#configuration-schema) |||||
 | | Value change subscriptions |X|X||
 | | Data change filter support |-|X||
+| | Using browse path to node |-|X||
 | | Deadband |-|X||
 | | Status trigger |-|X||
 | | Set server queue size per value|-|X||
 | | Set server queue LIFO/FIFO behavior per value|-|X||
 | | Periodic read ([cyclic read](./readme.md#sampling-and-publishing-interval-configuration))|-|X|Preview|
-| | Heartbeat (Periodic resending of last known value) |X|X|Deprecated|
+| | Heartbeat (Periodic resending of last known value) |X|X||
+| | Subscribe to all nodes under an Object node |-|-|#1320|
 | Subscribe to [events](./readme.md#configuring-event-subscriptions) |||||
+| | Using browse path to event notifier |-|X||
 | | Simple (get all events of a type from event notifier)|-|X||
 | | Event filter (filter events on server before sending)|-|X||
 | | Condition handling / Condition snapshotting|-|X|Preview|
+| Re-evaluate subscriptions periodically |||||
+| | Periodically |-|X||
+| | On data model change events |-|-|#1209|
 | Registered Nodes |||||
 | | For periodic reads (registered read) |-|X|Preview|
 | | For monitored items |-|X|Preview|
@@ -68,7 +75,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Client-side transport queue configuration |||||
 | | Batch size and publishing interval publisher wide |X|X||
 | | Batch size and publishing interval per group |-|X||
-| | Load shedding |-|X||
+| | Load shedding |X|X||
 | | Queue jumping / Priority messages|-|-||
 | | Advanced overflow handling strategies|-|-||
 | IIoT Platform 2.8 Orchestrated mode support ||X|-||
@@ -76,21 +83,22 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Transfer subscription|||||
 | | On reconnect |-|X||
 | | On startup |-|-||
-| Deferred Acknowledge (Backpressure to server)||-|X|Experimental|
+| Deferred Notification Acknowledgement||-|X|Experimental|
+| Backpressure to server||-|-|Backlog|
 | Published nodes JSON [schema](./readme.md#configuration-schema) support |||||
 | | v2.5 |X|X||
 | | v2.8 |X|X||
 | | v2.9 |-|X||
-| | Published nodes JSON schema validation |X|-||
+| | JSON schema validation |X|-||
 | OPC UA Pub/Sub configuration API (Part 14)||-|-||
 | Data contextualization |||||
-| | Add Endpoint/Dataset name to message header (Routing) ||X|X||
+| | Add Endpoint/Dataset name to message header (Routing) |X|X||
 | | [Enrichment](./readme.md#key-frames-delta-frames-and-extension-fields) |-|X||
 | | Transformation |-|-||
 | | Normalization |-|-||
 | Running as docker outside IoT Edge or K8s ||-|X|Experimental|
 | [IoT Edge](./readme.md#install-iot-edge) deployment support ||X|X||
-| | ISA 95 nested support ||-|X||
+| | Fully functional in nested (ISA95) setup |-|X||
 | | IoT Hub direct method-based configuration|X|X||
 | | IoT Hub direct method-based API calls|-|X||
 | | DTDL interface for API |-|-||
@@ -103,7 +111,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Prometheus [Metrics](./observability.md) |||||
 | | For module metrics |X|X||
 | | Endpoint metrics |X|X||
-| | Process data |-|-||
+| | Process data |-|-|Backlog|
 | Periodic diagnostic output to Console ||X|X||
 | Health and liveness probe / watchdog ||-|-|Backlog|
 | Message and event publishing [transports](./transports.md) |||||
@@ -112,6 +120,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | DAPR Pub/Sub (Kafka, Redis, etc.) |-|X|Experimental|
 | | Publishing to a Web hook|-|X|Experimental|
 | | File system dump|-|X|Experimental|
+| | Null sink|-|X|Experimental|
 | Multiple cloud transports enabled in parallel ||-|X|Preview|
 | Select desired transport per writer group ||-|X|Preview|
 | Cloud Events support ||-|-|via DAPR|

@@ -64,6 +64,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             return false;
         }
 
+        /// <inheritdoc/>
+        public object Clone()
+        {
+            return new EncodeableVariantValue(_serializer, Value);
+        }
+
         private readonly IJsonSerializer _serializer;
     }
 }

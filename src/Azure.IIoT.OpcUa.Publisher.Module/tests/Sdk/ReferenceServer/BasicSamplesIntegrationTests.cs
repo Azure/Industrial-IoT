@@ -434,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition).ConfigureAwait(false);
-                _output.WriteLine(messages.ToString());
+                messages.ToList().ForEach(m => _output.WriteLine(m.ToString()));
                 var evt = Assert.Single(messages).Message;
 
                 Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -449,9 +449,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
                 testInput[0].OpcNodes[0].DisplayName = "SimpleEvents";
-                result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
-                        testInput[0]
-                    }).ConfigureAwait(false);
+                result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
+                {
+                    testInput[0]
+                }).ConfigureAwait(false);
                 Assert.NotNull(result);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);

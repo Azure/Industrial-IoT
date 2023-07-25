@@ -148,9 +148,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"amt|asyncmetadatathreshold=|{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey}=",
                     $"The default threshold of monitored items in a subscription under which meta data is loaded synchronously during subscription creation.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to always load metadata asynchronously.\nOnly used if meta data is supported and enabled.\nDefault: `{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdDefault}`.\n",
                     (int i) => this[OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"om|maxoutgressmessages=|{PublisherConfig.MaxEgressMessagesKey}=",
-                    $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxEgressMessagesDefault}`\n",
-                    (int i) => this[PublisherConfig.MaxEgressMessagesKey] = i.ToString(CultureInfo.InvariantCulture) },
+                { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
+                    $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
+                    (int i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
+                    { "maxoutgressmessages|MaxOutgressMessages=", "Deprecated - do not use",
+                        (string i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i, true },
                 { $"t|dmt=|defaultmessagetransport=|{PublisherConfig.DefaultTransportKey}=",
                     $"The desired transport to use to publish network messages with.\nRequires the transport to be properly configured (see transport settings).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(WriterGroupTransport)))}`\nDefault: `{nameof(WriterGroupTransport.IoTHub)}` or the first configured transport of the allowed value list.\n",
                     (WriterGroupTransport p) => this[PublisherConfig.DefaultTransportKey] = p.ToString() },
@@ -268,6 +270,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaClientConfig.AutoAcceptUntrustedCertificatesKey] = b?.ToString() ?? "True" },
                      { "autoaccept:", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[OpcUaClientConfig.AutoAcceptUntrustedCertificatesKey] = b ?? "True", /* hidden = */ true },
+                { $"rur|rejectunknownrevocationstatus:|{OpcUaClientConfig.RejectUnknownRevocationStatusKey}:",
+                    $"Set this to `False` to accept certificates presented by a server that have an unknown revocation status.\nWARNING: This setting should never be used in production environments!\nDefault: `{OpcUaClientConfig.RejectUnknownRevocationStatusDefault}`.\n",
+                    (bool? b) => this[OpcUaClientConfig.RejectUnknownRevocationStatusKey] = b?.ToString() ?? "True" },
                 { $"ct|createsessiontimeout=|{OpcUaClientConfig.CreateSessionTimeoutKey}=",
                     $"Amount of time in seconds to wait until a session is connected.\nDefault: `{OpcUaClientConfig.CreateSessionTimeoutDefaultSec}` seconds.\n",
                     (uint u) => this[OpcUaClientConfig.CreateSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
@@ -338,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     s => this[OpcUaClientConfig.ProductUriKey] = s },
 
                 { $"rejectsha1=|{OpcUaClientConfig.RejectSha1SignedCertificatesKey}=",
-                    "If set OPC Publisher will reject SHA1 certificates which have been officially deprecated and are unsafe to use.\nNote: It is recommended to always set this value to `True` if the connected OPC UA servers does not use Sha1 signed certificates.\nDefault: `False` (to support older equipment).\n",
+                    "If set to `False` OPC Publisher will accept SHA1 certificates which have been officially deprecated and are unsafe to use.\nNote: Set this to `False` to support older equipment that uses Sha1 signed certificates rather than using no security.\nDefault: `True`.\n",
                     (bool b) => this[OpcUaClientConfig.RejectSha1SignedCertificatesKey] = b.ToString() },
                 { $"mks|minkeysize=|{OpcUaClientConfig.MinimumCertificateKeySizeKey}=",
                     "Minimum accepted certificate size.\nNote: It is recommended to this value to the highest certificate key size possible based on the connected OPC UA servers.\nDefault: 1024.\n",
@@ -403,6 +408,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"oxi|otlpexportinterval=|{Configuration.Otlp.OtlpExportIntervalMillisecondsKey}=",
                     $"The interval in milliseconds when OpenTelemetry is exported to the collector endpoint.\nDefault: `{Configuration.Otlp.OtlpExportIntervalMillisecondsDefault}` ({Configuration.Otlp.OtlpExportIntervalMillisecondsDefault * 1000} seconds).\n",
                     (int i) => this[Configuration.Otlp.OtlpExportIntervalMillisecondsKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
+                    "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
+                    (bool? b) => this[Configuration.Otlp.EnableMetricsKey] = b?.ToString() ?? "True" },
 
                 // testing purposes
 
@@ -444,8 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
                 { "l|lf|logfile=", "Legacy - do not use.", _ => legacyOptions.Add("l|lf|logfile"), true },
-                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true },
-                { "em|EnableMetrics=", "Legacy - do not use.", _ => legacyOptions.Add("em|EnableMetrics"), true }
+                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true }
             };
 
             try
