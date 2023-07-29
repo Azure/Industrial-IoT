@@ -12,7 +12,6 @@ The Azure Industrial IoT companion web (OPC Publisher Web API) service is an opt
   - [Deploy the Industrial IoT Platform](#deploy-the-industrial-iot-platform)
   - [Azure Active Directory application registrations](#azure-active-directory-application-registrations)
   - [Automatic deployment of OPC Publisher modules](#automatic-deployment-of-opc-publisher-modules)
-    - [1.1 IoT Edge devices](#11-iot-edge-devices)
     - [Module Versions](#module-versions)
 - [APIs](#apis)
   - [Registry](#registry)
@@ -120,7 +119,6 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
       - 1 [Key Vault](https://azure.microsoft.com/services/key-vault/), Premium SKU (to manage secrets and certificates)
       - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
       - App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the web api service.
-      - App Service Plan (shared with microservices), 1 [App Service](https://azure.microsoft.com/services/app-service/) for hosting the Industrial IoT Engineering Tool cloud application
     - Simulation:
       - 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
       - [Virtual machine](https://azure.microsoft.com/services/virtual-machines/), Virtual network, IoT Edge used for a factory simulation to show the capabilities of the platform and to generate sample telemetry. By default, 4 [Virtual Machines](https://azure.microsoft.com/services/virtual-machines/), 2 B2 SKU (1 Linux IoT Edge gateway and 1 Windows IoT Edge gateway) and 2 B1 SKU (factory simulation).
