@@ -70,7 +70,6 @@ The following components are deployed when you use the provided deployment scrip
 - Everything requires: IoT Hub
 - **Common**: UI and web services require: Key Vault, Storage, Azure Active Directory (AAD) app registrations
 - **Web services** require: App Service Plan, App Service
-- **UI** (Web app): App Service Plan (shared with services), App Service
 - **Simulation**: Virtual machine, Virtual network, IoT Edge,  Device Provisioning Service
 
 You can find more information about the production dependencies [here](#dependencies).
@@ -80,8 +79,7 @@ The provided deployment script can deploy the following configurations (specifie
 - Local: **Common** dependencies
 - Services: Local + **Web Services**
 - Simulation: Local + **simulation** components
-- App: Services + **UI**
-- All (default): App + **simulation**
+- All (default): Web Services + **simulation**
 
 ### Deploy the Industrial IoT Platform
 
@@ -224,22 +222,6 @@ The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments
 
 The tags can also be created as part of an Azure Device Provisioning (DPS) enrollment. An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
-#### 1.1 IoT Edge devices
-
-To continue deploying the 1.1 LTS modules to a 1.1 LTS IoT Edge gateway device until you are able to upgrade the device to 1.4, add a tag to your gateway device's twin with the name `use_1_1_LTS` and remove it once you have upgraded your edge gateway to 1.4 LTS. This operation can be automated using the az CLI. It should be done ahead of deploying the 2.8.4 release to Azure to avoid outages.
-
-```json
-...
-"tags": {
-    "__type__": "iiotedge",
-    // ...
-    "use_1_1_LTS": true
-}
-...
-```
-
-> IMPORTANT: Setting the tag to `false` or any other value has no effect.  Once you upgrade your IoT Edge device to 1.4 you must remove the tag to ensure the 1.4 modules are deployed to it.
-
 #### Module Versions
 
 By default, the same Docker container image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.
@@ -334,18 +316,13 @@ over SignalR to subscribed clients and thus provides a reactive UX experience.
 
 The OPC Publisher exposes port `8045` as a health check endpoint. The health checks include a liveness and a readiness probe, you can read more about them [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/).
 
-The liveness probe will respond as soon as possible. The readiness probe is continuously evaluated in the existing `EnsureWorkerRunningTimer_ElapsedAsync` event handler ([WorkerSupervisor](C:\Git5\Industrial-IoT\common\src\Microsoft.Azure.IIoT.Agent.Framework\src\Agent\Default\WorkerSupervisor.cs)).
-
 ### How to use
 
 The health check endpoint is enabled by default. You can verify that it has started by the logs output by the OPC Publisher.
 
 ![Health checks endpoint started as visible in the standard output.](./media/healthchecks.png)
 
-You can use a browser or a command line to probe the health check endpoint:
-
-1. Liveness: `http://localhost:8045/healthz`
-1. Readiness: `http://localhost:8045/ready`
+You can use a browser or a command line to probe the health check endpoint: `http://localhost:8045/healthz`
 
 ### Format
 
@@ -650,12 +627,9 @@ For the operator using the Azure Industrial IoT web service, the [Azure Business
 | Azure Active Directory   | DR options can be found [here](https://azure.microsoft.com/blog/setting-up-active-directory-for-a-disaster-recovery-environment-2/) |
 | Azure IoT Hub            | DR options can be found [here](https://docs.microsoft.com/azure/iot-hub/iot-hub-ha-dr)                                              |
 | Azure Event Hub          | DR options can be found [here](https://docs.microsoft.com/azure/event-hubs/event-hubs-geo-dr)                                       |
-| Azure Cosmos DB          | DR options can be found [here](https://docs.microsoft.com/azure/cosmos-db/online-backup-and-restore)                                |
-| Azure Service Bus        | DR options can be found [here](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-geo-dr)                           |
 | Azure Storage Account    | DR options can be found [here](https://docs.microsoft.com/azure/storage/common/storage-disaster-recovery-guidance)                  |
 | Azure Key Vault          | DR options can be found [here](https://docs.microsoft.com/azure/key-vault/general/disaster-recovery-guidance)                       |
-| Azure Kubernetes Service | DR options can be found [here](https://docs.microsoft.com/azure/aks/operator-best-practices-multi-region)                           |
-| Azure IoT Edge           | Azure IoT Edge does not have documented DR options                                                                                  |
+| Azure IoT Edge           | Azure IoT Edge does not have documented DR options                     |
 
 ### Backup and Restore
 
