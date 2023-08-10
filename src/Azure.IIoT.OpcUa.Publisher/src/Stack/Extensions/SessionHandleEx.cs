@@ -494,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             // find the children of the type.
             var nodeToBrowse = new BrowseDescriptionCollection {
                 new BrowseDescription {
-                    NodeId = parent == null ? typeId : parent.NodeId,
+                    NodeId = parent == null ? typeId : parent.NodeId.ToNodeId(session.MessageContext),
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = ReferenceTypeIds.HasChild,
                     IncludeSubtypes = true,

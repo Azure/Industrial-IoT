@@ -47,8 +47,8 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void ScalarExtensionObjectTest1()
         {
-            var variant = TypeInfo.Scalars.ExtensionObject.CreateVariant(new ExtensionObject("test"));
-            Assert.Equal(new ExtensionObject("test"), variant.Value);
+            var variant = TypeInfo.Scalars.ExtensionObject.CreateVariant(new ExtensionObject("s=test"));
+            Assert.Equal(new ExtensionObject("s=test"), variant.Value);
         }
 
         [Fact]
@@ -83,10 +83,10 @@ namespace Opc.Ua.Extensions
         public void ArrayExtensionObjectTest1()
         {
             var expected = new[] {
-                new ExtensionObject("test1"),
-                new ExtensionObject("test2"),
-                new ExtensionObject("test3"),
-                new ExtensionObject("test4")
+                new ExtensionObject(new ExpandedNodeId("test1", 0)),
+                new ExtensionObject(new ExpandedNodeId("test2", 0)),
+                new ExtensionObject(new ExpandedNodeId("test3", 0)),
+                new ExtensionObject(new ExpandedNodeId("test4", 0))
             };
             var variant = TypeInfo.Arrays.ExtensionObject.CreateVariant(expected);
             Assert.Equal(expected, variant.Value);

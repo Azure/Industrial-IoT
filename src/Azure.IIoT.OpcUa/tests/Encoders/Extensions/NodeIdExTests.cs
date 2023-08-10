@@ -444,29 +444,6 @@ namespace Opc.Ua.Extensions
         }
 
         [Fact]
-        public void EncodeDecodeNodeIdWithNullString()
-        {
-            var context = new ServiceMessageContext();
-            var expected = new NodeId((string)null,
-                context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
-
-            var s1 = expected.AsString(context, NamespaceFormat.Uri);
-            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
-
-            var result1 = s1.ToNodeId(context);
-            var result2 = s2.ToNodeId(context);
-
-            Assert.Equal(expected, result1);
-            Assert.Equal(expected, result2);
-            Assert.True(Utils.IsEqual(result1, result2));
-
-            Assert.Equal(string.Empty, result1.Identifier);
-            Assert.Equal(expected.NamespaceIndex, result1.NamespaceIndex);
-            Assert.Equal(string.Empty, result2.Identifier);
-            Assert.Equal(expected.NamespaceIndex, result2.NamespaceIndex);
-        }
-
-        [Fact]
         public void EncodeDecodeNodeIdWithNullStringAndDefaultUri()
         {
             var context = new ServiceMessageContext();

@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     new Argument("foo2",
                         new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
+                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("ddddd",
                         new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
