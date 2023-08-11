@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     ArrayDimensions = System.Array.Empty<uint>()
                 }.AsXmlElement(ServiceMessageContext.GlobalContext),
-                TypeId = "http://test.org/i=444444"
+                TypeId = new ExpandedNodeId(444444, "http://test.org")
             });
 
             var encoded = codec.Encode(expected);
@@ -336,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     ArrayDimensions = System.Array.Empty<uint>()
                 }.AsBinary(ServiceMessageContext.GlobalContext),
-                TypeId = "http://test.org/i=444445"
+                TypeId = new ExpandedNodeId(444445, "http://test.org/")
             });
 
             var encoded = codec.Encode(expected);

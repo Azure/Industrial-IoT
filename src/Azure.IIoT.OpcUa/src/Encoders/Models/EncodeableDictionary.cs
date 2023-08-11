@@ -23,11 +23,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            nameof(EncodeableDictionary) + "_Encoding_DefaultBinary";
+            "s=" + nameof(EncodeableDictionary) + "_Encoding_DefaultBinary";
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            nameof(EncodeableDictionary) + "_Encoding_DefaultXml";
+            "s=" + nameof(EncodeableDictionary) + "_Encoding_DefaultXml";
 
         /// <summary>
         /// Initializes the dictionary with default values.
