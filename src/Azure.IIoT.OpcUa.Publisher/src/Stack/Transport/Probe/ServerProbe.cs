@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                             var ep = _socket.RemoteEndPoint?.TryResolve();
                             using (var ostrm = new MemoryStream(_buffer, 0, _buffer.Length))
                             using (var encoder = new BinaryEncoder(ostrm,
-                                    ServiceMessageContext.GlobalContext))
+                                    ServiceMessageContext.GlobalContext, true))
                             {
                                 encoder.WriteUInt32(null, TcpMessageType.Hello);
                                 encoder.WriteUInt32(null, 0);
