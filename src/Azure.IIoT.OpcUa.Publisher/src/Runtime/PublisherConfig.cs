@@ -47,6 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
         public const string DefaultNamespaceFormatKey = "DefaultNamespaceFormat";
+        public const string MessageTimestampKey = "MessageTimestamp";
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
@@ -240,6 +241,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.UseStandardsCompliantEncoding = GetBoolOrDefault(
                     UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
+            }
+
+            if (options.MessageTimestamp == null)
+            {
+                if (!Enum.TryParse<MessageTimestamp>(GetStringOrDefault(MessageTimestampKey),
+                    out var messageTimestamp))
+                {
+                    messageTimestamp = MessageTimestamp.PublishTime;
+                }
+                options.MessageTimestamp = messageTimestamp;
             }
 
             if (options.DefaultNamespaceFormat == null)

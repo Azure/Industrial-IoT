@@ -18,8 +18,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.0
-
+                                                                         2.9.1
 General
 -------
 
@@ -142,6 +141,15 @@ Messaging configuration
                                if possible.
                                Default: `256k` in case of IoT Hub messages, `0`
                                otherwise.
+      --mts, --messagetimestamp, --MessageTimestamp=VALUE
+                             The value to set as as the timestamp property of
+                               messages during encoding (if the encoding
+                               supports writing message timestamps).
+                               Allowed values:
+                                   `PublishTime`
+                                   `CurrentTimeUtc`
+                               Default: `PublishTime` to use the subscription
+                               notification publish timestamp if available.
       --npd, --maxnodesperdataset, --MaxNodesPerDataSet=VALUE
                              Maximum number of nodes within a Subscription.
                                When there are more nodes configured for a data

@@ -88,6 +88,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? UseStandardsCompliantEncoding { get; set; }
 
         /// <summary>
+        /// The message timestamp to use
+        /// </summary>
+        public MessageTimestamp? MessageTimestamp { get; set; }
+
+        /// <summary>
         /// Root topic template
         /// </summary>
         public string? RootTopicTemplate { get; set; }

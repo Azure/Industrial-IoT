@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Publishing time
         /// </summary>
-        DateTime PublishTimestamp { get; }
+        DateTime? PublishTimestamp { get; }
 
         /// <summary>
         /// Publishing sequence number

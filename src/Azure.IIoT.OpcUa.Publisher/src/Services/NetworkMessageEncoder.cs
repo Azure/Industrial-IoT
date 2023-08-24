@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using Irony.Parsing;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -263,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
                                             ?? kEmptyConfiguration;
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
-                                        dataSetMessage.Timestamp = Notification.PublishTimestamp;
+                                        dataSetMessage.Timestamp = GetTimestamp(Notification);
                                         dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
 
                                         AddMessage(dataSetMessage);
@@ -308,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
                                                 ?? kEmptyConfiguration;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
-                                            dataSetMessage.Timestamp = Notification.PublishTimestamp;
+                                            dataSetMessage.Timestamp = GetTimestamp(Notification);
                                             dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
@@ -365,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             NodeId = notification.NodeId,
                                                             MessageType = Notification.MessageType,
                                                             DataSetMessageContentMask = dataSetMessageContentMask,
-                                                            Timestamp = Notification.PublishTimestamp,
+                                                            Timestamp = GetTimestamp(Notification),
                                                             SequenceNumber = Context.NextWriterSequenceNumber(),
                                                             ExtensionFields = Context.Writer.DataSet?.ExtensionFields,
                                                             Payload = new DataSet(notification.DataSetFieldName,
@@ -475,6 +476,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 currentMessage.DataSetClassId = dataSetClassId;
                                 currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
                                 return currentMessage;
+                            }
+
+                            DateTime? GetTimestamp(IOpcUaSubscriptionNotification Notification)
+                            {
+                                switch (_options.Value.MessageTimestamp)
+                                {
+                                    case MessageTimestamp.CurrentTimeUtc:
+                                        return DateTime.UtcNow;
+                                    default:
+                                        return Notification.PublishTimestamp;
+                                }
                             }
                         }
                     }

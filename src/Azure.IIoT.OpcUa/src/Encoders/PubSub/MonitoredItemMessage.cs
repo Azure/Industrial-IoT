@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0)
             {
-                encoder.WriteDateTime(nameof(Timestamp), Timestamp);
+                encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
             }
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 && Value != null)
             {
@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) == 0) &&
                 ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0))
             {
-                value.SourceTimestamp = Timestamp;
+                value.SourceTimestamp = Timestamp ?? default;
             }
 
             var reversibleMode = encoder.UseReversibleEncoding;
