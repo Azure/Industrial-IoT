@@ -26,7 +26,7 @@ namespace Opc.Ua.Extensions
             encoder.WriteExtensionObjectBody(encodeable);
             var document = new XmlDocument
             {
-                InnerXml = encoder.Close()
+                InnerXml = encoder.CloseAndReturnText()
             };
             return document.DocumentElement;
         }
@@ -42,7 +42,7 @@ namespace Opc.Ua.Extensions
         {
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new BinaryEncoder(stream, context))
+                using (var encoder = new BinaryEncoder(stream, context, true))
                 {
                     encodeable.Encode(encoder);
                 }

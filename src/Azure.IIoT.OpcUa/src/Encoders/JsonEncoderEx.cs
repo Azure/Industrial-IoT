@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Writes objects to a json
     /// </summary>
-    public sealed class JsonEncoderEx : IEncoder, IDisposable
+    public sealed class JsonEncoderEx : IEncoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
@@ -142,10 +142,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        /// <summary>
-        /// Completes writing
-        /// </summary>
-        public void Close()
+        /// <inheritdoc/>
+        public int Close()
         {
             if (_writer != null)
             {
@@ -166,6 +164,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 _writer = null;
             }
+            return -1; // Not supported
+        }
+
+        /// <inheritdoc/>
+        public string? CloseAndReturnText()
+        {
+            throw new NotSupportedException();
         }
 
         /// <inheritdoc/>
