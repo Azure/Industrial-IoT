@@ -726,7 +726,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public string? ApplicationUri { get; }
 
                 /// <inheritdoc/>
-                public DateTime PublishTimestamp { get; }
+                public DateTime? PublishTimestamp { get; }
 
                 /// <inheritdoc/>
                 public uint? PublishSequenceNumber => null;

@@ -369,8 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     SubscriptionName = Name,
                     SubscriptionId = Id,
                     SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                    MessageType = messageType,
-                    PublishTimestamp = DateTime.UtcNow
+                    MessageType = messageType
                 };
             }
         }
@@ -1396,7 +1395,7 @@ Actual (revised) state/desired state:
                         };
 
                         wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
-                            message.PublishTimestamp, eventFieldList, message.Notifications);
+                            publishTime, eventFieldList, message.Notifications);
 
                         if (message.Notifications.Count > 0)
                         {
@@ -1542,7 +1541,7 @@ Actual (revised) state/desired state:
                     if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))
                     {
                         wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
-                            message.PublishTimestamp, item, message.Notifications);
+                            publishTime, item, message.Notifications);
                     }
                     else
                     {
@@ -1649,7 +1648,7 @@ Actual (revised) state/desired state:
             public string? ApplicationUri { get; internal set; }
 
             /// <inheritdoc/>
-            public DateTime PublishTimestamp { get; internal set; }
+            public DateTime? PublishTimestamp { get; internal set; }
 
             /// <inheritdoc/>
             public uint? PublishSequenceNumber { get; }

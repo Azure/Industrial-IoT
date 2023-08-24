@@ -120,6 +120,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherConfig.IoTHubMaxMessageSize}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
                     (int i) => this[PublisherConfig.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
+                { $"mts|messagetimestamp=|{PublisherConfig.MessageTimestampKey}=",
+                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.PublishTime)}` to use the subscription notification publish timestamp if available.\n",
+                    (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
 
                 // TODO: Add ConfiguredMessageSize
 
@@ -406,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Specifiy the OpenTelemetry collector grpc endpoint url to export diagnostics to.\nDefault: `disabled`.\n",
                     s => this[Configuration.Otlp.OtlpCollectorEndpointKey] = s },
                 { $"oxi|otlpexportinterval=|{Configuration.Otlp.OtlpExportIntervalMillisecondsKey}=",
-                    $"The interval in milliseconds when OpenTelemetry is exported to the collector endpoint.\nDefault: `{Configuration.Otlp.OtlpExportIntervalMillisecondsDefault}` ({Configuration.Otlp.OtlpExportIntervalMillisecondsDefault * 1000} seconds).\n",
+                    $"The interval in milliseconds when OpenTelemetry is exported to the collector endpoint.\nDefault: `{Configuration.Otlp.OtlpExportIntervalMillisecondsDefault}` ({(int)(Configuration.Otlp.OtlpExportIntervalMillisecondsDefault / 1000)} seconds).\n",
                     (int i) => this[Configuration.Otlp.OtlpExportIntervalMillisecondsKey] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
