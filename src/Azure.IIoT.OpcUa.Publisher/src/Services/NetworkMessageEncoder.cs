@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using Irony.Parsing;
 
     /// <summary>
     /// Creates PubSub encoded messages
