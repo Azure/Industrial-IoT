@@ -409,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Specifiy the OpenTelemetry collector grpc endpoint url to export diagnostics to.\nDefault: `disabled`.\n",
                     s => this[Configuration.Otlp.OtlpCollectorEndpointKey] = s },
                 { $"oxi|otlpexportinterval=|{Configuration.Otlp.OtlpExportIntervalMillisecondsKey}=",
-                    $"The interval in milliseconds when OpenTelemetry is exported to the collector endpoint.\nDefault: `{Configuration.Otlp.OtlpExportIntervalMillisecondsDefault}` ({Configuration.Otlp.OtlpExportIntervalMillisecondsDefault * 1000} seconds).\n",
+                    $"The interval in milliseconds when OpenTelemetry is exported to the collector endpoint.\nDefault: `{Configuration.Otlp.OtlpExportIntervalMillisecondsDefault}` ({(int)(Configuration.Otlp.OtlpExportIntervalMillisecondsDefault / 1000)} seconds).\n",
                     (int i) => this[Configuration.Otlp.OtlpExportIntervalMillisecondsKey] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",

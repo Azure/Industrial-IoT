@@ -727,7 +727,7 @@ Diagnostic options
       --oxi, --otlpexportinterval, --OtlpExportIntervalMilliseconds=VALUE
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
-                               Default: `15000` (15000000 seconds).
+                               Default: `15000` (15 seconds).
       --em, --enableprometheusendpoint, --EnableMetrics=VALUE
                              Explicitly enable or disable exporting prometheus
                                metrics directly on the standard path.
