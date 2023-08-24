@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <returns></returns>
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args)
+            return Host.CreateDefaultBuilder()
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureHostConfiguration(builder => builder
                     .SetBasePath(Directory.GetCurrentDirectory())

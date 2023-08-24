@@ -43,7 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             result.Values.Should()
                 .Equal(expected);
         }
-
         /// <summary>
         /// Valid boolean option test
         /// </summary>
@@ -74,6 +73,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 
             result.Keys.Should()
                 .Equal("AutoAcceptUntrustedCertificates");
+            result.Values.Should()
+                .Equal(expected);
+        }
+
+        /// <summary>
+        /// Valid boolean option test
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="param"></param>
+        [Theory]
+        [InlineData("True", new string[] { "-c" })]
+        [InlineData("True", new string[] { "--c" })]
+        [InlineData("True", new string[] { "-strict" })]
+        [InlineData("True", new string[] { "--strict" })]
+        [InlineData("True", new string[] { "--strict=True" })]
+        [InlineData("False", new string[] { "--strict=False" })]
+        [InlineData("True", new string[] { "--UseStandardsCompliantEncoding" })]
+        [InlineData("True", new string[] { "--UseStandardsCompliantEncoding=True" })]
+        public void ValidUseStandardsCompliantEncodingOptionTest(string expected, string[] param)
+        {
+            var result = new CommandLine(param);
+
+            result.Count
+                .Should()
+                .Be(1);
+
+            result.Keys.Should()
+                .Equal(PublisherConfig.UseStandardsCompliantEncodingKey);
             result.Values.Should()
                 .Equal(expected);
         }
