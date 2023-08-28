@@ -855,7 +855,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Update subscription state
             NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = set.Count - invalidItems;
+            NumberOfCreatedItems = set.Count;
 
             _logger.LogInformation(
                 "Now monitoring {Count} nodes in subscription {Subscription}.",

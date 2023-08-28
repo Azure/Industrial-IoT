@@ -173,7 +173,7 @@ namespace Alarms
 
                     // find the alarm branch.
 
-                    if (!_branches.TryGetValue(alarm.Name, out var branch))
+                    if (!_branches.TryGetValue(branchId, out var branch))
                     {
                         _branches[branchId] = branch = CreateAlarm(alarm, branchId);
                     }
