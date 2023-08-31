@@ -27,7 +27,7 @@ services:
   ############################
   publisher:
     container_name: publisher
-    image: iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
+    image: ${DOCKER_REGISTRY-mcr.microsoft.com/}iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
     ports:
       - "9080:80"
       - "9081:443"

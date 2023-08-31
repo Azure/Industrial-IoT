@@ -40,6 +40,10 @@ await WriteSlowNumberOfUpdatesValueAsync(originalValue).ConfigureAwait(false);
 originalValue = await ReadSlowNumberOfUpdatesValueAsync().ConfigureAwait(false);
 Console.WriteLine("Now reset back to: " + originalValue);
 
+//
+// Helpers functions
+//
+
 // Read value of the slow number of updates configuration node
 async ValueTask<int> ReadSlowNumberOfUpdatesValueAsync()
 {
@@ -63,10 +67,6 @@ async ValueTask<int> ReadSlowNumberOfUpdatesValueAsync()
     return resopnseJson.GetProperty("value").GetInt32();
 }
 
-//
-// Helpers functions
-//
-
 // Write value to the slow number of updates configuration node
 async ValueTask WriteSlowNumberOfUpdatesValueAsync(int value)
 {
@@ -84,7 +84,7 @@ async ValueTask WriteSlowNumberOfUpdatesValueAsync(int value)
             request = new
             {
                 nodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowNumberOfUpdates",
-                value = value
+                value
             }
         }), MqttQualityOfServiceLevel.AtMostOnce).ConfigureAwait(false);
 }
