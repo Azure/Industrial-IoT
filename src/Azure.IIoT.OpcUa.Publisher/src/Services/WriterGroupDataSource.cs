@@ -568,8 +568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Handle subscription data diagnostics change messages
             /// </summary>
             /// <param name="sender"></param>
-            /// <param name="notificationCount"></param>
-            private void OnSubscriptionDataDiagnosticsChanged(object? sender, int notificationCount)
+            /// <param name="notificationCounts"></param>
+            private void OnSubscriptionDataDiagnosticsChanged(object? sender, (int, int, int) notificationCounts)
             {
                 lock (_lock)
                 {
@@ -583,10 +583,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Id, _outer.DataChangesCount, _outer.ValueChangesCount);
                         _outer.DataChangesCount = 0;
                         _outer.ValueChangesCount = 0;
+                        _outer._heartbeatsCount = 0;
+                        _outer._cyclicReadsCount = 0;
                         _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                     }
 
-                    _outer.ValueChangesCount += notificationCount;
+                    _outer.ValueChangesCount += notificationCounts.Item1;
+                    _outer._heartbeatsCount += notificationCounts.Item2;
+                    _outer._cyclicReadsCount += notificationCounts.Item3;
                     _outer.DataChangesCount++;
                 }
             }
@@ -919,6 +923,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableCounter("iiot_edge_publisher_events",
                 () => new Measurement<long>(_eventCount, _metrics.TagList), "Events",
                 "Total Opc Events delivered for processing.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_heartbeats",
+                () => new Measurement<long>(_heartbeatsCount, _metrics.TagList), "Heartbeats",
+                "Total Heartbeats delivered for processing.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
+                () => new Measurement<long>(_cyclicReadsCount, _metrics.TagList), "Reads",
+                "Total Cyclic reads delivered for processing.");
             _meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
                 () => new Measurement<long>(ValueChangesCount, _metrics.TagList), "Values",
                 "Total Opc Value changes delivered for processing.");
@@ -962,6 +972,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private long _dataChangesCount;
         private long _eventNotificationCount;
         private long _eventCount;
+        private long _heartbeatsCount;
+        private long _cyclicReadsCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
         private readonly DateTime _startTime = DateTime.UtcNow;

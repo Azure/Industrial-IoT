@@ -33,6 +33,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long IngressValueChanges { get; set; }
 
         /// <summary>
+        /// Number of heartbeats of the total values
+        /// </summary>
+        public long IngressHeartbeats { get; set; }
+
+        /// <summary>
+        /// Number of cyclic reads of the total values
+        /// </summary>
+        public long IngressCyclicReads { get; set; }
+
+        /// <summary>
         /// Data changes received in the last minute
         /// </summary>
         public long IngressDataChangesInLastMinute { get; set; }

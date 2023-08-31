@@ -396,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (nodesToRemoveSet.Count != 0)
                 {
                     request.OpcNodes = nodesToRemoveSet.ToList();
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    var entriesNotFoundJson = _jsonSerializer.SerializeToMemory(request);
                     throw new MethodCallStatusException(entriesNotFoundJson,
                         (int)HttpStatusCode.NotFound, "Nodes not found");
                 }
@@ -782,6 +782,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         MonitoredOpcNodesSucceededCount = model.MonitoredOpcNodesSucceededCount,
                         MonitoredOpcNodesFailedCount = model.MonitoredOpcNodesFailedCount,
                         IngressEventNotifications = model.IngressEventNotifications,
+                        IngressCyclicReads = model.IngressCyclicReads,
+                        IngressHeartbeats = model.IngressHeartbeats,
+                        IngressDataChangesInLastMinute = model.IngressDataChangesInLastMinute,
+                        IngressValueChangesInLastMinute = model.IngressValueChangesInLastMinute,
                         IngressEvents = model.IngressEvents
                     });
                 }

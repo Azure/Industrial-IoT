@@ -439,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 builder.AddMqttServer();
             }
 
-            builder.RegisterType<ChunkMethodClient>()
+            builder.RegisterType<RpcMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherApiClient>()
                 .AsImplementedInterfaces();

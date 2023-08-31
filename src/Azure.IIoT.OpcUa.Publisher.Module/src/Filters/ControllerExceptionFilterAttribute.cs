@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 //      GatewayTimeout
                 //      PreconditionFailed
                 //      TemporaryRedirect
-                //      429 (IoT Hub throttle)
+                //      TooManyRequests
                 //
                 // As such, if you want to terminate make sure exception
                 // is caught ahead of here and returns a status other than
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 //
 
                 case ServerBusyException se:
-                    context.Result = GetResponse((HttpStatusCode)429,
+                    context.Result = GetResponse(HttpStatusCode.TooManyRequests,
                         context.Exception);
                     break;
                 case ResourceOutOfDateException re:

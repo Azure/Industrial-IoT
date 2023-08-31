@@ -202,5 +202,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ingressValueChangesInLastMinute", Order = 27,
             EmitDefaultValue = true)]
         public long IngressValueChangesInLastMinute { get; set; }
+
+        /// <summary>
+        /// Number of heartbeats of the total value changes
+        /// </summary>
+        [DataMember(Name = "ingressHeartbeats", Order = 28,
+            EmitDefaultValue = true)]
+        public long IngressHeartbeats { get; set; }
+
+        /// <summary>
+        /// Number of cyclic reads of the total value changes
+        /// </summary>
+        [DataMember(Name = "ingressCyclicReads", Order = 29,
+            EmitDefaultValue = true)]
+        public long IngressCyclicReads { get; set; }
     }
 }

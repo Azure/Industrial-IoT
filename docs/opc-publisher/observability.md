@@ -7,14 +7,12 @@
 - [Logging](#logging)
 - [Runtime diagnostics output](#runtime-diagnostics-output)
 - [Available metrics](#available-metrics)
-- [Metrics collector](#metrics-collector)
-- [Metrics Dashboard](#metrics-dashboard)
-  - [Setup Steps](#setup-steps)
-    - [Create docker images](#create-docker-images)
-    - [Create IoT Edge modules](#create-iot-edge-modules)
+- [IoT Edge Metrics collector](#iot-edge-metrics-collector)
+- [OpenTelemetry](#opentelemetry)
+- [Prometheus](#prometheus)
+  - [Setup](#setup)
   - [View Prometheus dashboard](#view-prometheus-dashboard)
   - [View Grafana dashboard](#view-grafana-dashboard)
-- [Distributed Tracing](#distributed-tracing)
 
 ## Logging
 
@@ -40,13 +38,15 @@ To measure the performance of OPC Publisher, the `di` parameter can be used to p
 
 The following table describes the actual instruments that are logged per endpoint:
 
-| Log line item name                      | Diagnostic info property name                       | Description |
+| Log line item name                      | Diagnostic info property name       | Description |
 |-----------------------------------------|-------------------------------------|-------------|
 | # Ingestion duration                    | ingestionDuration                   | How long the data flow inside the publisher has been executing after it was created (either from file or API) |
 | # Ingress DataChanges (from OPC)        | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
 | # Ingress ValueChanges (from OPC)       | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
-| # Ingress EventNotifications (from OPC) | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
-| # Ingress EventChanges (from OPC)       | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
+| # of which are Heartbeats               | ingressHeartbeats                   | The number of heartbeats inside the published value changes. |
+| # of which are Cyclic reads             | ingressCyclicReads                  | The number of cyclic reads of the total number of value changes. |
+| # Ingress EventData (from OPC)          | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
+| # Ingress Events (from OPC)             | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
 | # Ingress BatchBlock buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
 | # Encoding Block input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
 | # Encoding Block input / output size    | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
@@ -82,18 +82,20 @@ One can combine information from multiple metrics to understand and paint a bigg
 | iiot_edge_reconnected                                     | Edge device reconnection count                                                          | gauge     |
 | iiot_edge_disconnected                                   | Edge device disconnection count                                                         | gauge     |
 | iiot_edge_publisher_messages_duration                  | Time taken to send messages from publisher. Used to calculate P50, P90, P95, P99, P99.9 | histogram |
-| iiot_edge_publisher_value_changes                                             | OPC UA server ValuesChanges delivered for processing                                    | gauge     |
+| iiot_edge_publisher_value_changes                                             | OPC UA server ValuesChanges delivered for processing                                    | counter     |
 | iiot_edge_publisher_value_changes_per_second                                | OPC UA server ValuesChanges delivered for processing per second                         | gauge     |
-| iiot_edge_publisher_data_changes                                              | OPC UA server DataChanges delivered for processing                                      | gauge     |
+| iiot_edge_publisher_heartbeats                                             | OPC Publisher heartbeats delivered for processing and included in the value changes. | counter     |
+| iiot_edge_publisher_cyclicreads                                             | OPC Publisher cyclic reads delivered for processing and included in the value changes. | counter     |
+| iiot_edge_publisher_data_changes                                              | OPC UA server DataChanges delivered for processing                                      | counter     |
 | iiot_edge_publisher_data_changes_per_second                                 | OPC UA server DataChanges delivered for processing                                      | gauge     |
 | iiot_edge_publisher_iothub_queue_size                                        | Queued messages to IoTHub                                                               | gauge     |
 | iiot_edge_publisher_iothub_queue_dropped_count                              | IoTHub dropped messages count                                                           | gauge     |
-| iiot_edge_publisher_messages                                        | Messages sent to IoTHub                                                                 | gauge     |
+| iiot_edge_publisher_messages                                        | Messages sent to IoTHub                                                                 | counter     |
 | iiot_edge_publisher_messages_per_second                           | Messages sent to IoTHub per second                                                      | gauge     |
 | iiot_edge_publisher_connection_retries                                        | Connection retries to OPC UA server                                                     | gauge     |
-| iiot_edge_publisher_encoded_notifications                                     | Encoded OPC UA server notifications count                                               | gauge     |
-| iiot_edge_publisher_dropped_notifications                                     | Dropped OPC UA server notifications count                                               | gauge     |
-| iiot_edge_publisher_processed_messages                                        | Processed IoT messages count                                                            | gauge     |
+| iiot_edge_publisher_encoded_notifications                                     | Encoded OPC UA server notifications count                                               | counter     |
+| iiot_edge_publisher_dropped_notifications                                     | Dropped OPC UA server notifications count                                               | counter     |
+| iiot_edge_publisher_processed_messages                                        | Processed IoT messages count                                                            | counter     |
 | iiot_edge_publisher_notifications_per_message_average                       | OPC UA sever notifications per IoT message average                                      | gauge     |
 | iiot_edge_publisher_encoded_message_size_average                            | Encoded IoT message body size average                                                   | gauge     |
 | iiot_edge_publisher_chunk_size_average                                       | IoT Hub chunk size average                                                              | gauge     |
@@ -130,7 +132,7 @@ The default configuration to enable scraping metrics is:
 
 ## OpenTelemetry
 
-It is possible to export all [metrics](#available-metrics), traces and [logs](#logging) to an OpenTelemtry collector. To specifiy the OTLP GRPC endpoint to export to, use the `--oc` [command line argument](./commandline.md). 
+It is possible to export all [metrics](#available-metrics), traces and [logs](#logging) to an OpenTelemtry collector. To specifiy the OTLP GRPC endpoint to export to, use the `--oc` [command line argument](./commandline.md).
 
 An example setup using the OTEL Contrib Collector and Grafana stack can be found in the `/deploy/docker` folder.
 

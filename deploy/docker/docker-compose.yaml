@@ -16,8 +16,8 @@ services:
       "--ses",
       "--ei=${EVENT_NODES:-100}",
       "--gn=${GUID_NODES:-100}",
-      "--fn=${FAST_NODES:-49900}",
-      "--sn=${SLOW_NODES:-49900}",
+      "--fn=${FAST_NODES:-4990}",
+      "--sn=${SLOW_NODES:-4990}",
       "--aa"
       ]
     volumes:
@@ -27,7 +27,7 @@ services:
   ############################
   publisher:
     container_name: publisher
-    image: ${DOCKER_REGISTRY-mcr.microsoft.com/}iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
+    image: iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
     ports:
       - "9080:80"
       - "9081:443"

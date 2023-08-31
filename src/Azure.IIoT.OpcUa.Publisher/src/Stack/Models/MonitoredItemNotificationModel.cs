@@ -47,5 +47,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Value of variable change notification
         /// </summary>
         public DataValue? Value { get; set; }
+
+        /// <summary>
+        /// Source flags
+        /// </summary>
+        public MonitoredItemSourceFlags Flags { get; set; }
     }
 }

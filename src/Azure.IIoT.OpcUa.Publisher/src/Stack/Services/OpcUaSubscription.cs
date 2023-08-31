@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
 
         /// <inheritdoc/>
-        public event EventHandler<int>? OnSubscriptionDataDiagnosticsChange;
+        public event EventHandler<(int, int, int)>? OnSubscriptionDataDiagnosticsChange;
 
         ///  <inheritdoc/>
         public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
@@ -341,9 +341,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                onSubscriptionEventChange.Invoke(this,
-                    CreateMessage(notifications, messageType, subscription));
-                onSubscriptionEventDiagnosticsChange?.Invoke(this, 1);
+                var message = CreateMessage(notifications, messageType, subscription);
+                onSubscriptionEventChange.Invoke(this, message);
+                if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
+                {
+                    onSubscriptionEventDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                }
             }
             else
             {
@@ -353,9 +356,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                onSubscriptionDataChange.Invoke(this,
-                    CreateMessage(notifications, messageType, subscription));
-                onSubscriptionDataDiagnosticsChange?.Invoke(this, 1);
+                var message = CreateMessage(notifications, messageType, subscription);
+                onSubscriptionDataChange.Invoke(this, message);
+                if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
+                {
+                    onSubscriptionDataDiagnosticsChange.Invoke(this,
+                        (message.Notifications.Count, message.Heartbeats, message.CyclicReads));
+                }
             }
 
             Notification CreateMessage(IEnumerable<MonitoredItemNotificationModel> notifications,
@@ -1556,7 +1563,7 @@ Actual (revised) state/desired state:
                 var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
-                    onSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                    onSubscriptionDataDiagnosticsChange.Invoke(this, (message.Notifications.Count, 0, 0));
                 }
             }
             catch (Exception e)
@@ -1658,6 +1665,18 @@ Actual (revised) state/desired state:
 
             /// <inheritdoc/>
             public IList<MonitoredItemNotificationModel> Notifications { get; }
+
+            /// <summary>
+            /// Number of heartbeats
+            /// </summary>
+            internal int Heartbeats => Notifications
+                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
+
+            /// <summary>
+            /// Number of cyclic reads
+            /// </summary>
+            internal int CyclicReads => Notifications
+                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead));
 
             /// <summary>
             /// Create acknoledgeable notification

@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 
             builder.RegisterModule<RegistryServices>();
             builder.ConfigureServices(services => services.AddMemoryCache());
-            builder.RegisterType<ChunkMethodClient>()
+            builder.RegisterType<RpcMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()
                 .AsImplementedInterfaces();

@@ -232,12 +232,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Ingress DataChanges (from OPC)     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges)
                         .Append(' ').AppendLine(dataChangesPerSecFormatted)
-                    .Append("  # Ingress EventData (from OPC)       : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
-                        .AppendLine()
                     .Append("  # Ingress ValueChanges (from OPC)    : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
                         .AppendLine(valueChangesPerSecFormatted)
+                    .Append("  # of which are Heartbeats            : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressHeartbeats)
+                        .AppendLine()
+                    .Append("  # of which are Cyclic reads          : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads)
+                        .AppendLine()
+                    .Append("  # Ingress EventData (from OPC)       : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
+                        .AppendLine()
                     .Append("  # Ingress Events (from OPC)          : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents)
                         .AppendLine()
@@ -359,6 +365,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (d, i) => d.IngressValueChangesInLastMinute = (long)i,
                 ["iiot_edge_publisher_events"] =
                 (d, i) => d.IngressEvents = (long)i,
+                ["iiot_edge_publisher_heartbeats"] =
+                (d, i) => d.IngressHeartbeats = (long)i,
+                ["iiot_edge_publisher_cyclicreads"] =
+                (d, i) => d.IngressCyclicReads = (long)i,
                 ["iiot_edge_publisher_event_notifications"] =
                 (d, i) => d.IngressEventNotifications = (long)i,
                 ["iiot_edge_publisher_estimated_message_chunks_per_day"] =

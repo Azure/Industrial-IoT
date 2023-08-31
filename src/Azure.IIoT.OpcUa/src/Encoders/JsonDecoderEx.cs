@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public void Close()
         {
-
+            // No op
         }
 
         /// <inheritdoc/>

@@ -1247,6 +1247,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
                     Value = lastValue,
+                    Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0
                 };
                 callback(MessageType.DeltaFrame, heartbeat.YieldReturn());
@@ -1391,7 +1392,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
                     SequenceNumber = sequenceNumber,
-                    Value = LastSampledValue
+                    Value = LastSampledValue,
+                    Flags = MonitoredItemSourceFlags.CyclicRead
                 });
                 return true;
             }
@@ -1426,6 +1428,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
                     SequenceNumber = sequenceNumber,
+                    Flags = MonitoredItemSourceFlags.CyclicRead,
                     Value = value
                 };
                 callback(MessageType.DeltaFrame, notification.YieldReturn());
@@ -1703,6 +1706,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         DataSetFieldName = field.Name,
                         NodeId = Template.StartNodeId,
                         Value = new DataValue(statusCode),
+                        Flags = MonitoredItemSourceFlags.Error,
                         SequenceNumber = sequenceNumber
                     });
                 }
