@@ -14,10 +14,11 @@ ParserResult<Parameters> result = Parser.Default.ParseArguments<Parameters>(args
     .WithNotParsed(errors => Environment.Exit(1));
 
 // This sample accepts the service connection string as a parameter, if present.
-Parameters.ValidateConnectionString(parameters?.HubConnectionString);
+Parameters.ValidateConnectionStrings(parameters?.IoTHubOwnerConnectionString, parameters?.EdgeHubConnectionString,
+    out var deviceId, out var moduleId);
 
 // Create a ServiceClient to communicate with service-facing endpoint on your hub.
-using var serviceClient = ServiceClient.CreateFromConnectionString(parameters!.HubConnectionString);
+using var serviceClient = ServiceClient.CreateFromConnectionString(parameters!.IoTHubOwnerConnectionString);
 
 while (true)
 {
@@ -42,8 +43,7 @@ while (true)
         }
     }));
 
-    var response = await serviceClient.InvokeDeviceMethodAsync(parameters.DeviceId,
-        methodInvocation).ConfigureAwait(false);
+    var response = await serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInvocation).ConfigureAwait(false);
     var resopnseJson = JsonSerializer.Deserialize<JsonElement>(response.GetPayloadAsJson());
     Console.WriteLine("Current time on server:" + resopnseJson.GetProperty("value").GetString());
 }
