@@ -733,6 +733,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public DateTime? PublishTimestamp { get; }
 
                 /// <inheritdoc/>
+                public DateTime CreatedTimestamp { get; } = DateTime.UtcNow;
+
+                /// <inheritdoc/>
                 public uint? PublishSequenceNumber => null;
 
                 /// <inheritdoc/>

@@ -41,6 +41,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public DateTime? PublishTimestamp { get; set; }
 
         /// <inheritdoc/>
+        public DateTime CreatedTimestamp { get; } = DateTime.UtcNow;
+
+        /// <inheritdoc/>
         public uint? PublishSequenceNumber { get; set; }
 
         /// <inheritdoc/>

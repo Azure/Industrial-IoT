@@ -1,0 +1,13 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2271",
+                "HeartbeatInterval": 1
+            }
+        ]
+    }
+]

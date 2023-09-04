@@ -1666,6 +1666,9 @@ Actual (revised) state/desired state:
             /// <inheritdoc/>
             public IList<MonitoredItemNotificationModel> Notifications { get; }
 
+            /// <inheritdoc/>
+            public DateTime CreatedTimestamp { get; }
+
             /// <summary>
             /// Number of heartbeats
             /// </summary>
@@ -1691,6 +1694,7 @@ Actual (revised) state/desired state:
             {
                 _outer = outer;
                 PublishSequenceNumber = sequenceNumber;
+                CreatedTimestamp = DateTime.UtcNow;
                 _subscriptionId = subscriptionId;
 
                 MetaData = _outer.CurrentMetaData;

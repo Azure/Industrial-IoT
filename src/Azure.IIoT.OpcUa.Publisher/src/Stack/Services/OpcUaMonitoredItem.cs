@@ -756,11 +756,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // from the registered and thus effective node id
                 //
                 ResolvedNodeId = template.StartNodeId;
-
-                LastValue = new MonitoredItemNotification
-                {
-                    Value = new DataValue(StatusCodes.GoodNoData)
-                };
             }
 
             /// <inheritdoc/>
@@ -1237,6 +1232,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return;
                 }
 
+                if (LastValue == null)
+                {
+                    // TODO: populate value
+                    return;
+                }
+
                 // If last value is null create a error value.
                 var lastValue = (LastValue as MonitoredItemNotification)?.Value ??
                     new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
@@ -1283,6 +1284,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 _sampler = sampler;
                 _connection = connection;
+
+                LastValue = new MonitoredItemNotification
+                {
+                    Value = new DataValue(StatusCodes.GoodNoData)
+                };
             }
 
             /// <inheritdoc/>

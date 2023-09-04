@@ -483,6 +483,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     case MessageTimestamp.CurrentTimeUtc:
                                         return DateTime.UtcNow;
+                                    case MessageTimestamp.CreatedTimeUtc:
+                                        return Notification.CreatedTimestamp;
                                     default:
                                         return Notification.PublishTimestamp;
                                 }

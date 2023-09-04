@@ -64,6 +64,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 double.MinValue, double.MaxValue);
         }
 
+        [Theory]
+        [InlineData(MessageTimestamp.CurrentTimeUtc)]
+        [InlineData(MessageTimestamp.CreatedTimeUtc)]
+        [InlineData(MessageTimestamp.PublishTime)]
+        public async Task CanSendHeartbeatToIoTHubTest(MessageTimestamp timestamp)
+        {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatToIoTHubTest) + timestamp, "./Resources/Heartbeat.json",
+                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}"}).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(messages.Count > 1);
+            var message = messages[0].Message;
+            Assert.Equal("i=2271", message.GetProperty("NodeId").GetString());
+            Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
+            Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
+            Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+            Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
+
+            var timestamps = new HashSet<DateTime> { message.GetProperty("Timestamp").GetDateTime() };
+            for (var i = 1; i < messages.Count; i++)
+            {
+                message = messages[i].Message;
+                Assert.Equal("i=2271", message.GetProperty("NodeId").GetString());
+                Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
+                Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+                Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
+
+                if (timestamp == MessageTimestamp.PublishTime)
+                {
+                    Assert.False(message.TryGetProperty("Timestamp", out _));
+                }
+                else
+                {
+                    Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
+                    timestamps.Add(message.GetProperty("Timestamp").GetDateTime());
+                }
+            }
+
+            Assert.Equal(timestamp != MessageTimestamp.PublishTime ? messages.Count : 1, timestamps.Count);
+        }
+
         [Fact]
         public async Task CanSendDeadbandItemsToIoTHubTest()
         {
@@ -125,14 +168,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
         }
 
-        [Fact]
-        public async Task CanSendEventToIoTHubTestFulLFeaturedMessage()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task CanSendEventToIoTHubTestFullFeaturedMessage(bool useCurrentTime)
         {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(
-                nameof(CanSendEventToIoTHubTestFulLFeaturedMessage), "./Resources/SimpleEvents.json",
-                arguments: new string[] { "--fm=True" }).ConfigureAwait(false);
+                nameof(CanSendEventToIoTHubTestFullFeaturedMessage), "./Resources/SimpleEvents.json",
+                arguments: new string[] { "--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime" }).ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages).Message;

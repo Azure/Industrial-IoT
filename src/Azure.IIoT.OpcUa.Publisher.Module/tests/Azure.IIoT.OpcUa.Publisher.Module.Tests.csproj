@@ -38,6 +38,9 @@
     <None Update="Resources\DataItems.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Heartbeat.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\KeepAlive.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -26,6 +26,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// put on the wire, using the publisher module clock.
         /// </summary>
         [EnumMember(Value = "CurrentTimeUtc")]
-        CurrentTimeUtc
+        CurrentTimeUtc,
+
+        /// <summary>
+        /// The time (utc) the message was created either because
+        /// it was received from the server or as heartbeat, using
+        /// the publisher module clock.
+        /// </summary>
+        [EnumMember(Value = "CreatedTimeUtc")]
+        CreatedTimeUtc
     }
 }
