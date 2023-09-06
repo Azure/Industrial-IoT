@@ -85,9 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const bool EnableDataSetRoutingInfoDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
         public const int MaxNodesPerDataSetDefault = 1000;
-        public const int BatchSizeDefault = 100;
+        public const int BatchSizeLegacyDefault = 50;
         public const int MaxNetworkMessageSendQueueSizeDefault = 4096;
-        public const int BatchTriggerIntervalDefaultMillis = 1 * 1000;
+        public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
         public const int ScaleTestCountDefault = 1;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -111,6 +111,18 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey);
             }
 
+            if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
+                GetStringOrDefault(DefaultTransportKey), out var transport))
+            {
+                options.DefaultTransport = transport;
+            }
+
+            if (options.UseStandardsCompliantEncoding == null)
+            {
+                options.UseStandardsCompliantEncoding = GetBoolOrDefault(
+                    UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
+            }
+
             if (options.CreatePublishFileIfNotExist == null)
             {
                 options.CreatePublishFileIfNotExist = GetBoolOrNull(
@@ -125,15 +137,25 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.BatchSize == null)
             {
+                //
+                // Default to batch size of 50 if not using strict encoding and a
+                // transport was not specified to support backcompat with 2.8
+                //
                 options.BatchSize = GetIntOrDefault(BatchSizeKey,
-                    BatchSizeDefault);
+                        options.UseStandardsCompliantEncoding == true ||
+                        options.DefaultTransport != null ? 0 : BatchSizeLegacyDefault);
             }
 
             if (options.BatchTriggerInterval == null)
             {
+                //
+                // Default to batch interval of 10 seconds if not using strict encoding
+                // and a transport was not specified to support backcompat with 2.8
+                //
                 options.BatchTriggerInterval = GetDurationOrNull(BatchTriggerIntervalKey) ??
                     TimeSpan.FromMilliseconds(GetIntOrDefault(BatchTriggerIntervalKey,
-                        BatchTriggerIntervalDefaultMillis));
+                        options.UseStandardsCompliantEncoding == true ||
+                        options.DefaultTransport != null ? 0 : BatchTriggerIntervalLLegacyDefaultMillis));
             }
 
             if (options.MaxNetworkMessageSendQueueSize == null)
@@ -171,12 +193,6 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DataSetMetaDataTopicTemplate = GetStringOrDefault(
                     DataSetMetaDataTopicTemplateKey);
-            }
-
-            if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
-                GetStringOrDefault(DefaultTransportKey), out var transport))
-            {
-                options.DefaultTransport = transport;
             }
 
             if (options.DisableOpenApiEndpoint == null)
@@ -235,12 +251,6 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DefaultMaxDataSetMessagesPerPublish = (uint?)GetIntOrNull(
                     DefaultMaxMessagesPerPublishKey);
-            }
-
-            if (options.UseStandardsCompliantEncoding == null)
-            {
-                options.UseStandardsCompliantEncoding = GetBoolOrDefault(
-                    UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
             }
 
             if (options.MessageTimestamp == null)
