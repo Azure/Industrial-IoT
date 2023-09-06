@@ -1109,7 +1109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
             Debug.Assert(_lock.CurrentCount == 0); // Under lock
-
+            session.FetchNamespaceTables();
             GetSubscriptionConfiguration(_currentSubscription ?? session.DefaultSubscription,
                 out var configuredPublishingInterval, out var configuredPriority,
                 out var configuredKeepAliveCount, out var configuredLifetimeCount,
