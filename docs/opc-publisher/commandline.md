@@ -11,14 +11,13 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
-
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
 ██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗
 ██║   ██║██████╔╝██║         ██████╔╝██║   ██║██████╔╝██║     ██║███████╗███████║█████╗  ██████╔╝
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.1
+                                                                         2.9.2
 General
 -------
 
@@ -148,6 +147,7 @@ Messaging configuration
                                Allowed values:
                                    `PublishTime`
                                    `CurrentTimeUtc`
+                                   `CreatedTimeUtc`
                                Default: `PublishTime` to use the subscription
                                notification publish timestamp if available.
       --npd, --maxnodesperdataset, --MaxNodesPerDataSet=VALUE
@@ -641,8 +641,8 @@ OPC UA Client configuration
                                Default: `True`.
       --sn, --appcertsubjectname, --ApplicationCertificateSubjectName=VALUE
                              The subject name for the app cert.
-                               Default: `CN=Microsoft.Azure.IIoT, C=DE, S=Bav,
-                               O=Microsoft, DC=localhost`.
+                               Default: `CN=<the value of --an|--appname>, C=DE,
+                                S=Bav, O=Microsoft, DC=localhost`.
       --an, --appname, --ApplicationName=VALUE
                              The name for the app (used during OPC UA
                                authentication).
