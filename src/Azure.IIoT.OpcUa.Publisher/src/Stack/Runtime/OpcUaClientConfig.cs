@@ -97,20 +97,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <inheritdoc/>
         public override void PostConfigure(string? name, OpcUaClientOptions options)
         {
-            if (options.ApplicationName == null)
+            if (string.IsNullOrEmpty(options.ApplicationName))
             {
-                options.ApplicationName =
-                    GetStringOrDefault(ApplicationNameKey, ApplicationNameDefault);
+                options.ApplicationName = GetStringOrDefault(ApplicationNameKey);
+                if (string.IsNullOrEmpty(options.ApplicationName) ||
+                    options.ApplicationName == "Azure.IIoT.OpcUa.Publisher.Module")
+                {
+                    options.ApplicationName = ApplicationNameDefault;
+                }
             }
 
-            if (options.ApplicationUri == null)
+            if (string.IsNullOrEmpty(options.ApplicationUri))
             {
                 options.ApplicationUri = GetStringOrDefault(ApplicationUriKey,
                     string.Format(CultureInfo.InvariantCulture,
                         ApplicationUriDefault, options.ApplicationName));
             }
 
-            if (options.ProductUri == null)
+            if (string.IsNullOrEmpty(options.ProductUri))
             {
                 options.ProductUri = GetStringOrDefault(ProductUriKey,
                     ProductUriDefault);
