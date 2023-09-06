@@ -95,14 +95,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _batchTriggerInterval = writerGroup.PublishingInterval
                 ?? _options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
+            //
+            // If the max notification per message is 1 then there is no need to
+            // have an interval publishing as the messages are emitted as soon
+            // as they arrive anyway
+            //
+            if (_maxNotificationsPerMessage == 1)
+            {
+                _batchTriggerInterval = TimeSpan.Zero;
+            }
             _maxPublishQueueSize = (int?)writerGroup.PublishQueueSize
                 ?? _options.Value.MaxNetworkMessageSendQueueSize ?? kMaxQueueSize;
 
             //
-            // set notification buffer to 1 if no publishing interval otherwise queue
-            // as much as reasonable
+            // If undefined, set notification buffer to 1 if no publishing interval
+            // otherwise queue as much as reasonable
             //
-            if (_maxNotificationsPerMessage < 1)
+            if (_maxNotificationsPerMessage <= 0)
             {
                 _maxNotificationsPerMessage = _batchTriggerInterval == TimeSpan.Zero ?
                     1 : _maxPublishQueueSize;
@@ -112,21 +121,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _encodingBlock =
                 new TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)>(
                     EncodeNotifications, new ExecutionDataflowBlockOptions());
-            _batchDataSetMessageBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
+            _notificationBufferBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
                 _maxNotificationsPerMessage, new GroupingDataflowBlockOptions());
             _sinkBlock = new ActionBlock<(IEvent, Action)>(
                 SendAsync, new ExecutionDataflowBlockOptions());
 
-            _batchDataSetMessageBlock.LinkTo(_encodingBlock);
+            _notificationBufferBlock.LinkTo(_encodingBlock);
             _encodingBlock.LinkTo(_sinkBlock);
 
             Source.OnMessage += OnMessageReceived;
             Source.OnCounterReset += MessageTriggerCounterResetReceived;
 
             InitializeMetrics();
-            _logger.LogInformation(
-                "Writer group {WriterGroup} set up to publish messages to {Transport}...",
-                writerGroup.Name, _eventClient.Name);
+            _logger.LogInformation("Writer group {WriterGroup} set up to publish " +
+                "notifications {Interval} {Batching} with {MaxSize} to {Transport} " +
+                "(queuing at most {MaxQueueSize} notifications)...",
+                writerGroup.Name ?? Constants.DefaultWriterGroupId,
+                _batchTriggerInterval == TimeSpan.Zero ?
+                    "as soon as they arrive" : $"every {_batchTriggerInterval} (hh:mm:ss)",
+                _maxNotificationsPerMessage == 1 ?
+                    "and individually" :
+            $"or when a batch of {_maxNotificationsPerMessage} notifications is ready",
+                _maxNetworkMessageSize == int.MaxValue ?
+                    "unlimited" : $"at most {_maxNetworkMessageSize / 1024} kb",
+                _eventClient.Name, _maxPublishQueueSize);
         }
 
         /// <inheritdoc/>
@@ -147,8 +165,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // is then completed. If blocks are completed downstream first
                 // previous blocks will hang.
                 //
-                _batchDataSetMessageBlock.Complete();
-                await _batchDataSetMessageBlock.Completion.ConfigureAwait(false);
+                _notificationBufferBlock.Complete();
+                await _notificationBufferBlock.Completion.ConfigureAwait(false);
                 _encodingBlock.Complete();
                 await _encodingBlock.Completion.ConfigureAwait(false);
                 _sinkBlock.Complete();
@@ -184,6 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
+                Interlocked.Add(ref _notificationBufferInputCount, -input.Length);
                 return _messageEncoder.Encode(_eventClient.CreateEvent,
                     input, _maxNetworkMessageSize, _maxNotificationsPerMessage != 1);
             }
@@ -212,6 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         // Throws if cancelled
                         await message.Event.SendAsync(_cts.Token).ConfigureAwait(false);
+                        _logger.LogDebug("#{Attempt}: Network message sent.", attempt);
                         break;
                     }
                     catch (Exception e) when (
@@ -266,7 +286,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _batchTriggerIntervalTimer.Change(_batchTriggerInterval,
                     Timeout.InfiniteTimeSpan);
             }
-            _batchDataSetMessageBlock.TriggerBatch();
+            _logger.LogDebug("Trigger notification batch (Interval:{Interval})...",
+               _batchTriggerInterval);
+            _notificationBufferBlock.TriggerBatch();
         }
 
         /// <summary>
@@ -308,7 +330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     LogNotification(args);
                 }
 
-                _batchDataSetMessageBlock.Post(args);
+                Interlocked.Increment(ref _notificationBufferInputCount);
+                _notificationBufferBlock.Post(args);
             }
         }
 
@@ -371,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_sinkBlock.InputCount, _metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
-                () => new Measurement<long>(_batchDataSetMessageBlock.OutputCount, _metrics.TagList), "Notifications",
+                () => new Measurement<long>(_notificationBufferInputCount, _metrics.TagList), "Notifications",
                 "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
                 () => new Measurement<long>(_encodingBlock.InputCount, _metrics.TagList), "Notifications",
@@ -401,6 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private long _messagesSentCount;
         private long _sinkBlockInputDroppedCount;
+        private long _notificationBufferInputCount;
         private DateTime _dataFlowStartTime = DateTime.MinValue;
         private readonly int _maxNotificationsPerMessage;
         private readonly int _maxNetworkMessageSize;
@@ -412,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
-        private readonly BatchBlock<IOpcUaSubscriptionNotification> _batchDataSetMessageBlock;
+        private readonly BatchBlock<IOpcUaSubscriptionNotification> _notificationBufferBlock;
         private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
         private readonly ActionBlock<(IEvent, Action)> _sinkBlock;
         private readonly DateTime _startTime = DateTime.UtcNow;

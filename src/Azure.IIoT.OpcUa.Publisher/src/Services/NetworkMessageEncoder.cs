@@ -136,6 +136,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
                                 networkMessage.DataSetWriterGroup);
                         }
+
+                        _logger.LogDebug(
+                            "{Count} Notifications encoded into a network message (chunks:{Chunks})...",
+                            notificationsPerMessage, validChunks);
+
                         chunkedMessages.Add((chunkedMessage, onSent));
                     }
                     else
