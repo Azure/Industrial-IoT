@@ -272,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static OpenTelemetryLoggerOptions AddOtlpExporter(
             this OpenTelemetryLoggerOptions builder, IConfiguration configuration)
         {
-            builder.AddOtlpExporter(o => new Otlp(configuration).Configure(o));
+            builder.AddOtlpExporter((o, _) => new Otlp(configuration).Configure(o));
             return builder;
         }
 
