@@ -8,6 +8,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Abstractions" Version="0.4.55" />
+    <PackageReference Include="Furly.Extensions.Abstractions" Version="0.4.57" />
   </ItemGroup>
 </Project>
