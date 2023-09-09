@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Runtime.Serialization;
 
-        /// <summary>
+    /// <summary>
     /// Deadband type
     /// </summary>
     [DataContract]
