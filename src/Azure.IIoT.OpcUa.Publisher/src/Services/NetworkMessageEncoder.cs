@@ -486,12 +486,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 switch (_options.Value.MessageTimestamp)
                                 {
-                                    case MessageTimestamp.CurrentTimeUtc:
+                                    case MessageTimestamp.EncodingTimeUtc:
                                         return DateTime.UtcNow;
-                                    case MessageTimestamp.CreatedTimeUtc:
-                                        return Notification.CreatedTimestamp;
-                                    default:
+                                    case MessageTimestamp.PublishTime:
                                         return Notification.PublishTimestamp;
+                                    default:
+                                        return Notification.CreatedTimestamp;
                                 }
                             }
                         }

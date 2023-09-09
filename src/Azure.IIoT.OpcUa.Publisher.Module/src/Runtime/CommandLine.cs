@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
                     (int i) => this[PublisherConfig.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"mts|messagetimestamp=|{PublisherConfig.MessageTimestampKey}=",
-                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.PublishTime)}` to use the subscription notification publish timestamp if available.\n",
+                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.CurrentTimeUtc)}` to use the time when the message was created in OPC Publisher.\n",
                     (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
 
                 // TODO: Add ConfiguredMessageSize
