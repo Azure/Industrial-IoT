@@ -31,9 +31,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [EnumMember(Value = "ContinuousLKV")]
         ContinuousLKV = 0x2,
 
-        // ContinousLKG does not make sense as
-        // it means lkg continue to send after
-        // a bad status
+        /// <summary>
+        /// Continuously sends last good value
+        /// </summary>
+        [EnumMember(Value = "ContinuousLKG")]
+        ContinuousLKG = 0x3,
 
         /// <summary>
         /// Update value timestamps to be different
