@@ -267,6 +267,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options?.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
                     ?? options?.DefaultHeartbeatInterval,
+                HeartbeatBehavior = publishedVariable.HeartbeatBehavior
+                    ?? options?.DefaultHeartbeatBehavior,
                 AggregateFilter = null
             };
         }

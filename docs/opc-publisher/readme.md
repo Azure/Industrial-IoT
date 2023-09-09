@@ -576,7 +576,19 @@ Some use cases require to publish data values in constant intervals. OPC Publish
   "HeartbeatInterval": 3600,
 ```
 
-> In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription. In 2.9 and higher the heartbeat is emitted every heartbeat interval fram the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome.
+The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavior` command line options or the
+
+``` json
+  "HeartbeatBehavior": "...",
+```
+
+Option of the node entry. The behavior can be set to watch dog behavior with Last Known Value (`WatchdogLKV`, which is the default) or Last Known Good (`WatchdogLKG`) semantics. A last known good value has either a status code of `Good` or a valid value (!= Null) and not a bad statuscode (which covers other Good or Uncertain status codes). A continous periodic sending of the last known value (`ContinuousLKV`) can also be selected. In addition a behavior that mimics the older, legacy behavior of updating the source timestamp of the value can also be specified (`WatchdogLKVWithUpdatedTimestamps`). The latter option is deprected though.
+
+> In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription and was similar to `WatchdogLKVWithUpdatedTimestamps`. In 2.9 and higher the heartbeat is emitted every heartbeat interval fram the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome.
+
+It is recommended to use the Timestamp of the message. The source of the timestamp can be configued using the `--mts, --messagetimestamp` command line option.
+
+> Note that if the Publish Time is selected heartbeat messages will not have a timestamp as they are generated lcoally and not as a result of a publish operation.
 
 Similar use cases require cyclic read based sampling using read service calls on a periodic timer. The `UseCyclicRead` property of a configured node tells OPC Publisher to sample the value periodically when the timer expires. Note that read operations of all nodes at the same sampling rate are batched together for efficiency. They only execute when no previous read operation is in progress when the period expires. While the sampler configures a timeout of half the sampling rate in case of high frequency sampling a value every time the sampling rate expires cannot be guaranteed.
 

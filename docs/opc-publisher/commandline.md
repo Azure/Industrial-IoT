@@ -461,6 +461,17 @@ Subscription settings
                                received when the monitored item is added to the
                                subscription.
                                Default: `False` (disabled).
+      --hbb, --heartbeatbehavior, --DefaultHeartbeatBehavior=VALUE
+                             Default behavior of the heartbeat mechanism unless
+                               overridden in the published nodes configuration
+                               explicitly.
+                               Allowed values:
+                                   `WatchdogLKV`
+                                   `WatchdogLKG`
+                                   `ContinuousLKV`
+                                   `WatchdogLKVWithUpdatedTimestamps`
+                               Default: `WatchdogLKV` (Sending LKV in a
+                               watchdog fashion).
       --hb, --heartbeatinterval, --DefaultHeartbeatInterval=VALUE
                              The publisher is using this as default value in
                                seconds for the heartbeat interval setting of

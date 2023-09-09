@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string DefaultHeartbeatIntervalKey = "DefaultHeartbeatInterval";
+        public const string DefaultHeartbeatBehaviorKey = "DefaultHeartbeatBehavior";
         public const string DefaultSkipFirstKey = "DefaultSkipFirst";
         public const string DefaultDiscardNewKey = "DiscardNew";
         public const string DefaultSamplingIntervalKey = "DefaultSamplingInterval";
@@ -68,6 +69,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultHeartbeatInterval = GetDurationOrNull(
                     DefaultHeartbeatIntervalKey);
+            }
+            if (options.DefaultHeartbeatBehavior == null &&
+                Enum.TryParse<HeartbeatBehavior>(GetStringOrDefault(DefaultHeartbeatBehaviorKey),
+                    out var behavior))
+            {
+                options.DefaultHeartbeatBehavior = behavior;
             }
             if (options.DefaultSamplingUsingCyclicRead == null)
             {
