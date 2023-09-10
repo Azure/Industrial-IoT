@@ -1401,8 +1401,12 @@ Actual (revised) state/desired state:
                             PublishTimestamp = publishTime
                         };
 
-                        wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
-                            publishTime, eventFieldList, message.Notifications);
+                        if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                            publishTime, eventFieldList, message.Notifications))
+                        {
+                            _logger.LogDebug("Failed to get monitored item notification for Event " +
+                                "received for subscription {Subscription}", this);
+                        }
 
                         if (message.Notifications.Count > 0)
                         {
@@ -1547,8 +1551,12 @@ Actual (revised) state/desired state:
                     Debug.Assert(item != null);
                     if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))
                     {
-                        wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
-                            publishTime, item, message.Notifications);
+                        if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                            publishTime, item, message.Notifications))
+                        {
+                            _logger.LogDebug("Failed to get monitored item notification for DataChange " +
+                                "received for subscription {Subscription}", this);
+                        }
                     }
                     else
                     {

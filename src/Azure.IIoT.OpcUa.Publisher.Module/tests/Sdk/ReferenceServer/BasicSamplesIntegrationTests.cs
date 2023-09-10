@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(MessageTimestamp.EncodingTimeUtc, HeartbeatBehavior.WatchdogLKV)]
         [InlineData(MessageTimestamp.EncodingTimeUtc, HeartbeatBehavior.WatchdogLKG)]
         [InlineData(MessageTimestamp.CurrentTimeUtc, HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)]
-        [InlineData(MessageTimestamp.PublishTime, HeartbeatBehavior.ContinuousLKV)]
+        [InlineData(MessageTimestamp.PublishTime, HeartbeatBehavior.PeriodicLKV)]
         public async Task CanSendHeartbeatToIoTHubTest(MessageTimestamp timestamp, HeartbeatBehavior behavior)
         {
             // Arrange

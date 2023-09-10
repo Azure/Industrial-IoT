@@ -145,11 +145,11 @@ Messaging configuration
                                messages during encoding (if the encoding
                                supports writing message timestamps).
                                Allowed values:
-                                   `PublishTime`
                                    `CurrentTimeUtc`
-                                   `CreatedTimeUtc`
-                               Default: `PublishTime` to use the subscription
-                               notification publish timestamp if available.
+                                   `PublishTime`
+                                   `EncodingTimeUtc`
+                               Default: `CurrentTimeUtc` to use the time when
+                               the message was created in OPC Publisher.
       --npd, --maxnodesperdataset, --MaxNodesPerDataSet=VALUE
                              Maximum number of nodes within a Subscription.
                                When there are more nodes configured for a data
@@ -468,7 +468,8 @@ Subscription settings
                                Allowed values:
                                    `WatchdogLKV`
                                    `WatchdogLKG`
-                                   `ContinuousLKV`
+                                   `PeriodicLKV`
+                                   `PeriodicLKG`
                                    `WatchdogLKVWithUpdatedTimestamps`
                                Default: `WatchdogLKV` (Sending LKV in a
                                watchdog fashion).

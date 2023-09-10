@@ -5,12 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Heartbeat behavior
     /// </summary>
     [DataContract]
+    [Flags]
     public enum HeartbeatBehavior
     {
         /// <summary>
@@ -28,14 +30,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Continuously sends last known value
         /// </summary>
-        [EnumMember(Value = "ContinuousLKV")]
-        ContinuousLKV = 0x2,
+        [EnumMember(Value = "PeriodicLKV")]
+        PeriodicLKV = 0x2,
 
         /// <summary>
         /// Continuously sends last good value
         /// </summary>
-        [EnumMember(Value = "ContinuousLKG")]
-        ContinuousLKG = 0x3,
+        [EnumMember(Value = "PeriodicLKG")]
+        PeriodicLKG = WatchdogLKG | PeriodicLKV,
 
         /// <summary>
         /// Update value timestamps to be different

@@ -1163,7 +1163,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 // Last value should be this notification
                 Debug.Assert(monitoredItemNotification == LastValue);
-                if ((_heartbeatBehavior & HeartbeatBehavior.ContinuousLKV) == 0)
+                if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
                     _heartbeatTimer.Change(_timerInterval, _timerInterval);
                 }
@@ -1239,28 +1239,24 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
-                // Always capture last good value because we need it when behavior is switched dynamically.
-                if (evt is MonitoredItemNotification notification && IsGoodDataValue(notification.Value))
-                {
-                    _lkg = notification.Value;
-                    _lastValueReceived = DateTime.UtcNow;
-                }
-                else if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG) != HeartbeatBehavior.WatchdogLKG)
-                {
-                    // Capture last value timestamp also for non lkg values
-                    _lastValueReceived = DateTime.UtcNow;
-                }
+                _lastValueReceived = DateTime.UtcNow;
                 return base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications);
+            }
 
-                //
-                // TODO: What is a Good value? Right now we say that it must either be full good or
-                // have a value and not a bad status code (to cover Good_, and Uncertain_ as well)
-                //
-                static bool IsGoodDataValue(DataValue value)
+            /// <summary>
+            /// TODO: What is a Good value? Right now we say that it must either be full good or
+            /// have a value and not a bad status code (to cover Good_, and Uncertain_ as well)
+            /// </summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            private static bool IsGoodDataValue(DataValue? value)
+            {
+                if (value == null)
                 {
-                    return value.StatusCode == StatusCodes.Good ||
-                        (value.WrappedValue != Variant.Null && !StatusCode.IsBad(value.StatusCode));
+                    return false;
                 }
+                return value.StatusCode == StatusCodes.Good ||
+                    (value.WrappedValue != Variant.Null && !StatusCode.IsBad(value.StatusCode));
             }
 
             /// <summary>
@@ -1276,23 +1272,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return;
                 }
 
-                DataValue lastValue;
+                var lastNofication = LastValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
-                        == HeartbeatBehavior.WatchdogLKG)
+                        == HeartbeatBehavior.WatchdogLKG &&
+                        !IsGoodDataValue(lastNofication?.Value))
                 {
-                    if (_lkg == null)
-                    {
-                        // No last known good -> no value to send
-                        return;
-                    }
-                    lastValue = _lkg;
-                }
-                else
-                {
-                    lastValue = (LastValue as MonitoredItemNotification)?.Value ??
-                        new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
+                    // Currently no good value to send
+                    return;
                 }
 
+                var lastValue = lastNofication?.Value ??
+                    new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                         == HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                 {
@@ -1329,7 +1319,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
             private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
-            private DataValue? _lkg;
             private DateTime? _lastValueReceived;
         }
 
