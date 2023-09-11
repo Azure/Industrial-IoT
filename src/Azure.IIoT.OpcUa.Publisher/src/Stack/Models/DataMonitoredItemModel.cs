@@ -50,6 +50,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public TimeSpan? HeartbeatInterval { get; init; }
 
         /// <summary>
+        /// heartbeat behavior
+        /// </summary>
+        public HeartbeatBehavior? HeartbeatBehavior { get; init; }
+
+        /// <summary>
         /// Sample using cyclic reads
         /// </summary>
         public bool SamplingUsingCyclicRead { get; set; }

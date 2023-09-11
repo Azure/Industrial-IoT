@@ -97,16 +97,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         }
 
         [Theory]
-        [InlineData("PREFIX ua <http://furly/ua> SELECT * FROM ua:BaseEventType " +
+        [InlineData("PREFIX ua <http://microsoft/ua> SELECT * FROM ua:BaseEventType " +
             "WHERE /ua:Severity > 5 AND /ua:SourceName = 'SouthMotor'")]
-        [InlineData("PREFIX ua <http://furly/ua> " +
+        [InlineData("PREFIX ua <http://microsoft/ua> " +
             "SELECT /ua:Severity, /ua:SourceNode FROM ua:BaseEventType " +
             "WHERE !(/ua:Severity <= 5 OR /ua:SourceName == 'SouthMotor')")]
-        [InlineData("PREFIX ua <http://furly/ua> PREFIX f <http://furly/f> " +
+        [InlineData("PREFIX ua <http://microsoft/ua> PREFIX f <http://microsoft/f> " +
             "SELECT /f:LocalTime FROM ua:BaseEventType " +
             "WHERE NOT ISNULL /f:LocalTime " +
             "AND (/ua:Severity <> 5 OR /ua:SourceName != 'SouthMotor')")]
-        [InlineData("PREFIX ua <http://furly/ua> PREFIX f <http://furly/f> " +
+        [InlineData("PREFIX ua <http://microsoft/ua> PREFIX f <http://microsoft/f> " +
             "SELECT E/ua:Severity, E/ua:SourceNode FROM ua:BaseEventType E " +
             "WHERE !(E/ua:Severity <= 5 OR E/ua:SourceName == 'SouthMotor')")]
         public async Task SimpleStatementParsingTestsAsync(string query)
@@ -114,14 +114,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var parser = new FilterQueryParser(_serializer);
             var context = new TestParserContext
             {
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#Severity]" }, "Severity"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#SourceNode]" }, "SourceNode"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#SourceName]" }, "SourceName"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/f#LocalTime]" }, "LocalTime")
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#Severity]" }, "Severity"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#SourceNode]" }, "SourceNode"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#SourceName]" }, "SourceName"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/f#LocalTime]" }, "LocalTime")
             };
             var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
 
@@ -136,26 +136,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         }
 
         [Theory]
-        [InlineData("SELECT * FROM ´http://furly/ua#BaseEventType´ " +
-            "WHERE ´/[http://furly/ua#Severity]´ > 5 " +
-            "AND ´/[http://furly/ua#SourceName]´ = 'SouthMotor'")]
-        [InlineData("SELECT ´E/[http://furly/ua#Severity]´, ´E/[http://furly/ua#SourceNode]´ " +
-            "FROM ´http://furly/ua#BaseEventType´ E " +
-            "WHERE !(´E/[http://furly/ua#Severity]´ <= 5 " +
-            "   OR ´E/[http://furly/ua#SourceName]´ == 'SouthMotor')")]
+        [InlineData("SELECT * FROM ´http://microsoft/ua#BaseEventType´ " +
+            "WHERE ´/[http://microsoft/ua#Severity]´ > 5 " +
+            "AND ´/[http://microsoft/ua#SourceName]´ = 'SouthMotor'")]
+        [InlineData("SELECT ´E/[http://microsoft/ua#Severity]´, ´E/[http://microsoft/ua#SourceNode]´ " +
+            "FROM ´http://microsoft/ua#BaseEventType´ E " +
+            "WHERE !(´E/[http://microsoft/ua#Severity]´ <= 5 " +
+            "   OR ´E/[http://microsoft/ua#SourceName]´ == 'SouthMotor')")]
         public async Task SimpleStatementParsingTestsInlineNamespacesAsync(string query)
         {
             var parser = new FilterQueryParser(_serializer);
             var context = new TestParserContext
             {
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#Severity]" }, "Severity"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#SourceNode]" }, "SourceNode"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/ua#SourceName]" }, "SourceName"),
-                new IdentifierMetaData("http://furly/ua#BaseEventType",
-                    new[] { "/[http://furly/f#LocalTime]" }, "LocalTime")
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#Severity]" }, "Severity"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#SourceNode]" }, "SourceNode"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/ua#SourceName]" }, "SourceName"),
+                new IdentifierMetaData("http://microsoft/ua#BaseEventType",
+                    new[] { "/[http://microsoft/f#LocalTime]" }, "LocalTime")
             };
             var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
 

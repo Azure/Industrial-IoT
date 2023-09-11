@@ -14,6 +14,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public sealed class OpcUaSubscriptionOptions
     {
         /// <summary>
+        /// The default behavior of heartbeat if not configured.
+        /// </summary>
+        public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
+
+        /// <summary>
         /// The default interval for heartbeats if not configured.
         /// </summary>
         public TimeSpan? DefaultHeartbeatInterval { get; set; }

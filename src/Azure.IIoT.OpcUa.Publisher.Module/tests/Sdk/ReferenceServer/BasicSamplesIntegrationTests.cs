@@ -65,15 +65,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Theory]
-        [InlineData(MessageTimestamp.CurrentTimeUtc)]
-        [InlineData(MessageTimestamp.CreatedTimeUtc)]
-        [InlineData(MessageTimestamp.PublishTime)]
-        public async Task CanSendHeartbeatToIoTHubTest(MessageTimestamp timestamp)
+        [InlineData(MessageTimestamp.EncodingTimeUtc, HeartbeatBehavior.WatchdogLKV)]
+        [InlineData(MessageTimestamp.EncodingTimeUtc, HeartbeatBehavior.WatchdogLKG)]
+        [InlineData(MessageTimestamp.CurrentTimeUtc, HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)]
+        [InlineData(MessageTimestamp.PublishTime, HeartbeatBehavior.PeriodicLKV)]
+        public async Task CanSendHeartbeatToIoTHubTest(MessageTimestamp timestamp, HeartbeatBehavior behavior)
         {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatToIoTHubTest) + timestamp, "./Resources/Heartbeat.json",
-                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}"}).ConfigureAwait(false);
+                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}", $"--hbb={behavior}" }).ConfigureAwait(false);
 
             // Assert
             Assert.True(messages.Count > 1);

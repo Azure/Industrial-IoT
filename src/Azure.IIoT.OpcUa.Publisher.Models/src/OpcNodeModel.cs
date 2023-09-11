@@ -138,6 +138,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? IndexRange { get; set; }
 
         /// <summary>
+        /// Heartbeat behavior
+        /// </summary>
+        [DataMember(Name = "HeartbeatBehavior", Order = 19,
+            EmitDefaultValue = false)]
+        public HeartbeatBehavior? HeartbeatBehavior { get; set; }
+
+        /// <summary>
         /// Heartbeat interval in seconds
         /// </summary>
         [DataMember(Name = "HeartbeatInterval", Order = 20,

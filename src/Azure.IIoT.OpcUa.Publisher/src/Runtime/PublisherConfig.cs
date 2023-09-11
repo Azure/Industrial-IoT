@@ -258,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 if (!Enum.TryParse<MessageTimestamp>(GetStringOrDefault(MessageTimestampKey),
                     out var messageTimestamp))
                 {
-                    messageTimestamp = MessageTimestamp.PublishTime;
+                    messageTimestamp = MessageTimestamp.CurrentTimeUtc;
                 }
                 options.MessageTimestamp = messageTimestamp;
             }

@@ -80,6 +80,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
 
+            if ((model.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV) !=
+                (that.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV))
+            {
+                return false;
+            }
+
             if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false))
             {
                 return false;
@@ -139,6 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
+            hash.Add(model.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV);
             hash.Add(model.SkipFirst ?? false);
             hash.Add(model.DiscardNew ?? false);
             hash.Add(model.QueueSize);

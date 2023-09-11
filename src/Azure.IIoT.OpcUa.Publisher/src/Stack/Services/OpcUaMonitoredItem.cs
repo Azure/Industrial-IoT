@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using System.Data;
 
     /// <summary>
     /// Monitored item
@@ -1113,6 +1114,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
                 _timerInterval = Timeout.InfiniteTimeSpan;
+                _heartbeatBehavior = dataTemplate.HeartbeatBehavior
+                    ?? HeartbeatBehavior.WatchdogLKV;
                 _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
             }
 
@@ -1135,7 +1138,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Data Item '{Template.StartNodeId}' (with Heartbeat) " +
+                return $"Data Item '{Template.StartNodeId}' " +
+                    $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) " +
                     $"with server id {ServerId} - {(Item?.Status?.Created == true ? "" :
                         "not ")}created";
             }
@@ -1159,7 +1163,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 // Last value should be this notification
                 Debug.Assert(monitoredItemNotification == LastValue);
-                _heartbeatTimer.Change(_timerInterval, _timerInterval);
+                if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                {
+                    _heartbeatTimer.Change(_timerInterval, _timerInterval);
+                }
 
                 return base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
                     monitoredItemNotification, notifications);
@@ -1183,6 +1190,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         this, _heartbeatInterval, model._heartbeatInterval);
 
                     _heartbeatInterval = model._heartbeatInterval;
+                    itemChange = true; // TODO: Not really a change in the item
+                }
+
+                if (_heartbeatBehavior != model._heartbeatBehavior)
+                {
+                    _logger.LogDebug("{Item}: Changing heartbeat behavior from {Old} to {New}",
+                        this, _heartbeatBehavior, model._heartbeatBehavior);
+
+                    _heartbeatBehavior = model._heartbeatBehavior;
                     itemChange = true; // TODO: Not really a change in the item
                 }
 
@@ -1219,6 +1235,30 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 return result;
             }
 
+            /// <inheritdoc/>
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
+                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            {
+                _lastValueReceived = DateTime.UtcNow;
+                return base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications);
+            }
+
+            /// <summary>
+            /// TODO: What is a Good value? Right now we say that it must either be full good or
+            /// have a value and not a bad status code (to cover Good_, and Uncertain_ as well)
+            /// </summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            private static bool IsGoodDataValue(DataValue? value)
+            {
+                if (value == null)
+                {
+                    return false;
+                }
+                return value.StatusCode == StatusCodes.Good ||
+                    (value.WrappedValue != Variant.Null && !StatusCode.IsBad(value.StatusCode));
+            }
+
             /// <summary>
             /// Send heartbeat
             /// </summary>
@@ -1227,20 +1267,40 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 var callback = _callback;
                 var item = Item;
 
-                if (callback == null || item == null)
+                if (callback == null || item == null || LastValue == null)
                 {
                     return;
                 }
 
-                if (LastValue == null)
+                var lastNofication = LastValue as MonitoredItemNotification;
+                if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                        == HeartbeatBehavior.WatchdogLKG &&
+                        !IsGoodDataValue(lastNofication?.Value))
                 {
-                    // TODO: populate value
+                    // Currently no good value to send
                     return;
+                }
+
+                var lastValue = lastNofication?.Value ??
+                    new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
+                if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
+                        == HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
+                {
+                    // Adjust to the diff between now and received if desired
+                    // Should not be possible that last value received is null, nevertheless.
+                    var diffTime = _lastValueReceived.HasValue ?
+                        DateTime.UtcNow - _lastValueReceived.Value : TimeSpan.Zero;
+
+                    lastValue = new DataValue(lastValue)
+                    {
+                        SourceTimestamp = lastValue.SourceTimestamp == DateTime.MinValue ?
+                            DateTime.MinValue : lastValue.SourceTimestamp.Add(diffTime),
+                        ServerTimestamp = lastValue.ServerTimestamp == DateTime.MinValue ?
+                            DateTime.MinValue : lastValue.ServerTimestamp.Add(diffTime)
+                    };
                 }
 
                 // If last value is null create a error value.
-                var lastValue = (LastValue as MonitoredItemNotification)?.Value ??
-                    new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
                 var heartbeat = new MonitoredItemNotificationModel
                 {
                     Id = Template.Id,
@@ -1256,8 +1316,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             private readonly Timer _heartbeatTimer;
             private TimeSpan _timerInterval;
+            private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
             private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private DateTime? _lastValueReceived;
         }
 
         /// <summary>

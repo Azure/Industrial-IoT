@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
                     (int i) => this[PublisherConfig.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"mts|messagetimestamp=|{PublisherConfig.MessageTimestampKey}=",
-                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.PublishTime)}` to use the subscription notification publish timestamp if available.\n",
+                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.CurrentTimeUtc)}` to use the time when the message was created in OPC Publisher.\n",
                     (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
 
                 // TODO: Add ConfiguredMessageSize
@@ -247,6 +247,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     (bool? b) => this[OpcUaSubscriptionConfig.DefaultSkipFirstKey] = b?.ToString() ?? "True" },
                     { "skipfirstevent:", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[OpcUaSubscriptionConfig.DefaultSkipFirstKey] = b ?? "True", /* hidden = */ true },
+                { $"hbb|heartbeatbehavior=|{OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey}=",
+                    $"Default behavior of the heartbeat mechanism unless overridden in the published nodes configuration explicitly.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(HeartbeatBehavior)))}`\nDefault: `{nameof(HeartbeatBehavior.WatchdogLKV)}` (Sending LKV in a watchdog fashion).\n",
+                    (HeartbeatBehavior b) => this[OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey] = b.ToString() },
                 { $"hb|heartbeatinterval=|{OpcUaSubscriptionConfig.DefaultHeartbeatIntervalKey}=",
                     "The publisher is using this as default value in seconds for the heartbeat interval setting of nodes that were configured without a heartbeat interval setting. A heartbeat is sent at this interval if no value has been received.\nDefault: `0` (disabled)\nAlso can be set using `DefaultHeartbeatInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n",
                     (int i) => this[OpcUaSubscriptionConfig.DefaultHeartbeatIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
