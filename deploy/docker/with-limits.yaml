@@ -23,7 +23,7 @@ services:
   ############################
   publisher:
     cpus: "0.5"
-    mem_limit: 50m
+    mem_limit: 100m
     environment: 
       EnableMetrics: false
       MaxNetworkMessageSendQueueSize: 4

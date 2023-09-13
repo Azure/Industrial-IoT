@@ -5,7 +5,7 @@ services:
   ############################
   opcplc:
     container_name: opcplc
-    image: ${OPC_PLC_REGISTRY-mcr.microsoft.com/}iotedge/opc-plc:${OPC_PLC_TAG:-latest}
+    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-latest}
     ports:
       - "50000:50000"
     command: [ 
@@ -27,7 +27,7 @@ services:
   ############################
   publisher:
     container_name: publisher
-    image: ${DOCKER_REGISTRY-mcr.microsoft.com/}iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
+    image: mcr.microsoft.com/iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
     ports:
       - "9080:80"
       - "9081:443"
