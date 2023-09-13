@@ -26,8 +26,7 @@ namespace Opc.Ua.Extensions
             encoder.WriteExtensionObjectBody(encodeable);
             var document = new XmlDocument
             {
-                InnerXml = encoder.Close()
-                //// InnerXml = encoder.CloseAndReturnText()
+                InnerXml = encoder.CloseAndReturnText()
             };
             return document.DocumentElement;
         }
