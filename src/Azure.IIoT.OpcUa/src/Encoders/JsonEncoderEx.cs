@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Writes objects to a json
     /// </summary>
-    public sealed class JsonEncoderEx : IEncoder
+    public sealed class JsonEncoderEx : IEncoder, IDisposable
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
