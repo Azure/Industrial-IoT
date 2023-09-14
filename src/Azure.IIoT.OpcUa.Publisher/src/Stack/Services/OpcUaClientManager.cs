@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
-            _sessionFactory = sessionFactory ?? DefaultSessionFactory.Instance;
+            _sessionFactory = sessionFactory ?? new DefaultSessionFactory(); //// DefaultSessionFactory.Instance;
             _reverseConnectManager = new ReverseConnectManager();
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
