@@ -472,7 +472,7 @@ Options:
                         }
 
                         logger.LogInformation("Server stopped.");
-                        logger.LogInformation("Waiting to restarting server (Press S to restart...");
+                        logger.LogInformation("Waiting to restarting server (Press S to restart)...");
                         await _restartServer.WaitAsync(ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }

@@ -1063,12 +1063,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 //
                 var currentSubscription = session.Subscriptions
                     .FirstOrDefault(s => s.Handle.Equals(Id));
-                if (currentSubscription != _currentSubscription)
+                if (currentSubscription == null)
                 {
                     // Does not throw
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                    _currentSubscription = currentSubscription;
                 }
+                _currentSubscription = currentSubscription;
+            }
+            else
+            {
+                // Should not happen if session has not been updated.
+                Debug.Assert(session.Subscriptions.FirstOrDefault(
+                    s => s.Handle.Equals(Id)) == _currentSubscription);
             }
 
             // Create or update the subscription inside the raw session object.
