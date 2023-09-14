@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
     using System.Globalization;
+    using System.Net.Http;
 
     /// <summary>
     /// Subscription implementation
@@ -402,8 +403,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 subscription.FastEventCallback = null;
                 subscription.FastKeepAliveCallback = null;
 #endif
-                Debug.Assert(subscription.Handle == null);
-
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
                 _currentSequenceNumber = 0;
 
@@ -1033,13 +1032,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Debug.Assert(_lock.CurrentCount == 0);
 
-            // If session is new close any current subscription now.
-            if (sessionIsNew)
-            {
-                // Does not throw
-                await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-            }
-
             // Get the raw session object from the session handle to do the heart surgery
             if (handle is not ISessionAccessor accessor ||
                 !accessor.TryGetSession(out var session)) // Should never happen.
@@ -1061,6 +1053,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Should not happen since we are called under lock.
             Debug.Assert(_subscription != null, "No subscription during apply");
+
+            if (sessionIsNew)
+            {
+                //
+                // If session is new close any current subscription now if it is
+                // not in the session yet. The one in the session might also be
+                // new, so grab the new reference here also.
+                //
+                var currentSubscription = session.Subscriptions
+                    .FirstOrDefault(s => s.Handle.Equals(Id));
+                if (currentSubscription != _currentSubscription)
+                {
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                    _currentSubscription = currentSubscription;
+                }
+            }
 
             // Create or update the subscription inside the raw session object.
             var subscription = await AddOrUpdateSubscriptionInSessionAsync(handle, session,
@@ -1115,6 +1124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
             Debug.Assert(_lock.CurrentCount == 0); // Under lock
             session.FetchNamespaceTables();
+
             GetSubscriptionConfiguration(_currentSubscription ?? session.DefaultSubscription,
                 out var configuredPublishingInterval, out var configuredPriority,
                 out var configuredKeepAliveCount, out var configuredLifetimeCount,
@@ -1127,6 +1137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 var subscription = new Subscription(session.DefaultSubscription)
                 {
+                    Handle = Id,
                     DisplayName = Name,
                     PublishingEnabled = enablePublishing,
                     TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both,
@@ -1763,9 +1774,6 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items successfully created..");
-            _meter.CreateObservableCounter("iiot_edge_publisher_misrouted_notifications",
-                () => new Measurement<long>(_wrongSubscriptionCount, _metrics.TagList),
-                "Notifications", "Notifications mistakenly routed to this subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfNotCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items with errors.");
@@ -1780,7 +1788,6 @@ Actual (revised) state/desired state:
                 "", "OPC UA connection success flag.");
         }
 
-        private const int kDebounce = 3;
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private ImmutableDictionary<uint, IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
@@ -1792,7 +1799,6 @@ Actual (revised) state/desired state:
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;
-        private long _wrongSubscriptionCount;
         private bool _closed;
         private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;

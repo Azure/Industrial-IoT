@@ -191,14 +191,17 @@ Options:
                     {
                         case 'X':
                         case 'x':
+                            Console.WriteLine("Exiting...");
                             cts.Cancel();
                             break;
                         case 'P':
                         case 'p':
+                            Console.WriteLine("Restarting publisher...");
                             _restartPublisher.Set();
                             break;
                         case 'S':
                         case 's':
+                            Console.WriteLine("Restarting server...");
                             _restartServer.Set();
                             break;
                     }

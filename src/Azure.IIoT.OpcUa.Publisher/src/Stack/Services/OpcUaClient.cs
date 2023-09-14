@@ -716,13 +716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     _disconnectLock = null;
 
                                     currentSubscriptions = _subscriptions;
-                                    //
-                                    // The session is new but the old subscriptions were transferred
-                                    // by the stack, so we pass a false to the subscription handle
-                                    // to prevent the inner subscription to be closed and removed.
-                                    //
-                                    // TODO: Only needed for isNew = true, but we do it anyway for now....
-                                    await ApplySubscriptionAsync(currentSubscriptions, true, false,
+                                    await ApplySubscriptionAsync(currentSubscriptions, true, isNew,
                                         ct).ConfigureAwait(false);
 
                                     currentSessionState = SessionState.Connected;
@@ -796,8 +790,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
                 bool? online = null, bool newSession = false, CancellationToken cancellationToken = default)
             {
-                _logger.LogDebug("Applying changes to {Count} subscriptions...",
-                    subscriptions.Count);
+                _logger.LogDebug("Applying changes to {Count} subscriptions...", subscriptions.Count);
                 var sw = Stopwatch.StartNew();
                 await Task.WhenAll(subscriptions.Select(async subscription =>
                 {
