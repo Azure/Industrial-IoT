@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Module
@@ -55,9 +56,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 Console.WriteLine("Debugger attached.");
             }
 #endif
-            LogLogo();
+            RunAsync(args).GetAwaiter().GetResult();
+        }
 
-            CreateHostBuilder(args).Build().Run();
+        /// <summary>
+        /// Async main entry point
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task RunAsync(string[] args, CancellationToken ct = default)
+        {
+            LogLogo();
+            return CreateHostBuilder(args).Build().RunAsync(ct);
         }
 
         /// <summary>
