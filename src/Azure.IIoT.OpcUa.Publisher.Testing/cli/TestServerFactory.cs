@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
                         NodeManagerSaveFile = "nodes.xml",
                         DiagnosticsEnabled = false,
-                        ShutdownDelay = 5,
+                        ShutdownDelay = 0,
 
                         // Runtime configuration
                         BaseAddresses = new StringCollection(ports

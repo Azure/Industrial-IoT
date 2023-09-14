@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogWarning("Error adding monitored item {Item} " +
                     "to subscription #{SubscriptionId} due to {Status}.",
-                    this, Item.Status.Error, subscription.Id);
+                    this, subscription.Id, Item.Status.Error);
 
                 // Not needed, mode changes applied after
                 // applyChanges = true;

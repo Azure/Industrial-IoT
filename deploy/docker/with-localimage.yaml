@@ -1,0 +1,4 @@
+version: "3.9"
+services:
+  publisher:
+    image: iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-latest}

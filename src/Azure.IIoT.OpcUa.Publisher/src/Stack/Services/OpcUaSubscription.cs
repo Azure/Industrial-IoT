@@ -397,8 +397,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _currentSubscription = null;
             try
             {
+#if !DEBUG
                 subscription.FastDataChangeCallback = null;
                 subscription.FastEventCallback = null;
+                subscription.FastKeepAliveCallback = null;
+#endif
                 Debug.Assert(subscription.Handle == null);
 
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
@@ -1088,10 +1091,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (!subscription.PublishingEnabled)
             {
-                await subscription.SetPublishingModeAsync(true, ct).ConfigureAwait(false);
+                await subscription.SetPublishingModeAsync(subscription.MonitoredItemCount != 0,
+                    ct).ConfigureAwait(false);
 
                 _logger.LogInformation(
-                    "Enabled Subscription {Subscription} in session {Session}.",
+                    "{State} Subscription {Subscription} in session {Session}.",
+                    subscription.MonitoredItemCount != 0 ? "Enabled" : "Disabled",
                     this, handle);
             }
         }
@@ -1338,6 +1343,7 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "EventChange for wrong subscription {Id} received on {Subscription}.",
                     subscription?.Id, this);
+                Cleanup(subscription);
                 return;
             }
             if (notification?.Events == null)
@@ -1439,7 +1445,7 @@ Actual (revised) state/desired state:
         /// <exception cref="NotImplementedException"></exception>
         private void OnSubscriptionKeepAliveNotification(Subscription subscription, NotificationData notification)
         {
-            var currentSubscriptionId = (_currentSubscription?.Id ?? 0);
+            var currentSubscriptionId = _currentSubscription?.Id ?? 0;
             if (currentSubscriptionId == 0 || subscription == null)
             {
                 // Nothing to do here
@@ -1454,6 +1460,7 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "Keep alive for wrong subscription {Id} received on {Subscription}.",
                     subscription.Id, this);
+                Cleanup(subscription);
                 return;
             }
 
@@ -1502,6 +1509,7 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "DataChange for wrong subscription {Id} received on {Subscription}.",
                     subscription?.Id, this);
+                Cleanup(subscription);
                 return;
             }
 
@@ -1577,6 +1585,22 @@ Actual (revised) state/desired state:
             catch (Exception e)
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
+            }
+        }
+
+        /// <summary>
+        /// Cleanup an unknown subscription object
+        /// </summary>
+        /// <param name="subscription"></param>
+        private void Cleanup(Subscription? subscription)
+        {
+            if (subscription != null &&
+                ((Interlocked.Increment(ref _wrongSubscriptionCount) + 1) % kDebounce) == 0)
+            {
+                subscription.Delete(true);
+                _logger.LogInformation(
+                    "Tried to delete bad subscription #{SubscriptionId} from {Subscription}",
+                    subscription.Id, this);
             }
         }
 
@@ -1758,6 +1782,9 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items successfully created..");
+            _meter.CreateObservableCounter("iiot_edge_publisher_misrouted_notifications",
+                () => new Measurement<long>(_wrongSubscriptionCount, _metrics.TagList),
+                "Notifications", "Notifications mistakenly routed to this subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfNotCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items with errors.");
@@ -1772,6 +1799,7 @@ Actual (revised) state/desired state:
                 "", "OPC UA connection success flag.");
         }
 
+        private const int kDebounce = 3;
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private ImmutableDictionary<uint, IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
@@ -1783,6 +1811,7 @@ Actual (revised) state/desired state:
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;
+        private long _wrongSubscriptionCount;
         private bool _closed;
         private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;

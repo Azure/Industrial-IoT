@@ -442,7 +442,7 @@ Function ConfigureApplications() {
     if ($user -and (-not $owner)) {
         try {
             New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId -BodyParameter `
-                @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
+                @{"@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
             Write-Host "  Added '$($user.UserPrincipalName)' as owner."
         }
         catch {
@@ -488,7 +488,7 @@ Function ConfigureApplications() {
     if ($user -and (-not $owner)) {
         try {
             New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId -BodyParameter `
-                @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
+                @{"@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
             Write-Host "  Added '$($user.UserPrincipalName)' as owner."
         }
         catch {
@@ -545,7 +545,7 @@ Function ConfigureApplications() {
     if ($user -and (-not $owner)) {
         try {
             New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId -BodyParameter `
-                @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
+                @{"@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($user.Id)"}
             Write-Host "  Added '$($user.UserPrincipalName)' as owner."
         }
         catch {
