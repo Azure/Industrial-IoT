@@ -16,10 +16,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+    using Nito.AsyncEx;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -58,8 +58,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             var instances = 1;
             string publishProfile = null;
-            TimeSpan? disconnectInterval = null;
-            TimeSpan? reconnectDelay = null;
             var unknownArgs = new List<string>();
             try
             {
@@ -109,28 +107,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--with-server":
                             withServer = true;
                             break;
-                        case "-D":
-                        case "--disconnect-interval-sec":
-                            i++;
-                            if (i < args.Length)
-                            {
-                                disconnectInterval = TimeSpan.FromSeconds(
-                                    int.Parse(args[i], CultureInfo.InvariantCulture));
-                                break;
-                            }
-                            throw new ArgumentException(
-                                "Missing argument for --disconnect-interval-sec");
-                        case "-R":
-                        case "--reconnect-delay-sec":
-                            i++;
-                            if (i < args.Length)
-                            {
-                                reconnectDelay = TimeSpan.FromSeconds(
-                                    int.Parse(args[i], CultureInfo.InvariantCulture));
-                                break;
-                            }
-                            throw new ArgumentException(
-                                "Missing argument for --reconnect-delay-sec");
                         case "-P":
                         case "--publish-profile":
                             i++;
@@ -193,32 +169,52 @@ Options:
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
 
-            var tasks = new List<Task>(instances);
+            using var cts = new CancellationTokenSource();
+            Task hostingTask;
             try
             {
-                var enableEventBroker = instances == 1;
-                for (var i = 1; i < instances; i++)
-                {
-                    tasks.Add(HostAsync(cs, loggerFactory,
-                        deviceId + "_" + i, moduleId, args, reverseConnectPort, !checkTrust));
-                }
                 if (!withServer)
                 {
-                    tasks.Add(HostAsync(cs, loggerFactory,
-                        deviceId, moduleId, args, reverseConnectPort, !checkTrust));
+                    hostingTask = HostAsync(cs, loggerFactory,
+                        deviceId, moduleId, args, reverseConnectPort, !checkTrust, cts.Token);
                 }
                 else
                 {
-                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, publishProfile,
-                        !checkTrust, disconnectInterval, reconnectDelay, reverseConnectPort));
+                    hostingTask = WithServerAsync(cs, loggerFactory, deviceId, moduleId, args,
+                        publishProfile, !checkTrust, reverseConnectPort, cts.Token);
                 }
-                Task.WaitAll(tasks.ToArray());
+
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    var key = Console.ReadKey();
+                    switch (key.KeyChar)
+                    {
+                        case 'X':
+                        case 'x':
+                            cts.Cancel();
+                            break;
+                        case 'P':
+                        case 'p':
+                            _restartPublisher.Set();
+                            break;
+                        case 'S':
+                        case 's':
+                            _restartServer.Set();
+                            break;
+                    }
+                }
+
+                // Wait for hosting task to exit
+                hostingTask.GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Exception");
             }
         }
+
+        private static readonly AsyncAutoResetEvent _restartServer = new(false);
+        private static readonly AsyncAutoResetEvent _restartPublisher = new(false);
 
         /// <summary>
         /// Host the module giving it its connection string.
@@ -230,10 +226,10 @@ Options:
         /// <param name="args"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="acceptAll"></param>
-        /// <param name=""></param>
+        /// <param name="ct"></param>
         private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
-            bool acceptAll = false)
+            bool acceptAll, CancellationToken ct)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
@@ -258,10 +254,25 @@ Options:
                 }
             }
 
-            Run(logger, deviceId, moduleId, args, acceptAll, cs, reverseConnectPort);
+            while (!ct.IsCancellationRequested)
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-            static void Run(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool acceptAll, ConnectionString cs, int? reverseConnectPort)
+                var running = RunAsync(logger, deviceId, moduleId, args, acceptAll, cs,
+                    reverseConnectPort, cts.Token);
+
+                Console.WriteLine("Publisher running (Press P to restart)...");
+                await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
+                try
+                {
+                    cts.Cancel();
+                    await running.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+            }
+
+            static async Task RunAsync(ILogger logger, string deviceId, string moduleId, string[] args,
+                bool acceptAll, ConnectionString cs, int? reverseConnectPort, CancellationToken ct)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
@@ -280,7 +291,7 @@ Options:
                     // default the profile to use reverse connect
                     arguments.Add("--urc");
                 }
-                Publisher.Module.Program.Main(arguments.ToArray());
+                await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
                 logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
                     deviceId, moduleId);
             }
@@ -296,19 +307,17 @@ Options:
         /// <param name="args"></param>
         /// <param name="publishProfile"></param>
         /// <param name="acceptAll"></param>
-        /// <param name="disconnectInterval"></param>
-        /// <param name="reconnectDelay"></param>
         /// <param name="reverseConnectPort"></param>
+        /// <param name="ct"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, string publishProfile = null, bool acceptAll = false,
-            TimeSpan? disconnectInterval = null, TimeSpan? reconnectDelay = null, int? reverseConnectPort = null)
+            string deviceId, string moduleId, string[] args, string publishProfile, bool acceptAll,
+            int? reverseConnectPort, CancellationToken ct)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
                 // Start test server
-                using (var server = new ServerWrapper(loggerFactory, disconnectInterval,
-                    reconnectDelay, reverseConnectPort))
+                using (var server = new ServerWrapper(loggerFactory, reverseConnectPort))
                 {
                     if (publishProfile != null)
                     {
@@ -330,9 +339,7 @@ Options:
 
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, reverseConnectPort, acceptAll).ConfigureAwait(false);
-
-                    logger.LogInformation("Server exiting...");
+                        args, reverseConnectPort, acceptAll, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -408,12 +415,10 @@ Options:
             /// <param name="disconnectInterval"></param>
             /// <param name="reconnectDelay"></param>
             /// <param name="reverseConnectPort"></param>
-            public ServerWrapper(ILoggerFactory logger, TimeSpan? disconnectInterval,
-                TimeSpan? reconnectDelay, int? reverseConnectPort)
+            public ServerWrapper(ILoggerFactory logger, int? reverseConnectPort)
             {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(logger, Port, disconnectInterval,
-                    reconnectDelay, reverseConnectPort, _cts.Token);
+                _server = RunSampleServerAsync(logger, Port, reverseConnectPort, _cts.Token);
             }
 
             /// <inheritdoc/>
@@ -429,16 +434,11 @@ Options:
             /// </summary>
             /// <param name="loggerFactory"></param>
             /// <param name="port"></param>
-            /// <param name="disconnectInterval"></param>
-            /// <param name="reconnectDelay"></param>
             /// <param name="reverseConnectPort"></param>
             /// <param name="ct"></param>
             private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory,
-                int port, TimeSpan? disconnectInterval, TimeSpan? reconnectDelay,
-                int? reverseConnectPort, CancellationToken ct)
+                int port, int? reverseConnectPort, CancellationToken ct)
             {
-                var disconnectTimeout = disconnectInterval ?? Timeout.InfiniteTimeSpan;
-                var reconnectTimeout = reconnectDelay ?? TimeSpan.FromSeconds(5);
                 var logger = loggerFactory.CreateLogger<ServerWrapper>();
                 while (!ct.IsCancellationRequested)
                 {
@@ -456,7 +456,7 @@ Options:
                         {
                             logger.LogInformation("(Re-)Starting server...");
                             await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
-                            logger.LogInformation("Server (re-)started.");
+                            logger.LogInformation("Server (re-)started (Press S to kill).");
                             if (reverseConnectPort != null)
                             {
                                 logger.LogInformation("Reverse connect to client...");
@@ -464,13 +464,13 @@ Options:
                                     new Uri($"opc.tcp://localhost:{reverseConnectPort}"),
                                     1).ConfigureAwait(false);
                             }
-                            await Task.Delay(disconnectTimeout, ct).ConfigureAwait(false);
+                            await _restartServer.WaitAsync(ct).ConfigureAwait(false);
                             logger.LogInformation("Stopping server...");
                         }
 
                         logger.LogInformation("Server stopped.");
-                        logger.LogInformation("Restarting server in {Delay}...", reconnectTimeout);
-                        await Task.Delay(reconnectTimeout, ct).ConfigureAwait(false);
+                        logger.LogInformation("Waiting to restarting server (Press S to restart...");
+                        await _restartServer.WaitAsync(ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)

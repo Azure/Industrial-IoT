@@ -397,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _currentSubscription = null;
             try
             {
-#if !DEBUG
+#if !DEBUG // Get the wrong subscription callbacks in debug
                 subscription.FastDataChangeCallback = null;
                 subscription.FastEventCallback = null;
                 subscription.FastKeepAliveCallback = null;
@@ -1343,7 +1343,6 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "EventChange for wrong subscription {Id} received on {Subscription}.",
                     subscription?.Id, this);
-                Cleanup(subscription);
                 return;
             }
             if (notification?.Events == null)
@@ -1449,7 +1448,7 @@ Actual (revised) state/desired state:
             if (currentSubscriptionId == 0 || subscription == null)
             {
                 // Nothing to do here
-                _logger.LogDebug("Got Keep alive without subscription in {Subscription}.",
+                _logger.LogWarning("Got Keep alive without subscription in {Subscription}.",
                     this);
                 return;
             }
@@ -1460,7 +1459,6 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "Keep alive for wrong subscription {Id} received on {Subscription}.",
                     subscription.Id, this);
-                Cleanup(subscription);
                 return;
             }
 
@@ -1509,7 +1507,6 @@ Actual (revised) state/desired state:
                 _logger.LogWarning(
                     "DataChange for wrong subscription {Id} received on {Subscription}.",
                     subscription?.Id, this);
-                Cleanup(subscription);
                 return;
             }
 
@@ -1585,22 +1582,6 @@ Actual (revised) state/desired state:
             catch (Exception e)
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
-            }
-        }
-
-        /// <summary>
-        /// Cleanup an unknown subscription object
-        /// </summary>
-        /// <param name="subscription"></param>
-        private void Cleanup(Subscription? subscription)
-        {
-            if (subscription != null &&
-                ((Interlocked.Increment(ref _wrongSubscriptionCount) + 1) % kDebounce) == 0)
-            {
-                subscription.Delete(true);
-                _logger.LogInformation(
-                    "Tried to delete bad subscription #{SubscriptionId} from {Subscription}",
-                    subscription.Id, this);
             }
         }
 
