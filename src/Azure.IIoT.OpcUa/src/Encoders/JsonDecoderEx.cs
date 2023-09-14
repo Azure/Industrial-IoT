@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Reads objects from reader or string
     /// </summary>
-    public sealed class JsonDecoderEx : IDecoder, IDisposable
+    public sealed class JsonDecoderEx : IDecoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
