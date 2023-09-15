@@ -792,13 +792,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug("Applying changes to {Count} subscriptions...", subscriptions.Count);
                 var sw = Stopwatch.StartNew();
+
+                var session = _session;
+                Debug.Assert(session != null || online == false, $"Session is null but online is {online}");
+
                 await Task.WhenAll(subscriptions.Select(async subscription =>
                 {
                     try
                     {
-                        if (online != false)
+                        if (online != false && session != null)
                         {
-                            await subscription.SyncWithSessionAsync(_session!, newSession,
+                            await subscription.SyncWithSessionAsync(session, newSession,
                                 cancellationToken).ConfigureAwait(false);
                         }
                         if (online != null)
@@ -817,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (subscriptions.Count > 1)
                 {
                     // Clear the node cache - TODO: we should have a real node cache here
-                    _session!.NodeCache.Clear();
+                    session?.NodeCache.Clear();
 
                     _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
                         subscriptions.Count, sw.Elapsed);
