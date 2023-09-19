@@ -1,0 +1,8 @@
+{
+    "profiles": {
+        "Azure.IIoT.OpcUa.Publisher.Module.Cli": {
+            "commandName": "Project",
+            "commandLineArgs": "-P FastTime -D 120 -R 240"
+        }
+    }
+}
