@@ -56,9 +56,9 @@ To troubleshoot an IoT Edge device run the following commands in a terminal sess
 - `iotedge restart edgeAgent && iotedge restart edgeHub` to restart the IoT Edge runtime containers.
 - `docker stats` to retrieve statistics from the docker runtime.
 
-For more detailed description on how to troubleshoot IoT Edge device, please refer to [here](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot-common-errors) and [here](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot).
+For more detailed description on how to troubleshoot IoT Edge device, please refer to [here](https://docs.microsoft.com/azure/iot-edge/troubleshoot-common-errors) and [here](https://docs.microsoft.com/azure/iot-edge/troubleshoot).
 
-For a complete overview of all production deployment settings for IoT Edge, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/production-checklist).
+For a complete overview of all production deployment settings for IoT Edge, see [here](https://docs.microsoft.com/azure/iot-edge/production-checklist).
 
 ### Check OPC Publisher
 
@@ -89,7 +89,7 @@ Reasons why the node id specified in the configuration cannot be resolved inside
 
 ### Check EdgeHub
 
-To verify that a module or device has connectivity with the IoT Hub service, Microsoft provides a tool that is described here: <https://docs.microsoft.com/en-us/azure/iot-hub/tutorial-connectivity#check-device-to-cloud-connectivity>
+To verify that a module or device has connectivity with the IoT Hub service, Microsoft provides a tool that is described here: <https://docs.microsoft.com/azure/iot-hub/tutorial-connectivity#check-device-to-cloud-connectivity>
 
 If the `edgeHub` module fails to start, you may see a message like this in the logs:
 
@@ -115,7 +115,7 @@ warn: edgelet_utils::logging -- caused by: failed to create endpoint edgeHub on 
 The process cannot access the file because it is being used by another process. (0x20)
 ```
 
-To find the root cause and resolution, please refer [here](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot-common-errors).
+To find the root cause and resolution, please refer [here](https://docs.microsoft.com/azure/iot-edge/troubleshoot-common-errors).
 
 ### Check data arriving in IoT Hub
 
@@ -137,7 +137,7 @@ Moreover, enabling the diagnostic settings provides more data to troubleshoot an
 
 As a next step the Azure IoT Explorer can be used to validate that messages for a particular Publisher job are delivered to IoT Hub. To install Azure IoT Explorer, please follow the steps here:
 
-- [Install and use Azure IoT Explorer](https://docs.microsoft.com/en-us/azure/iot-pnp/howto-use-iot-explorer)
+- [Install and use Azure IoT Explorer](https://docs.microsoft.com/azure/iot-pnp/howto-use-iot-explorer)
 
 To view the telemetry of OPC Publisher in Azure IoT Explorer, go to its Telemetry and start monitoring telemetry from that publisher module of choice. If you do not receive any messages for that device after a long period since starting monitoring, then there is a problem which causes telemetry messages not to be delivered to IoT Hub.
 
@@ -165,11 +165,11 @@ IoT Edge runs on various distributions of Linux and leverages Docker containers 
 
 ![Docker stats](./media/image9.png)
 
-Furthermore, the speed at which OPC UA telemetry messages can be sent to the cloud is dependent on the network resources available between the IoT Edge gateway and the Azure cloud datacenter. Here is a high-level data flow diagram:
+Furthermore, the speed at which OPC UA telemetry messages can be sent to the cloud is dependent on the network resources available between the IoT Edge gateway and the Azure cloud data center. Here is a high-level data flow diagram:
 
 ![DataFlow](./media/image10.png)
 
-Customers often require "at least once" delivery of each telemetry message to the cloud, so Quality of Service - QoS must be enabled, in this case. As flow control is a big part of QoS, this significantly increases latency of each message delivered to the cloud. This is countered by packing as many telemetry "tags" as possible into a single message, called "batching." Using batching, between 300 to 475 telemetry tags can be packaged into a single IoT Hub message of maximum size (256KB). The reason for the range stems from the fact that each JSON encoded telemetry tag is not always the same length. It is dependent on tag names, the tag types and OPC UA server URI. Such an IoT Hub message takes about 150 ms to be delivered from Edge Hub to IoT Hub on a typical DSL connection and is much faster when Azure Express Route is leveraged. For a list of practical latency figures, please see [here](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-troubleshooting-network-performance#latencybandwidth-results).
+Customers often require "at least once" delivery of each telemetry message to the cloud, so Quality of Service - QoS must be enabled, in this case. As flow control is a big part of QoS, this significantly increases latency of each message delivered to the cloud. This is countered by packing as many telemetry "tags" as possible into a single message, called "batching." Using batching, between 300 to 475 telemetry tags can be packaged into a single IoT Hub message of maximum size (256KB). The reason for the range stems from the fact that each JSON encoded telemetry tag is not always the same length. It is dependent on tag names, the tag types and OPC UA server URI. Such an IoT Hub message takes about 150 ms to be delivered from Edge Hub to IoT Hub on a typical DSL connection and is much faster when Azure Express Route is leveraged. For a list of practical latency figures, please see [here](https://docs.microsoft.com/azure/expressroute/expressroute-troubleshooting-network-performance#latencybandwidth-results).
 
 The calculation for the maximum end-to-end latency is:
 

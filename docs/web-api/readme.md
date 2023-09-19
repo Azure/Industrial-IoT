@@ -117,7 +117,7 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
     - Minimum dependencies:
       - 1 [IoT Hub](https://azure.microsoft.com/services/iot-hub/) to communicate with the edge and ingress raw OPC UA telemetry data
       - 1 [Key Vault](https://azure.microsoft.com/services/key-vault/), Premium SKU (to manage secrets and certificates)
-      - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
+      - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpoints)
       - App Service Plan, 1 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU for hosting the web api service.
     - Simulation:
       - 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
@@ -182,7 +182,7 @@ You can find all configuration options for `deploy.ps` [here](#deployment-script
 
 ### Automatic deployment of OPC Publisher modules
 
-The Azure Industrial IoT comnpanion service creates IoT Edge Layered Deployments for OPC Publisher. These Layered Deployments will be automatically applied to any IoT Edge instance that contains the following Device Twin JSON tags.
+The Azure Industrial IoT companion service creates IoT Edge Layered Deployments for OPC Publisher. These Layered Deployments will be automatically applied to any IoT Edge instance that contains the following Device Twin JSON tags.
 
 1. Go to the [Azure Portal page](http://portal.azure.com) and select your IoT Hub
 
@@ -238,7 +238,7 @@ The optional Web service exposes API with enabling the following functionality:
 
 ### Registry
 
-The role of the Registry component is to enable managenment of entities and identities in IoT Hub. These include:
+The role of the Registry component is to enable management of entities and identities in IoT Hub. These include:
 
 - **Applications**. In OPC parlance, an "Application" can be a server or a client or both. It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints. An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 
@@ -336,7 +336,7 @@ We provide a PowerShell script to deploy all services using ARM templates. This 
 
 First, an Azure Account with an active Subscription is needed. The subscription is going to host all Azure resources necessary for the platform.
 
-Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
+Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
 
 ### Azure Active Directory
 
@@ -350,13 +350,13 @@ Specifically, Azure Industrial IoT companion web service is using Azure AD as an
 
 We are lso going to use Azure AD to register app entities and setup authentication flows for components of the platform.
 
-Reference: [Azure Active Directory overview](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-whatis)
+Reference: [Azure Active Directory overview](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis)
 
 ### Azure AD Tenant
 
 An Azure AD tenant is a specific instance of Azure AD containing accounts and groups. Paid or trial subscriptions of Microsoft 365 or Dynamics 365 include a free Azure AD tenant. This Azure AD tenant does not include other Azure services and is not the same as an Azure trial or paid subscription.
 
-Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
+Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
 
 ### Azure IoT Hub
 
@@ -378,13 +378,13 @@ Azure IoT Hub is a cornerstone of Azure Industrial IoT companion web service, th
 
 - Consume telemetry and events from built-in Event Hub of IoT Hub.
 
-Reference: [Azure IoT Hub overview](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub)
+Reference: [Azure IoT Hub overview](https://docs.microsoft.com/azure/iot-hub/about-iot-hub)
 
 ### Azure Storage Account
 
 The Azure Storage platform is Microsoft's cloud storage solution for modern data storage scenarios. Core storage services offer a massively scalable object store for data objects, disk storage for Azure virtual machines (VMs), a file system service for the cloud, a messaging store for reliable messaging, and a NoSQL store. The services are:
 
-- **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across datacenters or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
+- **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across data centers or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
 
 - **Secure**. All data written to an Azure storage account is encrypted by the service. Azure Storage provides one with fine-grained control over who has access to your data.
 
@@ -412,19 +412,13 @@ Blob storage is ideal for:
 
 Objects in Blob storage can be accessed from anywhere in the world via HTTP or HTTPS. Users or client applications can access blobs via URLs, the Azure Storage REST API, Azure PowerShell, Azure CLI, or an Azure Storage client library. The storage client libraries are available for multiple languages, including .NET, Java, Node.js, Python, PHP, and Ruby.
 
-Cloud services of Azure Industrial IoT use Azure Blob Storage for:
-
-- Event Hub consumer offset checkpointing
-
-- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1) feature
-
-- [Azure IoT Hub file upload](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-file-upload) feature
+Cloud services of Azure Industrial IoT use Azure Blob Storage for Event Hub consumer offset checkpoints.
 
 References:
 
-- [Azure Blob storage overview](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-overview)
+- [Azure Blob storage overview](https://docs.microsoft.com/azure/storage/blobs/storage-blobs-overview)
 
-- [Introduction to the core Azure Storage services](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction)
+- [Introduction to the core Azure Storage services](https://docs.microsoft.com/azure/storage/common/storage-introduction)
 
 ### Azure Key Vault
 
@@ -444,11 +438,11 @@ We mainly use Azure Key Vault as a centralized store of application secrets. We 
 
 References:
 
-- [About Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/general/overview)
+- [About Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/overview)
 
-- [About keys, secrets and certificates](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates)
+- [About keys, secrets and certificates](https://docs.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates)
 
-- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+- [ASP.NET Core Data Protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
 
 ### Azure App Registrations
 
@@ -474,9 +468,9 @@ Based on your setup, one might decide to split **ClientsApp** into two app regis
 
 References:
 
-- [Microsoft identity platform overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
+- [Microsoft identity platform overview](https://docs.microsoft.com/azure/active-directory/develop/v2-overview)
 
-- [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
+- [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/develop/app-objects-and-service-principals)
 
 - [Azure AAD App Registration](../../deploy/helm/azure-industrial-iot/README.md#azure-aad-app-registration)
 
@@ -499,7 +493,7 @@ The deployment script automatically configures all components to work with each 
 
   - Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
 
-  - Networking: Firewall, VNET and private endpoints
+  - Networking: Firewall, Vnet and private endpoints
 
 - `Azure Active Directory (AAD) -> App registrations`
 
@@ -565,10 +559,10 @@ The diagnostic information of the OPC Publisher helps estimate the size and cost
 
 For more information see:
 
-- [Azure IoT Hub pricing](https://azure.microsoft.com/en-us/pricing/details/iot-hub/)
-- [Azure IoT Hub pricing information](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-pricing)
-- [IoT Hub quotas and throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling)
-- [IoT Hub limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
+- [Azure IoT Hub pricing](https://azure.microsoft.com/pricing/details/iot-hub/)
+- [Azure IoT Hub pricing information](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-pricing)
+- [IoT Hub quotas and throttling](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-quotas-throttling)
+- [IoT Hub limits](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
 - [How to estimate the costs of running the Azure Industrial IoT companion web service](../tutorials/tut-iiot-cost-estimation.md)
 
 #### IoT Edge VM
@@ -585,15 +579,15 @@ Scale up: If the above metrics show heavy usage of the services or UI, the App S
 
 ### Azure PaaS Services
 
-The limits and quotas for Azure Subscription can be found under [Azure Subscription service limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits).
+The limits and quotas for Azure Subscription can be found under [Azure Subscription service limits](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits).
 
-The limits and quotas for Azure AD can be found under [Active Directory service limits and restrictions](https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/directory-service-limits-restrictions).
+The limits and quotas for Azure AD can be found under [Active Directory service limits and restrictions](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-service-limits-restrictions).
 
-The limits and quotas for Azure IoT Hub can be found under [IoTHub DevGuide Quotas Throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling).
+The limits and quotas for Azure IoT Hub can be found under [IoTHub DevGuide Quotas Throttling](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-quotas-throttling).
 
-The limits and quotas for Blob Storage can be found under [Storage scalability targets](https://docs.microsoft.com/en-us/azure/storage/common/scalability-targets-standard-account).
+The limits and quotas for Blob Storage can be found under [Storage scalability targets](https://docs.microsoft.com/azure/storage/common/scalability-targets-standard-account).
 
-The limits and quotas for Key Vault can be found under [Key Vault service-limits](https://docs.microsoft.com/en-us/azure/key-vault/general/service-limits).
+The limits and quotas for Key Vault can be found under [Key Vault service-limits](https://docs.microsoft.com/azure/key-vault/general/service-limits).
 
 ## SLA, Disaster Recovery, Backup/Restore
 
@@ -702,7 +696,7 @@ The deployment script tries to [register three AAD applications](#azure-active-d
 
 If the deployment fails or if you see the following error when trying to sign-in, see further below for options:
 
-> **Need admin approval**  
+> **Need admin approval**
 > \<APPLICATION\> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
 
 **Option 1** (recommended for production): Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment.
@@ -733,11 +727,11 @@ Start the deployment with as many details about the environment as you can provi
 
 On **Windows**, the script uses Powershell, which comes with Windows. The deploy batch file uses it to install all required modules.
 
-In case you run into issues, e.g. because you want to use pscore, run the following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/powershell/azure/install-az-ps).
+In case you run into issues, e.g. because you want to use powershell Core (pscore/pwsh), run the following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/powershell/azure/install-az-ps).
 
    ```pwsh
    Install-Module -Name Az -AllowClobber
-   Install-Module -Name AzureAD -AllowClobber
+   Install-Module -Name Microsoft.Graph -AllowClobber
    ```
 
 On non - **Ubuntu** Linux or in case you run into issues follow the guidance in the next section.
@@ -757,11 +751,11 @@ To install all necessary requirements on other Linux distributions, follow these
    Install-Module -Repository PSGallery -Name Az -AllowClobber
    ```
 
-4. To also have the installation script create AAD Application registrations (aad-register.ps1) install the preview Azure AD module:
+4. To also have the installation script create AAD Application registrations (aad-register.ps1) install the Microsoft.Graph module:
 
    ```pwsh
-   Register-PackageSource -ForceBootstrap -Force -Trusted -ProviderName 'PowerShellGet' -Name 'Posh Test Gallery' -Location https://www.poshtestgallery.com/api/v2/
-   Install-Module -Repository 'Posh Test Gallery' -Name AzureAD.Standard.Preview -RequiredVersion 0.0.0.10 -AllowClobber
+   Set-psrepository -Name PSGallery -InstallationPolicy Trusted
+   Install-Module -Repository PSGallery -Name Microsoft.Graph -AllowClobber
    ```
 
 5. `exit`
@@ -774,24 +768,36 @@ Using the `deploy/scripts/deploy.ps1` script you can deploy several configuratio
 
 To support these scenarios, the `deploy.ps1` takes the following parameters:
 
-```bash
+```pwsh
+ .SYNOPSIS
+    Deploys Industrial IoT services to Azure.
+
+ .DESCRIPTION
+    Deploys the Industrial IoT services and dependencies on
+    Azure.
+
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
+    The type of deployment (local, services, simulation, all),
+    defaults to all.
 
  .PARAMETER version
-    Set to mcr image tag to deploy - if not set and version can not be parsed from branch name will deploy "latest".
+    Set to mcr image tag to deploy - if not set and version can
+    not be parsed from branch name will deploy "latest".
 
  .PARAMETER branchName
-    The branch name where to find the deployment templates - if not set, will try to use git.
+    The branch name where to find the deployment templates - if
+    not set, will try to use git.
 
  .PARAMETER repo
-    The repository to find the deployment templates in - if not set will try to use git or set default.
+    The repository to find the deployment templates in - if not
+    set will try to use git or set default.
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
 
  .PARAMETER resourceGroupLocation
-    Optional, a resource group location. If specified, will try to create a new resource group in this location.
+    Optional, a resource group location. If specified, will try
+     to create a new resource group in this location.
 
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
@@ -800,10 +806,12 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
     Or alternatively the subscription name.
 
  .PARAMETER tenantId
-    The Azure Active Directory tenant tied to the subscription(s) that should be listed as options.
+    The Azure Active Directory tenant tied to the subscription(s)
+     that should be listed as options.
 
  .PARAMETER authTenantId
-    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
+    Specifies an Azure Active Directory tenant for authentication
+    that is different from the one tied to the subscription.
 
  .PARAMETER accountName
     The account name to use if not to use default.
@@ -812,25 +820,47 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
     The name of the application, if not local deployment.
 
  .PARAMETER aadConfig
-    The aad configuration object (use aad-register.ps1 to create object). If not provided, calls aad-register.ps1.
+    The aad configuration object (use aad-register.ps1 to create
+    object). If not provided, calls aad-register.ps1.
 
  .PARAMETER context
     A previously created az context to be used for authentication.
 
  .PARAMETER aadApplicationName
-    The application name to use when registering aad application. If not set, uses applicationName.
+    The application name to use when registering aad application.
+    If not set, uses applicationName.
+
+ .PARAMETER containerRegistryServer
+    The container registry server to use to pull images
+
+ .PARAMETER containerRegistryUsername
+    The user name to use to pull images
+
+ .PARAMETER containerRegistryPassword
+    The password to use to pull images
+
+ .PARAMETER imageNamespace
+    Override the automatically determined namespace of the
+    container images
 
  .PARAMETER acrRegistryName
-    An optional name of an Azure container registry to deploy containers from.
+    An optional name of an Azure container registry to deploy
+    containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry, if different from the specified subscription.
+    The subscription of the container registry, if different
+    from the specified subscription.
+
+ .PARAMETER acrTenantId
+    The tenant where the container registry resides. If not
+    provided uses all.
 
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
-    If you are deploying a simulation, the simulation profile to use, if not default.
+    If you are deploying a simulation, the simulation profile
+    to use, if not default.
 
  .PARAMETER numberOfSimulationsPerEdge
     Number of simulations to deploy per edge.
@@ -840,6 +870,29 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
  .PARAMETER numberOfWindowsGateways
     Number of Windows gateways to deploy into the simulation.
+
+ .PARAMETER gatewayVmSku
+    Virtual machine SKU size that hosts simulated edge gateway.
+    Suggestion: use VM with at least 2 cores and 8 GB of memory.
+    Must Support Generation 1.
+
+ .PARAMETER opcPlcVmSku
+    Virtual machine SKU size that hosts simulated OPC UA PLC.
+    Suggestion: use VM with at least 1 core and 2 GB of memory.
+    Must Support Generation 1.
+
+ .PARAMETER credentials
+    Use these credentials to log in. If not provided you are
+    prompted to provide credentials
+
+ .PARAMETER isServicePrincipal
+    The credentials provided are service principal credentials.
+
+ .PARAMETER whatIfDeployment
+    Create everything but run the deployment as what-if then
+    exit.
+ .PARAMETER verboseDeployment
+    Show verbose progress of the deployment step.
 ```
 
 ### Running the Industrial IoT platform (OPC Publisher) Web service locally

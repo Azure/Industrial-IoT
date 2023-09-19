@@ -55,7 +55,7 @@ To use the OPC UA PubSub format specify a value for `--mm` on the command line. 
 
 ### Standards compliance
 
-OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` [command line](./commandline.md) option. For backwards compatibilty this option is off by default.
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` [command line](./commandline.md) option. For backwards compatibility this option is off by default.
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on. Strict mode is continuously adjusted as we do interoperability testing and parts of the standard are clarified.  
 
@@ -135,9 +135,9 @@ The following messages are emitted for data value changes in a subscription if `
 }
 ```
 
-The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](#event-messages).
+The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alive messages (`ua-keepalive`, containing no payload), or [events and conditions](#event-messages).
 
-IMPORTANT: Depending on the number of nodes in a subscription and the data type of properties inside a single dataset, data set messages contained in a network message can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
+IMPORTANT: Depending on the number of nodes in a subscription and the data type of properties inside a single dataset, data set messages contained in a network message can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncing (and overcomes any transport limitation). If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
 The data set is described by a corresponding metadata message (message type `ua-metdata`), which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
 
@@ -187,7 +187,7 @@ The data set is described by a corresponding metadata message (message type `ua-
 
 ```
 
-IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messages can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case they are created but never sent. You can choose to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking. If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
+IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messages can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case they are created but never sent. You can choose to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chunking. If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
 ### Event messages
 
@@ -380,7 +380,7 @@ The event is described by the corresponding metadata message, which is emitted p
 
 ```
 
-IMPORTANT: Depending on the number of members in an event type and their data types, data set messages contained in a network message can be large.  In some cases a JSON metadata message can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB. In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress event data set messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to use an event filter and select the properties needed or disable dataset metadata message sending altogether using `--dm=False`.
+IMPORTANT: Depending on the number of members in an event type and their data types, data set messages contained in a network message can be large.  In some cases a JSON metadata message can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB. In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress event data set messages using Gzip compression, or use `--me=Uadp` which supports network message chunking (and overcomes any transport limitation). If neither help or are an option it is recommended to use an event filter and select the properties needed or disable dataset metadata message sending altogether using `--dm=False`.
 
 ### Reversible encoding
 

@@ -42,7 +42,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Write Value |-|X||
 | | Write other attributes of nodes |-|X||
 | Method Call [API](./api.md#methodcall) ||-|X||
-| HDA [API](./api.md#history) for processed, modified, attimes, events time series data |||||
+| HDA [API](./api.md#history) for processed, modified, at-times, events time series data |||||
 | | Read |-|X|Preview|
 | | Streaming read |-|X|Experimental|
 | | Update |-|X|Preview|
@@ -63,7 +63,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Using browse path to event notifier |-|X||
 | | Simple (get all events of a type from event notifier)|-|X||
 | | Event filter (filter events on server before sending)|-|X||
-| | Condition handling / Condition snapshotting|-|X|Preview|
+| | Condition handling / Condition snapshots|-|X|Preview|
 | Re-evaluate subscriptions periodically |||||
 | | Periodically |-|X||
 | | On data model change events |-|-|#1209|
@@ -84,7 +84,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | On reconnect |-|X||
 | | On startup |-|-||
 | Deferred Notification Acknowledgement||-|X|Experimental|
-| Backpressure to server||-|-|Backlog|
+| Back pressure to server||-|-|Backlog|
 | Published nodes JSON [schema](./readme.md#configuration-schema) support |||||
 | | v2.5 |X|X||
 | | v2.8 |X|X||
@@ -105,7 +105,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | [MQTT](./transports.md#mqtt) request response-based API and configuration |||||
 | | v5 request response |-|X|Preview|
 | | v3.11 using IoT Hub like &rid= correlation |-|X|Experimental|
-| Kafka request response-based API and configuraton ||-|-||
+| Kafka request response-based API and configuration ||-|-||
 | [HTTP](./transports.md#built-in-http-api-server) REST command/control and configuration API ||-|X|Preview|
 | Configuration via OPC UA endpoint ||-|-||
 | Prometheus [Metrics](./observability.md) |||||
@@ -117,13 +117,13 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Message and event publishing [transports](./transports.md) |||||
 | | IoT Hub |X|X||
 | | MQTT topics |-|X|Preview|
-| | DAPR Pub/Sub (Kafka, Redis, etc.) |-|X|Experimental|
+| | Dapr Pub/Sub (Kafka, Redis, etc.) |-|X|Experimental|
 | | Publishing to a Web hook|-|X|Experimental|
 | | File system dump|-|X|Experimental|
 | | Null sink|-|X|Experimental|
 | Multiple cloud transports enabled in parallel ||-|X|Preview|
 | Select desired transport per writer group ||-|X|Preview|
-| Cloud Events support ||-|-|via DAPR|
+| Cloud Events support ||-|-|via Dapr|
 | OPC UA Pub Sub [message content profiles](./messageformats.md) |||||
 | | (Full and simple) data set messages |X|X||
 | | (Full and simple) Network messages |X|X||
