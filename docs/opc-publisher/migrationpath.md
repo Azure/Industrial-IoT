@@ -47,7 +47,7 @@ However, if you were using the 2.8 micro services before then you must be aware 
   - With removal of the database and orchestrated mode we changed the existing Publishing API to directly update the publisher configuration which has different performance characteristics than in 2.8 especially for the bulk publishing API.
   - The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
   - GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of a byte array in 2.8.
-  - OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
+  - OPC Discovery capabilities are integrated into OPC Publisher 2.9.
 
 ### Migrating Cosmos DB job definitions
 
@@ -105,7 +105,7 @@ To learn more about how to use comman-line arguments to configure OPC Publisher,
 
 ### OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
 
-Any removed command line arguments will still silently work.  
+Any removed command line arguments will still silently work.
 
 The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2 and above.
 
@@ -185,7 +185,7 @@ The direct method request payload of OPC Publisher 2.8.2 and above is backwards 
 
 **Limitations:** Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint aren't available in 2.8.2 or above. Instead a chunking protocol is used when the .net sdk packages are used.
 
-**Note:** The objects and primitives names in the direct method payload api model are camel case formatted in 2.8.2. This follows the guidelines of the rest of the api models through the IIoT Platform. Since the names in json payloads in 2.5.x are pascal case formed, we highly recommend enabling case-insensitive Json parsing in your direct methods based configuration tool. You can find details on json case-insensitive serialization here: [how to enable case-insensitive property name matching with System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-character-casing), or here: [Newtonsoft Json Serialization Naming Strategy](https://www.newtonsoft.com/json/help/html/T_Newtonsoft_Json_Serialization_DefaultNamingStrategy.htm)
+**Note:** The objects and primitives names in the direct method payload api model are camel case formatted in 2.8.2. This follows the guidelines of the rest of the api models through the IIoT Platform. Since the names in json payloads in 2.5.x are pascal case formed, we highly recommend enabling case-insensitive Json parsing in your direct methods based configuration tool. You can find details on json case-insensitive serialization here: [how to enable case-insensitive property name matching with System.Text.Json](https://docs.microsoft.com/dotnet/standard/serialization/system-text-json-character-casing), or here: [Newtonsoft Json Serialization Naming Strategy](https://www.newtonsoft.com/json/help/html/T_Newtonsoft_Json_Serialization_DefaultNamingStrategy.htm)
 
 ## OPC Publisher 2.5.x direct methods supported in 2.8.2
 

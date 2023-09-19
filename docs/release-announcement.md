@@ -2,6 +2,10 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.2](#azure-industrial-iot-opc-publisher-292)
+  - [Changes in 2.9.2](#changes-in-292)
+- [Azure Industrial IoT OPC Publisher 2.9.1](#azure-industrial-iot-opc-publisher-291)
+  - [Changes in 2.9.1](#changes-in-291)
 - [Azure Industrial IoT OPC Publisher 2.9.0](#azure-industrial-iot-opc-publisher-290)
   - [Changes in 2.9.0](#changes-in-290)
 - [Azure Industrial IoT OPC Publisher 2.9.0 Community Preview 4](#azure-industrial-iot-opc-publisher-290-community-preview-4)
@@ -29,6 +33,38 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.2
+
+We are pleased to announce the release of version 2.9.2 of OPC Publisher. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.2
+
+- Update to version 1.4.372 of the OPC UA .net stack and updated to latest secure version of nuget dependencies.
+- Fixed a bug where data stopped flowing in OPC Publisher bug on reconnect when subscription ids do not match server state (#2055)
+- Ability to select the message timestamp and behavior of Heartbeat
+  - Ability to generate heartbeats with different sourceTimestamp and serverTimestamp (#2049)
+  - Added a behavior option to update the source timestamp relative to the LKV to mimic previous behavior (#2048)
+- First Heartbeat message now dows not send anymore GoodNoData status when the monitored item is not yet live (#2041)
+- MQTT reconnect and disconnect reasons are now logged as errors (#2025)
+- Fixed an issue where Publisher failed to subscribe to a node because namespace table entry was not available during connect/subscribe (#2042) (Thank you @quality-leftovers for contributing this fix)
+- The default application name used to create certs is now the same as in 2.8 (#2047)
+- Batch size and Batch trigger have same defaults now than 2.8 (#2045)
+- Fix a bug where the user was not added correctly as owner in the aad_register.ps1 script (Thank you @0o001 for contributing this fix)
+
+## Azure Industrial IoT OPC Publisher 2.9.1
+
+We are pleased to announce the release of version 2.9.1 of OPC Publisher. 2.9.1 comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.1
+
+- Update all dependencies to latest version, in particular latest opc ua .net stack release 372
+- MQTT samples and making MQTT method calls over RPC working with Mqtt.net (#2039)
+- IoT Hub direct method samples (#2032)
+- The CLI switches using the environment variable names do no work (#2021)
+- New command line setting to select which clock is chosen for message timestamp (publish time or publisher current time) (#2035)
+- Fix negative count shown in diagnostics (#2031)
+- Documentation updates and fixes
 
 ## Azure Industrial IoT OPC Publisher 2.9.0
 
@@ -170,11 +206,11 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 
 ### IMPORTANT - PLEASE READ
 
-- IoT Edge 1.1 LTS will be going out of support on 12/13/2022, please [update your IoT Edge gateways to IoT Edge 1.4 LTS](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-update-iot-edge).
+- IoT Edge 1.1 LTS will be going out of support on 12/13/2022, please [update your IoT Edge gateways to IoT Edge 1.4 LTS](https://learn.microsoft.com/azure/iot-edge/how-to-update-iot-edge).
 
   > To continue deploying the 1.1 LTS modules to your environment follow [these instructions](./opc-publisher/readme.md#getting-started).
 
-- Windows container images are no longer supported in IoT Edge 1.4 and consequentially have been removed from this release. Please use [IoT Edge for Linux on Windows (EFLOW) 1.4](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) as your IoT Edge environment on Windows.  
+- Windows container images are no longer supported in IoT Edge 1.4 and consequentially have been removed from this release. Please use [IoT Edge for Linux on Windows (EFLOW) 1.4](https://learn.microsoft.com/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) as your IoT Edge environment on Windows.  
 
   > IoT Edge 1.4 LTS EFLOW is supported as a Preview Feature in this release.
 
@@ -187,7 +223,7 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 - Updated .net to .net 6.0 LTS from .net core 3.1 LTS which will be going out of support on 12/13/2022.
 - Updated nuget dependencies to their .net 6 counterpart or to their latest compatible release.
 - [All IoT Edge modules] Updated IoT Edge dependency to IoT Edge 1.4 LTS from 1.1 LTS which will be going out of support on 12/13/2022.
-- [All IoT Edge modules] (Preview) Support for [IoT Edge EFLOW 1.4 LTS](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows)
+- [All IoT Edge modules] (Preview) Support for [IoT Edge EFLOW 1.4 LTS](https://learn.microsoft.com/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows)
 - [OPC Publisher] Fix for orchestrator infinite loop on publisher worker document update (#1870)
 - [OPC Publisher] Rate limit OPC Publisher orchestrator requests.
 - [OPC Publisher] More explicit error logs in orchestrated mode, also showing transient exceptions in logs for better troubleshooting.
@@ -206,7 +242,7 @@ For features that are marked as Preview, please report any issues through GitHub
 
 ### Known issues
 
-- Under EFLOW, by default the Application instance certificate is generated by each module and not automatically shared. To work around this, configure EFLOW and modules deployed manually to use a [shared host volume](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-share-windows-folder-to-vm?view=iotedge-2018-06) to map the pki folders.
+- Under EFLOW, by default the Application instance certificate is generated by each module and not automatically shared. To work around this, configure EFLOW and modules deployed manually to use a [shared host volume](https://learn.microsoft.com/azure/iot-edge/how-to-share-windows-folder-to-vm?view=iotedge-2018-06) to map the pki folders.
 - Discovering using IP Address and port ranges is not supported on EFLOW.
 
 ## Azure Industrial IoT Platform Release 2.8.3

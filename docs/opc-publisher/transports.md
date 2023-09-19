@@ -2,7 +2,7 @@
 
 [Home](./readme.md)
 
-OPC Publisher translates these northbound transport protocols to and from OPC UA with different levels of fidelity.  
+OPC Publisher translates these northbound transport protocols to and from OPC UA with different levels of fidelity.
 
 > Except for the fully supported Azure IoT transport, other northbound transports here are currently provided in preview or experimental form and are by default disabled.
 
@@ -19,7 +19,7 @@ OPC Publisher translates these northbound transport protocols to and from OPC UA
 
 ## Azure IoT Hub and Azure IoT Edge
 
-When deployed into Azure IoT Edge OPC Publisher is automatically configured and conneects securely to the Edge Hub component. This is the officially supported configuration of OPC Publisher.
+When deployed into Azure IoT Edge OPC Publisher is automatically configured and connects securely to the Edge Hub component. This is the officially supported configuration of OPC Publisher.
 
 In addition to the automatic configuration during deployment in IoT Edge it is also possible to start the OPC Publisher with an Azure IoT Hub connection using the [command line](./commandline.md) argument `--ec` or by setting the `EdgeHubConnectionString` environment variable to the Azure IoT connection string.
 
@@ -79,7 +79,7 @@ To configure MQTT as the default transport for telemetry publishing specify the 
 
 > This transport is experimental
 
-OPC Publisher can be configured to use [Dapr](https://dapr.io/) to publish to a supported [Dapr Pub Sub component](https://docs.dapr.io/reference/components-reference/supported-pubsub/) via a side car. To get started with Dapr follow the documntation on the [Dapr web site](https://docs.dapr.io/getting-started/).
+OPC Publisher can be configured to use [Dapr](https://dapr.io/) to publish to a supported [Dapr Pub Sub component](https://docs.dapr.io/reference/components-reference/supported-pubsub/) via a side car. To get started with Dapr follow the documentation on the [Dapr web site](https://docs.dapr.io/getting-started/).
 
 The following table shows the supported features of the Dapr transport implementation inside OPC Publisher:
 
@@ -125,7 +125,7 @@ The HTTP transports is split into two parts: The [built in HTTP server](#built-i
 
 The built in HTTP server eposes the OPC Publisher [API](./api.md). The API is secured by an API Key. The API key is generated at startup if it is not found inside the state store. The default state store is the IoT Hub device twin. Therefore the API key can be read from the device registry in IoT Hub. The API key must be provided in every request in the HTTP `Authorization` header using the `Bearer <ApiKey` scheme.
 
-The HTTP server is exposed at port 80 (no encyption) and 443 (with encryption). The SSL channel is secured using a IoT Edge generated server certificate, just like Edge Hub's endpoints. The API can be further secured using a [Dapr](#dapr) side car providing mtls based security on top of the generic API surface.
+The HTTP server is exposed at port 80 (no encryption) and 443 (with encryption). The SSL channel is secured using a IoT Edge generated server certificate, just like Edge Hub's endpoints. The API can be further secured using a [Dapr](#dapr) side car providing mtls based security on top of the generic API surface.
 
 The built in HTTP server can be disabled using the `--dh` [command line](./commandline.md) argument.
 
@@ -145,4 +145,4 @@ The other part of the HTTP support in OPC Publisher is the ability to publish ne
 
 > This transport is experimental
 
-Sometimes it is important for troubleshooting and debugging to dump the network messages to files. The File system transport can be used to reflect the network messages in their topic structure inside the file system. The file sytem Transport is intended for debugging only and not for production scenarios. You can configure a root folder on the bind mount of OPC Publisher using the `-o` [command line](./commandline.md) argument and inspect the results using a file viewer of choice.
+Sometimes it is important for troubleshooting and debugging to dump the network messages to files. The File system transport can be used to reflect the network messages in their topic structure inside the file system. The file system Transport is intended for debugging only and not for production scenarios. You can configure a root folder on the bind mount of OPC Publisher using the `-o` [command line](./commandline.md) argument and inspect the results using a file viewer of choice.

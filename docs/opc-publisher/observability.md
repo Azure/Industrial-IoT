@@ -53,7 +53,7 @@ The following table describes the actual instruments that are logged per endpoin
 | # Encoder Notifications processed       | encoderNotificationsProcessed       | The total number of subscription notifications processed by the encoder stage of the data flow pipeline since the pipeline started. |
 | # Encoder Notifications dropped         | encoderNotificationsDropped         | The total number of subscription notifications that were dropped because they could not be encoded, e.g., due to their size being to large to fit into the message. |
 | # Encoder IoT Messages processed        | encoderIoTMessagesProcessed         | The total number of encoded messages produced by the encoder since the start of the pipeline. |
-| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were presssed into a message. |
+| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were pressed into a message. |
 | # Encoder avg IoT Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
 | # Encoder avg IoT Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
 | # Estimated IoT Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
@@ -64,8 +64,8 @@ The following table describes the actual instruments that are logged per endpoin
 |                                         | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
 | # Connection retries                    | connectionRetries                   | How many times connections to the OPC UA server broke and needed to be reconnected as it pertains to the data flow. |
 | # Opc endpoint connected?               | opcEndpointConnected                | Whether the pipeline is currently connected to the OPC UA server endpoint or in a reconnect attempt. |
-| # Montitored Opc nodes succeeded count  | monitoredOpcNodesSucceededCount     | How many of the configured monitored items have been established successfully inside the data flow's OPC UA subscription and should be producing data. |
-| # Montitored Opc nodes failed count     | monitoredOpcNodesFailedCount        | How many of the configured monitored items inside the data flow failed to be created in the subscription (the logs will provide more information). |
+| # Monitored Opc nodes succeeded count   | monitoredOpcNodesSucceededCount     | How many of the configured monitored items have been established successfully inside the data flow's OPC UA subscription and should be producing data. |
+| # Monitored Opc nodes failed count      | monitoredOpcNodesFailedCount        | How many of the configured monitored items inside the data flow failed to be created in the subscription (the logs will provide more information). |
 
 ## Available metrics
 
@@ -106,7 +106,7 @@ One can combine information from multiple metrics to understand and paint a bigg
 
 You can use the IoT Edge [Metrics Collector](#iot-edge-metrics-collector) module to collect the metrics.
 
-Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Kusto, we could then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
+Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Azure Data Explorer (ADX), we can then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
 
 ## IoT Edge Metrics collector
 
@@ -128,13 +128,13 @@ The default configuration to enable scraping metrics is:
 }
 ```
 
-> This assumes the http server in OPC Pubilsher has not been disabled. Disabling the internal HTTP server also disables the Prometheus endpoint.
+> This assumes the http server in OPC Publisher has not been disabled. Disabling the internal HTTP server also disables the Prometheus endpoint.
 
 ## OpenTelemetry
 
-It is possible to export all [metrics](#available-metrics), traces and [logs](#logging) to an OpenTelemtry collector. To specifiy the OTLP GRPC endpoint to export to, use the `--oc` [command line argument](./commandline.md).
+It is possible to export all [metrics](#available-metrics), traces and [logs](#logging) to an OpenTelemetry (OTEL) collector. To specify the OTLP GRPC endpoint to export to, use the `--oc` [command line argument](./commandline.md).
 
-An example setup using the OTEL Contrib Collector and Grafana stack can be found in the `/deploy/docker` folder.
+An example setup using the OpenTelemetry (OTEL) Contrib Collector and Grafana stack can be found in the `/deploy/docker` folder.
 
 ## Prometheus
 
@@ -144,11 +144,11 @@ OPC Publisher module also exposes all [metrics](#available-metrics) to a Prometh
 
 This section shows you how to setup and view OPC Publisher and EdgeHub metrics as bird's eye view and how to quickly drill down into the issues in case of failures.
 
-In this tuturial two preconfigured docker images (for Prometheus and Grafana) must be created and deployed as Azure IoT Edge Modules. The Prometheus Module scrapes the metrics from OPC Publisher and EdgeHub, while Grafana is used for visualization of metrics.
+In this tutorial two pre-configured docker images (for Prometheus and Grafana) must be created and deployed as Azure IoT Edge Modules. The Prometheus Module scrapes the metrics from OPC Publisher and EdgeHub, while Grafana is used for visualization of metrics.
 
 ### Setup
 
-1. Create and configure [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal) to have an admin account enabled.  **Registry name** and **password**  are needed for pushing the docker images of Prometheus and Grafana.
+1. Create and configure [Azure Container Registry](https://docs.microsoft.com/azure/container-registry/container-registry-get-started-portal) to have an admin account enabled.  **Registry name** and **password**  are needed for pushing the docker images of Prometheus and Grafana.
 
     ![01](./media/01.JPG)
 
