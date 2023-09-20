@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Furly.Extensions.Serializers;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;

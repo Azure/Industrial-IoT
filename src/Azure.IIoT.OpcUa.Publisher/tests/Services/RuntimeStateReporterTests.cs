@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Extensions.Storage;
     using Furly.Extensions.Storage.Services;
     using Microsoft.Extensions.Configuration;
     using Moq;

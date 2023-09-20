@@ -20,11 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Globalization;
-    using System.Net.Http;
 
     /// <summary>
     /// Subscription implementation

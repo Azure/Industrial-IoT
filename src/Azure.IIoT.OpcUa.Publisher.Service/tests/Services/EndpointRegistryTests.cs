@@ -16,14 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using System.Linq;
+    using System.Threading.Tasks;
     using Xunit;
-    using Furly.Exceptions;
 
     public class EndpointRegistryTests
     {

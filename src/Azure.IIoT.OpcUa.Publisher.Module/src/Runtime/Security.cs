@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Furly.Extensions.Storage;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
