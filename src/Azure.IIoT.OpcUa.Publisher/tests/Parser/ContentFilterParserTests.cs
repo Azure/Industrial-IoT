@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("BType", new [] { "/B" }, "B")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.SystemEventType.ToString(), new [] { "/B" }, "B")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(filter);
             Assert.NotNull(filter.SelectClauses);
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("ScheduleType", new [] { "/Period" }, "Period")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query1, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query1, context, default);
             _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
     where PersonType relatedTo (
         AnimalType relatedTo (ScheduleType, HasSchedule, 1), HasPet, 1)
 ";
-            var filter2 = await parser.ParseEventFilterAsync(query2, context, default).ConfigureAwait(false);
+            var filter2 = await parser.ParseEventFilterAsync(query2, context, default);
             var filterJson1 = _serializer.SerializeToString(filter);
             var filterJson2 = _serializer.SerializeToString(filter2);
             Assert.Equal(filterJson1, filterJson2);
@@ -366,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("FeedingScheduleType",new [] {  "/Period" }, "Period")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
             _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
@@ -491,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("ScheduleType", new [] { "/Period" }, "Period")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
             _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
@@ -520,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("HasChild", Array.Empty<string>(), "HasChild")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
             _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);
@@ -613,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("HasChild", Array.Empty<string>(), "HasChild")
             };
 
-            var filter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var filter = await parser.ParseEventFilterAsync(query, context, default);
             _output.WriteLine(_serializer.SerializeToString(filter, SerializeOption.Indented));
 
             Assert.NotNull(filter);

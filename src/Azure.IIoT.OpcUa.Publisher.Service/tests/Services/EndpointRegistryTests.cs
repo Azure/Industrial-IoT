@@ -16,18 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
-    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using System.Linq;
     using Xunit;
+    using Furly.Exceptions;
 
     public class EndpointRegistryTests
     {
         [Fact]
-        public void GetTwinThatDoesNotExist()
+        public async Task GetTwinThatDoesNotExist()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -41,18 +42,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             {
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
-                // Run
-                var t = service.GetEndpointAsync("test", false);
-
                 // Assert
-                Assert.NotNull(t.Exception);
-                Assert.IsType<AggregateException>(t.Exception);
-                Assert.IsType<ResourceNotFoundException>(t.Exception.InnerException);
+                await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await service.GetEndpointAsync("test", false));
             }
         }
 
         [Fact]
-        public void GetTwinThatExists()
+        public async Task GetTwinThatExists()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
             var first = endpoints[0];
@@ -71,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var result = service.GetEndpointAsync(id, false).Result;
+                var result = await service.GetEndpointAsync(id, false);
 
                 // Assert
                 Assert.True(result.IsSameAs(endpoints[0]));
@@ -79,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ListAllTwins()
+        public async Task ListAllTwins()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -94,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.ListEndpointsAsync(null, false, null).Result;
+                var records = await service.ListEndpointsAsync(null, false, null);
 
                 // Assert
                 Assert.True(endpoints.IsSameAs(records.Items));
@@ -102,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ListAllTwinsUsingQuery()
+        public async Task ListAllTwinsUsingQuery()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -117,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.QueryEndpointsAsync(null, false, null).Result;
+                var records = await service.QueryEndpointsAsync(null, false, null);
 
                 // Assert
                 Assert.True(endpoints.IsSameAs(records.Items));
@@ -125,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QueryTwinsBySignSecurityMode()
+        public async Task QueryTwinsBySignSecurityMode()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
             var count = endpoints.Count(x => x.Registration.Endpoint.SecurityMode == SecurityMode.Sign);
@@ -141,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
+                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityMode = SecurityMode.Sign
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.Equal(count, records.Items.Count);
@@ -152,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QueryTwinsBySecurityPolicySameCase()
+        public async Task QueryTwinsBySecurityPolicySameCase()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -167,10 +163,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
+                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
@@ -179,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QueryTwinsBySecurityPolicyDifferentCase()
+        public async Task QueryTwinsBySecurityPolicyDifferentCase()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -194,10 +190,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
+                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);
@@ -205,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QueryTwinsByEndpointUrlDifferentCase()
+        public async Task QueryTwinsByEndpointUrlDifferentCase()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
@@ -220,10 +216,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
+                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     Url = endpoints[0].Registration.Endpoint.Url.ToUpperInvariant()
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);

@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
             }
@@ -76,14 +76,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    predicate: WaitUntilKeepAlive, messageType: "ua-data").ConfigureAwait(false);
+                    predicate: WaitUntilKeepAlive, messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
                 Assert.True(message.GetProperty("Messages")[0].TryGetProperty("Payload", out var payload));
                 Assert.Empty(payload.EnumerateObject());
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
             }

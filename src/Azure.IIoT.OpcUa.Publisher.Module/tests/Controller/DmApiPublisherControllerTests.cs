@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
-                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+                await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequest)
             {
@@ -137,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 }
 
                 await FluentActions
-                    .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Invoking(async () => await methodsController.PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -150,10 +150,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             {
                 await FluentActions
                     .Invoking(async () => await methodsController
-                    .UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .UnpublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             Assert.Empty(_publisher.WriterGroups);
@@ -170,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
-                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+                await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequest)
             {
@@ -195,10 +195,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 }
 
                 await FluentActions
-                    .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Invoking(async () => await methodsController.PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -211,10 +211,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 request.OpcNodes?.Clear();
                 await FluentActions
                     .Invoking(async () => await methodsController
-                    .UnpublishAllNodesAsync(request).ConfigureAwait(false))
+                    .UnpublishAllNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             Assert.Empty(_publisher.WriterGroups);
@@ -231,16 +231,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
-                (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+                (await publishPayloads.ReadToEndAsync());
 
             foreach (var request in publishNodesRequests)
             {
                 await FluentActions
                     .Invoking(async () => await methodsController
-                    .PublishNodesAsync(request).ConfigureAwait(false))
+                    .PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -269,13 +269,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 EndpointUrl = endpointUrl
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             d.Dispose();
 
             response.Subject.OpcNodes.Count
@@ -312,13 +312,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0").ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0");
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             d.Dispose();
 
             response.Subject.OpcNodes.Count
@@ -353,21 +353,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 })
                 .ToList();
 
-            var (d, methodsController) = await PublishNodeAsync("Resources/empty_pn.json").ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync("Resources/empty_pn.json");
 
             for (var i = 0; i < 5; ++i)
             {
-                await methodsController.PublishNodesAsync(endpoints[i]).ConfigureAwait(false);
+                await methodsController.PublishNodesAsync(endpoints[i]);
             }
 
             for (var i = 0; i < 5; ++i)
             {
                 var response = await FluentActions
                         .Invoking(async () => await methodsController
-                        .GetConfiguredNodesOnEndpointAsync(endpoints[i]).ConfigureAwait(false))
+                        .GetConfiguredNodesOnEndpointAsync(endpoints[i]))
                         .Should()
                         .NotThrowAsync()
-                        .ConfigureAwait(false);
+;
 
                 response.Subject.OpcNodes.Count
                     .Should()
@@ -392,14 +392,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 UseSecurity = useSecurity
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             d.Dispose();
 
             response.Subject.OpcNodes.Count
@@ -431,14 +431,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationMode = authenticationMode
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1").ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             d.Dispose();
 
             response.Subject.OpcNodes.Count
@@ -466,14 +466,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             d.Dispose();
 
             response.Subject.OpcNodes.Count
@@ -525,15 +525,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
-                (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+                (await publishPayloads.ReadToEndAsync());
 
             // Check that GetConfiguredEndpointsAsync returns empty list
             var endpoints = await FluentActions
                 .Invoking(async () => await methodsController
-                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .GetConfiguredEndpointsAsync())
                 .Should()
                 .NotThrowAsync()
-                .ConfigureAwait(false);
+;
 
             endpoints.Subject.Endpoints.Count.Should().Be(0);
 
@@ -542,19 +542,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             {
                 await FluentActions
                     .Invoking(async () => await methodsController
-                    .PublishNodesAsync(request).ConfigureAwait(false))
+                    .PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
             }
 
             // Check configured endpoints count
             endpoints = await FluentActions
                 .Invoking(async () => await methodsController
-                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .GetConfiguredEndpointsAsync())
                 .Should()
                 .NotThrowAsync()
-                .ConfigureAwait(false);
+;
 
             endpoints.Subject.Endpoints.Count.Should().Be(5);
             var tags = endpoints.Subject.Endpoints.Select(e => e.DataSetName).ToHashSet();
@@ -577,10 +577,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetDiagnosticInfoAsync().ConfigureAwait(false))
+                    .GetDiagnosticInfoAsync())
                     .Should()
                     .NotThrowAsync()
-                    .ConfigureAwait(false);
+;
 
             response.Subject
                 .Should()

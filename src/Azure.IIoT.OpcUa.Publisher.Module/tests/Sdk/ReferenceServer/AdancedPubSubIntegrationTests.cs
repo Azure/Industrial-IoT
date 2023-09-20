@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
 
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
                 _output.WriteLine(message.ToString());
@@ -70,12 +70,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
-                diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 for (var i = 0; i < 10 && diagnostics.Count == 0; i++)
                 {
                     _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
-                    await Task.Delay(1000).ConfigureAwait(false);
-                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                    await Task.Delay(1000);
+                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 }
 
                 diag = Assert.Single(diagnostics);
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
 
@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    predicate: WaitUntilOutput2, messageType: "ua-data").ConfigureAwait(false);
+                    predicate: WaitUntilOutput2, messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
                 _output.WriteLine(message.ToString());
@@ -135,13 +135,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
-                diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 for (var i = 0; i < 10 &&
                     (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                 {
                     _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
-                    await Task.Delay(1000).ConfigureAwait(false);
-                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                    await Task.Delay(1000);
+                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 }
 
                 diag = Assert.Single(diagnostics);
@@ -172,14 +172,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name, arguments: new string[] { "--mm=PubSub" });
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput1[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput1[0]);
                 Assert.NotNull(result);
 
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 var message = Assert.Single(messages).Message;
                 var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
@@ -187,38 +187,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput1[0].OpcNodes[0].Id, n.Id);
 
                 // Add another node
-                result = await PublisherApi.PublishNodesAsync(testInput2[0]).ConfigureAwait(false);
+                result = await PublisherApi.PublishNodesAsync(testInput2[0]);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 e = Assert.Single(endpoints.Endpoints);
 
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(2, nodes.OpcNodes.Count);
                 Assert.Contains(testInput1[0].OpcNodes[0].Id, nodes.OpcNodes.Select(e => e.Id));
                 Assert.Contains(testInput2[0].OpcNodes[0].Id, nodes.OpcNodes.Select(e => e.Id));
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    predicate: WaitUntilOutput2, messageType: "ua-data").ConfigureAwait(false);
+                    predicate: WaitUntilOutput2, messageType: "ua-data");
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(0, diag.MonitoredOpcNodesFailedCount);
                 Assert.Equal(2, diag.MonitoredOpcNodesSucceededCount);
 
                 // Remove endpoint
-                result = await PublisherApi.UnpublishNodesAsync(e).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(e);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Arrange
                 // Act
                 var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data").ConfigureAwait(false);
+                    messageType: "ua-data");
 
                 // Assert
                 var message = Assert.Single(messages).Message;
@@ -249,15 +249,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
 
                 WritePublishedNodes(name, "./Resources/empty_pn.json");
                 for (var i = 0; i < 10 && diagnostics.Count != 0; i++)
                 {
-                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
+                    await Task.Delay(1000);
                 }
                 Assert.Empty(diagnostics);
 
@@ -273,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    predicate: WaitUntilOutput2, messageType: "ua-data").ConfigureAwait(false);
+                    predicate: WaitUntilOutput2, messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
                 _output.WriteLine(message.ToString());
@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
                 Assert.NotNull(metadata);
 
-                diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
             }
@@ -307,17 +307,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 {
                     // Arrange
                     // Act
-                    await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1, messageType: "ua-data").ConfigureAwait(false);
+                    await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1, messageType: "ua-data");
 
                     const string name2 = nameof(RestartConfigurationTest) + "new";
                     WritePublishedNodes(name2, "./Resources/DataItems2.json");
-                    var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                    var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                     for (var i = 0; i < 10 &&
                         (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                     {
                         _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
-                        await Task.Delay(1000).ConfigureAwait(false);
-                        diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                        await Task.Delay(1000);
+                        diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                     }
                     var diag = Assert.Single(diagnostics);
                     Assert.Equal(name2, diag.Endpoint.DataSetWriterGroup);

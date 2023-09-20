@@ -2046,7 +2046,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
         public async Task PnWithDuplicatesTest(string publishedNodesJsonFile)
         {
-            var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
+            var pn = await File.ReadAllTextAsync(publishedNodesJsonFile);
 
             var logger = Log.Console<PublishedNodesConverter>();
 

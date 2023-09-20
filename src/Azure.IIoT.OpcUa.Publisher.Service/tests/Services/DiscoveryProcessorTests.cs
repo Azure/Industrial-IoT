@@ -22,11 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using System.Threading.Tasks;
 
     public class DiscoveryProcessorTests
     {
         [Fact]
-        public void ProcessDiscoveryWithNoResultsAndNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoResultsAndNoExistingApplications()
         {
             var found = new List<DiscoveryEventModel>();
             var fix = new Fixture();
@@ -74,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.Single(registry.Devices);
@@ -83,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithAlreadyExistingApplications()
+        public async Task ProcessDiscoveryWithAlreadyExistingApplications()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -103,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoExistingApplications()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -120,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -128,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryThrowsWithMultipleSites()
+        public async Task ProcessDiscoveryThrowsWithMultipleSites()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -138,17 +139,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                var t = service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
-
-                // Assert
-                Assert.NotNull(t.Exception);
-                Assert.IsType<AggregateException>(t.Exception);
-                Assert.IsType<ArgumentException>(t.Exception.InnerException);
+                await Assert.ThrowsAsync<ArgumentException>(
+                    async () => await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found));
             }
         }
 
         [Fact]
-        public void ProcessDiscoveryWithOneExistingApplication()
+        public async Task ProcessDiscoveryWithOneExistingApplication()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -157,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -165,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -185,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -193,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessOneDiscoveryWithDifferentDiscoverersFromExisting()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExisting()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -215,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -223,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -244,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -257,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -280,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -293,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting()
+        public async Task ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -315,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
 
@@ -324,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithNoResultsAndExisting()
+        public async Task ProcessDiscoveryWithNoResultsAndExisting()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -338,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -349,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ProcessDiscoveryWithOneEndpointResultsAndExisting()
+        public async Task ProcessDiscoveryWithOneEndpointResultsAndExisting()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -366,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             using (var mock = Setup(registry, out var service))
             {
                 // Run
-                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
+                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 var inreg = ApplicationsIn(registry);

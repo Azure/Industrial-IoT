@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendDataItemToIoTHubTest),
-                "./Resources/DataItems.json").ConfigureAwait(false);
+                "./Resources/DataItems.json");
 
             // Assert
             var message = Assert.Single(messages);
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatToIoTHubTest) + timestamp, "./Resources/Heartbeat.json",
-                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}", $"--hbb={behavior}" }).ConfigureAwait(false);
+                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}", $"--hbb={behavior}" });
 
             // Assert
             Assert.True(messages.Count > 1);
@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest), "./Resources/Deadband.json",
-                TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
+                TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
 
             // Assert
             var doubleValues = messages
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendEventToIoTHubTest),
-                "./Resources/SimpleEvents.json").ConfigureAwait(false);
+                "./Resources/SimpleEvents.json");
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var messages = await ProcessMessagesAsync(
                 nameof(CanSendEventToIoTHubTestFullFeaturedMessage), "./Resources/SimpleEvents.json",
-                arguments: new string[] { "--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime" }).ConfigureAwait(false);
+                arguments: new string[] { "--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime" });
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var result = await ProcessMessagesAsync(
                 nameof(CanEncodeWithReversibleEncodingSamplesTest), publishedNodesFile,
                 arguments: new[] { "--mm=Samples", "--me=JsonReversible" }
-            ).ConfigureAwait(false);
+            );
 
             var m = Assert.Single(result).Message;
 
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendPendingConditionsToIoTHubTest),
-                "./Resources/PendingAlarms.json", GetAlarmCondition).ConfigureAwait(false);
+                "./Resources/PendingAlarms.json", GetAlarmCondition);
 
             // Assert
             _output.WriteLine(messages.ToString());
@@ -286,29 +286,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name, arguments: new string[] { "--mm=FullSamples" }); // Alternative to --fm=True
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync().ConfigureAwait(false);
+                var messages = await WaitForMessagesAsync();
                 var message = Assert.Single(messages).Message;
                 Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishNodesAsync(e).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(e);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -325,28 +325,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync().ConfigureAwait(false);
+                var messages = await WaitForMessagesAsync();
                 var message = Assert.Single(messages).Message;
                 Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
                 Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel()).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -363,13 +363,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(GetAlarmCondition).ConfigureAwait(false);
+                var messages = await WaitForMessagesAsync(GetAlarmCondition);
                 _output.WriteLine(messages.ToString());
 
                 var evt = Assert.Single(messages).Message;
@@ -382,17 +382,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.True(sev.TryGetProperty("Value", out sev));
                 Assert.True(sev.GetInt32() >= 100);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
@@ -411,20 +411,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                await PublisherApi.PublishNodesAsync(testInput1[0]).ConfigureAwait(false);
-                await PublisherApi.PublishNodesAsync(testInput2[0]).ConfigureAwait(false);
-                await PublisherApi.PublishNodesAsync(testInput3[0]).ConfigureAwait(false);
+                await PublisherApi.PublishNodesAsync(testInput1[0]);
+                await PublisherApi.PublishNodesAsync(testInput2[0]);
+                await PublisherApi.PublishNodesAsync(testInput3[0]);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel()).ConfigureAwait(false);
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
@@ -434,27 +434,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name
                     }
-                }).ConfigureAwait(false);
+                });
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 e = Assert.Single(endpoints.Endpoints);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishNodesAsync(testInput3[0]).ConfigureAwait(false);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                await PublisherApi.UnpublishNodesAsync(testInput3[0]);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(2, nodes.OpcNodes.Count);
-                await PublisherApi.UnpublishNodesAsync(testInput2[0]).ConfigureAwait(false);
-                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                await PublisherApi.UnpublishNodesAsync(testInput2[0]);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Single(nodes.OpcNodes);
 
-                var messages = await WaitForMessagesAsync(GetDataFrame).ConfigureAwait(false);
+                var messages = await WaitForMessagesAsync(GetDataFrame);
                 var message = Assert.Single(messages).Message;
                 Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
-                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(e.EndpointUrl, diag.Endpoint.EndpointUrl);
             }
@@ -473,13 +473,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             StartPublisher(name);
             try
             {
-                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                var result = await PublisherApi.PublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(GetAlarmCondition).ConfigureAwait(false);
+                var messages = await WaitForMessagesAsync(GetAlarmCondition);
                 messages.ToList().ForEach(m => _output.WriteLine(m.ToString()));
                 var evt = Assert.Single(messages).Message;
 
@@ -498,20 +498,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
                 {
                     testInput[0]
-                }).ConfigureAwait(false);
+                });
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
 
-                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 var n = Assert.Single(nodes.OpcNodes);
 
                 // Wait until it was applied and we receive normal events again
                 messages = await WaitForMessagesAsync(
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
                         && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
-                            == JsonValueKind.String ? message : default).ConfigureAwait(false);
+                            == JsonValueKind.String ? message : default);
                 _output.WriteLine(messages.ToString());
 
                 var message = Assert.Single(messages).Message;
@@ -522,10 +522,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.GetInt32() != 0, $"{message.ToJsonString()}");
 
-                result = await PublisherApi.UnpublishNodesAsync(testInput[0]).ConfigureAwait(false);
+                result = await PublisherApi.UnpublishNodesAsync(testInput[0]);
                 Assert.NotNull(result);
 
-                endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
             }
             finally

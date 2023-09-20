@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
                     new[] { "/LocalTime" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
                     new[] { "/LocalTime" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("http://microsoft/ua#BaseEventType",
                     new[] { "/[http://microsoft/f#LocalTime]" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData("http://microsoft/ua#BaseEventType",
                     new[] { "/[http://microsoft/f#LocalTime]" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                     new[] { "/LocalTime" }, "LocalTime")
             };
             await Assert.ThrowsAsync<ParserException>(
-                () => parser.ParseEventFilterAsync(query, context, default)).ConfigureAwait(false);
+                () => parser.ParseEventFilterAsync(query, context, default));
         }
 
         [Fact]
@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
                     new[] { "/LocalTime" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -245,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
                     new[] { "/LocalTime" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -281,7 +281,7 @@ WHERE
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
                     new[] { "/LocalTime" }, "LocalTime")
             };
-            var eventFilter = await parser.ParseEventFilterAsync(query, context, default).ConfigureAwait(false);
+            var eventFilter = await parser.ParseEventFilterAsync(query, context, default);
 
             Assert.NotNull(eventFilter);
             Assert.NotNull(eventFilter.SelectClauses);
@@ -314,7 +314,7 @@ WHERE
     OFTYPE i=10751 AND
     /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
 ";
-            var filter1 = await parser.ParseEventFilterAsync(query1, context, default).ConfigureAwait(false);
+            var filter1 = await parser.ParseEventFilterAsync(query1, context, default);
 
             // Test with default aliasing
             const string query2 = @"
@@ -324,7 +324,7 @@ WHERE
     OFTYPE TripAlarmType AND
     /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
 ";
-            var filter2 = await parser.ParseEventFilterAsync(query2, context, default).ConfigureAwait(false);
+            var filter2 = await parser.ParseEventFilterAsync(query2, context, default);
 
             var whereExpected = new ContentFilterModel
             {

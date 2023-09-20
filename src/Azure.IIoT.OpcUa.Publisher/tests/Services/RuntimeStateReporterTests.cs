@@ -47,10 +47,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _logger);
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-                .ConfigureAwait(false);
+;
 
             client.Verify(c => c.CreateEvent(), Times.Never());
         }
@@ -75,10 +75,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _logger);
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-                .ConfigureAwait(false);
+;
         }
 
         [Fact]
@@ -137,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _logger);
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-                .ConfigureAwait(false);
+;
 
             _message.Verify(c => c.SendAsync(It.IsAny<CancellationToken>()), Times.Once());
             _message.Verify(m => m.Dispose(), Times.Once());

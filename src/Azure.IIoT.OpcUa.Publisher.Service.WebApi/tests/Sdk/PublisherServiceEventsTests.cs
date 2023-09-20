@@ -47,9 +47,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var channel = Channel.CreateUnbounded<MonitoredItemMessageModel>();
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, async ev =>
-                await channel.Writer.WriteAsync(ev).ConfigureAwait(false)).ConfigureAwait(false))
+                await channel.Writer.WriteAsync(ev)))
             {
-                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
+                await Task.Delay(kSubscribeDelay);
                 foreach (var value in GetVariantValues())
                 {
                     var expected = new MonitoredItemMessageModel
@@ -63,12 +63,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                         Value = value.Item1
                     };
 
-                    await bus.HandleSampleAsync(expected).ConfigureAwait(false);
+                    await bus.HandleSampleAsync(expected);
 
                     using var cts = new CancellationTokenSource(kTimeoutMillis);
                     try
                     {
-                        var received = await channel.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
+                        var received = await channel.Reader.ReadAsync(cts.Token);
 
                         Assert.Equal(expected.DisplayName, received.DisplayName);
                         Assert.Equal(expected.DataSetWriterId, received.DataSetWriterId);
@@ -118,15 +118,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }).ConfigureAwait(false))
+            }))
             {
-                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
+                await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
                 {
-                    await bus.HandleSampleAsync(expected).ConfigureAwait(false);
+                    await bus.HandleSampleAsync(expected);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis));
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }

@@ -24,11 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using System.Threading.Tasks;
 
     public class SupervisorRegistryTests
     {
         [Fact]
-        public void GetSupervisorWithmalformedId()
+        public async Task GetSupervisorWithmalformedId()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -43,16 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var t = service.GetSupervisorAsync("test", false);
-
-                // Assert
-                Assert.NotNull(t.Exception);
-                Assert.IsType<AggregateException>(t.Exception);
-                Assert.IsType<ArgumentException>(t.Exception.InnerException);
+                await Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSupervisorAsync("test", false));
             }
         }
         [Fact]
-        public void GetSupervisorThatDoesNotExist()
+        public async Task GetSupervisorThatDoesNotExist()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -67,17 +63,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var t = service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false);
-
-                // Assert
-                Assert.NotNull(t.Exception);
-                Assert.IsType<AggregateException>(t.Exception);
-                Assert.IsType<ResourceNotFoundException>(t.Exception.InnerException);
+                await Assert.ThrowsAsync<ResourceNotFoundException>(
+                    async () => await service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false));
             }
         }
 
         [Fact]
-        public void GetSupervisorThatExists()
+        public async Task GetSupervisorThatExists()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -92,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var result = service.GetSupervisorAsync(supervisors[0].Id, false).Result;
+                var result = await service.GetSupervisorAsync(supervisors[0].Id, false);
 
                 // Assert
                 Assert.True(result.IsSameAs(supervisors[0]));
@@ -100,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ListAllSupervisors()
+        public async Task ListAllSupervisors()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -115,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.ListSupervisorsAsync(null, false, null).Result;
+                var records = await service.ListSupervisorsAsync(null, false, null);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -123,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void ListAllSupervisorsUsingQuery()
+        public async Task ListAllSupervisorsUsingQuery()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -138,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(null, false, null).Result;
+                var records = await service.QuerySupervisorsAsync(null, false, null);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -146,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QuerySupervisorsBySiteId()
+        public async Task QuerySupervisorsBySiteId()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -161,10 +153,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel
+                var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
                 {
                     SiteId = site
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -172,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public void QuerySupervisorsByNoneExistantSiteId()
+        public async Task QuerySupervisorsByNoneExistantSiteId()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules, true);
 
@@ -187,10 +179,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel
+                var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
                 {
                     SiteId = "test"
-                }, false, null).Result;
+                }, false, null);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);
