@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Update display name
@@ -114,9 +116,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="typeSystem"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
-        void GetMetaData(IOpcUaSession session,
+        /// <param name="ct"></param>
+        ValueTask GetMetaDataAsync(IOpcUaSession session,
             ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes);
+            NodeIdDictionary<DataTypeDescription> dataTypes,
+            CancellationToken ct);
 
         /// <summary>
         /// Subscription state changed
