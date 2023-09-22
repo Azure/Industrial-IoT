@@ -274,7 +274,7 @@ Function CreateScope(
 
 <#.Description
    This function creates a new Azure AD AppRole with default and provided values
-#>  
+#>
 Function CreateAppRole(
     [string] $types,
     [string] $name, 
@@ -478,7 +478,7 @@ Function ConfigureApplications() {
 
     $replyUrls = @("https://localhost:44321/signin-oidc")
     if (![string]::IsNullOrEmpty($script:ReplyUrl)) {
-        $replyUrls = @($script:ReplyUrl)
+        $replyUrls = @($script:ReplyUrl, "urn:ietf:wg:oauth:2.0:oob")
     }
 
     Update-MgApplication -ApplicationId $currentAppObjectId -Web `
@@ -510,14 +510,14 @@ Function ConfigureApplications() {
     $webAppSecret = Add-MgApplicationPassword -ApplicationId $currentAppObjectId -PasswordCredential $key
     Write-Host "  Added a secret."
 
-    # create the service principal of the newly created application     
+    # create the service principal of the newly created application
     $currentServicePrincipal = Get-MgServicePrincipal -Filter "AppId eq '$($currentAppId)'"
     if (!$currentServicePrincipal) {
         $currentServicePrincipal = New-MgServicePrincipal -AppId $currentAppId `
             -Tags { WindowsAzureActiveDirectoryIntegratedApp }
         Write-Host "  Added new service principal."
     }
-    
+
     #
     # Create service application
     #
@@ -607,7 +607,7 @@ Function ConfigureApplications() {
     $existingScopes = $serviceAadApplication.Api.Oauth2PermissionScopes
     $scope = $existingScopes | Where-Object { $_.Value -eq "User_impersonation" }
     if ($scope)
-    {    
+    {
         $scopes.Add($scope)
         if ($existingScopes.Count -eq 1) {
             $existingScopes = @()
@@ -672,7 +672,7 @@ Function ConfigureApplications() {
     Update-MgApplication -ApplicationId $currentAppObjectId `
         -RequiredResourceAccess $requiredResourcesAccess
 
-    # create the service principal of the newly created application     
+    # create the service principal of the newly created application
     $currentServicePrincipal = Get-MgServicePrincipal -Filter "AppId eq '$($currentAppId)'"
     if (!$currentServicePrincipal) {
         $currentServicePrincipal = New-MgServicePrincipal -AppId $currentAppId `
