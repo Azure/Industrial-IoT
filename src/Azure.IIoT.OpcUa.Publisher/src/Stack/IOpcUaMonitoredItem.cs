@@ -12,8 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Update display name
