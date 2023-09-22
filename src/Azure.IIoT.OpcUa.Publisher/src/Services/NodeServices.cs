@@ -767,9 +767,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var builtinType = inputs[i].Item1.BuiltInType;
                         if (!string.IsNullOrEmpty(arg.DataType))
                         {
-                            builtinType = TypeInfo.GetBuiltInType(
+                            builtinType = await TypeInfo.GetBuiltInTypeAsync(
                                 arg.DataType.ToNodeId(context.Session.MessageContext),
-                                context.Session.TypeTree);
+                                context.Session.TypeTree, ct).ConfigureAwait(false);
                         }
                         requests[0].InputArguments[i] = context.Session.Codec.Decode(
                             arg.Value ?? VariantValue.Null, builtinType);
@@ -945,7 +945,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                var builtinType = TypeInfo.GetBuiltInType(dataTypeId, context.Session.TypeTree);
+                var builtinType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                    context.Session.TypeTree, ct).ConfigureAwait(false);
                 var value = context.Session.Codec.Decode(request.Value, builtinType);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {

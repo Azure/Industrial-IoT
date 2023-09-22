@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Opc.Ua.Client;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class GetSimpleEventFilterTests : OpcUaMonitoredItemTestsBase
@@ -201,13 +203,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
             _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
-            nodeCache.Setup(x => x.FetchNode(It.IsAny<ExpandedNodeId>())).Returns((ExpandedNodeId x) =>
+            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>())).Returns((ExpandedNodeId x, CancellationToken _) =>
             {
                 if (x.IdType == IdType.Numeric && x.Identifier is uint id)
                 {
-                    return _nodes[id];
+                    return Task.FromResult(_nodes[id]);
                 }
-                return null;
+                return Task.FromResult<Node>(null);
             });
             return nodeCache;
         }

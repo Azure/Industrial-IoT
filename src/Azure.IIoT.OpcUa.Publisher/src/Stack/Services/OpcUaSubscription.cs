@@ -20,11 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Globalization;
-    using System.Net.Http;
 
     /// <summary>
     /// Subscription implementation
@@ -957,7 +956,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var fields = new FieldMetaDataCollection();
                 foreach (var monitoredItem in monitoredItemsInDataSet)
                 {
-                    monitoredItem.GetMetaData(sessionHandle, typeSystem, fields, dataTypes);
+                    await monitoredItem.GetMetaDataAsync(sessionHandle, typeSystem, fields, dataTypes,
+                        ct).ConfigureAwait(false);
                 }
                 return new DataSetMetaDataType
                 {
@@ -1129,7 +1129,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
             Debug.Assert(_lock.CurrentCount == 0); // Under lock
-            session.FetchNamespaceTables();
+
+            await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
 
             GetSubscriptionConfiguration(_currentSubscription ?? session.DefaultSubscription,
                 out var configuredPublishingInterval, out var configuredPriority,

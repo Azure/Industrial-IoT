@@ -20,6 +20,15 @@
     <None Update="Profiles\KeepAlive.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Profiles\MultiDataSetWriter.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Profiles\MultiWriterGroup.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Profiles\MultiEndpoint.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\RegisteredRead.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

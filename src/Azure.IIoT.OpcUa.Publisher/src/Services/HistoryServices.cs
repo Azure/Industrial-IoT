@@ -603,7 +603,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         $"{nodeId} does not have a data type to fall back on.");
                 }
             }
-            return TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
+            return await TypeInfo.GetBuiltInTypeAsync(dataTypeId, session.TypeTree,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -3,7 +3,7 @@
     Registers required applications.
 
  .DESCRIPTION
-    Registers the required applications in AAD and returns an 
+    Registers the required applications in AAD and returns an
     object containing the information.
 
  .PARAMETER Name
@@ -17,6 +17,9 @@
 
  .PARAMETER Credentials
     Credentials to use to log in (optional).
+
+ .PARAMETER ReplyUrl
+    A reply url to add to the web application (optional).
 #>
 
 param(
@@ -24,12 +27,13 @@ param(
     [object] $Context,
     [string] $TenantId,
     [string] $Output,
+    [string] $ReplyUrl,
     [string] $EnvironmentName = "AzureCloud"
 )
 
 <#.Description
    Perform login - uses profile file if exists - returns account
-#> 
+#>
 Function Select-Context() {
     [OutputType([Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext])]
     Param(
@@ -90,7 +94,7 @@ Function Select-Context() {
             if ($reply -match "[yY]") {
                 Save-AzContext -Path $contextFile -Profile $connection
             }
-        
+
             $context = $azProfile.Context
             Write-Host "Using context (Account $($context.Account), Tenant $($context.Tenant.Id))"
             return $context
@@ -103,7 +107,7 @@ Function Select-Context() {
 
 <#.Description
    find the top most folder with solution in it
-#> 
+#>
 Function Get-RootFolder() {
     param(
         $startDir
@@ -120,7 +124,7 @@ Function Get-RootFolder() {
 
 <#.Description
    Grant consent to to the app with id = $azureAppId
-#> 
+#>
 Function Add-AdminConsentGrant() {
     Param(
         [string] $azureAppId
@@ -162,7 +166,7 @@ Function Add-AdminConsentGrant() {
 <#.Description
    Create an application key
    See https://www.sabin.io/blog/adding-an-azure-active-directory-application-and-key-using-powershell/
-#> 
+#>
 Function CreateAppKey([DateTime] $fromDate, [double] $durationInMonths)
 {
     $key = New-Object Microsoft.Graph.PowerShell.Models.MicrosoftGraphPasswordCredential
@@ -179,7 +183,7 @@ Function CreateAppKey([DateTime] $fromDate, [double] $durationInMonths)
    Adds the requiredAccesses (expressed as a pipe separated string) to the requiredAccess structure
    The exposed permissions are in the $exposedPermissions collection, and the type of permission
    (Scope | Role) is described in $permissionType
-#> 
+#>
 Function AddResourcePermission(
     $requiredAccess,
     $exposedPermissions,
@@ -223,7 +227,7 @@ Function GetRequiredPermissions(
     }
     $appid = $sp.AppId
     $requiredAccess = New-Object Microsoft.Graph.PowerShell.Models.MicrosoftGraphRequiredResourceAccess
-    $requiredAccess.ResourceAppId = $appid 
+    $requiredAccess.ResourceAppId = $appid
     $requiredAccess.ResourceAccess = New-Object `
         System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphResourceAccess]
 
@@ -234,8 +238,8 @@ Function GetRequiredPermissions(
         AddResourcePermission $requiredAccess -exposedPermissions $sp.Oauth2PermissionScopes `
             -requiredAccesses $requiredDelegatedPermissions -permissionType "Scope"
     }
-    
-    # $sp.AppRoles | Select Id,AdminConsentDisplayName,Value: To see the list of all the 
+
+    # $sp.AppRoles | Select Id,AdminConsentDisplayName,Value: To see the list of all the
     # Application permissions for the application
     if ($requiredApplicationPermissions)
     {
@@ -246,9 +250,9 @@ Function GetRequiredPermissions(
 }
 
 <#.Description
-   This function creates a new Azure AD scope (OAuth2Permission) with default and 
+   This function creates a new Azure AD scope (OAuth2Permission) with default and
    provided values
-#>  
+#>
 Function CreateScope(
     [string] $value,
     [string] $userConsentDisplayName,
@@ -270,7 +274,7 @@ Function CreateScope(
 
 <#.Description
    This function creates a new Azure AD AppRole with default and provided values
-#>  
+#>
 Function CreateAppRole(
     [string] $types,
     [string] $name, 
@@ -294,12 +298,12 @@ Function CreateAppRole(
 
 <#.Description
    This function takes a string as input and creates an instance of an Optional claim object
-#> 
+#>
 Function CreateOptionalClaim([string] $name)
 {
     <#.Description
     This function creates a new Azure AD optional claims  with default and provided values
-    #>  
+    #>
 
     $appClaim = New-Object `
         Microsoft.Graph.PowerShell.Models.MicrosoftGraphOptionalClaim
@@ -318,7 +322,7 @@ Function CreatePreAuthorizedApplication([string] $appId, [string[]] $delegatedPe
 {
     <#.Description
     This function creates a new preauthorized application
-    #>  
+    #>
 
     $application = New-Object `
         Microsoft.Graph.PowerShell.Models.MicrosoftGraphPreAuthorizedApplication
@@ -329,7 +333,7 @@ Function CreatePreAuthorizedApplication([string] $appId, [string[]] $delegatedPe
 
 <#.Description
    Get configuration object for service, web and client applications
-#> 
+#>
 Function Connect-MicrosoftGraph() {
     param(
         [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext] $context
@@ -365,10 +369,9 @@ Function Connect-MicrosoftGraph() {
         -TenantId $tenantId | Out-Null
 }
 
-    
 <#.Description
    Get configuration object for service, web and client applications
-#> 
+#>
 Function ConfigureApplications() {
     param(
         [string] $applicationName,
@@ -450,7 +453,7 @@ Function ConfigureApplications() {
         }
     }
 
-    # create the service principal of the newly created application     
+    # create the service principal of the newly created application
     $currentServicePrincipal = Get-MgServicePrincipal -Filter "AppId eq '$($currentAppId)'"
     if (!$currentServicePrincipal) {
         $currentServicePrincipal = New-MgServicePrincipal -AppId $currentAppId `
@@ -473,9 +476,14 @@ Function ConfigureApplications() {
     $currentAppId = $webAadApplication.AppId
     $currentAppObjectId = $webAadApplication.Id
 
+    $replyUrls = @("https://localhost:44321/signin-oidc")
+    if (![string]::IsNullOrEmpty($script:ReplyUrl)) {
+        $replyUrls = @($script:ReplyUrl, "urn:ietf:wg:oauth:2.0:oob")
+    }
+
     Update-MgApplication -ApplicationId $currentAppObjectId -Web `
         @{
-            RedirectUris = "https://localhost:44321/signin-oidc"
+            RedirectUris = $replyUrls
             ImplicitGrantSettings = @{
                 EnableAccessTokenIssuance = $True
                 EnableIdTokenIssuance = $True
@@ -502,14 +510,14 @@ Function ConfigureApplications() {
     $webAppSecret = Add-MgApplicationPassword -ApplicationId $currentAppObjectId -PasswordCredential $key
     Write-Host "  Added a secret."
 
-    # create the service principal of the newly created application     
+    # create the service principal of the newly created application
     $currentServicePrincipal = Get-MgServicePrincipal -Filter "AppId eq '$($currentAppId)'"
     if (!$currentServicePrincipal) {
         $currentServicePrincipal = New-MgServicePrincipal -AppId $currentAppId `
             -Tags { WindowsAzureActiveDirectoryIntegratedApp }
         Write-Host "  Added new service principal."
     }
-    
+
     #
     # Create service application
     #
@@ -599,7 +607,7 @@ Function ConfigureApplications() {
     $existingScopes = $serviceAadApplication.Api.Oauth2PermissionScopes
     $scope = $existingScopes | Where-Object { $_.Value -eq "User_impersonation" }
     if ($scope)
-    {    
+    {
         $scopes.Add($scope)
         if ($existingScopes.Count -eq 1) {
             $existingScopes = @()
@@ -664,7 +672,7 @@ Function ConfigureApplications() {
     Update-MgApplication -ApplicationId $currentAppObjectId `
         -RequiredResourceAccess $requiredResourcesAccess
 
-    # create the service principal of the newly created application     
+    # create the service principal of the newly created application
     $currentServicePrincipal = Get-MgServicePrincipal -Filter "AppId eq '$($currentAppId)'"
     if (!$currentServicePrincipal) {
         $currentServicePrincipal = New-MgServicePrincipal -AppId $currentAppId `

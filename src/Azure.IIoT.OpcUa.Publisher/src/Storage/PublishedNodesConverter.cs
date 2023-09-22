@@ -292,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         .Batch(configuration.MaxNodesPerDataSet))
                     .ToList()
                     .ConvertAll(
-                        opcNodes => (opcNodes.First().Header, Source: new PublishedDataSetSourceModel
+                        opcNodes => (opcNodes.First().Header, WriterGroup: group.Key.Group, Source: new PublishedDataSetSourceModel
                         {
                             Connection = new ConnectionModel
                             {
@@ -377,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         MessageType = dataSetBatches.First.Header.MessageEncoding,
                         Transport = dataSetBatches.First.Header.WriterGroupTransport,
                         HeaderLayoutUri = dataSetBatches.First.Header.MessagingMode?.ToString(),
-                        WriterGroupId = dataSetBatches.First.Source.Connection?.Group,
+                        WriterGroupId = dataSetBatches.First.WriterGroup,
                         NotificationPublishThreshold = dataSetBatches.First.Header.BatchSize,
                         PublishingInterval = dataSetBatches.First.Header.GetNormalizedBatchTriggerInterval(),
                         DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel

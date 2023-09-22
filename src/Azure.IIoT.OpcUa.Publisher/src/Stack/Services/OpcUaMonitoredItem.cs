@@ -16,10 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using MonitoringMode = Publisher.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
-    using System.Data;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Monitored item
@@ -159,9 +160,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public abstract void GetMetaData(IOpcUaSession session,
+        public abstract ValueTask GetMetaDataAsync(IOpcUaSession session,
             ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes);
+            NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct);
 
         /// <summary>
         /// Dispose
@@ -404,13 +405,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="variable"></param>
         /// <param name="fieldName"></param>
         /// <param name="dataSetClassFieldId"></param>
-        protected void AddVariableField(FieldMetaDataCollection fields,
+        /// <param name="ct"></param>
+        protected async ValueTask AddVariableFieldAsync(FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes, IOpcUaSession session,
             ComplexTypeSystem? typeSystem, VariableNode variable,
-            string fieldName, Uuid dataSetClassFieldId)
+            string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
-            var builtInType = TypeInfo.GetBuiltInType(variable.DataType,
-                session.NodeCache.TypeTree);
+            var builtInType = await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
+                session.NodeCache.TypeTree).ConfigureAwait(false);
             fields.Add(new FieldMetaData
             {
                 Name = fieldName,
@@ -427,8 +429,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Properties = null, // TODO: Add engineering units etc. to properties
                 BuiltInType = (byte)builtInType
             });
-
-            AddDataTypes(dataTypes, variable.DataType, session, typeSystem);
+            await AddDataTypesAsync(dataTypes, variable.DataType, session, typeSystem,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -438,15 +440,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="dataTypeId"></param>
         /// <param name="session"></param>
         /// <param name="typeSystem"></param>
-        protected void AddDataTypes(NodeIdDictionary<DataTypeDescription> dataTypes,
-            NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem)
+        /// <param name="ct"></param>
+        protected async ValueTask AddDataTypesAsync(NodeIdDictionary<DataTypeDescription> dataTypes,
+            NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
+            CancellationToken ct)
         {
             var baseType = dataTypeId;
             while (!Opc.Ua.NodeId.IsNull(baseType))
             {
                 try
                 {
-                    var dataType = session.NodeCache.FetchNode(baseType);
+                    var dataType = await session.NodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
                     if (dataType == null)
                     {
                         _logger.LogWarning(
@@ -467,8 +471,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         }
                     }
 
-                    var builtInType = TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
-                    baseType = session.TypeTree.FindSuperType(dataTypeId);
+                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                        session.TypeTree).ConfigureAwait(false);
+                    baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
 
                     switch (builtInType)
                     {
@@ -600,14 +605,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override void GetMetaData(IOpcUaSession session,
+            public override ValueTask GetMetaDataAsync(IOpcUaSession session,
                 ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes)
+                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
             {
-                AddVariableField(fields, dataTypes, session, typeSystem, new VariableNode
+                return AddVariableFieldAsync(fields, dataTypes, session, typeSystem, new VariableNode
                 {
                     DataType = (int)BuiltInType.Variant
-                }, Template.DisplayName, (Uuid)_fieldId);
+                }, Template.DisplayName, (Uuid)_fieldId, ct);
             }
 
             /// <inheritdoc/>
@@ -825,9 +830,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override void GetMetaData(IOpcUaSession session,
+            public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
                 ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes)
+                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
             {
                 var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
@@ -837,10 +842,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 try
                 {
-                    if (session.NodeCache.FetchNode(nodeId) is VariableNode variable)
+                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
+                    if (node is VariableNode variable)
                     {
-                        AddVariableField(fields, dataTypes, session, typeSystem, variable,
-                            Template.DisplayName, (Uuid)DataSetClassFieldId);
+                        await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
+                            Template.DisplayName, (Uuid)DataSetClassFieldId, ct).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -1624,9 +1630,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override void GetMetaData(IOpcUaSession session,
+            public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
                 ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes)
+                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
             {
                 if (Item?.Filter is not EventFilter eventFilter)
                 {
@@ -1644,12 +1650,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             continue;
                         }
                         var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                        var targetNode = FindNodeWithBrowsePath(session,
-                            selectClause.BrowsePath, selectClause.TypeDefinitionId);
+                        var targetNode = await FindNodeWithBrowsePathAsync(session, selectClause.BrowsePath,
+                            selectClause.TypeDefinitionId, ct).ConfigureAwait(false);
                         if (targetNode is VariableNode variable)
                         {
-                            AddVariableField(fields, dataTypes, session,
-                                typeSystem, variable, fieldName, dataSetClassFieldId);
+                            await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
+                                fieldName, dataSetClassFieldId, ct).ConfigureAwait(false);
                         }
                         else
                         {
@@ -1679,7 +1685,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Debug.Assert(Item != null);
 
                 // TODO: Instead figure out how to get the filter status and inspect
-                return TestWhereClause(subscription.Session, Item.Filter as EventFilter);
+                return TestWhereClauseAsync(subscription.Session, Item.Filter as EventFilter).Result;
             }
 
             /// <inheritdoc/>
@@ -1898,7 +1904,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             protected EventFilter GetEventFilter(IOpcUaSession session, out List<SimpleAttributeOperand> selectClauses)
             {
                 var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
-                    ? GetSimpleEventFilter(session) : session.Codec.Decode(Template.EventFilter);
+                    ? GetSimpleEventFilterAsync(session).Result : session.Codec.Decode(Template.EventFilter);
 
                 // let's keep track of the internal fields we add so that they don't show up in the output
                 selectClauses = new List<SimpleAttributeOperand>();
@@ -1916,21 +1922,27 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// Builds select clause and where clause by using OPC UA reflection
             /// </summary>
             /// <param name="session"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
-            private EventFilter GetSimpleEventFilter(IOpcUaSession session)
+            private async ValueTask<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
+                CancellationToken ct = default)
             {
                 Debug.Assert(Template != null);
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
                     session.MessageContext);
                 var nodes = new List<Node>();
                 ExpandedNodeId? superType = null;
-                nodes.Insert(0, session.NodeCache.FetchNode(typeDefinitionId));
+                var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
+                    ct).ConfigureAwait(false);
+                nodes.Insert(0, typeDefinitionNode);
                 do
                 {
                     superType = nodes[0].GetSuperType(session.TypeTree);
                     if (superType != null)
                     {
-                        nodes.Insert(0, session.NodeCache.FetchNode(superType));
+                        typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
+                            ct).ConfigureAwait(false);
+                        nodes.Insert(0, typeDefinitionNode);
                     }
                 }
                 while (superType != null);
@@ -1939,7 +1951,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 foreach (var node in nodes)
                 {
-                    ParseFields(session, fieldNames, node, string.Empty);
+                    await ParseFieldsAsync(session, fieldNames, node, string.Empty, ct).ConfigureAwait(false);
                 }
                 fieldNames = fieldNames
                     .Distinct()
@@ -1981,7 +1993,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// </summary>
             /// <param name="session"></param>
             /// <param name="eventFilter"></param>
-            private bool TestWhereClause(ISession session, EventFilter? eventFilter)
+            /// <param name="ct"></param>
+            private async ValueTask<bool> TestWhereClauseAsync(ISession session, EventFilter? eventFilter,
+                CancellationToken ct = default)
             {
                 var isValid = eventFilter != null;
                 try
@@ -2006,8 +2020,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                                     nodeId = (filterOperand.Body as LiteralOperand)?.Value
                                         .ToString().ToNodeId(session.MessageContext);
                                     // it will throw an exception if it doesn't work
-                                    session.NodeCache.FetchNode(nodeId?.ToExpandedNodeId(
-                                        session.MessageContext.NamespaceUris));
+                                    await session.NodeCache.FetchNodeAsync(nodeId?.ToExpandedNodeId(
+                                        session.MessageContext.NamespaceUris), ct).ConfigureAwait(false);
                                 }
                                 catch (Exception ex)
                                 {
@@ -2037,9 +2051,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="session"></param>
             /// <param name="browsePath"></param>
             /// <param name="nodeId"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
-            private static INode? FindNodeWithBrowsePath(IOpcUaSession session,
-                QualifiedNameCollection browsePath, ExpandedNodeId nodeId)
+            private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
+                QualifiedNameCollection browsePath, ExpandedNodeId nodeId, CancellationToken ct)
             {
                 INode? found = null;
                 foreach (var browseName in browsePath)
@@ -2047,7 +2062,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     found = null;
                     while (found == null)
                     {
-                        found = session.NodeCache.Find(nodeId);
+                        found = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
                         if (found is not Node node)
                         {
                             return null;
@@ -2061,7 +2076,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             ReferenceTypeIds.HierarchicalReferences, false,
                                 true, session.TypeTree))
                         {
-                            var target = session.NodeCache.Find(reference.TargetId);
+                            var target = await session.NodeCache.FindAsync(reference.TargetId,
+                                ct).ConfigureAwait(false);
                             if (target?.BrowseName == browseName)
                             {
                                 nodeId = target.NodeId;
@@ -2073,7 +2089,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         if (found == null)
                         {
                             // Try super type
-                            nodeId = session.TypeTree.FindSuperType(nodeId);
+                            nodeId = await session.TypeTree.FindSuperTypeAsync(nodeId,
+                                ct).ConfigureAwait(false);
                             if (Opc.Ua.NodeId.IsNull(nodeId))
                             {
                                 // Nothing can be found since there is no more super type
@@ -2094,28 +2111,31 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="fieldNames"></param>
             /// <param name="node"></param>
             /// <param name="browsePathPrefix"></param>
-            protected void ParseFields(IOpcUaSession session,
-                List<QualifiedName> fieldNames, Node node, string browsePathPrefix)
+            /// <param name="ct"></param>
+            protected async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
+                Node node, string browsePathPrefix, CancellationToken ct)
             {
                 foreach (var reference in node.ReferenceTable)
                 {
                     if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
                         !reference.IsInverse)
                     {
-                        var componentNode = session.NodeCache.FetchNode(reference.TargetId);
+                        var componentNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                            ct).ConfigureAwait(false);
                         if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
                         {
-                            var fieldName = $"{browsePathPrefix}{componentNode.BrowseName.Name}";
+                            var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
                             fieldNames.Add(new QualifiedName(
                                 fieldName, componentNode.BrowseName.NamespaceIndex));
-                            ParseFields(session, fieldNames, componentNode,
-                                $"{fieldName}|");
+                            await ParseFieldsAsync(session, fieldNames, componentNode,
+                                $"{fieldName}|", ct).ConfigureAwait(false);
                         }
                     }
                     else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
                     {
-                        var propertyNode = session.NodeCache.FetchNode(reference.TargetId);
-                        var fieldName = $"{browsePathPrefix}{propertyNode.BrowseName.Name}";
+                        var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                            ct).ConfigureAwait(false);
+                        var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
                         fieldNames.Add(new QualifiedName(
                             fieldName, propertyNode.BrowseName.NamespaceIndex));
                     }
