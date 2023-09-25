@@ -11,6 +11,11 @@ namespace Azure.IIoT.OpcUa.Publisher
     internal static class Constants
     {
         /// <summary>
+        /// Connection group identifier tag
+        /// </summary>
+        public const string ConnectionGroupTag = "connectionGroupId";
+
+        /// <summary>
         /// Dataset Writer identifier tag
         /// </summary>
         public const string DataSetWriterIdTag = "dataSetWriterId";

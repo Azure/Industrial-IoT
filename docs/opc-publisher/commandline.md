@@ -17,7 +17,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.2
+                                                                         2.9.3
 General
 -------
 
@@ -209,6 +209,11 @@ Messaging configuration
                                metadata asynchronously.
                                Only used if meta data is supported and enabled.
                                Default: `30`.
+      --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
+                             Disable creating a separate session per writer
+                               group. Instead sessions are re-used across
+                               writer groups.
+                               Default: `False`.
       --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.

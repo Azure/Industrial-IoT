@@ -42,9 +42,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             if (connection.Group != null &&
-                !tags.ContainsKey(Constants.WriterGroupIdTag))
+                !tags.ContainsKey(Constants.ConnectionGroupTag))
             {
-                TagList.Add(Constants.WriterGroupIdTag, connection.Group);
+                TagList.Add(Constants.ConnectionGroupTag, connection.Group);
             }
         }
     }

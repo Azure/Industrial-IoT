@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             var connection = dataSetWriter.DataSet.DataSetSource.Connection;
 
-            if (connection.Group == null)
+            if (connection.Group == null && options.DisableSessionPerWriterGroup != true)
             {
                 connection = connection with
                 {
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 connection = connection with
                 {
-                    // IsReverse = options.DefaultUseReverseConnect
+                    IsReverse = options.DefaultUseReverseConnect
                 };
             }
             return new SubscriptionIdentifier(connection, dataSetWriter.DataSetWriterName);

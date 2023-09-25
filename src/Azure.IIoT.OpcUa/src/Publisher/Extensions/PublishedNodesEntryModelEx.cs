@@ -40,7 +40,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         }
 
         /// <summary>
-        /// Compare entry to connection endpoint
+        /// Create a new published nodes entry model. This is used only for the legacy
+        /// API to start, stop, bulk and list nodes. If the connection model uses the
+        /// group field it is used as writer group identifier.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

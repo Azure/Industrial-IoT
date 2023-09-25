@@ -50,7 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// PublishStart
         /// </summary>
         /// <remarks>
-        /// Start publishing values from a node ona server.
+        /// Start publishing values from a node on a server. The group field
+        /// in the Connection Model can be used to specify a writer group
+        /// identifier that will be used in the configuration entry that is
+        /// created from it inside the OPC Publisher.
         /// </remarks>
         /// <param name="request">The server and node to publish.</param>
         /// <returns>The results of the operation.</returns>
@@ -72,6 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <remarks>
         /// Stop publishing values from a node on the specified server.
+        /// The group field that was used in the Connection Model to start
+        /// publishing must also be specified in this connection model.
         /// </remarks>
         /// <param name="request">The node to stop publishing</param>
         /// <returns>The result of the stop operation.</returns>
@@ -92,7 +97,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// PublishBulk
         /// </summary>
         /// <remarks>
-        /// Configure node values to publish and unpublish in bulk
+        /// Configure node values to publish and unpublish in bulk. The group
+        /// field in the Connection Model can be used to specify a writer group
+        /// identifier that will be used in the configuration entry that is
+        /// created from it inside the OPC Publisher.
         /// </remarks>
         /// <param name="request">The nodes to publish or unpublish.</param>
         /// <returns>The result for each operation.</returns>
@@ -114,6 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <remarks>
         /// Get all published nodes for a server endpoint.
+        /// The group field that was used in the Connection Model to start
+        /// publishing must also be specified in this connection model.
         /// </remarks>
         /// <param name="request"></param>
         /// <returns>The list of published nodes.</returns>
