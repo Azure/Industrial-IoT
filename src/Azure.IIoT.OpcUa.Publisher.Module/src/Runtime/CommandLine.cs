@@ -120,12 +120,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherConfig.IoTHubMaxMessageSize}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
                     (int i) => this[PublisherConfig.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"mts|messagetimestamp=|{PublisherConfig.MessageTimestampKey}=",
-                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.CurrentTimeUtc)}` to use the time when the message was created in OPC Publisher.\n",
-                    (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
 
                 // TODO: Add ConfiguredMessageSize
 
+                { $"mts|messagetimestamp=|{PublisherConfig.MessageTimestampKey}=",
+                    $"The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageTimestamp)))}`\nDefault: `{nameof(MessageTimestamp.CurrentTimeUtc)}` to use the time when the message was created in OPC Publisher.\n",
+                    (MessageTimestamp m) => this[PublisherConfig.MessageTimestampKey] = m.ToString() },
                 { $"npd|maxnodesperdataset=|{PublisherConfig.MaxNodesPerDataSetKey}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
                     (int i) => this[PublisherConfig.MaxNodesPerDataSetKey] = i.ToString(CultureInfo.CurrentCulture) },
@@ -151,6 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"amt|asyncmetadatathreshold=|{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey}=",
                     $"The default threshold of monitored items in a subscription under which meta data is loaded synchronously during subscription creation.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to always load metadata asynchronously.\nOnly used if meta data is supported and enabled.\nDefault: `{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdDefault}`.\n",
                     (int i) => this[OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"dsg|disablesessionpergroup:|{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey}:",
+                    $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupDefault}`.\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
+
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
                     $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (int i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },

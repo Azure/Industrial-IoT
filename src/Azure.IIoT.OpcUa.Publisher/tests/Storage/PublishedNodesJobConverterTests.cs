@@ -568,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Single(writerGroups);
             Assert.Equal("testgroup", writerGroups
                 .Single().WriterGroupId);
-            Assert.Equal("testgroup", writerGroups
+            Assert.Null(writerGroups // Will be set later based on configuration.
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Group);
         }
@@ -814,7 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
             Assert.Equal("testgroup", writerGroups
                 .Single().WriterGroupId);
-            Assert.Equal("testgroup", writerGroups
+            Assert.Null(writerGroups // Will be set later based on configuration.
                 .Single().DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
             Assert.Equal("testwriterid_($a4ac914c09d7c097fe1f4f96b897e625b6922069)", writerGroups
                 .Single().DataSetWriters[0].DataSetWriterName);

@@ -35,12 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public interface IOpcUaMonitoredItem : IDisposable
     {
         /// <summary>
-        /// Get any changes in the monitoring mode to apply if any.
-        /// Otherwise the returned value is null.
-        /// </summary>
-        MonitoringMode? MonitoringModeChange { get; }
-
-        /// <summary>
         /// Monitored item once added to the subscription. Contract:
         /// The item will be null until the subscription calls
         /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
@@ -108,6 +102,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges, Action<MessageType,
                 IEnumerable<MonitoredItemNotificationModel>> cb);
+
+        /// <summary>
+        /// Get any changes in the monitoring mode to apply if any.
+        /// Otherwise the returned value is null.
+        /// </summary>
+        MonitoringMode? GetMonitoringModeChange();
 
         /// <summary>
         /// Try and get metadata for the item

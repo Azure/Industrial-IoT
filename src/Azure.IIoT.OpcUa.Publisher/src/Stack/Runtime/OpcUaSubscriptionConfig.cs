@@ -39,6 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
         public const string AsyncMetaDataLoadThresholdKey = "AsyncMetaDataLoadThreshold";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
+        public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -55,6 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool DefaultSamplingUsingCyclicReadDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
+        public const bool DisableSessionPerWriterGroupDefault = false;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -129,6 +131,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.EnableImmediatePublishing == null)
             {
                 options.EnableImmediatePublishing = GetBoolOrNull(EnableImmediatePublishingKey);
+            }
+            if (options.DisableSessionPerWriterGroup == null)
+            {
+                options.DisableSessionPerWriterGroup = GetBoolOrDefault(DisableSessionPerWriterGroupKey,
+                    DisableSessionPerWriterGroupDefault);
             }
             if (options.EnableDataSetKeepAlives == null)
             {

@@ -279,6 +279,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y))
                 ).ToList();
 
+                // Transforms a published nodes model connection header to a Connection Model object
+                ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
+                {
+                    return new ConnectionModel
+                    {
+                        //
+                        // Insert the group here to not loose group from context
+                        // so during linq enumeration we can have access to it.
+                        // The connection model that is finally emitted does not
+                        // set a group though. This is set later when a writer
+                        // group is started and depends on the session/subscription
+                        // configuration.
+                        //
+                        Group = model.DataSetWriterGroup,
+                        IsReverse = model.UseReverseConnect,
+                        Endpoint = new EndpointModel
+                        {
+                            Url = model.EndpointUrl,
+                            SecurityPolicy = model.EndpointSecurityPolicy,
+                            SecurityMode = model.EndpointSecurityMode ?? (model.UseSecurity
+                                //
+                                // This is a break in backwards compatibility. Previously we would allow
+                                // also no security because SecurityMode.Best was used for UseSecurity.
+                                // However, the expectation is that highest security is going to be used
+                                // or to fail.
+                                //
+                                ? SecurityMode.SignAndEncrypt
+                                : SecurityMode.None)
+                        },
+                        User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult()
+                    };
+                }
+
                 var opcNodeModelComparer = new OpcNodeModelComparer();
                 var flattenedEndpoints = endpoints.ConvertAll(
                     group => group
@@ -299,8 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Endpoint = group.Key.Endpoint.Clone(),
                                 User = group.Key.User.Clone(),
                                 Diagnostics = group.Key.Diagnostics.Clone(),
-                                IsReverse = group.Key.IsReverse,
-                                Group = group.Key.Group
+                                IsReverse = group.Key.IsReverse
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
@@ -408,7 +441,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Endpoint = dataSet.Source.Connection?.Endpoint.Clone(),
                                         User = dataSet.Source.Connection?.User.Clone(),
                                         Diagnostics = dataSet.Source.Connection?.Diagnostics.Clone(),
-                                        Group = dataSet.Source.Connection?.Group,
                                         IsReverse = dataSet.Source.Connection?.IsReverse
                                     },
                                     PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
@@ -453,35 +485,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     sw.Elapsed);
                 sw.Stop();
             }
-        }
-
-        /// <summary>
-        /// Transforms a published nodes model connection header to a Connection Model object
-        /// </summary>
-        /// <param name="model"></param>
-        private ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
-        {
-            return new ConnectionModel
-            {
-                Group = model.DataSetWriterGroup,
-                IsReverse = model.UseReverseConnect,
-                Endpoint = new EndpointModel
-                {
-                    Url = model.EndpointUrl,
-                    SecurityPolicy = model.EndpointSecurityPolicy,
-                    SecurityMode = model.EndpointSecurityMode ?? (model.UseSecurity
-                        //
-                        // This is a break in backwards compatibility. Previously we would allow
-                        // also no security because SecurityMode.Best was used for UseSecurity.
-                        // However, the expectation is that highest security is going to be used
-                        // or to fail.
-                        //
-                        ? SecurityMode.SignAndEncrypt
-                        : SecurityMode.None)
-                },
-                User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                    null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult()
-            };
         }
 
         /// <summary>

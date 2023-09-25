@@ -120,5 +120,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// status and value change triggering.
         /// </summary>
         public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
+
+        /// <summary>
+        /// Disable creating a separate session per writer group. This
+        /// will re-use sessions across writer groups. Default is to
+        /// create a seperate session.
+        /// </summary>
+        public bool? DisableSessionPerWriterGroup { get; set; }
     }
 }
