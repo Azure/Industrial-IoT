@@ -804,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // the monitoring mode was already configured. This is for updates as
             // they are not applied through ApplyChanges
             //
-            foreach (var change in successfullyCompletedItems.GroupBy(i => i.MonitoringModeChange))
+            foreach (var change in successfullyCompletedItems.GroupBy(i => i.GetMonitoringModeChange()))
             {
                 if (change.Key == null)
                 {

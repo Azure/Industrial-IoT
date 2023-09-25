@@ -39,22 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool AttachedToSubscription { get; protected internal set; }
 
         /// <inheritdoc/>
-        public Opc.Ua.MonitoringMode? MonitoringModeChange
-        {
-            get
-            {
-                if (!AttachedToSubscription || Item == null)
-                {
-                    return null;
-                }
-                var currentMode = Item.Status?.MonitoringMode
-                    ?? Opc.Ua.MonitoringMode.Disabled;
-                var desiredMode = Item.MonitoringMode;
-                return currentMode != desiredMode ? desiredMode : null;
-            }
-        }
-
-        /// <inheritdoc/>
         public virtual (string NodeId, UpdateNodeId Update)? Register
             => null;
 
@@ -277,6 +261,19 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     this, subscription.Id);
             }
             return true;
+        }
+
+        /// <inheritdoc/>
+        public virtual Opc.Ua.MonitoringMode? GetMonitoringModeChange()
+        {
+            if (!AttachedToSubscription || Item == null)
+            {
+                return null;
+            }
+            var currentMode = Item.Status?.MonitoringMode
+                ?? Opc.Ua.MonitoringMode.Disabled;
+            var desiredMode = Item.MonitoringMode;
+            return currentMode != desiredMode ? desiredMode : null;
         }
 
         /// <inheritdoc/>
@@ -1410,15 +1407,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+            public override Opc.Ua.MonitoringMode? GetMonitoringModeChange()
             {
-                // Dont call base implementation as it is not what we want.
-                if (Item == null)
-                {
-                    return false;
-                }
+                var monitoringMode = base.GetMonitoringModeChange();
 
                 if (!AttachedToSubscription)
                 {
@@ -1429,28 +1420,36 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         _logger.LogDebug("Item {Item} unregistered from sampler.", this);
                     }
                     _sampling = null;
-                    _callback = null;
                 }
-                else
+                else if (_sampling == null)
                 {
-                    _callback = cb;
+                    Debug.Assert(Item?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
+                    _sampling = _sampler.Sample(_connection.Connection,
+                        TimeSpan.FromMilliseconds(Item.SamplingInterval),
+                        new ReadValueId
+                        {
+                            AttributeId = Item.AttributeId,
+                            IndexRange = Item.IndexRange,
+                            NodeId = Item.ResolvedNodeId
+                        }, OnSampledDataValueReceived);
 
-                    if (_sampling == null)
-                    {
-                        Debug.Assert(Item?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
-                        _sampling = _sampler.Sample(_connection.Connection,
-                            TimeSpan.FromMilliseconds(Item.SamplingInterval),
-                            new ReadValueId
-                            {
-                                AttributeId = Item.AttributeId,
-                                IndexRange = Item.IndexRange,
-                                NodeId = Item.ResolvedNodeId
-                            }, OnSampledDataValueReceived);
-
-                        _logger.LogDebug("Item {Item} successfully registered with sampler.",
-                            this);
-                    }
+                    _logger.LogDebug("Item {Item} successfully registered with sampler.",
+                        this);
                 }
+                return monitoringMode;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges,
+                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+            {
+                // Dont call base implementation as it is not what we want.
+                if (Item == null)
+                {
+                    return false;
+                }
+                _callback = !AttachedToSubscription ? null : cb;
                 return true;
             }
 

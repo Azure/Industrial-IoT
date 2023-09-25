@@ -47,11 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
-                Assert.NotNull(metadata);
 
                 var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
+                Assert.NotNull(metadata);
             }
             finally
             {
