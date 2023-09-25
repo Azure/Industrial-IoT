@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public DiagnosticsModel? Diagnostics { get; set; }
 
         /// <summary>
-        /// Connection group allows splitting connections per
-        /// purpose.
+        /// Connection group allows splitting connections
+        /// per purpose.
         /// </summary>
         [DataMember(Name = "group", Order = 3,
              EmitDefaultValue = false)]
