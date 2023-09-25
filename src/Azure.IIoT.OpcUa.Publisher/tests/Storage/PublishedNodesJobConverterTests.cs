@@ -815,7 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("testgroup", writerGroups
                 .Single().WriterGroupId);
             Assert.Null(writerGroups // Will be set later based on configuration.
-                 .Single().DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
+                .Single().DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
             Assert.Equal("testwriterid_($a4ac914c09d7c097fe1f4f96b897e625b6922069)", writerGroups
                 .Single().DataSetWriters[0].DataSetWriterName);
             Assert.Equal(2000, writerGroups
