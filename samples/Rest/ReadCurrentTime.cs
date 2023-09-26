@@ -11,19 +11,20 @@ Console.WriteLine();
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
 
+using var parameters = await Parameters.Parse(args).ConfigureAwait(false);
 // Connect to publisher
-using var httpClient = SamplesHelper.Shared.CreateClient();
+using var httpClient = parameters.CreateHttpClientWithAuth();
 
 while (true)
 {
     // Read current time from server - see /read api in api.md
-    using var response = await httpClient.PostAsJsonAsync(SamplesHelper.Shared.OpcPublisher + "/v2/read", new
+    using var response = await httpClient.PostAsJsonAsync(parameters.OpcPublisher + "/v2/read", new
     {
         connection = new
         {
             endpoint = new
             {
-                url = SamplesHelper.Shared.OpcPlc,
+                url = parameters.OpcPlc,
                 securityMode = "SignAndEncrypt"
             }
         },

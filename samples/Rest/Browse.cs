@@ -11,10 +11,11 @@ Console.WriteLine();
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
 
+using var parameters = await Parameters.Parse(args).ConfigureAwait(false);
 // Connect to publisher
-using var httpClient = SamplesHelper.Shared.CreateClient();
+using var httpClient = parameters.CreateHttpClientWithAuth();
 
-var request = new HttpRequestMessage(HttpMethod.Post, SamplesHelper.Shared.OpcPublisher + "/v2/browse")
+var request = new HttpRequestMessage(HttpMethod.Post, parameters.OpcPublisher + "/v2/browse")
 {
     Content = JsonContent.Create(new
     {
@@ -22,7 +23,7 @@ var request = new HttpRequestMessage(HttpMethod.Post, SamplesHelper.Shared.OpcPu
         {
             endpoint = new
             {
-                url = SamplesHelper.Shared.OpcPlc,
+                url = parameters.OpcPlc,
                 securityMode = "SignAndEncrypt"
             }
         },

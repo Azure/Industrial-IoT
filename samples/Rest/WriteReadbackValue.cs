@@ -11,8 +11,9 @@ Console.WriteLine();
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
 
+using var parameters = await Parameters.Parse(args).ConfigureAwait(false);
 // Connect to publisher
-using var httpClient = SamplesHelper.Shared.CreateClient();
+using var httpClient = parameters.CreateHttpClientWithAuth();
 
 //
 // Perform a couple write and readback operations:
@@ -40,13 +41,13 @@ Console.WriteLine("Now reset back to: " + originalValue);
 // Read value of the slow number of updates configuration node
 async ValueTask<int> ReadSlowNumberOfUpdatesValueAsync()
 {
-    using var response = await httpClient.PostAsJsonAsync(SamplesHelper.Shared.OpcPublisher + "/v2/read", new
+    using var response = await httpClient.PostAsJsonAsync(parameters.OpcPublisher + "/v2/read", new
     {
         connection = new
         {
             endpoint = new
             {
-                url = SamplesHelper.Shared.OpcPlc,
+                url = parameters.OpcPlc,
                 securityMode = "SignAndEncrypt"
             }
         },
@@ -63,13 +64,13 @@ async ValueTask<int> ReadSlowNumberOfUpdatesValueAsync()
 // Write value to the slow number of updates configuration node
 async ValueTask WriteSlowNumberOfUpdatesValueAsync(int value)
 {
-    using var response = await httpClient.PostAsJsonAsync(SamplesHelper.Shared.OpcPublisher + "/v2/write", new
+    using var response = await httpClient.PostAsJsonAsync(parameters.OpcPublisher + "/v2/write", new
     {
         connection = new
         {
             endpoint = new
             {
-                url = SamplesHelper.Shared.OpcPlc,
+                url = parameters.OpcPlc,
                 securityMode = "SignAndEncrypt"
             }
         },

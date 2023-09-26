@@ -3,7 +3,7 @@
 This folder contains several samples that show how to interact with the OPC Publisher through Azure IoT Hub service and show for example how to 
 read or write values. To run the samples, first start OPC Publisher and OPC PLC simulation server:
 
-````bash
+```bash
 cd deploy
 cd docker
 set EdgeHubConnectionString=<iot edge connection string from Azure portal>
@@ -15,7 +15,7 @@ explained [here](../../docs/opc-publisher/opc-publisher.md#using-iot-edge-simula
 
 You also need to set both the `EdgeHubConnectionString` and the Azure IoT Hub connection string in your environment before running the samples:
 
-````bash
+```bash
 set EdgeHubConnectionString=<iot edge connection string from Azure portal>
 set IoTHubConnectionString=<iot hub connection string from Azure portal>
  ```

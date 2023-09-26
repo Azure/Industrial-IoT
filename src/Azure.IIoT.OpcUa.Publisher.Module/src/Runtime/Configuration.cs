@@ -421,15 +421,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Create kestrel configuration
             /// </summary>
-            /// <param name="memoryCache"></param>
+            /// <param name="certificates"></param>
             /// <param name="configuration"></param>
-            /// <param name="workload"></param>
-            public Kestrel(IMemoryCache memoryCache, IConfiguration configuration,
-                IoTEdgeWorkloadApi? workload = null)
+            public Kestrel(ISslCertProvider certificates, IConfiguration configuration)
                 : base(configuration)
             {
-                _memoryCache = memoryCache;
-                _workload = workload;
+                _certificates = certificates;
             }
 
             /// <inheritdoc/>
@@ -439,52 +436,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 options.ListenAnyIP(httpPort ?? HttpPortDefault);
 
                 var httpsPort = GetIntOrNull(HttpServerPortKey);
-                options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions =>
-                {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-                        httpsOptions.ServerCertificateSelector = (_, dnsName) =>
-                        {
-                            dnsName ??= "certificate";
-                            try
-                            {
-                                // Try get or create new certificate
-                                return GetCertificate(dnsName, httpsOptions);
-                            }
-                            catch
-                            {
-                                // Invalidate
-                                _memoryCache.Remove(dnsName);
-                                return httpsOptions.ServerCertificate;
-                            }
-                        };
-                    });
-                });
-
-                X509Certificate2? GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
-                {
-                    return _memoryCache.GetOrCreate(dnsName, async cacheEntry =>
-                    {
-                        if (_workload != null)
-                        {
-                            cacheEntry.AbsoluteExpirationRelativeToNow =
-                                TimeSpan.FromDays(30);
-                            var expiration = DateTime.UtcNow +
-                                cacheEntry.AbsoluteExpirationRelativeToNow.Value;
-                            var chain = await _workload.CreateServerCertificateAsync(
-                                dnsName, expiration, default).ConfigureAwait(false);
-                            // TODO: where should the chain go?
-                            httpsOptions.ServerCertificateChain =
-                                new X509Certificate2Collection(chain.Skip(1).ToArray());
-                            return chain[0];
-                        }
-                        return httpsOptions.ServerCertificate;
-                    })?.Result;
-                }
+                options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions
+                    => listenOptions.UseHttps(httpsOptions => httpsOptions
+                        .ServerCertificateSelector = (_, _) => _certificates.Certificate));
             }
 
-            private readonly IMemoryCache _memoryCache;
-            private readonly IoTEdgeWorkloadApi? _workload;
+            private readonly ISslCertProvider _certificates;
         }
 
         /// <summary>
