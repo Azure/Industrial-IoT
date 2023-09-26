@@ -8,7 +8,7 @@ services:
     image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-latest}
     ports:
       - "50000:50000"
-    command: [ 
+    command: [
       "--sph",
       "--spf=/shared/pn.json",
       "--pn=50000",
@@ -29,20 +29,20 @@ services:
     container_name: publisher
     image: mcr.microsoft.com/iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
     ports:
-      - "9080:80"
-      - "9081:443"
-    command: [ 
+      - "9071:80"
+      - "9072:443"
+    command: [
       "-c",
       "--aa",
-      "--bs=1", 
-      "--bi=0", 
-      "--di=0", 
-      "--cl=5", 
-      "--pki=/shared/pki", 
+      "--bs=1",
+      "--bi=0",
+      "--di=0",
+      "--cl=5",
+      "--pki=/shared/pki",
       "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-5000}"
       ]
-    environment: 
+    environment:
       EdgeHubConnectionString:
     volumes:
       - shared:/shared

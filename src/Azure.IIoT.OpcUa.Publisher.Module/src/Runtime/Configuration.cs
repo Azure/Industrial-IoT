@@ -478,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 new X509Certificate2Collection(chain.Skip(1).ToArray());
                             return chain[0];
                         }
-                        return null;
+                        return httpsOptions.ServerCertificate;
                     })?.Result;
                 }
             }
