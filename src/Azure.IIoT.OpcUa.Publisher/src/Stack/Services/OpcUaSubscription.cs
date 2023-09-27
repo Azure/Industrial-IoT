@@ -957,7 +957,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 foreach (var monitoredItem in monitoredItemsInDataSet)
                 {
                     await monitoredItem.GetMetaDataAsync(sessionHandle, typeSystem, fields, dataTypes,
-                        ct).ConfigureAwait(false);
+                        default).ConfigureAwait(false);
                 }
                 return new DataSetMetaDataType
                 {

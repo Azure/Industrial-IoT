@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
         /// <returns></returns>
         private static ObjectResult GetResponse(HttpStatusCode code, Exception exception)
         {
-            return new ObjectResult(exception)
+            return new ObjectResult(exception.Message)
             {
                 StatusCode = (int)code
             };

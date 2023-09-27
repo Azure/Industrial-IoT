@@ -522,7 +522,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning("{Item}: Failed to get meta data for type {DataType}" +
+                    _logger.LogWarning(ex, "{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
                 }

@@ -19,16 +19,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
     using System.Net;
 
     /// <summary>
     /// This class manages reporting of runtime state.
     /// </summary>
-    public class RuntimeStateReporter : IRuntimeStateReporter, IApiKeyProvider,
+    public sealed class RuntimeStateReporter : IRuntimeStateReporter, IApiKeyProvider,
         ISslCertProvider, IDisposable
     {
         /// <inheritdoc/>
@@ -55,6 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _workload = workload;
+            _renewalTimer = new Timer(OnRenewExpiredCertificateAsync);
 
             ArgumentNullException.ThrowIfNull(stores);
             ArgumentNullException.ThrowIfNull(events);
@@ -72,6 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public void Dispose()
         {
             Certificate?.Dispose();
+            _renewalTimer.Dispose();
         }
 
         /// <inheritdoc/>
@@ -132,11 +134,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     // Load certificate
+                    Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
-                    if (Certificate.NotAfter >= DateTime.UtcNow)
+                    var now = DateTime.UtcNow.AddDays(1);
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
                     {
-                        _logger.LogInformation("Using valid Certificate found in {Store} store...",
-                            apiKeyStore.Name);
+                        var renewalAfter = Certificate.NotAfter - now;
+                        _logger.LogInformation(
+                            "Using valid Certificate found in {Store} store (renewal in {Duration})...",
+                            apiKeyStore.Name, renewalAfter);
+                        _renewalTimer.Change(renewalAfter, Timeout.InfiniteTimeSpan);
                         // Done
                         return;
                     }
@@ -150,39 +157,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
+            // Create new certificate
+            var expiration = DateTimeOffset.UtcNow.AddDays(kCertificateLifetimeDays);
+            var dnsName = Dns.GetHostName();
+
+            Certificate?.Dispose();
+            Certificate = null;
+            if (_workload != null)
+            {
+                try
+                {
+                    var certificates = await _workload.CreateServerCertificateAsync(
+                        dnsName, expiration.Date, default).ConfigureAwait(false);
+
+                    Certificate = certificates[0];
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create certificate using workload API.");
+                }
+            }
+            if (Certificate == null)
+            {
+                using var ecdsa = ECDsa.Create();
+                var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
+                Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
+                Debug.Assert(Certificate.HasPrivateKey);
+            }
+
             Debug.Assert(_stores.Count > 0);
             Debug.Assert(ApiKey != null);
             apiKeyStore ??= _stores[0];
-            _logger.LogInformation("Generating new Certificate in {Store} store...",
-                apiKeyStore.Name);
-            var pfxCertificate = await UpdateCertificateAsync(ApiKey).ConfigureAwait(false);
-            apiKeyStore.State.Add(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
 
-            async Task<byte[]> UpdateCertificateAsync(string password)
+            var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
+            apiKeyStore.State.AddOrUpdate(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
+
+            var renewalDuration = Certificate.NotAfter - expiration.Date - TimeSpan.FromDays(1);
+            _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
+            _logger.LogInformation(
+                "Created new Certificate in {Store} store (renewal in {Duration})...",
+                apiKeyStore.Name, renewalDuration);
+        }
+
+        /// <summary>
+        /// Renew certifiate
+        /// </summary>
+        /// <param name="state"></param>
+        private async void OnRenewExpiredCertificateAsync(object? state)
+        {
+            try
             {
-                var dnsName = Dns.GetHostName();
-                if (_workload != null)
-                {
-                    try
-                    {
-                        var expiration = DateTime.UtcNow + TimeSpan.FromDays(30);
-                        var certificates = await _workload.CreateServerCertificateAsync(
-                            dnsName, expiration, default).ConfigureAwait(false);
-
-                        Certificate = certificates[0];
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to create certificate using workload API.");
-                    }
-                }
-                if (Certificate == null)
-                {
-                    var ecdsa = ECDsa.Create();
-                    var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
-                    Certificate = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddDays(30));
-                }
-                return Certificate.Export(X509ContentType.Cert, password);
+                await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Retry
+                _logger.LogCritical(ex, "Failed to renew certificate - retrying in 1 hour...");
+                _renewalTimer.Change(TimeSpan.FromHours(1), Timeout.InfiniteTimeSpan);
             }
         }
 
@@ -223,8 +254,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        private const int kCertificateLifetimeDays = 30;
         private readonly ILogger _logger;
         private readonly IoTEdgeWorkloadApi? _workload;
+        private readonly Timer _renewalTimer;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;

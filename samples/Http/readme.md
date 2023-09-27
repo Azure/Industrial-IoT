@@ -27,4 +27,7 @@ set IoTHubConnectionString=<iot hub connection string from Azure portal>
 The environment variables are used to access IoT Hub and pull the API key (used as bearer authentication) and the certificate used to secure the REST endpoint.
 The certificate contains the private key. In production it should be downloaded and only the certificate itself should be made available to other applications.
 
-> Note_ The Environment variables are not required. The samples will fall back to use unsecure HTTP endpoint of OPC Publisher. However, this is not recommended for production. In production scenarios the HTTP port (80) should not be exposed. 
+> Note: The Environment variables are not required to run the samples. 
+> The samples will fall back to use the unsecure HTTP (port 80) endpoint of OPC Publisher.
+> However, this is not recommended for production. 
+> In production scenarios the HTTP port (80) should not be exposed like it is done in the compose samples. 
