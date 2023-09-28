@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
+    using Furly.Azure.IoT.Edge.Services;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -18,17 +19,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net;
 
     /// <summary>
     /// This class manages reporting of runtime state.
     /// </summary>
-    public class RuntimeStateReporter : IRuntimeStateReporter, IApiKeyProvider
+    public sealed class RuntimeStateReporter : IRuntimeStateReporter, IApiKeyProvider,
+        ISslCertProvider, IDisposable
     {
         /// <inheritdoc/>
         public string? ApiKey { get; private set; }
+
+        /// <inheritdoc/>
+        public X509Certificate2? Certificate { get; private set; }
 
         /// <summary>
         /// Constructor for runtime state reporter.
@@ -38,24 +45,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="stores"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
-            IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger)
+            IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger,
+            IoTEdgeWorkloadApi? workload = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _workload = workload;
+            _renewalTimer = new Timer(OnRenewExpiredCertificateAsync);
 
             ArgumentNullException.ThrowIfNull(stores);
             ArgumentNullException.ThrowIfNull(events);
 
-            _events = events.ToList();
-            _stores = stores.ToList();
+            _events = events.Reverse().ToList();
+            _stores = stores.Reverse().ToList();
             if (_stores.Count == 0)
             {
                 throw new ArgumentException("No key value stores configured.",
                     nameof(stores));
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Certificate?.Dispose();
+            _renewalTimer.Dispose();
         }
 
         /// <inheritdoc/>
@@ -72,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     GetType().Assembly.GetReleaseVersion().ToString();
             }
 
-            UpdateApiKey();
+            await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
 
             if (_options.Value.EnableRuntimeStateReporting ?? false)
             {
@@ -90,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Update cached api key
         /// </summary>
-        private void UpdateApiKey()
+        private async Task UpdateApiKeyAndCertificateAsync()
         {
             var apiKeyStore = _stores.Find(s => s.State.TryGetValue(
                 OpcUa.Constants.TwinPropertyApiKeyKey, out var key) && key.IsString);
@@ -106,6 +124,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _stores[0].Name);
                 ApiKey = RandomNumberGenerator.GetBytes(20).ToBase64String();
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
+            }
+
+            // The certificate must be in the same store as the api key or else we generate a new one.
+            if (apiKeyStore != null &&
+                apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
+                    out var cert) && cert.IsBytes)
+            {
+                try
+                {
+                    // Load certificate
+                    Certificate?.Dispose();
+                    Certificate = new X509Certificate2((byte[])cert!, ApiKey);
+                    var now = DateTime.UtcNow.AddDays(1);
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
+                    {
+                        var renewalAfter = Certificate.NotAfter - now;
+                        _logger.LogInformation(
+                            "Using valid Certificate found in {Store} store (renewal in {Duration})...",
+                            apiKeyStore.Name, renewalAfter);
+                        _renewalTimer.Change(renewalAfter, Timeout.InfiniteTimeSpan);
+                        // Done
+                        return;
+                    }
+                    _logger.LogInformation(
+                        "Certificate found in {Store} store has expired. Generate new...",
+                        apiKeyStore.Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Provided Certificate invalid.");
+                }
+            }
+
+            // Create new certificate
+            var nowOffset = DateTimeOffset.UtcNow;
+            var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
+            var dnsName = Dns.GetHostName();
+
+            Certificate?.Dispose();
+            Certificate = null;
+            if (_workload != null)
+            {
+                try
+                {
+                    var certificates = await _workload.CreateServerCertificateAsync(
+                        dnsName, expiration.Date, default).ConfigureAwait(false);
+
+                    Certificate = certificates[0];
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create certificate using workload API.");
+                }
+            }
+            if (Certificate == null)
+            {
+                using var ecdsa = ECDsa.Create();
+                var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
+                Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
+                Debug.Assert(Certificate.HasPrivateKey);
+            }
+
+            Debug.Assert(_stores.Count > 0);
+            Debug.Assert(ApiKey != null);
+            apiKeyStore ??= _stores[0];
+
+            var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
+            apiKeyStore.State.AddOrUpdate(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
+
+            var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
+            _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
+            _logger.LogInformation(
+                "Created new Certificate in {Store} store (renewal in {Duration})...",
+                apiKeyStore.Name, renewalDuration);
+        }
+
+        /// <summary>
+        /// Renew certifiate
+        /// </summary>
+        /// <param name="state"></param>
+        private async void OnRenewExpiredCertificateAsync(object? state)
+        {
+            try
+            {
+                await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Retry
+                _logger.LogCritical(ex, "Failed to renew certificate - retrying in 1 hour...");
+                _renewalTimer.Change(TimeSpan.FromHours(1), Timeout.InfiniteTimeSpan);
             }
         }
 
@@ -146,7 +255,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        private const int kCertificateLifetimeDays = 30;
         private readonly ILogger _logger;
+        private readonly IoTEdgeWorkloadApi? _workload;
+        private readonly Timer _renewalTimer;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;

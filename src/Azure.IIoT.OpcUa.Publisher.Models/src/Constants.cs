@@ -26,9 +26,14 @@ namespace Azure.IIoT.OpcUa
         public const string TwinPropertyVersionKey = "__version__";
 
         /// <summary>
-        /// Version property name constant
+        /// Spi key property name constant
         /// </summary>
         public const string TwinPropertyApiKeyKey = "__apikey__";
+
+        /// <summary>
+        /// Certificate property name constant
+        /// </summary>
+        public const string TwinPropertyCertificateKey = "__certificate__";
 
         /// <summary>
         /// Routing info message property

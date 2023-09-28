@@ -290,7 +290,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         dataSetClassId.ToString(),
                     [PublisherConfig.DataSetWriterGroupVariableName] =
                         outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId
-
                     // ...
                 });
 

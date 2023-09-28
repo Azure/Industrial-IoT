@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _encodingBlock =
                 new TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)>(
-                    EncodeNotifications, new ExecutionDataflowBlockOptions());
+                    EncodeSubscriptionNotifications, new ExecutionDataflowBlockOptions());
             _notificationBufferBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
                 _maxNotificationsPerMessage, new GroupingDataflowBlockOptions());
             _sinkBlock = new ActionBlock<(IEvent, Action)>(
@@ -198,7 +198,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private IEnumerable<(IEvent, Action)> EncodeNotifications(IOpcUaSubscriptionNotification[] input)
+        private IEnumerable<(IEvent, Action)> EncodeSubscriptionNotifications(
+            IOpcUaSubscriptionNotification[] input)
         {
             try
             {

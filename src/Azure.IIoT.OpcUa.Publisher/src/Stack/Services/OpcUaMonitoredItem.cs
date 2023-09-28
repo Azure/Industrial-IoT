@@ -520,9 +520,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             break;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogWarning("{Item}: Failed to get meta data for type {DataType}" +
+                    _logger.LogWarning(ex, "{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
                 }
@@ -846,7 +846,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             Template.DisplayName, (Uuid)DataSetClassFieldId, ct).ConfigureAwait(false);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     _logger.LogWarning("{Item}: Failed to get meta data for field {Field} " +
                         "with node {NodeId}: {Message}", this, Template.DisplayName, nodeId,
@@ -2035,7 +2035,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     _logger.LogError("{Item}: Failed to validate filter with error {Message}.",
                         this, ex.Message);

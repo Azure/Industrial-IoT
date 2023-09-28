@@ -6,13 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="GetConfiguration.cs" />
-    <Compile Remove="Parameters.cs" />
-    <Compile Remove="ReadCurrentTime.cs" />
-    <Compile Remove="WriteReadbackValue.cs" />
+    <Compile Include="..\Parameters.cs"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.9.2" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.39.0" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
   </ItemGroup>
