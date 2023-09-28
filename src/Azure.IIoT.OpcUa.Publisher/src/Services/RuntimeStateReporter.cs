@@ -158,7 +158,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // Create new certificate
-            var expiration = DateTimeOffset.UtcNow.AddDays(kCertificateLifetimeDays);
+            var nowOffset = DateTimeOffset.UtcNow;
+            var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
             var dnsName = Dns.GetHostName();
 
             Certificate?.Dispose();
@@ -192,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
             apiKeyStore.State.AddOrUpdate(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
 
-            var renewalDuration = Certificate.NotAfter - expiration.Date - TimeSpan.FromDays(1);
+            var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
             _logger.LogInformation(
                 "Created new Certificate in {Store} store (renewal in {Duration})...",
