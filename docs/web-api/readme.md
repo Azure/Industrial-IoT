@@ -134,7 +134,7 @@ The simplest way to get started is to deploy the Azure Industrial IoT OPC Publis
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-1. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](./tut-use-cli.md) or for debugging.
+1. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using the CLI tool or for debugging a locally running version of the web-api.
 
 ### Azure Active Directory application registrations
 
@@ -563,7 +563,6 @@ For more information see:
 - [Azure IoT Hub pricing information](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-pricing)
 - [IoT Hub quotas and throttling](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-quotas-throttling)
 - [IoT Hub limits](https://docs.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
-- [How to estimate the costs of running the Azure Industrial IoT companion web service](../tutorials/tut-iiot-cost-estimation.md)
 
 #### IoT Edge VM
 
@@ -970,5 +969,4 @@ References:
 
 ## Next steps
 
-- [Register a server and browse its address space](./tut-use-cli.md)
 - [Explore the REST API](./api.md)
