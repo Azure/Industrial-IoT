@@ -1,6 +1,6 @@
 steps:
 - task: AzureCLI@2
-  displayName: 'Set Service Principal Environment Variables'
+  displayName: 'Tesssssttttttttt'
   name: promoteserviceprincipal
   inputs:
     azureSubscription: '$(AzureSubscription)'
@@ -9,6 +9,7 @@ steps:
     scriptType: 'pscore'
     addSpnToEnvironment: true
     inlineScript: |
+      az account show
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
@@ -44,7 +45,7 @@ steps:
       -ImageTag '$(ImageTag)'
 
 - task: AzureCLI@2
-  displayName: 'Resolve Verifier Public IP'
+  displayName: 'Testtststststtt2'
   name: resolveverifierip
   inputs:
     azureSubscription: '$(AzureSubscription)'
@@ -52,6 +53,7 @@ steps:
     scriptLocation: 'InlineScript'
     scriptType: 'pscore'
     inlineScript: |
+      az get-access-token
       $verifierIp = kubectl get services/verifier -n e2etesting -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
       while(!$verifierIp){
         Write-Host "verifierIp not found. sleeping"
