@@ -43,6 +43,7 @@ Here you find information about
     - [Discovery Progress](#discovery-progress)
   - [OPC UA command and control (OPC Twin)](#opc-ua-command-and-control-opc-twin)
 - [OPC UA Certificates management](#opc-ua-certificates-management)
+  - [PKI](#pki)
   - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
 - [OPC UA stack](#opc-ua-stack)
 - [Performance and Memory Tuning OPC Publisher](#performance-and-memory-tuning-opc-publisher)
@@ -1053,15 +1054,19 @@ A single session is opened on demand per endpoint so the OPC UA server is not ov
 
 OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
-To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa").
-Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+The pki path of OPC Publisher can be configured using the `PkiRootPath` command line argument. It is usually a good idea to use a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores can be found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
 
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
+By default, the OPC Publisher module will create a self signed x509 *Application certificate* with a 1 year expiration. This default, self signed cert includes the Subject `Microsoft.Azure.IIoT`. This certificate is fine as a demonstration, but for production systems customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
 
-The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
+The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf). To use the [OPC PLC Server Simulator](https://docs.microsoft.com/samples/azure-samples/iot-edge-opc-plc) with mutual trust you can use the `–-aa` switch on the simulator to accept OPC Publisher's certificate or copy the server certificate from the simulator to the pki `trusted` folder of OPC Publisher.
 
-To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
-The pki path can be configured using the `PkiRootPath` command line argument.
+### PKI
+
+The `certificate stores` in OPC Publisher can be managed using the `Certificates` [Api](./api.md#certificate) (Preview). This API enables an application or user to [list all certificates](./api.md#listcertificates) and [add](./api.md#addcertificate) and [remove certificates](./api.md#removecertificate). There is also an API to move rejected certificates from the rejected store to the trusted store and list, add, remove certificate revocation lists.
+
+To simplify the getting started experience, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates presented to OPC Publisher (`--aa`). This does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+
+> IMPORTANT: Automatically trusting any server certificate provided by an endpoint exposes OPC Publisher to man in the middle attacks. Do not use OPC Publisher
 
 ### Use custom OPC UA application instance certificate in OPC Publisher
 
