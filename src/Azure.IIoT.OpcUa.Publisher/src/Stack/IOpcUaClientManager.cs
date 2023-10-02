@@ -25,13 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
 
         /// <summary>
-        /// Add certificate to trust list
-        /// </summary>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        Task AddTrustedPeerAsync(byte[] certificate);
-
-        /// <summary>
         /// Execute the service on the provided session and
         /// return the result.
         /// </summary>
@@ -56,12 +49,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         IAsyncEnumerable<TResult> ExecuteAsync<TResult>(T connection,
             Stack<Func<ServiceCallContext, ValueTask<IEnumerable<TResult>>>> stack,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Remove certificate from trust list
-        /// </summary>
-        /// <param name="certificate"></param>
-        /// <returns></returns>
-        Task RemoveTrustedPeerAsync(byte[] certificate);
     }
 }

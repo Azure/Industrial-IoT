@@ -37,9 +37,9 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 |--------------------|--------------------|----------------|-----------------------|---------------------|
 | Industrial IoT 2.8 | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023  | OPC Publisher 2.9 | [Migration Path](docs/opc-publisher/migrationpath.md) |
 | OPC Publisher 2.8  | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 12/15/2023 | OPC Publisher 2.9 | N/A |
-| OPC Publisher 2.9  | [2.9.2](https://github.com/Azure/Industrial-IoT/tree/release/2.9.2) | TBA        | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| OPC Publisher 2.9  | [2.9.2](https://github.com/Azure/Industrial-IoT/tree/release/2.9.2) | 11/1/2026  | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
 
-We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases are only supported through GitHub issues.
+We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases, preview and experimental features are only supported through GitHub issues.
 
 If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 

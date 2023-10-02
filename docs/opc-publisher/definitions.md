@@ -300,6 +300,13 @@ View to browse
 |**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
 
 
+<a name="certificatestorename"></a>
+### CertificateStoreName
+The types of certificate stores
+
+*Type* : enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)
+
+
 <a name="conditionhandlingoptionsmodel"></a>
 ### ConditionHandlingOptionsModel
 Condition handling options model
@@ -355,6 +362,7 @@ Connection model
 |**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
 |**endpoint**  <br>*optional*||[EndpointModel](definitions.md#endpointmodel)|
 |**group**  <br>*optional*|Connection group allows splitting connections<br>per purpose.|string|
+|**isReverse**  <br>*optional*|Connection should be established in reverse to<br>transition through proxies.|boolean|
 |**user**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
 
 
@@ -719,6 +727,13 @@ Result of GetConfiguredNodesOnEndpoint method call
 |Name|Description|Schema|
 |---|---|---|
 |**opcNodes**  <br>*optional*|Collection of Nodes configured for a particular endpoint|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+
+
+<a name="heartbeatbehavior"></a>
+### HeartbeatBehavior
+Heartbeat behavior
+
+*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps)
 
 
 <a name="historiceventmodel"></a>
@@ -1293,6 +1308,7 @@ Describing an entry in the node list
 |**EventFilter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
 |**ExpandedNodeId**  <br>*optional*|Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)|string|
 |**FetchDisplayName**  <br>*optional*|Fetch display name from the node|boolean|
+|**HeartbeatBehavior**  <br>*optional*||[HeartbeatBehavior](definitions.md#heartbeatbehavior)|
 |**HeartbeatInterval**  <br>*optional*|Heartbeat interval in seconds|integer (int32)|
 |**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
 |**Id**  <br>*optional*|Node Identifier|string|
@@ -1403,10 +1419,12 @@ Model for a diagnostic info.
 |**estimatedIoTChunksPerDay**  <br>*optional*|EstimatedIoTChunksPerDay|number (double)|
 |**ingestionDuration**  <br>*optional*|IngestionDuration|string (date-span)|
 |**ingressBatchBlockBufferSize**  <br>*optional*|IngressBatchBlockBufferSize|integer (int64)|
+|**ingressCyclicReads**  <br>*optional*|Number of cyclic reads of the total value changes|integer (int64)|
 |**ingressDataChanges**  <br>*optional*|IngressDataChanges|integer (int64)|
 |**ingressDataChangesInLastMinute**  <br>*optional*|Data changes received in the last minute|integer (int64)|
 |**ingressEventNotifications**  <br>*optional*|Number of incoming event notifications|integer (int64)|
 |**ingressEvents**  <br>*optional*|Total incoming events so far.|integer (int64)|
+|**ingressHeartbeats**  <br>*optional*|Number of heartbeats of the total value changes|integer (int64)|
 |**ingressValueChanges**  <br>*optional*|IngressValueChanges|integer (int64)|
 |**ingressValueChangesInLastMinute**  <br>*optional*|Value changes received in the last minute|integer (int64)|
 |**monitoredOpcNodesFailedCount**  <br>*optional*|MonitoredOpcNodesFailedCount|integer (int64)|
@@ -1547,6 +1565,7 @@ Contains the nodes which should be published
 |**BatchTriggerIntervalTimespan**  <br>*optional*|Send network messages at the specified publishing<br>interval.<br>Takes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval<br>if defined.|string (date-span)|
 |**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
 |**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
+|**DataSetExtensionFields**  <br>*optional*|Optional field and value pairs to insert into the<br>data sets emitted by data set writer.|object|
 |**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
 |**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
@@ -1555,6 +1574,8 @@ Contains the nodes which should be published
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
+|**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
+|**EndpointSecurityPolicy**  <br>*optional*|The specific security policy to use for the specified<br>endpoint. Overrides Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.UseSecurity setting.<br>If the security policy is not available with the<br>specified security mode connectivity will fail.|string|
 |**EndpointUrl**  <br>*required*|The endpoint URL of the OPC UA server.  <br>**Minimum length** : `1`|string|
 |**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
 |**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
@@ -1569,6 +1590,7 @@ Contains the nodes which should be published
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
+|**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
@@ -2350,6 +2372,7 @@ Certificate model
 |Name|Description|Schema|
 |---|---|---|
 |**certificate**  <br>*optional*|Raw data|< integer (int32) > array|
+|**hasPrivateKey**  <br>*optional*|Contains private key|boolean|
 |**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
 |**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
 |**selfSigned**  <br>*optional*|Self signed certificate|boolean|

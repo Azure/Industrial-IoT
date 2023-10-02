@@ -8,9 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly;
     using Furly.Exceptions;
-    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
@@ -24,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -32,9 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Client manager
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
-        IOpcUaSubscriptionManager, IEndpointDiscovery, IAwaitable<OpcUaClientManager>,
-        ICertificateServices<EndpointModel>, IClientAccessor<ConnectionModel>,
-        IConnectionServices<ConnectionModel>, IDisposable
+        IOpcUaSubscriptionManager, IEndpointDiscovery, ICertificateServices<EndpointModel>,
+        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
@@ -45,33 +41,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
-        /// <param name="identity"></param>
+        /// <param name="builder"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionFactory"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
-            IOptions<OpcUaClientOptions> options, IProcessIdentity? identity = null,
+            IOptions<OpcUaClientOptions> options, IOpcUaConfiguration builder,
             IMetricsContext? metrics = null, ISessionFactory? sessionFactory = null)
         {
-            _metrics = metrics ?? IMetricsContext.Empty;
+            _metrics = metrics ??
+                IMetricsContext.Empty;
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
+            _configuration = builder ??
+                throw new ArgumentNullException(nameof(builder));
+
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
             _sessionFactory = sessionFactory ?? DefaultSessionFactory.Instance;
             _reverseConnectManager = new ReverseConnectManager();
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
-            _configuration = LoadOpcUaClientConfigurationAsync(identity);
+            _configuration.Validate += OnValidate;
             InitializeMetrics();
-        }
-
-        /// <inheritdoc/>
-        public IAwaiter<OpcUaClientManager> GetAwaiter()
-        {
-            return _configuration.AsAwaiter(this);
         }
 
         /// <inheritdoc/>
@@ -141,11 +135,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var endpointUrl = endpoint.Endpoint.Url;
-            var configuration = await _configuration.ConfigureAwait(false);
             var endpointDescription = CoreClientUtils.SelectEndpoint(
-                configuration, endpointUrl,
+                _configuration.Value, endpointUrl,
                     endpoint.Endpoint.SecurityMode != SecurityMode.None);
-            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             var configuredEndpoint = new ConfiguredEndpoint(null, endpointDescription,
                 endpointConfiguration);
             var userIdentity = endpoint.User.ToStackModel()
@@ -153,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var session = await _sessionFactory.CreateAsync(
-                    configuration, reverseConnectManager: null, configuredEndpoint,
+                    _configuration.Value, reverseConnectManager: null, configuredEndpoint,
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect
                     "Test" + Guid.NewGuid().ToString(),
@@ -186,86 +179,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = FindClient(connection);
             client?.Release(request.ConnectionHandle);
             return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public async Task AddTrustedPeerAsync(byte[] certificate)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            var configuration = await _configuration.ConfigureAwait(false);
-            var chain = Utils.ParseCertificateChainBlob(certificate)?
-                .Cast<X509Certificate2>()
-                .Reverse()
-                .ToList();
-            if (chain == null || chain.Count == 0)
-            {
-                throw new ArgumentNullException(nameof(certificate));
-            }
-            var x509Certificate = chain[0];
-            try
-            {
-                _logger.LogInformation("Adding Certificate {Thumbprint}, " +
-                    "{Subject} to trust list...", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
-                configuration.SecurityConfiguration.TrustedPeerCertificates
-                    .Add(x509Certificate.YieldReturn());
-                chain.RemoveAt(0);
-                if (chain.Count > 0)
-                {
-                    configuration.SecurityConfiguration.TrustedIssuerCertificates
-                        .Add(chain);
-                }
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to add Certificate {Thumbprint}, " +
-                    "{Subject} to trust list.", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
-                throw;
-            }
-            finally
-            {
-                chain?.ForEach(c => c?.Dispose());
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task RemoveTrustedPeerAsync(byte[] certificate)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            var configuration = await _configuration.ConfigureAwait(false);
-            var chain = Utils.ParseCertificateChainBlob(certificate)?
-                .Cast<X509Certificate2>()
-                .Reverse()
-                .ToList();
-            if (chain == null || chain.Count == 0)
-            {
-                throw new ArgumentNullException(nameof(certificate));
-            }
-            var x509Certificate = chain[0];
-            try
-            {
-                _logger.LogInformation("Removing Certificate {Thumbprint}, " +
-                    "{Subject} from trust list...", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
-                configuration.SecurityConfiguration.TrustedPeerCertificates
-                    .Remove(x509Certificate.YieldReturn());
-
-                // Remove only from trusted peers
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to remove Certificate {Thumbprint}, " +
-                    "{Subject} from trust list.", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
-                throw;
-            }
-            finally
-            {
-                chain?.ForEach(c => c?.Dispose());
-            }
         }
 
         /// <inheritdoc/>
@@ -322,8 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
             }
-            var configuration = await _configuration.ConfigureAwait(false);
-            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             endpointConfiguration.OperationTimeout = 20000;
             var discoveryUrl = new Uri(endpoint.Url);
             using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
@@ -394,6 +306,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
 
                 _reverseConnectManager.Dispose();
+
+                _configuration.Validate -= OnValidate;
             }
         }
 
@@ -456,8 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result)
         {
-            var configuration = await _configuration.ConfigureAwait(false);
-            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             endpointConfiguration.OperationTimeout = timeout;
             using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
             //
@@ -552,78 +465,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Load client configuration
         /// </summary>
-        /// <param name="identity"></param>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         /// <returns></returns>
-        private Task<ApplicationConfiguration> LoadOpcUaClientConfigurationAsync(
-            IProcessIdentity? identity)
+        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
         {
-            return _options.Value.BuildApplicationConfigurationAsync(
-                identity == null ? "opc-publisher" : identity.Id, (_, e) => OnValidate(e),
-                _logger);
-
-            void OnValidate(CertificateValidationEventArgs e)
+            if (e.Accept || e.AcceptAll)
             {
-                if (e.Accept || e.AcceptAll)
+                return;
+            }
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            {
+                if (_configuration.Value.SecurityConfiguration.AutoAcceptUntrustedCertificates)
                 {
-                    return;
+                    _logger.LogWarning(
+                        "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        "due to AutoAccept(UntrustedCertificates) set!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                    e.AcceptAll = true;
+                    e.Accept = true;
                 }
-                var configuration = _configuration.Result;
-                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+
+                // Validate thumbprint
+                else if (e.Certificate.RawData != null &&
+                    !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                    _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
+                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
                 {
-                    if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
+                    e.Accept = true;
+
+                    _logger.LogInformation(
+                        "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        "since the same thumbprint was specified in the connection!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+
+                    // add the certificate to trusted store
+                    _configuration.Value.SecurityConfiguration
+                        .AddTrustedPeer(e.Certificate.RawData);
+                    try
                     {
-                        _logger.LogWarning(
-                            "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                            "due to AutoAccept(UntrustedCertificates) set!",
-                            e.Certificate.Thumbprint, e.Certificate.Subject);
-                        e.AcceptAll = true;
-                        e.Accept = true;
-                    }
+                        var store = _configuration.Value.
+                            SecurityConfiguration.TrustedPeerCertificates.OpenStore();
 
-                    // Validate thumbprint
-                    else if (e.Certificate.RawData != null &&
-                        !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
-                        _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
-                        e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
-                    {
-                        e.Accept = true;
-
-                        _logger.LogInformation(
-                            "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                            "since the same thumbprint was specified in the connection!",
-                            e.Certificate.Thumbprint, e.Certificate.Subject);
-
-                        // add the certificate to trusted store
-                        configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
                         try
                         {
-                            var store = configuration.
-                                SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-
-                            try
-                            {
-                                store.Delete(e.Certificate.Thumbprint);
-                                store.Add(e.Certificate);
-                            }
-                            finally
-                            {
-                                store.Close();
-                            }
+                            store.Delete(e.Certificate.Thumbprint);
+                            store.Add(e.Certificate);
                         }
-                        catch (Exception ex)
+                        finally
                         {
-                            _logger.LogWarning(ex,
-                                "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
-                                "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
+                            store.Close();
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex,
+                            "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                            "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
+                    }
                 }
-                if (!e.Accept)
-                {
-                    _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
-                        "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
-                        e.Error.StatusCode);
-                }
+            }
+            if (!e.Accept)
+            {
+                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
+                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
+                    e.Error.StatusCode);
             }
         }
 
@@ -646,7 +552,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // try to get an existing session
             var client = _clients.GetOrAdd(id, id =>
             {
-                var client = new OpcUaClient(_configuration.Result, id, _serializer,
+                var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _meter, _metrics, OnConnectionStateChange, _sessionFactory,
                     reverseConnect ? _reverseConnectManager : null,
                     _options.Value.MaxReconnectDelay)
@@ -710,14 +616,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private const int kMaxDiscoveryAttempts = 3;
         private bool _disposed;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
-        private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ISessionFactory _sessionFactory;
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

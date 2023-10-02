@@ -18,13 +18,263 @@
         "http"
     ],
     "paths": {
+        "/v2/pki/{store}": {
+            "get": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "ListCertificates",
+                "description": "Get the certificates in the specified certificated store",
+                "operationId": "ListCertificates",
+                "produces": [
+                    "text/plain",
+                    "application/json",
+                    "text/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to enumerate",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/X509CertificateModel"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "AddCertificate",
+                "description": "Add a certificate to the specified store. The certificate is provided as a pfx/pkcs12 optionally password protected blob.",
+                "operationId": "AddCertificate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to add the certificate to",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "password",
+                        "description": "The optional password of the blob",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/{store}/crl": {
+            "get": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "ListCertificateRevocationLists",
+                "description": "Get the certificates in the specified certificated store",
+                "operationId": "ListCertificateRevocationLists",
+                "produces": [
+                    "text/plain",
+                    "application/json",
+                    "text/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to enumerate",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "format": "byte",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/pki/{store}/chain": {
+            "put": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "AddCertificateChain",
+                "description": "Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.",
+                "operationId": "AddCertificateChain",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to add the certificate to",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/{store}/{thumbprint}": {
+            "delete": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "RemoveCertificate",
+                "description": "Remove a certificate with the provided thumbprint from the specified store.",
+                "operationId": "RemoveCertificate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to add the certificate to",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "thumbprint",
+                        "description": "The thumbprint of the certificate to delete.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/approve/{thumbprint}": {
+            "post": {
+                "tags": [
+                    "Certificate"
+                ],
+                "summary": "ApproveRejectedCertificate",
+                "description": "Move a rejected certificate from the rejected folder to the trusted folder on the publisher.",
+                "operationId": "ApproveRejectedCertificate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "thumbprint",
+                        "description": "The thumbprint of the certificate to trust.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
         "/v2/configuration/start": {
             "post": {
                 "tags": [
                     "Configuration"
                 ],
                 "summary": "PublishStart",
-                "description": "Start publishing values from a node ona server.",
+                "description": "Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.",
                 "operationId": "PublishStart",
                 "consumes": [
                     "application/json",
@@ -64,7 +314,7 @@
                     "Configuration"
                 ],
                 "summary": "PublishStop",
-                "description": "Stop publishing values from a node on the specified server.",
+                "description": "Stop publishing values from a node on the specified server. The group field that was used in the Connection Model to start publishing must also be specified in this connection model.",
                 "operationId": "PublishStop",
                 "consumes": [
                     "application/json",
@@ -104,7 +354,7 @@
                     "Configuration"
                 ],
                 "summary": "PublishBulk",
-                "description": "Configure node values to publish and unpublish in bulk",
+                "description": "Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.",
                 "operationId": "PublishBulk",
                 "consumes": [
                     "application/json",
@@ -144,7 +394,7 @@
                     "Configuration"
                 ],
                 "summary": "PublishList",
-                "description": "Get all published nodes for a server endpoint.",
+                "description": "Get all published nodes for a server endpoint. The group field that was used in the Connection Model to start publishing must also be specified in this connection model.",
                 "operationId": "PublishList",
                 "consumes": [
                     "application/json",
@@ -2974,6 +3224,25 @@
                 }
             }
         },
+        "CertificateStoreName": {
+            "format": "int32",
+            "description": "The types of certificate stores",
+            "enum": [
+                "Application",
+                "Rejected",
+                "Trusted",
+                "Https",
+                "User",
+                "Issuer",
+                "HttpsIssuer",
+                "UserIssuer"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "CertificateStoreName",
+                "modelAsString": false
+            }
+        },
         "ConditionHandlingOptionsModel": {
             "description": "Condition handling options model",
             "type": "object",
@@ -3045,6 +3314,10 @@
                 "group": {
                     "description": "Connection group allows splitting connections\r\nper purpose.",
                     "type": "string"
+                },
+                "isReverse": {
+                    "description": "Connection should be established in reverse to\r\ntransition through proxies.",
+                    "type": "boolean"
                 }
             }
         },
@@ -3707,6 +3980,22 @@
                         "$ref": "#/definitions/OpcNodeModel"
                     }
                 }
+            }
+        },
+        "HeartbeatBehavior": {
+            "format": "int32",
+            "description": "Heartbeat behavior",
+            "enum": [
+                "WatchdogLKV",
+                "WatchdogLKG",
+                "PeriodicLKV",
+                "PeriodicLKG",
+                "WatchdogLKVWithUpdatedTimestamps"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "HeartbeatBehavior",
+                "modelAsString": false
             }
         },
         "HistoricEventModel": {
@@ -4931,6 +5220,9 @@
                     "description": "Index range to read, default to null.",
                     "type": "string"
                 },
+                "HeartbeatBehavior": {
+                    "$ref": "#/definitions/HeartbeatBehavior"
+                },
                 "HeartbeatInterval": {
                     "format": "int32",
                     "description": "Heartbeat interval in seconds",
@@ -5282,6 +5574,16 @@
                     "format": "int64",
                     "description": "Value changes received in the last minute",
                     "type": "integer"
+                },
+                "ingressHeartbeats": {
+                    "format": "int64",
+                    "description": "Number of heartbeats of the total value changes",
+                    "type": "integer"
+                },
+                "ingressCyclicReads": {
+                    "format": "int64",
+                    "description": "Number of cyclic reads of the total value changes",
+                    "type": "integer"
                 }
             }
         },
@@ -5532,6 +5834,20 @@
                     "description": "Priority of the writer subscription.",
                     "type": "integer"
                 },
+                "DataSetExtensionFields": {
+                    "description": "Optional field and value pairs to insert into the\r\ndata sets emitted by data set writer.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "description": "A variant which can be represented by any value including null."
+                    }
+                },
+                "EndpointSecurityMode": {
+                    "$ref": "#/definitions/SecurityMode"
+                },
+                "EndpointSecurityPolicy": {
+                    "description": "The specific security policy to use for the specified\r\nendpoint. Overrides Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.UseSecurity setting.\r\nIf the security policy is not available with the\r\nspecified security mode connectivity will fail.",
+                    "type": "string"
+                },
                 "MessagingMode": {
                     "$ref": "#/definitions/MessagingMode"
                 },
@@ -5552,6 +5868,10 @@
                     "format": "date-span",
                     "description": "Send network messages at the specified publishing\r\ninterval.\r\nTakes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval\r\nif defined.",
                     "type": "string"
+                },
+                "UseReverseConnect": {
+                    "description": "Use reverse connect to connect ot the endpoint",
+                    "type": "boolean"
                 },
                 "WriterGroupTransport": {
                     "$ref": "#/definitions/WriterGroupTransport"
@@ -6978,6 +7298,10 @@
                         "format": "int32",
                         "type": "integer"
                     }
+                },
+                "hasPrivateKey": {
+                    "description": "Contains private key",
+                    "type": "boolean"
                 }
             }
         },
@@ -7019,6 +7343,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Certificate",
+            "description": "<br>\r\n            This section lists the general APi provided by OPC Publisher providing\r\n            all connection, endpoint and address space related API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+        },
         {
             "name": "Configuration",
             "description": "<br>\r\n            This section contains the API to configure OPC Publisher.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "

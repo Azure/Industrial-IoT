@@ -22,11 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return new X509CertificateModel
             {
-                Certificate = cert.RawData,
+                Certificate = cert.Export(X509ContentType.Pfx),
                 NotAfterUtc = cert.NotAfter,
                 NotBeforeUtc = cert.NotBefore,
                 SerialNumber = cert.GetSerialNumberString(),
                 Subject = cert.Subject,
+                HasPrivateKey = cert.HasPrivateKey,
                 Thumbprint = cert.Thumbprint,
                 SelfSigned = IsSelfIssued(cert) ? true : null
             };

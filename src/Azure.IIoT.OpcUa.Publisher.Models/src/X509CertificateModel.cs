@@ -62,5 +62,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "certificate", Order = 6)]
         public IReadOnlyCollection<byte>? Certificate { get; set; }
+
+        /// <summary>
+        /// Contains private key
+        /// </summary>
+        [DataMember(Name = "hasPrivateKey", Order = 7,
+            EmitDefaultValue = false)]
+        public bool? HasPrivateKey { get; set; }
     }
 }

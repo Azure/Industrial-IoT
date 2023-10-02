@@ -36,6 +36,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string TrustedPeerCertificatesTypeKey = "TrustedPeerCertificatesType";
         public const string RejectedCertificateStorePathKey = "RejectedCertificateStorePath";
         public const string RejectedCertificateStoreTypeKey = "RejectedCertificateStoreType";
+        public const string TrustedUserCertificatesTypeKey = "TrustedUserCertificatesType";
+        public const string TrustedUserCertificatesPathKey = "TrustedUserCertificatesPath";
+        public const string UserIssuerCertificatesTypeKey = "UserIssuerCertificatesType";
+        public const string UserIssuerCertificatesPathKey = "UserIssuerCertificatesPath";
+        public const string HttpsIssuerCertificatesTypeKey = "HttpsIssuerCertificatesType";
+        public const string HttpsIssuerCertificatesPathKey = "HttpsIssuerCertificatesPath";
+        public const string TrustedHttpsCertificatesTypeKey = "TrustedHttpsCertificatesType";
+        public const string TrustedHttpsCertificatesPathKey = "TrustedHttpsCertificatesPath";
         public const string AutoAcceptUntrustedCertificatesKey = "AutoAcceptUntrustedCertificates";
         public const string RejectSha1SignedCertificatesKey = "RejectSha1SignedCertificates";
         public const string MinimumCertificateKeySizeKey = "MinimumCertificateKeySize";
@@ -369,6 +377,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.EnableOpcUaStackLogging == null)
             {
                 options.EnableOpcUaStackLogging = GetBoolOrNull(EnableOpcUaStackLoggingKey);
+            }
+
+            if (options.Security.TrustedUserCertificates == null)
+            {
+                options.Security.TrustedUserCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(TrustedUserCertificatesPathKey,
+                        $"{options.Security.PkiRootPath}/users"),
+                    StoreType = GetStringOrDefault(TrustedUserCertificatesTypeKey,
+                        CertificateStoreType.Directory)
+                };
+            }
+
+            if (options.Security.TrustedHttpsCertificates == null)
+            {
+                options.Security.TrustedHttpsCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(TrustedHttpsCertificatesPathKey,
+                        $"{options.Security.PkiRootPath}/https"),
+                    StoreType = GetStringOrDefault(TrustedHttpsCertificatesTypeKey,
+                        CertificateStoreType.Directory)
+                };
+            }
+
+            if (options.Security.HttpsIssuerCertificates == null)
+            {
+                options.Security.HttpsIssuerCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(HttpsIssuerCertificatesPathKey,
+                        $"{options.Security.PkiRootPath}/https/issuers"),
+                    StoreType = GetStringOrDefault(HttpsIssuerCertificatesTypeKey,
+                        CertificateStoreType.Directory)
+                };
+            }
+
+            if (options.Security.UserIssuerCertificates == null)
+            {
+                options.Security.UserIssuerCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(UserIssuerCertificatesPathKey,
+                        $"{options.Security.PkiRootPath}/users/issuers"),
+                    StoreType = GetStringOrDefault(UserIssuerCertificatesTypeKey,
+                        CertificateStoreType.Directory)
+                };
             }
         }
 

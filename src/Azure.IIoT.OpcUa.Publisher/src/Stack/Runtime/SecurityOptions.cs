@@ -60,5 +60,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// e.g.when the CRL is not available or the OCSP provider is offline.
         /// </summary>
         public bool? RejectUnknownRevocationStatus { get; set; }
+
+        /// <summary>
+        /// Trusted user certificates
+        /// </summary>
+        public CertificateStore? TrustedUserCertificates { get; set; }
+
+        /// <summary>
+        /// Trusted https certificates
+        /// </summary>
+        public CertificateStore? TrustedHttpsCertificates { get; set; }
+
+        /// <summary>
+        /// Http issuer certificates (certificate authority)
+        /// </summary>
+        public CertificateStore? HttpsIssuerCertificates { get; set; }
+
+        /// <summary>
+        /// User issuer certificates
+        /// </summary>
+        public CertificateStore? UserIssuerCertificates { get; set; }
     }
 }
