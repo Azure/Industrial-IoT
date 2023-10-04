@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// ListCertificates
         /// </summary>
         /// <remarks>
-        /// Get the certificates in the specified certificated store
+        /// Get the certificates in the specified certificate store
         /// </remarks>
         /// <param name="store">The store to enumerate</param>
         /// <param name="ct"></param>

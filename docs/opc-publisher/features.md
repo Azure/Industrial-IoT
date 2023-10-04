@@ -12,7 +12,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | OPC UA HTTP transport and configuration ||-|-|#1997|
 | Secure channel over web socket transport and configuration ||-|-|#1997|
 | Secure channel certificate management API |||||
-| | Client Cert |-|-|#1996|
+| | Client Cert |-|X||
 | | Using EST |-|-||
 | | GDS Push |-|-||
 | Session-reconnect handling across connection loss ||X|X||
@@ -25,7 +25,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Local persisted user credential |||||
 | | As plain text |X|X||
 | | Securely encrypted |-|-||
-| | From secret manager API |-|-||
+| | From secrets manager API |-|-||
 | Get Endpoint and Server information [API](./api.md#getservercapabilities) ||-|X|Preview|
 | Connect and Disconnect [API](./api.md) ||-|X|Preview|
 | Test connection [API](./api.md#testconnection) ||-|X|Preview|
@@ -58,6 +58,8 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Set server queue LIFO/FIFO behavior per value|-|X||
 | | Periodic read ([cyclic read](./readme.md#sampling-and-publishing-interval-configuration))|-|X|Preview|
 | | Heartbeat (Periodic resending of last known value) |X|X||
+| | Configurable heartbeat behavior (LKG, LKV) ||X||
+| | Heartbeat message timestamp source configuration ||X||
 | | Subscribe to all nodes under an Object node |-|-|#1320|
 | Subscribe to [events](./readme.md#configuring-event-subscriptions) |||||
 | | Using browse path to event notifier |-|X||
@@ -83,6 +85,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Transfer subscription|||||
 | | On reconnect |-|X||
 | | On startup |-|-||
+| Re-activate session on startup (Transfer session)||||Backlog|
 | Deferred Notification Acknowledgement||-|X|Experimental|
 | Back pressure to server||-|-|Backlog|
 | Published nodes JSON [schema](./readme.md#configuration-schema) support |||||
