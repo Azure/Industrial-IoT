@@ -15,17 +15,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using Opc.Ua.Security.Certificates;
-    using System.Net.NetworkInformation;
-    using System.Net;
-    using System.Text;
     using System;
-    using System.Threading.Tasks;
-    using System.Security.Cryptography;
-    using System.Security.Cryptography.X509Certificates;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Collections.Generic;
+    using System.Net;
+    using System.Net.NetworkInformation;
+    using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Client configuration

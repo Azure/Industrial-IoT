@@ -7,20 +7,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using System.Security.Cryptography;
+    using Autofac;
+    using Furly.Exceptions;
     using System;
+    using System.Linq;
+    using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
-    using Autofac;
-    using System.Linq;
-    using Furly.Exceptions;
 
     public class OpcUaApplicationTests
     {
         [Fact]
         public async Task GetApplicationCertificateTest1Async()
         {
+            using var bootstrap = Build();
+            var oldCerts = bootstrap.Resolve<IOpcUaCertificates>();
+            await CleanAsync(oldCerts, CertificateStoreName.Application);
+
             using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
