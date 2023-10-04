@@ -17,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 
     /// <summary>
     /// <para>
-    /// This section lists the general APi provided by OPC Publisher providing
-    /// all connection, endpoint and address space related API methods.
+    /// This section lists the certificate APi provided by OPC Publisher providing
+    /// all public and private key infrastructure (PKI) related API methods.
     /// </para>
     /// <para>
     /// The method name for all transports other than HTTP (which uses the shown
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to enumerate</param>
         /// <param name="ct"></param>
         /// <returns>The list of certificates currently in the store.</returns>
-        [HttpGet("{store}")]
+        [HttpGet("{store}/certs")]
         public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <returns>The list of certificates revocation lists currently
         /// in the store.</returns>
-        [HttpGet("{store}/crl")]
+        [HttpGet("{store}/crls")]
         public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
@@ -91,16 +91,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </remarks>
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="pfxBlob">The pfx encoded certificate.</param>
-        /// <param name="password">The optional password of the blob</param>
+        /// <param name="password">The optional password of the pfx</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="pfxBlob"/>
         /// is <c>null</c>.</exception>
-        [HttpPut("{store}")]
+        [HttpPatch("{store}/certs")]
         public async Task AddCertificateAsync(CertificateStoreName store,
             byte[] pfxBlob, [FromQuery] string? password, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(pfxBlob);
             await _certificates.AddCertificateAsync(store, pfxBlob, password,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// AddCertificateRevocationList
+        /// </summary>
+        /// <remarks>
+        /// Add a certificate revocation list to the specified store. The certificate
+        /// revocation list is provided as a der encoded blob.
+        /// </remarks>
+        /// <param name="store">The store to add the certificate to</param>
+        /// <param name="crl">The pfx encoded certificate.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="crl"/>
+        /// is <c>null</c>.</exception>
+        [HttpPatch("{store}/crls")]
+        public async Task AddCertificateRevocationListAsync(CertificateStoreName store,
+            byte[] crl, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(crl);
+            await _certificates.AddCertificateRevocationListAsync(store, crl,
                 ct).ConfigureAwait(false);
         }
 
@@ -112,17 +133,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// as a concatenated asn encoded set of certificates with the first the
         /// one to add, and the remainder the issuer chain.
         /// </remarks>
-        /// <param name="store">The store to add the certificate to</param>
         /// <param name="certificateChain">The certificate chain.</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
-        [HttpPut("{store}/chain")]
-        public async Task AddCertificateChainAsync(CertificateStoreName store,
-            byte[] certificateChain, CancellationToken ct = default)
+        [HttpPost("trusted/certs")]
+        public async Task AddCertificateChainAsync(byte[] certificateChain,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificateChain);
-            await _certificates.AddCertificateChainAsync(store, certificateChain,
+            await _certificates.AddCertificateChainAsync(certificateChain, false,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// ApproveRejectedCertificate
+        /// </summary>
+        /// <remarks>
+        /// Move a rejected certificate from the rejected folder to the trusted
+        /// folder on the publisher.
+        /// </remarks>
+        /// <param name="thumbprint">The thumbprint of the certificate to trust.</param>
+        /// <param name="ct"></param>
+        [HttpPost("rejected/certs/{thumbprint}/approve")]
+        public async Task ApproveRejectedCertificateAsync(string thumbprint,
+            CancellationToken ct = default)
+        {
+            await _certificates.ApproveRejectedCertificateAsync(thumbprint,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// AddTrustedHttpsCertificateAsync
+        /// </summary>
+        /// <remarks>
+        /// Add a certificate chain to the trusted https store. The certificate is
+        /// provided as a concatenated set of certificates with the first the
+        /// one to add, and the remainder the issuer chain.
+        /// </remarks>
+        /// <param name="certificateChain">The certificate chain.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
+        /// is <c>null</c>.</exception>
+        [HttpPost("https/certs")]
+        public async Task AddTrustedHttpsCertificateAsync(byte[] certificateChain,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(certificateChain);
+            await _certificates.AddCertificateChainAsync(certificateChain, true,
                 ct).ConfigureAwait(false);
         }
 
@@ -136,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="thumbprint">The thumbprint of the certificate to delete.</param>
         /// <param name="ct"></param>
-        [HttpDelete("{store}/{thumbprint}")]
+        [HttpDelete("{store}/certs/{thumbprint}")]
         public async Task RemoveCertificateAsync(CertificateStoreName store,
             string thumbprint, CancellationToken ct = default)
         {
@@ -145,20 +203,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// ApproveRejectedCertificate
+        /// RemoveCertificateRevocationList
         /// </summary>
         /// <remarks>
-        /// Move a rejected certificate from the rejected folder to the trusted
-        /// folder on the publisher.
+        /// Remove a certificate revocation list from the specified store.
         /// </remarks>
-        /// <param name="thumbprint">The thumbprint of the certificate to trust.</param>
+        /// <param name="store">The store to add the certificate to</param>
+        /// <param name="crl">The crl to delete.</param>
         /// <param name="ct"></param>
-        [HttpPost("approve/{thumbprint}")]
-        public async Task ApproveRejectedCertificateAsync(string thumbprint,
+        [HttpDelete("{store}/crls")]
+        public async Task RemoveCertificateRevocationListAsync(CertificateStoreName store,
+            byte[] crl, CancellationToken ct = default)
+        {
+            await _certificates.RemoveCertificateRevocationListAsync(store, crl,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// RemoveAll
+        /// </summary>
+        /// <remarks>
+        /// Remove all certificates and revocation lists from the specified
+        /// store.
+        /// </remarks>
+        /// <param name="store">The store to add the certificate to</param>
+        /// <param name="ct"></param>
+        [HttpDelete("{store}")]
+        public async Task RemoveAllAsync(CertificateStoreName store,
             CancellationToken ct = default)
         {
-            await _certificates.ApproveRejectedCertificateAsync(thumbprint,
-                ct).ConfigureAwait(false);
+            await _certificates.CleanAsync(store, ct).ConfigureAwait(false);
         }
 
         private readonly IOpcUaCertificates _certificates;

@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="includePrivateKey"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
+        ValueTask<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             CertificateStoreName store, bool includePrivateKey = false,
             CancellationToken ct = default);
 
@@ -34,18 +34,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="password"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task AddCertificateAsync(CertificateStoreName store, byte[] pfxBlob,
+        ValueTask AddCertificateAsync(CertificateStoreName store, byte[] pfxBlob,
             string? password = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Add certificate to store
+        /// Add certificate to trusted and issuer stores
         /// </summary>
-        /// <param name="store"></param>
         /// <param name="certificateChain"></param>
+        /// <param name="isSslCertificate"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task AddCertificateChainAsync(CertificateStoreName store,
-            byte[] certificateChain, CancellationToken ct = default);
+        ValueTask AddCertificateChainAsync(byte[] certificateChain,
+            bool isSslCertificate = false, CancellationToken ct = default);
 
         /// <summary>
         /// Remove certificate from store
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="thumbprint"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task RemoveCertificateAsync(CertificateStoreName store,
+        ValueTask RemoveCertificateAsync(CertificateStoreName store,
             string thumbprint, CancellationToken ct = default);
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="thumbprint"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ApproveRejectedCertificateAsync(string thumbprint,
+        ValueTask ApproveRejectedCertificateAsync(string thumbprint,
             CancellationToken ct = default);
 
         /// <summary>
@@ -72,7 +72,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="store"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
+        ValueTask<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
             CertificateStoreName store, CancellationToken ct = default);
+
+        /// <summary>
+        /// Add certificate revocation list to store
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="crl"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask AddCertificateRevocationListAsync(CertificateStoreName store,
+            byte[] crl, CancellationToken ct = default);
+
+        /// <summary>
+        /// Remove certificate revocation list from store
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="crl"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask RemoveCertificateRevocationListAsync(CertificateStoreName store,
+            byte[] crl, CancellationToken ct = default);
+
+        /// <summary>
+        /// Clean the certificate store
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask CleanAsync(CertificateStoreName store,
+            CancellationToken ct = default);
     }
 }

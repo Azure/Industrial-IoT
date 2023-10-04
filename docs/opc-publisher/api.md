@@ -2,11 +2,11 @@
 <a name="paths"></a>
 ## Resources
 
-<a name="certificate_resource"></a>
-### Certificate
+<a name="certificates_resource"></a>
+### Certificates
 <br>
-            This section lists the general APi provided by OPC Publisher providing
-            all connection, endpoint and address space related API methods.
+            This section lists the certificate APi provided by OPC Publisher providing
+            all public and private key infrastructure (PKI) related API methods.
             
 <br>
             The method name for all transports other than HTTP (which uses the shown
@@ -15,10 +15,28 @@
             name.
 
 
+<a name="addtrustedhttpscertificate"></a>
+#### AddTrustedHttpsCertificateAsync
+```
+POST /v2/pki/https/certs
+```
+
+
+##### Description
+Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
 <a name="approverejectedcertificate"></a>
 #### ApproveRejectedCertificate
 ```
-POST /v2/pki/approve/{thumbprint}
+POST /v2/pki/rejected/certs/{thumbprint}/approve
 ```
 
 
@@ -40,10 +58,53 @@ Move a rejected certificate from the rejected folder to the trusted folder on th
 |**200**|Success|No Content|
 
 
+<a name="addcertificatechain"></a>
+#### AddCertificateChain
+```
+POST /v2/pki/trusted/certs
+```
+
+
+##### Description
+Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="removeall"></a>
+#### RemoveAll
+```
+DELETE /v2/pki/{store}
+```
+
+
+##### Description
+Remove all certificates and revocation lists from the specified store.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
 <a name="listcertificates"></a>
 #### ListCertificates
 ```
-GET /v2/pki/{store}
+GET /v2/pki/{store}/certs
 ```
 
 
@@ -76,7 +137,7 @@ Get the certificates in the specified certificated store
 <a name="addcertificate"></a>
 #### AddCertificate
 ```
-PUT /v2/pki/{store}
+PATCH /v2/pki/{store}/certs
 ```
 
 
@@ -99,15 +160,15 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 |**200**|Success|No Content|
 
 
-<a name="addcertificatechain"></a>
-#### AddCertificateChain
+<a name="removecertificate"></a>
+#### RemoveCertificate
 ```
-PUT /v2/pki/{store}/chain
+DELETE /v2/pki/{store}/certs/{thumbprint}
 ```
 
 
 ##### Description
-Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.
+Remove a certificate with the provided thumbprint from the specified store.
 
 
 ##### Parameters
@@ -115,6 +176,7 @@ Add a certificate chain to the specified store. The certificate is provided as a
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**thumbprint**  <br>*required*|The thumbprint of the certificate to delete.|string|
 
 
 ##### Responses
@@ -127,7 +189,7 @@ Add a certificate chain to the specified store. The certificate is provided as a
 <a name="listcertificaterevocationlists"></a>
 #### ListCertificateRevocationLists
 ```
-GET /v2/pki/{store}/crl
+GET /v2/pki/{store}/crls
 ```
 
 
@@ -157,15 +219,15 @@ Get the certificates in the specified certificated store
 * `application/x-msgpack`
 
 
-<a name="removecertificate"></a>
-#### RemoveCertificate
+<a name="removecertificaterevocationlist"></a>
+#### RemoveCertificateRevocationList
 ```
-DELETE /v2/pki/{store}/{thumbprint}
+DELETE /v2/pki/{store}/crls
 ```
 
 
 ##### Description
-Remove a certificate with the provided thumbprint from the specified store.
+Remove a certificate revocation list from the specified store.
 
 
 ##### Parameters
@@ -173,7 +235,31 @@ Remove a certificate with the provided thumbprint from the specified store.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
-|**Path**|**thumbprint**  <br>*required*|The thumbprint of the certificate to delete.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="addcertificaterevocationlist"></a>
+#### AddCertificateRevocationList
+```
+PATCH /v2/pki/{store}/crls
+```
+
+
+##### Description
+Add a certificate revocation list to the specified store. The certificate revocation list is provided as a der encoded blob.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
 
 
 ##### Responses

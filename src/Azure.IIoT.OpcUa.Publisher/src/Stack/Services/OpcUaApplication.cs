@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private string Password => string.Empty;
+        private string Password => _options.Value.Security.CertificateStorePassword ?? string.Empty;
 
         /// <summary>
         /// Create client manager
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
+        public async ValueTask<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             CertificateStoreName store, bool includePrivateKey, CancellationToken ct)
         {
             // show application certs
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
+        public async ValueTask<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
             CertificateStoreName store, CancellationToken ct)
         {
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task AddCertificateAsync(CertificateStoreName store, byte[] pfxBlob,
+        public async ValueTask AddCertificateAsync(CertificateStoreName store, byte[] pfxBlob,
             string? password, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -199,17 +199,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 await certStore.Add(cert, Password).ConfigureAwait(false);
+
+                if (store == CertificateStoreName.Application &&
+                    _options.Value.Security.AddAppCertToTrustedStore == true)
+                {
+                    using var trustedCert = new X509Certificate2(cert);
+                    using var trustedStore =
+                        await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
+                    await trustedStore.Add(trustedCert).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add Certificate {Thumbprint} from {Store}...",
+                _logger.LogError(ex, "Failed to add Certificate {Thumbprint} to {Store}...",
                     cert.Thumbprint, store);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public async Task ApproveRejectedCertificateAsync(string thumbprint, CancellationToken ct)
+        public async ValueTask AddCertificateRevocationListAsync(CertificateStoreName store, byte[] crl,
+            CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            using var certStore = await OpenAsync(store).ConfigureAwait(false);
+            if (!certStore.SupportsCRLs)
+            {
+                throw new NotSupportedException("Store does not support revocation lists");
+            }
+            try
+            {
+                _logger.LogInformation("Add Certificate revocation list to {Store}...", store);
+                await certStore.AddCRL(new X509CRL(crl)).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add Certificate revocation to {Store}...", store);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask ApproveRejectedCertificateAsync(string thumbprint, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             using var rejected = await OpenAsync(CertificateStoreName.Rejected).ConfigureAwait(false);
@@ -247,14 +278,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task AddCertificateChainAsync(CertificateStoreName store,
-            byte[] certificateChain, CancellationToken ct)
+        public async ValueTask AddCertificateChainAsync(byte[] certificateChain,
+            bool isSslCertificate, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (store == CertificateStoreName.Rejected)
-            {
-                return;
-            }
             var chain = Utils.ParseCertificateChainBlob(certificateChain)?
                 .Cast<X509Certificate2>()
                 .Reverse()
@@ -268,42 +295,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.LogInformation("Adding Certificate {Thumbprint}, " +
-                    "{Subject} to {Store}...", x509Certificate.Thumbprint,
-                    x509Certificate.Subject, store);
-                switch (store)
-                {
-                    case CertificateStoreName.Application:
-                        if (!x509Certificate.HasPrivateKey)
-                        {
-                            throw new ArgumentException(
-                                "Application certificate must have private key");
-                        }
+                    "{Subject} to trusted store...", x509Certificate.Thumbprint,
+                    x509Certificate.Subject);
 
-                        configuration.SecurityConfiguration.ApplicationCertificate
-                            .Certificate = x509Certificate;
-                        if (configuration.SecurityConfiguration.AddAppCertToTrustedStore)
-                        {
-                            goto case CertificateStoreName.Trusted;
-                        }
-                        chain.RemoveAt(0);
-                        break;
-                    case CertificateStoreName.Trusted:
-                        configuration.SecurityConfiguration.TrustedPeerCertificates
-                            .Add(x509Certificate.YieldReturn());
-                        chain.RemoveAt(0);
-                        break;
-                }
-                if (chain.Count > 0)
+                if (isSslCertificate)
                 {
-                    configuration.SecurityConfiguration.TrustedIssuerCertificates
-                        .Add(chain);
+                    configuration.SecurityConfiguration.TrustedHttpsCertificates
+                        .Add(x509Certificate.YieldReturn());
+                    chain.RemoveAt(0);
+                    if (chain.Count > 0)
+                    {
+                        configuration.SecurityConfiguration.HttpsIssuerCertificates
+                            .Add(chain);
+                    }
+                }
+                else
+                {
+                    configuration.SecurityConfiguration.TrustedPeerCertificates
+                        .Add(x509Certificate.YieldReturn());
+                    chain.RemoveAt(0);
+                    if (chain.Count > 0)
+                    {
+                        configuration.SecurityConfiguration.TrustedIssuerCertificates
+                            .Add(chain);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add Certificate {Thumbprint}, " +
-                    "{Subject} to {Store}.", x509Certificate.Thumbprint,
-                    x509Certificate.Subject, store);
+                _logger.LogError(ex, "Failed to add Certificate chain {Thumbprint}, " +
+                    "{Subject} to trusted store.", x509Certificate.Thumbprint,
+                    x509Certificate.Subject);
                 throw;
             }
             finally
@@ -313,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task RemoveCertificateAsync(CertificateStoreName store, string thumbprint,
+        public async ValueTask RemoveCertificateAsync(CertificateStoreName store, string thumbprint,
             CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -359,6 +381,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogError(ex, "Failed to remove Certificate {Thumbprint} from {Store}...",
                     thumbprint, store);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask CleanAsync(CertificateStoreName store, CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            using var certStore = await OpenAsync(store).ConfigureAwait(false);
+            try
+            {
+                _logger.LogInformation("Removing all Certificate from {Store}...", store);
+                foreach (var certs in await certStore.Enumerate().ConfigureAwait(false))
+                {
+                    if (!await certStore.Delete(certs.Thumbprint).ConfigureAwait(false))
+                    {
+                        // intentionally ignore errors, try best effort
+                        _logger.LogError("Failed to delete {Certificate}.", certs.Thumbprint);
+                    }
+                }
+                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
+                {
+                    if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
+                    {
+                        // intentionally ignore errors, try best effort
+                        _logger.LogError("Failed to delete {Crl}.", crl.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to clear {Store} store.", store);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask RemoveCertificateRevocationListAsync(CertificateStoreName store, byte[] crl,
+            CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            using var certStore = await OpenAsync(store).ConfigureAwait(false);
+            if (!certStore.SupportsCRLs)
+            {
+                throw new NotSupportedException("Store does not support revocation lists");
+            }
+            try
+            {
+                _logger.LogInformation("Add Certificate revocation list to {Store}...", store);
+                await certStore.DeleteCRL(new X509CRL(crl)).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete Certificate revocation in {Store}...", store);
                 throw;
             }
         }
@@ -483,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Show all certificates in the certificate stores.
         /// </summary>
         /// <param name="appConfig"></param>
-        private async Task ShowCertificateStoreInformationAsync(
+        private async ValueTask ShowCertificateStoreInformationAsync(
             ApplicationConfiguration appConfig)
         {
             // show application certs
@@ -632,7 +708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="hostname"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        private async Task<ApplicationConfiguration> BuildSecurityConfiguration(
+        private async ValueTask<ApplicationConfiguration> BuildSecurityConfiguration(
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
             string hostname)
@@ -680,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="store"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private async Task<ICertificateStore> OpenAsync(CertificateStoreName store)
+        private async ValueTask<ICertificateStore> OpenAsync(CertificateStoreName store)
         {
             var configuration = await _configuration.ConfigureAwait(false);
             var security = configuration.SecurityConfiguration;

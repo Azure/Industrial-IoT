@@ -2371,10 +2371,10 @@ Certificate model
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificate**  <br>*optional*|Raw data|< integer (int32) > array|
 |**hasPrivateKey**  <br>*optional*|Contains private key|boolean|
 |**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
 |**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
+|**pfx**  <br>*optional*|Certificate as Pkcs12|< integer (int32) > array|
 |**selfSigned**  <br>*optional*|Self signed certificate|boolean|
 |**serialNumber**  <br>*optional*|Serial number|string|
 |**subject**  <br>*optional*|Subject|string|

@@ -409,7 +409,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
             var builtInType = await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                session.NodeCache.TypeTree).ConfigureAwait(false);
+                session.NodeCache.TypeTree, ct).ConfigureAwait(false);
             fields.Add(new FieldMetaData
             {
                 Name = fieldName,
@@ -469,7 +469,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     }
 
                     var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                        session.TypeTree).ConfigureAwait(false);
+                        session.TypeTree, ct).ConfigureAwait(false);
                     baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
 
                     switch (builtInType)
@@ -1923,7 +1923,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="session"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
+            private async Task<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
                 CancellationToken ct = default)
             {
                 Debug.Assert(Template != null);
@@ -1993,7 +1993,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="session"></param>
             /// <param name="eventFilter"></param>
             /// <param name="ct"></param>
-            private async ValueTask<bool> TestWhereClauseAsync(ISession session, EventFilter? eventFilter,
+            private async Task<bool> TestWhereClauseAsync(ISession session, EventFilter? eventFilter,
                 CancellationToken ct = default)
             {
                 var isValid = eventFilter != null;

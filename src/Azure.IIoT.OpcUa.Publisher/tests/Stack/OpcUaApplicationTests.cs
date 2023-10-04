@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             using var newCert3 = CreateRSACertificate("test3");
             var chain = newCert1.RawData.Concat(newCert2.RawData).Concat(newCert3.RawData).ToArray();
 
-            await certs.AddCertificateChainAsync(CertificateStoreName.Trusted, chain);
+            await certs.AddCertificateChainAsync(chain);
 
             certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Single(certificates);
@@ -134,6 +134,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(2, certificates.Count);
             await CleanAsync(certs, CertificateStoreName.Trusted);
             await CleanAsync(certs, CertificateStoreName.Issuer);
+        }
+
+        [Fact]
+        public async Task GetTrustedHttpsCertificatesTestAsync()
+        {
+            using var container = Build();
+            var certs = container.Resolve<IOpcUaCertificates>();
+            await CleanAsync(certs, CertificateStoreName.Https);
+            await CleanAsync(certs, CertificateStoreName.HttpsIssuer);
+            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Https);
+            Assert.Empty(certificates);
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.HttpsIssuer);
+            Assert.Empty(certificates);
+
+            using var newCert1 = CreateRSACertificate("test1");
+            using var newCert2 = CreateRSACertificate("test2");
+            using var newCert3 = CreateRSACertificate("test3");
+            var chain = newCert1.RawData.Concat(newCert2.RawData).Concat(newCert3.RawData).ToArray();
+
+            await certs.AddCertificateChainAsync(chain, true);
+
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.Https);
+            Assert.Single(certificates);
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.HttpsIssuer);
+            Assert.Equal(2, certificates.Count);
+            await CleanAsync(certs, CertificateStoreName.Https);
+            await CleanAsync(certs, CertificateStoreName.HttpsIssuer);
         }
 
         [Fact]
@@ -194,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             }
         }
 
-        private X509Certificate2 CreateRSACertificate(string name)
+        private static X509Certificate2 CreateRSACertificate(string name)
         {
             using var rsa = RSA.Create();
             var req = new CertificateRequest("DC=" + name, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
@@ -202,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddHours(5));
         }
 
-        private IContainer Build()
+        private static IContainer Build()
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.AddLogging();

@@ -23,7 +23,8 @@ namespace Opc.Ua
         /// <param name="certificates"></param>
         /// <param name="noCopy"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/>
+        /// is <c>null</c>.</exception>
         public static void Add(this ICertificateStore store,
             IEnumerable<X509Certificate2> certificates,
             bool noCopy = false)
@@ -61,7 +62,8 @@ namespace Opc.Ua
         }
 
         /// <summary>
-        /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
+        /// Apply the configured settings provided via a CertificateStore to a
+        /// CertificateTrustList.
         /// </summary>
         /// <param name="certificateTrustList"></param>
         /// <param name="certificateStore"></param>
@@ -78,7 +80,7 @@ namespace Opc.Ua
 
             if (certificateStore == null)
             {
-                throw new ArgumentNullException(nameof(certificateStore));
+                return;
             }
 
             if (certificateTrustList.StorePath != certificateStore.StorePath)
@@ -106,7 +108,7 @@ namespace Opc.Ua
 
             if (certificateStore == null)
             {
-                throw new ArgumentNullException(nameof(certificateStore));
+                return;
             }
 
             if (certificateIdentifier.StorePath != certificateStore.StorePath)
@@ -117,8 +119,9 @@ namespace Opc.Ua
         }
 
         /// <summary>
-        /// Apply the configured settings provided via a CertificateStore to a CertificateStoreIdentifier
-        /// Particularily used for rejected certificates store.
+        /// Apply the configured settings provided via a CertificateStore to a
+        /// CertificateStoreIdentifier. Particularily used for rejected
+        /// certificates store.
         /// </summary>
         /// <param name="certificateStoreIdentifier"></param>
         /// <param name="certificateStore"></param>
@@ -128,14 +131,14 @@ namespace Opc.Ua
             this CertificateStoreIdentifier certificateStoreIdentifier,
             CertificateStore? certificateStore)
         {
-            if (certificateStore == null)
-            {
-                throw new ArgumentNullException(nameof(certificateStore));
-            }
-
             if (certificateStoreIdentifier == null)
             {
                 throw new ArgumentNullException(nameof(certificateStoreIdentifier));
+            }
+
+            if (certificateStore == null)
+            {
+                return;
             }
 
             if (certificateStoreIdentifier.StorePath != certificateStore.StorePath)

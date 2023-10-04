@@ -66,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
         public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
         public const string LingerTimeoutKey = "LingerTimeout";
+        public const string CertificateStorePasswordKey = "CertificateStorePassword";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -421,6 +422,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     StoreType = GetStringOrDefault(UserIssuerCertificatesTypeKey,
                         CertificateStoreType.Directory)
                 };
+            }
+
+            if (options.Security.CertificateStorePassword == null)
+            {
+                options.Security.CertificateStorePassword =
+                    GetStringOrDefault(CertificateStorePasswordKey);
             }
         }
 

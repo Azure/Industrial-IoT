@@ -18,10 +18,10 @@
         "http"
     ],
     "paths": {
-        "/v2/pki/{store}": {
+        "/v2/pki/{store}/certs": {
             "get": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
                 "summary": "ListCertificates",
                 "description": "Get the certificates in the specified certificated store",
@@ -67,9 +67,9 @@
                     }
                 }
             },
-            "put": {
+            "patch": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
                 "summary": "AddCertificate",
                 "description": "Add a certificate to the specified store. The certificate is provided as a pfx/pkcs12 optionally password protected blob.",
@@ -110,10 +110,10 @@
                 }
             }
         },
-        "/v2/pki/{store}/crl": {
+        "/v2/pki/{store}/crls": {
             "get": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
                 "summary": "ListCertificateRevocationLists",
                 "description": "Get the certificates in the specified certificated store",
@@ -159,16 +159,50 @@
                         }
                     }
                 }
-            }
-        },
-        "/v2/pki/{store}/chain": {
-            "put": {
+            },
+            "patch": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
-                "summary": "AddCertificateChain",
-                "description": "Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.",
-                "operationId": "AddCertificateChain",
+                "summary": "AddCertificateRevocationList",
+                "description": "Add a certificate revocation list to the specified store. The certificate revocation list is provided as a der encoded blob.",
+                "operationId": "AddCertificateRevocationList",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "store",
+                        "description": "The store to add the certificate to",
+                        "required": true,
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "RemoveCertificateRevocationList",
+                "description": "Remove a certificate revocation list from the specified store.",
+                "operationId": "RemoveCertificateRevocationList",
                 "parameters": [
                     {
                         "in": "path",
@@ -199,10 +233,64 @@
                 }
             }
         },
-        "/v2/pki/{store}/{thumbprint}": {
+        "/v2/pki/trusted/certs": {
+            "post": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "AddCertificateChain",
+                "description": "Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.",
+                "operationId": "AddCertificateChain",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/rejected/certs/{thumbprint}/approve": {
+            "post": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "ApproveRejectedCertificate",
+                "description": "Move a rejected certificate from the rejected folder to the trusted folder on the publisher.",
+                "operationId": "ApproveRejectedCertificate",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "thumbprint",
+                        "description": "The thumbprint of the certificate to trust.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/https/certs": {
+            "post": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "AddTrustedHttpsCertificateAsync",
+                "description": "Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.",
+                "operationId": "AddTrustedHttpsCertificate",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/pki/{store}/certs/{thumbprint}": {
             "delete": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
                 "summary": "RemoveCertificate",
                 "description": "Remove a certificate with the provided thumbprint from the specified store.",
@@ -244,21 +332,35 @@
                 }
             }
         },
-        "/v2/pki/approve/{thumbprint}": {
-            "post": {
+        "/v2/pki/{store}": {
+            "delete": {
                 "tags": [
-                    "Certificate"
+                    "Certificates"
                 ],
-                "summary": "ApproveRejectedCertificate",
-                "description": "Move a rejected certificate from the rejected folder to the trusted folder on the publisher.",
-                "operationId": "ApproveRejectedCertificate",
+                "summary": "RemoveAll",
+                "description": "Remove all certificates and revocation lists from the specified store.",
+                "operationId": "RemoveAll",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "thumbprint",
-                        "description": "The thumbprint of the certificate to trust.",
+                        "name": "store",
+                        "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "Application",
+                            "Rejected",
+                            "Trusted",
+                            "Https",
+                            "User",
+                            "Issuer",
+                            "HttpsIssuer",
+                            "UserIssuer"
+                        ],
+                        "x-ms-enum": {
+                            "name": "CertificateStoreName",
+                            "modelAsString": false
+                        }
                     }
                 ],
                 "responses": {
@@ -7291,8 +7393,8 @@
                     "description": "Self signed certificate",
                     "type": "boolean"
                 },
-                "certificate": {
-                    "description": "Raw data",
+                "pfx": {
+                    "description": "Certificate as Pkcs12",
                     "type": "array",
                     "items": {
                         "format": "int32",
@@ -7344,8 +7446,8 @@
     },
     "tags": [
         {
-            "name": "Certificate",
-            "description": "<br>\r\n            This section lists the general APi provided by OPC Publisher providing\r\n            all connection, endpoint and address space related API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "name": "Certificates",
+            "description": "<br>\r\n            This section lists the certificate APi provided by OPC Publisher providing\r\n            all public and private key infrastructure (PKI) related API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "Configuration",
