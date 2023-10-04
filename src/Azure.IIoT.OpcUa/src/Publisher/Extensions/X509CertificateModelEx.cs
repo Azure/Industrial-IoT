@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return new X509CertificateModel
             {
-                Certificate = cert.Export(X509ContentType.Pfx),
+                Pfx = cert.Export(X509ContentType.Pfx),
                 NotAfterUtc = cert.NotAfter,
                 NotBeforeUtc = cert.NotBefore,
                 SerialNumber = cert.GetSerialNumberString(),

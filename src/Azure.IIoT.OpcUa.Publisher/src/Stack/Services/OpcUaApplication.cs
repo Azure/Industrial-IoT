@@ -31,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Client configuration
     /// </summary>
     public sealed class OpcUaApplication : IAwaitable<OpcUaApplication>,
-        IOpcUaConfiguration, IOpcUaCertificates, IDisposable
+        IOpcUaConfiguration, IOpcUaCertificates, ICertificatePasswordProvider,
+        IDisposable
     {
         /// <inheritdoc/>
         public ApplicationConfiguration Value => _configuration.Result;
@@ -60,6 +61,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaApplication(IOptions<OpcUaClientOptions> options,
             ILogger<OpcUaApplication> logger, IProcessIdentity? identity = null)
         {
+            if (options.Value.Security == null)
+            {
+                throw new ArgumentException("Security options not provided",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.ApplicationCertificate?.SubjectName == null)
+            {
+                throw new ArgumentException("Application certificate missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.TrustedIssuerCertificates == null)
+            {
+                throw new ArgumentException("Trusted issuer certificates missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.TrustedPeerCertificates == null)
+            {
+                throw new ArgumentException("Trusted peer certificates missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.RejectedCertificateStore == null)
+            {
+                throw new ArgumentException("Rejected certificate store missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.TrustedUserCertificates == null)
+            {
+                throw new ArgumentException("Trusted user certificates store missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.HttpsIssuerCertificates == null)
+            {
+                throw new ArgumentException("Https issuer certificate store missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.TrustedHttpsCertificates == null)
+            {
+                throw new ArgumentException("Trusted https certificates store missing",
+                    nameof(options));
+            }
+
+            if (options.Value.Security.UserIssuerCertificates == null)
+            {
+                throw new ArgumentException("User issuer certificates store missing",
+                    nameof(options));
+            }
+
             _logger = logger;
             _options = options;
             _identity = identity == null ? "opc-publisher" : identity.Id;
@@ -81,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
-            CertificateStoreName store, CancellationToken ct)
+            CertificateStoreName store, bool includePrivateKey, CancellationToken ct)
         {
             // show application certs
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
@@ -92,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     case CertificateStoreName.Application:
                     case CertificateStoreName.User:
-                        if (!certStore.SupportsLoadPrivateKey)
+                        if (!includePrivateKey || !certStore.SupportsLoadPrivateKey)
                         {
                             goto default;
                         }
@@ -308,12 +363,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        /// <inheritdoc/>
+        public string GetPassword(CertificateIdentifier certificateIdentifier)
+        {
+            return Password;
+        }
+
         /// <summary>
         /// Build application configuration
         /// </summary>
-        /// <returns></returns>
         /// <exception cref="InvalidProgramException"></exception>
         /// <exception cref="InvalidConfigurationException"></exception>
+        /// <returns></returns>
         private async Task<ApplicationConfiguration> BuildAsync()
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(_options.Value.ApplicationName));
@@ -569,70 +630,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="securityOptions"></param>
         /// <param name="applicationConfiguration"></param>
         /// <param name="hostname"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="securityOptions"/>
-        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        private static async Task<ApplicationConfiguration> BuildSecurityConfiguration(
+        private async Task<ApplicationConfiguration> BuildSecurityConfiguration(
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
             string hostname)
         {
-            if (securityOptions == null)
-            {
-                throw new ArgumentNullException(nameof(securityOptions));
-            }
-
-            if (securityOptions.ApplicationCertificate?.SubjectName == null)
-            {
-                throw new ArgumentException("Application certificate missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.TrustedIssuerCertificates == null)
-            {
-                throw new ArgumentException("Trusted issuer certificates missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.TrustedPeerCertificates == null)
-            {
-                throw new ArgumentException("Trusted peer certificates missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.RejectedCertificateStore == null)
-            {
-                throw new ArgumentException("Rejected certificate store missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.TrustedUserCertificates == null)
-            {
-                throw new ArgumentException("Trusted user certificates store missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.HttpsIssuerCertificates == null)
-            {
-                throw new ArgumentException("Https issuer certificate store missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.TrustedHttpsCertificates == null)
-            {
-                throw new ArgumentException("Trusted https certificates store missing",
-                    nameof(securityOptions));
-            }
-
-            if (securityOptions.UserIssuerCertificates == null)
-            {
-                throw new ArgumentException("User issuer certificates store missing",
-                    nameof(securityOptions));
-            }
-
             var options = applicationConfigurationBuilder
                 .AddSecurityConfiguration(
-                    securityOptions.ApplicationCertificate.SubjectName
+                    securityOptions.ApplicationCertificate?.SubjectName?
                         .Replace("localhost", hostname, StringComparison.InvariantCulture),
                     securityOptions.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(
@@ -641,6 +648,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     securityOptions.RejectSha1SignedCertificates ?? true)
                 .SetMinimumCertificateKeySize(
                     securityOptions.MinimumCertificateKeySize)
+                .AddCertificatePasswordProvider(this)
                 .SetAddAppCertToTrustedStore(
                     securityOptions.AddAppCertToTrustedStore ?? true)
                 .SetRejectUnknownRevocationStatus(

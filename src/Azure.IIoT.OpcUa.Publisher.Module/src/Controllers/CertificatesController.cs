@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
-            return await _certificates.ListCertificatesAsync(store,
+            return await _certificates.ListCertificatesAsync(store, false,
                 ct).ConfigureAwait(false);
         }
 

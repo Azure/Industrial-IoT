@@ -58,10 +58,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? SelfSigned { get; set; }
 
         /// <summary>
-        /// Raw data
+        /// Certificate as Pkcs12
         /// </summary>
-        [DataMember(Name = "certificate", Order = 6)]
-        public IReadOnlyCollection<byte>? Certificate { get; set; }
+        [DataMember(Name = "pfx", Order = 6)]
+        public IReadOnlyCollection<byte>? Pfx { get; set; }
 
         /// <summary>
         /// Contains private key

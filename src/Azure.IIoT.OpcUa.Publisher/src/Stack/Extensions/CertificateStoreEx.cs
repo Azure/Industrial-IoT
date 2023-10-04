@@ -69,7 +69,7 @@ namespace Opc.Ua
         /// is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateTrustList certificateTrustList,
-            CertificateStore certificateStore)
+            CertificateStore? certificateStore)
         {
             if (certificateTrustList == null)
             {
@@ -97,7 +97,7 @@ namespace Opc.Ua
         /// is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateIdentifier certificateIdentifier,
-            CertificateInfo certificateStore)
+            CertificateInfo? certificateStore)
         {
             if (certificateIdentifier == null)
             {
@@ -126,7 +126,7 @@ namespace Opc.Ua
         /// is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateStoreIdentifier certificateStoreIdentifier,
-            CertificateStore certificateStore)
+            CertificateStore? certificateStore)
         {
             if (certificateStore == null)
             {

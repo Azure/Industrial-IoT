@@ -19,10 +19,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Enumerate certificates
         /// </summary>
         /// <param name="store"></param>
+        /// <param name="includePrivateKey"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
-            CertificateStoreName store, CancellationToken ct = default);
+            CertificateStoreName store, bool includePrivateKey = false,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Add certificate pfx to store

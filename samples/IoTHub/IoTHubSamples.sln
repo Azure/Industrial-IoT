@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetConfiguration", "GetConf
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WriteReadbackValue", "WriteReadbackValue\WriteReadbackValue.csproj", "{BCD71531-64F1-4060-9B24-96C3BEE778F5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetApplicationCert", "GetCertificate\GetApplicationCert.csproj", "{8B2A260F-C0A6-43B9-871D-DC1A2FA42B48}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrowseCertificates", "BrowseCertificates\BrowseCertificates.csproj", "{A66EA536-103A-4DFA-951C-1A238427139E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B2A260F-C0A6-43B9-871D-DC1A2FA42B48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B2A260F-C0A6-43B9-871D-DC1A2FA42B48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B2A260F-C0A6-43B9-871D-DC1A2FA42B48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B2A260F-C0A6-43B9-871D-DC1A2FA42B48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A66EA536-103A-4DFA-951C-1A238427139E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A66EA536-103A-4DFA-951C-1A238427139E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A66EA536-103A-4DFA-951C-1A238427139E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A66EA536-103A-4DFA-951C-1A238427139E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
-            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application);
+            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
             var own = Assert.Single(certificates);
             Assert.True(own.HasPrivateKey);
         }
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             await certs.AddCertificateAsync(CertificateStoreName.Application,
                 newCert.Export(X509ContentType.Pfx, "pfx"), "pfx");
 
-            certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application);
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
             var own = Assert.Single(certificates);
             Assert.True(own.HasPrivateKey);
         }
