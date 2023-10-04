@@ -1072,10 +1072,10 @@ You can use `openssl` to create your own self-signed certificate, e.g., with a 2
 ```bash
 # Create cert.pem and key.pem
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -sha256 -days 730 -nodes \
--subj "/CN=<your-common-name>,O=<your-company-name>" \
--addext "subjectAltName=URI:dirurn:localhost:<application-name>" \
+-subj "/CN=<application-name>/O=<your-company-name>/DC=localhost" \
+-addext "subjectAltName=URI:urn:localhost:<application-name>:microsoft:,DNS:<iot-edge-host-name>" \
 -addext "keyUsage=critical, nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign" \
--addext "extendedKeyUsage = critical, serverAuth, clientAuth"
+-addext "extendedKeyUsage=critical, serverAuth, clientAuth"
 
 # Transform cert.pem to cert.der
 openssl x509 -outform der -in cert.pem -out cert.der
@@ -1083,8 +1083,8 @@ openssl x509 -outform der -in cert.pem -out cert.der
 openssl pkcs12 -export -out cert.pfx -inkey key.pem -in cert.pem
 
 # Clean up keys
-del cert.pem
-del key.pem
+rm -f cert.pem
+rm -f key.pem
 ```
 
 The resulting .pfx file can now be copied to the `own/private` folder under pki root (or to an alternative application certificate folder configured) and the .der file to the `own/certs` and `trusted/certs` folders. Alternatively you can also push the pfx file content to OPC Publisher's PKI through the [OPC Publisher API](./api.md#addcertificate).
