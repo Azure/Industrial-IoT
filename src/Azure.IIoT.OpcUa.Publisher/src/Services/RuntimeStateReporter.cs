@@ -8,22 +8,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
-    using Furly.Azure.IoT.Edge.Services;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Net;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net;
 
     /// <summary>
     /// This class manages reporting of runtime state.

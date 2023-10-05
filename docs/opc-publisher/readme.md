@@ -42,8 +42,9 @@ Here you find information about
     - [One-time discovery](#one-time-discovery)
     - [Discovery Progress](#discovery-progress)
   - [OPC UA command and control (OPC Twin)](#opc-ua-command-and-control-opc-twin)
-- [OPC UA Certificates management](#opc-ua-certificates-management)
-  - [Use custom OPC UA application instance certificate in OPC Publisher](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher)
+- [OPC UA Certificates](#opc-ua-certificates)
+  - [PKI management](#pki-management)
+  - [Auto Accept server certificates](#auto-accept-server-certificates)
 - [OPC UA stack](#opc-ua-stack)
 - [Performance and Memory Tuning OPC Publisher](#performance-and-memory-tuning-opc-publisher)
 
@@ -602,7 +603,7 @@ The OPC UA server always sends the first data value to OPC Publisher when the su
 
 ### Configuring Security
 
-IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use X.509 certificates fo mutual authentication of both OPC Publisher clients and the OPC UA server and to establish a secure channel between both. OPC Publisher can be configured to store these certificates in a file system based certificate store which root can be configured using the `--pki` command line argument. During startup, OPC Publisher checks if there's already a private certificate it should use as its identity. If it cannot find one, a self-signed certificate is created.
+IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use [X.509 certificates](#opc-ua-certificates) fo mutual authentication of both OPC Publisher clients and the OPC UA server and to establish a secure channel between both. OPC Publisher can be configured to [store these certificates](#pki-management) in a file system based certificate store which root can be configured using the `--pki` command line argument. During startup, OPC Publisher checks if there's already a private certificate it should use as its identity. If it cannot find one, a self-signed certificate is created.
 
 > Self-signed certificates don't provide any trust value and we don't recommend using them in production.
 
@@ -876,7 +877,7 @@ More detailed information about the supported message formats can be found [here
 
 OPC Publisher supports remote configuration through Azure IoT Hub [direct methods](./directmethods.md). In addition to the configuration API, OPC Publisher 2.9 also supports additional [APIs](./api.md) and [a number of different transports](./transports.md) that can be used to receive messages or invoke these API services. The transports can be configured using the [command line arguments](./commandline.md).
 
-- The API can be invoked through Azure [**IoT Hub direct methods**](#calling-the-direct-methods-api) from the cloud or from another IoT Edge module running alongside of OPC Publisher or inside a higher layer of a Purdue network setup. The method name is the operation name and request payload as documented in the API documentation. 
+- The API can be invoked through Azure [**IoT Hub direct methods**](#calling-the-direct-methods-api) from the cloud or from another IoT Edge module running alongside of OPC Publisher or inside a higher layer of a Purdue network setup. The method name is the operation name and request payload as documented in the API documentation.
 
 - The same API is exposed as [REST API](#calling-the-api-over-http) via the Http**HTTP Server** [built into OPC Publisher](./transports.md#built-in-http-api-server) (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token in the Authorization header (`Bearer <api-key>`). The API key is generated at start up and [can be read from the OPC Publisher module's module twin](#using-iot-edge-simulation-environment) (`__apikey__` property).
 
@@ -942,6 +943,7 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
       ...
       "$version": 3,
       "__apikey__": "6dee3fd4-0bb2-4fb1-9736-99bb4435f020",
+      "__certificate__": "...",
       "__type__": "OpcPublisher",
       "__version__": "2.9.0"
       ...
@@ -954,11 +956,11 @@ curl -H "Authorization: Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://loc
 {"endpoints":[]}
 ```
 
-> The API key is a secret just like passwords or decryption keys. Therefore always use HTTPS in production scenarios since using HTTP endpoint makes the secret visible to everyone. It is also recommended to continuously update the API key (Rolling) which can be done by writing a new key to the module twin or deleting the entry so it is re-generated.
+> The API key is a secret just like passwords or decryption keys. Therefore always use HTTPS in production scenarios since using HTTP endpoint makes the secret visible to everyone and verify the server certificate against the "certificate" value provided in the twin. It is also recommended to continuously update the API key (Rolling) which can be done by writing a new key to the module twin or deleting the entry so it is re-generated.
 
 ### JSON encoding
 
-The REST API uses OPC UA JSON reversible encoding as per standard defined in [OPC UA](../readme.md#what-is-opc-ua) specification 1.04, Part 6, with the exception that default scalar values and `null` values are not encoded except when inside of an array.  A missing value implies `null` or the default of the scalar data type.  
+The REST API uses OPC UA JSON reversible encoding as per standard defined in [OPC UA](../readme.md#what-is-opc-ua) specification 1.04, Part 6, with the exception that default scalar values and `null` values are not encoded except when inside of an array.  A missing value implies `null` or the default of the scalar data type.
 
 In addition to the standard string encoding using a namespace `Index` (e.g. `ns=4;i=3`) or the `Expanded` format (e.g. `nsu=http://opcfoundation.org/UA/;i=3523`) OPC Publisher also supports the use of `Uri` encoded Node Ids and Qualified Names (see [RFC 3986](http://tools.ietf.org/html/rfc3986)).
 
@@ -1049,30 +1051,53 @@ Payloads that are larger than the Azure IoT Hub supported Device Method payload 
 
 A single session is opened on demand per endpoint so the OPC UA server is not overburdened with 100’s of simultaneous requests. The client linger option can be configured using the [command line](./commandline.md) option `--cl` so that clients stay open for a while after the service call completes avoiding re-establishment of the session.
 
-## OPC UA Certificates management
+## OPC UA Certificates
 
 OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
-To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa").
-Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
+The pki path of OPC Publisher can be configured using the `PkiRootPath` or `--pki` command line argument (the default folder is `/pki`). It is usually a good idea to specify a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores are found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
 
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
+By default, the OPC Publisher module will create a self signed x509 *Application certificate* with a 1 year expiration in the `own` store. This default, self signed cert includes the Subject `Microsoft.Azure.IIoT`. This certificate is fine as a demonstration, but for production systems customers may want to [use their own certificate](#pki-management).
 
-The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
+The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept the OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf). To use the [OPC PLC Server Simulator](https://docs.microsoft.com/samples/azure-samples/iot-edge-opc-plc) with mutual trust you can use the `–-aa` switch on the simulator to accept OPC Publisher's certificate or copy the server certificate from the simulator to the pki `trusted` folder of OPC Publisher.
 
-To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
-The pki path can be configured using the `PkiRootPath` command line argument.
+### PKI management
 
-### Use custom OPC UA application instance certificate in OPC Publisher
+The `certificate stores` in OPC Publisher live in the file system. They can be managed remotely using the `Certificates` [Api](./api.md#certificate) (Preview). This API enables an application or user to [list all certificates](./api.md#listcertificates) and [add](./api.md#addcertificate) and [remove certificates](./api.md#removecertificate). There is also an API to move rejected certificates from the rejected store to the trusted store and list, add, remove [certificate revocation lists](./api.md#listcertificaterevocationlists).
 
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration which is fine for demonstration. For real applications, customers may want to use their own certificate.
 
-Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+You can use `openssl` to create your own self-signed certificate, e.g., with a 2 year expiration and a custom subject. If you desire a different application name, you must provide said application name using the `--an` command line argument (The default is `publisher`). If you desire a different subject name than the default, the OPC Publisher must be started with `--sn` command line providing the desired subject name (for example `CN=<application-name>,O=mycompany`). In the following example script, replace `<application-name>` and `<subject-name>` with the application name and subject name you configured:
 
-`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+```bash
+# Create cert.pem and key.pem
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -sha256 -days 730 -nodes \
+-subj "/CN=<application-name>/O=<your-company-name>/DC=localhost" \
+-addext "subjectAltName=URI:urn:localhost:<application-name>:microsoft:,DNS:<iot-edge-host-name>" \
+-addext "keyUsage=critical, nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign" \
+-addext "extendedKeyUsage=critical, serverAuth, clientAuth"
 
-`ApplicationName ="TEST-PUBLISHER"`
+# Transform cert.pem to cert.der
+openssl x509 -outform der -in cert.pem -out cert.der
+# Transform key.pem and cert.pem to cert.pfx
+openssl pkcs12 -export -out cert.pfx -inkey key.pem -in cert.pem
+
+# Clean up keys
+rm -f cert.pem
+rm -f key.pem
+```
+
+The resulting .pfx file can now be copied to the `own/private` folder under pki root (or to an alternative application certificate folder configured) and the .der file to the `own/certs` and `trusted/certs` folders. Alternatively you can also push the pfx file content to OPC Publisher's PKI through the [OPC Publisher API](./api.md#addcertificate).
+
+As part of above script you will be prompted to enter and verify an export password to protect the PFX file. If you are copying the PFX file into the `own` folder, then by default the password should be blank (hit enter), unless you are running the publisher PKI with password protection (`--pkp=<pwd>`). In this case the password should be the provided password.
+
+If you intend to provide the certificate using the  [OPC Publisher API](./api.md#addcertificate) you must provide any password you choose as part of the API call so that the API server in OPC Publisher is able to export the key from the PFX blob. If the OPC Publisher was started using the `--tm` command line option any certificate added to the `own` store will also be added to the `trusted` store.
+
+### Auto Accept server certificates
+
+To simplify the getting started experience, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates presented to OPC Publisher (`--aa`). This does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `pki` folder structure.
+
+> IMPORTANT: Automatically trusting any server certificate provided by an endpoint exposes OPC Publisher to man in the middle attacks. Do not use OPC Publisher with auto accept mode in production.
 
 ## OPC UA stack
 

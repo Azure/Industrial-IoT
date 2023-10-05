@@ -79,6 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryController>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<CertificatesController>()
+                .AsImplementedInterfaces();
         }
 
         /// <summary>

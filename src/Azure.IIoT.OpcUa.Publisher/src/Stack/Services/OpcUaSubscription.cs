@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Nito.AsyncEx;
 
     /// <summary>
     /// Subscription implementation
@@ -1748,6 +1748,7 @@ Actual (revised) state/desired state:
             /// <summary>
             /// Meta data loader task
             /// </summary>
+            /// <param name="ct"></param>
             /// <returns></returns>
             private async Task StartAsync(CancellationToken ct)
             {

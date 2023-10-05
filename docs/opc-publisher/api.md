@@ -2,6 +2,273 @@
 <a name="paths"></a>
 ## Resources
 
+<a name="certificates_resource"></a>
+### Certificates
+<br>
+            This section lists the certificate APi provided by OPC Publisher providing
+            all public and private key infrastructure (PKI) related API methods.
+            
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="addtrustedhttpscertificate"></a>
+#### AddTrustedHttpsCertificateAsync
+```
+POST /v2/pki/https/certs
+```
+
+
+##### Description
+Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="approverejectedcertificate"></a>
+#### ApproveRejectedCertificate
+```
+POST /v2/pki/rejected/certs/{thumbprint}/approve
+```
+
+
+##### Description
+Move a rejected certificate from the rejected folder to the trusted folder on the publisher.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**thumbprint**  <br>*required*|The thumbprint of the certificate to trust.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="addcertificatechain"></a>
+#### AddCertificateChain
+```
+POST /v2/pki/trusted/certs
+```
+
+
+##### Description
+Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="removeall"></a>
+#### RemoveAll
+```
+DELETE /v2/pki/{store}
+```
+
+
+##### Description
+Remove all certificates and revocation lists from the specified store.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="listcertificates"></a>
+#### ListCertificates
+```
+GET /v2/pki/{store}/certs
+```
+
+
+##### Description
+Get the certificates in the specified certificated store
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to enumerate|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="addcertificate"></a>
+#### AddCertificate
+```
+PATCH /v2/pki/{store}/certs
+```
+
+
+##### Description
+Add a certificate to the specified store. The certificate is provided as a pfx/pkcs12 optionally password protected blob.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Query**|**password**  <br>*optional*|The optional password of the blob|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="removecertificate"></a>
+#### RemoveCertificate
+```
+DELETE /v2/pki/{store}/certs/{thumbprint}
+```
+
+
+##### Description
+Remove a certificate with the provided thumbprint from the specified store.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**thumbprint**  <br>*required*|The thumbprint of the certificate to delete.|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="listcertificaterevocationlists"></a>
+#### ListCertificateRevocationLists
+```
+GET /v2/pki/{store}/crls
+```
+
+
+##### Description
+Get the certificates in the specified certificated store
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to enumerate|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|< string (byte) > array|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="removecertificaterevocationlist"></a>
+#### RemoveCertificateRevocationList
+```
+DELETE /v2/pki/{store}/crls
+```
+
+
+##### Description
+Remove a certificate revocation list from the specified store.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="addcertificaterevocationlist"></a>
+#### AddCertificateRevocationList
+```
+PATCH /v2/pki/{store}/crls
+```
+
+
+##### Description
+Add a certificate revocation list to the specified store. The certificate revocation list is provided as a der encoded blob.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
 <a name="configuration_resource"></a>
 ### Configuration
 <br>
@@ -129,7 +396,7 @@ POST /v2/configuration/bulk
 
 
 ##### Description
-Configure node values to publish and unpublish in bulk
+Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.
 
 
 ##### Parameters
@@ -237,7 +504,7 @@ POST /v2/configuration/list
 
 
 ##### Description
-Get all published nodes for a server endpoint.
+Get all published nodes for a server endpoint. The group field that was used in the Connection Model to start publishing must also be specified in this connection model.
 
 
 ##### Parameters
@@ -401,7 +668,7 @@ POST /v2/configuration/start
 
 
 ##### Description
-Start publishing values from a node ona server.
+Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.
 
 
 ##### Parameters
@@ -442,7 +709,7 @@ POST /v2/configuration/stop
 
 
 ##### Description
-Stop publishing values from a node on the specified server.
+Stop publishing values from a node on the specified server. The group field that was used in the Connection Model to start publishing must also be specified in this connection model.
 
 
 ##### Parameters

@@ -394,6 +394,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ipt|{OpcUaClientConfig.TrustedIssuerCertificatesTypeKey}=",
                     $"Trusted issuer certificate store types.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedIssuerCertificatesTypeKey, "ipt") },
+                { $"cpw|certificatestorepwd=|{OpcUaClientConfig.CertificateStorePasswordKey}=",
+                    "Password to use when storing keys in the certificate store.\nDefault: empty, which means keys are not protected by default.\n",
+                    s => SetStoreType(s, OpcUaClientConfig.CertificateStorePasswordKey, "ipt") },
 
                 "",
                 "Diagnostic options",
