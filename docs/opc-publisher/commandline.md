@@ -704,6 +704,11 @@ OPC UA Client configuration
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
+      --cpw, --certificatestorepwd, --CertificateStorePassword=VALUE
+                             Password to use when storing keys in the
+                               certificate store.
+                               Default: empty, which means stores are not
+                               protected by default.
 
 Diagnostic options
 ------------------

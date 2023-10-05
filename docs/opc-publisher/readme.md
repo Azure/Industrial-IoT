@@ -1089,7 +1089,7 @@ rm -f key.pem
 
 The resulting .pfx file can now be copied to the `own/private` folder under pki root (or to an alternative application certificate folder configured) and the .der file to the `own/certs` and `trusted/certs` folders. Alternatively you can also push the pfx file content to OPC Publisher's PKI through the [OPC Publisher API](./api.md#addcertificate).
 
-As part of above script you will be prompted to enter and verify an export password to protect the PFX file. If you are copying the PFX file into the `own` folder, then by default the password should be blank (hit enter), unless you are running the publisher PKI with password protection (`--pkp=<pwd>`). In this case the password should be the provided password.
+As part of above script you will be prompted to enter and verify an export password to protect the PFX file. If you are copying the PFX file into the `own` folder, then by default the password should be blank (hit enter), unless you are running the publisher PKI stores with password protection (`--cpw=<pwd>`). In this case the password should be the provided password.
 
 If you intend to provide the certificate using the  [OPC Publisher API](./api.md#addcertificate) you must provide any password you choose as part of the API call so that the API server in OPC Publisher is able to export the key from the PFX blob. If the OPC Publisher was started using the `--tm` command line option any certificate added to the `own` store will also be added to the `trusted` store.
 
