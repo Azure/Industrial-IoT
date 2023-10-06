@@ -677,6 +677,12 @@ OPC UA Client configuration
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
+      --apw, --appcertstorepwd, --ApplicationCertificatePassword=VALUE
+                             Password to use when storing the application
+                               certificate in the store folder if the store is
+                               of type `Directory`.
+                               Default: empty, which means application
+                               certificate is not protected by default.
       --tp, --trustedcertstorepath, --TrustedPeerCertificatesPath=VALUE
                              The path of the trusted cert store.
                                Default: $"{PkiRootPath}/trusted".
@@ -704,11 +710,6 @@ OPC UA Client configuration
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
-      --cpw, --certificatestorepwd, --CertificateStorePassword=VALUE
-                             Password to use when storing keys in the
-                               certificate store.
-                               Default: empty, which means stores are not
-                               protected by default.
 
 Diagnostic options
 ------------------
