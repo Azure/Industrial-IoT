@@ -448,9 +448,9 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint.<br>`true` corresponds to `EndpointSecurityMode` = `SignAndEncrypt`, `false` to `EndpointSecurityMode` = `None` |
 | `EndpointSecurityMode` | No | Enum | `null` | Enum to specify a requested security mode of the chosen session endpoint. Overrides `UseSecurity` value.<br>Options: `Sign`, `SignAndEncrypt`, `None`, and `Best` (security mode possible which might include `None`) |
 | `EndpointSecurityPolicy` | No | String | `null` | String to specify a security policy the chosen endpoint must meet. Refines the endpoint chosen through `EndpointSecurityMode` and overrides `UseSecurity` value. |
-| `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
-| `OpcAuthenticationUsername` | No | String | `null` | The username for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
-| `OpcAuthenticationPassword` | No | String | `null` | The password for the session authentication if OpcAuthentication mode is `UsernamePassword`. |
+| `OpcAuthenticationMode` | No | Enum | `Anonymous` | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword`, `Certificate` |
+| `OpcAuthenticationUsername` | No | String | `null` | The username for the session authentication if OpcAuthentication mode is `UsernamePassword`. Otherwise the subject name of a x509 certificate in the user certificate store. Ignored if the mode is `Anonymous`. |
+| `OpcAuthenticationPassword` | No | String | `null` | The password for the session authentication if OpcAuthentication mode is `UsernamePassword`. Otherwise the password to access the private key of the referenced certificate in the user certificate store. Ignored if the mode is `Anonymous`.|
 | `DataSetWriterGroup` | No | String | `"<<UnknownWriterGroup>>"` | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
 | `DataSetWriterId` | No | String | `"<<UnknownDataSet>>"` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
 | `DataSetName` | No | String | `null` | The optional name of the data set as it will appear in the dataset metadata. |
@@ -656,7 +656,15 @@ By default OPC Publisher connects to the endpoint using anonymous authentication
   "OpcAuthenticationPassword": "pwd",
 ```
 
-> If user credentials are configured you should always enable encrypted communication to ensure the password is not leaked. OPC Publisher does not force encrypted authentication if a password is specified.
+OPC Publisher also supports X.509 Certificate based user authentication. A user certificate with private key must be added to the `User` certificate store of the [PKI](#pki-management). The user name then refers to the subject name of the certificate and the password to the password that was used to protect the pfx blob representing the user certificate. For example:
+
+``` json
+  "OpcAuthenticationMode": "Certificate",
+  "OpcAuthenticationUsername": "certificate-subject-name",
+  "OpcAuthenticationPassword": "certificate-password",
+```
+
+> If user credentials are configured you should always enable encrypted communication to ensure the secrets are not leaked. OPC Publisher does not force encrypted authentication if a password is specified.
 
 OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text. 2.9 allows you to force encryption of credentials at rest (`--fce`) or otherwise cause OPC Publisher to exit.
 
