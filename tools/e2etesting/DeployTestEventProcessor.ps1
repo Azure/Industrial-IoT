@@ -10,8 +10,6 @@ Param(
     $StorageFileShareName = "acishare"
 )
 
-Update-Module -Force -Name Az -RequiredVersion 10.3.0
-
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
 

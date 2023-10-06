@@ -54,8 +54,6 @@ steps:
         | ConvertTo-SecureString -AsPlainText -Force
       $credentials = New-Object -TypeName System.Management.Automation.PSCredential `
         -ArgumentList "$(ServicePrincipalId)", $secureServicePrincipalSecret
-      Write-Host "Installing AzureAD module..."
-      Install-Module -Name AzureAD -AllowClobber -Scope CurrentUser -Force
       Write-Host "Deploying to '$(ResourceGroupName)'..."
       . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
           -type services `

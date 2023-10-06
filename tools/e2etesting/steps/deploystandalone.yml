@@ -29,7 +29,8 @@ steps:
   displayName: "Deploy standalone resources"
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '10.3.0'
     scriptType: filePath
     scriptPath: '$(BasePath)\DeployStandalone.ps1'
     scriptArguments: >
