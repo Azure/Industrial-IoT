@@ -378,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     s => SetStoreType(s, OpcUaClientConfig.ApplicationCertificateStoreTypeKey, "apt") },
                 { $"apw|appcertstorepwd=|{OpcUaClientConfig.ApplicationCertificatePasswordKey}=",
                     "Password to use when storing the application certificate in the store folder if the store is of type `Directory`.\nDefault: empty, which means application certificate is not protected by default.\n",
-                    s => SetStoreType(s, OpcUaClientConfig.ApplicationCertificatePasswordKey, "ipt") },
+                    s => this[OpcUaClientConfig.ApplicationCertificatePasswordKey] = s },
                 { $"tp|trustedcertstorepath=|{OpcUaClientConfig.TrustedPeerCertificatesPathKey}=",
                     "The path of the trusted cert store.\nDefault: $\"{{PkiRootPath}}/trusted\".\n",
                     s => this[OpcUaClientConfig.TrustedPeerCertificatesPathKey] = s },
