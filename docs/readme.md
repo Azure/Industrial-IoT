@@ -17,6 +17,10 @@
 
 Azure [OPC Publisher](./opc-publisher/readme.md) and the optional [Industrial IoT Web service](./web-api/readme.md) allows plant operators to discover [OPC UA](#what-is-opc-ua) enabled servers in a factory network and register them in Azure IoT Hub. Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world. The APIs mirror the [OPC UA](#what-is-opc-ua) services and are secured through IoT Hub or optionally using OAUTH authentication and authorization backed by Azure Active Directory (AAD). This enables your applications to browse server address spaces or read/write variables and execute methods using IoT Hub, MQTT or HTTPS with simple JSON payloads.
 
+The following diagram shows how the OPC Publisher and optional REST Api integrate with Azure IoT Hub, Azure IoT Edge and other Azure services:
+
+![Architecture](./media/architecture.png)
+
 The [OPC Publisher API](./opc-publisher/readme.md) and the optional [Industrial IoT Web service REST API](./web-api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices. For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
 
 ## Use Cases
