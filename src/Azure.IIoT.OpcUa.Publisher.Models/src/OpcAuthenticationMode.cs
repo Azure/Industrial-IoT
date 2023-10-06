@@ -23,6 +23,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Username/Password authentication
         /// </summary>
         [EnumMember(Value = "UsernamePassword")]
-        UsernamePassword
+        UsernamePassword,
+
+        /// <summary>
+        /// X509 Certificate authentication
+        /// </summary>
+        [EnumMember(Value = "Certificate")]
+        Certificate
     }
 }

@@ -60,8 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 EndpointSecurityMode = model.Endpoint?.SecurityMode,
                 EndpointSecurityPolicy = model.Endpoint?.SecurityPolicy,
                 OpcAuthenticationMode = (model.User?.Type ?? CredentialType.None)
-                    == CredentialType.None ?
-                        OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,
+                    == CredentialType.None ? OpcAuthenticationMode.Anonymous :
+                        model.User!.Type == CredentialType.X509Certificate
+                    ? OpcAuthenticationMode.Certificate : OpcAuthenticationMode.UsernamePassword,
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,

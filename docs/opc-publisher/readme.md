@@ -24,7 +24,11 @@ Here you find information about
   - [Writer group configuration](#writer-group-configuration)
   - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
     - [Key frames, delta frames and extension fields](#key-frames-delta-frames-and-extension-fields)
-    - [Heartbeat and cyclic reading (Client side sampling)](#heartbeat-and-cyclic-reading-client-side-sampling)
+    - [Status codes](#status-codes)
+    - [Heartbeat](#heartbeat)
+      - [Timestamps](#timestamps)
+      - [Legacy behavior](#legacy-behavior)
+    - [Cyclic reading (Client side sampling)](#cyclic-reading-client-side-sampling)
   - [Configuring Security](#configuring-security)
   - [Using OPC UA reverse connect](#using-opc-ua-reverse-connect)
   - [Configuring event subscriptions](#configuring-event-subscriptions)
@@ -569,7 +573,22 @@ The `DataSetExtensionFields` object in the [configuration](#configuration-schema
 
 Values are formatted using the extended OPC UA Variant [JSON format](#json-encoding). This encoding is compliant with OPC UA Part 6, however it also allows to use simple JSON types which will be interpreted as Variant values using a simple heuristic, mapping the best OPC UA type possible to it.
 
-#### Heartbeat and cyclic reading (Client side sampling)
+#### Status codes
+
+The status code `value` is the integer received over the wire from the server (full one including all bits). 
+
+StatusCode "Good" is defined as 0 in OPC UA, which is omitted in JSON encoding (as per Part 6). The `symbol` in the encoding is what OPC Publisher is looking up from the standard defined codes (using the code bits which are the 16 bits defining the error code part of the status code).
+
+The symbol can be `Good` and still show up in the message when other bits are set in the `value`, e.g., overflow status, or additional information status, etc. One such example is the value `1152` which indicates the overflow bit (the server monitored item queue was in an overflow condition, which means the queue size should be increased):
+
+``` bash
+CodeBits = Value & 0xFFFF0000; --> This is used to look up the symbol which is "Good".
+FlagBits = Value & 0x0000FFFF;
+
+1152 == 0x480 == DataValueInfo | OverflowBit
+```
+
+#### Heartbeat
 
 Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a Timespan value):
 
@@ -585,9 +604,27 @@ The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavio
 
 Option of the node entry. The behavior can be set to watch dog behavior with Last Known Value (`WatchdogLKV`, which is the default) or Last Known Good (`WatchdogLKG`) semantics. A last known good value has either a status code of `Good` or a valid value (!= Null) and not a bad status code (which covers other Good or Uncertain status codes). Bad values are not causing heartbeat messages in LKG mode. A continuous periodic sending of the last known value (`PeriodicLKV`) or last good value (`PeriodicLKG`) can also be selected.
 
-In addition a behavior that mimics the older, legacy behavior of updating the source timestamp of the value can also be specified (`WatchdogLKVWithUpdatedTimestamps`). In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription and was similar to `WatchdogLKVWithUpdatedTimestamps`. In 2.9 and higher the heartbeat is emitted every heartbeat interval from the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome. Instead of using the `SourceTimestamp` or `ServerTimestamp` to plot heartbeat samples, it is recommended to use the Timestamp of the heartbeat message instead. The source of the timestamp can be configured using the `--mts, --messagetimestamp` command line option as as default is the time the message was created in OPC Publisher.
+##### Timestamps
 
-> Note that if the `PublishTime` is selected as message timestamp, heartbeat messages will not have a timestamp as they are generated locally and not as a result of a publish operation.
+The OPC UA data value contains a source and server timestamp. These are reported by the server and are based on the OPC UA server clock. The server is free to send whatever timestamp it wants, including none even though the OPC Publisher is setting up all monitored items to report both timestamps.
+
+When you want to analyze time series of data sets (where the value timestamps of every field in the data set will be different) or when you want to use Heartbeats (where the LKG or LKV are re-sent with the original timestamps), the `Timestamp` of the message should be used instead of the `SourceTimestamp` or `ServerTimestamp` values.
+
+> NOTE: The Timestamp property is not part of the regular legacy samples messages.  You must set `--fm=True` for them to be included.
+
+The timestamp of the message is the time the notification *was received from the OPC UA server*. Using the `--mts` command line option other sources for this timestamp can be chosen, e.g., the time of encoding (which is shortly before sending to the data sink), or the `PublishTime` property of the subscription notification received from the server (provided by OPC UA server).
+
+> Note that if the `PublishTime` is selected as message timestamp, heartbeat messages will not have a message timestamp as they are generated locally and not as a result of a publish operation.
+
+##### Legacy behavior
+
+We still support a heartbeat behavior that mimics the behavior of heartbeat in 2.8 and below. Here the source timestamp of the value will be shifted by the time passed since receiving it. This behavior can be enabled by specifying `--hbb=WatchdogLKVWithUpdatedTimestamps` as command line argument during deployment.
+
+This behavior only mimics the old behavior. In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription and was similar to `WatchdogLKVWithUpdatedTimestamps`. In 2.9 and higher the heartbeat is emitted every heartbeat interval from the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome. It is also better because heartbeats are also sent when OPC Publisher is not connected to the server (during intermittent disconnects).
+
+> Please be aware that when analyzing using `SourceTimestamp` or `ServerTimestamp` properties, the values are provided by the server, not by OPC Publisher. They are therefore only as reliable as the server implementation. This also extends to heartbeats when `WatchdogLKVWithUpdatedTimestamps` behavior is used. When the server sends a data value without or invalid timestamps, these timestamps are shifted and can result in garbage. The best solution is to primarily rely on the message timestamp and only `SourceTimestamp` as secondary information.
+
+#### Cyclic reading (Client side sampling)
 
 Similar use cases require cyclic read based sampling using read service calls on a periodic timer. The `UseCyclicRead` property of a configured node tells OPC Publisher to sample the value periodically when the timer expires. Note that read operations of all nodes at the same sampling rate are batched together for efficiency. They only execute when no previous read operation is in progress when the period expires. While the sampler configures a timeout of half the sampling rate in case of high frequency sampling a value every time the sampling rate expires cannot be guaranteed.
 

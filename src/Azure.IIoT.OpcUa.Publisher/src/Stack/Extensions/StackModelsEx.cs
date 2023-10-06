@@ -344,67 +344,75 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Makes a user identity
         /// </summary>
-        /// <param name="authentication"></param>
+        /// <param name="credential"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         public static async ValueTask<IUserIdentity> ToUserIdentityAsync(
-            this CredentialModel? authentication, ApplicationConfiguration configuration)
+            this CredentialModel? credential, ApplicationConfiguration configuration)
         {
-            switch (authentication?.Type ?? CredentialType.None)
+            switch (credential?.Type ?? CredentialType.None)
             {
                 case CredentialType.UserName:
-                    if (authentication!.Value?.IsObject == true &&
-                        authentication.Value.TryGetProperty("user", out var user) &&
+                    if (credential!.Value?.IsObject == true &&
+                        credential.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
-                        authentication.Value.TryGetProperty("password", out var password) &&
+                        credential.Value.TryGetProperty("password", out var password) &&
                             password.IsString)
                     {
                         return new UserIdentity((string?)user, (string?)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        "User/password token format provided is not supported.");
+                        "User/password credential provided is invalid.");
                 case CredentialType.X509Certificate:
-                    if (authentication!.Value?.IsObject == true)
+                    if (credential!.Value?.IsObject == true)
                     {
                         string? subjectName = null;
-                        if (authentication.Value.TryGetProperty("user", out user)
+                        if (credential.Value.TryGetProperty("user", out user)
                             && user.IsString)
                         {
                             subjectName = (string?)user;
                         }
                         string? thumbprint = null;
-                        if (authentication.Value.TryGetProperty("thumbprint", out user)
+                        if (credential.Value.TryGetProperty("thumbprint", out user)
                             && user.IsString)
                         {
                             thumbprint = (string?)user;
                         }
                         string? passCode = null;
-                        if (authentication.Value.TryGetProperty("password", out password)
+                        if (credential.Value.TryGetProperty("password", out password)
                             && password.IsString)
                         {
                             passCode = (string?)password;
                         }
                         if (thumbprint != null || subjectName != null)
                         {
-                            var userCertificate = configuration.SecurityConfiguration
+                            using var users = configuration.SecurityConfiguration
                                 .TrustedUserCertificates.OpenStore();
-                            return new UserIdentity(await userCertificate.LoadPrivateKey(
-                                thumbprint, subjectName, passCode).ConfigureAwait(false));
+                            var userCertWithPrivateKey = await users.LoadPrivateKey(
+                                thumbprint, subjectName, passCode).ConfigureAwait(false);
+                            if (userCertWithPrivateKey == null)
+                            {
+                                throw new ServiceResultException(StatusCodes.BadCertificateInvalid,
+                                    $"User certificate for {subjectName ?? thumbprint} missing " +
+                                    "or provided password invalid. Please configure the User " +
+                                    "Certificate correctly in the User certificate store.");
+                            }
+                            return new UserIdentity(userCertWithPrivateKey);
                         }
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                       "X509Certificate token reference format is not supported.");
+                       "X509Certificate reference credential format is invalid.");
                 case CredentialType.JwtToken:
                     return new UserIdentity(new IssuedIdentityToken
                     {
-                        DecryptedTokenData = authentication!.Value?.ConvertTo<byte[]>()
+                        DecryptedTokenData = credential!.Value?.ConvertTo<byte[]>()
                     });
                 case CredentialType.None:
                     return new UserIdentity(new AnonymousIdentityToken());
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"Token type {authentication!.Type} is not supported");
+                        $"Credential type {credential!.Type} is not supported");
             }
         }
     }
