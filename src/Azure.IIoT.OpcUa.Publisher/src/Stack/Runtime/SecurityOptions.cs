@@ -82,8 +82,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public CertificateStore? UserIssuerCertificates { get; set; }
 
         /// <summary>
-        /// Password to secure keys in the private key infrastructure.
+        /// Password to secure the key of the application certificate
+        /// in the private key infrastructure.
         /// </summary>
-        public string? CertificateStorePassword { get; set; }
+        public string? ApplicationCertificatePassword { get; set; }
     }
 }

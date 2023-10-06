@@ -50,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private string Password => _options.Value.Security.CertificateStorePassword ?? string.Empty;
+        private string Password =>
+            _options.Value.Security.ApplicationCertificatePassword ?? string.Empty;
 
         /// <summary>
         /// Create client manager
@@ -146,7 +147,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 switch (store)
                 {
                     case CertificateStoreName.Application:
-                    case CertificateStoreName.User:
                         if (!includePrivateKey || !certStore.SupportsLoadPrivateKey)
                         {
                             goto default;
@@ -198,7 +198,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await certStore.Delete(cert.Thumbprint).ConfigureAwait(false);
                 }
 
-                await certStore.Add(cert, Password).ConfigureAwait(false);
+                await certStore.Add(cert, store == CertificateStoreName.Application ?
+                    Password : password).ConfigureAwait(false);
 
                 if (store == CertificateStoreName.Application &&
                     _options.Value.Security.AddAppCertToTrustedStore == true)
@@ -730,6 +731,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .SetRejectUnknownRevocationStatus(
                     securityOptions.RejectUnknownRevocationStatus ?? true);
 
+            // Allow private keys in this store so user identities can be side loaded
+            applicationConfiguration.SecurityConfiguration.TrustedUserCertificates =
+                new TrustedUserCertificateStore();
+
             applicationConfiguration.SecurityConfiguration.ApplicationCertificate
                 .ApplyLocalConfig(securityOptions.ApplicationCertificate);
             applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
@@ -738,9 +743,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ApplyLocalConfig(securityOptions.TrustedIssuerCertificates);
             applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
                 .ApplyLocalConfig(securityOptions.RejectedCertificateStore);
-            applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
-                .ApplyLocalConfig(securityOptions.TrustedUserCertificates);
             applicationConfiguration.SecurityConfiguration.TrustedUserCertificates
+                .ApplyLocalConfig(securityOptions.TrustedUserCertificates);
+            applicationConfiguration.SecurityConfiguration.TrustedHttpsCertificates
                 .ApplyLocalConfig(securityOptions.TrustedHttpsCertificates);
             applicationConfiguration.SecurityConfiguration.HttpsIssuerCertificates
                 .ApplyLocalConfig(securityOptions.HttpsIssuerCertificates);
@@ -789,6 +794,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 default:
                     throw new ArgumentException(
                         $"Bad unknown certificate store {store} specified.");
+            }
+        }
+
+        /// <summary>
+        /// Override to support private keys
+        /// </summary>
+        private class TrustedUserCertificateStore : CertificateTrustList
+        {
+            /// <inheritdoc/>
+            public override ICertificateStore OpenStore()
+            {
+                ICertificateStore store = CreateStore(StoreType);
+                store.Open(StorePath, false); // Allow private keys
+                return store;
             }
         }
 

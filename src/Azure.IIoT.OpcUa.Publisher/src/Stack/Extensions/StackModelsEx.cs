@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Stack models extensions
@@ -344,9 +345,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Makes a user identity
         /// </summary>
         /// <param name="authentication"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public static IUserIdentity? ToStackModel(this CredentialModel? authentication)
+        public static async ValueTask<IUserIdentity> ToUserIdentityAsync(
+            this CredentialModel? authentication, ApplicationConfiguration configuration)
         {
             switch (authentication?.Type ?? CredentialType.None)
             {
@@ -360,10 +363,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                         return new UserIdentity((string?)user, (string?)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        "User/passord token format is not supported.");
+                        "User/password token format provided is not supported.");
                 case CredentialType.X509Certificate:
-                    return new UserIdentity(new X509Certificate2(
-                        authentication!.Value?.ConvertTo<byte[]>() ?? Array.Empty<byte>()));
+                    if (authentication!.Value?.IsObject == true)
+                    {
+                        string? subjectName = null;
+                        if (authentication.Value.TryGetProperty("user", out user)
+                            && user.IsString)
+                        {
+                            subjectName = (string?)user;
+                        }
+                        string? thumbprint = null;
+                        if (authentication.Value.TryGetProperty("thumbprint", out user)
+                            && user.IsString)
+                        {
+                            thumbprint = (string?)user;
+                        }
+                        string? passCode = null;
+                        if (authentication.Value.TryGetProperty("password", out password)
+                            && password.IsString)
+                        {
+                            passCode = (string?)password;
+                        }
+                        if (thumbprint != null || subjectName != null)
+                        {
+                            var userCertificate = configuration.SecurityConfiguration
+                                .TrustedUserCertificates.OpenStore();
+                            return new UserIdentity(await userCertificate.LoadPrivateKey(
+                                thumbprint, subjectName, passCode).ConfigureAwait(false));
+                        }
+                    }
+                    throw new ServiceResultException(StatusCodes.BadNotSupported,
+                       "X509Certificate token reference format is not supported.");
                 case CredentialType.JwtToken:
                     return new UserIdentity(new IssuedIdentityToken
                     {
