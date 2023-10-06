@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -287,8 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="policy"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel? ToServiceModel(this UserTokenPolicy? policy,
-            IJsonSerializer serializer)
+        public static AuthenticationMethodModel? ToServiceModel(
+            this UserTokenPolicy? policy, IJsonSerializer serializer)
         {
             if (policy == null)
             {
@@ -315,8 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                             try
                             {
                                 // See part 6
-                                configuration = serializer.Parse(
-                                    policy.IssuerEndpointUrl);
+                                configuration = serializer.Parse(policy.IssuerEndpointUrl);
                             }
                             catch
                             {

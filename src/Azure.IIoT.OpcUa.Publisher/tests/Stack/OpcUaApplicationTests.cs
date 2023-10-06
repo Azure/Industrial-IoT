@@ -9,14 +9,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Autofac;
     using Furly.Exceptions;
+    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
     using Opc.Ua;
 
     public class OpcUaApplicationTests
@@ -107,9 +106,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             using var newCert1 = CreateRSACertificate("test1");
             using var newCert2 = CreateRSACertificate("test2");
             using var newCert3 = CreateRSACertificate("test3");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert1.Export(X509ContentType.Pfx, "pfx"), "pfx");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert2.Export(X509ContentType.Pfx, "pfx"), "pfx");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert3.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert1.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert2.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert3.Export(X509ContentType.Pfx, "pfx"), "pfx");
 
             certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Equal(3, certificates.Count);
@@ -216,7 +218,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var certs = container.Resolve<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
-                async () => await certs.RemoveCertificateAsync(CertificateStoreName.Trusted, rejectedCert.Thumbprint));
+                async () => await certs.RemoveCertificateAsync(
+                    CertificateStoreName.Trusted, rejectedCert.Thumbprint));
         }
 
         [Fact]
@@ -337,7 +340,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     password = "wrong"
                 })
             };
-            var ex = await Assert.ThrowsAsync<ServiceResultException>(async () => await credential.ToUserIdentityAsync(config.Value));
+            var ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
             Assert.Equal(StatusCodes.BadCertificateInvalid, ex.StatusCode);
 
             config = container.Resolve<IOpcUaConfiguration>();
@@ -349,7 +353,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     password = "pfx3"
                 })
             };
-            ex = await Assert.ThrowsAsync<ServiceResultException>(async () => await credential.ToUserIdentityAsync(config.Value));
+            ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
             Assert.Equal(StatusCodes.BadNotSupported, ex.StatusCode);
 
             config = container.Resolve<IOpcUaConfiguration>();
@@ -361,7 +366,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     thumbprint = newCert3.Thumbprint,
                 })
             };
-            ex = await Assert.ThrowsAsync<ServiceResultException>(async () => await credential.ToUserIdentityAsync(config.Value));
+            ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
             Assert.Equal(StatusCodes.BadCertificateInvalid, ex.StatusCode);
         }
 
