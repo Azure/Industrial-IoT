@@ -903,12 +903,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             endpointUrl, _sessionName);
                     }
 
+                    var userIdentity = await _connection.User.ToUserIdentityAsync(
+                        _configuration).ConfigureAwait(false);
+
+                    var identityPolicy = endpoint.Description.FindUserTokenPolicy(
+                        userIdentity.TokenType, userIdentity.IssuedTokenType);
+                    if (identityPolicy == null)
+                    {
+                        _logger.LogWarning(
+                            "No UserTokenPolicy for {TokenType}/{IssuedTokenType} " +
+                            "found on endpoint {EndpointUrl} (session: {Name}).",
+                            userIdentity.TokenType, userIdentity.IssuedTokenType,
+                            endpointUrl, _sessionName);
+                        continue;
+                    }
                     _logger.LogInformation(
                         "#{Attempt}: Creating session {Name} with endpoint {EndpointUrl}...",
                         ++attempt, _sessionName, endpointUrl);
-                    var userIdentity = _connection.User.ToStackModel()
-                        ?? new UserIdentity(new AnonymousIdentityToken());
-
                     // Create the session with english as default and current language
                     // locale as backup
                     var preferredLocales = new HashSet<string>

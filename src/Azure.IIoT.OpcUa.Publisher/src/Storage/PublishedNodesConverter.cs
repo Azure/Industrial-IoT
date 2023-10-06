@@ -124,8 +124,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
-                            DataSetWriterGroup = item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
-                                null : item.WriterGroup.WriterGroupId,
+                            DataSetWriterGroup =
+                                item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
+                                    null : item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
                                 RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
                             DataSetPublishingInterval = null,
@@ -308,8 +309,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 ? SecurityMode.SignAndEncrypt
                                 : SecurityMode.None)
                         },
-                        User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                            null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult()
+                        User =
+                            model.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
+                            model.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                                ToCredentialAsync(model).GetAwaiter().GetResult() : null
                     };
                 }
 
@@ -326,7 +329,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         .Batch(configuration.MaxNodesPerDataSet))
                     .ToList()
                     .ConvertAll(
-                        opcNodes => (opcNodes.First().Header, WriterGroup: group.Key.Group, Source: new PublishedDataSetSourceModel
+                        opcNodes => (opcNodes.First().Header, WriterGroup: group.Key.Group,
+                            Source: new PublishedDataSetSourceModel
                         {
                             Connection = new ConnectionModel
                             {
@@ -504,11 +508,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             var credential = connection?.User;
             switch (credential?.Type ?? CredentialType.None)
             {
+                case CredentialType.X509Certificate:
                 case CredentialType.UserName:
-                    publishedNodesEntryModel.OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword;
-
+                    publishedNodesEntryModel.OpcAuthenticationMode =
+                        credential?.Type == CredentialType.X509Certificate ?
+                            OpcAuthenticationMode.Certificate :
+                            OpcAuthenticationMode.UsernamePassword;
                     Debug.Assert(credential != null);
-                    var (user, pw, encrypted) = ToUserNamePasswordCredentialAsync(credential.Value).Result;
+                    var (user, pw, encrypted) =
+                        ToUserNamePasswordCredentialAsync(credential.Value).GetAwaiter().GetResult();
                     if (encrypted)
                     {
                         publishedNodesEntryModel.EncryptedAuthPassword = pw;
@@ -524,7 +532,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     publishedNodesEntryModel.OpcAuthenticationMode = OpcAuthenticationMode.Anonymous;
                     break;
                 default:
-                    throw new NotSupportedException($"Credentials of type {credential?.Type} are not supported.");
+                    throw new NotSupportedException(
+                        $"Credentials of type {credential?.Type} are not supported.");
             }
             if (connection != null)
             {
@@ -570,7 +579,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Encoding.UTF8.GetBytes(userString)).ConfigureAwait(false);
                             var passwordBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
                                 Encoding.UTF8.GetBytes(passwordString)).ConfigureAwait(false);
-
                             return (Convert.ToBase64String(userBytes.Span),
                                 Convert.ToBase64String(passwordBytes.Span), true);
                         }
@@ -623,8 +631,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 .ToString(CultureInfo.InvariantCulture);
             if (subset.Count > 1)
             {
-                if (subset
-                    .Count(x => x.Source.SubscriptionSettings?.PublishingInterval == source.SubscriptionSettings.PublishingInterval) > 1)
+                if (subset.Count(x =>
+                    x.Source.SubscriptionSettings?.PublishingInterval
+                        == source.SubscriptionSettings.PublishingInterval) > 1)
                 {
                     if (!string.IsNullOrEmpty(source.PublishedVariables?.PublishedData?.First()?.PublishedVariableNodeId))
                     {
@@ -781,11 +790,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// Convert to credential model
         /// </summary>
         /// <param name="entry"></param>
-        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(PublishedNodesEntryModel entry)
+        private async Task<CredentialModel> ToCredentialAsync(PublishedNodesEntryModel entry)
         {
             switch (entry.OpcAuthenticationMode)
             {
                 case OpcAuthenticationMode.UsernamePassword:
+                case OpcAuthenticationMode.Certificate:
                     var user = entry.OpcAuthenticationUsername ?? string.Empty;
                     var password = entry.OpcAuthenticationPassword ?? string.Empty;
                     try
@@ -847,7 +857,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     }
                     return new CredentialModel
                     {
-                        Type = CredentialType.UserName,
+                        Type = entry.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                            CredentialType.X509Certificate :
+                            CredentialType.UserName,
                         Value = _serializer.FromObject(new { user, password })
                     };
             }

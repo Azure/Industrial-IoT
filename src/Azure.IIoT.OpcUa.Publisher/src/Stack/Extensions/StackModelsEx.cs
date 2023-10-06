@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Stack models extensions
@@ -286,8 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="policy"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel? ToServiceModel(this UserTokenPolicy? policy,
-            IJsonSerializer serializer)
+        public static AuthenticationMethodModel? ToServiceModel(
+            this UserTokenPolicy? policy, IJsonSerializer serializer)
         {
             if (policy == null)
             {
@@ -314,8 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                             try
                             {
                                 // See part 6
-                                configuration = serializer.Parse(
-                                    policy.IssuerEndpointUrl);
+                                configuration = serializer.Parse(policy.IssuerEndpointUrl);
                             }
                             catch
                             {
@@ -343,37 +342,75 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Makes a user identity
         /// </summary>
-        /// <param name="authentication"></param>
+        /// <param name="credential"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public static IUserIdentity? ToStackModel(this CredentialModel? authentication)
+        public static async ValueTask<IUserIdentity> ToUserIdentityAsync(
+            this CredentialModel? credential, ApplicationConfiguration configuration)
         {
-            switch (authentication?.Type ?? CredentialType.None)
+            switch (credential?.Type ?? CredentialType.None)
             {
                 case CredentialType.UserName:
-                    if (authentication!.Value?.IsObject == true &&
-                        authentication.Value.TryGetProperty("user", out var user) &&
+                    if (credential!.Value?.IsObject == true &&
+                        credential.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
-                        authentication.Value.TryGetProperty("password", out var password) &&
+                        credential.Value.TryGetProperty("password", out var password) &&
                             password.IsString)
                     {
                         return new UserIdentity((string?)user, (string?)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        "User/passord token format is not supported.");
+                        "User/password credential provided is invalid.");
                 case CredentialType.X509Certificate:
-                    return new UserIdentity(new X509Certificate2(
-                        authentication!.Value?.ConvertTo<byte[]>() ?? Array.Empty<byte>()));
+                    if (credential!.Value?.IsObject == true)
+                    {
+                        string? subjectName = null;
+                        if (credential.Value.TryGetProperty("user", out user)
+                            && user.IsString)
+                        {
+                            subjectName = (string?)user;
+                        }
+                        string? thumbprint = null;
+                        if (credential.Value.TryGetProperty("thumbprint", out user)
+                            && user.IsString)
+                        {
+                            thumbprint = (string?)user;
+                        }
+                        string? passCode = null;
+                        if (credential.Value.TryGetProperty("password", out password)
+                            && password.IsString)
+                        {
+                            passCode = (string?)password;
+                        }
+                        if (thumbprint != null || subjectName != null)
+                        {
+                            using var users = configuration.SecurityConfiguration
+                                .TrustedUserCertificates.OpenStore();
+                            var userCertWithPrivateKey = await users.LoadPrivateKey(
+                                thumbprint, subjectName, passCode).ConfigureAwait(false);
+                            if (userCertWithPrivateKey == null)
+                            {
+                                throw new ServiceResultException(StatusCodes.BadCertificateInvalid,
+                                    $"User certificate for {subjectName ?? thumbprint} missing " +
+                                    "or provided password invalid. Please configure the User " +
+                                    "Certificate correctly in the User certificate store.");
+                            }
+                            return new UserIdentity(userCertWithPrivateKey);
+                        }
+                    }
+                    throw new ServiceResultException(StatusCodes.BadNotSupported,
+                       "X509Certificate reference credential format is invalid.");
                 case CredentialType.JwtToken:
                     return new UserIdentity(new IssuedIdentityToken
                     {
-                        DecryptedTokenData = authentication!.Value?.ConvertTo<byte[]>()
+                        DecryptedTokenData = credential!.Value?.ConvertTo<byte[]>()
                     });
                 case CredentialType.None:
                     return new UserIdentity(new AnonymousIdentityToken());
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"Token type {authentication!.Type} is not supported");
+                        $"Credential type {credential!.Type} is not supported");
             }
         }
     }

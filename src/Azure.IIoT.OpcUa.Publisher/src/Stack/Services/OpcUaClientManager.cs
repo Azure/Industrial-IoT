@@ -41,11 +41,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
-        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionFactory"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
-            IOptions<OpcUaClientOptions> options, IOpcUaConfiguration builder,
+            IOptions<OpcUaClientOptions> options, IOpcUaConfiguration configuration,
             IMetricsContext? metrics = null, ISessionFactory? sessionFactory = null)
         {
             _metrics = metrics ??
@@ -56,8 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
-            _configuration = builder ??
-                throw new ArgumentNullException(nameof(builder));
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
             _sessionFactory = sessionFactory ?? DefaultSessionFactory.Instance;
@@ -141,8 +141,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             var configuredEndpoint = new ConfiguredEndpoint(null, endpointDescription,
                 endpointConfiguration);
-            var userIdentity = endpoint.User.ToStackModel()
-                ?? new UserIdentity(new AnonymousIdentityToken());
+            var userIdentity = await endpoint.User.ToUserIdentityAsync(
+                _configuration.Value).ConfigureAwait(false);
             try
             {
                 using var session = await _sessionFactory.CreateAsync(

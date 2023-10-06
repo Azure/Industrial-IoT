@@ -9,12 +9,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Autofac;
     using Furly.Exceptions;
+    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
+    using Opc.Ua;
 
     public class OpcUaApplicationTests
     {
@@ -104,9 +106,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             using var newCert1 = CreateRSACertificate("test1");
             using var newCert2 = CreateRSACertificate("test2");
             using var newCert3 = CreateRSACertificate("test3");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert1.Export(X509ContentType.Pfx, "pfx"), "pfx");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert2.Export(X509ContentType.Pfx, "pfx"), "pfx");
-            await certs.AddCertificateAsync(CertificateStoreName.Trusted, newCert3.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert1.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert2.Export(X509ContentType.Pfx, "pfx"), "pfx");
+            await certs.AddCertificateAsync(CertificateStoreName.Trusted,
+                newCert3.Export(X509ContentType.Pfx, "pfx"), "pfx");
 
             certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
             Assert.Equal(3, certificates.Count);
@@ -213,7 +218,157 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var certs = container.Resolve<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
-                async () => await certs.RemoveCertificateAsync(CertificateStoreName.Trusted, rejectedCert.Thumbprint));
+                async () => await certs.RemoveCertificateAsync(
+                    CertificateStoreName.Trusted, rejectedCert.Thumbprint));
+        }
+
+        [Fact]
+        public async Task GetUserCertificateTest1Async()
+        {
+            using var container = Build();
+            var certs = container.Resolve<IOpcUaCertificates>();
+            await CleanAsync(certs, CertificateStoreName.User);
+            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
+            Assert.Empty(certificates);
+
+            using var newCert1 = CreateRSACertificate("user1");
+            using var newCert2 = CreateRSACertificate("user2");
+            using var newCert3 = CreateRSACertificate("user3");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert1.Export(X509ContentType.Pfx, "pfx1"), "pfx1");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert2.Export(X509ContentType.Pfx, "pfx2"), "pfx2");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert3.Export(X509ContentType.Pfx, "pfx3"), "pfx3");
+
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.User, true);
+            Assert.Equal(3, certificates.Count);
+            Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
+
+            var config = container.Resolve<IOpcUaConfiguration>();
+
+            var credential = new CredentialModel
+            {
+                Type = CredentialType.X509Certificate,
+                Value = new DefaultJsonSerializer().FromObject(new
+                {
+                    user = "DC=user2",
+                    password = "pfx2"
+                })
+            };
+            var identity = await credential.ToUserIdentityAsync(config.Value);
+            Assert.NotNull(identity);
+            Assert.Equal(UserTokenType.Certificate, identity.TokenType);
+            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            Assert.NotNull(x509Token);
+            Assert.True(x509Token.Certificate.HasPrivateKey);
+            Assert.Equal(newCert2.Thumbprint, x509Token.Certificate.Thumbprint);
+        }
+
+        [Fact]
+        public async Task GetUserCertificateTest2Async()
+        {
+            using var container = Build();
+            var certs = container.Resolve<IOpcUaCertificates>();
+            await CleanAsync(certs, CertificateStoreName.User);
+            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
+            Assert.Empty(certificates);
+
+            using var newCert1 = CreateRSACertificate("user1");
+            using var newCert2 = CreateRSACertificate("user2");
+            using var newCert3 = CreateRSACertificate("user3");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert1.Export(X509ContentType.Pfx, "pfx1"), "pfx1");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert2.Export(X509ContentType.Pfx, "pfx2"), "pfx2");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert3.Export(X509ContentType.Pfx, "pfx3"), "pfx3");
+
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.User, true);
+            Assert.Equal(3, certificates.Count);
+            Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
+
+            var config = container.Resolve<IOpcUaConfiguration>();
+            var credential = new CredentialModel
+            {
+                Type = CredentialType.X509Certificate,
+                Value = new DefaultJsonSerializer().FromObject(new
+                {
+                    thumbprint = newCert3.Thumbprint,
+                    password = "pfx3"
+                })
+            };
+            var identity = await credential.ToUserIdentityAsync(config.Value);
+            Assert.NotNull(identity);
+            Assert.Equal(UserTokenType.Certificate, identity.TokenType);
+            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            Assert.NotNull(x509Token);
+            Assert.True(x509Token.Certificate.HasPrivateKey);
+            Assert.Equal(newCert3.Thumbprint, x509Token.Certificate.Thumbprint);
+        }
+
+        [Fact]
+        public async Task GetUserCertificateTest3Async()
+        {
+            using var container = Build();
+            var certs = container.Resolve<IOpcUaCertificates>();
+            await CleanAsync(certs, CertificateStoreName.User);
+            var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
+            Assert.Empty(certificates);
+
+            using var newCert1 = CreateRSACertificate("user1");
+            using var newCert2 = CreateRSACertificate("user2");
+            using var newCert3 = CreateRSACertificate("user3");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert1.Export(X509ContentType.Pfx, "pfx1"), "pfx1");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert2.Export(X509ContentType.Pfx, "pfx2"), "pfx2");
+            await certs.AddCertificateAsync(CertificateStoreName.User,
+                newCert3.Export(X509ContentType.Pfx, "pfx3"), "pfx3");
+
+            certificates = await certs.ListCertificatesAsync(CertificateStoreName.User, true);
+            Assert.Equal(3, certificates.Count);
+            Assert.All(certificates, c => Assert.False(c.HasPrivateKey));
+
+            var config = container.Resolve<IOpcUaConfiguration>();
+            var credential = new CredentialModel
+            {
+                Type = CredentialType.X509Certificate,
+                Value = new DefaultJsonSerializer().FromObject(new
+                {
+                    thumbprint = newCert3.Thumbprint,
+                    password = "wrong"
+                })
+            };
+            var ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
+            Assert.Equal(StatusCodes.BadCertificateInvalid, ex.StatusCode);
+
+            config = container.Resolve<IOpcUaConfiguration>();
+            credential = new CredentialModel
+            {
+                Type = CredentialType.X509Certificate,
+                Value = new DefaultJsonSerializer().FromObject(new
+                {
+                    password = "pfx3"
+                })
+            };
+            ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
+            Assert.Equal(StatusCodes.BadNotSupported, ex.StatusCode);
+
+            config = container.Resolve<IOpcUaConfiguration>();
+            credential = new CredentialModel
+            {
+                Type = CredentialType.X509Certificate,
+                Value = new DefaultJsonSerializer().FromObject(new
+                {
+                    thumbprint = newCert3.Thumbprint,
+                })
+            };
+            ex = await Assert.ThrowsAsync<ServiceResultException>(
+                async () => await credential.ToUserIdentityAsync(config.Value));
+            Assert.Equal(StatusCodes.BadCertificateInvalid, ex.StatusCode);
         }
 
         private static async Task CleanAsync(IOpcUaCertificates certs, CertificateStoreName store)
