@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
@@ -227,6 +228,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "UseReverseConnect", Order = 25,
             EmitDefaultValue = false)]
         public bool? UseReverseConnect { get; set; }
+
+        /// <summary>
+        /// The quality of service to use
+        /// </summary>
+        [DataMember(Name = "WriterGroupQualityOfService", Order = 28,
+            EmitDefaultValue = false)]
+        public QoS? WriterGroupQualityOfService { get; set; }
 
         /// <summary>
         /// The writer group transport to use

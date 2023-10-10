@@ -385,7 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.Security.TrustedUserCertificates = new()
                 {
                     StorePath = GetStringOrDefault(TrustedUserCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/users"),
+                        $"{options.Security.PkiRootPath}/user"),
                     StoreType = GetStringOrDefault(TrustedUserCertificatesTypeKey,
                         CertificateStoreType.Directory)
                 };
@@ -407,7 +407,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.Security.HttpsIssuerCertificates = new()
                 {
                     StorePath = GetStringOrDefault(HttpsIssuerCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/https/issuers"),
+                        $"{options.Security.PkiRootPath}/https/issuer"),
                     StoreType = GetStringOrDefault(HttpsIssuerCertificatesTypeKey,
                         CertificateStoreType.Directory)
                 };
@@ -418,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.Security.UserIssuerCertificates = new()
                 {
                     StorePath = GetStringOrDefault(UserIssuerCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/users/issuers"),
+                        $"{options.Security.PkiRootPath}/user/issuer"),
                     StoreType = GetStringOrDefault(UserIssuerCertificatesTypeKey,
                         CertificateStoreType.Directory)
                 };

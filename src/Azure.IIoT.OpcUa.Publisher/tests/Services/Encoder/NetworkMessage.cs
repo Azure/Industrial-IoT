@@ -27,6 +27,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
+        public QoS QoS { get; private set; }
+
+        public IEvent SetQoS(QoS value)
+        {
+            QoS = value;
+            return this;
+        }
+
         public string ContentType { get; private set; }
 
         public IEvent SetContentType(string value)

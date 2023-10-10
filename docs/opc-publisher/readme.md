@@ -397,6 +397,7 @@ The configuration schema is used with the file based configuration, but also wit
   "MessageEncoding": "string",
   "MessagingMode": "string",
   "WriterGroupTransport": "string",
+  "WriterGroupQualityOfService": "string",
   "BatchSize": "integer",
   "BatchTriggerInterval": "integer",
   "BatchTriggerIntervalTimespan": "string",
@@ -466,6 +467,7 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `MessageEncoding` | No | String | `null` | The message encoding to use when publishing the data sets. <br>For the list of supported message type names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
+| `WriterGroupQualityOfService` | No | String | `null` | The quality of service for telemetry messages (if supported by transport). <br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Defaults to the value configured via `--qos` command line or if not provided `AtLeastOnce` (QOS 1). |
 | `BatchSize` | No | Integer | `null` | The optional number of notifications that are queued before a network message is generated. <br>For historic reasons the default value is 50 unless otherwise configured via `--bs` command line option. |
 | `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
 | `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |

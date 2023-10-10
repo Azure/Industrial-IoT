@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageReference Include="Furly.Extensions" Version="0.4.60" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.61" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.4.372.67-preview" />

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
+    using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Configuration;
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
-        public const string IoTHubMaxMessageSize = "IoTHubMaxMessageSize";
+        public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
@@ -53,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
         public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
         public const string DefaultTransportKey = "DefaultTransport";
+        public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -244,13 +246,23 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.MaxNetworkMessageSize == null) // Max encoder message size
             {
-                options.MaxNetworkMessageSize = GetIntOrNull(IoTHubMaxMessageSize);
+                options.MaxNetworkMessageSize = GetIntOrNull(IoTHubMaxMessageSizeKey);
             }
 
             if (options.DefaultMaxDataSetMessagesPerPublish == null)
             {
                 options.DefaultMaxDataSetMessagesPerPublish = (uint?)GetIntOrNull(
                     DefaultMaxMessagesPerPublishKey);
+            }
+
+            if (options.DefaultQualityOfService == null)
+            {
+                if (!Enum.TryParse<QoS>(GetStringOrDefault(DefaultQualityOfServiceKey),
+                    out var qos))
+                {
+                    qos = QoS.AtLeastOnce;
+                }
+                options.DefaultQualityOfService = qos;
             }
 
             if (options.MessageTimestamp == null)

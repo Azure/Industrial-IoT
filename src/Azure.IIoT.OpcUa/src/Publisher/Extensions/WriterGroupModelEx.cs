@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Messaging;
+
     /// <summary>
     /// Writer group Model extensions
     /// </summary>
@@ -73,6 +75,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return false;
             }
             if (model.Transport != other.Transport)
+            {
+                return false;
+            }
+            if (model.QoS != other.QoS)
             {
                 return false;
             }

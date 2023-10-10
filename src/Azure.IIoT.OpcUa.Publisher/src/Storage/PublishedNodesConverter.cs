@@ -114,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
+                            WriterGroupQualityOfService = item.WriterGroup.QoS,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
@@ -413,6 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         MessageType = dataSetBatches.First.Header.MessageEncoding,
                         Transport = dataSetBatches.First.Header.WriterGroupTransport,
+                        QoS = dataSetBatches.First.Header.WriterGroupQualityOfService,
                         HeaderLayoutUri = dataSetBatches.First.Header.MessagingMode?.ToString(),
                         WriterGroupId = dataSetBatches.First.WriterGroup,
                         NotificationPublishThreshold = dataSetBatches.First.Header.BatchSize,

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Messaging;
     using System;
 
     /// <summary>
@@ -121,6 +122,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default transport to use if not found
         /// </summary>
         public WriterGroupTransport? DefaultTransport { get; set; }
+
+        /// <summary>
+        /// Default quality of service for messages
+        /// </summary>
+        public QoS? DefaultQualityOfService { get; set; }
 
         /// <summary>
         /// Default Max data set messages per published network

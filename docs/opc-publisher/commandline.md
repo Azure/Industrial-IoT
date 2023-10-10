@@ -140,6 +140,16 @@ Messaging configuration
                                if possible.
                                Default: `256k` in case of IoT Hub messages, `0`
                                otherwise.
+      --qos, --DefaultQualityOfService=VALUE
+                             The default quality of service to use for data set
+                               messages.
+                               This does not apply to metadata messages which
+                               are always sent with `AtLeastOnce` semantics.
+                               Allowed values:
+                                   `AtMostOnce`
+                                   `AtLeastOnce`
+                                   `ExactlyOnce`
+                               Default: `AtLeastOnce`.
       --mts, --messagetimestamp, --MessageTimestamp=VALUE
                              The value to set as as the timestamp property of
                                messages during encoding (if the encoding
@@ -703,9 +713,30 @@ OPC UA Client configuration
                                Default: `Directory`.
       --ip, --issuercertstorepath, --TrustedIssuerCertificatesPath=VALUE
                              The path of the trusted issuer cert store.
-                               Default: $"{PkiRootPath}/issuers".
+                               Default: $"{PkiRootPath}/issuer".
       --ipt, --TrustedIssuerCertificatesType=VALUE
-                             Trusted issuer certificate store types.
+                             Trusted issuer certificate store type.
+                               Allowed values:
+                                   `Directory`
+                                   `X509Store`
+                               Default: `Directory`.
+      --up, --usercertstorepath, --TrustedUserCertificatesPath=VALUE
+                             The path of the certificate store for user
+                               certificates.
+                               Default: $"{PkiRootPath}/users".
+      --upt, --TrustedUserCertificatesType=VALUE
+                             Type of certificate store for all User
+                               certificates.
+                               Allowed values:
+                                   `Directory`
+                                   `X509Store`
+                               Default: `Directory`.
+      --uip, --userissuercertstorepath, --UserIssuerCertificatesPath=VALUE
+                             The path of the user issuer cert store.
+                               Default: $"{PkiRootPath}/users/issuer".
+      --uit, --UserIssuerCertificatesType=VALUE
+                             Type of the issuer certificate store for User
+                               certificates.
                                Allowed values:
                                    `Directory`
                                    `X509Store`

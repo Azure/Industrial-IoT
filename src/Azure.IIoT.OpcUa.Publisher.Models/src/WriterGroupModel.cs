@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -144,5 +145,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "transport", Order = 16,
             EmitDefaultValue = false)]
         public WriterGroupTransport? Transport { get; set; }
+
+        /// <summary>
+        /// Desired Quality of service to use (Publisher
+        /// extension).
+        /// </summary>
+        [DataMember(Name = "qos", Order = 17,
+            EmitDefaultValue = false)]
+        public QoS? QoS { get; set; }
     }
 }

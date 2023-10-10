@@ -31,11 +31,11 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.60" />
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.60" />
-    <PackageReference Include="Furly.Extensions.Dapr" Version="0.4.60" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.60" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.53" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.61" />
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.61" />
+    <PackageReference Include="Furly.Extensions.Dapr" Version="0.4.61" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.61" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.55" />
     <PackageReference Include="Grpc.Net.Client" Version="2.57.0" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" />

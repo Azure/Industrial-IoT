@@ -8,9 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.60" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.53" />
-    <PackageReference Include="Furly.Extensions" Version="0.4.60" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.61" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.55" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.61" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />

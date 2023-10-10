@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -227,6 +228,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.WriterGroupTransport != that.WriterGroupTransport)
+            {
+                return false;
+            }
+            if (model.WriterGroupQualityOfService != that.WriterGroupQualityOfService)
             {
                 return false;
             }
