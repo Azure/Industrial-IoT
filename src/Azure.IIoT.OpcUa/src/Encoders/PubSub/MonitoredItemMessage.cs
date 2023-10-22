@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     extensionFields = extensionFields.Concat(ExtensionFields
                         .Where(e => e.Key != nameof(DataSetWriterId) &&
                                     e.Key != nameof(JsonNetworkMessage.PublisherId))
-                        .Select(e => new KeyValuePair<string, string?>(e.Key, e.ToString())));
+                        .Select(e => new KeyValuePair<string, string?>(e.Key, e.Value.Value?.ToString())));
                 }
                 encoder.WriteStringDictionary(nameof(ExtensionFields), extensionFields);
             }
