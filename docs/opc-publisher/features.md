@@ -20,12 +20,8 @@ The following table shows the supported features of OPC Publisher and planned fe
 | [Reverse Connect](./readme.md#using-opc-ua-reverse-connect) ||-|X|Preview|
 | User authentication |||||
 | | Username / Password authentication |X|X||
-| | X509 based user authentication |-|-|Backlog|
+| | X509 based user authentication ||X||
 | | Token based user authentication |-|-||
-| Local persisted user credential |||||
-| | As plain text |X|X||
-| | Securely encrypted |-|-||
-| | From secrets manager API |-|-||
 | Get Endpoint and Server information [API](./api.md#getservercapabilities) ||-|X|Preview|
 | Connect and Disconnect [API](./api.md) ||-|X|Preview|
 | Test connection [API](./api.md#testconnection) ||-|X|Preview|
