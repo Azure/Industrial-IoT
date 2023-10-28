@@ -62,7 +62,7 @@
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.372.76" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.6.0" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.0" />
+    <PackageReference Update="Roslynator.Analyzers" Version="4.6.1" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.1" />
   </ItemGroup>
 </Project>
