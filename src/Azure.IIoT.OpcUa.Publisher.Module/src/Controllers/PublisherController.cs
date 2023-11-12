@@ -22,10 +22,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Support restarting the module
         /// </summary>
+        /// <param name="apikey"></param>
+        /// <param name="certificate"></param>
         /// <param name="logger"></param>
-        public PublisherController(ILogger logger)
+        public PublisherController(IApiKeyProvider apikey,
+            ISslCertProvider certificate, ILogger<PublisherController> logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _apikey = apikey;
+            _certificate = certificate;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Get ApiKey to use when calling the HTTP API.
+        /// </summary>
+        /// <returns></returns>
+        public Task<string?> GetApiKeyAsync()
+        {
+            return Task.FromResult(_apikey.ApiKey);
+        }
+
+        /// <summary>
+        /// Get server certificate as PEM.
+        /// </summary>
+        /// <returns></returns>
+        public Task<string?> GetServerCertificateAsync()
+        {
+            return Task.FromResult(_certificate.Certificate?.ExportCertificatePem());
         }
 
         /// <summary>
@@ -49,6 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             throw new NotSupportedException("Failed to invoke shutdown");
         }
 
+        private readonly IApiKeyProvider _apikey;
+        private readonly ISslCertProvider _certificate;
         private readonly ILogger _logger;
     }
 }

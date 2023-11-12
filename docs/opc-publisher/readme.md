@@ -575,9 +575,11 @@ The `DataSetExtensionFields` object in the [configuration](#configuration-schema
 
 Values are formatted using the extended OPC UA Variant [JSON format](#json-encoding). This encoding is compliant with OPC UA Part 6, however it also allows to use simple JSON types which will be interpreted as Variant values using a simple heuristic, mapping the best OPC UA type possible to it.
 
+> IMPORTANT: Extension fields are only sent as part of key frame messages when using Pub Sub encoding. You must configure a key frame count for key frames to be sent as the default key frame count value is 0 and therefore key frames are disabled.
+
 #### Status codes
 
-The status code `value` is the integer received over the wire from the server (full one including all bits). 
+The status code `value` is the integer received over the wire from the server (full one including all bits).
 
 StatusCode "Good" is defined as 0 in OPC UA, which is omitted in JSON encoding (as per Part 6). The `symbol` in the encoding is what OPC Publisher is looking up from the standard defined codes (using the code bits which are the 16 bits defining the error code part of the status code).
 

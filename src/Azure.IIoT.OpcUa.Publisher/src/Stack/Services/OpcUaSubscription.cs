@@ -1239,9 +1239,13 @@ Actual (revised) state/desired state:
         private void TriggerSubscriptionManagementCallbackIn(TimeSpan? delay,
             TimeSpan defaultDelay = default)
         {
-            if (delay == null || delay == TimeSpan.Zero)
+            if (delay == null)
             {
                 delay = defaultDelay;
+            }
+            else if (delay == TimeSpan.Zero)
+            {
+                delay = Timeout.InfiniteTimeSpan;
             }
             if (delay != Timeout.InfiniteTimeSpan)
             {

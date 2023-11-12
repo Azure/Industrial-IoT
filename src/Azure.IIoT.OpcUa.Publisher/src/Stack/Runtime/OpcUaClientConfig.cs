@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.SubscriptionErrorRetryDelay == null)
             {
                 var retryTimeout = GetIntOrDefault(SubscriptionErrorRetryDelayKey);
-                if (retryTimeout > 0)
+                if (retryTimeout >= 0)
                 {
                     options.SubscriptionErrorRetryDelay = TimeSpan.FromSeconds(retryTimeout);
                 }
@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.BadMonitoredItemRetryDelay == null)
             {
                 var retryTimeout = GetIntOrDefault(BadMonitoredItemRetryDelayKey);
-                if (retryTimeout > 0)
+                if (retryTimeout >= 0)
                 {
                     options.BadMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
                 }
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.InvalidMonitoredItemRetryDelay == null)
             {
                 var retryTimeout = GetIntOrDefault(InvalidMonitoredItemRetryDelayKey);
-                if (retryTimeout > 0)
+                if (retryTimeout >= 0)
                 {
                     options.InvalidMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
                 }
