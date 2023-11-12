@@ -12,16 +12,12 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Moq" Version="[4.20.2]" />
-    <PackageReference Include="xunit.assert" Version="2.5.3" />
+    <PackageReference Include="xunit.assert" Version="2.6.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.6.0" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.0" />
   </ItemGroup>
 </Project>
