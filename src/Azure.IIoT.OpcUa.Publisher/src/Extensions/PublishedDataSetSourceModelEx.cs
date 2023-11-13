@@ -130,22 +130,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedEventItemsModel eventItems, OpcUaSubscriptionOptions options)
         {
-            if (eventItems?.PublishedData == null)
+            if (eventItems?.PublishedData != null)
             {
-                return Enumerable.Empty<BaseMonitoredItemModel>();
-            }
-
-            var map = new Dictionary<string, BaseMonitoredItemModel>();
-            foreach (var publishedData in eventItems.PublishedData)
-            {
-                var monitoredItem = publishedData?.ToMonitoredItemTemplate(options);
-                if (monitoredItem == null)
+                foreach (var publishedData in eventItems.PublishedData)
                 {
-                    continue;
+                    var monitoredItem = publishedData?.ToMonitoredItemTemplate(options);
+                    if (monitoredItem == null)
+                    {
+                        continue;
+                    }
+                    yield return monitoredItem;
                 }
-                map.AddOrUpdate(monitoredItem.Id ?? Guid.NewGuid().ToString(), monitoredItem);
             }
-            return map.Values;
         }
 
         /// <summary>

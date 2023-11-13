@@ -7,7 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using FluentAssertions;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -286,11 +288,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData("./Resources/SimpleEvents2.json")]
         public async Task CanEncode2EventsWithCompliantEncodingTestTest(string publishedNodesFile)
         {
+            var dataSetWriterNames = new HashSet<string>();
+
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncode2EventsWithCompliantEncodingTestTest),
-                publishedNodesFile, messageType: "ua-data",
+                publishedNodesFile, GetBothEvents, messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=Json" });
 
             Assert.Single(result);
@@ -298,6 +302,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
+
+            dataSetWriterNames.Select(d => d.Split('|')[1])
+                .Should().Contain(new[] { "CycleStarted", "Alarm" });
 
             // Assert
             Assert.NotEmpty(messages);
@@ -318,7 +325,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
-            AssertCompliantSimpleEventsMetadata(metadata);
+            JsonElement GetBothEvents(JsonElement jsonElement)
+            {
+                var messages = jsonElement.GetProperty("Messages");
+                if (messages.ValueKind != JsonValueKind.Array)
+                {
+                    return default;
+                }
+                foreach (var element in messages.EnumerateArray())
+                {
+                    var dataSetWriterName = element.GetProperty("DataSetWriterName").GetString();
+                    if (dataSetWriterName != null)
+                    {
+                        dataSetWriterNames.Add(dataSetWriterName);
+                    }
+                }
+                return dataSetWriterNames.Count == 2 ? jsonElement : default;
+            }
         }
 
         [Fact]

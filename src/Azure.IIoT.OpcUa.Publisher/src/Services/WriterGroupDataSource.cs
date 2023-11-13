@@ -723,6 +723,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public ushort SubscriptionId { get; }
 
                 /// <inheritdoc/>
+                public string? DataSetName { get; }
+
+                /// <inheritdoc/>
                 public string? EndpointUrl { get; }
 
                 /// <inheritdoc/>
@@ -750,6 +753,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetadataNotificationModel(IOpcUaSubscriptionNotification notification)
                 {
                     SequenceNumber = notification.SequenceNumber;
+                    DataSetName = notification.DataSetName;
                     ServiceMessageContext = notification.ServiceMessageContext;
                     MetaData = notification.MetaData;
                     PublishTimestamp = notification.PublishTimestamp;

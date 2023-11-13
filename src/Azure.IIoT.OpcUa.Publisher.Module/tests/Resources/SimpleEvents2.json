@@ -6,9 +6,9 @@
         "OpcNodes": [
             {
                 "Id": "i=2253",
-                "DisplayName": "DeviceFailure",
+                "DisplayName": "Alarm",
                 "EventFilter": {
-                    "TypeDefinitionId": "i=2131"
+                    "TypeDefinitionId": "i=10060"
                 }
             },
             {

@@ -260,8 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             ? new JsonDataSetMessage
                                             {
                                                 UseCompatibilityMode = !standardsCompliant,
-                                                DataSetWriterName = Context.Writer.DataSetWriterName
-                                                    ?? Constants.DefaultDataSetWriterName
+                                                DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                             }
                                             : new UadpDataSetMessage();
 
@@ -305,8 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 ? new JsonDataSetMessage
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
-                                                    DataSetWriterName = Context.Writer.DataSetWriterName
-                                                        ?? Constants.DefaultDataSetWriterName
+                                                    DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                                 }
                                                 : new UadpDataSetMessage();
 
@@ -430,7 +428,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             DataSetWriterId = Notification.SubscriptionId,
                                             MetaData = Notification.MetaData,
                                             MessageId = Guid.NewGuid().ToString(),
-                                            DataSetWriterName = Context.Writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName
+                                            DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                         } : new UadpMetaDataMessage
                                         {
                                             DataSetWriterId = Notification.SubscriptionId,
@@ -482,6 +480,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 currentMessage.DataSetClassId = dataSetClassId;
                                 currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
                                 return currentMessage;
+                            }
+
+                            static string GetDataSetWriterName(IOpcUaSubscriptionNotification Notification,
+                                WriterGroupMessageContext Context)
+                            {
+                                var dataSetWriterName = Context.Writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName;
+                                var dataSetName = Notification.DataSetName;
+                                if (dataSetName != null)
+                                {
+                                    return dataSetWriterName + "|" + dataSetName;
+                                }
+                                return dataSetWriterName;
                             }
 
                             DateTime? GetTimestamp(IOpcUaSubscriptionNotification Notification)

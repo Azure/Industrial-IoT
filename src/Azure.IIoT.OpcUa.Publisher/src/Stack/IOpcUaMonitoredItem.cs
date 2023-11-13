@@ -46,6 +46,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         MonitoredItem? Item { get; }
 
         /// <summary>
+        /// Data set name
+        /// </summary>
+        string? DataSetName { get; }
+
+        /// <summary>
         /// Resolve relative path first. If this returns null
         /// the relative path either does not exist or we let
         /// subscription take care of resolving the path.
@@ -100,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="cb"></param>
         /// <returns></returns>
         bool TryCompleteChanges(Subscription subscription,
-            ref bool applyChanges, Action<MessageType,
+            ref bool applyChanges, Action<MessageType, string?,
                 IEnumerable<MonitoredItemNotificationModel>> cb);
 
         /// <summary>
