@@ -71,6 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             builder.RegisterType<Router>()
                 .AsImplementedInterfaces();
 
+            builder.RegisterType<PublisherController>()
+                .AsImplementedInterfaces();
             builder.RegisterType<ConfigurationController>()
                 .AsImplementedInterfaces();
             builder.RegisterType<GeneralController>()

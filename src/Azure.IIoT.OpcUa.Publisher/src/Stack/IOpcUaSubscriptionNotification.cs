@@ -42,6 +42,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         ushort SubscriptionId { get; }
 
         /// <summary>
+        /// Name of the data set
+        /// </summary>
+        string? DataSetName { get; }
+
+        /// <summary>
         /// Endpoint url
         /// </summary>
         string? EndpointUrl { get; }

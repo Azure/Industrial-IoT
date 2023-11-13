@@ -1,0 +1,23 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "Alarm",
+                "EventFilter": {
+                    "TypeDefinitionId": "i=10060"
+                }
+            },
+            {
+                "Id": "i=2253",
+                "DisplayName": "CycleStarted",
+                "EventFilter": {
+                    "TypeDefinitionId": "ns=16;i=235"
+                }
+            }
+        ]
+    }
+]

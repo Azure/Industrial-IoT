@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToMqttBrokerTest), "./Resources/DataItems.json",
-                messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--mdt={TelemetryTopic}/metadatamessage" },
+                messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--mdt={TelemetryTopic}/metadatamessage", "--dm=False" },
                 version: MqttVersion.v311);
 
             // Assert
@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithoutReversibleEncodingTest),
-                publishedNodesFile, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json" },
+                publishedNodesFile, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" },
                 version: MqttVersion.v5);
 
             Assert.Single(result);
@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingTest),
                 publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--me=JsonReversible" },
+                arguments: new[] { "--mm=PubSub", "--me=JsonReversible", "--dm=False" },
                 version: MqttVersion.v311);
 
             var messages = result
@@ -294,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendPendingConditionsToMqttBrokerTest),
                 "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
-                arguments: new string[] { "--mm=PubSub" }, version: MqttVersion.v311);
+                arguments: new string[] { "--mm=PubSub", "--dm=False" }, version: MqttVersion.v311);
 
             // Assert
             var evt = Assert.Single(messages);

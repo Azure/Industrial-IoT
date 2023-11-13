@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Publisher module hosted service
     /// </summary>
-    public class PublisherModule : IHostedService, IIoTEdgeClientState
+    public class PublisherModule : IHostedService, IIoTEdgeClientState, IProcessControl
     {
         /// <summary>
         /// Running in container
@@ -131,6 +131,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             OnRunning?.Invoke(this, false);
             _logger.LogInformation("Stopped module OpcPublisher.");
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public bool Shutdown(bool failFast)
+        {
+            _logger.LogInformation("Received request to shutdown publisher process.");
+            if (failFast)
+            {
+                Environment.FailFast("Shutdown was invoked remotely.");
+            }
+            else
+            {
+                Environment.Exit(0);
+            }
+            return false;
         }
 
         private readonly TaskCompletionSource<bool> _exit;

@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 
         /// <summary>
         /// Display name of the data set this item is part of.
-        /// Applicable only for events in sample mode at this point.
         /// </summary>
         public string? DataSetName { get; internal set; }
 

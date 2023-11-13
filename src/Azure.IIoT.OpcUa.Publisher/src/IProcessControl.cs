@@ -5,15 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-
     /// <summary>
-    /// Provide api key
+    /// Process control provider
     /// </summary>
-    public interface IApiKeyProvider
+    public interface IProcessControl
     {
         /// <summary>
-        /// Api key
+        /// Shutdown publisher
         /// </summary>
-        string? ApiKey { get; }
+        /// <param name="failFast"></param>
+        /// <returns>false if shutdown failed</returns>
+        bool Shutdown(bool failFast);
     }
 }

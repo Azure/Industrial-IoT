@@ -22,10 +22,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Support restarting the module
         /// </summary>
-        /// <param name="logger"></param>
-        public PublisherController(ILogger logger)
+        /// <param name="apikey"></param>
+        /// <param name="certificate"></param>
+        /// <param name="process"></param>
+        public PublisherController(IProcessControl process, IApiKeyProvider apikey,
+            ISslCertProvider certificate)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _apikey = apikey;
+            _certificate = certificate;
+            _process = process;
+        }
+
+        /// <summary>
+        /// Get ApiKey to use when calling the HTTP API.
+        /// </summary>
+        /// <returns></returns>
+        public Task<string?> GetApiKeyAsync()
+        {
+            return Task.FromResult(_apikey.ApiKey);
+        }
+
+        /// <summary>
+        /// Get server certificate as PEM.
+        /// </summary>
+        /// <returns></returns>
+        public Task<string?> GetServerCertificateAsync()
+        {
+            return Task.FromResult(_certificate.Certificate?.ExportCertificatePem());
         }
 
         /// <summary>
@@ -36,19 +59,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="NotSupportedException"></exception>
         public async Task ShutdownAsync(bool failFast = false)
         {
-            _logger.LogInformation("Shutdown called.");
-            if (failFast)
+            if (!_process.Shutdown(failFast))
             {
-                Environment.FailFast("Shutdown was invoked remotely.");
+                // Should be gone now
+                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                throw new NotSupportedException("Failed to invoke shutdown");
             }
-            else
-            {
-                Environment.Exit(0);
-            }
-            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-            throw new NotSupportedException("Failed to invoke shutdown");
         }
 
-        private readonly ILogger _logger;
+        private readonly IApiKeyProvider _apikey;
+        private readonly ISslCertProvider _certificate;
+        private readonly IProcessControl _process;
     }
 }

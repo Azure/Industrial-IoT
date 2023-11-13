@@ -126,5 +126,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <returns></returns>
         Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Shutdown publisher
+        /// </summary>
+        /// <param name="failFast"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task ShutdownAsync(bool failFast = false,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get server certificate as PEM string
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<string?> GetServerCertificateAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Get api key as string
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<string?> GetApiKeyAsync(CancellationToken ct = default);
     }
 }

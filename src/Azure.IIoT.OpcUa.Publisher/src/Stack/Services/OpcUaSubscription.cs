@@ -325,8 +325,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Send notification
         /// </summary>
         /// <param name="messageType"></param>
+        /// <param name="dataSetName"></param>
         /// <param name="notifications"></param>
-        internal void SendNotification(MessageType messageType,
+        internal void SendNotification(MessageType messageType, string? dataSetName,
             IEnumerable<MonitoredItemNotificationModel> notifications)
         {
             var subscription = _currentSubscription;
@@ -342,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                var message = CreateMessage(notifications, messageType, subscription);
+                var message = CreateMessage(notifications, messageType, dataSetName, subscription);
                 onSubscriptionEventChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
@@ -357,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                var message = CreateMessage(notifications, messageType, subscription);
+                var message = CreateMessage(notifications, messageType, dataSetName, subscription);
                 onSubscriptionDataChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
@@ -367,7 +368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             Notification CreateMessage(IEnumerable<MonitoredItemNotificationModel> notifications,
-                MessageType messageType, Subscription subscription)
+                MessageType messageType, string? dataSetName, Subscription subscription)
             {
                 return new Notification(this, subscription.Id, notifications)
                 {
@@ -375,6 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
+                    DataSetName = dataSetName,
                     SubscriptionId = Id,
                     SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = messageType
@@ -1239,9 +1241,13 @@ Actual (revised) state/desired state:
         private void TriggerSubscriptionManagementCallbackIn(TimeSpan? delay,
             TimeSpan defaultDelay = default)
         {
-            if (delay == null || delay == TimeSpan.Zero)
+            if (delay == null)
             {
                 delay = defaultDelay;
+            }
+            else if (delay == TimeSpan.Zero)
+            {
+                delay = Timeout.InfiniteTimeSpan;
             }
             if (delay != Timeout.InfiniteTimeSpan)
             {
@@ -1345,6 +1351,7 @@ Actual (revised) state/desired state:
                             ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                             EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                             SubscriptionName = Name,
+                            DataSetName = wrapper.DataSetName,
                             SubscriptionId = Id,
                             SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                             MessageType = MessageType.Event,
@@ -1605,6 +1612,9 @@ Actual (revised) state/desired state:
 
             /// <inheritdoc/>
             public string? SubscriptionName { get; internal set; }
+
+            /// <inheritdoc/>
+            public string? DataSetName { get; internal set; }
 
             /// <inheritdoc/>
             public ushort SubscriptionId { get; internal set; }

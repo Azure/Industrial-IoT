@@ -36,6 +36,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public MonitoredItem? Item { get; protected internal set; }
 
         /// <inheritdoc/>
+        public virtual string? DataSetName { get; }
+
+        /// <inheritdoc/>
         public bool AttachedToSubscription { get; protected internal set; }
 
         /// <inheritdoc/>
@@ -209,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public virtual bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges,
-            Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+            Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
         {
             if (Item == null)
             {
@@ -642,7 +645,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 return true;
             }
@@ -1212,7 +1215,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges,
                     cb);
@@ -1314,14 +1317,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0
                 };
-                callback(MessageType.DeltaFrame, heartbeat.YieldReturn());
+                callback(MessageType.DeltaFrame, null, heartbeat.YieldReturn());
             }
 
             private readonly Timer _heartbeatTimer;
             private TimeSpan _timerInterval;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
-            private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
             private DateTime? _lastValueReceived;
         }
 
@@ -1442,7 +1445,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 // Dont call base implementation as it is not what we want.
                 if (Item == null)
@@ -1504,7 +1507,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Flags = MonitoredItemSourceFlags.CyclicRead,
                     Value = value
                 };
-                callback(MessageType.DeltaFrame, notification.YieldReturn());
+                callback(MessageType.DeltaFrame, null, notification.YieldReturn());
             }
 
             /// <summary>
@@ -1527,7 +1530,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             private readonly ConnectionIdentifier _connection;
             private readonly IClientSampler<ConnectionModel> _sampler;
-            private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
             private IAsyncDisposable? _sampling;
         }
 
@@ -1553,6 +1556,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
                         (v, context) => NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
+
+            /// <inheritdoc/>
+            public override string? DataSetName => Template.DataSetFieldName;
 
             /// <summary>
             /// Monitored item as event
@@ -1587,6 +1593,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     return false;
                 }
+                if ((Template.DataSetFieldName ?? string.Empty) !=
+                    (eventItem.Template.DataSetFieldName ?? string.Empty))
+                {
+                    return false;
+                }
                 if (!Template.RelativePath.SequenceEqualsSafe(eventItem.Template.RelativePath))
                 {
                     return false;
@@ -1609,6 +1620,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.DataSetFieldName ?? string.Empty);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.DataSetFieldId ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(
                         Template.RelativePath ?? Array.Empty<string>());
@@ -1675,7 +1689,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 if (!base.TryCompleteChanges(subscription, ref applyChanges, cb))
                 {
@@ -2339,7 +2353,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 if (!AttachedToSubscription || !result)
@@ -2487,7 +2501,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 foreach (var conditionNotification in notifications)
                 {
-                    callback(MessageType.Condition, conditionNotification);
+                    callback(MessageType.Condition, DataSetName, conditionNotification);
                 }
             }
 
@@ -2515,7 +2529,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     = new Dictionary<string, List<MonitoredItemNotificationModel>>();
             }
 
-            private Action<MessageType, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
             private ConditionHandlingState _conditionHandlingState;
             private DateTime _lastSentPendingConditions = DateTime.UtcNow;
             private int _snapshotInterval;

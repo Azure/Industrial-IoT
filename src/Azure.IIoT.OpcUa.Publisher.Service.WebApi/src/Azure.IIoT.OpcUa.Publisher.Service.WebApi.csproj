@@ -39,8 +39,4 @@
   <ItemGroup>
     <Content Remove="container.json" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.6.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.1" />
-  </ItemGroup>
 </Project>

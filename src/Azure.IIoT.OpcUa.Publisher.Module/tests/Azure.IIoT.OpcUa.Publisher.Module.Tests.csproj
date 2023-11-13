@@ -6,10 +6,10 @@
     <PackageReference Include="Json.More.Net" Version="1.9.1" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.13" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Moq" Version="[4.20.2]" />
     <PackageReference Include="Divergic.Logging.Xunit" Version="4.2.0" />
-    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit" Version="2.6.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -53,6 +53,9 @@
     <None Update="Resources\RegisteredRead.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\SimpleEvents2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\SimpleEvents.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -68,9 +71,5 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.6.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.1" />
   </ItemGroup>
 </Project>

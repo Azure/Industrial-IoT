@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Configuration;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Options;
     using System;
 
     /// <summary>
@@ -117,7 +118,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
             if (options.DisableDataSetMetaData == null)
             {
-                options.DisableDataSetMetaData = GetBoolOrDefault(DisableDataSetMetaDataKey);
+                // Set a default from the strict setting
+                options.DisableDataSetMetaData = GetBoolOrDefault(DisableDataSetMetaDataKey,
+                    !(_options.Value.UseStandardsCompliantEncoding ?? false));
             }
             if (options.AsyncMetaDataLoadThreshold == null)
             {
@@ -172,8 +175,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// Create configurator
         /// </summary>
         /// <param name="configuration"></param>
-        public OpcUaSubscriptionConfig(IConfiguration configuration) : base(configuration)
+        /// <param name="options"></param>
+        public OpcUaSubscriptionConfig(IConfiguration configuration,
+            IOptions<PublisherOptions> options) : base(configuration)
         {
+            _options = options;
         }
+        private readonly IOptions<PublisherOptions> _options;
     }
 }

@@ -323,6 +323,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
             // Override client config
             builder.RegisterInstance(_config).AsImplementedInterfaces();
+            // Override process control
+            builder.RegisterType<ExitOverride>()
+                .AsImplementedInterfaces().SingleInstance();
         }
 
         /// <summary>
@@ -460,6 +463,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .AsImplementedInterfaces();
 
             return builder.Build();
+        }
+
+        /// <summary>
+        /// Mock exiting
+        /// </summary>
+        internal sealed class ExitOverride : IProcessControl
+        {
+            public bool Shutdown(bool failFast)
+            {
+                return true;
+            }
         }
 
         /// <summary>

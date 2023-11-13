@@ -10,8 +10,4 @@
   <ItemGroup>
     <PackageReference Include="Furly.Extensions.Abstractions" Version="0.4.61" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.6.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.6.1" />
-  </ItemGroup>
 </Project>
