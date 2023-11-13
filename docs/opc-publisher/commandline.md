@@ -11,13 +11,16 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
+
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
 ██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗
 ██║   ██║██████╔╝██║         ██████╔╝██║   ██║██████╔╝██║     ██║███████╗███████║█████╗  ██████╔╝
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.3
+                                                                         2.9.3-rc.12+8d0d6f8e36
+
+
 General
 -------
 
@@ -205,9 +208,11 @@ Messaging configuration
                                version changes. This setting can be used to
                                also override the messaging profile's default
                                support for metadata sending.
+                               It is recommended to disable sending metadata
+                               when more than 100 nodes are part of a data set.
                                Default: `False` if the messaging profile
-                               selected supports sending metadata, `True`
-                               otherwise.
+                               selected supports sending metadata and `--strict`
+                                is set, `True` otherwise.
       --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
                              The default threshold of monitored items in a
                                subscription under which meta data is loaded
@@ -585,15 +590,18 @@ OPC UA Client configuration
                                rejected by the server while added or updating a
                                subscription or while publishing, are re-applied
                                to a subscription.
+                               Set to 0 to disable retrying.
                                Default: `1800` seconds.
       --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelay=VALUE
                              The delay in seconds after which the publisher
                                attempts to re-apply nodes that were incorrectly
                                configured to a subscription.
+                               Set to 0 to disable retrying.
                                Default: `300` seconds.
       --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelay=VALUE
                              The delay in seconds between attempts to create a
                                subscription in a session.
+                               Set to 0 to disable retrying.
                                Default: `2` seconds.
       --dcp, --disablecomplextypepreloading, --DisableComplexTypePreloading[=VALUE]
                              Complex types (structures, enumerations) a server
