@@ -53,6 +53,9 @@
     <None Update="Resources\RegisteredRead.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\SimpleEvents2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\SimpleEvents.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

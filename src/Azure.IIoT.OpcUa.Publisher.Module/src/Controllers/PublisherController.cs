@@ -24,13 +24,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="apikey"></param>
         /// <param name="certificate"></param>
-        /// <param name="logger"></param>
-        public PublisherController(IApiKeyProvider apikey,
-            ISslCertProvider certificate, ILogger<PublisherController> logger)
+        /// <param name="process"></param>
+        public PublisherController(IProcessControl process, IApiKeyProvider apikey,
+            ISslCertProvider certificate)
         {
             _apikey = apikey;
             _certificate = certificate;
-            _logger = logger;
+            _process = process;
         }
 
         /// <summary>
@@ -59,21 +59,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="NotSupportedException"></exception>
         public async Task ShutdownAsync(bool failFast = false)
         {
-            _logger.LogInformation("Shutdown called.");
-            if (failFast)
+            if (!_process.Shutdown(failFast))
             {
-                Environment.FailFast("Shutdown was invoked remotely.");
+                // Should be gone now
+                await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                throw new NotSupportedException("Failed to invoke shutdown");
             }
-            else
-            {
-                Environment.Exit(0);
-            }
-            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-            throw new NotSupportedException("Failed to invoke shutdown");
         }
 
         private readonly IApiKeyProvider _apikey;
         private readonly ISslCertProvider _certificate;
-        private readonly ILogger _logger;
+        private readonly IProcessControl _process;
     }
 }

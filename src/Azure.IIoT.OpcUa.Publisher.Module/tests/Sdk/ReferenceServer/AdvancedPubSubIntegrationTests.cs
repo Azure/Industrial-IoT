@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
 
             const string name = nameof(SwitchServerWithSameWriterGroupTest);
-            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
+            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
                 // Arrange
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentWriterGroupTest);
-            StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub" });
+            StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
                 // Arrange
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Set both to the same so that there is a single writer instead of 2
                 testInput2[0].OpcNodes[0].OpcPublishingInterval = testInput1[0].OpcNodes[0].OpcPublishingInterval;
             }
-            StartPublisher(name, arguments: new string[] { "--mm=PubSub" });
+            StartPublisher(name, arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentDataTest);
-            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
+            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
                 // Arrange
@@ -302,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             for (var cycles = 0; cycles < 5; cycles++)
             {
                 const string name = nameof(RestartConfigurationTest);
-                StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
+                StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
                 try
                 {
                     // Arrange

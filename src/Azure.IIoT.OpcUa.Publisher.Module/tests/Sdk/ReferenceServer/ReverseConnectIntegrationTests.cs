@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
 
             var name = nameof(RegisteredReadTestAsync) + (useReverseConnect ? "WithReverseConnect" : "NoReverseConnect");
-            StartPublisher(name, "./Resources/RegisteredRead.json", arguments: new string[] { "--mm=PubSub" },
+            StartPublisher(name, "./Resources/RegisteredRead.json", arguments: new string[] { "--mm=PubSub", "--dm=false" },
                 reverseConnectPort: useReverseConnect ? server.ReverseConnectPort : null);
             try
             {

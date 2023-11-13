@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 // Set a default from the strict setting
                 options.DisableDataSetMetaData = GetBoolOrDefault(DisableDataSetMetaDataKey,
-                    _options.Value.UseStandardsCompliantEncoding ?? true);
+                    !(_options.Value.UseStandardsCompliantEncoding ?? false));
             }
             if (options.AsyncMetaDataLoadThreshold == null)
             {

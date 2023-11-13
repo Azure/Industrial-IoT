@@ -1,0 +1,23 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "DeviceFailure",
+                "EventFilter": {
+                    "TypeDefinitionId": "i=2131"
+                }
+            },
+            {
+                "Id": "i=2253",
+                "DisplayName": "CycleStarted",
+                "EventFilter": {
+                    "TypeDefinitionId": "ns=16;i=235"
+                }
+            }
+        ]
+    }
+]

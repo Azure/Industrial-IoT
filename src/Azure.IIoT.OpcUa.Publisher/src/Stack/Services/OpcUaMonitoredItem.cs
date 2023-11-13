@@ -1587,6 +1587,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     return false;
                 }
+                if ((Template.DataSetFieldName ?? string.Empty) !=
+                    (eventItem.Template.DataSetFieldName ?? string.Empty))
+                {
+                    return false;
+                }
                 if (!Template.RelativePath.SequenceEqualsSafe(eventItem.Template.RelativePath))
                 {
                     return false;
@@ -1609,6 +1614,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.DataSetFieldName ?? string.Empty);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.DataSetFieldId ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(
                         Template.RelativePath ?? Array.Empty<string>());

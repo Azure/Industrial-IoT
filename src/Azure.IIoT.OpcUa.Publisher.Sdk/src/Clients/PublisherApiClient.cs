@@ -259,6 +259,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             return _serializer.DeserializeResponse<List<PublishDiagnosticInfoModel>>(response);
         }
 
+        /// <inheritdoc/>
+        public async Task ShutdownAsync(bool failFast, CancellationToken ct)
+        {
+            await _methodClient.CallMethodAsync(_target, "Shutdown",
+                _serializer.SerializeToMemory(failFast),
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetServerCertificateAsync(CancellationToken ct)
+        {
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetServerCertificate", null, ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<string?>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string?> GetApiKeyAsync(CancellationToken ct)
+        {
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetApiKey", null, ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<string?>(response);
+        }
+
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _target;
