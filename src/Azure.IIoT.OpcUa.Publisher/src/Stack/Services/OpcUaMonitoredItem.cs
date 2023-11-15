@@ -445,6 +445,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
             CancellationToken ct)
         {
+            if (IsBuiltInType(dataTypeId))
+            {
+                return;
+            }
+
             var baseType = dataTypeId;
             while (!Opc.Ua.NodeId.IsNull(baseType))
             {
@@ -461,14 +466,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                     dataTypeId = dataType.NodeId;
                     Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
-                    if (dataTypeId.NamespaceIndex == 0 && dataTypeId.IdType == IdType.Numeric)
+                    if (IsBuiltInType(dataTypeId))
                     {
-                        var id = (BuiltInType)(int)(uint)dataTypeId.Identifier;
-                        if (id >= BuiltInType.Null && id <= BuiltInType.Enumeration)
-                        {
-                            // Do not add builtin types
-                            break;
-                        }
+                        // Do not add builtin types
+                        break;
                     }
 
                     var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
@@ -525,12 +526,24 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogWarning(ex, "{Item}: Failed to get meta data for type {DataType}" +
+                    _logger.LogDebug(ex, "{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
                 }
             }
 
+            static bool IsBuiltInType(NodeId dataTypeId)
+            {
+                if (dataTypeId.NamespaceIndex == 0 && dataTypeId.IdType == IdType.Numeric)
+                {
+                    var id = (BuiltInType)(int)(uint)dataTypeId.Identifier;
+                    if (id >= BuiltInType.Null && id <= BuiltInType.Enumeration)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
             static DataTypeDescription GetDefault(Node dataType, BuiltInType builtInType)
             {
                 return builtInType == BuiltInType.Enumeration
@@ -1682,7 +1695,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "{Item}: Failed to get metadata.", this);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogError(e, "{Item}: Failed to get metadata.", this);
+                    }
+                    else
+                    {
+                        _logger.LogError("{Item}: Failed to get metadata with error {Error}.",
+                            this, e.Message);
+                    }
                 }
             }
 
