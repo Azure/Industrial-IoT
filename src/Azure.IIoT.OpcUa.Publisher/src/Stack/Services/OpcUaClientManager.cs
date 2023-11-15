@@ -125,10 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionModel endpoint, TestConnectionRequestModel request,
             CancellationToken ct)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             if (string.IsNullOrEmpty(endpoint.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
@@ -227,10 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint, CancellationToken ct)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             if (string.IsNullOrEmpty(endpoint.Url))
             {
                 throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));

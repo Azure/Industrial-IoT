@@ -29,10 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         public DeviceTelemetryEventHandler(IEventRegistration<IIoTHubTelemetryHandler> events,
             IEnumerable<IMessageHandler> handlers)
         {
-            if (handlers == null)
-            {
-                throw new ArgumentNullException(nameof(handlers));
-            }
+            ArgumentNullException.ThrowIfNull(handlers);
             _handlers = new ConcurrentDictionary<string, IMessageHandler>(
                 handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToUpperInvariant(), h)));
             _registration = events.Register(this);

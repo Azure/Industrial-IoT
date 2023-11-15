@@ -274,9 +274,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
-                    .NotThrowAsync()
-;
-            d.Dispose();
+                    .NotThrowAsync();
+            await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -317,9 +316,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
-                    .NotThrowAsync()
-;
-            d.Dispose();
+                    .NotThrowAsync();
+            await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -376,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
             }
-            d.Dispose();
+            await d.DisposeAsync();
         }
 
         [Theory]
@@ -400,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .NotThrowAsync()
 ;
-            d.Dispose();
+            await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -439,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .NotThrowAsync()
 ;
-            d.Dispose();
+            await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
                 .Should()

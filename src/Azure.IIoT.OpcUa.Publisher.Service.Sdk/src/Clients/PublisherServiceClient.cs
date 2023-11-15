@@ -93,10 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Item == null)
             {
                 throw new ArgumentException("Item missing", nameof(request));
@@ -114,10 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}/bulk");
             return await _httpClient.PostAsync<PublishBulkResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -144,10 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/publish/{Uri.EscapeDataString(endpointId)}/stop");
             return await _httpClient.PostAsync<PublishStopResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);

@@ -61,10 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ContinuationToken == null)
             {
                 throw new ArgumentException("Continuation missing", nameof(request));
@@ -85,10 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.NodeId))
             {
                 throw new ArgumentException("Node id missing.", nameof(request));

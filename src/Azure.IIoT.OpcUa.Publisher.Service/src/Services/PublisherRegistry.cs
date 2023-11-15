@@ -68,10 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdatePublisherAsync(string publisherId,
             PublisherUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(publisherId))
             {
                 throw new ArgumentNullException(nameof(publisherId));

@@ -150,10 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
@@ -188,10 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(

@@ -38,14 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentException(error, nameof(discovererId));
             }
-            if (result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
-            if (events == null)
-            {
-                throw new ArgumentNullException(nameof(events));
-            }
+            ArgumentNullException.ThrowIfNull(result);
+            ArgumentNullException.ThrowIfNull(events);
             if ((result.RegisterOnly ?? false) && !events.Any())
             {
                 return;

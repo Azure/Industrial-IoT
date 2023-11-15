@@ -33,14 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             this INodeServices<T> service, T connection, BrowseFirstRequestModel request,
             CancellationToken ct = default)
         {
-            if (service is null)
-            {
-                throw new ArgumentNullException(nameof(service));
-            }
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(service);
+            ArgumentNullException.ThrowIfNull(request);
 
             if (request.MaxReferencesToReturn != null)
             {

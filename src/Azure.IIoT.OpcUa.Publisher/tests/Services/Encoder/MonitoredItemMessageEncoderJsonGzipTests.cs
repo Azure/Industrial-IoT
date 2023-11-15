@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);

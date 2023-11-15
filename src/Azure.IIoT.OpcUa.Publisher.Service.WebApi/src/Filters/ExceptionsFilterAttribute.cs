@@ -29,10 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
         /// <inheritdoc />
         public override void OnException(ExceptionContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            ArgumentNullException.ThrowIfNull(context);
 
             if (context.Exception == null)
             {

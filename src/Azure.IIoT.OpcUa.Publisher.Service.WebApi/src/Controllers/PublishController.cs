@@ -55,10 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] PublishStartRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _publisher.PublishStartAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -80,10 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] PublishBulkRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _publisher.PublishBulkAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -106,10 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] PublishStopRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _publisher.PublishStopAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -132,10 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] PublishedItemListRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _publisher.PublishListAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 

@@ -60,18 +60,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -90,18 +84,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -120,18 +108,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -150,18 +132,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -179,18 +155,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ContinuationToken == null)
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -208,18 +178,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -237,18 +201,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -266,18 +224,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -295,18 +247,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -325,18 +271,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -355,18 +295,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -385,18 +319,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ConnectionModel connection, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -414,18 +342,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ContinuationToken == null)
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -443,18 +365,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -472,18 +388,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -501,18 +411,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -530,18 +434,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));

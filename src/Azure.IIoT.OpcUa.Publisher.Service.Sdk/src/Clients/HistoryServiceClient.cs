@@ -94,10 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/values");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -112,10 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/values/modified");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -130,10 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/values/pick");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -148,10 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/values/processed");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -165,10 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -187,10 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/read/{Uri.EscapeDataString(endpointId)}/events");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricEventModel[]>>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -204,10 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -225,10 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/replace/{Uri.EscapeDataString(endpointId)}/values");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -242,10 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/replace/{Uri.EscapeDataString(endpointId)}/events");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -259,10 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/insert/{Uri.EscapeDataString(endpointId)}/values");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -276,10 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/upsert/{Uri.EscapeDataString(endpointId)}/values");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -293,10 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/insert/{Uri.EscapeDataString(endpointId)}/events");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -310,10 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/upsert/{Uri.EscapeDataString(endpointId)}/events");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -327,10 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/delete/{Uri.EscapeDataString(endpointId)}/values");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -344,10 +302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/delete/{Uri.EscapeDataString(endpointId)}/values/pick");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -361,10 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/delete/{Uri.EscapeDataString(endpointId)}/values/modified");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -378,10 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/history/v2/delete/{Uri.EscapeDataString(endpointId)}/events");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
                 uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);

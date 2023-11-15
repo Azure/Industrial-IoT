@@ -90,10 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task UpdateDiscovererAsync(string discovererId,
             DiscovererUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(discovererId))
             {
                 throw new ArgumentNullException(nameof(discovererId));
@@ -171,10 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task UpdateSupervisorAsync(string supervisorId,
             SupervisorUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 throw new ArgumentNullException(nameof(supervisorId));
@@ -248,10 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task RegisterAsync(ServerRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.DiscoveryUrl == null)
             {
                 throw new ArgumentException("Discovery Url missing.", nameof(request));
@@ -265,10 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/applications/discover");
             await _httpClient.PostAsync(uri, request, _serializer,
                 request => request.SetTimeout(TimeSpan.FromMinutes(3)),
@@ -291,10 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task<ApplicationRegistrationResponseModel> RegisterAsync(
             ApplicationRegistrationRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ApplicationUri))
             {
                 throw new ArgumentException("Application Uri missing", nameof(request));
@@ -332,10 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task UpdateApplicationAsync(string applicationId,
             ApplicationRegistrationUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(applicationId))
             {
                 throw new ArgumentNullException(nameof(applicationId));
@@ -580,10 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task UpdatePublisherAsync(string publisherId,
             PublisherUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(publisherId))
             {
                 throw new ArgumentNullException(nameof(publisherId));
@@ -615,10 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task SetConfiguredEndpointsAsync(string publisherId,
             SetConfiguredEndpointsRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/publishers/{Uri.EscapeDataString(publisherId)}/endpoints");
             await _httpClient.PutAsync(uri, request,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -683,10 +659,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task UpdateGatewayAsync(string gatewayId,
             GatewayUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(gatewayId))
             {
                 throw new ArgumentNullException(nameof(gatewayId));

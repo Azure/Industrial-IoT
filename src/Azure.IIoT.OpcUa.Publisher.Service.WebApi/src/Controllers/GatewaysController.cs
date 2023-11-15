@@ -71,10 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task UpdateGatewayAsync(string GatewayId,
             [FromBody][Required] GatewayUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _gateways.UpdateGatewayAsync(GatewayId, request, ct).ConfigureAwait(false);
         }
 
@@ -136,10 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] GatewayQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
@@ -171,10 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery][Required] GatewayQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(

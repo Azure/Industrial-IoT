@@ -59,10 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ServerRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _onboarding.RegisterAsync(request, ct).ConfigureAwait(false);
         }
 
@@ -120,10 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] DiscoveryRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _onboarding.DiscoverAsync(request, ct).ConfigureAwait(false);
         }
 
@@ -173,10 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var model = request;
             // TODO: model.AuthorityId = User.Identity.Name;
             return await _applications.RegisterApplicationAsync(model,
@@ -216,10 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationUpdateModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
             await _applications.UpdateApplicationAsync(applicationId, model,
@@ -354,10 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
@@ -389,10 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(

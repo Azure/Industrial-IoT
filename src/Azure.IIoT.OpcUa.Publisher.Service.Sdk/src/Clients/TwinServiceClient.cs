@@ -107,10 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ContinuationToken == null)
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -128,10 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.BrowsePaths == null || request.BrowsePaths.Count == 0 ||
                 request.BrowsePaths.Any(p => p == null || p.Count == 0))
             {
@@ -150,10 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Attributes == null || request.Attributes.Count == 0)
             {
                 throw new ArgumentException(nameof(request.Attributes));
@@ -171,10 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Attributes == null || request.Attributes.Count == 0)
             {
                 throw new ArgumentException(nameof(request.Attributes));
@@ -192,10 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/twin/v2/read/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<ValueReadResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -209,10 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Value is null)
             {
                 throw new ArgumentException("Value missing.", nameof(request));
@@ -230,10 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/twin/v2/call/{Uri.EscapeDataString(endpointId)}/metadata");
             return await _httpClient.PostAsync<MethodMetadataResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -247,10 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/twin/v2/call/{Uri.EscapeDataString(endpointId)}");
             return await _httpClient.PostAsync<MethodCallResponseModel>
                 (uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -264,10 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{Uri.EscapeDataString(endpointId)}/node");
             return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
                 request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
@@ -307,10 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.NodeId == null)
             {
                 throw new ArgumentException("NodeId missing.", nameof(request));
@@ -328,10 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));
@@ -349,10 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -370,10 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Details missing.", nameof(request));

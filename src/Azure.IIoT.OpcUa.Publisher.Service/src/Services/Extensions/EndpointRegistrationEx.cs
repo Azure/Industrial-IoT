@@ -342,10 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public static EndpointRegistration ToEndpointRegistration(this EndpointInfoModel model,
             bool? disabled = null, string? discoverId = null)
         {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
+            ArgumentNullException.ThrowIfNull(model);
             return new EndpointRegistration
             {
                 IsDisabled = disabled,

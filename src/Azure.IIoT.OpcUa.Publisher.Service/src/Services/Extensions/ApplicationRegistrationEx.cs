@@ -306,10 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             this ApplicationInfoModel model, bool? disabled = null, string? etag = null,
             uint? recordId = null)
         {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
+            ArgumentNullException.ThrowIfNull(model);
             return new ApplicationRegistration
             {
                 IsDisabled = disabled,

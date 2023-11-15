@@ -29,10 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static string CreateApplicationId(ApplicationInfoModel model)
         {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
+            ArgumentNullException.ThrowIfNull(model);
             var siteOrGatewayId = model.SiteId;
             return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
                 model.ApplicationType);

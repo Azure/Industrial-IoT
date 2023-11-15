@@ -72,10 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdateDiscovererAsync(string discovererId,
             DiscovererUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(discovererId))
             {
                 throw new ArgumentNullException(nameof(discovererId));

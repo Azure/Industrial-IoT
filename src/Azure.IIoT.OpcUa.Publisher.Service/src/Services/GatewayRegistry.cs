@@ -79,10 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdateGatewayAsync(string gatewayId,
             GatewayUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(gatewayId))
             {
                 throw new ArgumentNullException(nameof(gatewayId));

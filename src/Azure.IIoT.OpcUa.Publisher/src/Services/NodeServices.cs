@@ -149,10 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<BrowseNextResponseModel> BrowseNextAsync(T endpoint,
             BrowseNextRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
                 throw new ArgumentException("Missing continuation token", nameof(request));
@@ -205,10 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<BrowsePathResponseModel> BrowsePathAsync(T endpoint,
             BrowsePathRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.BrowsePaths == null ||
                 request.BrowsePaths.Count == 0 ||
                 request.BrowsePaths.Any(p => p == null || p.Count == 0))
@@ -260,10 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             T endpoint, NodeMetadataRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.NodeId) &&
                 (request.BrowsePath == null || request.BrowsePath.Count == 0))
             {
@@ -453,10 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<QueryCompilationResponseModel> CompileQueryAsync(T endpoint,
             QueryCompilationRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.Query))
             {
                 throw new ArgumentException("Query must not be empty", nameof(request));
@@ -491,10 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<MethodMetadataResponseModel> GetMethodMetadataAsync(
             T endpoint, MethodMetadataRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.MethodId) &&
                 (request.MethodBrowsePath == null || request.MethodBrowsePath.Count == 0))
             {
@@ -617,10 +602,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<MethodCallResponseModel> MethodCallAsync(T endpoint,
             MethodCallRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ObjectId) &&
                 (request.ObjectBrowsePath == null || request.ObjectBrowsePath.Count == 0))
             {
@@ -829,10 +811,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<ValueReadResponseModel> ValueReadAsync(T endpoint,
             ValueReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.NodeId) &&
                 (request.BrowsePath == null || request.BrowsePath.Count == 0))
             {
@@ -905,10 +884,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<ValueWriteResponseModel> ValueWriteAsync(T endpoint,
             ValueWriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Value is null)
             {
                 throw new ArgumentException("Missing value", nameof(request));
@@ -973,10 +949,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<ReadResponseModel> ReadAsync(T endpoint,
             ReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Attributes == null)
             {
                 throw new ArgumentException("Missing attributes", nameof(request));
@@ -1027,10 +1000,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<WriteResponseModel> WriteAsync(T endpoint,
             WriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Attributes == null)
             {
                 throw new ArgumentException("Missing attributes", nameof(request));
@@ -1091,10 +1061,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             T endpoint, HistoryConfigurationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.NodeId))
             {
                 throw new ArgumentException("Bad node id missing", nameof(request));
@@ -1281,10 +1248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Func<ExtensionObject, IOpcUaSession, TResult> encode,
             CancellationToken ct) where TInput : class where TResult : class
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Missing details", nameof(request));
@@ -1359,10 +1323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Func<ExtensionObject, IOpcUaSession, TResult> encode, CancellationToken ct)
             where TResult : class
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
                 throw new ArgumentException("Missing continuation", nameof(request));
@@ -1418,10 +1379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Func<NodeId, TInput, IOpcUaSession, Task<ExtensionObject>> decode,
             CancellationToken ct) where TInput : class
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.Details == null)
             {
                 throw new ArgumentException("Missing details", nameof(request));

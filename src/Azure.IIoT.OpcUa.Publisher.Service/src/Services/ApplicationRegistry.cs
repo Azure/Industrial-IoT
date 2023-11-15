@@ -50,10 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task<ApplicationRegistrationResponseModel> RegisterApplicationAsync(
             ApplicationRegistrationRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ApplicationUri == null)
             {
                 throw new ArgumentException("Application Uri missing", nameof(request));
@@ -85,10 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task<ApplicationRegistrationModel> AddDiscoveredApplicationAsync(
             ApplicationRegistrationModel application, CancellationToken ct = default)
         {
-            if (application == null)
-            {
-                throw new ArgumentNullException(nameof(application));
-            }
+            ArgumentNullException.ThrowIfNull(application);
             if (application.Application?.DiscovererId == null)
             {
                 throw new ArgumentException("Discoverer identity missing", nameof(application));
@@ -218,10 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdateApplicationAsync(string applicationId,
             ApplicationRegistrationUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var context = request.Context.Validate();
 
             var application = await UpdateApplicationAsync(applicationId, (existing, _) =>
@@ -580,10 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            if (result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
+            ArgumentNullException.ThrowIfNull(result);
             var context = result.Context.Validate();
 
             //

@@ -81,10 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.HistoryReadAsync(endpointId, request,
                 ct).ConfigureAwait(false);
         }
@@ -108,10 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.HistoryReadNextAsync(endpointId, request,
                 ct).ConfigureAwait(false);
         }
@@ -136,10 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<VariantValue> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.HistoryUpdateAsync(endpointId, request,
                 ct).ConfigureAwait(false);
         }
@@ -163,10 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, HistoryConfigurationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.HistoryGetConfigurationAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -191,10 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadEventsAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -219,10 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadEventsNextAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -247,10 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -275,10 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadValuesAtTimesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -303,10 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadProcessedValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -331,10 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadModifiedValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -358,10 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReadValuesNextAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -384,10 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReplaceValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -410,10 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryReplaceEventsAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -436,10 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryInsertValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -462,10 +420,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryInsertEventsAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -488,10 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryUpsertValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -514,10 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryUpsertEventsAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -540,10 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryDeleteValuesAtTimesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -566,10 +512,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryDeleteValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -592,10 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryDeleteModifiedValuesAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }
@@ -618,10 +558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _historian.HistoryDeleteEventsAsync(endpointId,
                 request, ct).ConfigureAwait(false);
         }

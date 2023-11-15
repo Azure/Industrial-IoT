@@ -499,10 +499,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private void SessionManager_ImpersonateUser(Session session,
                 ImpersonateEventArgs args)
             {
-                if (session == null)
-                {
-                    throw new ArgumentNullException(nameof(session));
-                }
+                ArgumentNullException.ThrowIfNull(session);
 
                 if (args.NewIdentity is AnonymousIdentityToken guest)
                 {

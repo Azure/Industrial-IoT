@@ -79,10 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task UpdatePublisherAsync(string publisherId,
             [FromBody][Required] PublisherUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _publishers.UpdatePublisherAsync(publisherId, request,
                 ct).ConfigureAwait(false);
         }
@@ -152,10 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
@@ -194,10 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
@@ -229,10 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string publisherId, [FromQuery] GetConfiguredEndpointsRequestModel request,
             CancellationToken ct)
         {
-            if (publisherId == null)
-            {
-                throw new ArgumentNullException(nameof(publisherId));
-            }
+            ArgumentNullException.ThrowIfNull(publisherId);
             return _services.GetConfiguredEndpointsAsync(publisherId, request, ct);
         }
 
@@ -254,14 +242,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] SetConfiguredEndpointsRequestModel request,
             CancellationToken ct)
         {
-            if (publisherId == null)
-            {
-                throw new ArgumentNullException(nameof(publisherId));
-            }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(publisherId);
+            ArgumentNullException.ThrowIfNull(request);
             return _services.SetConfiguredEndpointsAsync(publisherId, request, ct);
         }
 

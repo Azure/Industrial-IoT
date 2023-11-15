@@ -29,10 +29,7 @@ namespace Opc.Ua
             IEnumerable<X509Certificate2> certificates,
             bool noCopy = false)
         {
-            if (certificates == null)
-            {
-                throw new ArgumentNullException(nameof(certificates));
-            }
+            ArgumentNullException.ThrowIfNull(certificates);
             foreach (var cert in certificates)
             {
                 Try.Op(() => store.Delete(cert.Thumbprint));
@@ -51,10 +48,7 @@ namespace Opc.Ua
         public static void Remove(this ICertificateStore store,
             IEnumerable<X509Certificate2> certificates)
         {
-            if (certificates == null)
-            {
-                throw new ArgumentNullException(nameof(certificates));
-            }
+            ArgumentNullException.ThrowIfNull(certificates);
             foreach (var cert in certificates)
             {
                 store.Delete(cert.Thumbprint);
@@ -73,10 +67,7 @@ namespace Opc.Ua
             this CertificateTrustList certificateTrustList,
             CertificateStore? certificateStore)
         {
-            if (certificateTrustList == null)
-            {
-                throw new ArgumentNullException(nameof(certificateTrustList));
-            }
+            ArgumentNullException.ThrowIfNull(certificateTrustList);
 
             if (certificateStore == null)
             {
@@ -101,10 +92,7 @@ namespace Opc.Ua
             this CertificateIdentifier certificateIdentifier,
             CertificateInfo? certificateStore)
         {
-            if (certificateIdentifier == null)
-            {
-                throw new ArgumentNullException(nameof(certificateIdentifier));
-            }
+            ArgumentNullException.ThrowIfNull(certificateIdentifier);
 
             if (certificateStore == null)
             {
@@ -131,10 +119,7 @@ namespace Opc.Ua
             this CertificateStoreIdentifier certificateStoreIdentifier,
             CertificateStore? certificateStore)
         {
-            if (certificateStoreIdentifier == null)
-            {
-                throw new ArgumentNullException(nameof(certificateStoreIdentifier));
-            }
+            ArgumentNullException.ThrowIfNull(certificateStoreIdentifier);
 
             if (certificateStore == null)
             {

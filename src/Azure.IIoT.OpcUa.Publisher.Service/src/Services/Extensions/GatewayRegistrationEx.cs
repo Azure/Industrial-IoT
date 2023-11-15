@@ -149,10 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public static GatewayRegistration ToGatewayRegistration(
             this GatewayModel model, bool? disabled = null)
         {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
+            ArgumentNullException.ThrowIfNull(model);
             var deviceId = model.Id;
             return new GatewayRegistration
             {

@@ -181,10 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask UpdateAsync(SubscriptionModel subscription,
             CancellationToken ct)
         {
-            if (subscription == null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
+            ArgumentNullException.ThrowIfNull(subscription);
             if (subscription.Configuration == null)
             {
                 throw new ArgumentException("Missing configuration", nameof(subscription));
