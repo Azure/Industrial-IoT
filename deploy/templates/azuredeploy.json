@@ -72,13 +72,6 @@
                 "description": "The name of the application to create. Leave empty for local or services only development."
             }
         },
-        "serviceSiteName": {
-            "type": "string",
-            "defaultValue": "[if(not(empty(parameters('siteName'))), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), '')]",
-            "metadata": {
-                "description": "The name of the services endpoint. Leave empty for local development."
-            }
-        },
         "branchName": {
             "type": "string",
             "defaultValue": "main",
@@ -341,7 +334,7 @@
         }
     },
     "variables": {
-        "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
+        "platformDeployment": "[not(empty(parameters('siteName')))]",
         "platformResourcName": "[concat(deployment().name, '.platform')]",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
         "platformConfigurationResourceName": "[concat(deployment().name, '.platform.configuration')]",
@@ -729,9 +722,6 @@
                 "parameters": {
                     "siteName": {
                         "value": "[parameters('siteName')]"
-                    },
-                    "serviceSiteName": {
-                        "value": "[parameters('serviceSiteName')]"
                     },
                     "keyVaultUri": {
                         "value": "[reference(variables('keyVaultResourceId')).vaultUri]"

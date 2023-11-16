@@ -813,7 +813,6 @@ Function New-Deployment() {
         }
         if (($script:type -eq "all") -or ($script:type -eq "services")) {
             $templateParameters.Add("siteName", $script:applicationName)
-            $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
 
