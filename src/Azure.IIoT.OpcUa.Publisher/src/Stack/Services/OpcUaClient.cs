@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, Meter meter, IMetricsContext metrics,
-            EventHandler<EndpointConnectivityState>? notifier,
+            EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ISessionFactory sessionFactory, ReverseConnectManager? reverseConnectManager,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             try
             {
-                lock (this)
+                lock (_subscriptionsLock)
                 {
                     if (_subscriptions.Contains(subscription))
                     {
@@ -207,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             try
             {
-                lock (this)
+                lock (_subscriptionsLock)
                 {
                     if (!_subscriptions.Contains(subscription))
                     {
@@ -232,15 +232,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(_sessionName);
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
             try
             {
                 _logger.LogDebug("Closing client {Client}...", this);
                 _disposed = true;
-                _cts.Cancel();
+                await _cts.CancelAsync().ConfigureAwait(false);
 
                 await _sessionManager.ConfigureAwait(false);
                 _reconnectHandler.Dispose();
@@ -264,6 +261,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to close client {Client}.", this);
+            }
+            finally
+            {
+                _cts.Dispose();
             }
         }
 
@@ -394,7 +395,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!_samplers.TryGetValue(samplingRate, out var sampler))
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                     sampler = new Sampler(this, samplingRate, item, callback);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
                 else
                 {
@@ -684,7 +687,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     //
                                     if (reconnected == null)
                                     {
-                                        Debug.Assert(_reconnectingSession != null);
                                         reconnected = _reconnectingSession?.Session;
                                     }
 
@@ -1169,7 +1171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _sessionName, _connection.Endpoint!.Url, previous, state);
             try
             {
-                _notifier?.Invoke(this, state);
+                _notifier?.Invoke(this, new EndpointConnectivityStateEventArgs(state));
             }
             catch (Exception ex)
             {
@@ -1453,7 +1455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    _cts.Cancel();
+                    await _cts.CancelAsync().ConfigureAwait(false);
                     _timer.Dispose();
                     await _sampler.ConfigureAwait(false);
                 }
@@ -1596,12 +1598,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private OpcUaSession? _session;
         private OpcUaSession? _reconnectingSession;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private IDisposable? _disconnectLock;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
         private ImmutableHashSet<ISubscriptionHandle> _subscriptions;
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
+        private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly ISessionFactory _sessionFactory;
         private readonly AsyncReaderWriterLock _lock = new();
@@ -1617,7 +1622,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
-        private readonly EventHandler<EndpointConnectivityState>? _notifier;
+        private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<TimeSpan, Sampler> _samplers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;

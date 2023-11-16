@@ -46,7 +46,7 @@ namespace IIoTPlatformE2ETests
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Post)
                 {
@@ -76,7 +76,7 @@ namespace IIoTPlatformE2ETests
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get)
                 {
@@ -138,7 +138,7 @@ namespace IIoTPlatformE2ETests
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var resource = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
                 var request = new RestRequest(resource, Method.Delete)

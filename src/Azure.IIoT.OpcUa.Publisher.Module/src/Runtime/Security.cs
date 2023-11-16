@@ -50,13 +50,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <param name="options"></param>
             /// <param name="logger"></param>
             /// <param name="encoder"></param>
-            /// <param name="clock"></param>
             /// <param name="context"></param>
             /// <param name="apiKeyProvider"></param>
             public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-                ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-                IHttpContextAccessor context, IApiKeyProvider apiKeyProvider) :
-                base(options, logger, encoder, clock)
+                ILoggerFactory logger, UrlEncoder encoder, IHttpContextAccessor context,
+                IApiKeyProvider apiKeyProvider) :
+                base(options, logger, encoder)
             {
                 _context = context;
                 _apiKeyProvider = apiKeyProvider;
@@ -73,14 +72,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
 
                 var authorization = httpContext.Request.Headers.Authorization;
-                if (authorization.Count == 0)
+                if (authorization.Count == 0 || string.IsNullOrEmpty(authorization[0]))
                 {
                     return Task.FromResult(AuthenticateResult.Fail(
                         "Missing Authorization header."));
                 }
                 try
                 {
-                    var header = AuthenticationHeaderValue.Parse(authorization[0]);
+                    var header = AuthenticationHeaderValue.Parse(authorization[0]!);
                     if (header.Scheme != ApiKeyScheme)
                     {
                         return Task.FromResult(AuthenticateResult.NoResult());

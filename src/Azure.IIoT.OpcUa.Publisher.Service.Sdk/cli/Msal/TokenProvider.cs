@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Msal
         {
             // Building a public client application
             _app = PublicClientApplicationBuilder.Create(clientId)
-                .WithAuthority($"{instance.TrimEnd('/')}/{tenantId}")
+                .WithAuthority(new Uri($"{instance.TrimEnd('/')}/{tenantId}"))
                 .WithRedirectUri("http://localhost")
                 .Build();
             _lazyCacheInitialization = new Lazy<Task>(InitializeCacheAsync);

@@ -41,10 +41,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await service.GetApplicationAsync("test", false));
+                await Assert.ThrowsAsync<ResourceNotFoundException>(
+                    async () => await service.GetApplicationAsync("test", false, default));
             }
         }
 
@@ -62,12 +63,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var result = await service.GetApplicationAsync(
                     ApplicationInfoModelEx.CreateApplicationId(site,
-                    first.ApplicationUri, first.ApplicationType), false);
+                    first.ApplicationUri, first.ApplicationType), false, default);
 
                 // Assert
                 Assert.True(result.Application.IsSameAs(apps[0]));
@@ -88,10 +89,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = await service.ListApplicationsAsync(null, null);
+                var records = await service.ListApplicationsAsync(null, null, default);
 
                 // Assert
                 Assert.True(apps.IsSameAs(records.Items));
@@ -111,10 +112,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = await service.QueryApplicationsAsync(null, null);
+                var records = await service.QueryApplicationsAsync(null, null, default);
 
                 // Assert
                 Assert.True(apps.IsSameAs(records.Items));
@@ -134,13 +135,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationType = ApplicationType.ClientAndServer
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.Equal(apps.Count(x =>
@@ -161,13 +162,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationType = ApplicationType.Server
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.Equal(apps.Count(x => x.ApplicationType != ApplicationType.Client), records.Items.Count);
@@ -187,13 +188,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationType = ApplicationType.DiscoveryServer
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.Equal(apps.Count(x => x.ApplicationType == ApplicationType.DiscoveryServer), records.Items.Count);
@@ -213,13 +214,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     SiteOrGatewayId = site
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(apps.IsSameAs(records.Items));
@@ -239,13 +240,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     SiteOrGatewayId = gateway
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(apps.IsSameAs(records.Items));
@@ -265,13 +266,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationType = ApplicationType.Client
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.Equal(apps.Count(x =>
@@ -293,13 +294,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationName = apps[0].ApplicationName
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
@@ -320,13 +321,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationName = apps[0].ApplicationName.ToUpperInvariant()
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);
@@ -346,13 +347,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel
                 {
                     ApplicationUri = apps[0].ApplicationUri.ToUpperInvariant()
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
@@ -368,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         {
             CreateAppFixtures(out var site, out _, out var super, out var apps, out var devices);
 
-            var hub = new IoTHubMock(_serializer);
+            using var hub = new IoTHubMock(_serializer);
             using (var mock = AutoMock.GetLoose(builder =>
             {
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
@@ -376,18 +377,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 foreach (var app in apps)
                 {
                     var record = await service.RegisterApplicationAsync(
-                        app.ToRegistrationRequest());
+                        app.ToRegistrationRequest(), default);
                 }
 
                 // Assert
                 Assert.Equal(apps.Count, hub.Devices.Count());
-                var records = await service.ListApplicationsAsync(null, null);
+                var records = await service.ListApplicationsAsync(null, null, default);
 
                 // Assert
                 Assert.True(apps.IsSameAs(records.Items));
@@ -402,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         {
             CreateAppFixtures(out var site, out _, out var super, out var apps, out var devices);
 
-            var hub = IoTHubMock.Create(devices, _serializer);
+            using var hub = IoTHubMock.Create(devices, _serializer);
             using (var mock = AutoMock.GetLoose(builder =>
             {
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
@@ -410,12 +411,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 foreach (var app in apps)
                 {
-                    await service.UnregisterApplicationAsync(app.ApplicationId, null);
+                    await service.UnregisterApplicationAsync(app.ApplicationId, null, default);
                 }
 
                 // Assert
@@ -436,18 +437,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterType<IoTHubMock>().As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.RegisterApplicationAsync(null));
+                    () => service.RegisterApplicationAsync(null, default));
                 await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetApplicationAsync(null, false));
+                    () => service.GetApplicationAsync(null, false, default));
                 await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetApplicationAsync("", false));
+                    () => service.GetApplicationAsync("", false, default));
                 await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    () => service.GetApplicationAsync("abc", false));
+                    () => service.GetApplicationAsync("abc", false, default));
                 await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    () => service.GetApplicationAsync(Guid.NewGuid().ToString(), false));
+                    () => service.GetApplicationAsync(Guid.NewGuid().ToString(), false, default));
             }
         }
 
@@ -464,14 +465,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IApplicationRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 var app = apps[0];
-                await service.DisableApplicationAsync(app.ApplicationId, null);
-                var registration = await service.GetApplicationAsync(app.ApplicationId, false);
+                await service.DisableApplicationAsync(app.ApplicationId, null, default);
+                var registration = await service.GetApplicationAsync(app.ApplicationId, false, default);
                 Assert.NotNull(registration.Application.NotSeenSince);
-                await service.EnableApplicationAsync(app.ApplicationId, null);
-                registration = await service.GetApplicationAsync(app.ApplicationId, false);
+                await service.EnableApplicationAsync(app.ApplicationId, null, default);
+                registration = await service.GetApplicationAsync(app.ApplicationId, false, default);
                 Assert.Null(registration.Application.NotSeenSince);
             }
         }

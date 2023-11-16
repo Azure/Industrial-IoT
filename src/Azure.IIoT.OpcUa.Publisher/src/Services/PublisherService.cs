@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 _logger.LogDebug("Closing publisher service...");
-                _cts.Cancel();
+                await _cts.CancelAsync().ConfigureAwait(false);
                 _changeFeed.Writer.TryComplete();
                 try
                 {

@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var httpRequest = new HttpRequestMessage
+            using var httpRequest = new HttpRequestMessage
             {
                 RequestUri = new Uri($"{_serviceUri}/healthz")
             };

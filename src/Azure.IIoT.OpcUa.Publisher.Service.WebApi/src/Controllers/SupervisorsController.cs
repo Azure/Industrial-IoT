@@ -106,15 +106,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken]
-                    .FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _supervisors.ListSupervisorsAsync(continuationToken,
@@ -147,10 +145,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] int? pageSize, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(query);
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 
@@ -186,10 +183,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] int? pageSize, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(query);
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 

@@ -158,7 +158,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild()
+        private NodeStateReference NextChild()
         {
             NodeId targetId = null;
 

@@ -467,7 +467,7 @@ namespace TestEventProcessor.BusinessLogic
                                         }
                                         if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp)
                                         {
-                                            _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
+                                            _logger.LogInformation("Value {Value} is missing source timestamp.", dataValue.ToString());
                                             continue;
                                         }
                                         if (!dataValue.TryGetValue("Value", out var value))
@@ -493,7 +493,7 @@ namespace TestEventProcessor.BusinessLogic
                                 }
                                 if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp)
                                 {
-                                    _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
+                                    _logger.LogInformation("Value {Value} is missing source timestamp.", dataValue.ToString());
                                     return;
                                 }
                                 if (!dataValue.TryGetValue("Value", out var value))

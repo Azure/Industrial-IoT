@@ -4,7 +4,7 @@ services:
   # OPC Publisher
   ############################
   publisher:
-    environment: 
+    environment:
       DaprConnectionString: "PubSubComponent=redis-pubsub"
   ############################
   # Dapr sidecar for publisher
@@ -46,4 +46,4 @@ services:
     ports:
       - 5000:8001
     volumes:
-      - shared:/db 
+      - shared:/db

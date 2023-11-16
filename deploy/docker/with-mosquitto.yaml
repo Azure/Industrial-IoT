@@ -4,7 +4,7 @@ services:
   # OPC Publisher
   ############################
   publisher:
-    environment: 
+    environment:
       MqttClientConnectionString: "HostName=mosquitto;Port=1883;UseTls=false;Protocol=v5"
       TelemetryTopicTemplate: "{RootTopic}/{Site}/{DataSetWriterGroup}"
       DataSetMetaDataTopicTemplate: "{TelemetryTopic}/{DataSetWriterName}/metadata"

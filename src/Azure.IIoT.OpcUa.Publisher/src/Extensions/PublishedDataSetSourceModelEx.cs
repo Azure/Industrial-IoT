@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="options"></param>
         /// <param name="extensionFields"></param>
         /// <returns></returns>
-        public static List<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
+        public static IList<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
             OpcUaSubscriptionOptions options, IDictionary<string, VariantValue>? extensionFields = null)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();

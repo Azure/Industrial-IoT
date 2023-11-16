@@ -155,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _cts.Dispose();
             _timer.Dispose();
             _lock.Dispose();
+            _request.Dispose();
         }
 
         /// <summary>

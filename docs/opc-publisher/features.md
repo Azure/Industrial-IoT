@@ -7,7 +7,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Feature | Sub Feature | 2.8 | 2.9 | Feature state |
 | ------- | ----------- |---- | --- | ------------- |
 | Uses latest .net reference stack ||X|X||
-| .net Version || .net 6 | .net 7 ||
+| .net Version || .net 6 | .net 8 ||
 | Secure channel transport and configuration ||X|X||
 | OPC UA HTTP transport and configuration ||-|-|#1997|
 | Secure channel over web socket transport and configuration ||-|-|#1997|

@@ -187,9 +187,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromQuery][Required] string? continuationToken,
             CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
             if (string.IsNullOrEmpty(continuationToken))
             {

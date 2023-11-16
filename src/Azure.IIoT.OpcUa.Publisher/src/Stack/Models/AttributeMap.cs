@@ -424,6 +424,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             public bool Optional { get; }
         }
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         private static readonly MapEntry[,] kMap = new MapEntry[8, 32];
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }
 }

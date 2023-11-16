@@ -429,7 +429,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
                     new PublishedNodesEntryModel {
-                        OpcNodes = nodes.OpcNodes,
+                        OpcNodes = nodes.OpcNodes.ToList(),
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name

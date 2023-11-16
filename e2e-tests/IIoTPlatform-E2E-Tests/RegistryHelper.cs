@@ -41,7 +41,7 @@ namespace IIoTPlatformE2ETests
         public async Task WaitForIIoTModulesConnectedAsync(
             string deviceId,
             CancellationToken ct,
-            IEnumerable<string> moduleNames = null
+            IReadOnlyList<string> moduleNames = null
         )
         {
             moduleNames ??= ModuleNamesDefault;
@@ -51,11 +51,11 @@ namespace IIoTPlatformE2ETests
                 while (true)
                 {
                     var modules = await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false);
-                    var connectedModulesCout = modules
+                    var connectedModulesCount = modules
                         .Where(m => moduleNames.Contains(m.Id))
                         .Count(m => m.ConnectionState == DeviceConnectionState.Connected);
 
-                    if (connectedModulesCout == moduleNames.Count())
+                    if (connectedModulesCount == moduleNames.Count)
                     {
                         _context.OutputHelper?.WriteLine($"All required IoT Edge modules are connected! (took {sw.Elapsed})");
                         return;
@@ -240,7 +240,7 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Default value for IIoT module names.
         /// </summary>
-        public static IEnumerable<string> ModuleNamesDefault { get; } = new string[] { "publisher" };
+        public static IReadOnlyList<string> ModuleNamesDefault { get; } = new string[] { "publisher" };
 
         private readonly IIoTPlatformTestContext _context;
     }

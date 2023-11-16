@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-
     /// <summary>
     /// Provide api key
     /// </summary>

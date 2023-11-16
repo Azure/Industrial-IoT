@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
-            var runtimeStateReporter = new RuntimeStateReporter(
+            using var runtimeStateReporter = new RuntimeStateReporter(
                 client.Object.YieldReturn(),
                 _serializer,
                 new MemoryKVStore().YieldReturn(),
@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
-            var runtimeStateReporter = new RuntimeStateReporter(
+            using  var runtimeStateReporter = new RuntimeStateReporter(
                 client.Object.YieldReturn(),
                 _serializer,
                 new MemoryKVStore().YieldReturn(),
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
-            var runtimeStateReporter = new RuntimeStateReporter(
+            using var runtimeStateReporter = new RuntimeStateReporter(
                 _client.Object.YieldReturn(),
                 _serializer,
                 new MemoryKVStore().YieldReturn(),

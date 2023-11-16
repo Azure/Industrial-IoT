@@ -134,10 +134,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             switch (encoding)
             {
                 case JsonEncoding.StartObject:
-                    _writer?.WriteStartObject();
+                    _writer.WriteStartObject();
                     break;
                 case JsonEncoding.Array:
-                    _writer?.WriteStartArray();
+                    _writer.WriteStartArray();
                     break;
             }
         }
@@ -150,17 +150,17 @@ namespace Azure.IIoT.OpcUa.Encoders
                 switch (_encoding)
                 {
                     case JsonEncoding.StartObject:
-                        _writer?.WriteEndObject();
+                        _writer.WriteEndObject();
                         break;
                     case JsonEncoding.Array:
-                        _writer?.WriteEndArray();
+                        _writer.WriteEndArray();
                         break;
                 }
 
-                _writer?.Flush();
+                _writer.Flush();
                 if (_ownedWriter)
                 {
-                    _writer?.Close();
+                    _writer.Close();
                 }
                 _writer = null;
             }
@@ -945,7 +945,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             else
             {
                 PushObject(fieldName);
-                value?.Encode(this);
+                value.Encode(this);
                 PopObject();
             }
         }
@@ -1610,7 +1610,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 catch (Exception ex)
                 {
                     throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Bad variant: Value '{value}' of type '{value?.GetType().FullName}'" +
+                        $"Bad variant: Value '{value}' of type '{value.GetType().FullName}'" +
                         $" is not of type '{typeof(T).GetType().FullName}'.", ex);
                 }
             }
@@ -1950,10 +1950,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             else
             {
                 PushObject(property);
-                if (value != null)
-                {
-                    writer(value);
-                }
+                writer(value);
                 PopObject();
             }
         }

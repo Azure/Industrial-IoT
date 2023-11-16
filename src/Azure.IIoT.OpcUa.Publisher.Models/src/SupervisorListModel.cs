@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Registrations
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<SupervisorModel>? Items { get; set; }
+        public IReadOnlyList<SupervisorModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final

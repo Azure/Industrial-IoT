@@ -312,8 +312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                     if (_state != State.Disposed)
                     {
                         Socket.CancelConnectAsync(_arg);
-                        _arg.ConnectSocket.SafeDispose();
-                        _socket.SafeDispose();
+                        _arg.ConnectSocket?.Dispose();
+                        _socket?.Dispose();
                         _arg.Dispose();
                         _timer.Dispose();
                         _state = State.Disposed;
@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                     _state = State.Connect;
 
                     // Open new socket
-                    _socket.SafeDispose();
+                    _socket?.Dispose();
                     _socket = new Socket(SocketType.Stream, ProtocolType.IP);
                     if (!_socket.ConnectAsync(_arg))
                     {

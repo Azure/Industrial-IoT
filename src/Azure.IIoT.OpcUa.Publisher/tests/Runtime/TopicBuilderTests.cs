@@ -143,8 +143,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
+#pragma warning disable CA1308 // Normalize strings to uppercase
             options.Value.TelemetryTopicTemplate =
                 "{RootTopic}/writer/{DataSetWriterName}/group/{DataSetWriterGroup}/messages".ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             new TopicBuilder(options, new Dictionary<string, string>
             {
                 ["DataSetWriterName"] = "Foo",

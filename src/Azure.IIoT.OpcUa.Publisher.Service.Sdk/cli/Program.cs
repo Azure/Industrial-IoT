@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             _client.Dispose();
         }
 
+#pragma warning disable CA1308 // Normalize strings to uppercase
         /// <summary>
         /// Run client
         /// </summary>
@@ -453,6 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             }
             while (interactive);
         }
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
         private string _nodeId;
 
@@ -909,7 +911,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var file = options.GetValueOrNull<string>("f", "--file");
             using var stream = file == null ? Console.Out : File.CreateText(file);
 
-            stream.WriteLine("[");
+            await stream.WriteLineAsync("[").ConfigureAwait(false);
             var empty = true;
 
             await foreach (var endpoint in _client.Registry.GetConfiguredEndpointsAsync(
@@ -920,17 +922,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 if (!empty)
                 {
-                    stream.WriteLine(",");
+                    await stream.WriteLineAsync(",").ConfigureAwait(false);
                 }
                 empty = false;
-                stream.Write(_client.Serializer.SerializeToString(endpoint,
-                    options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format")));
+                await stream.WriteAsync(_client.Serializer.SerializeToString(endpoint,
+                    options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format"))).ConfigureAwait(false);
             }
             if (!empty)
             {
-                stream.WriteLine();
+                await stream.WriteLineAsync().ConfigureAwait(false);
             }
-            stream.WriteLine("]");
+            await stream.WriteLineAsync("]").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -945,7 +947,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             if (file != null)
             {
                 publishedNodes.Endpoints = _client.Serializer.Deserialize<IEnumerable<PublishedNodesEntryModel>>(
-                    File.ReadAllBytes(file));
+                    await File.ReadAllBytesAsync(file).ConfigureAwait(false));
             }
             await _client.Registry.SetConfiguredEndpointsAsync(GetPublisherId(options),
                 publishedNodes).ConfigureAwait(false);

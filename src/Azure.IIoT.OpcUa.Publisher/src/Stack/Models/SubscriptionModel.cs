@@ -25,6 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Monitored item templates for the subscription
         /// </summary>
-        public List<BaseMonitoredItemModel>? MonitoredItems { get; set; }
+#pragma warning disable CA2227 // Collection properties should be read only
+        public IList<BaseMonitoredItemModel>? MonitoredItems { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
     }
 }

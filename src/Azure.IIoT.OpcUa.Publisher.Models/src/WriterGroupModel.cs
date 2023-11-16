@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetWriters", Order = 2,
             EmitDefaultValue = false)]
-        public List<DataSetWriterModel>? DataSetWriters { get; set; }
+        public IReadOnlyList<DataSetWriterModel>? DataSetWriters { get; set; }
 
         /// <summary>
         /// Network message configuration
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "localeIds", Order = 6,
             EmitDefaultValue = false)]
-        public List<string>? LocaleIds { get; set; }
+        public IReadOnlyList<string>? LocaleIds { get; set; }
 
         /// <summary>
         /// Header layout uri
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "securityKeyServices", Order = 10,
             EmitDefaultValue = false)]
-        public List<ConnectionModel>? SecurityKeyServices { get; set; }
+        public IReadOnlyList<ConnectionModel>? SecurityKeyServices { get; set; }
 
         /// <summary>
         /// Max network message size. The max size is limited

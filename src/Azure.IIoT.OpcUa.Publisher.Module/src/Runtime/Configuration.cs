@@ -743,13 +743,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         options.Port = port;
                     }
-                    if (properties.ContainsKey(nameof(options.UserName)))
+                    if (properties.TryGetValue(nameof(options.UserName), out value))
                     {
-                        options.UserName = properties[nameof(options.UserName)];
+                        options.UserName = value;
                     }
-                    if (properties.ContainsKey(nameof(options.Password)))
+                    if (properties.TryGetValue(nameof(options.Password), out value))
                     {
-                        options.Password = properties[nameof(options.Password)];
+                        options.Password = value;
                     }
                     if (properties.TryGetValue(nameof(options.Protocol), out value) &&
                         Enum.TryParse<MqttVersion>(value, true, out var version))
@@ -871,7 +871,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="FormatException"></exception>
-        private static IDictionary<string, string> ToDictionary(string valuePairString,
+        private static Dictionary<string, string> ToDictionary(string valuePairString,
             char kvpDelimiter = ';', char kvpSeparator = '=')
         {
             if (string.IsNullOrWhiteSpace(valuePairString))
@@ -890,9 +890,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     m.Result("$1"),
                     valuePairString[
                         (m.Index + m.Value.Length)..(m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length)]
-                });
+                })
+                .ToList();
 
-            if (!parts.Any() || parts.Any(p => p.Length != 2))
+            if (parts.Count == 0 || parts.Any(p => p.Length != 2))
             {
                 throw new FormatException("Malformed Token");
             }

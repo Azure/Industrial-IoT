@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Text;
 
     /// <summary>
     /// Default client configuration
@@ -76,7 +77,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// </summary>
         public const string ApplicationNameDefault = "Microsoft.Azure.IIoT";
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public const string ApplicationUriDefault = "urn:localhost:{0}:microsoft:";
+        public static readonly CompositeFormat ApplicationUriDefault =
+            CompositeFormat.Parse("urn:localhost:{0}:microsoft:");
         public const string ProductUriDefault = "https://www.github.com/Azure/Industrial-IoT";
         public const string PkiRootPathDefault = "pki";
         public const int SecurityTokenLifetimeDefault = 60 * 60 * 1000;

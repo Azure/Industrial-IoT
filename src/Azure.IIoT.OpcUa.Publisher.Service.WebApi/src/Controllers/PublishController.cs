@@ -144,9 +144,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
             string endpointId, [FromQuery][Required] string? continuationToken, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
             return await _publisher.PublishListAsync(endpointId, new PublishedItemListRequestModel
             {

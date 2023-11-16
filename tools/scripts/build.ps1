@@ -1,6 +1,6 @@
 <#
  .SYNOPSIS
-    Builds a manifest list from images produced as part of 
+    Builds a manifest list from images produced as part of
     a full build of all csproj files. A full build includes
     building linux-arm, linux-arm64, linux-x64, etc.
 
@@ -18,9 +18,9 @@
     Comma seperated tags to publish. Defaults to Tag
 
  .PARAMETER Debug
-    Whether to build Release or Debug - default to Release.  
+    Whether to build Release or Debug - default to Release.
  .PARAMETER NoBuid
-    If set does not build but just packages the images into a 
+    If set does not build but just packages the images into a
     manifest list
 #>
 
@@ -91,7 +91,7 @@ if (-not $script:NoBuild.IsPresent) {
         $os = $_
         $platforms.Item($_) | ForEach-Object {
             $arch = $_
-                        
+
             Write-Host "Publish containers for $os-$arch..."
             # Build the docker images and push them to acr
             & (Join-Path $PSScriptRoot "publish.ps1") -Registry $($script:Registry) `
@@ -175,7 +175,7 @@ manifests:
             while ($true) {
                 (& $manifestToolPath $argumentList) | Out-Host
                 if ($LastExitCode -eq 0) {
-                    break   
+                    break
                 }
                 Write-Warning "Manifest push failed - try again."
                 Start-Sleep -s 2

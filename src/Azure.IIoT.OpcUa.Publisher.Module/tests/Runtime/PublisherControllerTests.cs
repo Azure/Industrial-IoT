@@ -36,8 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 
                 var certificate = await PublisherApi.GetServerCertificateAsync();
                 Assert.NotNull(certificate);
-                var x509 = X509Certificate2.CreateFromPem(certificate);
-                Assert.StartsWith("DC=", x509.Subject);
+                using var x509 = X509Certificate2.CreateFromPem(certificate);
+                Assert.StartsWith("DC=", x509.Subject, StringComparison.Ordinal);
             }
             finally
             {

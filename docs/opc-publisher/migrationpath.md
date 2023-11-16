@@ -30,7 +30,7 @@ Customers told us they want to leverage the capabilities of OPC Twin. However, d
 
 We also found significant problems with the orchestration approach in OPC Publisher to continue its development. For one, the size constraints imposed by keeping the entire configuration of a publisher in a single document in Cosmos DB became an issue for some customers.  And the overhead of the communication between publisher and cloud services and the need for a second cloud connection bypassing IoT Edge were a problem for stable and reliable production use.
 
-We reacted by combining all 3 edge modules into OPC Publisher 2.9 and combining all cloud services into a single web service that is now optional. Yes, you can directy interact with OPC Publisher through IoT Hub or MQTT/HTTP (Preview). We also updated OPC Publisher to leverage .net 7 performance improvements and to use more defensive coding and code analysis moving the code base forward.
+We reacted by combining all 3 edge modules into OPC Publisher 2.9 and combining all cloud services into a single web service that is now optional. Yes, you can directy interact with OPC Publisher through IoT Hub or MQTT/HTTP (Preview). We also updated OPC Publisher to leverage .net 8 performance improvements and to use more defensive coding and code analysis moving the code base forward.
 
 ## Breaking changes
 

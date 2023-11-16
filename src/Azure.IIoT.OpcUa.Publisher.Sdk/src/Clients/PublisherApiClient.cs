@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request, CancellationToken ct)
+            IReadOnlyList<PublishedNodesEntryModel> request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,

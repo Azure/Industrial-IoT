@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
 
     /// <summary>
@@ -95,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             if (update?.SecurityLevel != existing?.SecurityLevel)
             {
                 tags.Add(nameof(EndpointRegistration.SecurityLevel), update?.SecurityLevel == null ?
-                    VariantValue.Null : serializer.FromObject(update.SecurityLevel.ToString()));
+                    VariantValue.Null : serializer.FromObject(update.SecurityLevel?.ToString(CultureInfo.InvariantCulture)));
             }
 
             var methodEqual = update?.AuthenticationMethods.DecodeAsList().SetEqualsSafe(

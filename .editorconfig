@@ -465,6 +465,19 @@ dotnet_diagnostic.xUnit1033.severity = silent
 
 # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
+csharp_style_prefer_primary_constructors = true:suggestion
+
+# CA1861: Avoid constant arrays as arguments
+dotnet_diagnostic.CA1861.severity = silent
+
+# CA1724: Type names should not match namespaces
+dotnet_diagnostic.CA1724.severity = silent
+
+# CA1812: Avoid uninstantiated internal classes
+dotnet_diagnostic.CA1812.severity = silent
+
+# CA1003: Use generic event handler instances
+dotnet_diagnostic.CA1003.severity = silent
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion

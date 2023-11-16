@@ -83,6 +83,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
 
-        private readonly IBinarySerializer _serializer = new MessagePackSerializer();
+        private readonly MessagePackSerializer _serializer = new MessagePackSerializer();
     }
 }

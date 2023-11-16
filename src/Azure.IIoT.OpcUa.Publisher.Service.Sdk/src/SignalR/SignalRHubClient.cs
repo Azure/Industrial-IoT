@@ -37,10 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <inheritdoc/>
         public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(SignalRHubClient));
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (string.IsNullOrEmpty(endpointUrl))
             {
                 throw new ArgumentNullException(nameof(endpointUrl));
@@ -112,10 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             {
                 get
                 {
-                    if (_disposed)
-                    {
-                        throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
-                    }
+                    ObjectDisposedException.ThrowIf(_disposed, this);
                     return _client.ConnectionId;
                 }
             }
@@ -145,9 +139,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     throw new ArgumentNullException(nameof(endpointUrl));
                 }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var host = new SignalRHubClientHost(endpointUrl, options,
                     logger, // TODO: should use logger factory here
                     jsonSettings, msgPack);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 return new SignalRClientRegistrar(await host);
             }
@@ -156,10 +152,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             public IDisposable Register(Func<object?[], object, Task> handler,
                 object thiz, string method, Type[] arguments)
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
-                }
+                ObjectDisposedException.ThrowIf(_disposed, this);
+
                 return _client.Register(handler, thiz, method, arguments);
             }
 
@@ -170,10 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <exception cref="ObjectDisposedException"></exception>
             public async ValueTask DisposeAsync()
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
-                }
+                ObjectDisposedException.ThrowIf(_disposed, this);
                 _disposed = true;
                 await _client.DisposeAsync().ConfigureAwait(false);
             }

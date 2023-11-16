@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 Id = publisher
             }.ToPublisherRegistration().ToDeviceTwin(_serializer);
 
-            var registry = IoTHubMock.Create(Gateway.YieldReturn() // Single device
+            using var registry = IoTHubMock.Create(Gateway.YieldReturn() // Single device
                 .Append(Discoverer)
                 .Append(Supervisor)
                 .Append(Publisher), _serializer);
@@ -90,6 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
+            using (registry)
             using (var mock = AutoMock.GetLoose(builder =>
             {
                 // Setup
@@ -118,6 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 out var publisher, out var gateway, out var created,
                 out var found, out var registry, 0);
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -136,6 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 out var found, out var registry);
             found[found.Count / 2].Application.SiteId = "aaaaaaaaaaaa";
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -151,6 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 out var publisher, out var gateway, out var created,
                 out var found, out var registry, 1);
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -179,6 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             // Assert no changes
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -209,6 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             found = new List<DiscoveryEventModel> { found[0] };
             // Assert there is still the same content as originally
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -238,6 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             // Assert disabled items are now enabled
             var count = registry.Devices.Count();
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -274,6 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -309,6 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             found = new List<DiscoveryEventModel>();
             // Assert there is still the same content as originally
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -332,6 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run
@@ -360,6 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             // All applications, but only one endpoint each is enabled
 
+            using (registry)
             using (var mock = Setup(registry, out var service))
             {
                 // Run

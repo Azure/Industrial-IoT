@@ -1689,7 +1689,7 @@ namespace Reference
         /// <param name="name"></param>
         /// <param name="trueState"></param>
         /// <param name="falseState"></param>
-        private DataItemState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState)
+        private TwoStateDiscreteState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState)
         {
             var variable = new TwoStateDiscreteState(parent)
             {
@@ -1738,7 +1738,7 @@ namespace Reference
         /// <param name="path"></param>
         /// <param name="name"></param>
         /// <param name="values"></param>
-        private DataItemState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values)
+        private MultiStateDiscreteState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values)
         {
             var variable = new MultiStateDiscreteState(parent)
             {
@@ -1791,7 +1791,7 @@ namespace Reference
         /// <param name="path"></param>
         /// <param name="name"></param>
         /// <param name="enumNames"></param>
-        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
+        private MultiStateValueDiscreteState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
         {
             return CreateMultiStateValueDiscreteItemVariable(parent, path, name, null, enumNames);
         }
@@ -1804,7 +1804,7 @@ namespace Reference
         /// <param name="name"></param>
         /// <param name="nodeId"></param>
         /// <param name="enumNames"></param>
-        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames)
+        private MultiStateValueDiscreteState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames)
         {
             var variable = new MultiStateValueDiscreteState(parent)
             {

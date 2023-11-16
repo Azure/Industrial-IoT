@@ -562,7 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -628,7 +628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -640,7 +640,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid2", writerGroups
                 .Single().DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
         }
 
         [Fact]
@@ -668,7 +670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -680,7 +682,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid", writerGroups
                 .Single().DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
         }
 
         [Fact]
@@ -709,7 +713,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -721,7 +725,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableDisplayName);
             Assert.Equal("testdisplayname", writerGroups
                 .Single().DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableDisplayName);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].PublishedVariableDisplayName);
         }
 
         [Fact]
@@ -752,7 +758,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -764,7 +770,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid", writerGroups
                 .Single().DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
         }
 
         [Fact]
@@ -796,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -807,11 +815,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("i=2258", writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
             Assert.Null(writerGroups
-                .Single().DataSetWriters
-                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Single().DataSetWriters[writerGroups
+                .Single().DataSetWriters.Count - 1].DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters[writerGroups
+                .Single().DataSetWriters.Count - 1].DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
             Assert.Equal("i=2259", writerGroups
-                .Single().DataSetWriters
-                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
+                .Single().DataSetWriters[writerGroups
+                .Single().DataSetWriters.Count - 1].DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters[writerGroups
+                .Single().DataSetWriters.Count - 1].DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].PublishedVariableNodeId);
             Assert.Equal("testgroup", writerGroups
                 .Single().WriterGroupId);
             Assert.Null(writerGroups // Will be set later based on configuration.
@@ -821,8 +833,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(2000, writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
             Assert.Equal(1000, writerGroups
-                .Single().DataSetWriters
-                .Last().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .Single().DataSetWriters[writerGroups
+                .Single().DataSetWriters.Count - 1].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -1365,7 +1377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
@@ -1405,7 +1417,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
@@ -1445,7 +1457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             var j = Assert.Single(writerGroups);
@@ -1481,7 +1493,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
@@ -2180,7 +2192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                     null,
                     null,
                     null
-                }, j.DataSetWriters.ConvertAll(dataSetWriter =>
+                }, j.DataSetWriters.Select(dataSetWriter =>
                     dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval));
 
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
@@ -2626,6 +2638,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             return options.Value;
         }
 
-        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
+        private readonly NewtonsoftJsonSerializer _serializer = new ();
     }
 }

@@ -1,7 +1,7 @@
 
 <#
  .SYNOPSIS
-    Setup Eflow IoT edge 
+    Setup Eflow IoT edge
 
  .DESCRIPTION
     Setup Eflow IoT edge on windows vm to use DPS using DSC.
@@ -51,7 +51,7 @@ New-VMSwitch -Name $switch -SwitchType Internal
 $switchAlias = "vEthernet ($($switch))"
 Write-Host "Network Adapter for '$($switchAlias)'"
 $itf = Get-NetAdapter -Name $switchAlias -ErrorAction SilentlyContinue
-while (!$itf) 
+while (!$itf)
 {
    Start-Sleep -Seconds 3
    $itf = Get-NetAdapter -Name $switchAlias -ErrorAction SilentlyContinue
@@ -60,7 +60,7 @@ $itf | Out-Host
 
 $ifIndex = $itf.ifIndex
 $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue
-while (!$virtualSwitchIp) 
+while (!$virtualSwitchIp)
 {
    Start-Sleep -Seconds 3
    $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue

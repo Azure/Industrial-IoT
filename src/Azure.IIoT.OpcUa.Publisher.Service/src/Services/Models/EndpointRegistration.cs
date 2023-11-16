@@ -47,8 +47,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Lower case endpoint url
         /// </summary>
         [DataMember]
+#pragma warning disable CA1308 // Normalize strings to uppercase
         public string? EndpointUrlLC =>
             EndpointRegistrationUrl?.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
         /// <summary>
         /// Reported endpoint description url as opposed to the

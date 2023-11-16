@@ -257,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// <param name="sequenceNumber"></param>
         /// <param name="dataSetMessageContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
-        private static JsonDataSetMessage CreateDataSetMessage(bool useCompatibilityMode, int sequenceNumber,
+        private static MonitoredItemMessage CreateDataSetMessage(bool useCompatibilityMode, int sequenceNumber,
             JsonDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
             DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using System;
     using System.Security.Claims;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
@@ -15,8 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
-            : base(options, logger, encoder, clock)
+            ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
         {
         }
 

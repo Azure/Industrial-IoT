@@ -23,6 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="events"></param>
         /// <returns></returns>
         Task ProcessDiscoveryResultsAsync(string discovererId,
-            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events);
+            DiscoveryResultModel result, IReadOnlyList<DiscoveryEventModel> events);
     }
 }

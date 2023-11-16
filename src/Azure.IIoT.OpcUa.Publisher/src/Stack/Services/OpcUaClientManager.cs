@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
-        public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
+        public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
 
         /// <summary>
         /// Create client manager
@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            if (string.IsNullOrEmpty(connection.Endpoint.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
@@ -273,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            if (string.IsNullOrEmpty(connection.Endpoint.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }

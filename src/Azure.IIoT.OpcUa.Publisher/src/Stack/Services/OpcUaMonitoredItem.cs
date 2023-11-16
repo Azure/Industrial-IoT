@@ -1531,7 +1531,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private readonly ConnectionIdentifier _connection;
             private readonly IClientSampler<ConnectionModel> _sampler;
             private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+#pragma warning disable CA2213 // Disposable fields should be disposed
             private IAsyncDisposable? _sampling;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         }
 
         /// <summary>
@@ -2125,7 +2127,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="node"></param>
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
-            protected async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
+            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
                 Node node, string browsePathPrefix, CancellationToken ct)
             {
                 foreach (var reference in node.ReferenceTable)
@@ -2221,7 +2223,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 var evFilter = Item.Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
-                    evFilter?.SelectClauses
+                    evFilter.SelectClauses
                         .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                             && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 

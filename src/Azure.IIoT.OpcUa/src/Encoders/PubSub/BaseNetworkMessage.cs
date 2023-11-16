@@ -28,7 +28,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// DataSet Messages
         /// </summary>
-        public List<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
+#pragma warning disable CA2227 // Collection properties should be read only
+        public IList<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
+#pragma warning restore CA2227 // Collection properties should be read only
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)

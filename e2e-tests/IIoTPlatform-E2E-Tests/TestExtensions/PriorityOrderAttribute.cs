@@ -11,7 +11,7 @@ namespace IIoTPlatformE2ETests.TestExtensions
     /// Attribute to define ordering between xUnit tests
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class PriorityOrderAttribute : Attribute
+    public sealed class PriorityOrderAttribute : Attribute
     {
         /// <summary>
         /// Constructor to create instance of priority order attribute

@@ -1,6 +1,6 @@
 <#
  .SYNOPSIS
-    Configure IoT edge 
+    Configure IoT edge
 
  .DESCRIPTION
     Configure IoT edge on linux vm to use DPS.
@@ -78,5 +78,5 @@ $configtoml += "`nregistration_id = `"$($enrollment.registrationId)`""
 $configtoml += "`nsymmetric_key = { value = `"$($enrollment.primaryKey)`" }"
 $configtoml += "`n"
 
-$configtoml | Out-Host 
+$configtoml | Out-Host
 $configtoml | Out-File $file -Force

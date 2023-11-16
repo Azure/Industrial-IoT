@@ -30,9 +30,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return null;
             }
 
+#pragma warning disable CA1308 // Normalize strings to uppercase
             url = url.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             mode ??= SecurityMode.SignAndEncrypt;
+#pragma warning disable CA1308 // Normalize strings to uppercase
             securityPolicy = securityPolicy?.ToLowerInvariant() ?? "";
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             var id = $"{url}-{applicationId}-{mode}-{securityPolicy}";
             return "uat" + id.ToSha1Hash();
@@ -75,8 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<EndpointInfoModel> model,
-            IEnumerable<EndpointInfoModel> that)
+        public static bool IsSameAs(this IReadOnlyList<EndpointInfoModel> model,
+            IReadOnlyList<EndpointInfoModel> that)
         {
             if (model == that)
             {
@@ -86,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }

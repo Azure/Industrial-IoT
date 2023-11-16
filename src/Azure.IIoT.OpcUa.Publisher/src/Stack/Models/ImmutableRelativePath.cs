@@ -7,12 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
 
     /// <summary>
     /// Immutable relative path for lookups
     /// </summary>
-    internal readonly struct ImmutableRelativePath
+    internal readonly struct ImmutableRelativePath : IEquatable<ImmutableRelativePath>
     {
         /// <summary>
         /// Path
@@ -58,14 +59,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            if (obj is not ImmutableRelativePath path ||
-                path.Path.Count != Path.Count)
+            if (obj is ImmutableRelativePath path)
+            {
+                return Equals(path);
+            }
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public bool Equals(ImmutableRelativePath other)
+        {
+            if (other.Path.Count != Path.Count)
             {
                 return false;
             }
             for (var i = 0; i < Path.Count; i++)
             {
-                if (Path[i] != path.Path[i])
+                if (Path[i] != other.Path[i])
                 {
                     return false;
                 }

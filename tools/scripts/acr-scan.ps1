@@ -6,7 +6,7 @@
     Returns relevant scan results for a ACR registry
     which can be further processed by another script
     or converted to json by piping it to ConvertTo-Json
-    commandlet. The script requires az (AzureCLI) to 
+    commandlet. The script requires az (AzureCLI) to
     be installed and you must be logged in (az login)
 
  .PARAMETER Registry
@@ -85,7 +85,7 @@ foreach ($vulnerability in $vulnerabilities) {
             "--query", """[?digest=='$($digest)'].tags"""
         )
         $tags = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertTo-Json
-        
+
         Add-Member -in $image -MemberType NoteProperty -name "tags" -value $tags
         Add-Member -in $vulnerability -MemberType NoteProperty -name "image" -value $image
         $realVulnerabilities += $vulnerability

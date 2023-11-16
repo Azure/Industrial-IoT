@@ -208,14 +208,14 @@ Function AddResourcePermission(
 <#.Description
    Example: GetRequiredPermissions "Microsoft Graph"  "Graph.Read|User.Read"
   See also: http://stackoverflow.com/questions/42164581/how-to-configure-a-new-azure-ad-application-through-powershell
-#> 
+#>
 Function GetRequiredPermissions(
     [string] $applicationDisplayName,
     [string] $requiredDelegatedPermissions,
     [string] $requiredApplicationPermissions,
     $servicePrincipal)
 {
-    # If we are passed the service principal we use it directly, otherwise we find it 
+    # If we are passed the service principal we use it directly, otherwise we find it
     # from the display name (which might not be unique)
     if ($servicePrincipal)
     {
@@ -257,7 +257,7 @@ Function CreateScope(
     [string] $value,
     [string] $userConsentDisplayName,
     [string] $userConsentDescription,
-    [string] $adminConsentDisplayName, 
+    [string] $adminConsentDisplayName,
     [string] $adminConsentDescription)
 {
     $scope = New-Object Microsoft.Graph.PowerShell.Models.MicrosoftGraphPermissionScope
@@ -277,7 +277,7 @@ Function CreateScope(
 #>
 Function CreateAppRole(
     [string] $types,
-    [string] $name, 
+    [string] $name,
     [string] $value,
     [string] $description)
 {
@@ -315,9 +315,9 @@ Function CreateOptionalClaim([string] $name)
 }
 
 <#.Description
-   This function takes a string as input and creates an instance of an 
+   This function takes a string as input and creates an instance of an
    preauthorized application
-#> 
+#>
 Function CreatePreAuthorizedApplication([string] $appId, [string[]] $delegatedPermissionIds)
 {
     <#.Description
@@ -575,7 +575,7 @@ Function ConfigureApplications() {
         System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphOptionalClaim]
     $optionalClaims.Saml2Token = New-Object `
         System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphOptionalClaim]
-    $newClaim =  CreateOptionalClaim -name "idtyp" 
+    $newClaim =  CreateOptionalClaim -name "idtyp"
     $optionalClaims.AccessToken += ($newClaim)
     Update-MgApplication -ApplicationId $currentAppObjectId -OptionalClaims $optionalClaims
     Write-Host "  Added optional claims."
@@ -848,7 +848,7 @@ catch {
 try {
     $aadConfig = ConfigureApplications -applicationName $script:Name -context $context
     $aadConfigJson = $aadConfig | ConvertTo-Json
-    
+
     if ($isCloudShell) {
         Write-Host "aadConfig:"
         Write-Host $aadConfigJson
@@ -856,7 +856,7 @@ try {
     else {
         Write-Verbose $aadConfigJson
     }
-    
+
     if ($script:Output) {
         $aadConfigJson | Out-File $script:Output
         return

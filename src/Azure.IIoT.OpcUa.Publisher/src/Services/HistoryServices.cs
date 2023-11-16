@@ -580,7 +580,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Get data type
             var dataTypes = values
                 .Select(v => v.DataType)
-                .Where(v => v != null);
+                .Where(v => v != null)
+                .ToList();
             var dataType = dataTypes.FirstOrDefault();
 #if DEBUG
             if (dataType != null &&

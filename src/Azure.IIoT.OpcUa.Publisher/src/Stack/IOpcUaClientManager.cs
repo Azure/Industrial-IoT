@@ -13,6 +13,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Threading.Tasks;
 
     /// <summary>
+    /// Connectivity state event
+    /// </summary>
+    public sealed class EndpointConnectivityStateEventArgs : EventArgs
+    {
+        /// <summary>
+        /// State
+        /// </summary>
+        public EndpointConnectivityState State { get; }
+
+        internal EndpointConnectivityStateEventArgs(EndpointConnectivityState state)
+        {
+            State = state;
+        }
+    }
+
+    /// <summary>
     /// Client managers manages clients connected to servers and provides
     /// access to session services.
     /// </summary>
@@ -22,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Connectivity state change events
         /// </summary>
-        event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
+        event EventHandler<EndpointConnectivityStateEventArgs> OnConnectionStateChange;
 
         /// <summary>
         /// Execute the service on the provided session and

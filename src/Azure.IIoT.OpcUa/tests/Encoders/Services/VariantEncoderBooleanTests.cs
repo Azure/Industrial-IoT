@@ -410,6 +410,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(_serializer.FromArray(true, true, false), encoded);
         }
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         [Fact]
         public void DecodeEncodeBooleanMatrixFromStringJsonTypeNull()
         {
@@ -569,7 +570,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
             Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
         }
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
 
-        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
+        private readonly NewtonsoftJsonSerializer _serializer = new();
     }
 }

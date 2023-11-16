@@ -60,11 +60,25 @@ namespace OpcPublisherAEE2ETests.Standalone
             );
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_consumer != null)
+                {
+                    _consumer.CloseAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    _consumer.DisposeAsync().AsTask().GetAwaiter().GetResult();
+
+                    _iotHubClient.Dispose();
+                }
+                _timeoutTokenSource?.Dispose();
+            }
+        }
+
         public void Dispose()
         {
+            Dispose(true);
             GC.SuppressFinalize(this);
-            _consumer?.CloseAsync(CancellationToken.None).GetAwaiter().GetResult();
-            _timeoutTokenSource?.Dispose();
         }
 
         [Fact, PriorityOrder(1)]
@@ -76,7 +90,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(2)]
         public async Task TestCreateEdgeBaseDeploymentExpectSuccess()
         {
-            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken).ConfigureAwait(false);
+            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             _output.WriteLine("Created/Updated new EdgeBase deployment");
             Assert.True(result);
         }
@@ -84,7 +98,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(3)]
         public async Task TestCreatePublisherLayeredDeploymentExpectSuccess()
         {
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken).ConfigureAwait(false);
+            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             Assert.True(result, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module");
         }
@@ -94,7 +108,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                _context.IoTHubPublisherDeployment.GetDeploymentConfiguration(), _timeoutToken).ConfigureAwait(false);
+                _context.IoTHubPublisherDeployment.GetDeploymentConfiguration(), _timeoutToken);
             _output.WriteLine("Publisher module deployed.");
         }
 
@@ -103,14 +117,14 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
-                _timeoutToken, new[] { "publisher_standalone" }).ConfigureAwait(false);
+                _timeoutToken, new[] { "publisher_standalone" });
             _output.WriteLine("Publisher module connected.");
         }
 
         [Fact, PriorityOrder(998)]
         public async Task TestStopPublishingAllNodesExpectSuccess()
         {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, _timeoutToken);
         }
 
         [Fact, PriorityOrder(999)]

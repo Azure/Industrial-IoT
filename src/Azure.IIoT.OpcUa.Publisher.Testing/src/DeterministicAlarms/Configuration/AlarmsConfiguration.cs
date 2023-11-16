@@ -40,17 +40,19 @@ namespace DeterministicAlarms.Configuration
 
         public static AlarmsConfiguration FromJson(string json)
         {
-            return JsonSerializer.Deserialize<AlarmsConfiguration>(json,
-                new JsonSerializerOptions
-                {
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    PropertyNameCaseInsensitive = true,
-                    Converters =
-                    {
-                        new JsonStringEnumConverter()
-                    }
-                });
+            return JsonSerializer.Deserialize<AlarmsConfiguration>(
+                json, kSerializerOptions);
         }
+
+        private static readonly JsonSerializerOptions kSerializerOptions = new JsonSerializerOptions
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            Converters =
+            {
+                new JsonStringEnumConverter()
+            }
+        };
     }
 }

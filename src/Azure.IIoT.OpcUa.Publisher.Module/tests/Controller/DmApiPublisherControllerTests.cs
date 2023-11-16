@@ -82,6 +82,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _loggerFactory.Dispose();
+                _publishedNodesProvider.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
@@ -370,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 response.Subject.OpcNodes.Count
                     .Should()
                     .Be(i + 1);
-                response.Subject.OpcNodes.Last().Id
+                response.Subject.OpcNodes[response.Subject.OpcNodes.Count - 1].Id
                     .Should()
                     .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
             }
@@ -470,9 +480,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
-                    .NotThrowAsync()
-;
-            d.Dispose();
+                    .NotThrowAsync();
+            await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -562,7 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             tags.Should().Contain("Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
             tags.Should().Contain((string)null);
 
-            var endpointsHash = endpoints.Subject.Endpoints.ConvertAll(e => e.GetHashCode());
+            var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
             Assert.Equal(endpointsHash.Distinct().Count(), endpointsHash.Count);
         }
 

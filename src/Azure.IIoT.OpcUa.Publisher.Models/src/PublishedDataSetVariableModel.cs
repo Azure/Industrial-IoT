@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaDataProperties", Order = 11,
             EmitDefaultValue = false)]
-        public List<string>? MetaDataProperties { get; set; }
+        public IReadOnlyList<string>? MetaDataProperties { get; set; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)

@@ -22,7 +22,10 @@ namespace Opc.Ua.Extensions
         public static XmlElement? AsXmlElement(this IEncodeable encodeable,
             IServiceMessageContext context)
         {
+            // Bug in stack, do not dispose as we close below
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var encoder = new XmlEncoder(context);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             encoder.WriteExtensionObjectBody(encodeable);
             var document = new XmlDocument
             {

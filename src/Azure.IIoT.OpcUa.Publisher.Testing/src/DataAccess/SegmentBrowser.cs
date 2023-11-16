@@ -146,7 +146,7 @@ namespace DataAccess
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild()
+        private NodeStateReference NextChild()
         {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 

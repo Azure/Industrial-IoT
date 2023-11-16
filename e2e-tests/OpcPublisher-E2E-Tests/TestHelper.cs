@@ -107,7 +107,7 @@ namespace OpcPublisherAEE2ETests
                         using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
                         foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
                         {
-                            if (edge != string.Empty)
+                            if (!string.IsNullOrEmpty(edge))
                             {
                                 // Copy file to the edge vm
                                 var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
@@ -284,7 +284,7 @@ namespace OpcPublisherAEE2ETests
             var terminal = client.RunCommand("rm " + fileName);
 
             if (string.IsNullOrEmpty(terminal.Error) ||
-                terminal.Error.ToLowerInvariant().Contains("no such file", StringComparison.Ordinal))
+                terminal.Error.Contains("no such file", StringComparison.OrdinalIgnoreCase))
             {
                 isSuccessful = true;
             }
@@ -295,7 +295,7 @@ namespace OpcPublisherAEE2ETests
                 using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
                 {
-                    if (edge != string.Empty)
+                    if (!string.IsNullOrEmpty(edge))
                     {
                         var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
                         sshCient.RunCommand(command);
@@ -429,7 +429,7 @@ namespace OpcPublisherAEE2ETests
                                       string storageAccountName,
                                       string storageAccountKey)
         {
-            IResourceGroup resGroup = azure.ResourceGroups.GetByName(resourceGroupName);
+            IResourceGroup resGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName).ConfigureAwait(false);
             Region azureRegion = resGroup.Region;
 
             var containerGroup = await azure.ContainerGroups.Define(containerGroupName)
@@ -515,11 +515,11 @@ namespace OpcPublisherAEE2ETests
 
             if (string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
             {
-                azure = Azure
+                azure = await Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                     .Authenticate(azureCredentials)
-                    .WithDefaultSubscription();
+                    .WithDefaultSubscriptionAsync().ConfigureAwait(false);
             }
             else
             {
@@ -532,16 +532,20 @@ namespace OpcPublisherAEE2ETests
 
             context.AzureContext = azure;
 
-            var testingSuffix = azure.ResourceGroups.GetByName(context.OpcPlcConfig.ResourceGroupName).Tags[TestConstants.OpcSimulation.TestingResourcesSuffixName];
+            var testingSuffix = (await azure.ResourceGroups.GetByNameAsync(context.OpcPlcConfig.ResourceGroupName,
+                cancellationToken).ConfigureAwait(false)).Tags[TestConstants.OpcSimulation.TestingResourcesSuffixName];
             context.TestingSuffix = testingSuffix;
             context.AzureStorageName = TestConstants.OpcSimulation.AzureStorageNameWithoutSuffix + testingSuffix;
 
-            var storageAccount = azure.StorageAccounts.GetByResourceGroup(context.OpcPlcConfig.ResourceGroupName, context.AzureStorageName);
-            context.AzureStorageKey = storageAccount.GetKeys()[0].Value;
+            var storageAccount = await azure.StorageAccounts.GetByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
+                context.AzureStorageName, cancellationToken).ConfigureAwait(false);
+            context.AzureStorageKey = (await storageAccount.GetKeysAsync(cancellationToken).ConfigureAwait(false))[0].Value;
 
             var firstAciIpAddress = context.OpcPlcConfig.Urls.Split(";")[0];
-            var containerGroups = azure.ContainerGroups.ListByResourceGroup(context.OpcPlcConfig.ResourceGroupName).ToList();
-            var containerGroup = azure.ContainerGroups.ListByResourceGroup(context.OpcPlcConfig.ResourceGroupName)
+            var containerGroups = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
+                cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
+            var containerGroup = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
+                cancellationToken: cancellationToken).ConfigureAwait(false))
                 .First(g => g.IPAddress == firstAciIpAddress);
             context.PLCImage = containerGroup.Containers.First().Value.Image;
 

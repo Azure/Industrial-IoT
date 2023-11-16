@@ -24,21 +24,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// the current and legacy versions of the OPC Publisher. They are represented
     /// via configuration interfaces that is injected into the publisher container.
     /// </summary>
-    public class CommandLine : Dictionary<string, string?>
+    public sealed class CommandLine : Dictionary<string, string?>
     {
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.
         /// </summary>
         public CommandLine()
         {
+            _logger = new CommandLineLogger();
         }
 
         /// <summary>
         /// Parse arguments and set values in the environment the way the new configuration expects it.
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
-        public CommandLine(string[] args)
+        /// <param name="logger"></param>
+        public CommandLine(string[] args, CommandLineLogger? logger = null)
         {
+            _logger = logger ?? new CommandLineLogger();
             var showHelp = false;
             var unsupportedOptions = new List<string>();
             var legacyOptions = new List<string>();
@@ -490,8 +493,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             catch (Exception e)
             {
-                Warning("Parse args exception {0}.", e.Message);
-                ExitProcess(160);
+                _logger.Warning("Parse args exception {0}.", e.Message);
+                _logger.ExitProcess(160);
                 return;
             }
 
@@ -499,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 foreach (var option in unsupportedOptions)
                 {
-                    Warning("Option {0} wrong or not supported, " +
+                    _logger.Warning("Option {0} wrong or not supported, " +
                         "please use -h option to get all the supported options.", option);
                 }
             }
@@ -508,7 +511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 foreach (var option in legacyOptions)
                 {
-                    Warning("Legacy option {0} not supported, please use -h option to get all the supported options.", option);
+                    _logger.Warning("Legacy option {0} not supported, please use -h option to get all the supported options.", option);
                 }
             }
 
@@ -528,13 +531,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 catch
                 {
-                    Warning("The specified combination of --mm, and --me is not (yet) supported. " +
+                    _logger.Warning("The specified combination of --mm, and --me is not (yet) supported. " +
                         "Currently supported combinations are: {0}), " +
                             "please use -h option to get all the supported options.",
                         MessagingProfile.Supported
                             .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
                             .Aggregate((a, b) => $"{a}, {b}"));
-                    ExitProcess(170);
+                    _logger.ExitProcess(170);
                     return;
                 }
 
@@ -545,7 +548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // Check that the important values are provided
                 if (iotEdgeOptions.EdgeHubConnectionString == null)
                 {
-                    Warning(
+                    _logger.Warning(
                         "To connect to Azure IoT Hub you must run as module inside IoT Edge or " +
                         "specify a device connection string using EdgeHubConnectionString " +
                         "environment variable or command line.");
@@ -562,7 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 Console.WriteLine();
                 Console.WriteLine(markdown);
 #endif
-                ExitProcess(0);
+                _logger.ExitProcess(0);
             }
 
             void SetStoreType(string s, string storeTypeKey, string optionName)
@@ -576,7 +579,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 throw new OptionException("Bad store type", optionName);
             }
         }
+        private readonly CommandLineLogger _logger;
+    }
 
+    /// <summary>
+    /// Log command line errors
+    /// </summary>
+    public class CommandLineLogger
+    {
         /// <summary>
         /// Call exit with exit code
         /// </summary>

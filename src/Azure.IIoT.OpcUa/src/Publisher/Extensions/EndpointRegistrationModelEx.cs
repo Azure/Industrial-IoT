@@ -20,8 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<EndpointRegistrationModel>? model,
-            IEnumerable<EndpointRegistrationModel>? that)
+        public static bool IsSameAs(this IReadOnlyList<EndpointRegistrationModel>? model,
+            IReadOnlyList<EndpointRegistrationModel>? that)
         {
             if (model == that)
             {
@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }

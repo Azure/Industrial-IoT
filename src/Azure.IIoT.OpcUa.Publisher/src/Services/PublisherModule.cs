@@ -124,8 +124,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (IsContainer)
             {
                 // Set timer to kill the entire process after 5 minutes.
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 _ = new Timer(o => Process.GetCurrentProcess().Kill(),
                     null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
             OnRunning?.Invoke(this, false);

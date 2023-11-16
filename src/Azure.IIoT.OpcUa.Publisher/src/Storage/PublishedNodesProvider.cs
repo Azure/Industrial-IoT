@@ -194,6 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _fileSystemWatcher.Renamed -= FileSystemWatcher_Renamed;
 
             _fileSystemWatcher.Dispose();
+            _lock.Dispose();
         }
 
         private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)

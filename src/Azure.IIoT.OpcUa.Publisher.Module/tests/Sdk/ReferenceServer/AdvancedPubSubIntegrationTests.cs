@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var old = server;
                 server = new ReferenceServer();
                 EndpointUrl = server.EndpointUrl;
-                old?.Dispose();
+                old.Dispose();
 
                 // Point to new server
                 const string name2 = nameof(SwitchServerWithDifferentWriterGroupTest) + "new";

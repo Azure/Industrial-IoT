@@ -41,6 +41,15 @@ namespace IIoTPlatformE2ETests.Standalone
             TestHelper.CleanPublishedNodesJsonFilesAsync(_context).Wait();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _cts.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         [Theory]
         [InlineData(MessagingMode.Samples, false)]
         [InlineData(MessagingMode.Samples, true)]
@@ -60,35 +69,35 @@ namespace IIoTPlatformE2ETests.Standalone
             _context.Reset();
 
             // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_cts.Token).ConfigureAwait(false);
+            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_cts.Token);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _output.WriteLine("Created/Updated new edge base deployment.");
 
             // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_cts.Token).ConfigureAwait(false);
+            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_cts.Token);
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            await TestHelper.SwitchToStandaloneModeAsync(_context, _cts.Token).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAsync(_context, _cts.Token);
 
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubPublisherDeployment.GetDeploymentConfiguration(),
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
                 _cts.Token,
                 new string[] { ioTHubPublisherDeployment.ModuleName }
-            ).ConfigureAwait(false);
+            );
 
             // We've observed situations when even after the above waits the module did not yet restart.
             // That leads to situations where the publishing of nodes happens just before the restart to apply
             // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
             // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
             // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
-            await Task.Delay(TestConstants.AwaitInitInMilliseconds, _cts.Token).ConfigureAwait(false);
+            await Task.Delay(TestConstants.AwaitInitInMilliseconds, _cts.Token);
 
             _output.WriteLine("OPC Publisher module is up and running.");
 
@@ -99,7 +108,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                 },
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
@@ -109,7 +118,7 @@ namespace IIoTPlatformE2ETests.Standalone
 
             var request = await TestHelper
                 .CreateMultipleNodesModelAsync(_context, _cts.Token, numberOfNodes: numberOfNodes)
-                .ConfigureAwait(false);
+;
             MethodResultModel response = null;
 
             // Publish nodes for the endpoint
@@ -123,7 +132,7 @@ namespace IIoTPlatformE2ETests.Standalone
                         JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
                     },
                     _cts.Token
-                ).ConfigureAwait(false);
+                );
             }
             else
             {
@@ -135,17 +144,17 @@ namespace IIoTPlatformE2ETests.Standalone
                         JsonPayload = _serializer.SerializeToString(request)
                     },
                     _cts.Token
-                ).ConfigureAwait(false);
+                );
             }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, numberOfNodes, 0, 90_000_000, _cts.Token).ConfigureAwait(false);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, numberOfNodes, 0, 90_000_000, _cts.Token);
 
             // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.AwaitDataInMilliseconds, _cts.Token).ConfigureAwait(false);
+            await Task.Delay(TestConstants.AwaitDataInMilliseconds, _cts.Token);
 
             // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -154,7 +163,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                 },
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
@@ -175,7 +184,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     JsonPayload = _serializer.SerializeObjectToString(requestGetConfiguredNodesOnEndpoint)
                 },
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
             var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
@@ -188,7 +197,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
                 },
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
@@ -197,7 +206,7 @@ namespace IIoTPlatformE2ETests.Standalone
             TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
 
             // Stop monitoring and get the result.
-            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token).ConfigureAwait(false);
+            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
             Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
@@ -212,7 +221,7 @@ namespace IIoTPlatformE2ETests.Standalone
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null)
             {
-                var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.ConvertAll(n => n.Id);
+                var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
                 foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
                 {
                     var propertyName = property.Key;
@@ -238,7 +247,7 @@ namespace IIoTPlatformE2ETests.Standalone
                         JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
                     },
                     _cts.Token
-                ).ConfigureAwait(false);
+                );
             }
             else
             {
@@ -250,13 +259,13 @@ namespace IIoTPlatformE2ETests.Standalone
                         JsonPayload = _serializer.SerializeToString(request)
                     },
                     _cts.Token
-                ).ConfigureAwait(false);
+                );
             }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token).ConfigureAwait(false);
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
 
             // Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
@@ -265,7 +274,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
                 },
                 _cts.Token
-            ).ConfigureAwait(false);
+            );
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
@@ -273,13 +282,13 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, _cts.Token).ConfigureAwait(false);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, _cts.Token);
 
             // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token).ConfigureAwait(false);
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
 
             // Stop monitoring and get the result.
-            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token).ConfigureAwait(false);
+            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token);
             Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }

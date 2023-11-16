@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var httpRequest = new HttpRequestMessage
+            using var httpRequest = new HttpRequestMessage
             {
                 RequestUri = new Uri($"{_serviceUri}/healthz")
             };
@@ -112,9 +113,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 {
                     request.AddHeader(HttpHeader.ContinuationToken, continuation);
                 }
-                if (pageSize != null)
+                if (pageSize.HasValue)
                 {
-                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    request.AddHeader(HttpHeader.MaxItemCount,
+                        pageSize.Value.ToString(CultureInfo.InvariantCulture));
                 }
             }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -128,9 +130,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<DiscovererListModel>(uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -194,9 +197,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 {
                     request.AddHeader(HttpHeader.ContinuationToken, continuation);
                 }
-                if (pageSize != null)
+                if (pageSize.HasValue)
                 {
-                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    request.AddHeader(HttpHeader.MaxItemCount,
+                        pageSize.Value.ToString(CultureInfo.InvariantCulture));
                 }
             }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -214,9 +218,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<SupervisorListModel>(uri.Uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -348,9 +353,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<ApplicationInfoListModel>(uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -367,9 +373,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     {
                         request.AddHeader(HttpHeader.ContinuationToken, continuation);
                     }
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        request.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -386,9 +393,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     {
                         request.AddHeader(HttpHeader.ContinuationToken, continuation);
                     }
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        request.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -439,9 +447,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     {
                         request.AddHeader(HttpHeader.ContinuationToken, continuation);
                     }
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        request.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -459,9 +468,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<EndpointInfoListModel>(uri.Uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -551,9 +561,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     {
                         request.AddHeader(HttpHeader.ContinuationToken, continuation);
                     }
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        request.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -613,9 +624,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<PublisherListModel>(uri.Uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -648,9 +660,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 {
                     request.AddHeader(HttpHeader.ContinuationToken, continuation);
                 }
-                if (pageSize != null)
+                if (pageSize.HasValue)
                 {
-                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    request.AddHeader(HttpHeader.MaxItemCount,
+                        pageSize.Value.ToString(CultureInfo.InvariantCulture));
                 }
             }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
@@ -677,9 +690,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             return await _httpClient.PostAsync<GatewayListModel>(uri.Uri, query,
                 _serializer, httpRequest =>
                 {
-                    if (pageSize != null)
+                    if (pageSize.HasValue)
                     {
-                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount,
+                            pageSize.Value.ToString(CultureInfo.InvariantCulture));
                     }
                 }, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }

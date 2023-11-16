@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
-                    model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
+                    model.BrowsePath.Select(n => n.ToQualifiedName(context))),
                 IndexRange = model.IndexRange
             };
         }
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="policies"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public static List<AuthenticationMethodModel> ToServiceModel(
+        public static IReadOnlyList<AuthenticationMethodModel> ToServiceModel(
             this UserTokenPolicyCollection policies, IJsonSerializer serializer)
         {
             if (policies == null || policies.Count == 0)

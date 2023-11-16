@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                         {
                             // Process discoveries
                             await _processor.ProcessDiscoveryResultsAsync(
-                                    discovererId, queue.Result, queue.Events).ConfigureAwait(false);
+                                    discovererId, queue.Result, queue.Events.ToList()).ConfigureAwait(false);
                         }
                     }
                     catch (Exception ex)

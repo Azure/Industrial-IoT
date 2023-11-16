@@ -52,8 +52,10 @@ namespace Opc.Ua
                 trustedStore.Add(certificates, noCopy);
                 foreach (var cert in certificates)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                     trustList.TrustedCertificates.Add(new CertificateIdentifier(
                         noCopy ? cert : new X509Certificate2(cert)));
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
             }
         }

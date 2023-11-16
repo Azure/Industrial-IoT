@@ -25,6 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
         /// <summary>
         /// Mapping
         /// </summary>
-        public string Route { get; set; }
+        public string Route { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace IIoTPlatformE2ETests.Twin
         [Fact, PriorityOrder(0)]
         public async Task TestPrepareAsync()
         {
-            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+            await _context.AssertTestEnvironmentPreparedAsync();
         }
 
         [Fact, PriorityOrder(1)]
@@ -49,7 +49,7 @@ namespace IIoTPlatformE2ETests.Twin
             };
 
             // Read the current value of the attribute, expected "FastUInt1"
-            var response = await TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToRead, cts.Token).ConfigureAwait(false);
+            var response = await TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToRead, cts.Token);
             Assert.Equal("FastUInt1", response.results[0].value.Text);
 
             // Write the new value "TestName"
@@ -60,10 +60,10 @@ namespace IIoTPlatformE2ETests.Twin
                     value = "TestName"
                 }
             };
-            await TestHelper.Twin.WriteNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToWrite, cts.Token).ConfigureAwait(false);
+            await TestHelper.Twin.WriteNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToWrite, cts.Token);
 
             // Read the value of the attribute again, expected the updated value "TestName"
-            response = await TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToRead, cts.Token).ConfigureAwait(false);
+            response = await TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToRead, cts.Token);
             Assert.Equal("TestName", response.results[0].value.Text);
 
             // Write the original value again
@@ -74,7 +74,7 @@ namespace IIoTPlatformE2ETests.Twin
                     value = "FastUInt1"
                 }
             };
-            await TestHelper.Twin.WriteNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToWrite, cts.Token).ConfigureAwait(false);
+            await TestHelper.Twin.WriteNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributesToWrite, cts.Token);
         }
     }
 }

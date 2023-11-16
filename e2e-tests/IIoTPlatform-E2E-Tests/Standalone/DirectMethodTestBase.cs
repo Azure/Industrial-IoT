@@ -101,10 +101,18 @@ namespace IIoTPlatformE2ETests.Standalone
             ).ConfigureAwait(false);
         }
 
-        /// <inheritdoc/>
-        public virtual void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
-            _iotHubClient?.Dispose();
+            if (disposing)
+            {
+                _iotHubClient?.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
     }

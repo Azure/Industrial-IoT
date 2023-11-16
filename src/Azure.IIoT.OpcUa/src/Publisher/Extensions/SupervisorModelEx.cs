@@ -19,8 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<SupervisorModel> model,
-            IEnumerable<SupervisorModel> that)
+        public static bool IsSameAs(this IReadOnlyList<SupervisorModel> model,
+            IReadOnlyList<SupervisorModel> that)
         {
             if (model == that)
             {
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }

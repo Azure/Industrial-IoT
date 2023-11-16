@@ -440,8 +440,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 messageType: "ua-data", arguments: new[] {  "--dm=false" });
 
             // Assert
-            var allDataSetMessages = messages.Select(m => m.Message.GetProperty("Messages")).SelectMany(m => m.EnumerateArray());
-            Assert.True(allDataSetMessages.Count() >= 11);
+            var allDataSetMessages = messages.Select(m => m.Message.GetProperty("Messages")).SelectMany(m => m.EnumerateArray()).ToList();
+            Assert.True(allDataSetMessages.Count >= 11);
             var dataSetMessages = allDataSetMessages.Take(11).ToArray();
             Assert.Equal("ua-keyframe", dataSetMessages[0].GetProperty("MessageType").GetString());
             Assert.All(dataSetMessages.AsSpan(1, 9).ToArray(), m => Assert.Equal("ua-deltaframe", m.GetProperty("MessageType").GetString()));

@@ -71,23 +71,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                //
-                // by design all messages are generated in the same session context, therefore it is safe to
-                // get the first message's context
-                //
-                var encodingContext = notifications
-                    .FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
                 var chunkedMessages = new List<(IEvent, Action)>();
-                if (encodingContext == null)
-                {
-                    // Drop all messages
-                    Drop(notifications);
-                    return chunkedMessages;
-                }
-
                 var networkMessages = GetNetworkMessages(notifications, asBatch);
-                foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl, qos, onSent) in networkMessages)
+                foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl, qos, onSent, encodingContext) in networkMessages)
                 {
+                    if (encodingContext == null)
+                    {
+                        _logger.LogError("Missing service message context for network message - dropping notification.");
+                        NotificationsDroppedCount++;
+                        onSent();
+                        continue;
+                    }
                     var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
                     var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
                     var validChunks = 0;
@@ -188,11 +182,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action)> GetNetworkMessages(
+        private List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action, IServiceMessageContext?)> GetNetworkMessages(
             IEnumerable<IOpcUaSubscriptionNotification> messages, bool isBatched)
         {
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
-            var result = new List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action)>();
+            var result = new List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action, IServiceMessageContext?)>();
             // Group messages by publisher, then writer group and then by dataset class id
             foreach (var topics in messages
                 .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
@@ -396,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                         {
                                             result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                                () => currentNotifications.ForEach(n => n.Dispose())));
+                                                () => currentNotifications.ForEach(n => n.Dispose()), Notification.ServiceMessageContext));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -412,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     {
                                         // Start a new message but first emit current
                                         result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                            () => currentNotifications.ForEach(n => n.Dispose())));
+                                            () => currentNotifications.ForEach(n => n.Dispose()), Notification.ServiceMessageContext));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -438,7 +432,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
                                     result.Add((0, metadataMessage, Context.MetaDataTopic, true,
-                                        Context.Writer.MetaDataUpdateTime ?? default, QoS.AtLeastOnce, Notification.Dispose));
+                                        Context.Writer.MetaDataUpdateTime ?? default, QoS.AtLeastOnce, Notification.Dispose,
+                                            Notification.ServiceMessageContext));
 #if DEBUG
                                     Notification.MarkProcessed();
 #endif
@@ -447,7 +442,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (currentMessage.Messages.Count > 0)
                             {
                                 result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                    () => currentNotifications.ForEach(n => n.Dispose())));
+                                    () => currentNotifications.ForEach(n => n.Dispose()),
+                                    currentNotifications.LastOrDefault()?.ServiceMessageContext));
 #if DEBUG
                                 currentNotifications.ForEach(n => n.MarkProcessed());
 #endif

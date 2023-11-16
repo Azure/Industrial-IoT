@@ -1962,7 +1962,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private IDictionary<string, T?>? ReadDictionary<T>(string? property,
+        private Dictionary<string, T?>? ReadDictionary<T>(string? property,
             Func<T?> reader)
         {
             if (!TryGetToken(property, out var token) || token is not JObject o)

@@ -207,7 +207,7 @@ namespace PerfTest
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild()
+        private NodeStateReference NextChild()
         {
             _ = (UnderlyingSystem)SystemContext.SystemHandle;
 

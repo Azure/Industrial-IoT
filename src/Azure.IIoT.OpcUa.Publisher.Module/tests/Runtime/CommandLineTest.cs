@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     /// <summary>
     /// Test class to override Exit method
     /// </summary>
-    public class CommandLineTest : CommandLine
+    public class CommandLineTest : CommandLineLogger
     {
         /// <summary>
         /// Exit code
@@ -21,10 +21,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// Warnings reported by StandaloneCliOptions.
         /// </summary>
-        public List<string> Warnings = new();
+        public IList<string> Warnings = new List<string>();
 
-        public CommandLineTest(string[] args) : base(args)
+        public CommandLine CommandLine { get; }
+
+        public CommandLineTest(string[] args)
         {
+            CommandLine = new CommandLine(args, this);
         }
 
         /// <summary>

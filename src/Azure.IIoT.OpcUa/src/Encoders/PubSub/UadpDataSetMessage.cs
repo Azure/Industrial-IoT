@@ -349,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read DataSet message header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadDataSetMessageHeader(IDecoder decoder)
+        private bool TryReadDataSetMessageHeader(BinaryDecoder decoder)
         {
             DataSetFlags1 = (DataSetFlags1EncodingMask)decoder.ReadByte(null);
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) == 0)
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write DataSet message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteDataSetMessageHeader(IEncoder encoder)
+        private void WriteDataSetMessageHeader(BinaryEncoder encoder)
         {
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) != 0)
             {

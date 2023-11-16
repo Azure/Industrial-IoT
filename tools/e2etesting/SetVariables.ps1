@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 
 if (![string]::IsNullOrEmpty($script:BranchName))
 {
-    if ($script:BranchName.StartsWith("refs/heads/")) 
+    if ($script:BranchName.StartsWith("refs/heads/"))
     {
         $script:BranchName = $script:BranchName.Replace("refs/heads/", "")
     }
@@ -28,9 +28,9 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
 }
 if ([string]::IsNullOrEmpty($script:ImageTag))
 {
-    try 
+    try
     {
-        & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "net7.0", "nbgv") 2>&1 
+        & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "net8.0", "nbgv") 2>&1
     }
     catch  {}
     try
@@ -45,31 +45,31 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
 
         # Remove-Item "./tools" -Recurse
     }
-    catch 
+    catch
     {
         # build as latest if not building from ci/cd pipeline
         Write-Warning "Unable to determine version - use latest."
         $script:ImageTag = "latest"
-    }    
+    }
 }
 
 if ([string]::IsNullOrEmpty($script:ImageNamespace))
 {
     # Set namespace name based on branch name
     $script:ImageNamespace = $script:BranchName
-    if ($script:ImageNamespace.StartsWith("feature/")) 
+    if ($script:ImageNamespace.StartsWith("feature/"))
     {
         # dev feature builds
         $script:ImageNamespace = $script:ImageNamespace.Replace("feature/", "")
     }
-    elseif ($script:ImageNamespace.StartsWith("release/") -or ($script:ImageNamespace -eq "releases")) 
+    elseif ($script:ImageNamespace.StartsWith("release/") -or ($script:ImageNamespace -eq "releases"))
     {
         $script:ImageNamespace = "public"
     }
     $script:ImageNamespace = $script:ImageNamespace.Replace("_", "/").Substring(0, [Math]::Min($script:ImageNamespace.Length, 24))
 }
 
-function Get-ContainerRegistrySecret 
+function Get-ContainerRegistrySecret
 {
     param(
         [Parameter(Mandatory=$true)]
@@ -80,11 +80,11 @@ function Get-ContainerRegistrySecret
     )
     $secretValueSec = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $secret
     $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
-    try 
+    try
     {
         $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-    } 
-    finally 
+    }
+    finally
     {
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
     }
@@ -93,13 +93,13 @@ function Get-ContainerRegistrySecret
 
 if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
 {
-    if ($script:ImageNamespace -eq "public") 
+    if ($script:ImageNamespace -eq "public")
     {
         # Release and Preview builds are in staging
         $registry = "industrialiot"
         $KeyVaultName = "kv-release-pipeline"
     }
-    else 
+    else
     {
         # Feature builds by default into dev registry
         $registry = "industrialiotdev"
@@ -111,7 +111,7 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryServer"
     Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryUsername"
 }
-else 
+else
 {
     $registry = $script:ContainerRegistryServer
 }
@@ -124,7 +124,7 @@ Write-Host ""
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
 
-if ([string]::IsNullOrEmpty($script:Region)) 
+if ([string]::IsNullOrEmpty($script:Region))
 {
     $script:Region = "westus"
 }

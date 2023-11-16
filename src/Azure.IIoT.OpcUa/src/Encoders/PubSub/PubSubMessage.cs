@@ -133,6 +133,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return null;
             }
             PubSubMessage message;
+#pragma warning disable CA1308 // Normalize strings to uppercase
             switch (contentType.ToLowerInvariant())
             {
                 case Encoders.ContentType.JsonGzip:
@@ -180,7 +181,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 default:
                     break;
             }
-            // Failed
+#pragma warning restore CA1308 // Normalize strings to uppercase
+                              // Failed
             return null;
         }
 

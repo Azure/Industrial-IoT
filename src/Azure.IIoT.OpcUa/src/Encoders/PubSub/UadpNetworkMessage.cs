@@ -999,7 +999,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="chunks"></param>
-        private IReadOnlyList<byte[]> ReadPayload(BinaryDecoder decoder, List<Message> chunks)
+        private List<byte[]> ReadPayload(BinaryDecoder decoder, List<Message> chunks)
         {
             var messages = new List<byte[]>();
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.ChunkMessage) != 0)
@@ -1274,7 +1274,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             /// </summary>
             /// <param name="chunks"></param>
             /// <returns></returns>
-            public static byte[]? GetMessageBufferFromChunks(List<Message> chunks)
+            public static byte[]? GetMessageBufferFromChunks(IList<Message> chunks)
             {
                 if (chunks.Count == 0)
                 {

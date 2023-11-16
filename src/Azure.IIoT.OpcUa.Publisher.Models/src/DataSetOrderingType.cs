@@ -14,6 +14,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum DataSetOrderingType
     {
         /// <summary>
+        /// None
+        /// </summary>
+        None = 0,
+
+        /// <summary>
         /// Ascending writer id
         /// </summary>
         [EnumMember(Value = "AscendingWriterId")]

@@ -42,7 +42,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             await TestHelper.CreateSimulationContainerAsync(_context,
                 new List<string> { "/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000" },
                 _timeoutToken,
-                numInstances: instances).ConfigureAwait(false);
+                numInstances: instances);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, -1, _timeoutToken);
 
@@ -51,7 +51,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages
@@ -59,7 +59,7 @@ namespace OpcPublisherAEE2ETests.Standalone
 
                 // Get time of event attached Server node
                 .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
-                .ToListAsync(_timeoutToken).ConfigureAwait(false);
+                .ToListAsync(_timeoutToken);
 
             // Assert throughput
 

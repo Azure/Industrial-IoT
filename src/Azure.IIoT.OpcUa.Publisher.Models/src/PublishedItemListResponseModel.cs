@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Monitored items
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<PublishedItemModel>? Items { get; set; }
+        public IReadOnlyList<PublishedItemModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
@@ -38,6 +38,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Monitored items
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<PublishedItemModel>? Items { get; set; }
+        public IReadOnlyList<PublishedItemModel>? Items { get; set; }
     }
 }

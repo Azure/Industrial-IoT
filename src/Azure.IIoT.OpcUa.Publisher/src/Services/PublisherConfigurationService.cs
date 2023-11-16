@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entry = endpoint.ToPublishedNodesEntry();
                 foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
                 {
-                    nodeset.OpcNodes?.RemoveAll(n => n.Id == request.NodeId);
+                    nodeset.OpcNodes = nodeset.OpcNodes?.Where(n => n.Id != request.NodeId).ToList();
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
@@ -178,7 +178,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
                     {
-                        nodeset.OpcNodes?.RemoveAll(n => request.NodesToRemove.Contains(n.Id!));
+                        nodeset.OpcNodes = nodeset.OpcNodes?
+                            .Where(n => !request.NodesToRemove.Contains(n.Id!))
+                            .ToList();
                     }
                 }
                 if (request.NodesToAdd != null)
@@ -215,11 +217,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var sw = Stopwatch.StartNew();
             if (request is null)
             {
-                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishListAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -374,11 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             foreach (var node in entry.OpcNodes)
                             {
-                                if (nodesToRemoveSet.Contains(node))
-                                {
-                                    // Found a node. Remove it from hash set.
-                                    nodesToRemoveSet.Remove(node);
-                                }
+                                nodesToRemoveSet.Remove(node);
                             }
                         }
                         matchingGroups.Add(entry);
@@ -424,12 +421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 foreach (var node in entry.OpcNodes)
                                 {
-                                    if (nodesToRemoveSet.Contains(node))
-                                    {
-                                        // Found a node. Remove it from hash set.
-                                        nodesToRemoveSet.Remove(node);
-                                    }
-                                    else
+                                    if (!nodesToRemoveSet.Remove(node))
                                     {
                                         updatedNodes.Add(node);
                                     }
@@ -534,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task SetConfiguredEndpointsAsync(List<PublishedNodesEntryModel> request,
+        public async Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
             const string methodName = nameof(SetConfiguredEndpointsAsync);
@@ -567,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task AddOrUpdateEndpointsAsync(List<PublishedNodesEntryModel> request,
+        public async Task AddOrUpdateEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
             const string methodName = nameof(AddOrUpdateEndpointsAsync);
@@ -1089,7 +1081,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 found = entry;
             }
             found.OpcNodes ??= new List<OpcNodeModel>();
-            var node = found.OpcNodes.Find(n => n.Id == item.NodeId);
+            var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)
             {
                 found.OpcNodes.Add(new OpcNodeModel

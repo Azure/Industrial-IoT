@@ -195,7 +195,7 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         /// <param name="tag">The tag.</param>
         /// <returns>The variable that represents the tag.</returns>
-        private BaseVariableState CreateVariable(ISystemContext context, UnderlyingSystemTag tag)
+        private BaseDataVariableState CreateVariable(ISystemContext context, UnderlyingSystemTag tag)
         {
             // create the variable type based on the tag type.
             BaseDataVariableState variable = null;

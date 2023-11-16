@@ -36,7 +36,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --dalm=files/sc001.json --pn=50000"},
                 _timeoutToken,
-                "opc-plc-files/sc001.json").ConfigureAwait(false);
+                "opc-plc-files/sc001.json");
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken, _context);
 
@@ -45,7 +45,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nMessages = 6;
             var payloads = await messages
@@ -54,7 +54,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP", StringComparison.Ordinal))
                 .Skip(1)
                 .Take(nMessages)
-                .ToListAsync(_timeoutToken).ConfigureAwait(false);
+                .ToListAsync(_timeoutToken);
 
             // Assert
 

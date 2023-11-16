@@ -19,6 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "opcNodes", Order = 0,
             EmitDefaultValue = false)]
-        public List<OpcNodeModel>? OpcNodes { get; set; }
+        public IReadOnlyList<OpcNodeModel>? OpcNodes { get; set; }
     }
 }

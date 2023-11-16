@@ -33,7 +33,9 @@ namespace Opc.Ua
             foreach (var cert in certificates)
             {
                 Try.Op(() => store.Delete(cert.Thumbprint));
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 store.Add(noCopy ? cert : new X509Certificate2(cert));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
 

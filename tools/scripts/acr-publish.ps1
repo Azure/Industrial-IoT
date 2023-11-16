@@ -3,7 +3,7 @@
     Build and push containers to Azure container registry
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
+    The script requires az to be installed and already logged on to a
     tenant.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
@@ -24,7 +24,7 @@
  .PARAMETER NoBuid
     Whether to build before publishing.
  .PARAMETER Debug
-    Whether to build Release or Debug - default to Release.  
+    Whether to build Release or Debug - default to Release.
 #>
 
 Param(
@@ -58,7 +58,7 @@ if ([string]::IsNullOrEmpty($script:Subscription)) {
 }
 
 # get registry information
-$argumentList = @("acr", "show", "--name", $script:Registry, 
+$argumentList = @("acr", "show", "--name", $script:Registry,
     "--subscription", $script:Subscription)
 $script:RegistryInfo = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
@@ -67,7 +67,7 @@ if ($LastExitCode -ne 0) {
 $resourceGroup = $script:RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
-$argumentList = @("acr", "credential", "show", "--name", $script:Registry, 
+$argumentList = @("acr", "credential", "show", "--name", $script:Registry,
     "--subscription", $script:Subscription)
 $credentials = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {

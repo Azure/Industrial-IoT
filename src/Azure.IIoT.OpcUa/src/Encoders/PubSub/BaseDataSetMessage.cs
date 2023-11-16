@@ -57,7 +57,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Payload
         /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only
         public DataSet Payload { get; set; } = new DataSet();
+#pragma warning restore CA2227 // Collection properties should be read only
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)

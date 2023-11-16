@@ -150,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            _cts.Cancel();
+            await _cts.CancelAsync().ConfigureAwait(false);
             try
             {
                 _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);

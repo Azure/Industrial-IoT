@@ -6,6 +6,7 @@
 namespace IIoTPlatformE2ETests.TestExtensions
 {
     using Config;
+    using Furly.Exceptions;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -149,79 +150,79 @@ namespace IIoTPlatformE2ETests.TestExtensions
                 .Build();
         }
 
-        string IDeviceConfig.DeviceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID,
-            () => throw new ArgumentException("IoT Edge device id is not provided."));
+        public string DeviceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID,
+            () => throw new InvalidOperationException("IoT Edge device id is not provided."));
 
-        string IIoTHubConfig.IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
-            () => throw new ArgumentException("IoT Hub connection string is not provided."));
+        public string IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
+            () => throw new InvalidOperationException("IoT Hub connection string is not provided."));
 
-        string IIoTHubConfig.IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
-            () => throw new ArgumentException("IoT Hub EventHub connection string is not provided."));
+        public string IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
+            () => throw new InvalidOperationException("IoT Hub EventHub connection string is not provided."));
 
-        string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
-        () => throw new ArgumentException("IoT Hub Checkpoint Storage connection string is not provided."));
+        public string CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
+        () => throw new InvalidOperationException("IoT Hub Checkpoint Storage connection string is not provided."));
 
-        string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
+        public string EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
 
-        string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
+        public string NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
 
-        IReadOnlyList<string> IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
+        public IReadOnlyList<string> NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
             () => "").Split(",");
 
-        string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
+        public string BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => string.Empty);
 
-        string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
+        public string AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
             () => string.Empty);
 
-        string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
+        public string AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
             () => string.Empty);
 
-        string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
+        public string AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
             () => string.Empty);
 
-        string IIIoTPlatformConfig.AuthServiceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_SERVICE_APPID,
+        public string AuthServiceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_SERVICE_APPID,
             () => string.Empty);
 
-        string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
-            () => throw new ArgumentException("Username of iot edge device is not provided."));
+        public string Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
+            () => throw new InvalidOperationException("Username of iot edge device is not provided."));
 
-        string ISshConfig.PublicKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PUBLICKEY,
-            () => throw new ArgumentException("Public key of iot edge device is not provided."));
+        public string PublicKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PUBLICKEY,
+            () => throw new InvalidOperationException("Public key of iot edge device is not provided."));
 
-        string ISshConfig.PrivateKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PRIVATEKEY,
-            () => throw new ArgumentException("Private key of iot edge device is not provided."));
+        public string PrivateKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PRIVATEKEY,
+            () => throw new InvalidOperationException("Private key of iot edge device is not provided."));
 
-        string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNSNAME,
-            () => throw new ArgumentException("DNS name of iot edge device is not provided."));
+        public string Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNSNAME,
+            () => throw new InvalidOperationException("DNS name of iot edge device is not provided."));
 
-        string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
-            () => throw new ArgumentException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
+        public string Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
+            () => throw new InvalidOperationException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
-            () => throw new ArgumentException("Test Event Processor BaseUrl is not provided."));
+        public string TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
+            () => throw new InvalidOperationException("Test Event Processor BaseUrl is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
-            () => throw new ArgumentException("Test Event Processor Username is not provided."));
+        public string TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
+            () => throw new InvalidOperationException("Test Event Processor Username is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
-            () => throw new ArgumentException("Test Event Processor Password is not provided."));
+        public string TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
+            () => throw new InvalidOperationException("Test Event Processor Password is not provided."));
 
-        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
+        public string ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_USER,
+        public string ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_USER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_PASSWORD,
+        public string ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_PASSWORD,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
+        public string ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
+        public string ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest");
     }
 }
