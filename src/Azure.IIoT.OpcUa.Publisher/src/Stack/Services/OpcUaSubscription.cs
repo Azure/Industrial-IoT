@@ -1516,7 +1516,7 @@ Actual (revised) state/desired state:
                         dropped ? "dropped" : "already received", publishTime);
                 }
 
-                foreach (var item in notification.MonitoredItems)
+                foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
                 {
                     Debug.Assert(item != null);
                     if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))

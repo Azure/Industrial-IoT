@@ -4,16 +4,9 @@
     "parameters": {
         "siteName": {
             "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The name of the application to create. Leave empty for local or services only development."
-            }
-        },
-        "serviceSiteName": {
-            "type": "string",
             "defaultValue": "[if(not(empty(parameters('siteName'))), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), '')]",
             "metadata": {
-                "description": "The name of the services endpoint. Leave empty for local development."
+                "description": "The name of the application to create."
             }
         },
         "keyVaultUri": {
@@ -92,7 +85,7 @@
         },
         "hostingPlanSku": {
             "type": "string",
-            "defaultValue": "S1",
+            "defaultValue": "B1",
             "allowedValues": [
                 "B1",
                 "B2",
@@ -102,7 +95,11 @@
                 "S3",
                 "P1v2",
                 "P2v2",
-                "P3v2"
+                "P3v2",
+                "P0v3",
+                "P1v3",
+                "P2v3",
+                "P3v3"
             ],
             "metadata": {
                 "description": "The pricing sku for the hosting plan."
@@ -117,14 +114,14 @@
         }
     },
     "variables": {
-        "serviceSiteResourceName": "[if(empty(parameters('serviceSiteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('serviceSiteName'))]",
+        "serviceSiteResourceName": "[if(empty(parameters('siteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('siteName'))]",
         "serviceSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceSiteResourceName'))]",
         "serviceContainerImageTag": "[if(empty(parameters('imagesTag')), 'latest', parameters('imagesTag'))]",
         "serviceContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-services-all', ':', variables('serviceContainerImageTag'))]"
     },
     "resources": [
         {
-            "comments": "Hosting plan to host platform services and application.",
+            "comments": "Hosting plan to host platform services.",
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
             "kind": "linux",
@@ -133,7 +130,7 @@
             "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('hostingPlanSku')]",
-                "capacity": "[if(empty(parameters('siteName')), if(empty(parameters('serviceSiteName')), '0', '1'), '2')]"
+                "capacity": "[if(empty(parameters('siteName')), '0', '1')]"
             },
             "properties": {
                 "name": "[parameters('hostingPlanName')]",
@@ -156,7 +153,7 @@
                    "[parameters('managedIdentityResourceId')]": {}
                 }
             },
-            "condition": "[not(empty(parameters('serviceSiteName')))]",
+            "condition": "[not(empty(parameters('siteName')))]",
             "properties": {
                 "enabled": true,
                 "clientAffinityEnabled": true,
@@ -209,7 +206,7 @@
                         },
                         {
                             "name": "PCS_SERVICE_URL",
-                            "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', variables('serviceSiteResourceName'), '.azurewebsites.net'))]"
+                            "value": "[if(empty(parameters('siteName')), '', concat('https://', variables('serviceSiteResourceName'), '.azurewebsites.net'))]"
                         },
                         {
                             "name": "PCS_IMAGES_TAG",
@@ -221,12 +218,12 @@
             "resources": [
                 {
                     "comments": "Configuration for services web app.",
-                    "condition": "[not(empty(parameters('serviceSiteName')))]",
+                    "condition": "[not(empty(parameters('siteName')))]",
                     "type": "config",
                     "name": "appsettings",
                     "apiVersion": "2018-11-01",
                     "properties": {
-                        "PCS_SERVICE_URL": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]",
+                        "PCS_SERVICE_URL": "[if(empty(parameters('siteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]",
                         "PCS_KEYVAULT_URL": "[parameters('keyVaultUri')]",
                         "AZURE_CLIENT_ID": "[parameters('managedIdentityClientId')]",
                         "AZURE_TENANT_ID": "[parameters('managedIdentityTenantId')]",
@@ -250,7 +247,7 @@
     "outputs": {
         "serviceUrl": {
             "type": "string",
-            "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"
+            "value": "[if(empty(parameters('siteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"
         }
     }
 }
