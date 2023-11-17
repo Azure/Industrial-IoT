@@ -140,7 +140,7 @@ $storageContainer = Get-AzStorageContainer -Name $StorageContainerName -Context 
 
 if (!$storageContainer) {
     Write-Host "Creating storage container '$($StorageContainerName)' in storage account '$($storageAccount.StorageAccountName)'..."
-    $storageContainer = New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -AllowBlobPublicAccess $True -AllowCrossTenantReplication $True -Permission Container | Out-Null
+    $storageContainer = New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -Permission Container | Out-Null
 }
 
 ## Ensure file share for ACI mount and files to be able to support dynamic ACI:s in test
@@ -149,7 +149,7 @@ $storageShare = Get-AzStorageShare -Context $storageContext.Context -Name $Stora
 
 if (!$storageShare) {
     Write-Host "Creating storage share '$($StorageFileShareName )' in storage account '$($storageAccount.StorageAccountName)'..."
-    $storageShare = New-AzStorageShare -Context $storageContext.Context -AllowBlobPublicAccess $True -AllowCrossTenantReplication $True -Name $StorageFileShareName | Out-Null
+    $storageShare = New-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName | Out-Null
 }
 
 ## Ensure AppServicePlan ##
