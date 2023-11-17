@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentException("No key value stores configured.",
                     nameof(stores));
             }
+            _runtimeState = RuntimeStateEventType.RestartAnnouncement;
 
             InitializeMetrics();
         }
@@ -104,15 +105,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
 
-            _runtimeState = RuntimeStateEventType.RestartAnnouncement;
-
             if (_options.Value.EnableRuntimeStateReporting ?? false)
             {
                 var body = new RuntimeStateEventModel
                 {
                     Timestamp = DateTime.UtcNow,
                     MessageVersion = 1,
-                    MessageType = _runtimeState
+                    MessageType = RuntimeStateEventType.RestartAnnouncement
                 };
 
                 await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
