@@ -133,9 +133,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Source.OnCounterReset += MessageTriggerCounterResetReceived;
 
             InitializeMetrics();
-            _logger.LogInformation("Writer group {WriterGroup} set up to publish " +
-                "notifications {Interval} {Batching} with {MaxSize} to {Transport} " +
-                "(queuing at most {MaxQueueSize} notifications)...",
+            _logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
+                "{Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} " +
+                "{MessageType} encoding (queuing at most {MaxQueueSize} notifications)...",
                 writerGroup.Name ?? Constants.DefaultWriterGroupId,
                 _batchTriggerInterval == TimeSpan.Zero ?
                     "as soon as they arrive" : $"every {_batchTriggerInterval} (hh:mm:ss)",
@@ -144,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             $"or when a batch of {_maxNotificationsPerMessage} notifications is ready",
                 _maxNetworkMessageSize == int.MaxValue ?
                     "unlimited" : $"at most {_maxNetworkMessageSize / 1024} kb",
-                _eventClient.Name, _maxPublishQueueSize);
+                _eventClient.Name, writerGroup.HeaderLayoutUri,
+                writerGroup.MessageType ?? MessageEncoding.Json, _maxPublishQueueSize);
         }
 
         /// <inheritdoc/>

@@ -16,8 +16,8 @@ services:
       "--ses",
       "--ei=${EVENT_NODES:-100}",
       "--gn=${GUID_NODES:-100}",
-      "--fn=${FAST_NODES:-4990}",
-      "--sn=${SLOW_NODES:-4990}",
+      "--fn=${FAST_NODES:-49900}",
+      "--sn=${SLOW_NODES:-49900}",
       "--aa"
       ]
     volumes:
@@ -37,7 +37,7 @@ services:
       "--aa",
       "--bs=1",
       "--bi=0",
-      "--di=0",
+      "--di=60",
       "--cl=5",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",

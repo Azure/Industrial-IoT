@@ -73,11 +73,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var chunkedMessages = new List<(IEvent, Action)>();
                 var networkMessages = GetNetworkMessages(notifications, asBatch);
-                foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl, qos, onSent, encodingContext) in networkMessages)
+                foreach (var (notificationsPerMessage, networkMessage, topic,
+                    retain, ttl, qos, onSent, encodingContext) in networkMessages)
                 {
                     if (encodingContext == null)
                     {
-                        _logger.LogError("Missing service message context for network message - dropping notification.");
+                        _logger.LogError(
+                            "Missing service message context for network message - dropping notification.");
                         NotificationsDroppedCount++;
                         onSent();
                         continue;

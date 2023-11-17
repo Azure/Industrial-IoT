@@ -96,8 +96,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var body = new RuntimeStateEventModel
                 {
-                    MessageType = RuntimeStateEventType.RestartAnnouncement,
-                    MessageVersion = 1
+                    Timestamp = DateTime.UtcNow,
+                    MessageVersion = 1,
+                    MessageType = RuntimeStateEventType.RestartAnnouncement
                 };
 
                 await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
