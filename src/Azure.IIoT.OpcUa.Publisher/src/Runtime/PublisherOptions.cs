@@ -73,6 +73,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
+        /// Send diagnostics events to the event topic
+        /// </summary>
+        public bool? PublishDiagnosticsEvents { get; set; }
+
+        /// <summary>
         /// Log ingress notifications to informational log
         /// </summary>
         public bool? DebugLogNotifications { get; set; }

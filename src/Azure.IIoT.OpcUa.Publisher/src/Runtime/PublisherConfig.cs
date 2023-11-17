@@ -40,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
+        public const string PublishDiagnosticsEventsKey = "PublishDiagnosticsEvents";
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
@@ -230,6 +231,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DiagnosticsInterval = GetDurationOrNull(DiagnosticsIntervalKey) ??
                    TimeSpan.FromMilliseconds(GetIntOrDefault(DiagnosticsIntervalKey,
                        DiagnosticsIntervalDefaultMillis));
+            }
+
+            if (options.PublishDiagnosticsEvents == null)
+            {
+                options.PublishDiagnosticsEvents = GetBoolOrDefault(PublishDiagnosticsEventsKey);
             }
 
             if (options.EnableDataSetRoutingInfo == null)

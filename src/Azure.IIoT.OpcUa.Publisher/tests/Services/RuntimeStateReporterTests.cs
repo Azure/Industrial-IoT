@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public async Task ReportingDisabledTest()
         {
             var client = new Mock<IEventClient>();
+            var collector = new Mock<IDiagnosticCollector>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
@@ -43,14 +44,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
+                collector.Object,
                 _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-;
-
+                ;
             client.Verify(c => c.CreateEvent(), Times.Never());
         }
 
@@ -58,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public async Task ClientNotInitializedTest()
         {
             var client = new Mock<IEventClient>();
+            var collector = new Mock<IDiagnosticCollector>();
             client.Setup(m => m.CreateEvent()).Throws<IOException>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
@@ -71,19 +73,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
+                collector.Object,
                 _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-;
+                ;
         }
 
         [Fact]
         public async Task ReportingTest()
         {
             var _client = new Mock<IEventClient>();
+            var collector = new Mock<IDiagnosticCollector>();
 
             var _message = new Mock<IEvent>()
                 .SetupAllProperties();
@@ -100,6 +104,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
             IReadOnlyList<ReadOnlyMemory<byte>> buffers = null;
+            _message.Setup(c => c.SetRetain(It.Is<bool>(v => v)))
+                .Returns(_message.Object);
             _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((k, v) =>
                 {
@@ -133,13 +139,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
+                collector.Object,
                 _logger);
 
             await FluentActions
                 .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default))
                 .Should()
                 .NotThrowAsync()
-;
+                ;
 
             _message.Verify(c => c.SendAsync(It.IsAny<CancellationToken>()), Times.Once());
             _message.Verify(m => m.Dispose(), Times.Once());
@@ -150,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             Assert.Single(buffers);
             var body = Encoding.UTF8.GetString(buffers[0].Span);
-            Assert.Equal("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1}", body);
+            Assert.StartsWith("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1,\"Timestamp\":", body);
         }
     }
 }
