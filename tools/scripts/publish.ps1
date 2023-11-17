@@ -75,41 +75,9 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             $extra += "--no-build"
         }
 
-        $baseImage = "$($properties.ContainerBaseImage)"
-        if ($os -eq "linux") {
-            $architecture = $arch
-            # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
-            if ($arch -eq "x64"){
-                $architecture = "amd64"
-            }
-            if ($arch -eq "arm64") {
-                $architecture = "arm64v8"
-            }
-            if ($arch -eq "arm") {
-                $architecture = "arm32v7"
-            }
-
-            # repoint to alpine images for all builds
-            # https://github.com/dotnet/sdk-container-builds/blob/main/docs/ContainerCustomization.md
-            if ($baseImage -like "*-alpine") {
-                $baseImage = "$($baseImage)-$($architecture)"
-            }
-            else {
-                $baseImage = "$($baseImage)-alpine-$($architecture)"
-            }
-            $runtimeId = "$($os)-musl-$($arch)"
-        }
-        else {
-            if ($os -eq "windows") {
-                $runtimeId = "win10"
-            }
-            $runtimeId = "portable"
-        }
-
-        # add -r to select musl runtime?
         dotnet publish $projFile.FullName -c $configuration --self-contained false `
-            -r $runtimeId /p:TargetLatestRuntimePatch=true `
-            /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
+            /p:TargetLatestRuntimePatch=true `
+            /p:ContainerImageName=$fullName `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra
         if ($LastExitCode -ne 0) {
