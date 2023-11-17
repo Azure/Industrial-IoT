@@ -451,21 +451,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             var baseType = dataTypeId;
-            var typeTree = session.TypeTree;
-            if (typeTree == null)
-            {
-                return;
-            }
-            var nodeCache = session.NodeCache;
-            if (nodeCache == null)
-            {
-                return;
-            }
             while (!Opc.Ua.NodeId.IsNull(baseType))
             {
                 try
                 {
-                    var dataType = await nodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
+                    var dataType = await session.NodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
                     if (dataType == null)
                     {
                         _logger.LogWarning(
@@ -482,9 +472,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         break;
                     }
 
-                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTree,
+                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId, session.TypeTree,
                         ct).ConfigureAwait(false);
-                    baseType = await typeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
+                    baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
 
                     switch (builtInType)
                     {
@@ -864,14 +854,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     // Failed.
                     return;
                 }
-                var nodeCache = session.NodeCache;
-                if (nodeCache == null)
-                {
-                    return;
-                }
                 try
                 {
-                    var node = await nodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
+                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
