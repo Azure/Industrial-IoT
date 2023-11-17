@@ -14,7 +14,7 @@
 param(
     [Parameter(Mandatory)]
     [string] $dpsConnString,
-    [Parameter(Mandatory)] 
+    [Parameter(Mandatory)]
     [string] $os
 )
 
@@ -24,7 +24,7 @@ param(
 Function New-Key() {
     param(
         $length = 15
-    ) 
+    )
     $digits = 48..57
     $lcLetters = 65..90
     $password = `
@@ -100,7 +100,7 @@ $body = @{
 
 $uri = "https://$($hostName)/enrollments/$($registrationId)?api-version=2019-03-31"
 try {
-    $response = $body | Invoke-RestMethod -Method Put -Headers $headers -Uri $uri 
+    $response = $body | Invoke-RestMethod -Method Put -Headers $headers -Uri $uri
     return @{
         registrationId = $response.registrationId
         primaryKey = $response.attestation.symmetricKey.primaryKey

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Buffers;
     using System.Text;
 
     /// <summary>
@@ -90,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     value.Append(reference)
                         .Append('>');
                 }
-                var escape = element.TargetName.IndexOfAny(
-                    new[] { '/', '#', '.', '<', '>', '!' }) != -1;
+                var escape = element.TargetName.AsSpan().IndexOfAny(
+kAllowedChars) != -1;
                 if (escape)
                 {
                     value.Append('[');
@@ -338,5 +339,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             // Not escaping and reaching the end
             return builder.ToString();
         }
+
+        private static readonly SearchValues<char> kAllowedChars
+            = SearchValues.Create("/#.<>!");
     }
 }

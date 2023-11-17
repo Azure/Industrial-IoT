@@ -148,7 +148,7 @@ namespace HistoricalEvents
         /// <param name="context"></param>
         /// <param name="platforms"></param>
         /// <param name="areaName"></param>
-        private BaseObjectState CreateArea(SystemContext context, BaseObjectState platforms, string areaName)
+        private FolderState CreateArea(SystemContext context, BaseObjectState platforms, string areaName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             var area = new FolderState(null)
@@ -175,9 +175,10 @@ namespace HistoricalEvents
         /// <param name="area"></param>
         /// <param name="wellId"></param>
         /// <param name="wellName"></param>
-        private void CreateWell(SystemContext context, BaseObjectState area, string wellId, string wellName)
+        private void CreateWell(SystemContext context, FolderState area, string wellId, string wellName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var well = new WellState(null)
             {
                 NodeId = new NodeId(wellId, NamespaceIndex),
@@ -186,6 +187,7 @@ namespace HistoricalEvents
                 EventNotifier = EventNotifiers.SubscribeToEvents | EventNotifiers.HistoryRead | EventNotifiers.HistoryWrite,
                 TypeDefinitionId = new NodeId(ObjectTypes.WellType, NamespaceIndex)
             };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             area.AddNotifier(SystemContext, ReferenceTypeIds.HasNotifier, false, well);
             well.AddNotifier(SystemContext, ReferenceTypeIds.HasNotifier, true, area);
@@ -479,7 +481,7 @@ namespace HistoricalEvents
         /// </summary>
         /// <param name="request"></param>
         /// <param name="instance"></param>
-        private HistoryEventFieldList GetEventFields(HistoryReadRequest request, IFilterTarget instance)
+        private HistoryEventFieldList GetEventFields(HistoryReadRequest request, BaseEventState instance)
         {
             // fetch the event fields.
             var fields = new HistoryEventFieldList();

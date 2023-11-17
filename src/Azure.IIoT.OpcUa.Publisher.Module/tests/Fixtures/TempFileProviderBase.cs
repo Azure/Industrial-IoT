@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
             _tempFile = Path.GetTempFileName();
         }
 
-        public void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
             try
             {
@@ -34,6 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
             {
                 // Nothign to do.
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
     }

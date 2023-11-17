@@ -3,7 +3,7 @@
     Prunes all /internal repositories from the registry
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
+    The script requires az to be installed and already logged on to a
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
@@ -53,7 +53,7 @@ if (-not $script:All.IsPresent) {
 $argumentList = @("acr", "repository", "list", "--name", $script:Registry, "-ojson")
 $repositories = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 foreach ($repository in $repositories) {
-    
+
     if ($script:All.IsPresent) {
         Write-Warning "Deleting $($repository)..."
         $argumentList = @("acr", "repository", "delete", "--yes", "-ojson",

@@ -112,13 +112,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "discoveryUrls", Order = 8,
             EmitDefaultValue = false)]
-        public List<string>? DiscoveryUrls { get; set; }
+        public IReadOnlyList<string>? DiscoveryUrls { get; set; }
 
         /// <summary>
         /// List of locales to filter with during discovery
         /// </summary>
         [DataMember(Name = "locales", Order = 9,
             EmitDefaultValue = false)]
-        public List<string>? Locales { get; set; }
+        public IReadOnlyList<string>? Locales { get; set; }
     }
 }

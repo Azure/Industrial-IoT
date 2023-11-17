@@ -463,11 +463,7 @@ namespace HistoricalAccess
                         _monitoredItems = new Dictionary<string, ArchiveItemState>();
                     }
 
-                    if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath))
-                    {
-                        _monitoredItems.Add(item.ArchiveItem.UniquePath, item);
-                    }
-
+                    _monitoredItems.TryAdd(item.ArchiveItem.UniquePath, item);
                     item.SubscribeCount++;
 
                     if (_simulationTimer == null)

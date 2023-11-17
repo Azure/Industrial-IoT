@@ -628,10 +628,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public IEncodeable? ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            if (systemType == null)
-            {
-                throw new ArgumentNullException(nameof(systemType));
-            }
+            ArgumentNullException.ThrowIfNull(systemType);
             if (!TryGetToken(fieldName, out var token))
             {
                 return null;
@@ -653,10 +650,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public Enum? ReadEnumerated(string? fieldName, Type enumType)
         {
-            if (enumType == null)
-            {
-                throw new ArgumentNullException(nameof(enumType));
-            }
+            ArgumentNullException.ThrowIfNull(enumType);
             if (!enumType.IsEnum)
             {
                 throw new ArgumentException("Not an enum type", nameof(enumType));
@@ -1968,7 +1962,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private IDictionary<string, T?>? ReadDictionary<T>(string? property,
+        private Dictionary<string, T?>? ReadDictionary<T>(string? property,
             Func<T?> reader)
         {
             if (!TryGetToken(property, out var token) || token is not JObject o)

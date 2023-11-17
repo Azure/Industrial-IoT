@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Linq;
 
     public class MqttConfigurationIntegrationTests : PublisherIntegrationTestBase
     {
@@ -199,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
                     new PublishedNodesEntryModel {
-                        OpcNodes = nodes.OpcNodes,
+                        OpcNodes = nodes.OpcNodes.ToList(),
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name

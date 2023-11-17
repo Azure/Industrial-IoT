@@ -7,19 +7,19 @@
     Azure.
 
  .PARAMETER type
-    The type of deployment (local, services, simulation, all), 
+    The type of deployment (local, services, simulation, all),
     defaults to all.
 
  .PARAMETER version
-    Set to mcr image tag to deploy - if not set and version can 
+    Set to mcr image tag to deploy - if not set and version can
     not be parsed from branch name will deploy "latest".
 
  .PARAMETER branchName
-    The branch name where to find the deployment templates - if 
+    The branch name where to find the deployment templates - if
     not set, will try to use git.
 
  .PARAMETER repo
-    The repository to find the deployment templates in - if not 
+    The repository to find the deployment templates in - if not
     set will try to use git or set default.
 
  .PARAMETER resourceGroupName
@@ -40,7 +40,7 @@
      that should be listed as options.
 
  .PARAMETER authTenantId
-    Specifies an Azure Active Directory tenant for authentication 
+    Specifies an Azure Active Directory tenant for authentication
     that is different from the one tied to the subscription.
 
  .PARAMETER accountName
@@ -50,14 +50,14 @@
     The name of the application, if not local deployment.
 
  .PARAMETER aadConfig
-    The aad configuration object (use aad-register.ps1 to create 
+    The aad configuration object (use aad-register.ps1 to create
     object). If not provided, calls aad-register.ps1.
 
  .PARAMETER context
     A previously created az context to be used for authentication.
 
  .PARAMETER aadApplicationName
-    The application name to use when registering aad application. 
+    The application name to use when registering aad application.
     If not set, uses applicationName.
 
  .PARAMETER containerRegistryServer
@@ -70,26 +70,26 @@
     The password to use to pull images
 
  .PARAMETER imageNamespace
-    Override the automatically determined namespace of the 
+    Override the automatically determined namespace of the
     container images
 
  .PARAMETER acrRegistryName
-    An optional name of an Azure container registry to deploy 
+    An optional name of an Azure container registry to deploy
     containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry, if different 
+    The subscription of the container registry, if different
     from the specified subscription.
 
  .PARAMETER acrTenantId
-    The tenant where the container registry resides. If not 
+    The tenant where the container registry resides. If not
     provided uses all.
 
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
-    If you are deploying a simulation, the simulation profile 
+    If you are deploying a simulation, the simulation profile
     to use, if not default.
 
  .PARAMETER numberOfSimulationsPerEdge
@@ -112,7 +112,7 @@
     Must Support Generation 1.
 
  .PARAMETER credentials
-    Use these credentials to log in. If not provided you are 
+    Use these credentials to log in. If not provided you are
     prompted to provide credentials
 
  .PARAMETER isServicePrincipal
@@ -373,7 +373,7 @@ Function Select-RepositoryAndBranch() {
             }
         }
     }
-    
+
     if ([string]::IsNullOrEmpty($script:repo)) {
         # Try get repo name / TODO
         $script:repo = "https://github.com/Azure/Industrial-IoT"
@@ -813,7 +813,6 @@ Function New-Deployment() {
         }
         if (($script:type -eq "all") -or ($script:type -eq "services")) {
             $templateParameters.Add("siteName", $script:applicationName)
-            $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
 
@@ -911,7 +910,7 @@ Function New-Deployment() {
         # To be refactored: it's necessary to filter out the unsupported SKU sizes.
         # It still there isn't a API to identify the generations supported by the SKU sizes.
         if ([string]::IsNullOrEmpty($script:gatewayVmSku)) {
-            
+
             # Get all vm skus available in the location and in the account
             $availableVms = Get-AzComputeResourceSku | Where-Object {
                 ($_.ResourceType.Contains("virtualMachines")) -and `
@@ -981,7 +980,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
                 Write-Host "Using $($simulationVmSize) as VM size for all OPC PLC simulation host machines..."
                 $templateParameters.Add("simulationVmSize", $simulationVmSize)
             }
-        }    
+        }
         else {
             $templateParameters.Add("simulationVmSize", $script:opcPlcVmSku)
         }
@@ -1173,7 +1172,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
             }
 
             $elapsedTime = $(get-date) - $StartTime
-            write-host "Elapsed time (hh:mm:ss): $($elapsedTime.ToString("hh\:mm\:ss"))" 
+            write-host "Elapsed time (hh:mm:ss): $($elapsedTime.ToString("hh\:mm\:ss"))"
 
             #
             # Create environment file

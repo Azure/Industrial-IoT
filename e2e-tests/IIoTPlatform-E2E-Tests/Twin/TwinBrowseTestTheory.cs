@@ -29,7 +29,7 @@ namespace IIoTPlatformE2ETests.Twin
         [Fact, PriorityOrder(0)]
         public async Task TestPrepareAsync()
         {
-            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+            await _context.AssertTestEnvironmentPreparedAsync();
         }
 
         [Fact, PriorityOrder(1)]
@@ -37,7 +37,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, null, cts.Token).ConfigureAwait(false);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -54,7 +54,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, null, cts.Token).ConfigureAwait(false);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -63,7 +63,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             Assert.Contains(nodes, n => string.Equals(nodeId, n.NodeId, StringComparison.Ordinal));
 
-            nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, nodeId).ConfigureAwait(false);
+            nodes = await TestHelper.Twin.GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, nodeId);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -80,7 +80,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             const string nodeId = null; // Start browsing from Root
             var browsePath = new List<string> { "Objects", "Server", "ServerArray" };
-            var result = await TestHelper.Twin.GetBrowseNodePathAsync(_context, _context.OpcUaEndpointId, nodeId, browsePath, cts.Token).ConfigureAwait(false);
+            var result = await TestHelper.Twin.GetBrowseNodePathAsync(_context, _context.OpcUaEndpointId, nodeId, browsePath, cts.Token);
 
             var node = result.targets[0].target;
             Assert.Equal("ServerArray", node.browseName);
@@ -94,7 +94,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             const string nodeId = "i=85"; // Start browsing from Objects
             var browsePath = new List<string> { "Server", "ServerArray" };
-            var result = await TestHelper.Twin.GetBrowseNodePathAsync(_context, _context.OpcUaEndpointId, nodeId, browsePath, cts.Token).ConfigureAwait(false);
+            var result = await TestHelper.Twin.GetBrowseNodePathAsync(_context, _context.OpcUaEndpointId, nodeId, browsePath, cts.Token);
 
             var node = result.targets[0].target;
             Assert.Equal("ServerArray", node.browseName);
@@ -106,7 +106,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Object", null, cts.Token).ConfigureAwait(false);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Object", null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -126,7 +126,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Variable", null, cts.Token).ConfigureAwait(false);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Variable", null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);

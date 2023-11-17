@@ -59,10 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ServerRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _onboarding.RegisterAsync(request, ct).ConfigureAwait(false);
         }
 
@@ -120,10 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] DiscoveryRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _onboarding.DiscoverAsync(request, ct).ConfigureAwait(false);
         }
 
@@ -173,10 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var model = request;
             // TODO: model.AuthorityId = User.Identity.Name;
             return await _applications.RegisterApplicationAsync(model,
@@ -216,10 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationUpdateModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
             await _applications.UpdateApplicationAsync(applicationId, model,
@@ -278,15 +266,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken]
-                    .FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.ListSitesAsync(continuationToken,
@@ -317,15 +303,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken]
-                    .FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.ListApplicationsAsync(continuationToken,
@@ -354,14 +338,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(query,
@@ -389,14 +370,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(query,

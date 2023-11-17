@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Event fields to select
         /// </summary>
         [DataMember(Name = "selectedFields", Order = 3)]
-        public List<SimpleAttributeOperandModel>? SelectedFields { get; set; }
+        public IReadOnlyList<SimpleAttributeOperandModel>? SelectedFields { get; set; }
 
         /// <summary>
         /// Filter to use to select event fields

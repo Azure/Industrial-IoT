@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task SendRestartAnnouncementAsync(
-            CancellationToken ct = default);
+        ValueTask SendRestartAnnouncementAsync(CancellationToken ct = default);
     }
 }

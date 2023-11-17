@@ -53,8 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             base.Send(progress);
             if (!_channel.Writer.TryWrite(progress))
             {
-                throw new ObjectDisposedException(
-                    "Cannot send if progress publisher is already disposed.");
+                _logger.LogError("Cannot send if progress publisher is already disposed.");
+                ObjectDisposedException.ThrowIf(true, this);
             }
         }
 

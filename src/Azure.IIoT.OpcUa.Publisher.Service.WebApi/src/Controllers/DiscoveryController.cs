@@ -72,10 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task UpdateDiscovererAsync(string discovererId,
             [FromBody][Required] DiscovererUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _discoverers.UpdateDiscovererAsync(discovererId,
                 request, ct).ConfigureAwait(false);
         }
@@ -102,15 +99,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken]
-                    .FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _discoverers.ListDiscoverersAsync(continuationToken,
@@ -138,14 +133,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromBody][Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(query,
@@ -173,14 +165,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery][Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(query,

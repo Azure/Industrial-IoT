@@ -21,8 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<ApplicationRegistrationModel>? model,
-            IEnumerable<ApplicationRegistrationModel>? that)
+        public static bool IsSameAs(this IReadOnlyList<ApplicationRegistrationModel>? model,
+            IReadOnlyList<ApplicationRegistrationModel>? that)
         {
             if (model == that)
             {
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }
@@ -142,8 +142,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 {
                     foreach (var ep in server.Endpoints)
                     {
-                        var found = model.Endpoints.Where(ep.IsSameAs);
-                        if (!found.Any())
+                        var found = model.Endpoints.Where(ep.IsSameAs).ToList();
+                        if (found.Count == 0)
                         {
                             model.Endpoints = model.Endpoints.Append(ep).ToList();
                         }

@@ -19,14 +19,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodesToAdd", Order = 0,
             EmitDefaultValue = false)]
-        public List<PublishedItemModel>? NodesToAdd { get; set; }
+        public IReadOnlyList<PublishedItemModel>? NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
         [DataMember(Name = "nodesToRemove", Order = 1,
             EmitDefaultValue = false)]
-        public List<string>? NodesToRemove { get; set; }
+        public IReadOnlyList<string>? NodesToRemove { get; set; }
 
         /// <summary>
         /// Optional request header

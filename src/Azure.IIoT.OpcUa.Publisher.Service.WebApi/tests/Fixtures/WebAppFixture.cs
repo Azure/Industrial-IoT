@@ -119,8 +119,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
             builder.ConfigureServices(services => services.AddLogging());
             builder.AddOptions();
+#pragma warning disable CA2000 // Dispose objects before losing scope
             builder.RegisterInstance(LogFactory.Create(output, Logging.Config))
                 .AsImplementedInterfaces();
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             // Add API
             builder.RegisterType<ControllerTestClient>().AsSelf();

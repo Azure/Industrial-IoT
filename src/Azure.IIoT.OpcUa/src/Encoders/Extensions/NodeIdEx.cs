@@ -41,10 +41,7 @@ namespace Opc.Ua.Extensions
             string? ns = null;
             if (nodeId.NamespaceIndex > 0)
             {
-                if (namespaces == null)
-                {
-                    throw new ArgumentNullException(nameof(namespaces));
-                }
+                ArgumentNullException.ThrowIfNull(namespaces);
                 ns = namespaces.GetString(nodeId.NamespaceIndex);
             }
             return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, ns, 0);

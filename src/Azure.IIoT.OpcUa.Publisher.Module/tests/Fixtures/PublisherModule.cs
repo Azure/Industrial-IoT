@@ -309,8 +309,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             if (_testOutputHelper != null)
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 builder.RegisterInstance(LogFactory.Create(
                     _testOutputHelper, Logging.Config));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
             // Register transport services
@@ -341,8 +343,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             builder.ConfigureServices(services => services.AddLogging());
             builder.AddOptions();
+#pragma warning disable CA2000 // Dispose objects before losing scope
             builder.RegisterInstance(LogFactory.Create(output, Logging.Config))
                 .AsImplementedInterfaces();
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             // Add API
             builder.Configure<SdkOptions>(options =>
@@ -530,8 +534,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;
         private readonly IoTHubTelemetryHandler _telemetry;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly IDisposable _handler1;
         private readonly IAsyncDisposable _handler2;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly EventConsumer _consumer;
         private readonly ITestOutputHelper _testOutputHelper;
     }

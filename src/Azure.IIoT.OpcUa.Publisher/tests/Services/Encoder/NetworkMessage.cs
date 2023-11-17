@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        public List<ReadOnlyMemory<byte>> Buffers { get; } = new();
+        public IList<ReadOnlyMemory<byte>> Buffers { get; } = new List<ReadOnlyMemory<byte>>();
 
         public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
         {
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return new NetworkMessage();
         }
 
-        public static List<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
+        public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentMask extraNetworkMessageMask = 0,
@@ -142,15 +142,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var seq = 1u;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var dataItem = new OpcUaMonitoredItem.DataItem(new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
             }, Log.Console<OpcUaMonitoredItem.DataItem>());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var eventItem = new OpcUaMonitoredItem.EventItem(new EventMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
             }, Log.Console<OpcUaMonitoredItem.EventItem>());
+#pragma warning restore CA2000 // Dispose objects before losing scope
             eventItem.Fields.Add(("1", default));
             eventItem.Fields.Add(("2", default));
             eventItem.Fields.Add(("3", default));

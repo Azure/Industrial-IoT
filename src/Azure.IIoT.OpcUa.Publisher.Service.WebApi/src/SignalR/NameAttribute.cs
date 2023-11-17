@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
     /// Name of the hub
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class NameAttribute : Attribute
+    public sealed class NameAttribute : Attribute
     {
         /// <summary>
         /// Create attribute
@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
         /// <summary>
         /// Name
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; }
 
         /// <summary>
         /// Get name of hub with type
@@ -38,7 +38,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
             var name = type.GetCustomAttribute<NameAttribute>(false)?.Name;
             if (string.IsNullOrEmpty(name))
             {
+#pragma warning disable CA1308 // Normalize strings to uppercase
                 name = type.Name.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
                 if (name.EndsWith("Hub", StringComparison.OrdinalIgnoreCase))
                 {
                     name = name.Replace("Hub", "", StringComparison.OrdinalIgnoreCase);

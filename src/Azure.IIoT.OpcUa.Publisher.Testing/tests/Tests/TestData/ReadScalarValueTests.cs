@@ -1039,7 +1039,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
-        private readonly IJsonSerializer _serializer;
+        private readonly DefaultJsonSerializer _serializer;
         private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }

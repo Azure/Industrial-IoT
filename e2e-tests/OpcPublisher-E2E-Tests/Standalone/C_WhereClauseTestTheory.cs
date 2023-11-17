@@ -31,7 +31,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken).ConfigureAwait(false);
+                _timeoutToken);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
@@ -40,11 +40,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             // take any message
             var ev = await messages
-                .FirstAsync(_timeoutToken).ConfigureAwait(false);
+                .FirstAsync(_timeoutToken);
 
             // Assert
             ValidateBaseEventTypeFields(ev.payload);
@@ -56,7 +56,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken).ConfigureAwait(false);
+                _timeoutToken);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
@@ -65,10 +65,10 @@ namespace OpcPublisherAEE2ETests.Standalone
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
-                .FirstAsync(_timeoutToken).ConfigureAwait(false);
+                .FirstAsync(_timeoutToken);
 
             // Assert
             ValidateBaseEventTypeFields(ev.payload);
@@ -80,7 +80,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken).ConfigureAwait(false);
+                _timeoutToken);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, -1, null, _timeoutToken);
 
@@ -88,16 +88,16 @@ namespace OpcPublisherAEE2ETests.Standalone
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
                 50000,
                 _writerId);
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
-                .FirstAsync(_timeoutToken).ConfigureAwait(false);
+                .FirstAsync(_timeoutToken);
 
             // Assert
             ValidateSimpleEventFields(ev.payload);
         }
 
-        private static void ValidateBaseEventTypeFields(JToken ev)
+        private static void ValidateBaseEventTypeFields(JObject ev)
         {
             // navigate to the event fields (nested several layers)
             var fields = ev.Children();
@@ -112,7 +112,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             Assert.Contains(fields, x => x.Path.EndsWith("Time", StringComparison.Ordinal));
         }
 
-        private static void ValidateSimpleEventFields(JToken ev)
+        private static void ValidateSimpleEventFields(JObject ev)
         {
             // navigate to the event fields (nested several layers)
             var fields = ev.Children();

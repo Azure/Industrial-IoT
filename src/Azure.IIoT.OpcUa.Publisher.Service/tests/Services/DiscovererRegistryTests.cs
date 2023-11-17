@@ -41,10 +41,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                await Assert.ThrowsAsync<ArgumentException>(async () => await service.GetDiscovererAsync("test"));
+                await Assert.ThrowsAsync<ArgumentException>(
+                    async () => await service.GetDiscovererAsync("test", default));
             }
         }
 
@@ -61,11 +62,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
                 await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    async () => await service.GetDiscovererAsync(HubResource.Format(null, "test", "test")));
+                    async () => await service.GetDiscovererAsync(HubResource.Format(null, "test", "test"), default));
             }
         }
 
@@ -82,10 +83,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var result = await service.GetDiscovererAsync(discoverers[0].Id);
+                var result = await service.GetDiscovererAsync(discoverers[0].Id, default);
 
                 // Assert
                 Assert.True(result.IsSameAs(discoverers[0]));
@@ -105,10 +106,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var records = await service.ListDiscoverersAsync(null, null);
+                var records = await service.ListDiscoverersAsync(null, null, default);
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -128,10 +129,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var records = await service.QueryDiscoverersAsync(null, null);
+                var records = await service.QueryDiscoverersAsync(null, null, default);
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -151,13 +152,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
                 var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
                 {
                     Discovery = DiscoveryMode.Network
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.Empty(records.Items);
@@ -177,13 +178,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
                 var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
                 {
                     SiteId = site
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -203,13 +204,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
+                var service = mock.Create<DiscovererRegistry>();
 
                 // Run
                 var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
                 {
                     SiteId = "test"
-                }, null);
+                }, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);

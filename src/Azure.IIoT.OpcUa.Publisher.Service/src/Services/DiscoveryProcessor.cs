@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task ProcessDiscoveryResultsAsync(string discovererId, DiscoveryResultModel result,
-            IEnumerable<DiscoveryEventModel> events)
+            IReadOnlyList<DiscoveryEventModel> events)
         {
             if (string.IsNullOrEmpty(discovererId))
             {
@@ -38,21 +38,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentException(error, nameof(discovererId));
             }
-            if (result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
-            if (events == null)
-            {
-                throw new ArgumentNullException(nameof(events));
-            }
+            ArgumentNullException.ThrowIfNull(result);
+            ArgumentNullException.ThrowIfNull(events);
             if ((result.RegisterOnly ?? false) && !events.Any())
             {
                 return;
             }
 
-            var sites = events.Select(e => e.Application?.SiteId).Distinct();
-            if (sites.Count() > 1)
+            var sites = events.Select(e => e.Application?.SiteId).Distinct().ToList();
+            if (sites.Count > 1)
             {
                 throw new ArgumentException("Unexpected number of sites in discovery");
             }

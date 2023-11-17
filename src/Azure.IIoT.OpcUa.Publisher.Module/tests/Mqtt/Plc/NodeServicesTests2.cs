@@ -32,6 +32,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
                 _server.GetConnection());
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _module.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         private readonly PlcServer _server;
         private readonly PublisherModule _module;
 

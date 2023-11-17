@@ -80,6 +80,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _loggerFactory.CreateLogger<PublisherService>());
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _loggerFactory.Dispose();
+                _publishedNodesProvider.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>

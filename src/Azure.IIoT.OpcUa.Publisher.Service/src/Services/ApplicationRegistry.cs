@@ -50,10 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task<ApplicationRegistrationResponseModel> RegisterApplicationAsync(
             ApplicationRegistrationRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ApplicationUri == null)
             {
                 throw new ArgumentException("Application Uri missing", nameof(request));
@@ -85,10 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task<ApplicationRegistrationModel> AddDiscoveredApplicationAsync(
             ApplicationRegistrationModel application, CancellationToken ct = default)
         {
-            if (application == null)
-            {
-                throw new ArgumentNullException(nameof(application));
-            }
+            ArgumentNullException.ThrowIfNull(application);
             if (application.Application?.DiscovererId == null)
             {
                 throw new ArgumentException("Discoverer identity missing", nameof(application));
@@ -218,10 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdateApplicationAsync(string applicationId,
             ApplicationRegistrationUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var context = request.Context.Validate();
 
             var application = await UpdateApplicationAsync(applicationId, (existing, _) =>
@@ -302,8 +293,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             if (query?.ApplicationUri != null)
             {
                 // If ApplicationUri provided, include it in search
+#pragma warning disable CA1308 // Normalize strings to uppercase
                 sql += $"AND tags.{nameof(ApplicationRegistration.ApplicationUriLC)} = " +
                     $"'{query.ApplicationUri.ToLowerInvariant()}' ";
+#pragma warning restore CA1308 // Normalize strings to uppercase
             }
             if (query?.ApplicationType is ApplicationType.Client or
                 ApplicationType.ClientAndServer)
@@ -517,8 +510,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             if (query?.Url != null)
             {
                 // If Url provided, include it in search
+#pragma warning disable CA1308 // Normalize strings to uppercase
                 sql += $"AND tags.{nameof(EndpointRegistration.EndpointUrlLC)} = " +
                     $"'{query.Url.ToLowerInvariant()}' ";
+#pragma warning restore CA1308 // Normalize strings to uppercase
             }
             if (query?.ApplicationId != null)
             {
@@ -570,7 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task ProcessDiscoveryEventsAsync(string siteId, string discovererId,
-            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events)
+            DiscoveryResultModel result, IReadOnlyList<DiscoveryEventModel> events)
         {
             if (string.IsNullOrEmpty(siteId))
             {
@@ -580,10 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            if (result == null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
+            ArgumentNullException.ThrowIfNull(result);
             var context = result.Context.Validate();
 
             //
@@ -601,7 +593,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             var twins = await _iothub.QueryAllDeviceTwinsAsync(sql).ConfigureAwait(false);
             var existing = twins
                 .Select(t => t.ToApplicationRegistration()?.ToServiceModel()!)
-                .Where(s => s != null);
+                .Where(s => s != null)
+                .ToList();
 
             var found = events.Where(ev => ev.Application != null).Select(ev =>
             {
@@ -613,7 +606,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ev.Application!.SiteId = siteId;
                 ev.Application.DiscovererId = discovererId;
                 return ev.Application;
-            });
+            }).ToList();
 
             // Create endpoints lookup table per found application id
             var endpoints = events.Where(ev => ev.Application != null)

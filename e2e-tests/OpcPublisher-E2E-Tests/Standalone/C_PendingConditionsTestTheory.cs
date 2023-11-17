@@ -30,7 +30,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
-                _timeoutToken).ConfigureAwait(false);
+                _timeoutToken);
 
             var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 1, _timeoutToken);
 
@@ -39,9 +39,9 @@ namespace OpcPublisherAEE2ETests.Standalone
                 50000,
                 _writerId,
             TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // Act
-            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken).ConfigureAwait(false);
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
 
             // Assert
             ValidatePendingConditionsView(payloads);

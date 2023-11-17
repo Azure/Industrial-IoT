@@ -65,15 +65,16 @@ namespace OpcPublisherAEE2ETests.Deploy
             var createOptions = JsonConvert.SerializeObject(new
             {
                 Hostname = ModuleName,
+                User = "root",
                 Cmd = new[] {
-                "--pki=" + TestConstants.PublishedNodesFolder + "/pki",
-                "--dm", // Disable metadata support
-                "--aa",
-                "--pf=" + TestConstants.PublishedNodesFullName,
-                "--mm=" + MessagingMode.ToString(),
-                "--fm=true",
-                "--RuntimeStateReporting=true"
-            },
+                    "--pki=" + TestConstants.PublishedNodesFolder + "/pki",
+                    "--dm", // Disable metadata support
+                    "--aa",
+                    "--pf=" + TestConstants.PublishedNodesFullName,
+                    "--mm=" + MessagingMode.ToString(),
+                    "--fm=true",
+                    "--RuntimeStateReporting=true"
+                },
                 HostConfig = new
                 {
                     Binds = new[] {

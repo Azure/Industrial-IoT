@@ -1,10 +1,10 @@
 <#
  .SYNOPSIS
-    Creates release images with a particular release version in 
-    production ACR from the tested development version. 
+    Creates release images with a particular release version in
+    production ACR from the tested development version.
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
+    The script requires az to be installed and already logged on to a
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
@@ -18,7 +18,7 @@
     The namespace in the build registry (optional)
 
  .PARAMETER ReleaseRegistry
-    The name of the destination registry where release images will 
+    The name of the destination registry where release images will
     be created.
  .PARAMETER ReleaseSubscription
     The subscription of the release registry is different than build
@@ -40,7 +40,7 @@
     Release as major update
  .PARAMETER PreviewVersion
     Release only as -ReleaseVersion with -preview{PreviewVersion} appended
-    to the tag. This will not update rolling tags like latest and major 
+    to the tag. This will not update rolling tags like latest and major
     version and allow customers to test the releae image ahead of release.
  .PARAMETER RemoveNamespaceOnRelease
     Remove namespace (e.g. public) on release.
@@ -64,12 +64,12 @@ Param(
 
 if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     # check if release registry exists and if not create it
-    $argumentList = @("acr", "show", "--name", $script:ReleaseRegistry, 
+    $argumentList = @("acr", "show", "--name", $script:ReleaseRegistry,
         "--subscription", $script:ReleaseSubscription)
     $registry = & "az" @argumentList | ConvertFrom-Json
     if (!$registry) {
         # create registry - check if group exists and if not create it.
-        $argumentList = @("group", "show", "-g", $script:ResourceGroupName, 
+        $argumentList = @("group", "show", "-g", $script:ResourceGroupName,
             "--subscription", $script:ReleaseSubscription)
         $group = & "az" @argumentList 2>$null | ConvertFrom-Json
         if (!$group) {
@@ -77,7 +77,7 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
                 throw "Need a resource group location to create the resource group."
             }
             $argumentList = @("group", "create", "-g", $script:ResourceGroupName, `
-                "-l", $script:ResourceGroupLocation, 
+                "-l", $script:ResourceGroupLocation,
                 "--subscription", $script:ReleaseSubscription)
             $group = & "az" @argumentList | ConvertFrom-Json
             if ($LastExitCode -ne 0) {
@@ -88,10 +88,10 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
         if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
             $script:ResourceGroupLocation = $group.location
         }
-    
+
         $argumentList = @("acr", "create", "-g", $script:ResourceGroupName, "-n", `
             $script:ReleaseRegistry, "-l", $script:ResourceGroupLocation, `
-            "--sku", "Basic", "--admin-enabled", "true", 
+            "--sku", "Basic", "--admin-enabled", "true",
             "--subscription", $script:ReleaseSubscription)
         $registry = & "az" @argumentList | ConvertFrom-Json
         if ($LastExitCode -ne 0) {
@@ -104,7 +104,7 @@ Write-Host "Created container registry $($registry.name) in $script:ResourceGrou
 # Set build subscription if provided
 if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
     Write-Debug "Setting subscription to $($script:BuildSubscription)"
-    $argumentList = @("account", "set", 
+    $argumentList = @("account", "set",
         "--subscription", $script:BuildSubscription, "-ojson")
     & "az" @argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
@@ -112,9 +112,9 @@ if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
     }
 }
 
-# Get build repositories 
+# Get build repositories
 $argumentList = @("acr", "repository", "list",
-    "--name", $script:BuildRegistry, "-ojson", 
+    "--name", $script:BuildRegistry, "-ojson",
     "--subscription", $script:BuildSubscription)
 $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
 if ($LastExitCode -ne 0) {
@@ -142,7 +142,7 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     # see if build tag exists
-    $argumentList = @("acr", "repository", "show", 
+    $argumentList = @("acr", "repository", "show",
         "--name", $script:BuildRegistry,
         "--subscription", $script:BuildSubscription,
         "-t", $BuildTag,
@@ -186,11 +186,11 @@ foreach ($Repository in $BuildRepositories) {
         }
     }
 
-    # Create acr command line 
+    # Create acr command line
     # --force is needed to replace existing tags like "latest" with new images
     $argumentList = @("acr", "import", "-ojson", "--force",
         "--name", $script:ReleaseRegistry,
-        "--source", $BuildTag, 
+        "--source", $BuildTag,
         "--registry", $script:BuildRegistry
     )
     # set release subscription
@@ -216,8 +216,8 @@ foreach ($Repository in $BuildRepositories) {
         $argumentList += "--image"
         $argumentList += "$($TargetRepository):$($ReleaseTag)"
     }
-    
-    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)" 
+
+    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)"
     $ConsoleOutput = "Copying $FullImageName $($Image.digest) with tags '$($ReleaseTags -join ", ")' to release $script:ReleaseRegistry"
     Write-Host "Starting Job $ConsoleOutput..."
     $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $ConsoleOutput) -ScriptBlock {
@@ -246,4 +246,4 @@ if ($jobs.Count -ne 0) {
         throw "ERROR: Copying $($_.Name). resulted in $($_.State)."
     }
 }
-Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)."  
+Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)."

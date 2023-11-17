@@ -41,10 +41,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                await Assert.ThrowsAsync<ArgumentException>(async () => await service.GetSupervisorAsync("test", false));
+                await Assert.ThrowsAsync<ArgumentException>(
+                    async () => await service.GetSupervisorAsync("test", false, default));
             }
         }
         [Fact]
@@ -60,11 +61,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
                 await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    async () => await service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false));
+                    async () => await service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false, default));
             }
         }
 
@@ -81,10 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var result = await service.GetSupervisorAsync(supervisors[0].Id, false);
+                var result = await service.GetSupervisorAsync(supervisors[0].Id, false, default);
 
                 // Assert
                 Assert.True(result.IsSameAs(supervisors[0]));
@@ -104,10 +105,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = await service.ListSupervisorsAsync(null, false, null);
+                var records = await service.ListSupervisorsAsync(null, false, null, default);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -127,10 +128,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = await service.QuerySupervisorsAsync(null, false, null);
+                var records = await service.QuerySupervisorsAsync(null, false, null, default);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -150,13 +151,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
                 var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
                 {
                     SiteId = site
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.True(supervisors.IsSameAs(records.Items));
@@ -176,13 +177,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
+                var service = mock.Create<SupervisorRegistry>();
 
                 // Run
                 var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
                 {
                     SiteId = "test"
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);

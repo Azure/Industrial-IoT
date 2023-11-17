@@ -76,10 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task UpdateSupervisorAsync(string supervisorId,
             [FromBody][Required] SupervisorUpdateModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _supervisors.UpdateSupervisorAsync(supervisorId, request,
                 ct).ConfigureAwait(false);
         }
@@ -109,15 +106,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken]
-                    .FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
             {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _supervisors.ListSupervisorsAsync(continuationToken,
@@ -149,14 +144,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
-            {
-                pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 
@@ -191,14 +182,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            ArgumentNullException.ThrowIfNull(query);
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
+value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 

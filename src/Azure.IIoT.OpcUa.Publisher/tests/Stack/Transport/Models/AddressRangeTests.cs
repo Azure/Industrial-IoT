@@ -40,12 +40,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestSubnetNicLocal()
         {
-            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-            if (!nics.Any())
+            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired).ToList();
+            if (nics.Count == 0)
             {
                 return;
             }
-            var nic = nics.First();
+            var nic = nics[0];
             var range = new AddressRange(nic, true);
 
             Assert.Equal(nic.UnicastAddress, (IPv4Address)range.Low);
@@ -56,12 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestSubnetNic()
         {
-            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-            if (!nics.Any())
+            var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired).ToList();
+            if (nics.Count == 0)
             {
                 return;
             }
-            var nic = nics.First();
+            var nic = nics[0];
             var expected = new AddressRange(nic.UnicastAddress, nic.SubnetMask);
             var range = new AddressRange(nic);
 

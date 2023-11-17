@@ -66,7 +66,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Lower case application url
         /// </summary>
         [DataMember]
+#pragma warning disable CA1308 // Normalize strings to uppercase
         public string? ApplicationUriLC => ApplicationUri?.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
         /// <summary>
         /// Application name

@@ -62,18 +62,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel connection,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "PublishStart", _serializer.SerializeToMemory(new
                 {
@@ -87,18 +81,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel connection,
             PublishStopRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "PublishStop", _serializer.SerializeToMemory(new
                 {
@@ -112,18 +100,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel connection,
             PublishBulkRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "PublishBulk", _serializer.SerializeToMemory(new
                 {
@@ -137,18 +119,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel connection,
             PublishedItemListRequestModel request, CancellationToken ct = default)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "PublishList", _serializer.SerializeToMemory(new
                 {
@@ -162,10 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
             PublishedNodesEntryModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "PublishNodes", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -176,10 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
             PublishedNodesEntryModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "UnpublishNodes", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -190,10 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             PublishedNodesEntryModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "UnpublishAllNodes", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -202,12 +169,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request, CancellationToken ct)
+            IReadOnlyList<PublishedNodesEntryModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                "AddOrUpdateEndpoints", _serializer.SerializeToMemory(request),
                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -228,10 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task SetConfiguredEndpointsAsync(
             SetConfiguredEndpointsRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _methodClient.CallMethodAsync(_target,
                "SetConfiguredEndpoints", _serializer.SerializeToMemory(request),
                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -241,10 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "GetConfiguredNodesOnEndpoint", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);

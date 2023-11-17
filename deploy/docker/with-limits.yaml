@@ -4,11 +4,11 @@ services:
   # OPC PLC Simulation
   ############################
   opcplc:
-    command: [ 
+    command: [
       "--sph",
       "--spf=/shared/pn.json",
       "--pn=50000",
-      "--fn=1", 
+      "--fn=1",
       "--sn=0",
       "--gn=0",
       "--nd",
@@ -16,7 +16,7 @@ services:
       "--ns",
       "--np",
       "--nv",
-      "--aa" 
+      "--aa"
       ]
   ############################
   # OPC Publisher
@@ -24,7 +24,7 @@ services:
   publisher:
     cpus: "0.5"
     mem_limit: 100m
-    environment: 
+    environment:
       EnableMetrics: false
       MaxNetworkMessageSendQueueSize: 4
       DOTNET_ReadyToRun: 1

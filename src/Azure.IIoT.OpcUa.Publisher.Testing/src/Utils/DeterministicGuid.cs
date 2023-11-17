@@ -38,7 +38,7 @@ namespace Opc.Ua.Test
             return new Guid($"{GetRandHex(4)}-{GetRandHex(2)}-{GetRandHex(2)}-{GetRandHex(2)}-{GetRandHex(6)}");
         }
 
-        private static object GetRandHex(int length)
+        private static string GetRandHex(int length)
         {
             var hexString = string.Empty;
 

@@ -21,13 +21,14 @@ services:
       "--aa"
       ]
     volumes:
-      - shared:/shared
+      - shared:/shared:rw
   ############################
   # OPC Publisher
   ############################
   publisher:
     container_name: publisher
     image: mcr.microsoft.com/iotedge/opc-publisher:${OPC_PUBLISHER_TAG:-2.9}
+    user: root
     ports:
       - "9071:80"
       - "9072:443"
@@ -36,8 +37,10 @@ services:
       "--aa",
       "--bs=1",
       "--bi=0",
-      "--di=0",
+      "--di=60",
+      "--pd",
       "--cl=5",
+      "--rs",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-5000}"
@@ -45,6 +48,6 @@ services:
     environment:
       EdgeHubConnectionString:
     volumes:
-      - shared:/shared
+      - shared:/shared:rw
 volumes:
   shared:

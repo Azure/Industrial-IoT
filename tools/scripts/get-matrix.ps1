@@ -3,10 +3,10 @@
     Creates buildjob matrix based on the specified file names in the tree.
 
  .DESCRIPTION
-    The script traverses the build root to find all folders with a matching 
+    The script traverses the build root to find all folders with a matching
     file and populates the matrix.  The matrix is used to spawn jobs that
     run on multiple different environments for each file.  E.g. build all
-    solution files on all platforms, run tests per particular folder of 
+    solution files on all platforms, run tests per particular folder of
     the tree, etc.
 
  .PARAMETER BuildRoot
@@ -61,11 +61,11 @@ Get-ChildItem $BuildRoot -Recurse `
     }
     $agents.keys | ForEach-Object {
         $jobName = "$($JobPrefix)$($postFix)$($_)"
-        $jobMatrix.Add($jobName, @{ 
+        $jobMatrix.Add($jobName, @{
             "poolImage" = $agents.Item($_)
-            "folder" = $folder 
-            "fullFolder" = $fullFolder 
-            "file" = $file 
+            "folder" = $folder
+            "fullFolder" = $fullFolder
+            "file" = $file
             "agent" = $($_)
         })
     }

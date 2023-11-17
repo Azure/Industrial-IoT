@@ -78,10 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
             [FromBody][Required] BrowseFirstRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.BrowseAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -104,10 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] BrowseNextRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (request.ContinuationToken == null)
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
@@ -133,10 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
             [FromBody][Required] BrowsePathRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.BrowsePathAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -196,9 +187,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromQuery][Required] string? continuationToken,
             CancellationToken ct)
         {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
             {
-                continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
+                continuationToken = value.FirstOrDefault();
             }
             if (string.IsNullOrEmpty(continuationToken))
             {
@@ -230,10 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<ValueReadResponseModel> ReadValueAsync(string endpointId,
             [FromBody][Required] ValueReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.ValueReadAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -254,10 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<ReadResponseModel> ReadAttributesAsync(string endpointId,
             [FromBody][Required] ReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.ReadAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -302,10 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<ValueWriteResponseModel> WriteValueAsync(string endpointId,
             [FromBody][Required] ValueWriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.ValueWriteAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -326,10 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<WriteResponseModel> WriteAttributesAsync(string endpointId,
             [FromBody][Required] WriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.WriteAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -354,10 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] NodeMetadataRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.GetMetadataAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -381,10 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             string endpointId, [FromBody][Required] MethodMetadataRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return await _nodes.GetMethodMetadataAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
@@ -405,10 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<MethodCallResponseModel> CallMethodAsync(string endpointId,
             [FromBody][Required] MethodCallRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
 
             // TODO: Permissions
 

@@ -815,7 +815,7 @@ namespace Opc.Ua.Test
                         var text3 = text2.Trim();
                         if (!string.IsNullOrEmpty(text3))
                         {
-                            if (text3.StartsWith("=", StringComparison.Ordinal))
+                            if (text3.StartsWith('='))
                             {
                                 if (text != null)
                                 {

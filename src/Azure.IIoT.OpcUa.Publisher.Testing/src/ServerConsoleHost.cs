@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try
                 {
+#pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server != null)
                     {
                         _logger.LogInformation("Stopping server.");
@@ -62,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         _server.Dispose();
                     }
+#pragma warning restore CA1508 // Avoid dead conditional code
                     _logger.LogInformation("Server stopped.");
                 }
                 catch (Exception ce)
@@ -127,11 +129,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try
                 {
+#pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server == null)
                     {
                         await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
                         return;
                     }
+#pragma warning restore CA1508 // Avoid dead conditional code
                 }
                 catch (Exception ex)
                 {

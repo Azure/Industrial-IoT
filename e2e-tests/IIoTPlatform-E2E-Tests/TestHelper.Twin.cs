@@ -81,7 +81,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 RestRequest request;
                 if (continuationToken == null)
@@ -239,7 +239,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post)
                 {
@@ -280,7 +280,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post)
                 {
@@ -320,7 +320,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post)
                 {
@@ -363,7 +363,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post)
                 {
@@ -408,7 +408,7 @@ namespace IIoTPlatformE2ETests
                     CancellationToken ct = default)
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post)
                 {
@@ -453,7 +453,7 @@ namespace IIoTPlatformE2ETests
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post)
                 {
@@ -507,7 +507,7 @@ namespace IIoTPlatformE2ETests
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post)
                 {

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -26,5 +27,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MessageVersion", Order = 1,
             EmitDefaultValue = true)]
         public int MessageVersion { get; set; }
+
+        /// <summary>
+        /// The utc timestamp of the runtime state event
+        /// </summary>
+        [DataMember(Name = "Timestamp", Order = 2,
+            EmitDefaultValue = true)]
+        public DateTime Timestamp { get; set; }
     }
 }

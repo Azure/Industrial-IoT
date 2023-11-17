@@ -60,10 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
             string? writerGroupId, OpcUaSubscriptionOptions options)
         {
-            if (dataSetWriter == null)
-            {
-                throw new ArgumentNullException(nameof(dataSetWriter));
-            }
+            ArgumentNullException.ThrowIfNull(dataSetWriter);
             if (dataSetWriter.DataSetWriterName == null)
             {
                 throw new ArgumentException("DataSetWriterName missing.", nameof(dataSetWriter));

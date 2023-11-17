@@ -62,6 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             CreateOptions = serializer.FromObject(new
             {
                 Hostname = "publisher",
+                User = "root",
                 Cmd = new[]
                 {
                     "--strict",                   // Strict compliance to standard

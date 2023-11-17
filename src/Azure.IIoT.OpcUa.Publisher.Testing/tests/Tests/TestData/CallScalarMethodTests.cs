@@ -1686,6 +1686,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
-        private readonly IJsonSerializer _serializer;
+        private readonly DefaultJsonSerializer _serializer;
     }
 }

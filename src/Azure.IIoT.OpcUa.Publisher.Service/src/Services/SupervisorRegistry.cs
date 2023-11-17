@@ -68,10 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UpdateSupervisorAsync(string supervisorId, SupervisorUpdateModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(supervisorId))
             {
                 throw new ArgumentNullException(nameof(supervisorId));

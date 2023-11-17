@@ -618,7 +618,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             var values = Enumerable.Empty<DataValue>();
-            foreach (var chunk in nodes.Batch(Math.Max(1, (int)(maxNodesPerRead ?? 0))))
+            foreach (var chunk in nodes.Batch(Math.Max(1, (int)maxNodesPerRead!)))
             {
                 // Group the reads
                 var requests = new ReadValueIdCollection(chunk
@@ -695,8 +695,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             // load the defaults for the historical capabilities object.
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var config =
                 new ServerCapabilitiesState(null);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             config.ServerProfileArray =
                 new PropertyState<string[]>(config);
             config.LocaleIdArray =
@@ -763,8 +765,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             // load the defaults for the historical capabilities object.
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var config =
                 new HistoryServerCapabilitiesState(null);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             config.AccessHistoryDataCapability =
                 new PropertyState<bool>(config);
             config.AccessHistoryEventsCapability =

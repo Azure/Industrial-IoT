@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
     /// <summary>
     /// Service client configuration
     /// </summary>
-    internal sealed class Configuration : ConfigureOptionBase<ServiceSdkOptions>
+    public sealed class Configuration : ConfigureOptionBase<ServiceSdkOptions>
     {
         /// <inheritdoc/>
         public override void Configure(string name, ServiceSdkOptions options)

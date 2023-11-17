@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             result.Values.Should()
                 .Equal(expected);
         }
+
         /// <summary>
         /// Valid boolean option test
         /// </summary>
@@ -119,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         {
             var result = new CommandLineTest(param);
 
-            result.Count.Should().Be(0);
+            result.CommandLine.Count.Should().Be(0);
 
             result.Warnings.Count.Should().Be(1);
             result.Warnings[0].Should().Be(
@@ -142,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         {
             var result = new CommandLineTest(param);
 
-            result.Count.Should().Be(0);
+            result.CommandLine.Count.Should().Be(0);
 
             result.Warnings.Count.Should().Be(param.Length);
 

@@ -61,10 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint, CancellationToken ct)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             var response = await _methodClient.CallMethodAsync(_target,
                 "GetEndpointCertificate_V2", _serializer.SerializeToMemory(endpoint),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -75,10 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task CancelAsync(DiscoveryCancelRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _methodClient.CallMethodAsync(_target,
                 "Cancel_V2", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -88,10 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task DiscoverAsync(DiscoveryRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _methodClient.CallMethodAsync(_target,
                 "Discover_V2", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -101,10 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task RegisterAsync(ServerRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _methodClient.CallMethodAsync(_target,
                 "Register_V2", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -114,10 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel query, CancellationToken ct)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
+            ArgumentNullException.ThrowIfNull(query);
             var response = await _methodClient.CallMethodAsync(_target,
                 "FindServer_V2", _serializer.SerializeToMemory(query),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);

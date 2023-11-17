@@ -4,7 +4,7 @@
     Sets the "ImageNamespace" variable in the pipeline
 
  .DESCRIPTION
-    The logic to disect the branch name into a namespace to 
+    The logic to disect the branch name into a namespace to
     structure the container registry.
 #>
 

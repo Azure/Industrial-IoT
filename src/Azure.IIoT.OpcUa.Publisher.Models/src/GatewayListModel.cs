@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Registrations
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<GatewayModel>? Items { get; set; }
+        public IReadOnlyList<GatewayModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final

@@ -3,7 +3,7 @@
     Push multi arch containers to Azure container registry
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
+    The script requires az to be installed and already logged on to a
     tenant. This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
@@ -19,9 +19,9 @@
     Comma seperated tags to publish. Defaults to Tag and latest
 
  .PARAMETER Debug
-    Whether to build Release or Debug - default to Release.  
+    Whether to build Release or Debug - default to Release.
  .PARAMETER NoBuid
-    If set does not build but just packages the images into a 
+    If set does not build but just packages the images into a
     manifest list
 #>
 
@@ -62,7 +62,7 @@ if ([string]::IsNullOrEmpty($script:Subscription)) {
 }
 
 # get registry information
-$argumentList = @("acr", "show", "--name", $script:Registry, 
+$argumentList = @("acr", "show", "--name", $script:Registry,
     "--subscription", $script:Subscription)
 $script:RegistryInfo = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
@@ -71,7 +71,7 @@ if ($LastExitCode -ne 0) {
 $resourceGroup = $script:RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
-$argumentList = @("acr", "credential", "show", "--name", $script:Registry, 
+$argumentList = @("acr", "credential", "show", "--name", $script:Registry,
     "--subscription", $script:Subscription)
 $credentials = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
@@ -83,7 +83,7 @@ Write-Debug "Using User name $($user) and passsword ****"
 
 Write-Host "Build and push manifest lists to $($script:Registry).azurecr.io..."
 
-# Build the manifest list from the images in the manifest 
+# Build the manifest list from the images in the manifest
 & (Join-Path $PSScriptRoot "build.ps1") -Registry "$($script:Registry).azurecr.io" `
     -User $user -Pw $password -PublishTags $script:PublishTags `
     -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `

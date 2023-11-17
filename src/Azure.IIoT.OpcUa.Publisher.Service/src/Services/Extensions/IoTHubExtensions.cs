@@ -222,7 +222,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 var add = SanitizePropertyName(s);
                 if (upperCase != null)
                 {
+#pragma warning disable CA1308 // Normalize strings to uppercase
                     add = (bool)upperCase ? add.ToUpperInvariant() : add.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
                 }
                 result.Add(add, true);
             }

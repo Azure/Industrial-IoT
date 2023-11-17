@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = new List<SubscriptionNotificationModel>();
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = new[] { new SubscriptionNotificationModel() };
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             if (encodeBatchFlag)
@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             messages[0].Notifications = messages.SelectMany(n => n.Notifications).ToList();
             messages = new List<SubscriptionNotificationModel> { messages[0] };
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             if (encodeBatchFlag)
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(50, false,
                 MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count);
@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, true,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             if (encodeBatchFlag)

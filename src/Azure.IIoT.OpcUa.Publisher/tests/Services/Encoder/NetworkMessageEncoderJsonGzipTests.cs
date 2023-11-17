@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = new List<SubscriptionNotificationModel>();
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = new[] { new SubscriptionNotificationModel() };
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false, MessageEncoding.JsonGzip);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             // Batch or no batch, the difference is that we cram all notifications
@@ -116,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 8 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(500, false, MessageEncoding.JsonGzip);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count);
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
 
             Assert.Equal(20, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.JsonGzip);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.JsonGzip,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
 
             // Single message, no array envelope due to batching resulting in 210 events from 20 notifications.
@@ -201,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 }
             };
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Equal(3, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             messages[0].MessageType = Encoders.PubSub.MessageType.KeyFrame;
             messages[0].Notifications.Clear();
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             messages[0].MessageType = Encoders.PubSub.MessageType.KeepAlive;
             messages[0].Notifications.Clear();
 
-            var encoder = GetEncoder();
+            using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Single(networkMessages);

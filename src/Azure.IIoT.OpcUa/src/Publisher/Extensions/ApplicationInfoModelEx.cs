@@ -29,10 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static string CreateApplicationId(ApplicationInfoModel model)
         {
-            if (model == null)
-            {
-                throw new ArgumentNullException(nameof(model));
-            }
+            ArgumentNullException.ThrowIfNull(model);
             var siteOrGatewayId = model.SiteId;
             return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
                 model.ApplicationType);
@@ -53,7 +50,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return null;
             }
+#pragma warning disable CA1308 // Normalize strings to uppercase
             applicationUri = applicationUri.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             var type = applicationType ?? ApplicationType.Server;
             var id = $"{siteOrGatewayId ?? ""}-{type}-{applicationUri}";
             var prefix = applicationType == ApplicationType.Client ? "uac" : "uas";
@@ -66,8 +65,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<ApplicationInfoModel>? model,
-            IEnumerable<ApplicationInfoModel>? that)
+        public static bool IsSameAs(this IReadOnlyList<ApplicationInfoModel>? model,
+            IReadOnlyList<ApplicationInfoModel>? that)
         {
             if (model == that)
             {
@@ -77,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }
@@ -328,9 +327,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<ApplicationType?>.Default.GetHashCode(
                         obj.ApplicationType);
+#pragma warning disable CA1308 // Normalize strings to uppercase
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         obj.ApplicationUri?.ToLowerInvariant() ?? string.Empty);
+#pragma warning restore CA1308 // Normalize strings to uppercase
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         obj.GetSiteOrGatewayId() ?? string.Empty);

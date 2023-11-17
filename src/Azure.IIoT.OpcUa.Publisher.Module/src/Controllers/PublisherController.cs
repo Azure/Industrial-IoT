@@ -22,9 +22,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Support restarting the module
         /// </summary>
+        /// <param name="process"></param>
         /// <param name="apikey"></param>
         /// <param name="certificate"></param>
-        /// <param name="process"></param>
         public PublisherController(IProcessControl process, IApiKeyProvider apikey,
             ISslCertProvider certificate)
         {

@@ -124,7 +124,7 @@ $storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroup.Resourc
 
 if (!$storageAccount) {
     Write-Host "Storage Account '$($storageAccountName)' does not exist, creating..."
-    $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
+    $storageAccount = New-AzStorageAccount -AllowBlobPublicAccess $True -AllowCrossTenantReplication $True -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
 }
 
 $key = Get-AzStorageAccountKey -ResourceGroupName $resourceGroup.ResourceGroupName -Name $storageAccount.StorageAccountName
@@ -136,7 +136,7 @@ $storageAccountConnectionString = "DefaultEndpointsProtocol=https;AccountName={0
 Write-Host
 $storageContext = $storageAccount.Context
 
-$storageContainer = Get-AzStorageContainer -Name $StorageContainerName -Context $storageContext -ErrorAction SilentlyContinue 
+$storageContainer = Get-AzStorageContainer -Name $StorageContainerName -Context $storageContext -ErrorAction SilentlyContinue
 
 if (!$storageContainer) {
     Write-Host "Creating storage container '$($StorageContainerName)' in storage account '$($storageAccount.StorageAccountName)'..."
@@ -145,7 +145,7 @@ if (!$storageContainer) {
 
 ## Ensure file share for ACI mount and files to be able to support dynamic ACI:s in test
 
-$storageShare = Get-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName -ErrorAction SilentlyContinue 
+$storageShare = Get-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName -ErrorAction SilentlyContinue
 
 if (!$storageShare) {
     Write-Host "Creating storage share '$($StorageFileShareName )' in storage account '$($storageAccount.StorageAccountName)'..."

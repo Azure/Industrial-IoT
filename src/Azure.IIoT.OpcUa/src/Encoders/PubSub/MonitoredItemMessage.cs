@@ -51,7 +51,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Extension fields
         /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only
         public IDictionary<string, VariantValue>? ExtensionFields { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)

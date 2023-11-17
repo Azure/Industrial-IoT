@@ -191,7 +191,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 nodeClass = readResults.ErrorInfo != null ? Opc.Ua.NodeClass.Unspecified :
                     readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
             }
-            System.Diagnostics.Debug.Assert(nodeClass != null);
             if (nodeClass == Opc.Ua.NodeClass.VariableType)
             {
                 skipValueRead = false; // read default values
@@ -378,6 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                     break;
                                 case Opc.Ua.NodeClass.Object:
                                     // Add object
+#pragma warning disable CA2000 // Dispose objects before losing scope
                                     var child = new BaseObjectState(obj)
                                     {
                                         NodeId = (NodeId)reference.NodeId,
@@ -385,6 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                         DisplayName = reference.DisplayName,
                                         ReferenceTypeId = reference.ReferenceTypeId
                                     };
+#pragma warning restore CA2000 // Dispose objects before losing scope
                                     obj.AddChild(child);
                                     break;
                             }
@@ -616,10 +617,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 // Add descriptions
                 var attributes = await session.ReadAttributeAsync<LocalizedText>(requestHeader,
                     children.Keys, Attributes.Description, ct).ConfigureAwait(false);
-                if (errorInfo != null)
-                {
-                    return errorInfo;
-                }
+                // TODO: Check attribute error info
                 foreach (var (nodeId, description) in children.Keys.Zip(attributes))
                 {
                     children[nodeId] = children[nodeId] with
@@ -910,7 +908,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 NodeId = id,
                 Value = value.Item1 == null ? null :
                     session.Codec.Encode(
-                        value.Item1?.WrappedValue, out var type),
+                        value.Item1.WrappedValue, out var type),
                 SourceTimestamp =
                     value.Item1?.SourceTimestamp,
                 SourcePicoseconds =

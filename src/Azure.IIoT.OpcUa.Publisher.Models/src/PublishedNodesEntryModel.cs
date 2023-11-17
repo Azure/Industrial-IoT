@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "OpcNodes", Order = 4,
             EmitDefaultValue = false)]
-        public List<OpcNodeModel>? OpcNodes { get; set; }
+        public IList<OpcNodeModel>? OpcNodes { get; set; }
 
         /// <summary>
         /// A dataset class id.

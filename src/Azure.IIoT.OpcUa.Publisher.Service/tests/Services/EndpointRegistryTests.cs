@@ -39,10 +39,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Assert
-                await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await service.GetEndpointAsync("test", false));
+                await Assert.ThrowsAsync<ResourceNotFoundException>(
+                    async () => await service.GetEndpointAsync("test", false, default));
             }
         }
 
@@ -63,10 +64,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var result = await service.GetEndpointAsync(id, false);
+                var result = await service.GetEndpointAsync(id, false, default);
 
                 // Assert
                 Assert.True(result.IsSameAs(endpoints[0]));
@@ -86,10 +87,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = await service.ListEndpointsAsync(null, false, null);
+                var records = await service.ListEndpointsAsync(null, false, null, default);
 
                 // Assert
                 Assert.True(endpoints.IsSameAs(records.Items));
@@ -109,10 +110,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
-                var records = await service.QueryEndpointsAsync(null, false, null);
+                var records = await service.QueryEndpointsAsync(null, false, null, default);
 
                 // Assert
                 Assert.True(endpoints.IsSameAs(records.Items));
@@ -133,13 +134,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityMode = SecurityMode.Sign
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.Equal(count, records.Items.Count);
@@ -159,13 +160,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
@@ -186,13 +187,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count == 0);
@@ -212,13 +213,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             }))
             {
-                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
+                var service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
                 {
                     Url = endpoints[0].Registration.Endpoint.Url.ToUpperInvariant()
-                }, false, null);
+                }, false, null, default);
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);

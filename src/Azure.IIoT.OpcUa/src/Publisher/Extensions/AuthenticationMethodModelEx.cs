@@ -21,8 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<AuthenticationMethodModel>? model,
-            IEnumerable<AuthenticationMethodModel>? that)
+        public static bool IsSameAs(this IReadOnlyList<AuthenticationMethodModel>? model,
+            IReadOnlyList<AuthenticationMethodModel>? that)
         {
             if (model == that)
             {
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Count() != that.Count())
+            if (model.Count != that.Count)
             {
                 return false;
             }

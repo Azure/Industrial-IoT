@@ -850,15 +850,9 @@ namespace Opc.Ua.Sample
             ref ContinuationPoint continuationPoint,
             IList<ReferenceDescription> references)
         {
-            if (continuationPoint == null)
-            {
-                throw new ArgumentNullException(nameof(continuationPoint));
-            }
+            ArgumentNullException.ThrowIfNull(continuationPoint);
 
-            if (references == null)
-            {
-                throw new ArgumentNullException(nameof(references));
-            }
+            ArgumentNullException.ThrowIfNull(references);
 
             // check for view.
             if (!ViewDescription.IsDefault(continuationPoint.View))

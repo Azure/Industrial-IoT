@@ -65,10 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
             Func<MonitoredItemMessageModel?, Task> callback)
         {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
+            ArgumentNullException.ThrowIfNull(callback);
             var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
             if (hub.ConnectionId == null)
             {

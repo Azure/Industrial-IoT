@@ -1275,6 +1275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string methodId = "http://test.org/UA/Data/#i=10768";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "String",
@@ -1317,6 +1318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = _serializer.FromObject(Array.Empty<int>())
                 }
             };
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
@@ -1464,6 +1466,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
-        private readonly ISerializer _serializer;
+        private readonly DefaultJsonSerializer _serializer;
     }
 }

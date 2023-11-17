@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        Task SetConfiguredEndpointsAsync(List<PublishedNodesEntryModel> request,
+        Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        Task AddOrUpdateEndpointsAsync(List<PublishedNodesEntryModel> request,
+        Task AddOrUpdateEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default);
 
         /// <summary>

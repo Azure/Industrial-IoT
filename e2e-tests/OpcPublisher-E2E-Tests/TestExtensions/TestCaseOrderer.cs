@@ -48,7 +48,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             }
         }
 
-        private static TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
+        private static TValue GetOrCreate<TKey, TValue>(SortedDictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
         {
             if (dictionary.TryGetValue(key, out var result))
             {

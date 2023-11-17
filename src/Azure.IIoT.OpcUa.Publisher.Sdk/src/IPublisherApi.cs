@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request,
+            IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default);
 
         /// <summary>

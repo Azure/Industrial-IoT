@@ -16,12 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum X509ChainStatus
     {
         /// <summary>
-        /// Specifies that the X509 chain has no errors.
-        /// </summary>
-        [EnumMember(Value = "NoError")]
-        NoError = 0x0,
-
-        /// <summary>
         /// Specifies that the X509 chain is not valid due to an invalid
         /// time value, such as a value that indicates an expired certificate.
         /// </summary>

@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         {
                             logger.LogInformation(
                                 "Try adding reverse connect client on {Port}...", clientPort);
-                            var listener = TcpListener.Create(clientPort);
+                            using var listener = TcpListener.Create(clientPort);
                             listener.Start(); // Throws if used and cleans up.
                             listener.Stop();  // Cleanup
                             break;
@@ -290,7 +290,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// only timers with this interval are fired.</param>
         /// <param name="numberOfTimes">Number of times the timer
         /// should be fired.</param>
+#pragma warning disable CA1030 // Use events where appropriate
         public void FireTimersWithPeriod(TimeSpan period, int numberOfTimes)
+#pragma warning restore CA1030 // Use events where appropriate
         {
             var matchedHandlers = GetTimerHandlersForPeriod((uint)period.TotalMilliseconds);
             for (var i = 0; i < numberOfTimes; i++)
@@ -308,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </summary>
         /// <param name="periodInMilliseconds"></param>
         /// <returns></returns>
-        private IList<Action> GetTimerHandlersForPeriod(uint periodInMilliseconds)
+        private List<Action> GetTimerHandlersForPeriod(uint periodInMilliseconds)
         {
             var matchedTimers = _timers.Where(t
                     => t.timer.Enabled
@@ -404,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private bool _disposedValue;
         private readonly int _port;
         private readonly IContainer _container;
-        private readonly IServerHost _serverHost;
+        private readonly ServerConsoleHost _serverHost;
         private readonly Mock<TimeService> _timeService;
         private const string kSampleServerPath = "UA/SampleServer";
     }

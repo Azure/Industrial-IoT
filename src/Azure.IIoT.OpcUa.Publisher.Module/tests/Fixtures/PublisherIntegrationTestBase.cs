@@ -59,8 +59,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !_disposedValue)
             {
+                _disposedValue = true;
+
                 if (_cts.IsCancellationRequested)
                 {
                     _testOutputHelper.WriteLine(
@@ -76,13 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (!_disposedValue)
-            {
-                _disposedValue = true;
-
-                Dispose(disposing: true);
-                GC.SuppressFinalize(this);
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -229,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     }
                     var json = Encoding.UTF8.GetString(evt.Data.ToArray());
                     var document = JsonDocument.Parse(json);
-                    json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+                    json = JsonSerializer.Serialize(document, kIndented);
                     var element = document.RootElement;
                     if (element.ValueKind == JsonValueKind.Array)
                     {
@@ -287,6 +284,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 }
             }
         }
+
+        private static readonly JsonSerializerOptions kIndented =
+            new JsonSerializerOptions { WriteIndented = true };
 
         /// <summary>
         /// Start publisher

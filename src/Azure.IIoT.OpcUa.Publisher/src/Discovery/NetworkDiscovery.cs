@@ -100,10 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
             kDiscoverAsync.Add(1, _metrics.TagList);
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             var task = new DiscoveryRequest(request);
             var scheduled = _channel.Writer.TryWrite(task);
             if (!scheduled)
@@ -133,10 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
         {
             kCancelAsync.Add(1, _metrics.TagList);
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -161,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _cts.Dispose();
             _timer.Dispose();
             _lock.Dispose();
+            _request.Dispose();
         }
 
         /// <summary>

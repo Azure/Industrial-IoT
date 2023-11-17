@@ -247,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
-                    model.BrowsePath?.Select(n => n.ToQualifiedName(encoder.Context))),
+                    model.BrowsePath.Select(n => n.ToQualifiedName(encoder.Context))),
                 IndexRange = model.IndexRange
             };
         }

@@ -5,6 +5,8 @@
 
 namespace IIoTPlatformE2ETests
 {
+    using System.Text;
+
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
@@ -69,7 +71,7 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Default Microsoft Container Registry
         /// </summary>
-        public static readonly string MicrosoftContainerRegistry = "mcr.microsoft.com";
+        public const string MicrosoftContainerRegistry = "mcr.microsoft.com";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
@@ -84,7 +86,7 @@ namespace IIoTPlatformE2ETests
             /// <summary>
             /// Route to applications within registry with application ID
             /// </summary>
-            public const string RegistryApplicationsWithApplicationIdFormat = "/registry/v2/applications/{0}";
+            public static readonly CompositeFormat RegistryApplicationsWithApplicationIdFormat = CompositeFormat.Parse("/registry/v2/applications/{0}");
 
             /// <summary>
             /// Route for discovery within registry
@@ -104,22 +106,22 @@ namespace IIoTPlatformE2ETests
             /// <summary>
             /// Route to publish single OPC UA node from OPC Publisher
             /// </summary>
-            public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
+            public static readonly CompositeFormat PublisherStartFormat = CompositeFormat.Parse("/publisher/v2/publish/{0}/start");
 
             /// <summary>
             /// Route to unpublish single OPC UA node from OPC Publisher
             /// </summary>
-            public static string PublisherStopFormat = "/publisher/v2/publish/{0}/stop";
+            public static readonly CompositeFormat PublisherStopFormat = CompositeFormat.Parse("/publisher/v2/publish/{0}/stop");
 
             /// <summary>
             /// Route to list
             /// </summary>
-            public static string PublisherListFormat = "/publisher/v2/publish/{0}";
+            public static readonly CompositeFormat PublisherListFormat = CompositeFormat.Parse("/publisher/v2/publish/{0}");
 
             /// <summary>
             /// Route to start or stop publishing multiple OPC UA nodes from OPC Publisher
             /// </summary>
-            public static string PublisherBulkFormat = "/publisher/v2/publish/{0}/bulk";
+            public static readonly CompositeFormat PublisherBulkFormat = CompositeFormat.Parse("/publisher/v2/publish/{0}/bulk");
         }
 
         /// <summary>

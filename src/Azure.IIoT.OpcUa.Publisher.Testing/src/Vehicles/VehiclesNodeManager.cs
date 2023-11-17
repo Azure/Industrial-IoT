@@ -135,10 +135,7 @@ namespace Vehicles
         /// <exception cref="ServiceResultException"></exception>
         public byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly)
         {
-            if (resourcePath == null)
-            {
-                throw new ArgumentNullException(nameof(resourcePath));
-            }
+            ArgumentNullException.ThrowIfNull(resourcePath);
 
             if (assembly == null)
             {

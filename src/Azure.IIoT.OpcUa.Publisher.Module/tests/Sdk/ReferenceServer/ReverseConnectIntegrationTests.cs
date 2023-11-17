@@ -29,7 +29,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(false)]
         public async Task RegisteredReadTestAsync(bool useReverseConnect)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var server = ReferenceServer.Create(LogFactory.Create(_output, Logging.Config), useReverseConnect);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             EndpointUrl = server.EndpointUrl;
 
             var name = nameof(RegisteredReadTestAsync) + (useReverseConnect ? "WithReverseConnect" : "NoReverseConnect");
@@ -65,7 +67,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(false)]
         public async Task KeepAliveTestAsync(bool useReverseConnect)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             using var server = ReferenceServer.Create(LogFactory.Create(_output, Logging.Config), useReverseConnect);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             EndpointUrl = server.EndpointUrl;
 
             var name = nameof(KeepAliveTestAsync) + (useReverseConnect ? "WithReverseConnect" : "NoReverseConnect");

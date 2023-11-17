@@ -19,7 +19,7 @@ docker compose -f docker-compose.yaml -f with-monitor.yaml -f with-limits.yaml u
 $dumpIndex = 0
 while ($true) {
     Start-Sleep -Seconds $WaitSeconds
-    try 
+    try
     {
         curl http://localhost:9084/gcdump -o $Path/dump$($dumpIndex).gcdump
     }
@@ -29,5 +29,5 @@ while ($true) {
     $dumpIndex++
 }
 $elapsedTime = $(get-date) - $StartTime
-Write-Host "Ran for (hh:mm:ss) $($elapsedTime.ToString("hh\:mm\:ss"))" 
+Write-Host "Ran for (hh:mm:ss) $($elapsedTime.ToString("hh\:mm\:ss"))"
 #docker compose -f docker-compose.yaml -f with-monitor.yaml -f with-limits.yaml down

@@ -406,6 +406,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
                 NetworkMessageContentMask = (uint)contentMask
             };
         }
+
         /// <summary>
         /// Create dataset message
         /// </summary>

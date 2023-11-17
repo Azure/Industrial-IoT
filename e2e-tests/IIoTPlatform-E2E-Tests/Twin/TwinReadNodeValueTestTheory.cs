@@ -28,7 +28,7 @@ namespace IIoTPlatformE2ETests.Twin
         [Fact, PriorityOrder(0)]
         public async Task TestPrepareAsync()
         {
-            await _context.AssertTestEnvironmentPreparedAsync().ConfigureAwait(false);
+            await _context.AssertTestEnvironmentPreparedAsync();
         }
 
         [Theory, PriorityOrder(1)]
@@ -52,7 +52,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
-            var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).ConfigureAwait(false);
+            var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token);
 
             Assert.Equal(expectedDataType, dataType);
 
@@ -70,7 +70,7 @@ namespace IIoTPlatformE2ETests.Twin
 
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
-            var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token).ConfigureAwait(false);
+            var (value, dataType) = await TestHelper.Twin.ReadNodeValueAsync(_context, _context.OpcUaEndpointId, nodeId, cts.Token);
 
             Assert.Equal(expectedDataType, dataType);
 

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
@@ -38,5 +39,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         bool TryGetDiagnosticsForWriterGroup(string writerGroupId,
             [NotNullWhen(true)] out WriterGroupDiagnosticModel? diagnostic);
+
+        /// <summary>
+        /// Enumerate diagnostics
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<(string, WriterGroupDiagnosticModel)> EnumerateDiagnostics();
     }
 }

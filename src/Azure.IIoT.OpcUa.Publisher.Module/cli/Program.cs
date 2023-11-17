@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -28,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// <summary>
     /// Publisher module host process
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// Entry point
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             int? reverseConnectPort = null;
 
             var loggerFactory = Log.ConsoleFactory();
-            var logger = loggerFactory.CreateLogger<Program>();
+            var logger = loggerFactory.CreateLogger<PublisherModule>();
 
             logger.LogInformation("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -132,16 +133,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     throw new ArgumentException("Bad connection string.");
                 }
 
-                if (deviceId == null)
-                {
-                    deviceId = Utils.GetHostName();
-                    logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
-                }
-                if (moduleId == null)
-                {
-                    moduleId = "publisher";
-                    logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
-                }
+                deviceId = Utils.GetHostName();
+                logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
+                moduleId = "publisher";
+                logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
 
                 args = unknownArgs.ToArray();
             }
@@ -234,7 +229,7 @@ Options:
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
             bool acceptAll, CancellationToken ct)
         {
-            var logger = loggerFactory.CreateLogger<Program>();
+            var logger = loggerFactory.CreateLogger<PublisherModule>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
@@ -268,7 +263,7 @@ Options:
                 await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    cts.Cancel();
+                    await cts.CancelAsync().ConfigureAwait(false);
                     await running.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
@@ -316,7 +311,6 @@ Options:
             string deviceId, string moduleId, string[] args, string publishProfile, bool acceptAll,
             int? reverseConnectPort, CancellationToken ct)
         {
-            var logger = loggerFactory.CreateLogger<Program>();
             try
             {
                 // Start test server
@@ -329,9 +323,10 @@ Options:
                         {
                             var publishedNodesFilePath = Path.GetTempFileName();
 
-                            File.WriteAllText(publishedNodesFilePath,
-                                File.ReadAllText(publishedNodesFile).Replace("{{EndpointUrl}}",
-                                    $"opc.tcp://localhost:{server.Port}/UA/SampleServer", StringComparison.Ordinal));
+                            await File.WriteAllTextAsync(publishedNodesFilePath,
+                                (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                                .Replace("{{EndpointUrl}}", $"opc.tcp://localhost:{server.Port}/UA/SampleServer",
+                                    StringComparison.Ordinal), ct).ConfigureAwait(false);
 
                             args = args.Concat(new[]
                             {

@@ -54,7 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var session = SetupMockedSession(namespaceUris).Object;
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(template.YieldReturn(),
                 Log.ConsoleFactory()).Single();
-            monitoredItemWrapper.AddTo(new Subscription(), session, out _);
+            using var subscription = new Subscription();
+            monitoredItemWrapper.AddTo(subscription, session, out _);
             return monitoredItemWrapper;
         }
     }

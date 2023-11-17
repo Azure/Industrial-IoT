@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Sites
         /// </summary>
         [DataMember(Name = "sites", Order = 0)]
-        public List<string>? Sites { get; set; }
+        public IReadOnlyList<string>? Sites { get; set; }
 
         /// <summary>
         /// Continuation or null if final

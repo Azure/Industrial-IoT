@@ -81,7 +81,7 @@ namespace IIoTPlatformE2ETests
             Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
             Assert.True(!string.IsNullOrWhiteSpace(serviceId), "serviceId is null");
 
-            var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
+            using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
                 client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
 
             var request = new RestRequest("", Method.Post)
@@ -226,7 +226,7 @@ namespace IIoTPlatformE2ETests
                 }
             }
 
-            var restClient = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+            using var restClient = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
             return await restClient.ExecuteAsync(request, ct).ConfigureAwait(false);
         }
 
@@ -256,7 +256,7 @@ namespace IIoTPlatformE2ETests
                         using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
                         foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
                         {
-                            if (edge != string.Empty)
+                            if (!string.IsNullOrEmpty(edge))
                             {
                                 // Copy file to the edge vm
                                 var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
@@ -479,7 +479,7 @@ namespace IIoTPlatformE2ETests
             var terminal = client.RunCommand("rm " + fileName);
 
             if (string.IsNullOrEmpty(terminal.Error) ||
-                terminal.Error.ToLowerInvariant().Contains("no such file", StringComparison.Ordinal))
+                terminal.Error.Contains("no such file", StringComparison.OrdinalIgnoreCase))
             {
                 isSuccessful = true;
             }
@@ -490,7 +490,7 @@ namespace IIoTPlatformE2ETests
                 using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
                 {
-                    if (edge != string.Empty)
+                    if (!string.IsNullOrEmpty(edge))
                     {
                         var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
                         sshCient.RunCommand(command);
@@ -540,7 +540,7 @@ namespace IIoTPlatformE2ETests
         {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
-            var client = new RestClient(runtimeUrl,
+            using var client = new RestClient(runtimeUrl,
                 client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
                     context.TestEventProcessorConfig.TestEventProcessorPassword));
 
@@ -588,7 +588,7 @@ namespace IIoTPlatformE2ETests
             // TODO Merge with Start-Method to avoid code duplication
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
-            var client = new RestClient(runtimeUrl,
+            using var client = new RestClient(runtimeUrl,
                 client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
                     context.TestEventProcessorConfig.TestEventProcessorPassword));
 
@@ -631,7 +631,7 @@ namespace IIoTPlatformE2ETests
 
             try
             {
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+                using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 while (true)
                 {
@@ -859,7 +859,7 @@ namespace IIoTPlatformE2ETests
         private static async Task<dynamic> GetEndpointsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct)
         {
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+            using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
             var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get)
             {
@@ -881,7 +881,7 @@ namespace IIoTPlatformE2ETests
         private static async Task<dynamic> GetApplicationsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct)
         {
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+            using var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
             var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get)
             {

@@ -181,10 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask UpdateAsync(SubscriptionModel subscription,
             CancellationToken ct)
         {
-            if (subscription == null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
+            ArgumentNullException.ThrowIfNull(subscription);
             if (subscription.Configuration == null)
             {
                 throw new ArgumentException("Missing configuration", nameof(subscription));
@@ -343,7 +340,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = CreateMessage(notifications, messageType, dataSetName, subscription);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 onSubscriptionEventChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
@@ -358,7 +357,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = CreateMessage(notifications, messageType, dataSetName, subscription);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 onSubscriptionDataChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
@@ -419,7 +420,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await Try.Async(
                     () => subscription.DeleteAsync(true)).ConfigureAwait(false);
 
-                subscription.Session?.RemoveSubscription(subscription);
+                if (subscription.Session != null)
+                {
+                    await subscription.Session.RemoveSubscriptionAsync(subscription).ConfigureAwait(false);
+                }
+
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);
             }
             catch (Exception e)
@@ -451,6 +456,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var operationLimits = await sessionHandle.GetOperationLimitsAsync(
                 ct).ConfigureAwait(false);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var desired = OpcUaMonitoredItem
                 .Create(monitoredItems, _loggerFactory, _clients,
                     _subscription?.Id.Connection == null ? null :
@@ -1071,6 +1077,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var enablePublishing =
                     _subscription?.Configuration?.EnableImmediatePublishing ?? false;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var subscription = new Subscription(session.DefaultSubscription)
                 {
                     Handle = Id,
@@ -1091,6 +1098,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
                     FastEventCallback = OnSubscriptionEventNotificationList
                 };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 ReapplySessionOperationTimeout(session, subscription);
 
@@ -1113,7 +1121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (!subscription.Created)
                 {
-                    session.RemoveSubscription(subscription);
+                    await session.RemoveSubscriptionAsync(subscription, ct).ConfigureAwait(false);
 
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
                         $"Failed to create subscription {this} in session {session}");
@@ -1345,6 +1353,7 @@ Actual (revised) state/desired state:
                     Debug.Assert(eventFieldList != null);
                     if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var wrapper))
                     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                         var message = new Notification(this, subscription.Id, sequenceNumber: sequenceNumber)
                         {
                             ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1429,6 +1438,7 @@ Actual (revised) state/desired state:
                 "with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.",
                 this, sequenceNumber, publishTime);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var message = new Notification(this, subscription.Id)
             {
                 ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1440,6 +1450,7 @@ Actual (revised) state/desired state:
                 SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                 MessageType = MessageType.KeepAlive
             };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             onSubscriptionKeepAlive.Invoke(this, message);
             Debug.Assert(message.Notifications != null);
@@ -1473,6 +1484,7 @@ Actual (revised) state/desired state:
                 var sequenceNumber = notification.SequenceNumber;
                 var publishTime = notification.PublishTime;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = new Notification(this, subscription.Id, sequenceNumber: sequenceNumber)
                 {
                     ServiceMessageContext = subscription.Session?.MessageContext,
@@ -1504,7 +1516,7 @@ Actual (revised) state/desired state:
                         dropped ? "dropped" : "already received", publishTime);
                 }
 
-                foreach (var item in notification.MonitoredItems)
+                foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
                 {
                     Debug.Assert(item != null);
                     if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))
@@ -1735,7 +1747,7 @@ Actual (revised) state/desired state:
             {
                 try
                 {
-                    _cts.Cancel();
+                    await _cts.CancelAsync().ConfigureAwait(false);
                     await _loader.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
@@ -1782,6 +1794,10 @@ Actual (revised) state/desired state:
                     }
                     catch (Exception ex)
                     {
+                        _subscription._logger.LogError(
+                            "Failed to get metadata for {Subscription} with error {Error}",
+                            this, ex.Message);
+
                         args.tcs?.TrySetException(ex);
                     }
                 }
@@ -1896,7 +1912,9 @@ Actual (revised) state/desired state:
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private ImmutableDictionary<uint, IOpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Subscription? _currentSubscription;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool _online;
         private long _connectionAttempts;
         private uint _previousSequenceNumber;

@@ -61,10 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         public AddressRange(IPAddress address, int suffix,
             string? nic = null)
         {
-            if (address == null)
-            {
-                throw new ArgumentNullException(nameof(address));
-            }
+            ArgumentNullException.ThrowIfNull(address);
             if (suffix > 32)
             {
                 throw new ArgumentException("Suffix too large", nameof(suffix));
@@ -90,10 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         public AddressRange(NetInterface itf,
             bool localOnly = false, int? suffix = null)
         {
-            if (itf == null)
-            {
-                throw new ArgumentNullException(nameof(itf));
-            }
+            ArgumentNullException.ThrowIfNull(itf);
             var curAddr = (uint)new IPv4Address(itf.UnicastAddress);
             Nic = string.IsNullOrEmpty(itf.Name) ? kNullNicName : itf.Name;
             if (localOnly)
@@ -125,14 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         public AddressRange(IPAddress address, IPAddress subnet,
             int? suffix = null, string? nic = null)
         {
-            if (address == null)
-            {
-                throw new ArgumentNullException(nameof(address));
-            }
-            if (subnet == null)
-            {
-                throw new ArgumentNullException(nameof(subnet));
-            }
+            ArgumentNullException.ThrowIfNull(address);
+            ArgumentNullException.ThrowIfNull(subnet);
 
             var mask = suffix == null ?
                 (uint)new IPv4Address(subnet) :

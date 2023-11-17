@@ -637,11 +637,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     x.Source.SubscriptionSettings?.PublishingInterval
                         == source.SubscriptionSettings.PublishingInterval) > 1)
                 {
-                    if (!string.IsNullOrEmpty(source.PublishedVariables?.PublishedData?.First()?.PublishedVariableNodeId))
+                    if (!string.IsNullOrEmpty(source.PublishedVariables?.PublishedData?[0]?.PublishedVariableNodeId))
                     {
                         result += $"_{source.PublishedVariables.PublishedData[0].PublishedVariableNodeId}";
                     }
-                    else if (!string.IsNullOrEmpty(source.PublishedEvents?.PublishedData?.First()?.EventNotifier))
+                    else if (!string.IsNullOrEmpty(source.PublishedEvents?.PublishedData?[0]?.EventNotifier))
                     {
                         result += $"_{source.PublishedEvents.PublishedData[0].EventNotifier}";
                     }

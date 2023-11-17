@@ -412,7 +412,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
             var builtInType = await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                session.NodeCache.TypeTree, ct).ConfigureAwait(false);
+                session.TypeTree, ct).ConfigureAwait(false);
             fields.Add(new FieldMetaData
             {
                 Name = fieldName,
@@ -472,8 +472,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         break;
                     }
 
-                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                        session.TypeTree, ct).ConfigureAwait(false);
+                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId, session.TypeTree,
+                        ct).ConfigureAwait(false);
                     baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
 
                     switch (builtInType)
@@ -529,6 +529,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     _logger.LogDebug(ex, "{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
+                    throw;
                 }
             }
 
@@ -864,9 +865,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogWarning("{Item}: Failed to get meta data for field {Field} " +
-                        "with node {NodeId}: {Message}", this, Template.DisplayName, nodeId,
-                        ex.Message);
+                    _logger.LogDebug(ex, "{Item}: Failed to get meta data for field {Field} " +
+                        "with node {NodeId}.", this, Template.DisplayName, nodeId);
+                    throw;
                 }
             }
 
@@ -1544,7 +1545,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private readonly ConnectionIdentifier _connection;
             private readonly IClientSampler<ConnectionModel> _sampler;
             private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+#pragma warning disable CA2213 // Disposable fields should be disposed
             private IAsyncDisposable? _sampling;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         }
 
         /// <summary>
@@ -1695,15 +1698,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception e)
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogError(e, "{Item}: Failed to get metadata.", this);
-                    }
-                    else
-                    {
-                        _logger.LogError("{Item}: Failed to get metadata with error {Error}.",
-                            this, e.Message);
-                    }
+                    _logger.LogDebug(e, "{Item}: Failed to get metadata for event.", this);
+                    throw;
                 }
             }
 
@@ -2146,7 +2142,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="node"></param>
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
-            protected async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
+            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
                 Node node, string browsePathPrefix, CancellationToken ct)
             {
                 foreach (var reference in node.ReferenceTable)
@@ -2242,7 +2238,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 var evFilter = Item.Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
-                    evFilter?.SelectClauses
+                    evFilter.SelectClauses
                         .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                             && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 

@@ -19,6 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "endpoints", Order = 0,
             EmitDefaultValue = false)]
-        public List<PublishedNodesEntryModel>? Endpoints { get; set; }
+        public IReadOnlyList<PublishedNodesEntryModel>? Endpoints { get; set; }
     }
 }

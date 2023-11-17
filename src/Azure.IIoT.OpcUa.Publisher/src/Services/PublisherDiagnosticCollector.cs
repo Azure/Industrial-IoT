@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -33,9 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create collector
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="options"></param>
-        public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
-            IOptions<PublisherOptions>? options = null)
+        public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -48,13 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meterListener.SetMeasurementEventCallback<float>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<decimal>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<short>(OnMeasurementRecorded);
-
-            _diagnosticInterval = options?.Value.DiagnosticsInterval ?? TimeSpan.Zero;
-            if (_diagnosticInterval == TimeSpan.Zero)
-            {
-                _diagnosticInterval = Timeout.InfiniteTimeSpan;
-            }
-            _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
         }
 
         /// <inheritdoc/>
@@ -85,6 +77,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public IEnumerable<(string, WriterGroupDiagnosticModel)> EnumerateDiagnostics()
+        {
+            var now = DateTime.UtcNow;
+            _meterListener.RecordObservableInstruments();
+
+            foreach (var (writerGroupId, info) in _diagnostics
+                 .Select(kv => (kv.Key, kv.Value.AggregateModel)))
+            {
+                yield return (writerGroupId, info with
+                {
+                    Timestamp = now,
+                    IngestionDuration = now - info.IngestionStart,
+                });
+            }
+        }
+
+        /// <inheritdoc/>
         public bool RemoveWriterGroup(string writerGroupId)
         {
             if (_diagnostics.TryRemove(writerGroupId, out _))
@@ -100,21 +109,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public void Start()
         {
             _meterListener.Start();
-            _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            try
-            {
-                _diagnosticsOutputTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            }
-            finally
-            {
-                _meterListener.Dispose();
-                _diagnosticsOutputTimer.Dispose();
-            }
+            _meterListener.Dispose();
         }
 
         /// <summary>
@@ -178,131 +178,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Diagnostics timer to dump out all diagnostics
-        /// </summary>
-        /// <param name="state"></param>
-        private void DiagnosticsOutputTimer_Elapsed(object? state)
-        {
-            var now = DateTime.UtcNow;
-            _meterListener.RecordObservableInstruments();
-
-            var builder = new StringBuilder();
-            foreach (var (writerGroupId, info) in _diagnostics
-                .Select(kv => (kv.Key, kv.Value.AggregateModel)))
-            {
-                builder = Append(builder, writerGroupId, info, now - info.IngestionStart);
-            }
-            if (builder.Length > 0)
-            {
-                Console.Out.WriteLine(builder.ToString());
-            }
-
-            StringBuilder Append(StringBuilder builder, string writerGroupId,
-                WriterGroupDiagnosticModel info, TimeSpan ingestionDuration)
-            {
-                var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
-                var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
-                var dataChangesLastMin = info.IngressDataChangesInLastMinute
-                    .ToString("D2", CultureInfo.CurrentCulture);
-                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute /
-                    Math.Min(ingestionDuration.TotalSeconds, 60d);
-                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute /
-                    Math.Min(ingestionDuration.TotalSeconds, 60d);
-                var version = GetType().Assembly.GetReleaseVersion().ToString();
-
-                var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
-                    : string.Empty;
-                var valueChangesPerSecFormatted = info.IngressValueChanges > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"(All time ~{valueChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
-                    : string.Empty;
-                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
-
-                return builder.AppendLine()
-                    .Append("  DIAGNOSTICS INFORMATION for          : ")
-                        .Append(writerGroupId).Append(" (OPC Publisher ").Append(version)
-                        .AppendLine(")")
-                    .Append("  # Time                               : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:O}", now)
-                        .AppendLine()
-                    .Append("  # Ingestion duration                 : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", ingestionDuration)
-                        .AppendLine(" (dd:hh:mm:ss)")
-                    .Append("  # Ingress DataChanges (from OPC)     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges)
-                        .Append(' ').AppendLine(dataChangesPerSecFormatted)
-                    .Append("  # Ingress ValueChanges (from OPC)    : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
-                        .AppendLine(valueChangesPerSecFormatted)
-                    .Append("  # of which are Heartbeats            : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressHeartbeats)
-                        .AppendLine()
-                    .Append("  # of which are Cyclic reads          : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads)
-                        .AppendLine()
-                    .Append("  # Ingress EventData (from OPC)       : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
-                        .AppendLine()
-                    .Append("  # Ingress Events (from OPC)          : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents)
-                        .AppendLine()
-                    .Append("  # Ingress BatchBlock buffer size     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.IngressBatchBlockBufferSize)
-                        .AppendLine()
-                    .Append("  # Encoding Block input/output size   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncodingBlockInputSize).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncodingBlockOutputSize).AppendLine()
-                    .Append("  # Encoder Notifications processed    : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed)
-                        .AppendLine()
-                    .Append("  # Encoder Notifications dropped      : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsDropped)
-                        .AppendLine()
-                    .Append("  # Encoder IoT Messages processed     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderIoTMessagesProcessed)
-                        .AppendLine()
-                    .Append("  # Encoder avg Notifications/Message  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncoderAvgNotificationsMessage)
-                        .AppendLine()
-                    .Append("  # Encoder worst Message split ratio  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}", info.EncoderMaxMessageSplitRatio)
-                        .AppendLine()
-                    .Append("  # Encoder avg IoT Message body size  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgIoTMessageBodySize)
-                        .AppendLine()
-                    .Append("  # Encoder avg IoT Chunk (4 KB) usage : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}", info.EncoderAvgIoTChunkUsage)
-                        .AppendLine()
-                    .Append("  # Estimated IoT Chunks (4 KB) per day: ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EstimatedIoTChunksPerDay)
-                        .AppendLine()
-                    .Append("  # Outgress input buffer count        : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount)
-                        .AppendLine()
-                    .Append("  # Outgress input buffer dropped      : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferDropped)
-                        .AppendLine()
-                    .Append("  # Outgress IoT message count         : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressIoTMessageCount)
-                        .Append(' ').AppendLine(sentMessagesPerSecFormatted)
-                    .Append("  # Connection retries                 : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.ConnectionRetries)
-                        .AppendLine()
-                    .Append("  # Opc endpoint connected?            : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.OpcEndpointConnected)
-                        .AppendLine()
-                    .Append("  # Monitored Opc nodes succeeded count: ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesSucceededCount)
-                        .AppendLine()
-                    .Append("  # Monitored Opc nodes failed count   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesFailedCount)
-                        .AppendLine()
-                    ;
-            }
-        }
-
-        /// <summary>
         /// Aggregate diagnostics
         /// </summary>
         private sealed record class AggregateDiagnosticModel : WriterGroupDiagnosticModel
@@ -343,10 +218,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _writers = new();
         }
 
-        private readonly Timer _diagnosticsOutputTimer;
         private readonly MeterListener _meterListener;
         private readonly ILogger _logger;
-        private readonly TimeSpan _diagnosticInterval;
         private readonly ConcurrentDictionary<string, AggregateDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing

@@ -148,10 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<BrowseFirstResponseModel> BrowseFirstAsync(string endpoint,
             BrowseFirstRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeBrowseFirst", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -168,10 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<BrowseNextResponseModel> BrowseNextAsync(string endpoint,
             BrowseNextRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeBrowseNext", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -196,10 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<BrowsePathResponseModel> BrowsePathAsync(string endpoint,
             BrowsePathRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeBrowsePath", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -216,10 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ValueReadResponseModel> ValueReadAsync(string endpoint,
             ValueReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeValueRead", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -236,10 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ValueWriteResponseModel> ValueWriteAsync(string endpoint,
             ValueWriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeValueWrite", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -256,10 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<MethodMetadataResponseModel> GetMethodMetadataAsync(string endpoint,
             MethodMetadataRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeMethodGetMetadata", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -276,10 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<MethodCallResponseModel> MethodCallAsync(string endpoint,
             MethodCallRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeMethodCall", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -296,10 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ReadResponseModel> ReadAsync(string endpoint,
             ReadRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeRead", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -316,10 +292,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<WriteResponseModel> WriteAsync(string endpoint,
             WriteRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("NodeWrite", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -352,10 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<NodeMetadataResponseModel> GetMetadataAsync(string endpoint,
             NodeMetadataRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("GetMetadata", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -372,10 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<QueryCompilationResponseModel> CompileQueryAsync(string endpoint,
             QueryCompilationRequestModel request, CancellationToken ct = default)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("CompileQuery", endpoint, (publisherId, endpoint) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -406,10 +373,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             string endpoint, HistoryConfigurationRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryGetConfiguration", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -426,10 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(string endpoint,
             HistoryReadRequestModel<VariantValue> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryRead", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -446,10 +407,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             string endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadNext", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -466,10 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(string endpoint,
             HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryUpdate", endpoint, (publisherId, ep) =>
             {
                 var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
@@ -486,10 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<PublishStartResponseModel> PublishStartAsync(string endpoint,
             PublishStartRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("PublishStart", endpoint, (publisherId, ep) =>
             {
                 var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
@@ -506,10 +458,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<PublishStopResponseModel> PublishStopAsync(string endpoint,
             PublishStopRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("PublishStop", endpoint, (publisherId, ep) =>
             {
                 var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
@@ -526,10 +475,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<PublishBulkResponseModel> PublishBulkAsync(string endpoint,
             PublishBulkRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("PublishBulk", endpoint, (publisherId, ep) =>
             {
                 var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
@@ -546,10 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<PublishedItemListResponseModel> PublishListAsync(string endpoint,
             PublishedItemListRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("PublishList", endpoint, (publisherId, ep) =>
             {
                 var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
@@ -566,10 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReplaceEvents", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -586,10 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryInsertEvents", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -606,10 +543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryUpsertEvents", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -626,10 +560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(string endpoint,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryDeleteEvents", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -647,10 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryDeleteValuesAtTimes", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -668,10 +596,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryDeleteModifiedValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -688,10 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(string endpoint,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryDeleteValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -708,10 +630,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReplaceValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -728,10 +647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryInsertValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -748,10 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryUpsertValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -769,10 +682,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadEvents", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -789,10 +699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadEventsNext", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -810,10 +717,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -831,10 +735,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadValuesAtTimes", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -852,10 +753,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadProcessedValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -873,10 +771,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             string endpoint, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadModifiedValues", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);
@@ -893,10 +788,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             string endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             return Execute("HistoryReadValuesNext", endpoint, (publisherId, ep) =>
             {
                 var client = new HistoryApiClient(_client, publisherId, kTimeout, _serializer);

@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
             _metrics = metrics ??
-                throw new ArgumentNullException(nameof(metrics));
+                IMetricsContext.Empty;
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
             _writerGroup = Copy(writerGroup);
             InitializeMetrics();
@@ -176,7 +176,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
-            DisposeAsync().AsTask().GetAwaiter().GetResult();
+            try
+            {
+                DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            finally
+            {
+                _lock.Dispose();
+                _meter.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -200,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 DataSetWriters = model.DataSetWriters == null ?
                     new List<DataSetWriterModel>() :
-                    model.DataSetWriters.ConvertAll(f => f.Clone()),
+                    model.DataSetWriters.Select(f => f.Clone()).ToList(),
                 LocaleIds = model.LocaleIds?.ToList(),
                 MessageSettings = model.MessageSettings.Clone(),
                 SecurityKeyServices = model.SecurityKeyServices?
@@ -661,11 +669,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                             if (sendMetadata)
                             {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                                 var metadata = new MetadataNotificationModel(notification)
                                 {
                                     Context = CreateMessageContext(
                                         () => Interlocked.Increment(ref _metadataSequenceNumber))
                                 };
+#pragma warning restore CA2000 // Dispose objects before losing scope
                                 _outer.OnMessage?.Invoke(sender, metadata);
                                 InitializeMetaDataTrigger();
                             }

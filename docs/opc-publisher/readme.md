@@ -683,7 +683,7 @@ Reverse connect is only supported for the opc.tcp scheme of endpoint urls. Rever
 OPC Publisher will listen for reverse connect requests on port 4840, unless a different port is configured through the `--rcp` command line option. You must open the port on the OPC Publisher docker container for external OPC UA servers to be able to access it. This must be done in the IoT Edge deployment manifest's create options. Add a port binding entry for port 4840 (or otherwise chosen port) container port and the host port you want to open (e.g., 4840):
 
 ```json
-    "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"4840/tcp\":[{\"HostPort\":\"4840\"}],  ...
+    "createOptions": "{\"User\":\"root\",\"HostConfig\":{\"PortBindings\":{\"4840/tcp\":[{\"HostPort\":\"4840\"}],  ...
 ```
 
 OPC Publisher opens the outbound port when the first reverse connection is required. This happens when at a published nodes entry with a reverse connected endpoint causes a subscription to be created, or by making an API call with a reverse connection model passed as part of the request, whichever happens first. Otherwise the port stays closed.
@@ -1105,6 +1105,8 @@ A single session is opened on demand per endpoint so the OPC UA server is not ov
 OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
 The pki path of OPC Publisher can be configured using the `PkiRootPath` or `--pki` command line argument (the default folder is `/pki`). It is usually a good idea to specify a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores are found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
+
+> 2.9.3 OPC Publisher module runs root-less. When specifying a host volume you must run OPC Publisher as `root` though. The [deployment manifest template](deployment.json?raw=1) shows how to do this. On docker you can use the `--user root` command line option. For other platforms see the respective documentation on how to do this.
 
 By default, the OPC Publisher module will create a self signed x509 *Application certificate* with a 1 year expiration in the `own` store. This default, self signed cert includes the Subject `Microsoft.Azure.IIoT`. This certificate is fine as a demonstration, but for production systems customers may want to [use their own certificate](#pki-management).
 

@@ -31,10 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="endpoint"></param>
         public ConnectionIdentifier(EndpointModel endpoint)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             Connection = new ConnectionModel
             {
                 Endpoint = endpoint.Clone()

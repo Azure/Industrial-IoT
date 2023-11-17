@@ -144,10 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     out var ports))
             {
                 PortRanges = ports;
-                if (Request.Discovery == null)
-                {
-                    Request.Discovery = DiscoveryMode.Fast;
-                }
+                Request.Discovery = DiscoveryMode.Fast;
             }
 
             if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan) &&
@@ -155,10 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     out var addresses))
             {
                 AddressRanges = addresses;
-                if (Request.Discovery == null)
-                {
-                    Request.Discovery = DiscoveryMode.Fast;
-                }
+                Request.Discovery = DiscoveryMode.Fast;
             }
 
             // Set default ranges

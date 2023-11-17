@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
-        public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
+        public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
 
         /// <summary>
         /// Create client manager
@@ -125,10 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionModel endpoint, TestConnectionRequestModel request,
             CancellationToken ct)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             if (string.IsNullOrEmpty(endpoint.Endpoint?.Url))
             {
                 throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
@@ -227,10 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint, CancellationToken ct)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             if (string.IsNullOrEmpty(endpoint.Url))
             {
                 throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
@@ -262,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            if (string.IsNullOrEmpty(connection.Endpoint.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
@@ -279,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            if (string.IsNullOrEmpty(connection.Endpoint.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
