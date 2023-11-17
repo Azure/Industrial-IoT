@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics.Metrics;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -45,15 +47,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="stores"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger,
-            IoTEdgeWorkloadApi? workload = null)
+            IMetricsContext? metrics = null, IoTEdgeWorkloadApi? workload = null)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
+            _options = options ??
+                throw new ArgumentNullException(nameof(options));
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
+
+            _metrics = metrics ?? IMetricsContext.Empty;
             _workload = workload;
             _renewalTimer = new Timer(OnRenewExpiredCertificateAsync);
 
@@ -67,13 +75,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentException("No key value stores configured.",
                     nameof(stores));
             }
+
+            InitializeMetrics();
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
+            _runtimeState = RuntimeStateEventType.Stopped;
             Certificate?.Dispose();
             _renewalTimer.Dispose();
+            _meter.Dispose();
         }
 
         /// <inheritdoc/>
@@ -92,18 +104,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
 
+            _runtimeState = RuntimeStateEventType.RestartAnnouncement;
+
             if (_options.Value.EnableRuntimeStateReporting ?? false)
             {
                 var body = new RuntimeStateEventModel
                 {
                     Timestamp = DateTime.UtcNow,
                     MessageVersion = 1,
-                    MessageType = RuntimeStateEventType.RestartAnnouncement
+                    MessageType = _runtimeState
                 };
 
                 await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
                 _logger.LogInformation("Restart announcement sent successfully.");
             }
+
+            _runtimeState = RuntimeStateEventType.Running;
         }
 
         /// <summary>
@@ -172,7 +188,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var certificates = await _workload.CreateServerCertificateAsync(
                         dnsName, expiration.Date, default).ConfigureAwait(false);
 
-                    Certificate = certificates[0];
+                    Debug.Assert(certificates.Count > 0);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        using (var certificate = certificates[0])
+                        {
+                            //
+                            // https://github.com/dotnet/runtime/issues/45680)
+                            // On Windows the certificate in 'result' gives an error
+                            // when used with kestrel: "No credentials are available"
+                            //
+                            Certificate = new X509Certificate2(
+                                certificate.Export(X509ContentType.Pkcs12));
+                        }
+                    }
+                    else
+                    {
+                        Certificate = certificates[0];
+                    }
+
+                    if (!Certificate.HasPrivateKey)
+                    {
+                        Certificate.Dispose();
+                        Certificate = null;
+                        _logger.LogInformation(
+                            "Failed to get certificate with private key using workload API.");
+                    }
+                    else
+                    {
+                        _logger.LogDebug(
+                            "Using server certificate with private key from workload API.");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -184,7 +230,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
+
                 Debug.Assert(Certificate.HasPrivateKey);
+                _logger.LogDebug("Created self-signed ECC server certificate.");
             }
 
             Debug.Assert(_stores.Count > 0);
@@ -196,9 +244,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
+
             _logger.LogInformation(
                 "Created new Certificate in {Store} store (renewal in {Duration})...",
                 apiKeyStore.Name, renewalDuration);
+            _certificateRenewals++;
         }
 
         /// <summary>
@@ -256,6 +306,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        private void InitializeMetrics()
+        {
+            _meter.CreateObservableGauge("iiot_edge_publisher_module_start",
+                () => new Measurement<int>(_runtimeState == RuntimeStateEventType.RestartAnnouncement ? 0 : 1,
+                _metrics.TagList), "Count", "Publisher module started.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_module_state",
+                () => new Measurement<int>((int)_runtimeState,
+                _metrics.TagList), "State", "Publisher module runtime state.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_certificate_renewal_count",
+                () => new Measurement<int>(_certificateRenewals,
+                _metrics.TagList), "Count", "Publisher certificate renewals.");
+        }
+
         private const int kCertificateLifetimeDays = 30;
         private readonly ILogger _logger;
         private readonly IoTEdgeWorkloadApi? _workload;
@@ -264,5 +330,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;
         private readonly List<IKeyValueStore> _stores;
+        private readonly Meter _meter = Diagnostics.NewMeter();
+        private readonly IMetricsContext _metrics;
+        private RuntimeStateEventType _runtimeState;
+        private int _certificateRenewals;
     }
 }

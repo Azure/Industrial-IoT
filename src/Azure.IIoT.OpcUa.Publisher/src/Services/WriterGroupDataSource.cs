@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
             _metrics = metrics ??
-                throw new ArgumentNullException(nameof(metrics));
+                IMetricsContext.Empty;
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
             _writerGroup = Copy(writerGroup);
             InitializeMetrics();

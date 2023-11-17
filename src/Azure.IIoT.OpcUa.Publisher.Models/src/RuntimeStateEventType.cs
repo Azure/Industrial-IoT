@@ -14,9 +14,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum RuntimeStateEventType
     {
         /// <summary>
-        /// Defines a message of restart announcement type.
+        /// Restart announcement.
         /// </summary>
         [EnumMember(Value = "RestartAnnouncement")]
-        RestartAnnouncement
+        RestartAnnouncement,
+
+        /// <summary>
+        /// Runtime state is running
+        /// </summary>
+        [EnumMember(Value = "Running")]
+        Running,
+
+        /// <summary>
+        /// Shutdown announcement.
+        /// </summary>
+        [EnumMember(Value = "ShutdownAnnouncement")]
+        ShutdownAnnouncement,
+
+        /// <summary>
+        /// Runtime state is stopped
+        /// </summary>
+        [EnumMember(Value = "Stopped")]
+        Stopped,
     }
 }
