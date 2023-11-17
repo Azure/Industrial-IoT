@@ -412,7 +412,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
             var builtInType = await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                session.NodeCache.TypeTree, ct).ConfigureAwait(false);
+                session.TypeTree, ct).ConfigureAwait(false);
             fields.Add(new FieldMetaData
             {
                 Name = fieldName,
@@ -456,11 +456,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 return;
             }
+            var nodeCache = session.NodeCache;
+            if (nodeCache == null)
+            {
+                return;
+            }
             while (!Opc.Ua.NodeId.IsNull(baseType))
             {
                 try
                 {
-                    var dataType = await session.NodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
+                    var dataType = await nodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
                     if (dataType == null)
                     {
                         _logger.LogWarning(
@@ -534,6 +539,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     _logger.LogDebug(ex, "{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
+                    throw;
                 }
             }
 
@@ -858,9 +864,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     // Failed.
                     return;
                 }
+                var nodeCache = session.NodeCache;
+                if (nodeCache == null)
+                {
+                    return;
+                }
                 try
                 {
-                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
+                    var node = await nodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
@@ -869,9 +880,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogWarning("{Item}: Failed to get meta data for field {Field} " +
-                        "with node {NodeId}: {Message}", this, Template.DisplayName, nodeId,
-                        ex.Message);
+                    _logger.LogDebug(ex, "{Item}: Failed to get meta data for field {Field} " +
+                        "with node {NodeId}.", this, Template.DisplayName, nodeId);
+                    throw;
                 }
             }
 
@@ -1702,15 +1713,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception e)
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogError(e, "{Item}: Failed to get metadata.", this);
-                    }
-                    else
-                    {
-                        _logger.LogError("{Item}: Failed to get metadata with error {Error}.",
-                            this, e.Message);
-                    }
+                    _logger.LogDebug(e, "{Item}: Failed to get metadata for event.", this);
+                    throw;
                 }
             }
 

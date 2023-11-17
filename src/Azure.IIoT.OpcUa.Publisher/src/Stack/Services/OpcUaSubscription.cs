@@ -1794,6 +1794,10 @@ Actual (revised) state/desired state:
                     }
                     catch (Exception ex)
                     {
+                        _subscription._logger.LogError(
+                            "Failed to get metadata for {Subscription} with error {Error}",
+                            this, ex.Message);
+
                         args.tcs?.TrySetException(ex);
                     }
                 }
