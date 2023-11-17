@@ -76,6 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     nameof(stores));
             }
             _runtimeState = RuntimeStateEventType.RestartAnnouncement;
+            _topic = new TopicBuilder(options).EventsTopic;
 
             InitializeMetrics();
         }
@@ -283,18 +284,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await events.SendEventAsync(new TopicBuilder(_options).EventsTopic,
+                    await events.SendEventAsync(_topic,
                         _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
                         Encoding.UTF8.WebName, configure: e =>
                         {
                             e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                                 MessageSchemaTypes.RuntimeStateMessage);
+                            e.SetRetain(true);
                             if (_options.Value.RuntimeStateRoutingInfo != null)
                             {
                                 e.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
                                     _options.Value.RuntimeStateRoutingInfo);
                             }
                         }, ct).ConfigureAwait(false);
+
+                    _logger.LogInformation("{Event} sent via {Transport}.", runtimeStateEvent,
+                        events.Name);
                 }
                 catch (Exception ex)
                 {
@@ -332,6 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly IMetricsContext _metrics;
         private RuntimeStateEventType _runtimeState;
+        private readonly string _topic;
         private int _certificateRenewals;
     }
 }

@@ -446,6 +446,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             CancellationToken ct)
         {
             var baseType = dataTypeId;
+            var typeTree = session.TypeTree;
+            if (typeTree == null)
+            {
+                return;
+            }
             while (!Opc.Ua.NodeId.IsNull(baseType))
             {
                 try
@@ -471,9 +476,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         }
                     }
 
-                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                        session.TypeTree, ct).ConfigureAwait(false);
-                    baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
+                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTree,
+                        ct).ConfigureAwait(false);
+                    baseType = await typeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
 
                     switch (builtInType)
                     {

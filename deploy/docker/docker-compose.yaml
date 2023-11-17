@@ -39,6 +39,7 @@ services:
       "--bi=0",
       "--di=60",
       "--cl=5",
+      "--rs",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-5000}"
