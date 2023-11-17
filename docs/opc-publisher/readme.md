@@ -332,7 +332,7 @@ Publishing OPC UA telemetry from an OPC UA server works as follows:
 
 1. OPC Publisher groups and encodes the telemetry events using the specified messaging mode and message encoding format. More information can be found [here](./messageformats.md).
 
-1. The encoded telemetry events are sent over the configured [transport](./transports.md) as OPC UA network messages. The default transport is Azure IoT which has a message limit of 256kB. The publisher tries to split messages to avoid loosing data, but has a runtime cost. OPC Publisher also emits Metadata messages in case of PubSub encoding which can be used to learn more about the message content and support decoding in some cases.
+1. The encoded telemetry events are sent over the configured [transport](./transports.md) as OPC UA network messages. The default transport is Azure IoT which has a message limit of 256kB. The publisher tries to split messages to avoid loosing data, but has a runtime cost. In case of PubSub encoding when strict mode is used (`--strict`) or when `--dm=false` is set, OPC Publisher also emits Metadata messages which can be used to learn more about the message content and support decoding in some cases.
 
 1. Azure IoT Hub stores messages using a configured retention time (default: 1 day, max: 7 days, dependent on the size of the ingested messages as well, see [here](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-messages-read-builtin) for more details). Messages can be consumed by applications or other services from IoT Hub.
 
@@ -881,7 +881,7 @@ An example OPC UA PubSub message emitted by OPC Publisher version 2.9 and higher
 }
 ```
 
-OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibility this option is off by default.
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibility this option is off by default. Strict mode automatically enables all OPC UA Pub Sub features, including metadata messages. To disable metadata messages use the `--dm=true` flag. To enable metadata messages when strict mode is not used (compatible to 2.8), use `--dm=false`.
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
