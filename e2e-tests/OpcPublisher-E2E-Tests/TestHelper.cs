@@ -668,82 +668,89 @@ namespace OpcPublisherAEE2ETests
         public static async IAsyncEnumerable<(DateTime enqueuedTime, string writerGroupId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
             int numberOfBatchesToRead, IIoTPlatformTestContext context, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
-            await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
+            try
             {
-                var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
-                JToken json = null;
-                if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
+                var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
+                await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
                 {
-                    // Assert.Fail($"Missing $$ContentType property in message {partitionEvent.DeserializeJson<JToken>()}");
-                    continue;
-                }
-                bool isPayloadCompressed = (string)contentType == "application/json+gzip";
-                if (isPayloadCompressed)
-                {
-                    var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
-                    using (var input = new MemoryStream(compressedPayload))
+                    var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
+                    JToken json = null;
+                    if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
                     {
-                        using (var gs = new GZipStream(input, CompressionMode.Decompress))
+                        // Assert.Fail($"Missing $$ContentType property in message {partitionEvent.DeserializeJson<JToken>()}");
+                        continue;
+                    }
+                    bool isPayloadCompressed = (string)contentType == "application/json+gzip";
+                    if (isPayloadCompressed)
+                    {
+                        var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
+                        using (var input = new MemoryStream(compressedPayload))
                         {
-                            using (var textReader = new StreamReader(gs))
+                            using (var gs = new GZipStream(input, CompressionMode.Decompress))
                             {
-                                json = JsonConvert.DeserializeObject<JToken>(await textReader.ReadToEndAsync(cancellationToken).ConfigureAwait(false));
+                                using (var textReader = new StreamReader(gs))
+                                {
+                                    json = JsonConvert.DeserializeObject<JToken>(await textReader.ReadToEndAsync(cancellationToken).ConfigureAwait(false));
+                                }
                             }
                         }
                     }
-                }
-                else
-                {
-                    json = partitionEvent.DeserializeJson<JToken>();
-                }
-
-                if (context?.OutputHelper != null)
-                {
-                    context.OutputHelper.WriteLine(json.ToString(Formatting.Indented));
-                }
-
-                List<dynamic> batchedMessages;
-                if (json is JArray array)
-                {
-                    batchedMessages = array.Cast<dynamic>().ToList();
-                }
-                else
-                {
-                    batchedMessages = new List<dynamic> { json };
-                }
-
-                // Expect all messages to be the same
-                var messageIds = new HashSet<string>();
-                foreach (dynamic message in batchedMessages)
-                {
-                    Assert.NotNull(message.MessageId.Value);
-                    Assert.True(messageIds.Add(message.MessageId.Value));
-                    var writerGroupId = (string)message.DataSetWriterGroup.Value;
-                    Assert.NotNull(writerGroupId);
-                    Assert.Equal("ua-data", message.MessageType.Value);
-                    var innerMessages = (JArray)message.Messages;
-                    Assert.True(innerMessages.Any(), "Json doesn't contain any messages");
-
-                    foreach (dynamic innerMessage in innerMessages)
+                    else
                     {
-                        var messageWriterId = (string)innerMessage.DataSetWriterId.Value;
-                        if (messageWriterId != dataSetWriterId)
+                        json = partitionEvent.DeserializeJson<JToken>();
+                    }
+
+                    if (context?.OutputHelper != null)
+                    {
+                        context.OutputHelper.WriteLine(json.ToString(Formatting.Indented));
+                    }
+
+                    List<dynamic> batchedMessages;
+                    if (json is JArray array)
+                    {
+                        batchedMessages = array.Cast<dynamic>().ToList();
+                    }
+                    else
+                    {
+                        batchedMessages = new List<dynamic> { json };
+                    }
+
+                    // Expect all messages to be the same
+                    var messageIds = new HashSet<string>();
+                    foreach (dynamic message in batchedMessages)
+                    {
+                        Assert.NotNull(message.MessageId.Value);
+                        Assert.True(messageIds.Add(message.MessageId.Value));
+                        var writerGroupId = (string)message.DataSetWriterGroup.Value;
+                        Assert.NotNull(writerGroupId);
+                        Assert.Equal("ua-data", message.MessageType.Value);
+                        var innerMessages = (JArray)message.Messages;
+                        Assert.True(innerMessages.Any(), "Json doesn't contain any messages");
+
+                        foreach (dynamic innerMessage in innerMessages)
                         {
-                            continue;
+                            var messageWriterId = (string)innerMessage.DataSetWriterId.Value;
+                            if (messageWriterId != dataSetWriterId)
+                            {
+                                continue;
+                            }
+
+                            // Metadata disabled, always sending version 1
+                            Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
+
+                            yield return (enqueuedTime, writerGroupId, (JObject)innerMessage.Payload, isPayloadCompressed);
                         }
+                    }
 
-                        // Metadata disabled, always sending version 1
-                        Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
-
-                        yield return (enqueuedTime, writerGroupId, (JObject)innerMessage.Payload, isPayloadCompressed);
+                    if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0)
+                    {
+                        break;
                     }
                 }
-
-                if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0)
-                {
-                    break;
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                yield break;
             }
         }
 
