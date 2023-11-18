@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
-            if (daprOptions.PubSubComponent != null)
+            if (!string.IsNullOrWhiteSpace(daprOptions.PubSubComponent))
             {
                 builder.AddDaprPubSubClient();
                 builder.RegisterType<Dapr>()
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
-            if (daprOptions.StateStoreName != null)
+            if (!string.IsNullOrWhiteSpace(daprOptions.StateStoreName))
             {
                 builder.AddDaprStateStoreClient();
                 builder.RegisterType<Dapr>()
@@ -521,8 +521,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 var daprConnectionString = GetStringOrDefault(DaprConnectionStringKey);
                 if (daprConnectionString != null)
                 {
-                    options.PubSubComponent = string.Empty;
-                    options.StateStoreName = string.Empty;
+                    options.PubSubComponent = null;
+                    options.StateStoreName = null;
 
                     var properties = ToDictionary(daprConnectionString);
                     if (properties.TryGetValue(PubSubComponentKey, out var component))
