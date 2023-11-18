@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Shows publisher diagnostic information at this specified interval in seconds in the OPC Publisher log (need log level info). `-1` disables remote diagnostic log and diagnostic output.\nDefault:60000 (60 seconds).\nAlso can be set using `DiagnosticsInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`\".\n",
                     (int i) => this[PublisherConfig.DiagnosticsIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
                 { $"pd|publishdiagnostics:|{PublisherConfig.PublishDiagnosticsEventsKey}:",
-                    "Send writer group diagnostics information as events to the event topic template.\nDefault: `disabled`.\n",
+                    "Send writer group diagnostics information at the configured interval as events to the event topic template instead of the console.\nDefault: `disabled`.\n",
                     (bool? b) => this[PublisherConfig.PublishDiagnosticsEventsKey] = b?.ToString() ?? "True" },
                 { $"ll|loglevel=|{Configuration.Logging.LogLevelKey}=",
                     $"The loglevel to use.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",

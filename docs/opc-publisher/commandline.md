@@ -18,8 +18,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.3-rc.12+8d0d6f8e36
-
+                                                                         2.9.3
 
 General
 -------
@@ -763,6 +762,11 @@ Diagnostic options
                                Also can be set using `DiagnosticsInterval`
                                environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`".
+      --pd, --publishdiagnostics, --PublishDiagnosticsEvents[=VALUE]
+                             Send writer group diagnostics information at the
+                               configured interval as events to the event topic
+                               template instead of the console.
+                               Default: `disabled`.
       --ll, --loglevel, --LogLevel=VALUE
                              The loglevel to use.
                                Allowed values:
