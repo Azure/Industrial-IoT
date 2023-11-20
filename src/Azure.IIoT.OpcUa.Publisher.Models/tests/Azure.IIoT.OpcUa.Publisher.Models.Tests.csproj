@@ -10,14 +10,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit" Version="2.6.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" Version="0.5.2" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.5.2" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.5.2" />
+    <PackageReference Include="Furly.Extensions.Json" Version="1.0.7" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.7" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
