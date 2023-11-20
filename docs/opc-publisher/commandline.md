@@ -289,9 +289,10 @@ Transport settings
                                component to use and allows you to configure the
                                side car connection if needed.
                                Use the format 'PubSubComponent=<PubSubComponent>
-                               [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>][;
-                               ApiKey=<ApiKey>]'. To publish through dapr by
-                               default specify `-t=Dapr`.
+                               [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>[;
+                               Scheme=<'https'|'http'>]][;ApiKey=<ApiKey>]'.
+                               To publish through dapr by default specify `-t=
+                               Dapr`.
                                Default: `not set`.
   -w, --hcs, --httpconnectionstring, --HttpConnectionString=VALUE
                              Allows OPC Publisher to publish multipart messages
