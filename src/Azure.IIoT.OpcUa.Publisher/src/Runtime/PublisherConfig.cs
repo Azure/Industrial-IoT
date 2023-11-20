@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DiagnosticsTargetKey = "DiagnosticsTarget";
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
+        public const string RemoveDuplicatesFromBatchKey = "RemoveDuplicatesFromBatch";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
@@ -163,6 +164,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                     TimeSpan.FromMilliseconds(GetIntOrDefault(BatchTriggerIntervalKey,
                         options.UseStandardsCompliantEncoding == true ||
                         options.DefaultTransport != null ? 0 : BatchTriggerIntervalLLegacyDefaultMillis));
+            }
+
+            if (options.RemoveDuplicatesFromBatch == null)
+            {
+                options.RemoveDuplicatesFromBatch = GetBoolOrNull(RemoveDuplicatesFromBatchKey);
             }
 
             if (options.MaxNetworkMessageSendQueueSize == null)

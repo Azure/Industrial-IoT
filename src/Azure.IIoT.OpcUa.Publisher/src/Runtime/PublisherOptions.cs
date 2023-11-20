@@ -63,6 +63,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? BatchTriggerInterval { get; set; }
 
         /// <summary>
+        /// Whether to remove duplicate values from the batch
+        /// of monitored item samples if samples mode is used.
+        /// </summary>
+        public bool? RemoveDuplicatesFromBatch { get; set; }
+
+        /// <summary>
         /// Default maximum network message size to use.
         /// </summary>
         public int? MaxNetworkMessageSize { get; set; }

@@ -328,32 +328,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 // values into a single key value data dictionary extension object value.
                                                 // Regular notifications we send as single messages.
                                                 //
-                                                if (notificationsInGroup.Count > 1 &&
-                                                    (Notification.MessageType == MessageType.Event ||
-                                                     Notification.MessageType == MessageType.Condition))
+                                                if (notificationsInGroup.Count > 1)
                                                 {
-                                                    Debug.Assert(notificationsInGroup
-                                                        .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
-                                                        "There should not be duplicates in fields in a group.");
-                                                    Debug.Assert(notificationsInGroup
-                                                        .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
-                                                        "All notifications in the group should have the same sequence number.");
+                                                    if (Notification.MessageType == MessageType.Event ||
+                                                        Notification.MessageType == MessageType.Condition)
+                                                    {
+                                                        Debug.Assert(notificationsInGroup
+                                                            .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
+                                                            "There should not be duplicates in fields in a group.");
+                                                        Debug.Assert(notificationsInGroup
+                                                            .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
+                                                            "All notifications in the group should have the same sequence number.");
 
-                                                    var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
-                                                    eventNotification.Value = new DataValue
+                                                        var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
+                                                        eventNotification.Value = new DataValue
+                                                        {
+                                                            Value = new EncodeableDictionary(notificationsInGroup
+                                                                .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
+                                                        };
+                                                        eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
+                                                        notificationsInGroup = new List<MonitoredItemNotificationModel>
+                                                        {
+                                                            eventNotification
+                                                        };
+                                                    }
+                                                    else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
                                                     {
-                                                        Value = new EncodeableDictionary(notificationsInGroup
-                                                            .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
-                                                    };
-                                                    eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
-                                                    notificationsInGroup = new List<MonitoredItemNotificationModel>
-                                                    {
-                                                        eventNotification
-                                                    };
+                                                        notificationsInGroup = notificationsInGroup
+                                                            .OrderByDescending(k => k.Value?.SourceTimestamp) // Descend from latest
+                                                            .DistinctBy(k => k.DataSetFieldName) // Only leave the latest values
+                                                            .ToList();
+                                                    }
                                                 }
                                                 foreach (var notification in notificationsInGroup)
                                                 {
-                                                    if (notification?.DataSetFieldName != null)
+                                                    if (notification.DataSetFieldName != null)
                                                     {
                                                         _logger.LogTrace("Processing notification: {Notification}",
                                                             notification.ToString());

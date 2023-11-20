@@ -134,6 +134,14 @@ Messaging configuration
                                0 batching is disabled and messages are sent as
                                soon as notifications arrive.
                                Default: `50`.
+      --rdb, --removedupsinbatch, --RemoveDuplicatesFromBatch[=VALUE]
+                             Use this option to remove values with the same
+                               node id from batch messages in legacy `Samples`
+                               mode. Sends only the latest value as per the
+                               value's source timestamp.
+                               Only applies to `Samples` mode, otherwise this
+                               setting is ignored.
+                               Default: `False` (keep all duplicate values).
       --ms, --maxmessagesize, --iothubmessagesize, --IoTHubMaxMessageSize=VALUE
                              The maximum size of the messages to emit. In case
                                the encoder cannot encode a message because the
