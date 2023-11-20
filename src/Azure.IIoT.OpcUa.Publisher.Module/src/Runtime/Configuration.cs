@@ -879,6 +879,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 throw new ArgumentException("Malformed Token");
             }
 
+            valuePairString = valuePairString.Trim(';');
+
             // This regex allows semi-colons to be part of the allowed characters
             // for device names. Although new devices are not
             // allowed to have semi-colons in the name, some legacy devices still

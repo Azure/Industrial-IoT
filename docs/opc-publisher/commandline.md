@@ -386,6 +386,20 @@ Routing configuration
                                can currently be used as replacement variables
                                in the template.
                                Default: `{RootTopic}/events`.
+      --dtt, --diagnosticstopictemplate, --DiagnosticsTopicTemplate=VALUE
+                             The topic into which OPC Publisher publishes
+                               writer group diagnostics events.
+                               If not specified, the `{RootTopic}/diagnostics/{
+                               DataSetWriterGroup}` template will be used.
+                               Only
+                                   `{RootTopic}`
+                                   `{SiteId}`
+                                   `{PublisherId}` and
+                                   `{DataSetWriterGroup}`
+                               can currently be used as replacement variables
+                               in the template.
+                               Default: `{RootTopic}/diagnostics/{
+                               DataSetWriterGroup}`.
       --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=VALUE]
                              The topic that metadata should be sent to.
                                In case of MQTT the message will be sent as
@@ -752,21 +766,6 @@ OPC UA Client configuration
 Diagnostic options
 ------------------
 
-      --di, --diagnosticsinterval, --DiagnosticsInterval=VALUE
-                             Shows publisher diagnostic information at this
-                               specified interval in seconds in the OPC
-                               Publisher log (need log level info). `-1`
-                               disables remote diagnostic log and diagnostic
-                               output.
-                               Default:60000 (60 seconds).
-                               Also can be set using `DiagnosticsInterval`
-                               environment variable in the form of a duration
-                               string in the form `[d.]hh:mm:ss[.fffffff]`".
-      --pd, --publishdiagnostics, --PublishDiagnosticsEvents[=VALUE]
-                             Send writer group diagnostics information at the
-                               configured interval as events to the event topic
-                               template instead of the console.
-                               Default: `disabled`.
       --ll, --loglevel, --LogLevel=VALUE
                              The loglevel to use.
                                Allowed values:
@@ -778,6 +777,28 @@ Diagnostic options
                                    `Critical`
                                    `None`
                                Default: `Information`.
+      --di, --diagnosticsinterval, --DiagnosticsInterval=VALUE
+                             Produce publisher diagnostic information at this
+                               specified interval in seconds.
+                               By default diagnostics are written to the OPC
+                               Publisher logger (which requires at least --
+                               loglevel `information`) unless configured
+                               differently using `--pd`.
+                               `0` disables diagnostic output.
+                               Default:60000 (60 seconds).
+                               Also can be set using `DiagnosticsInterval`
+                               environment variable in the form of a duration
+                               string in the form `[d.]hh:mm:ss[.fffffff]`".
+      --pd, --diagnosticstarget, --DiagnosticsTarget=VALUE
+                             Configures how to emit diagnostics information at
+                               the `--di` configured interval.
+                               Use this to for example emit diagnostics as
+                               events to the event topic template instead of
+                               the console.
+                               Allowed values:
+                                   `Logger`
+                                   `Events`
+                               Default: `Logger`.
       --sl, --opcstacklogging, --EnableOpcUaStackLogging[=VALUE]
                              Enable opc ua stack logging beyond logging at
                                error level.

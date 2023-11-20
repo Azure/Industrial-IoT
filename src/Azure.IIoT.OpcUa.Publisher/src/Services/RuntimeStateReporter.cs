@@ -27,6 +27,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Runtime.InteropServices;
     using System.Globalization;
+    using Furly.Azure.IoT.Edge;
+    using System.Collections.Concurrent;
+    using Microsoft.Azure.Amqp.Framing;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -50,12 +53,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="collector"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
+        /// <param name="identity"></param>
         /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
-            IoTEdgeWorkloadApi? workload = null)
+            IIoTEdgeDeviceIdentity? identity = null, IoTEdgeWorkloadApi? workload = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -67,6 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(collector));
             _metrics = metrics ?? IMetricsContext.Empty;
             _workload = workload;
+            _identity = identity;
             _renewalTimer = new Timer(OnRenewExpiredCertificateAsync);
 
             ArgumentNullException.ThrowIfNull(stores);
@@ -80,10 +85,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     nameof(stores));
             }
             _runtimeState = RuntimeStateEventType.RestartAnnouncement;
-            _topic = new TopicBuilder(options).EventsTopic;
+            _topicCache = new ConcurrentDictionary<string, string>();
 
             _diagnosticInterval = options.Value.DiagnosticsInterval ?? TimeSpan.Zero;
-            _publishAsEvent = options.Value.PublishDiagnosticsEvents ?? false;
+            _diagnostics = options.Value.DiagnosticsTarget ?? PublisherDiagnosticTargetType.Logger;
             if (_diagnosticInterval == TimeSpan.Zero)
             {
                 _diagnosticInterval = Timeout.InfiniteTimeSpan;
@@ -136,9 +141,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var body = new RuntimeStateEventModel
                 {
-                    Timestamp = DateTime.UtcNow,
+                    TimestampUtc = DateTime.UtcNow,
                     MessageVersion = 1,
-                    MessageType = RuntimeStateEventType.RestartAnnouncement
+                    MessageType = RuntimeStateEventType.RestartAnnouncement,
+                    PublisherId = _options.Value.PublisherId,
+                    Site = _options.Value.Site,
+                    DeviceId = _identity?.DeviceId,
+                    ModuleId = _identity?.ModuleId,
+                    Version = GetType().Assembly.GetReleaseVersion().ToString()
                 };
 
                 await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
@@ -310,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await events.SendEventAsync(_topic,
+                    await events.SendEventAsync(new TopicBuilder(_options).EventsTopic,
                         _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
@@ -348,16 +358,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     await _diagnosticsOutputTimer.WaitForNextTickAsync(ct).ConfigureAwait(false);
-
                     var diagnostics = _collector.EnumerateDiagnostics();
 
-                    if (_publishAsEvent)
+                    switch (_diagnostics)
                     {
-                        await SendDiagnosticsAsync(diagnostics, ct).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        WriteDiagnosticsToConsole(diagnostics);
+                        case PublisherDiagnosticTargetType.Events:
+                            await SendDiagnosticsAsync(diagnostics, ct).ConfigureAwait(false);
+                            break;
+                        // TODO: case PublisherDiagnosticTargetType.PubSub:
+                        // TODO:     break;
+                        default:
+                            WriteDiagnosticsToConsole(diagnostics);
+                            break;
                     }
                 }
                 catch (OperationCanceledException)
@@ -382,13 +394,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             foreach (var (writerGroupId, info) in diagnostics)
             {
+                var diagnosticsTopic = _topicCache.GetOrAdd(writerGroupId,
+                    id => new TopicBuilder(_options, new Dictionary<string, string>
+                    {
+                        [PublisherConfig.DataSetWriterGroupVariableName] =
+                            id ?? Constants.DefaultWriterGroupId
+                        // ...
+                    }).DiagnosticsTopic);
+
                 await Task.WhenAll(_events.Select(SendEventAsync)).ConfigureAwait(false);
 
                 async Task SendEventAsync(IEventClient events)
                 {
                     try
                     {
-                        await events.SendEventAsync(_topic + "/" + writerGroupId, // TODO: Create template
+                        await events.SendEventAsync(diagnosticsTopic,
                             _serializer.SerializeToMemory(info), _serializer.MimeType,
                             Encoding.UTF8.WebName, configure: eventMessage =>
                             {
@@ -553,8 +573,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private const int kCertificateLifetimeDays = 30;
-        private readonly string _topic;
+        private readonly ConcurrentDictionary<string, string> _topicCache;
         private readonly ILogger _logger;
+        private readonly IIoTEdgeDeviceIdentity? _identity;
         private readonly IDiagnosticCollector _collector;
         private readonly IoTEdgeWorkloadApi? _workload;
         private readonly Timer _renewalTimer;
@@ -567,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly CancellationTokenSource _cts;
         private readonly PeriodicTimer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
-        private readonly bool _publishAsEvent;
+        private readonly PublisherDiagnosticTargetType _diagnostics;
         private RuntimeStateEventType _runtimeState;
         private Task _publisher;
         private int _certificateRenewals;

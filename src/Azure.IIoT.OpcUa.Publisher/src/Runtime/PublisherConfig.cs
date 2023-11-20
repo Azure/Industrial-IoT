@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
+    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Configuration;
@@ -36,11 +37,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RootTopicTemplateKey = "RootTopicTemplate";
         public const string TelemetryTopicTemplateKey = "TelemetryTopicTemplate";
         public const string EventsTopicTemplateKey = "EventsTopicTemplate";
+        public const string DiagnosticsTopicTemplateKey = "DiagnosticsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
-        public const string PublishDiagnosticsEventsKey = "PublishDiagnosticsEvents";
+        public const string DiagnosticsTargetKey = "DiagnosticsTarget";
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
@@ -79,6 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/methods";
         public const string EventsTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/events";
+        public const string DiagnosticsTopicTemplateDefault =
+            $"{{{RootTopicVariableName}}}/diagnostics/{DataSetWriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
         public const string PublishedNodesFileDefault = "publishednodes.json";
@@ -185,6 +189,12 @@ namespace Azure.IIoT.OpcUa.Publisher
                     EventsTopicTemplateKey, EventsTopicTemplateDefault);
             }
 
+            if (options.DiagnosticsTopicTemplate == null)
+            {
+                options.DiagnosticsTopicTemplate = GetStringOrDefault(
+                    DiagnosticsTopicTemplateKey, DiagnosticsTopicTemplateDefault);
+            }
+
             if (options.TelemetryTopicTemplate == null)
             {
                 options.TelemetryTopicTemplate = GetStringOrDefault(
@@ -233,9 +243,14 @@ namespace Azure.IIoT.OpcUa.Publisher
                        DiagnosticsIntervalDefaultMillis));
             }
 
-            if (options.PublishDiagnosticsEvents == null)
+            if (options.DiagnosticsTarget == null)
             {
-                options.PublishDiagnosticsEvents = GetBoolOrDefault(PublishDiagnosticsEventsKey);
+                if (!Enum.TryParse<PublisherDiagnosticTargetType>(
+                    GetStringOrDefault(DiagnosticsTargetKey), out var target))
+                {
+                    target = PublisherDiagnosticTargetType.Logger;
+                }
+                options.DiagnosticsTarget = target;
             }
 
             if (options.EnableDataSetRoutingInfo == null)

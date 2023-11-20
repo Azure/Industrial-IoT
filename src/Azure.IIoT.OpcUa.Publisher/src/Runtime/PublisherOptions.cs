@@ -73,9 +73,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
-        /// Send diagnostics events to the event topic
+        /// How to emit diagnostics
         /// </summary>
-        public bool? PublishDiagnosticsEvents { get; set; }
+        public PublisherDiagnosticTargetType? DiagnosticsTarget { get; set; }
 
         /// <summary>
         /// Log ingress notifications to informational log
@@ -112,6 +112,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Events topic template
         /// </summary>
         public string? EventsTopicTemplate { get; set; }
+
+        /// <summary>
+        /// Diagnostics topic template
+        /// </summary>
+        public string? DiagnosticsTopicTemplate { get; set; }
 
         /// <summary>
         /// Telemetry topic template

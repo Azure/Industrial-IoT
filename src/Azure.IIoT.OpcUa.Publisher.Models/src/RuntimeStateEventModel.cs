@@ -31,8 +31,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// The utc timestamp of the runtime state event
         /// </summary>
-        [DataMember(Name = "Timestamp", Order = 2,
+        [DataMember(Name = "TimestampUtc", Order = 2,
             EmitDefaultValue = true)]
-        public DateTime Timestamp { get; set; }
+        public DateTime TimestampUtc { get; set; }
+
+        /// <summary>
+        /// The Publisher Id if available
+        /// </summary>
+        [DataMember(Name = "Version", Order = 3,
+            EmitDefaultValue = true)]
+        public string? Version { get; set; }
+
+        /// <summary>
+        /// The Publisher Id if available
+        /// </summary>
+        [DataMember(Name = "PublisherId", Order = 4,
+            EmitDefaultValue = true)]
+        public string? PublisherId { get; set; }
+
+        /// <summary>
+        /// The Site if available
+        /// </summary>
+        [DataMember(Name = "Site", Order = 5,
+            EmitDefaultValue = true)]
+        public string? Site { get; set; }
+
+        /// <summary>
+        /// The Device Id if available
+        /// </summary>
+        [DataMember(Name = "DeviceId", Order = 6,
+            EmitDefaultValue = true)]
+        public string? DeviceId { get; set; }
+
+        /// <summary>
+        /// The Module Id if available
+        /// </summary>
+        [DataMember(Name = "ModuleId", Order = 7,
+            EmitDefaultValue = true)]
+        public string? ModuleId { get; set; }
     }
 }

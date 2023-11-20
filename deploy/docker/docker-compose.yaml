@@ -38,7 +38,7 @@ services:
       "--bs=1",
       "--bi=0",
       "--di=60",
-      "--pd",
+      "--pd=Events",
       "--cl=5",
       "--rs",
       "--pki=/shared/pki",
