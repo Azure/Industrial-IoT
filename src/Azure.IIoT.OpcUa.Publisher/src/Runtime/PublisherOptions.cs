@@ -63,6 +63,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? BatchTriggerInterval { get; set; }
 
         /// <summary>
+        /// Whether to remove duplicate values from the batch
+        /// of monitored item samples if samples mode is used.
+        /// </summary>
+        public bool? RemoveDuplicatesFromBatch { get; set; }
+
+        /// <summary>
         /// Default maximum network message size to use.
         /// </summary>
         public int? MaxNetworkMessageSize { get; set; }
@@ -73,9 +79,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
-        /// Send diagnostics events to the event topic
+        /// How to emit diagnostics
         /// </summary>
-        public bool? PublishDiagnosticsEvents { get; set; }
+        public PublisherDiagnosticTargetType? DiagnosticsTarget { get; set; }
 
         /// <summary>
         /// Log ingress notifications to informational log
@@ -112,6 +118,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Events topic template
         /// </summary>
         public string? EventsTopicTemplate { get; set; }
+
+        /// <summary>
+        /// Diagnostics topic template
+        /// </summary>
+        public string? DiagnosticsTopicTemplate { get; set; }
 
         /// <summary>
         /// Telemetry topic template

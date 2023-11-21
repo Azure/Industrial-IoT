@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             Assert.Single(buffers);
             var body = Encoding.UTF8.GetString(buffers[0].Span);
-            Assert.StartsWith("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1,\"Timestamp\":", body);
+            Assert.StartsWith("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1,\"TimestampUtc\":", body, StringComparison.Ordinal);
         }
     }
 }

@@ -34,9 +34,9 @@ Additionally, logs from edge modules can be fetched [via direct methods](https:/
 
 The OPC Publisher emits metrics through its Prometheus endpoint (`/metrics`). To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, refer to the tutorial [here](./observability.md).
 
-To measure the performance of OPC Publisher, the `di` parameter can be used to print metrics to the log in the interval specified (in seconds).
+To measure the performance of OPC Publisher, the `di` parameter can be used to print metrics to the log in the interval specified (in seconds). Using `--pd=Events` the diagnostics information can instead be emitted to a topic or to IoT Hub. The routing or topic can be configured using the `--dtt` [command line option](./commandline.md).
 
-The following table describes the actual instruments that are logged per endpoint:
+The following table describes the instruments that are collected per writer group and subsequently emitted:
 
 | Log line item name                      | Diagnostic info property name       | Description |
 |-----------------------------------------|-------------------------------------|-------------|

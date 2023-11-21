@@ -1105,7 +1105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await CloseSessionAsync().ConfigureAwait(false);
             _session = new OpcUaSession(session, Session_KeepAlive,
-                KeepAliveInterval ?? TimeSpan.FromSeconds(5),
+                KeepAliveInterval ?? TimeSpan.FromSeconds(30),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
                 Session_HandlePublishError, Session_PublishSequenceNumbersToAcknowledge,

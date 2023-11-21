@@ -111,7 +111,10 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | For module metrics |X|X||
 | | Endpoint metrics |X|X||
 | | Process data |-|-|Backlog|
-| Periodic diagnostic output to Console ||X|X||
+| Periodic diagnostic output |||||
+| | To Console |X|X||
+| | To Diagnostics Topic/Output |-|X||
+| | As OPC UA PubSub Message |-|-|Backlog|
 | Health and liveness probe / watchdog ||-|-|Backlog|
 | Message and event publishing [transports](./transports.md) |||||
 | | IoT Hub |X|X||

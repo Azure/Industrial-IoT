@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Furly.Azure.IoT.Edge;
 
     /// <summary>
     /// Opc Publisher module fixture
@@ -159,6 +160,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             }
         }
 
+        internal sealed class IoTEdgeMockIdentity : IIoTEdgeDeviceIdentity
+        {
+            public string Hub { get; } = "Hub";
+            public string DeviceId { get; } = "DeviceId";
+            public string ModuleId { get; } = "ModuleId";
+            public string Gateway { get; } = "Gateway";
+        }
+
         /// <inheritdoc/>
         public void ConfigureContainer(ContainerBuilder builder)
         {
@@ -169,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<IoTEdgeIdentity>()
+            builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);

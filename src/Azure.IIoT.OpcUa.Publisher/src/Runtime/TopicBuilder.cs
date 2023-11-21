@@ -34,6 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             => Format(nameof(EventsTopic), _options.Value.EventsTopicTemplate);
 
         /// <summary>
+        /// Diagnostics topic
+        /// </summary>
+        public string DiagnosticsTopic
+            => Format(nameof(DiagnosticsTopic), _options.Value.DiagnosticsTopicTemplate);
+
+        /// <summary>
         /// Telemetry topic
         /// </summary>
         public string TelemetryTopic
@@ -60,6 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                     f => f.Format(_options.Value.TelemetryTopicTemplate) },
                 { nameof(RootTopic),
                     f => f.Format(_options.Value.RootTopicTemplate) },
+                { nameof(EventsTopic),
+                    f => f.Format(_options.Value.EventsTopicTemplate) },
 
                 { nameof(options.Value.Site),
                     _ => options.Value.Site ?? Constants.DefaultSite },

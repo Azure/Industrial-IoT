@@ -513,6 +513,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string StateStoreKey = "StateStore";
             public const string HttpPortKey = "HttpPort";
             public const string GrpcPortKey = "GrpcPort";
+            public const string SchemeKey = "Scheme";
             public const string DaprConnectionStringKey = "DaprConnectionString";
 
             /// <inheritdoc/>
@@ -535,17 +536,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         options.StateStoreName = stateStore;
                     }
 
+                    // Select the scheme, default to http (side car)
+                    if (!properties.TryGetValue(SchemeKey, out var scheme))
+                    {
+                        scheme = "http";
+                    }
+
                     // Permit the port to be set if provided, otherwise use defaults.
                     if (properties.TryGetValue(GrpcPortKey, out var value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
-                        options.GrpcEndpoint = "https://localhost:" + port;
+                        options.GrpcEndpoint = scheme + "://localhost:" + port;
                     }
 
                     if (properties.TryGetValue(HttpPortKey, out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out port))
                     {
-                        options.HttpEndpoint = "https://localhost:" + port;
+                        options.HttpEndpoint = scheme + "://localhost:" + port;
                     }
                 }
                 else
@@ -878,6 +885,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 throw new ArgumentException("Malformed Token");
             }
+
+            valuePairString = valuePairString.Trim(';');
 
             // This regex allows semi-colons to be part of the allowed characters
             // for device names. Although new devices are not
