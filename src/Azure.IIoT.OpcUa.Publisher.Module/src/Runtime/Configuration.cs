@@ -539,13 +539,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     if (properties.TryGetValue(GrpcPortKey, out var value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
-                        options.GrpcEndpoint = "https://localhost:" + port;
+                        options.GrpcEndpoint = "http://localhost:" + port;
                     }
 
                     if (properties.TryGetValue(HttpPortKey, out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out port))
                     {
-                        options.HttpEndpoint = "https://localhost:" + port;
+                        options.HttpEndpoint = "http://localhost:" + port;
                     }
                 }
                 else
