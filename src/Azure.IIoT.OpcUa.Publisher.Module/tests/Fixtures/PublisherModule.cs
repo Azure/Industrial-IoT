@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using Furly.Azure.IoT.Edge;
 
     /// <summary>
     /// Publisher telemetry
@@ -293,6 +294,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
         }
 
+        internal sealed class IoTEdgeMockIdentity : IIoTEdgeDeviceIdentity
+        {
+            public string Hub { get; } = "Hub";
+            public string DeviceId { get; } = "DeviceId";
+            public string ModuleId { get; } = "ModuleId";
+            public string Gateway { get; } = "Gateway";
+        }
+
         /// <inheritdoc/>
         public void ConfigureContainer(ContainerBuilder builder)
         {
@@ -301,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<IoTEdgeIdentity>()
+            builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
