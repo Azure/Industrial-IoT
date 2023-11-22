@@ -45,13 +45,13 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                if (!_valueChangesPerNodeId.ContainsKey(nodeId))
+                if (!_valueChangesPerNodeId.TryGetValue(nodeId, out var value))
                 {
                     _valueChangesPerNodeId.Add(nodeId, 1);
                 }
                 else
                 {
-                    _valueChangesPerNodeId[nodeId]++;
+                    _valueChangesPerNodeId[nodeId] = ++value;
                 }
             }
             finally

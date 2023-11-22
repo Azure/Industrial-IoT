@@ -76,10 +76,10 @@ namespace IIoTPlatformE2ETests
             CancellationToken ct = default
         )
         {
-            Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
-            Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
-            Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
-            Assert.True(!string.IsNullOrWhiteSpace(serviceId), "serviceId is null");
+            Assert.False(string.IsNullOrWhiteSpace(tenantId));
+            Assert.False(string.IsNullOrWhiteSpace(clientId));
+            Assert.False(string.IsNullOrWhiteSpace(clientSecret));
+            Assert.False(string.IsNullOrWhiteSpace(serviceId));
 
             using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
                 client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
@@ -138,7 +138,7 @@ namespace IIoTPlatformE2ETests
                         client.BaseAddress = ub.Uri;
                         client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
-                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct).ConfigureAwait(false))
+                        using (var response = await client.GetAsync(new Uri(TestConstants.OpcSimulation.PublishedNodesFile), ct).ConfigureAwait(false))
                         {
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
@@ -506,7 +506,7 @@ namespace IIoTPlatformE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
         {
-            Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
+            Assert.False(string.IsNullOrWhiteSpace(folderPath));
 
             var isSuccessful = false;
             using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);

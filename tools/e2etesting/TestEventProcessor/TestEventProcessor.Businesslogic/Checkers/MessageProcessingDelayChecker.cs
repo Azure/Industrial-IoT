@@ -62,11 +62,12 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
                 var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
-                if (!_lastOpcDiffToNow.ContainsKey(nodeId))
+                if (!_lastOpcDiffToNow.TryGetValue(nodeId, out var value))
                 {
-                    _lastOpcDiffToNow.Add(nodeId, TimeSpan.Zero);
+                    value = TimeSpan.Zero;
+                    _lastOpcDiffToNow.Add(nodeId, value);
                 }
-                var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow[nodeId];
+                var diffDelta = newOpcDiffToNow - value;
 
                 if (diffDelta.Duration() > _threshold)
                 {

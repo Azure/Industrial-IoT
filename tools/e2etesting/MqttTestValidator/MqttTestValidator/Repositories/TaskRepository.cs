@@ -12,8 +12,7 @@ namespace MqttTestValidator.Repositories
 
     internal sealed class TaskRepository : ITaskRepository
     {
-
-        private readonly IDictionary<ulong, IVerificationTask> _store = new Dictionary<ulong, IVerificationTask>(20);
+        private readonly Dictionary<ulong, IVerificationTask> _store = new (20);
 
         /// <inheritdoc />
         public bool Contains(ulong id)
@@ -61,12 +60,12 @@ namespace MqttTestValidator.Repositories
         /// <inheritdoc />
         public IVerificationTask GetById(ulong id)
         {
-            if (!_store.ContainsKey(id))
+            if (!_store.TryGetValue(id, out var value))
             {
-                throw new ArgumentException("unkown task id");
+                throw new ArgumentException("unknown task id");
             }
 
-            return _store[id];
+            return value;
         }
 
         /// <inheritdoc />

@@ -53,17 +53,18 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                if (!_latestValue.ContainsKey(dataSetWriterId))
+                if (!_latestValue.TryGetValue(dataSetWriterId, out var value))
                 {
+                    value = curValue;
                     // There is no previous value.
-                    _latestValue.Add(dataSetWriterId, curValue);
+                    _latestValue.Add(dataSetWriterId, value);
                     _duplicateValues.Add(dataSetWriterId, 0);
                     _droppedValues.Add(dataSetWriterId, 0);
                     _resetValues.Add(dataSetWriterId, 0);
                     return;
                 }
 
-                if (curValue == _latestValue[dataSetWriterId] + 1)
+                if (curValue == value + 1)
                 {
                     _latestValue[dataSetWriterId] = curValue;
                     return;

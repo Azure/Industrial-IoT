@@ -311,7 +311,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
         {
-            Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
+            Assert.False(string.IsNullOrWhiteSpace(folderPath));
 
             var isSuccessful = false;
             using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
@@ -597,6 +597,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="dataSetWriterId"></param>
         /// <param name="numberOfBatchesToRead"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
+        /// <param name="context"></param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId,
             int numberOfBatchesToRead, CancellationToken cancellationToken, IIoTPlatformTestContext context = null) where T : BaseEventTypePayload
@@ -628,8 +629,8 @@ namespace OpcPublisherAEE2ETests
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="dataSetWriterId"></param>
         /// <param name="numberOfBatchesToRead"></param>
-        /// <param name="context"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
+        /// <param name="context"></param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<PendingConditionEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer,
             string dataSetWriterId, int numberOfBatchesToRead, CancellationToken cancellationToken, IIoTPlatformTestContext context = null) where T : BaseEventTypePayload
