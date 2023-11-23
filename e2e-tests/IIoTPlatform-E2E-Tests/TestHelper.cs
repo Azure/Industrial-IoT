@@ -138,7 +138,7 @@ namespace IIoTPlatformE2ETests
                         client.BaseAddress = ub.Uri;
                         client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
-                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct).ConfigureAwait(false))
+                        using (var response = await client.GetAsync(new Uri(TestConstants.OpcSimulation.PublishedNodesFile, UriKind.RelativeOrAbsolute), ct).ConfigureAwait(false))
                         {
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
