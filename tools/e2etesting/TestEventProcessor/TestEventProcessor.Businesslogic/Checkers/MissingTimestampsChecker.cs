@@ -93,11 +93,13 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                if (!_sourceTimestamps.ContainsKey(nodeId))
+                if (!_sourceTimestamps.TryGetValue(nodeId, out var value))
                 {
-                    _sourceTimestamps.Add(nodeId, new List<DateTime>());
+                    value = new List<DateTime>();
+                    _sourceTimestamps.Add(nodeId, value);
                 }
-                _sourceTimestamps[nodeId].Add(sourceTimestamp);
+
+                value.Add(sourceTimestamp);
             }
             finally
             {

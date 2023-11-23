@@ -37,7 +37,7 @@ namespace IIoTPlatformE2ETests.Deploy
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules()
         {
             // We should always consume edgeAgent and edgeHub from mcr.microsoft.com.
-            var server = TestConstants.MicrosoftContainerRegistry;
+            const string server = TestConstants.MicrosoftContainerRegistry;
             var version = _context.IoTEdgeConfig.EdgeVersion;
 
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"

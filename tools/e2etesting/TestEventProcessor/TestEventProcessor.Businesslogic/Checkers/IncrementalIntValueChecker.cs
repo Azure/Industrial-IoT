@@ -65,15 +65,16 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                if (!_latestValuePerNodeId.ContainsKey(nodeId))
+                if (!_latestValuePerNodeId.TryGetValue(nodeId, out var v))
                 {
+                    v = curValue;
                     // There is no previous value.
-                    _latestValuePerNodeId.Add(nodeId, curValue);
+                    _latestValuePerNodeId.Add(nodeId, v);
                     _latestDateTimePerNodeId.Add(nodeId, sourceTimestamp);
                     return;
                 }
 
-                if (curValue == _latestValuePerNodeId[nodeId] + 1)
+                if (curValue == v + 1)
                 {
                     _latestValuePerNodeId[nodeId] = curValue;
                     _latestDateTimePerNodeId[nodeId] = sourceTimestamp;

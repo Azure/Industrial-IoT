@@ -22,9 +22,9 @@ namespace TestEventProcessor.Service.Authentication
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            if (context.HttpContext.Request.Headers.ContainsKey("Authorization"))
+            if (context.HttpContext.Request.Headers.TryGetValue("Authorization", out var value1))
             {
-                var value = AuthenticationHeaderValue.Parse(context.HttpContext.Request.Headers["Authorization"]);
+                var value = AuthenticationHeaderValue.Parse(value1);
 
                 if (value.Scheme.Equals(AuthenticationSchemes.Basic.ToString(),
                     StringComparison.OrdinalIgnoreCase))
