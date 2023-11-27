@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EventsTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/events";
         public const string DiagnosticsTopicTemplateDefault =
-            $"{{{RootTopicVariableName}}}/diagnostics/{DataSetWriterGroupVariableName}}}";
+            $"{{{RootTopicVariableName}}}/diagnostics/{{{DataSetWriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
         public const string PublishedNodesFileDefault = "publishednodes.json";

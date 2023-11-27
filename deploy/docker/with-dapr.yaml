@@ -27,6 +27,7 @@ services:
   ############################
   redis:
     container_name: redis
+    hostname: redis
     image: "redis:alpine"
     ports:
       - "6379:6379"
@@ -41,9 +42,12 @@ services:
   ############################
   # Redis dashboard
   ############################
-  redisinsight:
-    image: redislabs/redisinsight:latest
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    restart: always
+    environment:
+    - REDIS_HOSTS=local:redis:6379
     ports:
-      - 5000:8001
-    volumes:
-      - shared:/db
+    - "8081:8081"
