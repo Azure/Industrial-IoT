@@ -222,11 +222,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            IReadOnlyList<PublishedNodesEntryModel> request, CancellationToken ct = default)
+            PublishedNodesEntryModel[] request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var endpoints = request.Select(e => e).ToList();
-            await _configServices.AddOrUpdateEndpointsAsync(endpoints, ct).ConfigureAwait(false);
+            await _configServices.AddOrUpdateEndpointsAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
 

@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// <para>
@@ -57,11 +58,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <returns>The list of certificates currently in the store.</returns>
         [HttpGet("{store}/certs")]
-        public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
+        public async Task<X509CertificateModel[]> ListCertificatesAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
-            return await _certificates.ListCertificatesAsync(store, false,
+            var results = await _certificates.ListCertificatesAsync(store, false,
                 ct).ConfigureAwait(false);
+            return results.ToArray();
         }
 
         /// <summary>
@@ -75,11 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The list of certificates revocation lists currently
         /// in the store.</returns>
         [HttpGet("{store}/crls")]
-        public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
+        public async Task<byte[][]> ListCertificateRevocationListsAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
-            return await _certificates.ListCertificateRevocationListsAsync(store,
+            var results = await _certificates.ListCertificateRevocationListsAsync(store,
                 ct).ConfigureAwait(false);
+            return results.ToArray();
         }
 
         /// <summary>

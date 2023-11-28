@@ -24,7 +24,7 @@
                     "Certificates"
                 ],
                 "summary": "ListCertificates",
-                "description": "Get the certificates in the specified certificated store",
+                "description": "Get the certificates in the specified certificate store",
                 "operationId": "ListCertificates",
                 "produces": [
                     "text/plain",
@@ -99,7 +99,7 @@
                     {
                         "in": "query",
                         "name": "password",
-                        "description": "The optional password of the blob",
+                        "description": "The optional password of the pfx",
                         "type": "string"
                     }
                 ],
@@ -658,30 +658,11 @@
                 "summary": "[AddOrUpdateEndpoints](./directmethods.md#addorupdateendpoints_v1)",
                 "description": "Add or update endpoint configuration and nodes on a server. Further information is provided in the OPC Publisher documentation.",
                 "operationId": "AddOrUpdateEndpoints",
-                "consumes": [
-                    "application/json",
-                    "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
-                ],
                 "produces": [
                     "text/plain",
                     "application/json",
                     "text/json",
                     "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "The parts of the configuration to add or update.",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/PublishedNodesEntryModel"
-                            }
-                        }
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -5243,7 +5224,8 @@
             "description": "Enum that defines the authentication method",
             "enum": [
                 "Anonymous",
-                "UsernamePassword"
+                "UsernamePassword",
+                "Certificate"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -5975,6 +5957,9 @@
                     "description": "Use reverse connect to connect ot the endpoint",
                     "type": "boolean"
                 },
+                "WriterGroupQualityOfService": {
+                    "$ref": "#/definitions/QoS"
+                },
                 "WriterGroupTransport": {
                     "$ref": "#/definitions/WriterGroupTransport"
                 },
@@ -6009,6 +5994,19 @@
         "PublishedNodesResponseModel": {
             "description": "PublishNodes direct method response",
             "type": "object"
+        },
+        "QoS": {
+            "format": "int32",
+            "enum": [
+                "AtMostOnce",
+                "AtLeastOnce",
+                "ExactlyOnce"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "QoS",
+                "modelAsString": false
+            }
         },
         "QueryCompilationRequestModel": {
             "description": "Query compiler request model",
@@ -7326,7 +7324,6 @@
                 "status": {
                     "description": "Chain validation status if validated",
                     "enum": [
-                        "NoError",
                         "NotTimeValid",
                         "Revoked",
                         "NotSignatureValid",
@@ -7411,7 +7408,6 @@
             "format": "int32",
             "description": "Status of x509 chain",
             "enum": [
-                "NoError",
                 "NotTimeValid",
                 "Revoked",
                 "NotSignatureValid",
