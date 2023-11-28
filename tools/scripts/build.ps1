@@ -112,7 +112,7 @@ try {
     Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $projFile = $_
         $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
-            | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
+            | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerRepository) } `
             | Select-Object -First 1
         if ($properties) {
             $fullName = ""
@@ -122,7 +122,7 @@ try {
             if ($script:ImageNamespace) {
                 $fullName = "$($fullName)$($script:ImageNamespace)/"
             }
-            $fullName = "$($fullName)$($properties.ContainerImageName)"
+            $fullName = "$($fullName)$($properties.ContainerRepository)"
             $tagPostfix = ""
             if ($script:Debug.IsPresent) {
                 $tagPostfix = "-debug"

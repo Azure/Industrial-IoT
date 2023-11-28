@@ -51,7 +51,7 @@ $env:SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD = $false
 Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
     $projFile = $_
     $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
-        | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
+        | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerRepository) } `
         | Select-Object -First 1
     if ($properties) {
         $fullName = ""
@@ -62,7 +62,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if ($script:ImageNamespace) {
             $fullName = "$($fullName)$($script:ImageNamespace)/"
         }
-        $fullName = "$($fullName)$($properties.ContainerImageName)"
+        $fullName = "$($fullName)$($properties.ContainerRepository)"
 
         $fullTag = "$($script:ImageTag)-$($script:Os)-$($script:Arch)"
         if ($script:Debug.IsPresent) {
@@ -77,7 +77,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false `
             /p:TargetLatestRuntimePatch=true `
-            /p:ContainerImageName=$fullName `
+            /p:ContainerRepository=$fullName `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra
         if ($LastExitCode -ne 0) {
