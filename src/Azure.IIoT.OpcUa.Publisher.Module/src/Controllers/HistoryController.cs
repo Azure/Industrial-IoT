@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -89,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -116,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -143,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<DeleteEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -170,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete/attimes")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -197,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -224,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<DeleteValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -251,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -278,7 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -305,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<UpdateValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -332,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/read/first")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -359,7 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -385,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -412,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/attimes")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -439,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -466,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/first/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -493,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -519,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -545,7 +546,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/modified")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadModifiedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -571,7 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/attimes")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadValuesAtTimesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -597,7 +598,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("values/read/processed")]
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadProcessedValuesDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -623,7 +624,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("events/read")]
         public IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(
-            RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<ReadEventsDetailsModel>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

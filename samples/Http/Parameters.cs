@@ -8,6 +8,7 @@ using Microsoft.Azure.Devices;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 /// <summary>
 /// Command line parameters
@@ -52,6 +53,8 @@ internal sealed class Parameters : IDisposable
     /// Api key
     /// </summary>
     public string? ApiKey { get; private set; }
+
+    internal static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
     /// <summary>
     /// Create client

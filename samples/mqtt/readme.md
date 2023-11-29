@@ -9,7 +9,7 @@ cd docker
 docker compose -f docker-compose.yaml -f with-mosquitto.yaml up
 ```
 
-The samples will communicate through the mosquitto broker which runs at localhost:1883. 
+The samples will communicate through the mosquitto broker which runs at localhost:1883.
 > For simplicity of the same, the broker is listening on port 1883 and thus an unencrypted connection is used. In production, ensure to use TLS.
 
 The sample uses the MQTT.net RPC library. The MQTT.net RPC libary does not support error conditions, and the ExecuteAsync call returns just the

@@ -29,7 +29,7 @@ var response = await serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, m
 var endpoints = JsonSerializer.Deserialize<JsonElement>(response.GetPayloadAsJson()).GetProperty("endpoints").EnumerateArray();
 foreach (var endpoint in endpoints)
 {
-    var endpointJson = JsonSerializer.Serialize(endpoint, new JsonSerializerOptions { WriteIndented = true });
+    var endpointJson = JsonSerializer.Serialize(endpoint, Parameters.Indented);
     Console.WriteLine(endpointJson);
     methodInvocation = new CloudToDeviceMethod("GetConfiguredNodesOnEndpoint")
     {
@@ -42,6 +42,6 @@ foreach (var endpoint in endpoints)
     // Response is too large, this will generate 413 when run against OPC PLC.
 
     var nodesJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(response.GetPayloadAsJson()),
-        new JsonSerializerOptions { WriteIndented = true });
+        Parameters.Indented);
     Console.WriteLine(nodesJson);
 }

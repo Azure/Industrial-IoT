@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("start")]
         public async Task<PublishStartResponseModel> PublishStartAsync(
-            RequestEnvelope<PublishStartRequestModel> request)
+            [FromBody][Required] RequestEnvelope<PublishStartRequestModel> request)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -84,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("stop")]
         public async Task<PublishStopResponseModel> PublishStopAsync(
-            RequestEnvelope<PublishStopRequestModel> request)
+            [FromBody][Required] RequestEnvelope<PublishStopRequestModel> request)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -108,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("bulk")]
         public async Task<PublishBulkResponseModel> PublishBulkAsync(
-            RequestEnvelope<PublishBulkRequestModel> request)
+            [FromBody][Required] RequestEnvelope<PublishBulkRequestModel> request)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -131,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("list")]
         public async Task<PublishedItemListResponseModel> PublishListAsync(
-            RequestEnvelope<PublishedItemListRequestModel> request)
+            [FromBody][Required] RequestEnvelope<PublishedItemListRequestModel> request)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -154,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("nodes")]
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct = default)
+            [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.PublishNodesAsync(request, ct).ConfigureAwait(false);
@@ -177,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish")]
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct = default)
+            [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishNodesAsync(request, ct).ConfigureAwait(false);
@@ -200,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish/all")]
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct = default)
+            [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishAllNodesAsync(request, ct).ConfigureAwait(false);
@@ -222,7 +223,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            PublishedNodesEntryModel[] request, CancellationToken ct = default)
+            [FromBody][Required] IReadOnlyList<PublishedNodesEntryModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.AddOrUpdateEndpointsAsync(request, ct).ConfigureAwait(false);
@@ -269,7 +271,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPut]
         public async Task SetConfiguredEndpointsAsync(
-            SetConfiguredEndpointsRequestModel request, CancellationToken ct = default)
+            [FromBody][Required] SetConfiguredEndpointsRequestModel request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.SetConfiguredEndpointsAsync(new List<PublishedNodesEntryModel>(
@@ -293,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("endpoints/list/nodes")]
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
-            PublishedNodesEntryModel request, CancellationToken ct = default)
+            [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(

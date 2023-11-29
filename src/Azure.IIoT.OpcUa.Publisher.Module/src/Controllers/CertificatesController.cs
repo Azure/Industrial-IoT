@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Linq;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>
@@ -58,12 +58,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <returns>The list of certificates currently in the store.</returns>
         [HttpGet("{store}/certs")]
-        public async Task<X509CertificateModel[]> ListCertificatesAsync(
+        public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
-            var results = await _certificates.ListCertificatesAsync(store, false,
+            return await _certificates.ListCertificatesAsync(store, false,
                 ct).ConfigureAwait(false);
-            return results.ToArray();
         }
 
         /// <summary>
@@ -77,12 +76,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The list of certificates revocation lists currently
         /// in the store.</returns>
         [HttpGet("{store}/crls")]
-        public async Task<byte[][]> ListCertificateRevocationListsAsync(
+        public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
             CertificateStoreName store, CancellationToken ct = default)
         {
-            var results = await _certificates.ListCertificateRevocationListsAsync(store,
+            return await _certificates.ListCertificateRevocationListsAsync(store,
                 ct).ConfigureAwait(false);
-            return results.ToArray();
         }
 
         /// <summary>
@@ -100,7 +98,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch("{store}/certs")]
         public async Task AddCertificateAsync(CertificateStoreName store,
-            byte[] pfxBlob, [FromQuery] string? password, CancellationToken ct = default)
+            [FromBody][Required] byte[] pfxBlob, [FromQuery] string? password,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(pfxBlob);
             await _certificates.AddCertificateAsync(store, pfxBlob, password,
@@ -121,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch("{store}/crls")]
         public async Task AddCertificateRevocationListAsync(CertificateStoreName store,
-            byte[] crl, CancellationToken ct = default)
+            [FromBody][Required] byte[] crl, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(crl);
             await _certificates.AddCertificateRevocationListAsync(store, crl,
@@ -141,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
         [HttpPost("trusted/certs")]
-        public async Task AddCertificateChainAsync(byte[] certificateChain,
+        public async Task AddCertificateChainAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificateChain);
@@ -179,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
         [HttpPost("https/certs")]
-        public async Task AddTrustedHttpsCertificateAsync(byte[] certificateChain,
+        public async Task AddTrustedHttpsCertificateAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificateChain);
