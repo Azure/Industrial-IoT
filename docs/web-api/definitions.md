@@ -798,6 +798,13 @@ Gateway registration update request
 |**siteId**  <br>*optional*|Site of the Gateway|string|
 
 
+<a name="heartbeatbehavior"></a>
+### HeartbeatBehavior
+Heartbeat behavior
+
+*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps)
+
+
 <a name="historiceventmodel"></a>
 ### HistoricEventModel
 Historic event
@@ -1272,7 +1279,7 @@ Constants defined for the ValueRank attribute.
 ### OpcAuthenticationMode
 Enum that defines the authentication method
 
-*Type* : enum (Anonymous, UsernamePassword)
+*Type* : enum (Anonymous, UsernamePassword, Certificate)
 
 
 <a name="opcnodemodel"></a>
@@ -1295,6 +1302,7 @@ Describing an entry in the node list
 |**EventFilter**  <br>*optional*||[EventFilterModel](definitions.md#eventfiltermodel)|
 |**ExpandedNodeId**  <br>*optional*|Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)|string|
 |**FetchDisplayName**  <br>*optional*|Fetch display name from the node|boolean|
+|**HeartbeatBehavior**  <br>*optional*||[HeartbeatBehavior](definitions.md#heartbeatbehavior)|
 |**HeartbeatInterval**  <br>*optional*|Heartbeat interval in seconds|integer (int32)|
 |**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
 |**Id**  <br>*optional*|Node Identifier|string|
@@ -1461,6 +1469,7 @@ Contains the nodes which should be published
 |**BatchTriggerIntervalTimespan**  <br>*optional*|Send network messages at the specified publishing<br>interval.<br>Takes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval<br>if defined.|string (date-span)|
 |**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
 |**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
+|**DataSetExtensionFields**  <br>*optional*|Optional field and value pairs to insert into the<br>data sets emitted by data set writer.|object|
 |**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
 |**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
@@ -1469,6 +1478,8 @@ Contains the nodes which should be published
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
+|**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
+|**EndpointSecurityPolicy**  <br>*optional*|The specific security policy to use for the specified<br>endpoint. Overrides Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.UseSecurity setting.<br>If the security policy is not available with the<br>specified security mode connectivity will fail.|string|
 |**EndpointUrl**  <br>*required*|The endpoint URL of the OPC UA server.  <br>**Minimum length** : `1`|string|
 |**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
 |**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
@@ -1483,8 +1494,10 @@ Contains the nodes which should be published
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
+|**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+|**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
 
 
@@ -1539,6 +1552,11 @@ Publisher registration update request
 |---|---|---|
 |**apiKey**  <br>*optional*|New api key|string|
 |**siteId**  <br>*optional*|Site of the publisher|string|
+
+
+<a name="qos"></a>
+### QoS
+*Type* : enum (AtMostOnce, AtLeastOnce, ExactlyOnce)
 
 
 <a name="readeventsdetailsmodel"></a>
@@ -2109,7 +2127,7 @@ Certificate chain
 |Name|Description|Schema|
 |---|---|---|
 |**chain**  <br>*optional*|Chain|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
-|**status**  <br>*optional*|Chain validation status if validated|enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
+|**status**  <br>*optional*|Chain validation status if validated|enum (NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
 
 
 <a name="x509certificatemodel"></a>
@@ -2119,9 +2137,10 @@ Certificate model
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificate**  <br>*optional*|Raw data|< integer (int32) > array|
+|**hasPrivateKey**  <br>*optional*|Contains private key|boolean|
 |**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
 |**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
+|**pfx**  <br>*optional*|Certificate as Pkcs12|< integer (int32) > array|
 |**selfSigned**  <br>*optional*|Self signed certificate|boolean|
 |**serialNumber**  <br>*optional*|Serial number|string|
 |**subject**  <br>*optional*|Subject|string|
@@ -2132,7 +2151,7 @@ Certificate model
 ### X509ChainStatus
 Status of x509 chain
 
-*Type* : enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
+*Type* : enum (NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
 
 
 
