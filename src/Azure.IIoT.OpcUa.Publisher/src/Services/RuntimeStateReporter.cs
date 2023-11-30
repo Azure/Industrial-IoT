@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
-            IIoTEdgeDeviceIdentity? identity = null, IoTEdgeWorkloadApi? workload = null)
+            IIoTEdgeDeviceIdentity? identity = null, IIoTEdgeWorkloadApi? workload = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     var certificates = await _workload.CreateServerCertificateAsync(
-                        dnsName, expiration.Date, default).ConfigureAwait(false);
+                        dnsName, expiration.Date).ConfigureAwait(false);
 
                     Debug.Assert(certificates.Count > 0);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -246,14 +246,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Certificate.Dispose();
                         Certificate = null;
-                        _logger.LogInformation(
+                        _logger.LogWarning(
                             "Failed to get certificate with private key using workload API.");
                     }
                     else
                     {
-                        _logger.LogDebug(
-                            "Using server certificate with private key from workload API.");
+                        _logger.LogInformation(
+                            "Using server certificate with private key from workload API...");
                     }
+                }
+                catch (NotSupportedException nse)
+                {
+                    _logger.LogWarning("Not supported: {Message}. " +
+                        "Unable to use workload API to obtain the certificate!", nse.Message);
                 }
                 catch (Exception ex)
                 {
@@ -267,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
 
                 Debug.Assert(Certificate.HasPrivateKey);
-                _logger.LogDebug("Created self-signed ECC server certificate.");
+                _logger.LogInformation("Created self-signed ECC server certificate...");
             }
 
             Debug.Assert(_stores.Count > 0);
@@ -281,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
 
             _logger.LogInformation(
-                "Created new Certificate in {Store} store (renewal in {Duration})...",
+                "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
         }
@@ -576,7 +581,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IIoTEdgeDeviceIdentity? _identity;
         private readonly IDiagnosticCollector _collector;
-        private readonly IoTEdgeWorkloadApi? _workload;
+        private readonly IIoTEdgeWorkloadApi? _workload;
         private readonly Timer _renewalTimer;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;

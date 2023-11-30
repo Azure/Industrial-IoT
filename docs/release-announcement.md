@@ -46,12 +46,12 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 
 > IMPORTANT. Please read when updating from previous versions of OPC Publisher
 
-- For security *all containers are now running rootless*. This means OPC Publisher must be deployed to use the required CAPS or run under root to access the host file system. To do so you can use the `"User" : "root"` setting in the `CreateOptions`. The sample deployment manifest has been updated accordingly. (#2114)
 - All container images published now use Mariner Linux (distroless) base images instead of Alpine.
 - Metadata collection has shown to be very taxing on OPC UA servers. When 2.9 was dropped in to replace 2.8 in production, memory consumption was too large and connections would drop. OPC Publisher now defaults to `--dm=true` in 2.9.3 to disable metadata messages to be compatible with 2.8 when `--strict` / `-c` is not specified. If you need meta data messages but do not use strict mode (not recommended) you must explicitly enable it using `--dm=false`.
 
 ### New features in 2.9.3
 
+- For security the OPC Publisher Web API container now runs root-less. (#2114)
 - New configuration option to specify quality of service. This allows setting QOS0 as alternative to QOS1 (#2085)
 - Diagnostic info can now also be periodically published to a topic or IoT Edge output name using new `--dtt` diagnostics topic template. (#2068)
 - New Module to module method to get REST endpoint info and API key so that other modules can access the REST API (#2096)
