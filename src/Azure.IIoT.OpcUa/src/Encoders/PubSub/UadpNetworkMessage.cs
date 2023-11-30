@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (_uadpFlags == null)
                 {
                     // Bit range 0-3: Version of the UADP NetworkMessage, always 1.
-                    _uadpFlags = (UADPFlagsEncodingMask)1;
+                    _uadpFlags = UADPFlagsEncodingMask.VersionBit1;
 
                     if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0)
                     {

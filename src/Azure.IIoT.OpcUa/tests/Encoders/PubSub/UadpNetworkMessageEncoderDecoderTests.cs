@@ -23,7 +23,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// All
         /// </summary>
         public const UadpNetworkMessageContentMask NetworkMessageContentMaskDefault =
-            (UadpNetworkMessageContentMask)0x7ff;
+            UadpNetworkMessageContentMask.PublisherId |
+            UadpNetworkMessageContentMask.GroupHeader |
+            UadpNetworkMessageContentMask.WriterGroupId |
+            UadpNetworkMessageContentMask.GroupVersion |
+            UadpNetworkMessageContentMask.NetworkMessageNumber |
+            UadpNetworkMessageContentMask.SequenceNumber |
+            UadpNetworkMessageContentMask.PayloadHeader |
+            UadpNetworkMessageContentMask.Timestamp |
+            UadpNetworkMessageContentMask.PicoSeconds |
+            UadpNetworkMessageContentMask.DataSetClassId |
+            UadpNetworkMessageContentMask.PromotedFields;
 
         public const UadpDataSetMessageContentMask DataSetMessageContentMaskDefault =
             UadpDataSetMessageContentMask.PicoSeconds |
