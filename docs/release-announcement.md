@@ -2,6 +2,10 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.3](#azure-industrial-iot-opc-publisher-293)
+  - [Breaking changes in 2.9.3](#breaking-changes-in-293)
+  - [New features in 2.9.3](#new-features-in-293)
+  - [Bug fixes in 2.9.3](#bug-fixes-in-293)
 - [Azure Industrial IoT OPC Publisher 2.9.2](#azure-industrial-iot-opc-publisher-292)
   - [Changes in 2.9.2](#changes-in-292)
 - [Azure Industrial IoT OPC Publisher 2.9.1](#azure-industrial-iot-opc-publisher-291)
@@ -33,6 +37,47 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.3
+
+We are pleased to announce the release of version 2.9.3 of OPC Publisher and the companion web api. This release moves OPC Publisher to .net 8 which is the latest LTS version of .net and comes with several new features, bug and security fixes. 2.9.3 is the latest supported release.
+
+### Breaking changes in 2.9.3
+
+> IMPORTANT. Please read when updating from previous versions of OPC Publisher
+
+- For security *all containers are now running rootless*. This means OPC Publisher must be deployed to use the required CAPS or run under root to access the host file system. To do so you can use the `"User" : "root"` setting in the `CreateOptions`. The sample deployment manifest has been updated accordingly. (#2114)
+- All container images published now use Mariner Linux (distroless) base images instead of Alpine.
+- Metadata collection has shown to be very taxing on OPC UA servers. When 2.9 was dropped in to replace 2.8 in production, memory consumption was too large and connections would drop. OPC Publisher now defaults to `--dm=true` in 2.9.3 to disable metadata messages to be compatible with 2.8 when `--strict` / `-c` is not specified. If you need meta data messages but do not use strict mode (not recommended) you must explicitly enable it using `--dm=false`.
+
+### New features in 2.9.3
+
+- New configuration option to specify quality of service. This allows setting QOS0 as alternative to QOS1 (#2085)
+- Diagnostic info can now also be periodically published to a topic or IoT Edge output name using new `--dtt` diagnostics topic template. (#2068)
+- New Module to module method to get REST endpoint info and API key so that other modules can access the REST API (#2096)
+- Fixed Publisher HTTPS API returning SSL_ERROR_SYSCALL error. Now a self signed certificate is the fallback if workload api cannot produce a certificate with private key (#2101)
+- Restart announcement now includes additional information, including version, timestamp of (re-)start, module and device ids.
+- X509 User Authentication support using secrets reference feature request (#2005)
+- New API to manage the PKI infrastructure of the OPC Publisher (certificate stores). You can now list, add and remove certificates from the OPC UA certificate stores remotely. (#1996)
+- You can now configure OPC Publisher to re-use a session across writer groups with the same endpoint url and security settings. (#2065)
+- Added samples to show how to call OPC Publisher API over MQTT, HTTP and IoT Hub.
+
+### Bug fixes in 2.9.3
+
+- 2.8 Start instrument was missing on 2.9 prometheus endpoint (#2110)
+- Harden when OPC UA server sometimes reports monitored items samples changes unordered in subscription notification and thus samples messages are also unordered (#2108)
+- Need to have timestamp information and other information in runtime state reporting message, need to have a special routing path for runtime state messages feature request. Restart announcement now includes additional information, including version, timestamp of (re-)start, module and device ids. (#2111)
+- Optimize metadata collection, do not collect metadata from servers for built in types (#2105)
+- Fix that it was not possible to configure event subscriptions for multiple events on the same node id (#2098)
+- Fix complex type encoding where Json message encoding has value in Binary encoding for complex (multilevel structure) (#2090)
+- Dapr now works without requiring state component. Dapr now runs over http instead of https by default. New option to select the url scheme (#2102, #2119, #2117, #2109
+- It is now possible to disable retrying subscription re-creation by configuring a value of 0. (#2100)
+- Fix that extension field values show up wrong in samples mode. (#2092)
+- FIx Event subscription using the REST Api fails with: "The request field is required." (#2078)
+- The configuration of the OpcPublisher 2.9.2 fails using the REST Api bug (#2066)
+- For each configured in pn.json Dataset publisher must try to reuse an existing session for this EndpointUrl with the identical security settings (if exists). feature request
+- Address issues deploying the web api, e.g., getting error when trying to use option 2 to deploy Azure IIoT Deployment and ./aad-register.ps1 errors with "A parameter cannot be found that matches the parameter name 'ReplyUrl'." (#2063, #2064)
+- Update documentation, including breaking changes, Add Azure Storage, Azure Key Vault services, and Application Insights to arch diagram, how to setup the OPCPublisher edge module with X.509 certificates documentation, and how to emit ExtensionFields in Pub sub mode using key frame counter. (#1917, #2091, #2083)
 
 ## Azure Industrial IoT OPC Publisher 2.9.2
 

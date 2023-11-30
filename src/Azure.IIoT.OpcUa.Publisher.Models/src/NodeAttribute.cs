@@ -14,11 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum NodeAttribute
     {
         /// <summary>
-        /// None
-        /// </summary>
-        None = 0,
-
-        /// <summary>
         /// Node identifier
         /// </summary>
         [EnumMember(Value = "NodeId")]

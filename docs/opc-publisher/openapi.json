@@ -24,7 +24,7 @@
                     "Certificates"
                 ],
                 "summary": "ListCertificates",
-                "description": "Get the certificates in the specified certificated store",
+                "description": "Get the certificates in the specified certificate store",
                 "operationId": "ListCertificates",
                 "produces": [
                     "text/plain",
@@ -74,6 +74,12 @@
                 "summary": "AddCertificate",
                 "description": "Add a certificate to the specified store. The certificate is provided as a pfx/pkcs12 optionally password protected blob.",
                 "operationId": "AddCertificate",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -99,8 +105,18 @@
                     {
                         "in": "query",
                         "name": "password",
-                        "description": "The optional password of the blob",
+                        "description": "The optional password of the pfx",
                         "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The pfx encoded certificate.",
+                        "required": true,
+                        "schema": {
+                            "format": "byte",
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -167,6 +183,12 @@
                 "summary": "AddCertificateRevocationList",
                 "description": "Add a certificate revocation list to the specified store. The certificate revocation list is provided as a der encoded blob.",
                 "operationId": "AddCertificateRevocationList",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -187,6 +209,16 @@
                         "x-ms-enum": {
                             "name": "CertificateStoreName",
                             "modelAsString": false
+                        }
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The pfx encoded certificate.",
+                        "required": true,
+                        "schema": {
+                            "format": "byte",
+                            "type": "string"
                         }
                     }
                 ],
@@ -241,6 +273,24 @@
                 "summary": "AddCertificateChain",
                 "description": "Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.",
                 "operationId": "AddCertificateChain",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The certificate chain.",
+                        "required": true,
+                        "schema": {
+                            "format": "byte",
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success"
@@ -280,6 +330,24 @@
                 "summary": "AddTrustedHttpsCertificateAsync",
                 "description": "Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.",
                 "operationId": "AddTrustedHttpsCertificate",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The certificate chain.",
+                        "required": true,
+                        "schema": {
+                            "format": "byte",
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success"
@@ -395,6 +463,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The server and node to publish.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishStartRequestModelRequestEnvelope"
                         }
@@ -435,6 +504,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The node to stop publishing",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishStopRequestModelRequestEnvelope"
                         }
@@ -475,6 +545,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The nodes to publish or unpublish.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishBulkRequestModelRequestEnvelope"
                         }
@@ -515,6 +586,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListRequestModelRequestEnvelope"
                         }
@@ -555,6 +627,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request contains the nodes to publish.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
@@ -595,6 +668,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload specifying the nodes to unpublish.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
@@ -635,6 +709,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request contains the parts of the configuration to remove.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
@@ -661,8 +736,7 @@
                 "consumes": [
                     "application/json",
                     "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
+                    "application/*+json"
                 ],
                 "produces": [
                     "text/plain",
@@ -675,6 +749,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The parts of the configuration to add or update.",
+                        "required": true,
                         "schema": {
                             "type": "array",
                             "items": {
@@ -740,6 +815,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The new published nodes configuration",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/SetConfiguredEndpointsRequestModel"
                         }
@@ -777,6 +853,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The entry model from a call to GetConfiguredEndpoints for which to gather the nodes.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
@@ -844,6 +921,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The endpoint query specifying the matching criteria for the discovered endpoints.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ServerEndpointQueryModel"
                         }
@@ -884,6 +962,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "Contains all information to perform the registration request including discovery url to use.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ServerRegistrationRequestModel"
                         }
@@ -924,6 +1003,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The discovery configuration to use during the discovery run.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DiscoveryRequestModel"
                         }
@@ -964,6 +1044,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The information needed to cancel the discovery operation.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DiscoveryCancelRequestModel"
                         }
@@ -1004,6 +1085,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/RequestHeaderModelRequestEnvelope"
                         }
@@ -1044,6 +1126,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstRequestModelRequestEnvelope"
                         }
@@ -1084,6 +1167,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/BrowseNextRequestModelRequestEnvelope"
                         }
@@ -1124,6 +1208,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/BrowseStreamRequestModelRequestEnvelope"
                         }
@@ -1164,6 +1249,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/BrowsePathRequestModelRequestEnvelope"
                         }
@@ -1204,6 +1290,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ValueReadRequestModelRequestEnvelope"
                         }
@@ -1244,6 +1331,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ValueWriteRequestModelRequestEnvelope"
                         }
@@ -1284,6 +1372,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataRequestModelRequestEnvelope"
                         }
@@ -1324,6 +1413,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The compilation request and connection information.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/QueryCompilationRequestModelRequestEnvelope"
                         }
@@ -1364,6 +1454,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataRequestModelRequestEnvelope"
                         }
@@ -1404,6 +1495,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/MethodCallRequestModelRequestEnvelope"
                         }
@@ -1444,6 +1536,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadRequestModelRequestEnvelope"
                         }
@@ -1484,6 +1577,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/WriteRequestModelRequestEnvelope"
                         }
@@ -1524,6 +1618,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadRequestModelRequestEnvelope"
                         }
@@ -1564,6 +1659,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/HistoryReadNextRequestModelRequestEnvelope"
                         }
@@ -1604,6 +1700,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -1644,6 +1741,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The server endpoint to get the certificate for.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/EndpointModel"
                         }
@@ -1684,6 +1782,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/RequestHeaderModelRequestEnvelope"
                         }
@@ -1724,6 +1823,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationRequestModelRequestEnvelope"
                         }
@@ -1764,6 +1864,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ConnectRequestModelRequestEnvelope"
                         }
@@ -1804,6 +1905,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/TestConnectionRequestModelRequestEnvelope"
                         }
@@ -1838,6 +1940,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DisconnectRequestModelRequestEnvelope"
                         }
@@ -1875,6 +1978,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to replace with in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -1915,6 +2019,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to insert into the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -1955,6 +2060,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to upsert into the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -1995,6 +2101,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to delete in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2035,6 +2142,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to delete in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2075,6 +2183,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to delete in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2115,6 +2224,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to delete in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2155,6 +2265,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to replace with in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2195,6 +2306,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to insert into the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2235,6 +2347,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to upsert into the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope"
                         }
@@ -2275,6 +2388,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2315,6 +2429,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The continuation from a previous read request.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/HistoryReadNextRequestModelRequestEnvelope"
                         }
@@ -2355,6 +2470,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2395,6 +2511,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2435,6 +2552,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2475,6 +2593,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2515,6 +2634,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The continuation token from a previous read operation.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/HistoryReadNextRequestModelRequestEnvelope"
                         }
@@ -2555,6 +2675,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2595,6 +2716,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2635,6 +2757,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2675,6 +2798,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The values to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -2715,6 +2839,7 @@
                         "in": "body",
                         "name": "body",
                         "description": "The events to read in the timeseries.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope"
                         }
@@ -5243,7 +5368,8 @@
             "description": "Enum that defines the authentication method",
             "enum": [
                 "Anonymous",
-                "UsernamePassword"
+                "UsernamePassword",
+                "Certificate"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -5975,6 +6101,9 @@
                     "description": "Use reverse connect to connect ot the endpoint",
                     "type": "boolean"
                 },
+                "WriterGroupQualityOfService": {
+                    "$ref": "#/definitions/QoS"
+                },
                 "WriterGroupTransport": {
                     "$ref": "#/definitions/WriterGroupTransport"
                 },
@@ -6009,6 +6138,19 @@
         "PublishedNodesResponseModel": {
             "description": "PublishNodes direct method response",
             "type": "object"
+        },
+        "QoS": {
+            "format": "int32",
+            "enum": [
+                "AtMostOnce",
+                "AtLeastOnce",
+                "ExactlyOnce"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "QoS",
+                "modelAsString": false
+            }
         },
         "QueryCompilationRequestModel": {
             "description": "Query compiler request model",
@@ -7326,7 +7468,6 @@
                 "status": {
                     "description": "Chain validation status if validated",
                     "enum": [
-                        "NoError",
                         "NotTimeValid",
                         "Revoked",
                         "NotSignatureValid",
@@ -7411,7 +7552,6 @@
             "format": "int32",
             "description": "Status of x509 chain",
             "enum": [
-                "NoError",
                 "NotTimeValid",
                 "Revoked",
                 "NotSignatureValid",

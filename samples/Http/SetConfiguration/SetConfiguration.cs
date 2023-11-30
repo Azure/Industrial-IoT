@@ -18,7 +18,7 @@ using var httpClient = parameters.CreateHttpClientWithAuth();
 // Get original published nodes json configuration
 var original = await httpClient.GetFromJsonAsync<JsonElement>(parameters.OpcPublisher + "/v2/configuration?IncludeNodes=true",
     JsonSerializerOptions.Default, cts.Token).ConfigureAwait(false);
-var json = JsonSerializer.Serialize(original, new JsonSerializerOptions { WriteIndented = true });
+var json = JsonSerializer.Serialize(original, Parameters.Indented);
 Console.WriteLine("Original configuration: " + json);
 
 // Clear all
@@ -27,10 +27,11 @@ using var clear = await httpClient.PutAsJsonAsync(parameters.OpcPublisher + "/v2
 clear.EnsureSuccessStatusCode();
 var empty = await httpClient.GetFromJsonAsync<JsonElement>(parameters.OpcPublisher + "/v2/configuration?IncludeNodes=true",
     JsonSerializerOptions.Default, cts.Token).ConfigureAwait(false);
-json = JsonSerializer.Serialize(empty, new JsonSerializerOptions { WriteIndented = true });
+json = JsonSerializer.Serialize(empty, Parameters.Indented);
 Console.WriteLine("Cleared to: " + json);
 
 // Patch configuration to add new one
+
 using var addOrUpdate = await httpClient.PatchAsJsonAsync(parameters.OpcPublisher + "/v2/configuration", new[]
 {
     new
@@ -52,7 +53,7 @@ addOrUpdate.EnsureSuccessStatusCode();
 
 var configuration = await httpClient.GetFromJsonAsync<JsonElement>(parameters.OpcPublisher + "/v2/configuration?IncludeNodes=true",
     JsonSerializerOptions.Default, cts.Token).ConfigureAwait(false);
-json = JsonSerializer.Serialize(configuration, new JsonSerializerOptions { WriteIndented = true });
+json = JsonSerializer.Serialize(configuration, Parameters.Indented);
 Console.WriteLine("Patched to: " + json);
 
 // Remove the endpoint and all its nodes again
@@ -66,7 +67,7 @@ unpublish.EnsureSuccessStatusCode();
 
 configuration = await httpClient.GetFromJsonAsync<JsonElement>(parameters.OpcPublisher + "/v2/configuration?IncludeNodes=true",
     JsonSerializerOptions.Default, cts.Token).ConfigureAwait(false);
-json = JsonSerializer.Serialize(configuration, new JsonSerializerOptions { WriteIndented = true });
+json = JsonSerializer.Serialize(configuration, Parameters.Indented);
 Console.WriteLine("Now cleared again: " + json);
 
 // Re-apply original published nodes json configuration to the publisher
@@ -75,5 +76,5 @@ using var reset = await httpClient.PutAsJsonAsync(parameters.OpcPublisher + "/v2
 reset.EnsureSuccessStatusCode();
 configuration = await httpClient.GetFromJsonAsync<JsonElement>(parameters.OpcPublisher + "/v2/configuration?IncludeNodes=true",
     JsonSerializerOptions.Default, cts.Token).ConfigureAwait(false);
-json = JsonSerializer.Serialize(configuration, new JsonSerializerOptions { WriteIndented = true });
+json = JsonSerializer.Serialize(configuration, Parameters.Indented);
 Console.WriteLine("Now reset back to: " + json);

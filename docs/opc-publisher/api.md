@@ -26,11 +26,26 @@ POST /v2/pki/https/certs
 Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.
 
 
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The certificate chain.|string (byte)|
+
+
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="approverejectedcertificate"></a>
@@ -69,11 +84,26 @@ POST /v2/pki/trusted/certs
 Add a certificate chain to the specified store. The certificate is provided as a concatenated asn encoded set of certificates with the first the one to add, and the remainder the issuer chain.
 
 
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The certificate chain.|string (byte)|
+
+
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="removeall"></a>
@@ -109,7 +139,7 @@ GET /v2/pki/{store}/certs
 
 
 ##### Description
-Get the certificates in the specified certificated store
+Get the certificates in the specified certificate store
 
 
 ##### Parameters
@@ -150,7 +180,8 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
-|**Query**|**password**  <br>*optional*|The optional password of the blob|string|
+|**Query**|**password**  <br>*optional*|The optional password of the pfx|string|
+|**Body**|**body**  <br>*required*|The pfx encoded certificate.|string (byte)|
 
 
 ##### Responses
@@ -158,6 +189,14 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="removecertificate"></a>
@@ -260,6 +299,7 @@ Add a certificate revocation list to the specified store. The certificate revoca
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Body**|**body**  <br>*required*|The pfx encoded certificate.|string (byte)|
 
 
 ##### Responses
@@ -267,6 +307,14 @@ Add a certificate revocation list to the specified store. The certificate revoca
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="configuration_resource"></a>
@@ -329,7 +377,7 @@ Enables clients to update the entire published nodes configuration in one call. 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The new published nodes configuration|[SetConfiguredEndpointsRequestModel](definitions.md#setconfiguredendpointsrequestmodel)|
+|**Body**|**body**  <br>*required*|The new published nodes configuration|[SetConfiguredEndpointsRequestModel](definitions.md#setconfiguredendpointsrequestmodel)|
 
 
 ##### Responses
@@ -362,7 +410,7 @@ Add or update endpoint configuration and nodes on a server. Further information 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The parts of the configuration to add or update.|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
+|**Body**|**body**  <br>*required*|The parts of the configuration to add or update.|< [PublishedNodesEntryModel](definitions.md#publishednodesentrymodel) > array|
 
 
 ##### Responses
@@ -377,7 +425,6 @@ Add or update endpoint configuration and nodes on a server. Further information 
 * `application/json`
 * `text/json`
 * `application/*+json`
-* `application/x-msgpack`
 
 
 ##### Produces
@@ -403,7 +450,7 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The nodes to publish or unpublish.|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The nodes to publish or unpublish.|[PublishBulkRequestModelRequestEnvelope](definitions.md#publishbulkrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -470,7 +517,7 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The entry model from a call to GetConfiguredEndpoints for which to gather the nodes.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**Body**|**body**  <br>*required*|The entry model from a call to GetConfiguredEndpoints for which to gather the nodes.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -511,7 +558,7 @@ Get all published nodes for a server endpoint. The group field that was used in 
 
 |Type|Name|Schema|
 |---|---|---|
-|**Body**|**body**  <br>*optional*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|[PublishedItemListRequestModelRequestEnvelope](definitions.md#publisheditemlistrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -552,7 +599,7 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request contains the nodes to publish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**Body**|**body**  <br>*required*|The request contains the nodes to publish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -593,7 +640,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload specifying the nodes to unpublish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**Body**|**body**  <br>*required*|The request payload specifying the nodes to unpublish.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -634,7 +681,7 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request contains the parts of the configuration to remove.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**Body**|**body**  <br>*required*|The request contains the parts of the configuration to remove.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses
@@ -675,7 +722,7 @@ Start publishing values from a node on a server. The group field in the Connecti
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The server and node to publish.|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The server and node to publish.|[PublishStartRequestModelRequestEnvelope](definitions.md#publishstartrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -716,7 +763,7 @@ Stop publishing values from a node on the specified server. The group field that
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The node to stop publishing|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The node to stop publishing|[PublishStopRequestModelRequestEnvelope](definitions.md#publishstoprequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -766,7 +813,7 @@ Start network discovery using the provided discovery request configuration. The 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The discovery configuration to use during the discovery run.|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
+|**Body**|**body**  <br>*required*|The discovery configuration to use during the discovery run.|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
 
 
 ##### Responses
@@ -807,7 +854,7 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The information needed to cancel the discovery operation.|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
+|**Body**|**body**  <br>*required*|The information needed to cancel the discovery operation.|[DiscoveryCancelRequestModel](definitions.md#discoverycancelrequestmodel)|
 
 
 ##### Responses
@@ -848,7 +895,7 @@ Find servers matching the specified endpoint query spec.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The endpoint query specifying the matching criteria for the discovered endpoints.|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
+|**Body**|**body**  <br>*required*|The endpoint query specifying the matching criteria for the discovered endpoints.|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
 
 
 ##### Responses
@@ -889,7 +936,7 @@ Start server registration. The results of the registration are published as even
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|Contains all information to perform the registration request including discovery url to use.|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
+|**Body**|**body**  <br>*required*|Contains all information to perform the registration request including discovery url to use.|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
 
 
 ##### Responses
@@ -943,7 +990,7 @@ Recursively browse a node to discover its references and nodes. The results are 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseStreamRequestModelRequestEnvelope](definitions.md#browsestreamrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -984,7 +1031,7 @@ Browse a a node to discover its references. For more information consult <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseFirstRequestModelRequestEnvelope](definitions.md#browsefirstrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1025,7 +1072,7 @@ Browse next
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowseNextRequestModelRequestEnvelope](definitions.md#browsenextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1066,7 +1113,7 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[BrowsePathRequestModelRequestEnvelope](definitions.md#browsepathrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1107,7 +1154,7 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodCallRequestModelRequestEnvelope](definitions.md#methodcallrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1148,7 +1195,7 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[MethodMetadataRequestModelRequestEnvelope](definitions.md#methodmetadatarequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1189,7 +1236,7 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
 
 
 ##### Responses
@@ -1230,7 +1277,7 @@ Get a server endpoint's certificate and certificate chain if available.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The server endpoint to get the certificate for.|[EndpointModel](definitions.md#endpointmodel)|
+|**Body**|**body**  <br>*required*|The server endpoint to get the certificate for.|[EndpointModel](definitions.md#endpointmodel)|
 
 
 ##### Responses
@@ -1271,7 +1318,7 @@ Connect to a server using the provided connection request information. The conne
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[ConnectRequestModelRequestEnvelope](definitions.md#connectrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1312,7 +1359,7 @@ Can be used to disconnect a previously established connection.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[DisconnectRequestModelRequestEnvelope](definitions.md#disconnectrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1345,7 +1392,7 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[RequestHeaderModelRequestEnvelope](definitions.md#requestheadermodelrequestenvelope)|
 
 
 ##### Responses
@@ -1386,7 +1433,7 @@ Get the historian configuration of a historizing node in the OPC UA server
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryConfigurationRequestModelRequestEnvelope](definitions.md#historyconfigurationrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1427,7 +1474,7 @@ Read the history using the respective OPC UA service call. See <a href="https://
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryReadRequestModelRequestEnvelope](definitions.md#variantvaluehistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1468,7 +1515,7 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1509,7 +1556,7 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[VariantValueHistoryUpdateRequestModelRequestEnvelope](definitions.md#variantvaluehistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1550,7 +1597,7 @@ Get the type metadata for a any node. For data type nodes the response contains 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[NodeMetadataRequestModelRequestEnvelope](definitions.md#nodemetadatarequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1591,7 +1638,7 @@ Compile a query string into a query spec that can be used when setting up event 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The compilation request and connection information.|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The compilation request and connection information.|[QueryCompilationRequestModelRequestEnvelope](definitions.md#querycompilationrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1632,7 +1679,7 @@ Read the value of a variable node. This uses the service detailed in the <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueReadRequestModelRequestEnvelope](definitions.md#valuereadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1673,7 +1720,7 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[ReadRequestModelRequestEnvelope](definitions.md#readrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1714,7 +1761,7 @@ Test connection to an opc ua server. The call will not establish any persistent 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[TestConnectionRequestModelRequestEnvelope](definitions.md#testconnectionrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1755,7 +1802,7 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[ValueWriteRequestModelRequestEnvelope](definitions.md#valuewriterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1796,7 +1843,7 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The request payload and connection information identifying the server to connect to perform the operation on.|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The request payload and connection information identifying the server to connect to perform the operation on.|[WriteRequestModelRequestEnvelope](definitions.md#writerequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1850,7 +1897,7 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to delete in the timeseries.|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to delete in the timeseries.|[DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deleteeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1891,7 +1938,7 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to insert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to insert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1932,7 +1979,7 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -1973,7 +2020,7 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to read in the timeseries.|[ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readeventsdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2014,7 +2061,7 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The continuation from a previous read request.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The continuation from a previous read request.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2055,7 +2102,7 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to replace with in the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to replace with in the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2096,7 +2143,7 @@ Upsert events into a time series of the opc server historian. See <a href="https
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The events to upsert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The events to upsert into the timeseries.|[UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updateeventsdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2137,7 +2184,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2178,7 +2225,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to delete in the timeseries.|[DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesattimesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2219,7 +2266,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to delete in the timeseries.|[DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#deletevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2260,7 +2307,7 @@ Insert value change entries in a timeseries of the server historian. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to insert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to insert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2301,7 +2348,7 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2342,7 +2389,7 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2383,7 +2430,7 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2424,7 +2471,7 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readvaluesattimesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2465,7 +2512,7 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2506,7 +2553,7 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2547,7 +2594,7 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readmodifiedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2588,7 +2635,7 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The continuation token from a previous read operation.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The continuation token from a previous read operation.|[HistoryReadNextRequestModelRequestEnvelope](definitions.md#historyreadnextrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2629,7 +2676,7 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to read in the timeseries.|[ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope](definitions.md#readprocessedvaluesdetailsmodelhistoryreadrequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2670,7 +2717,7 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to replace with in the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to replace with in the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses
@@ -2711,7 +2758,7 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*optional*|The values to upsert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
+|**Body**|**body**  <br>*required*|The values to upsert into the timeseries.|[UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodelrequestenvelope)|
 
 
 ##### Responses

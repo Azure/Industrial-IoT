@@ -5723,6 +5723,21 @@
                 }
             }
         },
+        "HeartbeatBehavior": {
+            "description": "Heartbeat behavior",
+            "enum": [
+                "WatchdogLKV",
+                "WatchdogLKG",
+                "PeriodicLKV",
+                "PeriodicLKG",
+                "WatchdogLKVWithUpdatedTimestamps"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "HeartbeatBehavior",
+                "modelAsString": false
+            }
+        },
         "HistoricEventModel": {
             "description": "Historic event",
             "type": "object",
@@ -6773,7 +6788,8 @@
             "description": "Enum that defines the authentication method",
             "enum": [
                 "Anonymous",
-                "UsernamePassword"
+                "UsernamePassword",
+                "Certificate"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -6851,6 +6867,9 @@
                 "IndexRange": {
                     "description": "Index range to read, default to null.",
                     "type": "string"
+                },
+                "HeartbeatBehavior": {
+                    "$ref": "#/definitions/HeartbeatBehavior"
                 },
                 "HeartbeatInterval": {
                     "format": "int32",
@@ -7255,6 +7274,20 @@
                     "description": "Priority of the writer subscription.",
                     "type": "integer"
                 },
+                "DataSetExtensionFields": {
+                    "description": "Optional field and value pairs to insert into the\r\ndata sets emitted by data set writer.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "description": "A variant which can be represented by any value including null."
+                    }
+                },
+                "EndpointSecurityMode": {
+                    "$ref": "#/definitions/SecurityMode"
+                },
+                "EndpointSecurityPolicy": {
+                    "description": "The specific security policy to use for the specified\r\nendpoint. Overrides Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.UseSecurity setting.\r\nIf the security policy is not available with the\r\nspecified security mode connectivity will fail.",
+                    "type": "string"
+                },
                 "MessagingMode": {
                     "$ref": "#/definitions/MessagingMode"
                 },
@@ -7275,6 +7308,13 @@
                     "format": "date-span",
                     "description": "Send network messages at the specified publishing\r\ninterval.\r\nTakes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval\r\nif defined.",
                     "type": "string"
+                },
+                "UseReverseConnect": {
+                    "description": "Use reverse connect to connect ot the endpoint",
+                    "type": "boolean"
+                },
+                "WriterGroupQualityOfService": {
+                    "$ref": "#/definitions/QoS"
                 },
                 "WriterGroupTransport": {
                     "$ref": "#/definitions/WriterGroupTransport"
@@ -7387,6 +7427,18 @@
                     "description": "New api key",
                     "type": "string"
                 }
+            }
+        },
+        "QoS": {
+            "enum": [
+                "AtMostOnce",
+                "AtLeastOnce",
+                "ExactlyOnce"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "QoS",
+                "modelAsString": false
             }
         },
         "ReadEventsDetailsModel": {
@@ -8494,7 +8546,6 @@
                 "status": {
                     "description": "Chain validation status if validated",
                     "enum": [
-                        "NoError",
                         "NotTimeValid",
                         "Revoked",
                         "NotSignatureValid",
@@ -8561,20 +8612,23 @@
                     "description": "Self signed certificate",
                     "type": "boolean"
                 },
-                "certificate": {
-                    "description": "Raw data",
+                "pfx": {
+                    "description": "Certificate as Pkcs12",
                     "type": "array",
                     "items": {
                         "format": "int32",
                         "type": "integer"
                     }
+                },
+                "hasPrivateKey": {
+                    "description": "Contains private key",
+                    "type": "boolean"
                 }
             }
         },
         "X509ChainStatus": {
             "description": "Status of x509 chain",
             "enum": [
-                "NoError",
                 "NotTimeValid",
                 "Revoked",
                 "NotSignatureValid",

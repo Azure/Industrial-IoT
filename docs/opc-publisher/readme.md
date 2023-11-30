@@ -436,7 +436,7 @@ The configuration schema is used with the file based configuration, but also wit
 }
 ```
 
-(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md).
+(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md#configuring-event-subscriptions).
 
 Each [published nodes entry model](./definitions.md#publishednodesentrymodel) has the following attributes:
 
