@@ -269,8 +269,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
-                Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
+                var san = new SubjectAlternativeNameBuilder();
+                san.AddDnsName(dnsName);
+                await AddAddressesAsync(dnsName, san).ConfigureAwait(false);
 
+                var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
+                if (!string.IsNullOrEmpty(altDns))
+                {
+                    san.AddDnsName(altDns);
+                    await AddAddressesAsync(altDns, san).ConfigureAwait(false);
+                }
+                req.CertificateExtensions.Add(san.Build());
+                Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
                 Debug.Assert(Certificate.HasPrivateKey);
                 _logger.LogInformation("Created self-signed ECC server certificate...");
             }
@@ -289,6 +299,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
+
+            async Task AddAddressesAsync(string hostName, SubjectAlternativeNameBuilder san)
+            {
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
+                    addresses.ForEach(san.AddIpAddress);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to get host addresses for {HostName}", hostName);
+                }
+            }
         }
 
         /// <summary>
