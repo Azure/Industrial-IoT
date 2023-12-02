@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit.Abstractions;
     using Furly.Azure.IoT.Edge;
+    using Xunit;
 
     /// <summary>
     /// Publisher telemetry
@@ -143,9 +144,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
                 $"UseTls={mqttOptions.Value.UseTls};Protocol={mqttOptions.Value.Protocol};" +
                 $"Partitions={mqttOptions.Value.NumberOfClientPartitions}";
+            var publisherId = Guid.NewGuid().ToString();
             arguments = arguments.Concat(
                 new[]
                 {
+                    $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
                     "--aa"
@@ -165,7 +168,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 ;
 
             _config = configBuilder.Build();
-            _ = Server; // Ensure server is created
 
             // Register with the telemetry handler to receive telemetry events
             if (!_useMqtt)
@@ -174,17 +176,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 _telemetry = new IoTHubTelemetryHandler();
                 _handler1 = register.Register(_telemetry);
                 Target = HubResource.Format(null, device.Id, device.ModuleId);
+
+                _ = Server; // Ensure server is created
             }
             else
             {
                 _consumer = new EventConsumer();
                 var register = ClientContainer.Resolve<IEventSubscriber>();
-                var options = Resolve<IOptions<PublisherOptions>>();
-
-                var topicBuilder = new TopicBuilder(options);
-                _handler2 = register.SubscribeAsync(topicBuilder.RootTopic + "/messages/#", _consumer)
+                _handler2 = register.SubscribeAsync($"{publisherId}/messages/#", _consumer)
                     .AsTask().GetAwaiter().GetResult();
+
+                // Ensures server is created
+                var options = Resolve<IOptions<PublisherOptions>>();
+                var topicBuilder = new TopicBuilder(options);
                 Target = topicBuilder.MethodTopic;
+                Assert.Equal(publisherId, topicBuilder.RootTopic);
             }
         }
 
