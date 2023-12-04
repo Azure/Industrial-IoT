@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     _logger.LogDebug("Starting SignalR client host...");
                     _connection = await OpenAsync(_retryPolicy.Token).ConfigureAwait(false);
                     _logger.LogInformation("SignalR client host started.");
-                    break;
+                    return;
                 }
                 catch (Exception ex)
                 {
