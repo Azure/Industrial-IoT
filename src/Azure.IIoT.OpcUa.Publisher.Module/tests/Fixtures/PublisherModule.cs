@@ -544,7 +544,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
-        private static int _mqttPort = 48882;
+        private static int _mqttPort = 58882;
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;
