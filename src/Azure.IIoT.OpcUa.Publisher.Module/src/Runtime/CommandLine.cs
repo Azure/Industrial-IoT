@@ -206,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "If enabled exposes the open api schema of OPC Publisher using v3 schema (yaml).\nOnly valid if Open API endpoint is not disabled.\nDefault: `v2` (json).\n",
                     (bool? b) => this[Configuration.OpenApi.UseOpenApiV3Key] = b?.ToString() ?? "True" },
                 { $"rtc|renewtlscert:|{PublisherConfig.RenewTlsCertificateOnStartupKey}:",
-                    "If set a new tls certificate is created during startup updating any previously created ones.\n\nDefault: `false`.\n",
+                    "If set a new tls certificate is created during startup updating any previously created ones.\nDefault: `false`.\n",
                     (bool? b) => this[PublisherConfig.RenewTlsCertificateOnStartupKey] = b?.ToString() ?? "True" },
 
                 "",
