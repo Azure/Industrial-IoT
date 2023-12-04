@@ -179,8 +179,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
             }
 
+            var dnsName = Dns.GetHostName();
+
             // The certificate must be in the same store as the api key or else we generate a new one.
-            if (apiKeyStore != null &&
+            if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
+                apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
                     out var cert) && cert.IsBytes)
             {
@@ -190,7 +193,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
                     var now = DateTime.UtcNow.AddDays(1);
-                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
+                        Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
+                            .Any(a => a.GetSingleElementValue() == dnsName))
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
@@ -213,7 +218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Create new certificate
             var nowOffset = DateTimeOffset.UtcNow;
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
-            var dnsName = Dns.GetHostName();
 
             Certificate?.Dispose();
             Certificate = null;
