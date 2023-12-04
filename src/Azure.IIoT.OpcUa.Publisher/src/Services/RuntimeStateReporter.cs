@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Runtime.InteropServices;
     using System.Globalization;
+    using System.Net.Sockets;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -282,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     san.AddDnsName(altDns);
                     await GetAddressesAsync(altDns, ips).ConfigureAwait(false);
                 }
-                foreach (var ip in ips)
+                foreach (var ip in ips.Where(a => a.AddressFamily == AddressFamily.InterNetwork))
                 {
                     san.AddIpAddress(ip);
                 }
