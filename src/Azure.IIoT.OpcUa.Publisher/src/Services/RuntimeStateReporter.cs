@@ -270,14 +270,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
                 var san = new SubjectAlternativeNameBuilder();
+
+                var ips = new HashSet<IPAddress>();
+                await GetAddressesAsync(dnsName, ips).ConfigureAwait(false);
                 san.AddDnsName(dnsName);
-                await AddAddressesAsync(dnsName, san).ConfigureAwait(false);
 
                 var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
-                if (!string.IsNullOrEmpty(altDns))
+                if (!string.IsNullOrEmpty(altDns) &&
+                    !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
                 {
                     san.AddDnsName(altDns);
-                    await AddAddressesAsync(altDns, san).ConfigureAwait(false);
+                    await GetAddressesAsync(altDns, ips).ConfigureAwait(false);
+                }
+                foreach (var ip in ips)
+                {
+                    san.AddIpAddress(ip);
                 }
                 req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
@@ -300,12 +307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
 
-            async Task AddAddressesAsync(string hostName, SubjectAlternativeNameBuilder san)
+            async Task GetAddressesAsync(string hostName, HashSet<IPAddress> set)
             {
                 try
                 {
                     var addresses = await Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
-                    addresses.ForEach(san.AddIpAddress);
+                    addresses.ForEach(a => set.Add(a));
                 }
                 catch (Exception ex)
                 {
