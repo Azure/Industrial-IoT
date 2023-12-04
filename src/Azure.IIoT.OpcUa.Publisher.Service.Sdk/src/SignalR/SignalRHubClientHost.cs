@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -58,19 +59,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         public IDisposable Register(Func<object?[], object, Task> handler,
             object thiz, string method, Type[] arguments)
         {
-            _lock.Wait();
-            try
+            if (!_started.IsCompleted)
             {
-                if (_connection == null)
+                try
                 {
-                    throw new InvalidOperationException("Must start before registering");
+                    _started.GetAwaiter().GetResult();
                 }
-                return _connection.On(method, arguments, handler, thiz);
+                catch (OperationCanceledException) when (_isDisposed)
+                {
+                    ObjectDisposedException.ThrowIf(_isDisposed, this);
+                }
             }
-            finally
-            {
-                _lock.Release();
-            }
+
+            Debug.Assert(_connection != null);
+            return _connection.On(method, arguments, handler, thiz);
         }
 
         /// <inheritdoc/>
@@ -82,52 +84,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            if (_isDisposed)
+            {
+                return;
+            }
+            _isDisposed = true;
             try
             {
-                if (_isDisposed)
-                {
-                    return;
-                }
-                _isDisposed = true;
+                // Cancel any retrying
+                _retryPolicy.Cancel();
+
+                // Ensure started
+                await _started.ConfigureAwait(false);
+
+                // Dispose connection
                 _logger.LogDebug("Stopping SignalR client host...");
                 await DisposeAsync(_connection).ConfigureAwait(false);
-                _connection = null;
-                _logger.LogInformation("SignalR client host stopped.");
             }
+            catch (OperationCanceledException) { } // Cancelled during start
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error stopping SignalR client host.");
             }
             finally
             {
-                _lock.Release();
+                _connection = null;
+                _retryPolicy.Dispose();
+                _logger.LogInformation("SignalR client host stopped.");
             }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            _lock.Wait();
-            try
-            {
-                if (_isDisposed)
-                {
-                    return;
-                }
-                _isDisposed = true;
-                if (_connection != null)
-                {
-                    _logger.LogTrace("SignalR client was not stopped before disposing.");
-                    Try.Op(() => DisposeAsync(_connection).Wait());
-                    _connection = null;
-                }
-            }
-            finally
-            {
-                _lock.Release();
-            }
-            _lock.Dispose();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -136,32 +126,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <returns></returns>
         private async Task StartAsync()
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try
+            var context = new RetryContext();
+            while (true)
             {
-                _logger.LogDebug("Starting SignalR client host...");
-                _connection = await OpenAsync().ConfigureAwait(false);
-                _logger.LogInformation("SignalR client host started.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error starting SignalR client host.");
-                throw;
-            }
-            finally
-            {
-                _lock.Release();
+                _retryPolicy.Token.ThrowIfCancellationRequested();
+                try
+                {
+                    _logger.LogDebug("Starting SignalR client host...");
+                    _connection = await OpenAsync(_retryPolicy.Token).ConfigureAwait(false);
+                    _logger.LogInformation("SignalR client host started.");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    context.PreviousRetryCount++;
+                    context.RetryReason = ex;
+                    var delay = _retryPolicy.NextRetryDelay(context);
+                    if (delay.HasValue)
+                    {
+                        _logger.LogError(ex,
+                            "Error starting SignalR client host - retrying after {Delay}.", delay);
+                        await Task.Delay(delay.Value, _retryPolicy.Token).ConfigureAwait(false);
+                    }
+                }
             }
         }
 
         /// <summary>
         /// Open connection
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<HubConnection> OpenAsync()
+        private async Task<HubConnection> OpenAsync(CancellationToken ct)
         {
             var builder = new HubConnectionBuilder()
-                .WithAutomaticReconnect();
+                .WithAutomaticReconnect(_retryPolicy);
             if (_useMessagePack && _msgPack != null)
             {
                 builder = builder.AddMessagePackProtocol(options =>
@@ -201,8 +200,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     }
                 })
                 .Build();
-            connection.Closed += ex => OnClosedAsync(connection, ex);
-            await connection.StartAsync().ConfigureAwait(false);
+            connection.Closed += ex =>
+            {
+                _logger.LogInformation(ex, "Connection closed!");
+                return Task.CompletedTask;
+            };
+            connection.Reconnecting += ex =>
+            {
+                _logger.LogInformation(ex, "Connection Reconnecting...");
+                return Task.CompletedTask;
+            };
+            connection.Reconnected += _ =>
+            {
+                _logger.LogInformation("Connection Reconnected!");
+                return Task.CompletedTask;
+            };
+            await connection.StartAsync(ct).ConfigureAwait(false);
             return connection;
         }
 
@@ -224,24 +237,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         /// <summary>
-        /// Handle close event
+        /// Linear retry policy
         /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        private async Task OnClosedAsync(HubConnection connection, Exception? ex)
+        private sealed class Retry : IRetryPolicy, IDisposable
         {
-            _logger.LogError(ex, "SignalR client host Disconnected!");
-            await DisposeAsync(connection).ConfigureAwait(false);
-            if (!_isDisposed)
+            /// <summary>
+            /// Cancellation of retry
+            /// </summary>
+            public CancellationToken Token => _cts.Token;
+
+            /// <inheritdoc/>
+            public TimeSpan? NextRetryDelay(RetryContext retryContext)
             {
-                // Reconnect
-                _connection = await OpenAsync().ConfigureAwait(false);
-                _logger.LogInformation("SignalR client host reconnecting...");
+                return _cts.IsCancellationRequested ? null :
+                    TimeSpan.FromSeconds(Math.Min(60, retryContext.PreviousRetryCount));
             }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+               _cts.Dispose();
+            }
+
+            /// <summary>
+            /// Cancel retrying
+            /// </summary>
+            internal void Cancel()
+            {
+                _cts.Cancel();
+            }
+
+            private readonly CancellationTokenSource _cts = new();
         }
 
-        private readonly SemaphoreSlim _lock = new(1, 1);
+        private readonly Retry _retryPolicy = new();
         private readonly INewtonsoftSerializerSettingsProvider? _jsonSettings;
         private readonly IMessagePackFormatterResolverProvider? _msgPack;
         private readonly Uri _endpointUri;

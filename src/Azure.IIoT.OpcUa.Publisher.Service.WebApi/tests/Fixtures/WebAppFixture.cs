@@ -154,6 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             // Register http client factory
             builder.RegisterInstance(this)
                 .As<IHttpClientFactory>().ExternallyOwned(); // Do not dispose
+            _ = Server; // Ensure server is created
             return builder.Build();
         }
 
