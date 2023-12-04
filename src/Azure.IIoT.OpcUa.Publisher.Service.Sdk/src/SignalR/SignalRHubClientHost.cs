@@ -61,6 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         {
             if (!_started.IsCompleted)
             {
+                _logger.LogWarning("No blocking to start connection. " +
+                    "You should await and connect before registering.");
                 try
                 {
                     _started.GetAwaiter().GetResult();
