@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
@@ -77,8 +78,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _diagnostics = diagnostics;
             _cts = new CancellationTokenSource();
 
+            _logNotificationsFilter = _options.Value.DebugLogNotificationsFilter == null ?
+                null : new Regex(_options.Value.DebugLogNotificationsFilter);
             _logNotifications = _options.Value.DebugLogNotifications
-                ?? false;
+                ?? (_logNotificationsFilter != null);
             _maxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
                 ?? _options.Value.BatchSize ?? 0;
             _maxNetworkMessageSize = (int?)writerGroup.MaxNetworkMessageSize
@@ -354,6 +357,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="dropped"></param>
         private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
         {
+            // Filter fields to log
+            if (_logNotificationsFilter != null)
+            {
+                var matched = args.SubscriptionName != null &&
+                    _logNotificationsFilter.IsMatch(args.SubscriptionName);
+
+                for (var i = 0; i < args.Notifications.Count && !matched; i++)
+                {
+                    var itemName =
+                        args.Notifications[i].DataSetFieldName ??
+                        args.Notifications[i].DataSetName;
+                    if (itemName != null)
+                    {
+                        matched = _logNotificationsFilter.IsMatch(itemName);
+                    }
+                }
+                if (!matched)
+                {
+                    // Do not log anything
+                    return;
+                }
+            }
+
             _logger.LogInformation(
                 "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
                 dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
@@ -438,6 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
+        private readonly Regex? _logNotificationsFilter;
         private readonly BatchBlock<IOpcUaSubscriptionNotification> _notificationBufferBlock;
         private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
         private readonly ActionBlock<(IEvent, Action)> _sinkBlock;
