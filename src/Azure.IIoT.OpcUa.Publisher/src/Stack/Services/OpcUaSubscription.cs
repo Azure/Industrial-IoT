@@ -1425,7 +1425,7 @@ Actual (revised) state/desired state:
             }
 
             var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
-            if (!subscription.PublishingEnabled || onSubscriptionKeepAlive == null)
+            if (onSubscriptionKeepAlive == null)
             {
                 return;
             }

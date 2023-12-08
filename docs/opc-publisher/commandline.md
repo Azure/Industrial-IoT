@@ -337,10 +337,6 @@ Transport settings
                                Publisher using v3 schema (yaml).
                                Only valid if Open API endpoint is not disabled.
                                Default: `v2` (json).
-      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
-                             If set a new tls certificate is created during
-                               startup updating any previously created ones.
-                               Default: `false`.
 
 Routing configuration
 ---------------------
