@@ -94,6 +94,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? DebugLogNotifications { get; set; }
 
         /// <summary>
+        /// Filter to apply to the notifications before adding to log
+        /// </summary>
+        public string? DebugLogNotificationsFilter { get; set; }
+
+        /// <summary>
         /// Define the maximum number of messages in egress buffer,
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>

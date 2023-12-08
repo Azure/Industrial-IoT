@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RemoveDuplicatesFromBatchKey = "RemoveDuplicatesFromBatch";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
+        public const string DebugLogNotificationsFilterKey = "DebugLogNotificationsFilter";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
@@ -242,6 +243,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.ScaleTestCount = GetIntOrDefault(ScaleTestCountKey,
                     ScaleTestCountDefault);
+            }
+
+            if (options.DebugLogNotificationsFilter == null)
+            {
+                options.DebugLogNotificationsFilter =
+                    GetStringOrDefault(DebugLogNotificationsFilterKey);
             }
 
             if (options.DebugLogNotifications == null)
