@@ -104,7 +104,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Get server connection
         /// </summary>
-        /// <param name="path"></param>
         /// <returns></returns>
         public ConnectionModel GetConnection()
         {

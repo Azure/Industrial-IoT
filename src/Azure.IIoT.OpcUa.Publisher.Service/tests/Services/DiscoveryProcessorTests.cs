@@ -395,7 +395,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         /// <summary>
         /// Setup all services used in processing
         /// </summary>
-        /// <param name="mock"></param>
         /// <param name="registry"></param>
         /// <param name="processor"></param>
         private static AutoMock Setup(IoTHubMock registry, out IDiscoveryResultProcessor processor)

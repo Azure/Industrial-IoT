@@ -820,6 +820,13 @@ Diagnostic options
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
                                Default: `disabled`.
+      --lnf, --lognotificationfilter[=VALUE]
+                             Only log notifications where the data set field
+                               name, subscription name, or data set name match
+                               the provided regular expression pattern.
+                               If set implicitly enables debug logging via `--
+                               ln`.
+                               Default: `null` (matches all).
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.

@@ -284,7 +284,6 @@ namespace Opc.Ua.Test
         /// Get random array data
         /// </summary>
         /// <param name="expectedType"></param>
-        /// <param name="useBoundaryValues"></param>
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
@@ -368,7 +367,6 @@ namespace Opc.Ua.Test
         /// Get random
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="useBoundaryValues"></param>
         /// <returns></returns>
         public T GetRandom<T>()
         {
@@ -387,7 +385,6 @@ namespace Opc.Ua.Test
         /// Get random array
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="useBoundaryValues"></param>
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
