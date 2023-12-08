@@ -143,9 +143,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
                 $"UseTls={mqttOptions.Value.UseTls};Protocol={mqttOptions.Value.Protocol};" +
                 $"Partitions={mqttOptions.Value.NumberOfClientPartitions}";
+            var publisherId = Guid.NewGuid().ToString();
             arguments = arguments.Concat(
                 new[]
                 {
+                    $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
                     "--aa"
@@ -538,7 +540,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
-        private static int _mqttPort = 48882;
+        private static int _mqttPort = 58882;
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;

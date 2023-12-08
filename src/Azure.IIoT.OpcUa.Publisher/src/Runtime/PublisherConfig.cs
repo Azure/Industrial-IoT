@@ -57,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
         public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
+        public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -135,6 +136,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.CreatePublishFileIfNotExist = GetBoolOrNull(
                     CreatePublishFileIfNotExistKey);
+            }
+
+            if (options.RenewTlsCertificateOnStartup == null)
+            {
+                options.RenewTlsCertificateOnStartup = GetBoolOrNull(
+                    RenewTlsCertificateOnStartupKey);
             }
 
             if (options.MaxNodesPerDataSet == 0)
