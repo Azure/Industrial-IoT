@@ -1605,13 +1605,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 try
                 {
-                    result[index] = item.As<T?>();
+                    result[index] = (T?)item;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Bad variant: Value '{value}' of type '{value.GetType().FullName}'" +
-                        $" is not of type '{typeof(T).GetType().FullName}'.", ex);
+                    try
+                    {
+                        result[index] = item.As<T?>();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Bad variant: Value '{value}' of type '{value.GetType().FullName}'" +
+                            $" with the item '{item}' of type '{item.GetType().FullName}'" +
+                            $" is not of type '{typeof(T).GetType().FullName}'.", ex);
+                    }
                 }
             }
             return result;

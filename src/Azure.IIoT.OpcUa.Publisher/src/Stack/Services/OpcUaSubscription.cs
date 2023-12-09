@@ -1429,7 +1429,7 @@ Actual (revised) state/desired state:
             }
 
             var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
-            if (onSubscriptionKeepAlive == null)
+            if (!subscription.PublishingEnabled || onSubscriptionKeepAlive == null)
             {
                 return;
             }
