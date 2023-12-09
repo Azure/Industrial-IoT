@@ -1633,7 +1633,7 @@ Actual (revised) state/desired state:
                 return;
             }
             var timeout = (int)
-                (subscription.CurrentPublishingInterval * subscription.CurrentKeepAliveCount);
+                (subscription.CurrentPublishingInterval * (subscription.CurrentKeepAliveCount + 1));
             if (timeout <= 0)
             {
                 timeout = Timeout.Infinite;
@@ -1645,7 +1645,6 @@ Actual (revised) state/desired state:
         /// Called when keep alive callback was missing
         /// </summary>
         /// <param name="state"></param>
-        /// <exception cref="NotImplementedException"></exception>
         private void OnKeepAliveMissing(object? state)
         {
             NumberOfMissingKeepAlives++;
@@ -1663,7 +1662,7 @@ Actual (revised) state/desired state:
             }
             else
             {
-                _logger.LogError("#{Count}: Subscription {Subscription} is missing keep alive",
+                _logger.LogError("#{Count}: Subscription {Subscription} is missing keep alive.",
                     _continuouslyMissingKeepAlives, this);
             }
         }
