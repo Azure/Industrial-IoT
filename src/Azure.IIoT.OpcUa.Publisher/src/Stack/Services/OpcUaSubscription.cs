@@ -296,6 +296,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
+                _currentlyMonitored = ImmutableDictionary<uint, IOpcUaMonitoredItem>.Empty;
+                NumberOfCreatedItems = 0;
+                NumberOfNotCreatedItems = 0;
+
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 client?.Dispose();
