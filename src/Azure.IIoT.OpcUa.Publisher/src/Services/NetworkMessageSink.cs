@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading;
@@ -226,11 +227,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private async Task SendAsync((IEvent Event, Action Complete) message)
         {
+            if (_cts.IsCancellationRequested)
+            {
+                message.Complete();
+                message.Event.Dispose();
+                return;
+            }
             try
             {
                 // Do not give up and try to send the message until cancelled.
                 var sw = Stopwatch.StartNew();
-                for (var attempt = 1; ; attempt++)
+                for (var attempt = 1; !_cts.IsCancellationRequested; attempt++)
                 {
                     try
                     {
@@ -239,11 +246,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _logger.LogDebug("#{Attempt}: Network message sent.", attempt);
                         break;
                     }
-                    catch (Exception e) when (
-                        e is not OperationCanceledException &&
-                        e is not ObjectDisposedException)
+                    catch (OperationCanceledException) { }
+                    catch (Exception e) when (e is not ObjectDisposedException)
                     {
                         kMessagesErrors.Add(1, _metrics.TagList);
+
+                        // Fail fast for authentication exceptions
+                        var aux = e as AuthenticationException;
+                        if (aux == null && e is AggregateException ag)
+                        {
+                            aux = ag
+                                .Flatten().InnerExceptions
+                                .OfType<AuthenticationException>()
+                                .FirstOrDefault();
+                        }
+                        if (aux?.Message.Equals("TLS authentication error.",
+                            StringComparison.Ordinal) == true)
+                        {
+                            _logger.LogCritical(aux,
+                                "#{Attempt}: Wrong TLS certificate trust list " +
+                                "provisioned - trying to reset and reload configuration...",
+                                attempt);
+                            Runtime.FailFast(aux.Message, aux);
+                        }
 
                         var delay = TimeSpan.FromMilliseconds(attempt * 100);
                         const string error = "#{Attempt}: Error '{Error}' during " +
@@ -260,6 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             _logger.LogError(error, attempt, e.Message, delay);
                         }
+
                         // Throws if cancelled
                         await Task.Delay(delay, _cts.Token).ConfigureAwait(false);
                     }

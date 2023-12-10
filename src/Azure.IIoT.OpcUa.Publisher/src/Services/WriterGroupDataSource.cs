@@ -936,6 +936,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
+                () => new Measurement<long>(_subscriptions.Count, _metrics.TagList), "Subscriptions",
+                "Number of Writers/Subscriptions in the writer group.");
             _meter.CreateObservableCounter("iiot_edge_publisher_events",
                 () => new Measurement<long>(_eventCount, _metrics.TagList), "Events",
                 "Total Opc Events delivered for processing.");
