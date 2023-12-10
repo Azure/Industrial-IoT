@@ -87,6 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
+            _keepAliveTimer = new Timer(OnKeepAliveMissing);
             InitializeMetrics();
         }
 
@@ -296,6 +297,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
+                _currentlyMonitored = ImmutableDictionary<uint, IOpcUaMonitoredItem>.Empty;
+                NumberOfCreatedItems = 0;
+                NumberOfNotCreatedItems = 0;
+
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 client?.Dispose();
@@ -313,6 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(_closed);
             }
 
+            _keepAliveTimer.Dispose();
             _timer.Dispose();
             _meter.Dispose();
             _lock.Dispose();
@@ -399,6 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             _currentSubscription = null;
+            ResetKeepAliveTimer();
             try
             {
 #if !DEBUG // Get the wrong subscription callbacks in debug
@@ -1004,6 +1011,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 }
                 _currentSubscription = currentSubscription;
+                ResetKeepAliveTimer();
             }
             else
             {
@@ -1193,6 +1201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     LogRevisedValues(subscription, false);
                 }
             }
+            ResetKeepAliveTimer();
             return _currentSubscription;
         }
 
@@ -1318,6 +1327,8 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            ResetKeepAliveTimer();
+
             var onSubscriptionEventChange = OnSubscriptionEventChange;
             if (onSubscriptionEventChange == null)
             {
@@ -1424,6 +1435,8 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            ResetKeepAliveTimer();
+
             var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
             if (!subscription.PublishingEnabled || onSubscriptionKeepAlive == null)
             {
@@ -1473,6 +1486,8 @@ Actual (revised) state/desired state:
                     subscription?.Id, this);
                 return;
             }
+
+            ResetKeepAliveTimer();
 
             var onSubscriptionDataChange = OnSubscriptionDataChange;
             if (onSubscriptionDataChange == null)
@@ -1602,6 +1617,53 @@ Actual (revised) state/desired state:
                 _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
                 _currentSequenceNumber = sequenceNumber.Value;
+            }
+        }
+
+        /// <summary>
+        /// Reset keep alive timer
+        /// </summary>
+        private void ResetKeepAliveTimer()
+        {
+            _continuouslyMissingKeepAlives = 0;
+            var subscription = _currentSubscription;
+            if (subscription == null)
+            {
+                _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+            var timeout = (int)
+                (subscription.CurrentPublishingInterval * (subscription.CurrentKeepAliveCount + 1));
+            if (timeout <= 0)
+            {
+                timeout = Timeout.Infinite;
+            }
+            _keepAliveTimer.Change(timeout, timeout);
+        }
+
+        /// <summary>
+        /// Called when keep alive callback was missing
+        /// </summary>
+        /// <param name="state"></param>
+        private void OnKeepAliveMissing(object? state)
+        {
+            NumberOfMissingKeepAlives++;
+            _continuouslyMissingKeepAlives++;
+
+            var subscription = _currentSubscription;
+            if (subscription != null && _continuouslyMissingKeepAlives > subscription.CurrentLifetimeCount)
+            {
+                _logger.LogCritical(
+                    "#{Count}: Lifetime counter exceeded. Resetting subscription {Subscription}...",
+                    _continuouslyMissingKeepAlives, this);
+
+                // TODO: option to fail fast here
+                TriggerSubscriptionManagementCallbackIn(TimeSpan.FromSeconds(1));
+            }
+            else
+            {
+                _logger.LogError("#{Count}: Subscription {Subscription} is missing keep alive.",
+                    _continuouslyMissingKeepAlives, this);
             }
         }
 
@@ -1886,15 +1948,19 @@ Actual (revised) state/desired state:
 
         private int NumberOfCreatedItems { get; set; }
         private int NumberOfNotCreatedItems { get; set; }
+        private int NumberOfMissingKeepAlives { get; set; }
 
         /// <summary>
         /// Create observable metrics
         /// </summary>
         public void InitializeMetrics()
         {
+            _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
+                () => new Measurement<long>(NumberOfMissingKeepAlives, _metrics.TagList),
+                "Keep Alives", "Number of missing keep alives in subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfCreatedItems, _metrics.TagList),
-                "Monitored items", "Monitored items successfully created..");
+                "Monitored items", "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfNotCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items with errors.");
@@ -1929,8 +1995,10 @@ Actual (revised) state/desired state:
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;
         private readonly Timer _timer;
+        private readonly Timer _keepAliveTimer;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private uint _currentSequenceNumber;
+        private int _continuouslyMissingKeepAlives;
     }
 }

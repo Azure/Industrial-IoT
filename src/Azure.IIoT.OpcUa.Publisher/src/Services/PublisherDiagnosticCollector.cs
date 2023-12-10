@@ -279,7 +279,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_is_connection_ok"] =
                 (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
                 ["iiot_edge_publisher_connection_retries"] =
-                (d, i) => d.ConnectionRetries = (long)i
+                (d, i) => d.ConnectionRetries = (long)i,
+                ["iiot_edge_publisher_subscriptions"] =
+                (d, i) => d.NumberOfSubscriptions = (long)i
 
                 // ... Add here more items if needed
             };

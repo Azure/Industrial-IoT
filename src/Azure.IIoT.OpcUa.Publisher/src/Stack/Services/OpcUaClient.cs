@@ -816,7 +816,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to apply subscription to session.");
+                        _logger.LogError(ex, "Failed to apply subscription {Subscription} to session.",
+                            subscription);
                     }
                 })).ConfigureAwait(false);
 
