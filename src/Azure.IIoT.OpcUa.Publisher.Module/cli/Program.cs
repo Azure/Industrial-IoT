@@ -410,8 +410,6 @@ Options:
             /// Create wrapper
             /// </summary>
             /// <param name="logger"></param>
-            /// <param name="disconnectInterval"></param>
-            /// <param name="reconnectDelay"></param>
             /// <param name="reverseConnectPort"></param>
             public ServerWrapper(ILoggerFactory logger, int? reverseConnectPort)
             {

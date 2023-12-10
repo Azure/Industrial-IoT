@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 }, null, default);
 
                 // Assert
-                Assert.True(records.Items.Count == 0);
+                Assert.Empty(records.Items);
             }
         }
 
