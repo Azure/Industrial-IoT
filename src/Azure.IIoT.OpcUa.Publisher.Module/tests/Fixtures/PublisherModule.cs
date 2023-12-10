@@ -46,7 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit.Abstractions;
     using Furly.Azure.IoT.Edge;
-    using Xunit;
 
     /// <summary>
     /// Publisher telemetry
@@ -168,6 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 ;
 
             _config = configBuilder.Build();
+            _ = Server; // Ensure server is created
 
             // Register with the telemetry handler to receive telemetry events
             if (!_useMqtt)
@@ -176,21 +176,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 _telemetry = new IoTHubTelemetryHandler();
                 _handler1 = register.Register(_telemetry);
                 Target = HubResource.Format(null, device.Id, device.ModuleId);
-
-                _ = Server; // Ensure server is created
             }
             else
             {
                 _consumer = new EventConsumer();
                 var register = ClientContainer.Resolve<IEventSubscriber>();
-                _handler2 = register.SubscribeAsync($"{publisherId}/messages/#", _consumer)
-                    .AsTask().GetAwaiter().GetResult();
-
-                // Ensures server is created
                 var options = Resolve<IOptions<PublisherOptions>>();
+
                 var topicBuilder = new TopicBuilder(options);
+                _handler2 = register.SubscribeAsync(topicBuilder.RootTopic + "/messages/#", _consumer)
+                    .AsTask().GetAwaiter().GetResult();
                 Target = topicBuilder.MethodTopic;
-                Assert.Equal(publisherId, topicBuilder.RootTopic);
             }
         }
 
@@ -544,7 +540,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
-        private static int _mqttPort = 58882;
+        private static int _mqttPort = 48882;
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;

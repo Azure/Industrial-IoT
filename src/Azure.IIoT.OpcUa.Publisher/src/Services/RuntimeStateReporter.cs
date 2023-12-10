@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Runtime.InteropServices;
     using System.Globalization;
-    using System.Net.Sockets;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -179,8 +178,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
             }
 
-            var dnsName = Dns.GetHostName();
-
             // The certificate must be in the same store as the api key or else we generate a new one.
             if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
                 apiKeyStore != null &&
@@ -193,9 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
                     var now = DateTime.UtcNow.AddDays(1);
-                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
-                        Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
-                            .Any(a => a.GetSingleElementValue() == dnsName))
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
@@ -218,6 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Create new certificate
             var nowOffset = DateTimeOffset.UtcNow;
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
+            var dnsName = Dns.GetHostName();
 
             Certificate?.Dispose();
             Certificate = null;
@@ -274,25 +270,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
-                var san = new SubjectAlternativeNameBuilder();
-
-                var ips = new HashSet<IPAddress>();
-                await GetAddressesAsync(dnsName, ips).ConfigureAwait(false);
-                san.AddDnsName(dnsName);
-
-                var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
-                if (!string.IsNullOrEmpty(altDns) &&
-                    !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
-                {
-                    san.AddDnsName(altDns);
-                    await GetAddressesAsync(altDns, ips).ConfigureAwait(false);
-                }
-                foreach (var ip in ips.Where(a => a.AddressFamily == AddressFamily.InterNetwork))
-                {
-                    san.AddIpAddress(ip);
-                }
-                req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
+
                 Debug.Assert(Certificate.HasPrivateKey);
                 _logger.LogInformation("Created self-signed ECC server certificate...");
             }
@@ -311,19 +290,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
-
-            async Task GetAddressesAsync(string hostName, HashSet<IPAddress> set)
-            {
-                try
-                {
-                    var addresses = await Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
-                    addresses.ForEach(a => set.Add(a));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Failed to get host addresses for {HostName}", hostName);
-                }
-            }
         }
 
         /// <summary>
