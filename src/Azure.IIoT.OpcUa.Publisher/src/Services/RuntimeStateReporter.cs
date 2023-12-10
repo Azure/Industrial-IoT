@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Runtime.InteropServices;
     using System.Globalization;
+    using System.Net.Sockets;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -178,6 +179,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
             }
 
+            var dnsName = Dns.GetHostName();
+
             // The certificate must be in the same store as the api key or else we generate a new one.
             if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
                 apiKeyStore != null &&
@@ -190,7 +193,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
                     var now = DateTime.UtcNow.AddDays(1);
-                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
+                        Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
+                            .Any(a => a.GetSingleElementValue() == dnsName))
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
@@ -213,7 +218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Create new certificate
             var nowOffset = DateTimeOffset.UtcNow;
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
-            var dnsName = Dns.GetHostName();
 
             Certificate?.Dispose();
             Certificate = null;
@@ -270,8 +274,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
+                var san = new SubjectAlternativeNameBuilder();
+                san.AddDnsName(dnsName);
+                var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
+                if (!string.IsNullOrEmpty(altDns) &&
+                    !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
+                {
+                    san.AddDnsName(altDns);
+                }
+                req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
-
                 Debug.Assert(Certificate.HasPrivateKey);
                 _logger.LogInformation("Created self-signed ECC server certificate...");
             }
