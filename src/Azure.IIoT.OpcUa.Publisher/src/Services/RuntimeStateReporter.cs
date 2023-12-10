@@ -556,6 +556,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Monitored Opc nodes failed count   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
+                    .Append("  # Subscriptions count                : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
+                        .AppendLine()
                     ;
             }
         }

@@ -223,5 +223,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "EncoderMaxMessageSplitRatio", Order = 29,
             EmitDefaultValue = true)]
         public double EncoderMaxMessageSplitRatio { get; set; }
+
+        /// <summary>
+        /// Number Of Subscriptions in the writer group
+        /// </summary>
+        [DataMember(Name = "NumberOfSubscriptions", Order = 30,
+            EmitDefaultValue = true)]
+        public long NumberOfSubscriptions { get; set; }
     }
 }
