@@ -275,21 +275,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
                 var san = new SubjectAlternativeNameBuilder();
-
-                var ips = new HashSet<IPAddress>();
-                await GetAddressesAsync(dnsName, ips).ConfigureAwait(false);
                 san.AddDnsName(dnsName);
-
                 var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
                 if (!string.IsNullOrEmpty(altDns) &&
                     !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
                 {
                     san.AddDnsName(altDns);
-                    await GetAddressesAsync(altDns, ips).ConfigureAwait(false);
-                }
-                foreach (var ip in ips.Where(a => a.AddressFamily == AddressFamily.InterNetwork))
-                {
-                    san.AddIpAddress(ip);
                 }
                 req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
@@ -311,19 +302,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
-
-            async Task GetAddressesAsync(string hostName, HashSet<IPAddress> set)
-            {
-                try
-                {
-                    var addresses = await Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
-                    addresses.ForEach(a => set.Add(a));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Failed to get host addresses for {HostName}", hostName);
-                }
-            }
         }
 
         /// <summary>
