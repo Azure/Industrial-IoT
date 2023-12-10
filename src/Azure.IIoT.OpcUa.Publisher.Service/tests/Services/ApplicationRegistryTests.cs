@@ -72,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
                 // Assert
                 Assert.True(result.Application.IsSameAs(apps[0]));
-                Assert.True(result.Endpoints.Count == 0);
+                Assert.Empty(result.Endpoints);
             }
         }
 
@@ -330,7 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 }, null, default);
 
                 // Assert
-                Assert.True(records.Items.Count == 0);
+                Assert.Empty(records.Items);
             }
         }
 

@@ -296,7 +296,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="arguments"></param>
         /// <param name="version"></param>
         /// <param name="reverseConnectPort"></param>
-        /// <param name="useReverseConnect"></param>
         protected void StartPublisher(string test, string publishedNodesFile = null,
             string[] arguments = default, MqttVersion? version = null, int? reverseConnectPort = null)
         {

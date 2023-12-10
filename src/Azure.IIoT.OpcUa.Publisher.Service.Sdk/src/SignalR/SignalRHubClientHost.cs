@@ -61,11 +61,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         {
             if (!_started.IsCompleted)
             {
+                // This should not happen if this was created when retrieving the hub
                 _logger.LogWarning("No blocking to start connection. " +
-                    "You should await and connect before registering.");
+                    "You should await the host connection before registering.");
                 try
                 {
-                    _started.GetAwaiter().GetResult();
+                    // Wait 10 seconds to establish the connection and then register
+                    // If that does not work, throw, user should have awaited!
+                    if (!_started.Wait(TimeSpan.FromSeconds(10)))
+                    {
+                        throw new InvalidOperationException(
+                            "Trying to register inside a connection without " +
+                            "an established connection.");
+                    }
                 }
                 catch (OperationCanceledException) when (_isDisposed)
                 {

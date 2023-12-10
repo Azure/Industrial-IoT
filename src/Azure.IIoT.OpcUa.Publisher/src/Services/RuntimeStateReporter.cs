@@ -179,7 +179,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // The certificate must be in the same store as the api key or else we generate a new one.
-            if (apiKeyStore != null &&
+            if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
+                apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
                     out var cert) && cert.IsBytes)
             {

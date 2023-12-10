@@ -35,6 +35,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? CreatePublishFileIfNotExist { get; set; }
 
         /// <summary>
+        /// Create a new ssl certificate on startup
+        /// </summary>
+        public bool? RenewTlsCertificateOnStartup { get; set; }
+
+        /// <summary>
         /// Max number of nodes per data set (publishing
         /// endpoint inside the configuration of publisher)
         /// </summary>
@@ -87,6 +92,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Log ingress notifications to informational log
         /// </summary>
         public bool? DebugLogNotifications { get; set; }
+
+        /// <summary>
+        /// Filter to apply to the notifications before adding to log
+        /// </summary>
+        public string? DebugLogNotificationsFilter { get; set; }
 
         /// <summary>
         /// Define the maximum number of messages in egress buffer,
