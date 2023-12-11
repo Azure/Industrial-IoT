@@ -729,7 +729,7 @@ namespace OpcPublisherAEE2ETests
                     foreach (dynamic innerMessage in innerMessages)
                     {
                         var messageWriterId = (string)innerMessage.DataSetWriterId.Value;
-                        if (!messageWriterId.StartsWith(dataSetWriterId + "|", StringComparison.Ordinal))
+                        if (!messageWriterId.StartsWith(dataSetWriterId, StringComparison.Ordinal))
                         {
                             continue;
                         }
