@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
-            _keepAliveTimer = new Timer(OnKeepAliveMissing);
+            _keepAliveWatcher = new Timer(OnKeepAliveMissing);
             InitializeMetrics();
         }
 
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(_closed);
             }
 
-            _keepAliveTimer.Dispose();
+            _keepAliveWatcher.Dispose();
             _timer.Dispose();
             _meter.Dispose();
             _lock.Dispose();
@@ -1629,16 +1629,16 @@ Actual (revised) state/desired state:
             var subscription = _currentSubscription;
             if (subscription == null)
             {
-                _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
                 return;
             }
-            var timeout = (int)
+            var keepAliveWatchdogTimeout = (int)
                 (subscription.CurrentPublishingInterval * (subscription.CurrentKeepAliveCount + 1));
-            if (timeout <= 0)
+            if (keepAliveWatchdogTimeout <= 0)
             {
-                timeout = Timeout.Infinite;
+                keepAliveWatchdogTimeout = Timeout.Infinite;
             }
-            _keepAliveTimer.Change(timeout, timeout);
+            _keepAliveWatcher.Change(keepAliveWatchdogTimeout, keepAliveWatchdogTimeout);
         }
 
         /// <summary>
@@ -1651,14 +1651,15 @@ Actual (revised) state/desired state:
             _continuouslyMissingKeepAlives++;
 
             var subscription = _currentSubscription;
-            if (subscription != null && _continuouslyMissingKeepAlives > subscription.CurrentLifetimeCount)
+            if (subscription != null &&
+                _continuouslyMissingKeepAlives == subscription.CurrentLifetimeCount + 1)
             {
                 _logger.LogCritical(
                     "#{Count}: Lifetime counter exceeded. Resetting subscription {Subscription}...",
                     _continuouslyMissingKeepAlives, this);
 
                 // TODO: option to fail fast here
-                TriggerSubscriptionManagementCallbackIn(TimeSpan.FromSeconds(1));
+                OnSubscriptionManagementTriggered(this);
             }
             else
             {
@@ -1995,7 +1996,7 @@ Actual (revised) state/desired state:
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;
         private readonly Timer _timer;
-        private readonly Timer _keepAliveTimer;
+        private readonly Timer _keepAliveWatcher;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private uint _currentSequenceNumber;

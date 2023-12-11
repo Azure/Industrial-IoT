@@ -133,6 +133,58 @@ namespace Azure.IIoT.OpcUa.Publisher
                     UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
             }
 
+            if (options.MessagingProfile == null)
+            {
+                if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),
+                    out var messagingMode))
+                {
+                    messagingMode = options.UseStandardsCompliantEncoding == true ?
+                        MessagingMode.PubSub : MessagingMode.Samples;
+                }
+                else if (options.UseStandardsCompliantEncoding == true)
+                {
+                    // If user chose compliant encoding then switch mode to be compliant
+                    switch (messagingMode)
+                    {
+                        case MessagingMode.Samples:
+                            messagingMode = MessagingMode.PubSub;
+                            break;
+                        case MessagingMode.FullSamples:
+                            messagingMode = MessagingMode.FullNetworkMessages;
+                            break;
+                    }
+                }
+
+                if (GetBoolOrDefault(FullFeaturedMessage, false))
+                {
+                    if (messagingMode == MessagingMode.PubSub)
+                    {
+                        messagingMode = MessagingMode.FullNetworkMessages;
+                    }
+                    if (messagingMode == MessagingMode.Samples)
+                    {
+                        messagingMode = MessagingMode.FullSamples;
+                    }
+                }
+
+                if (!Enum.TryParse<MessageEncoding>(GetStringOrDefault(MessageEncodingKey),
+                    out var messageEncoding))
+                {
+                    messageEncoding = MessageEncodingDefault;
+                }
+
+                if (!MessagingProfile.IsSupported(messagingMode, messageEncoding))
+                {
+                    var supported = MessagingProfile.Supported
+                        .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
+                        .Aggregate((a, b) => $"{a}, {b}");
+                    throw new ConfigurationErrorsException(
+                        "The specified combination of --mm, and --me is not (yet) supported." +
+                        $" Currently supported combinations are: {supported}");
+                }
+                options.MessagingProfile = MessagingProfile.Get(messagingMode, messageEncoding);
+            }
+
             if (options.CreatePublishFileIfNotExist == null)
             {
                 options.CreatePublishFileIfNotExist = GetBoolOrNull(
@@ -325,45 +377,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                         NamespaceFormat.Expanded : NamespaceFormat.Uri;
                 }
                 options.DefaultNamespaceFormat = namespaceFormat;
-            }
-
-            if (options.MessagingProfile == null)
-            {
-                if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),
-                    out var messagingMode))
-                {
-                    messagingMode = options.UseStandardsCompliantEncoding == true ?
-                        MessagingMode.PubSub : MessagingMode.Samples;
-                }
-
-                if (GetBoolOrDefault(FullFeaturedMessage, false))
-                {
-                    if (messagingMode == MessagingMode.PubSub)
-                    {
-                        messagingMode = MessagingMode.FullNetworkMessages;
-                    }
-                    if (messagingMode == MessagingMode.Samples)
-                    {
-                        messagingMode = MessagingMode.FullSamples;
-                    }
-                }
-
-                if (!Enum.TryParse<MessageEncoding>(GetStringOrDefault(MessageEncodingKey),
-                    out var messageEncoding))
-                {
-                    messageEncoding = MessageEncodingDefault;
-                }
-
-                if (!MessagingProfile.IsSupported(messagingMode, messageEncoding))
-                {
-                    var supported = MessagingProfile.Supported
-                        .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
-                        .Aggregate((a, b) => $"{a}, {b}");
-                    throw new ConfigurationErrorsException(
-                        "The specified combination of --mm, and --me is not (yet) supported." +
-                        $" Currently supported combinations are: {supported}");
-                }
-                options.MessagingProfile = MessagingProfile.Get(messagingMode, messageEncoding);
             }
         }
 

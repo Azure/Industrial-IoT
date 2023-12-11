@@ -16,10 +16,11 @@ var mqttClientOptions = new MqttClientOptionsBuilder()
     .WithTcpServer("localhost", 1883)
     .Build();
 await mqttClient.ConnectAsync(mqttClientOptions).ConfigureAwait(false);
+var indented = new JsonSerializerOptions() { WriteIndented = true };
 mqttClient.ApplicationMessageReceivedAsync += args =>
 {
     var json = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(
-        args.ApplicationMessage.PayloadSegment), new JsonSerializerOptions() { WriteIndented = true });
+        args.ApplicationMessage.PayloadSegment), indented);
     Console.WriteLine($"{args.ApplicationMessage.Topic}:{json}");
     return Task.CompletedTask;
 };
