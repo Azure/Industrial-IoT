@@ -1332,6 +1332,7 @@ Actual (revised) state/desired state:
             var onSubscriptionEventChange = OnSubscriptionEventChange;
             if (onSubscriptionEventChange == null)
             {
+                _logger.LogDebug("No callback registered for event change - skip.");
                 return;
             }
 
@@ -1381,7 +1382,7 @@ Actual (revised) state/desired state:
                         if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, eventFieldList, message.Notifications))
                         {
-                            _logger.LogDebug("Failed to get monitored item notification for Event " +
+                            _logger.LogDebug("Skipping the monitored item notification for Event " +
                                 "received for subscription {Subscription}", this);
                         }
 
@@ -1389,6 +1390,10 @@ Actual (revised) state/desired state:
                         {
                             onSubscriptionEventChange.Invoke(this, message);
                             numOfEvents++;
+                        }
+                        else
+                        {
+                            _logger.LogDebug("No notifications added to the message.");
                         }
                     }
                     else
@@ -1437,9 +1442,17 @@ Actual (revised) state/desired state:
 
             ResetKeepAliveTimer();
 
-            var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
-            if (!subscription.PublishingEnabled || onSubscriptionKeepAlive == null)
+            if (!subscription.PublishingEnabled)
             {
+                _logger.LogDebug(
+                    "Keep alive event received while publishing is not enabled - skip.");
+                return;
+            }
+
+            var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
+            if (onSubscriptionKeepAlive == null)
+            {
+                _logger.LogDebug("No callback registered for keep alive events - skip.");
                 return;
             }
 
@@ -1492,6 +1505,7 @@ Actual (revised) state/desired state:
             var onSubscriptionDataChange = OnSubscriptionDataChange;
             if (onSubscriptionDataChange == null)
             {
+                _logger.LogDebug("No callback registered for data change events - skip.");
                 return;
             }
             try
@@ -1540,7 +1554,7 @@ Actual (revised) state/desired state:
                             publishTime, item, message.Notifications))
                         {
                             _logger.LogDebug(
-                                "Failed to get monitored item notification for DataChange " +
+                                "Skipping the monitored item notification for DataChange " +
                                 "received for subscription {Subscription}", this);
                         }
                     }

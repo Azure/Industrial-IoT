@@ -1,0 +1,13 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcPublishingInterval": 60000,
+                "HeartbeatInterval": 60,
+                "DisplayName": "Output"
+            }
+        ]
+    }
+]
