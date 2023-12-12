@@ -50,10 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
 
         /// <inheritdoc/>
-        public event EventHandler<(int, int, int)>? OnSubscriptionDataDiagnosticsChange;
+        public event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
 
-        ///  <inheritdoc/>
-        public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
+        /// <inheritdoc/>
+        public event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
         /// Current metadata
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 onSubscriptionEventChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
-                    onSubscriptionEventDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                    onSubscriptionEventDiagnosticsChange.Invoke(this, (false, message.Notifications.Count));
                 }
             }
             else
@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
                     onSubscriptionDataDiagnosticsChange.Invoke(this,
-                        (message.Notifications.Count, message.Heartbeats, message.CyclicReads));
+                        (false, message.Notifications.Count, message.Heartbeats, message.CyclicReads));
                 }
             }
 
@@ -1084,6 +1084,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var enablePublishing =
                     _subscription?.Configuration?.EnableImmediatePublishing ?? false;
+                var sequentialPublishing =
+                    _subscription?.Configuration?.EnableSequentialPublishing ?? false;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var subscription = new Subscription(session.DefaultSubscription)
@@ -1099,7 +1101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Priority = configuredPriority,
                     // TODO: use a channel and reorder task before calling OnMessage
                     // to order or else republish is called too often
-                    SequentialPublishing = true,
+                    SequentialPublishing = sequentialPublishing,
                     DisableMonitoredItemCache = true, // Not needed anymore
                     RepublishAfterTransfer = true,
                     FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
@@ -1405,7 +1407,7 @@ Actual (revised) state/desired state:
                     }
                 }
                 var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
-                onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
+                onSubscriptionEventDiagnosticsChange?.Invoke(this, (true, numOfEvents));
             }
             catch (Exception e)
             {
@@ -1572,7 +1574,7 @@ Actual (revised) state/desired state:
                 var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
-                    onSubscriptionDataDiagnosticsChange.Invoke(this, (message.Notifications.Count, 0, 0));
+                    onSubscriptionDataDiagnosticsChange.Invoke(this, (true, message.Notifications.Count, 0, 0));
                 }
             }
             catch (Exception e)

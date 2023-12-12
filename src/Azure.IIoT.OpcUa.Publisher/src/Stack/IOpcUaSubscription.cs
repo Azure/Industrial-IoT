@@ -34,12 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Subscription data change diagnostics events
         /// </summary>
-        event EventHandler<(int, int, int)>? OnSubscriptionDataDiagnosticsChange;
+        event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
 
         /// <summary>
         /// Subscription event change diagnostics events
         /// </summary>
-        event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
+        event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
         /// Identifier of the subscription

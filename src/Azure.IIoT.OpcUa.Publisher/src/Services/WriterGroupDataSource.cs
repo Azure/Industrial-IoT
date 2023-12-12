@@ -576,7 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCounts"></param>
-            private void OnSubscriptionDataDiagnosticsChanged(object? sender, (int, int, int) notificationCounts)
+            private void OnSubscriptionDataDiagnosticsChanged(object? sender, (bool, int, int, int) notificationCounts)
             {
                 lock (_lock)
                 {
@@ -595,10 +595,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                     }
 
-                    _outer.ValueChangesCount += notificationCounts.Item1;
-                    _outer._heartbeatsCount += notificationCounts.Item2;
-                    _outer._cyclicReadsCount += notificationCounts.Item3;
-                    _outer.DataChangesCount++;
+                    _outer.ValueChangesCount += notificationCounts.Item2;
+                    _outer._heartbeatsCount += notificationCounts.Item3;
+                    _outer._cyclicReadsCount += notificationCounts.Item4;
+                    if (notificationCounts.Item1)
+                    {
+                        _outer.DataChangesCount++;
+                    }
                 }
             }
 
@@ -616,8 +619,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Handle subscription event diagnostics change messages
             /// </summary>
             /// <param name="sender"></param>
-            /// <param name="notificationCount"></param>
-            private void OnSubscriptionEventDiagnosticsChanged(object? sender, int notificationCount)
+            /// <param name="notificationCounts"></param>
+            private void OnSubscriptionEventDiagnosticsChanged(object? sender, (bool, int) notificationCounts)
             {
                 lock (_lock)
                 {
@@ -634,8 +637,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                     }
 
-                    _outer._eventNotificationCount += notificationCount;
-                    _outer._eventCount++;
+                    _outer._eventNotificationCount += notificationCounts.Item2;
+                    if (notificationCounts.Item1)
+                    {
+                        _outer._eventCount++;
+                    }
                 }
             }
 
