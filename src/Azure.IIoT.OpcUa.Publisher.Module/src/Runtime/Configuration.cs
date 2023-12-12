@@ -33,7 +33,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Configuration extensions
@@ -131,9 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.OutputFolder != null)
             {
-                builder.RegisterType<FileSystemEventClient>()
-                    .As<IEventClient>();
-                //builder.AddFileSystemEventClient();
+                builder.AddFileSystemEventClient();
                 builder.RegisterType<FileSystem>()
                     .AsImplementedInterfaces();
             }

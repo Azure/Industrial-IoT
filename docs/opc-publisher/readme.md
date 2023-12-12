@@ -592,6 +592,8 @@ FlagBits = Value & 0x0000FFFF;
 1152 == 0x480 == DataValueInfo | OverflowBit
 ```
 
+You can find more information in [Part 4](https://reference.opcfoundation.org/v105/Core/docs/Part4/7.39.1) of the OPC UA reference.
+
 #### Heartbeat
 
 Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a Timespan value):
