@@ -19,7 +19,6 @@ When both environment variable and CLI argument are provided, the command line o
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
                                                                          2.9.3
-
 General
 -------
 
@@ -538,6 +537,10 @@ Subscription settings
                                notifications only when the data has been
                                successfully published.
                                Default: `false`.
+      --sqp, --sequentialpublishing, --EnableSequentialPublishing[=VALUE]
+                             (Experimental) Explicitly disable or enable
+                               sequential publishing.
+                               Default: `true` (enabled).
       --ucr, --usecyclicreads, --DefaultSamplingUsingCyclicRead[=VALUE]
                              (Experimental) All nodes should be sampled using
                                periodical client reads instead of subscriptions
