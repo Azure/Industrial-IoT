@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Subscription configuration
@@ -75,6 +76,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// rather than when publishing should start.
         /// </summary>
         public bool? EnableImmediatePublishing { get; set; }
+
+        /// <summary>
+        /// Enable sequential publishing feature in the stack.
+        /// </summary>
+        public bool? EnableSequentialPublishing { get; set; }
 
         /// <summary>
         /// Whether to enable or disable keep alive messages

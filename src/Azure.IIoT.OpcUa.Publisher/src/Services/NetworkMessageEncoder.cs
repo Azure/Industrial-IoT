@@ -494,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 var dataSetWriterName = Context.Writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName;
                                 var dataSetName = Notification.DataSetName;
-                                if (dataSetName != null)
+                                if (!string.IsNullOrWhiteSpace(dataSetName))
                                 {
                                     return dataSetWriterName + "|" + dataSetName;
                                 }

@@ -83,5 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "enableImmediatePublishing", Order = 8,
             EmitDefaultValue = false)]
         public bool? EnableImmediatePublishing { get; set; }
+
+        /// <summary>
+        /// Enable sequential publishing feature in the stack.
+        /// </summary>
+        [DataMember(Name = "enableSequentialPublishing", Order = 9,
+            EmitDefaultValue = false)]
+        public bool? EnableSequentialPublishing { get; set; }
     }
 }

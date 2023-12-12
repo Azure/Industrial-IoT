@@ -70,5 +70,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// in desired monitoring mode.
         /// </summary>
         public bool EnableImmediatePublishing { get; set; }
+
+        /// <summary>
+        /// Use the sequential publishing feature in the stack.
+        /// </summary>
+        public bool EnableSequentialPublishing { get; set; }
     }
 }

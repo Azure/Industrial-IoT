@@ -1574,7 +1574,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
-            public override string? DataSetName => Template.DataSetFieldName;
+            public override string? DataSetName => Template.DisplayName;
 
             /// <summary>
             /// Monitored item as event

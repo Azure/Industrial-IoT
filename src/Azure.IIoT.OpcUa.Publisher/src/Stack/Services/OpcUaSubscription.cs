@@ -50,10 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
 
         /// <inheritdoc/>
-        public event EventHandler<(int, int, int)>? OnSubscriptionDataDiagnosticsChange;
+        public event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
 
-        ///  <inheritdoc/>
-        public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
+        /// <inheritdoc/>
+        public event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
         /// Current metadata
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 onSubscriptionEventChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
-                    onSubscriptionEventDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                    onSubscriptionEventDiagnosticsChange.Invoke(this, (false, message.Notifications.Count));
                 }
             }
             else
@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
                     onSubscriptionDataDiagnosticsChange.Invoke(this,
-                        (message.Notifications.Count, message.Heartbeats, message.CyclicReads));
+                        (false, message.Notifications.Count, message.Heartbeats, message.CyclicReads));
                 }
             }
 
@@ -1084,6 +1084,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var enablePublishing =
                     _subscription?.Configuration?.EnableImmediatePublishing ?? false;
+                var sequentialPublishing =
+                    _subscription?.Configuration?.EnableSequentialPublishing ?? false;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var subscription = new Subscription(session.DefaultSubscription)
@@ -1099,7 +1101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Priority = configuredPriority,
                     // TODO: use a channel and reorder task before calling OnMessage
                     // to order or else republish is called too often
-                    SequentialPublishing = true,
+                    SequentialPublishing = sequentialPublishing,
                     DisableMonitoredItemCache = true, // Not needed anymore
                     RepublishAfterTransfer = true,
                     FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
@@ -1332,6 +1334,7 @@ Actual (revised) state/desired state:
             var onSubscriptionEventChange = OnSubscriptionEventChange;
             if (onSubscriptionEventChange == null)
             {
+                _logger.LogDebug("No callback registered for event change - skip.");
                 return;
             }
 
@@ -1381,7 +1384,7 @@ Actual (revised) state/desired state:
                         if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, eventFieldList, message.Notifications))
                         {
-                            _logger.LogDebug("Failed to get monitored item notification for Event " +
+                            _logger.LogDebug("Skipping the monitored item notification for Event " +
                                 "received for subscription {Subscription}", this);
                         }
 
@@ -1389,6 +1392,10 @@ Actual (revised) state/desired state:
                         {
                             onSubscriptionEventChange.Invoke(this, message);
                             numOfEvents++;
+                        }
+                        else
+                        {
+                            _logger.LogDebug("No notifications added to the message.");
                         }
                     }
                     else
@@ -1400,7 +1407,7 @@ Actual (revised) state/desired state:
                     }
                 }
                 var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
-                onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
+                onSubscriptionEventDiagnosticsChange?.Invoke(this, (true, numOfEvents));
             }
             catch (Exception e)
             {
@@ -1437,9 +1444,17 @@ Actual (revised) state/desired state:
 
             ResetKeepAliveTimer();
 
-            var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
-            if (!subscription.PublishingEnabled || onSubscriptionKeepAlive == null)
+            if (!subscription.PublishingEnabled)
             {
+                _logger.LogDebug(
+                    "Keep alive event received while publishing is not enabled - skip.");
+                return;
+            }
+
+            var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
+            if (onSubscriptionKeepAlive == null)
+            {
+                _logger.LogDebug("No callback registered for keep alive events - skip.");
                 return;
             }
 
@@ -1492,6 +1507,7 @@ Actual (revised) state/desired state:
             var onSubscriptionDataChange = OnSubscriptionDataChange;
             if (onSubscriptionDataChange == null)
             {
+                _logger.LogDebug("No callback registered for data change events - skip.");
                 return;
             }
             try
@@ -1540,7 +1556,7 @@ Actual (revised) state/desired state:
                             publishTime, item, message.Notifications))
                         {
                             _logger.LogDebug(
-                                "Failed to get monitored item notification for DataChange " +
+                                "Skipping the monitored item notification for DataChange " +
                                 "received for subscription {Subscription}", this);
                         }
                     }
@@ -1558,7 +1574,7 @@ Actual (revised) state/desired state:
                 var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
-                    onSubscriptionDataDiagnosticsChange.Invoke(this, (message.Notifications.Count, 0, 0));
+                    onSubscriptionDataDiagnosticsChange.Invoke(this, (true, message.Notifications.Count, 0, 0));
                 }
             }
             catch (Exception e)
