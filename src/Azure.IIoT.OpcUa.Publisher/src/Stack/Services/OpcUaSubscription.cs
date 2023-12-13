@@ -1338,6 +1338,7 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            var sw = Stopwatch.StartNew();
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
@@ -1413,6 +1414,14 @@ Actual (revised) state/desired state:
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
             }
+            finally
+            {
+                _logger.LogDebug("Event callback took {Elapsed}", sw.Elapsed);
+                if (sw.ElapsedMilliseconds > 1000)
+                {
+                    _logger.LogWarning("Spent more than 1 second in fast event callback.");
+                }
+            }
         }
 
         /// <summary>
@@ -1458,30 +1467,46 @@ Actual (revised) state/desired state:
                 return;
             }
 
-            var sequenceNumber = notification.SequenceNumber;
-            var publishTime = notification.PublishTime;
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                var sequenceNumber = notification.SequenceNumber;
+                var publishTime = notification.PublishTime;
 
-            // in case of a keepalive,the sequence number is not incremented by the servers
-            _logger.LogDebug("Keep alive for subscription {Subscription} " +
-                "with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.",
-                this, sequenceNumber, publishTime);
+                // in case of a keepalive,the sequence number is not incremented by the servers
+                _logger.LogDebug("Keep alive for subscription {Subscription} " +
+                    "with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.",
+                    this, sequenceNumber, publishTime);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var message = new Notification(this, subscription.Id)
-            {
-                ServiceMessageContext = subscription.Session?.MessageContext,
-                ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                SubscriptionName = Name,
-                PublishTimestamp = publishTime,
-                SubscriptionId = Id,
-                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                MessageType = MessageType.KeepAlive
-            };
+                var message = new Notification(this, subscription.Id)
+                {
+                    ServiceMessageContext = subscription.Session?.MessageContext,
+                    ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                    SubscriptionName = Name,
+                    PublishTimestamp = publishTime,
+                    SubscriptionId = Id,
+                    SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = MessageType.KeepAlive
+                };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            onSubscriptionKeepAlive.Invoke(this, message);
-            Debug.Assert(message.Notifications != null);
+                onSubscriptionKeepAlive.Invoke(this, message);
+                Debug.Assert(message.Notifications != null);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Exception processing keep alive notification");
+            }
+            finally
+            {
+                _logger.LogDebug("Keep alive callback took {Elapsed}", sw.Elapsed);
+                if (sw.ElapsedMilliseconds > 1000)
+                {
+                    _logger.LogWarning("Spent more than 1 second in fast keep alive callback.");
+                }
+            }
         }
 
         /// <summary>
@@ -1510,6 +1535,7 @@ Actual (revised) state/desired state:
                 _logger.LogDebug("No callback registered for data change events - skip.");
                 return;
             }
+            var sw = Stopwatch.StartNew();
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
@@ -1581,6 +1607,14 @@ Actual (revised) state/desired state:
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
             }
+            finally
+            {
+                _logger.LogDebug("Data change callback took {Elapsed}", sw.Elapsed);
+                if (sw.ElapsedMilliseconds > 1000)
+                {
+                    _logger.LogWarning("Spent more than 1 second in fast data change callback.");
+                }
+            }
         }
 
         /// <summary>
@@ -1643,7 +1677,7 @@ Actual (revised) state/desired state:
         {
             _continuouslyMissingKeepAlives = 0;
             var subscription = _currentSubscription;
-            if (subscription == null)
+            if (subscription == null || !_online)
             {
                 _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
                 return;
@@ -1679,8 +1713,14 @@ Actual (revised) state/desired state:
             }
             else
             {
-                _logger.LogError("#{Count}: Subscription {Subscription} is missing keep alive.",
+                _logger.LogDebug("#{Count}: Subscription {Subscription} is missing keep alive.",
                     _continuouslyMissingKeepAlives, this);
+            }
+
+            if (subscription == null || !_online)
+            {
+                // Stop watchdog
+                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
             }
         }
 

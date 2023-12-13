@@ -60,6 +60,7 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 - X509 User Authentication support using secrets reference feature request (#2005)
 - New API to manage the PKI infrastructure of the OPC Publisher (certificate stores). You can now list, add and remove certificates from the OPC UA certificate stores remotely. (#1996)
 - You can now configure OPC Publisher to re-use a session across writer groups with the same endpoint url and security settings. (#2065)
+- Subscription Watchdog monitors keep alive notifications and generates metric and logs when subscription keep alive is missing (#2060)
 - Added samples to show how to call OPC Publisher API over MQTT, HTTP and IoT Hub.
 
 ### Bug fixes in 2.9.3
@@ -73,11 +74,13 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 - Dapr now works without requiring state component. Dapr now runs over http instead of https by default. New option to select the url scheme (#2102, #2119, #2117, #2109
 - It is now possible to disable retrying subscription re-creation by configuring a value of 0. (#2100)
 - Fix that extension field values show up wrong in samples mode. (#2092)
-- FIx Event subscription using the REST Api fails with: "The request field is required." (#2078)
+- Fix Event subscription using the REST Api fails with: "The request field is required." (#2078)
 - The configuration of the OpcPublisher 2.9.2 fails using the REST Api bug (#2066)
 - For each configured in pn.json Dataset publisher must try to reuse an existing session for this EndpointUrl with the identical security settings (if exists). feature request
 - Address issues deploying the web api, e.g., getting error when trying to use option 2 to deploy Azure IIoT Deployment and ./aad-register.ps1 errors with "A parameter cannot be found that matches the parameter name 'ReplyUrl'." (#2063, #2064)
 - Update documentation, including breaking changes, Add Azure Storage, Azure Key Vault services, and Application Insights to arch diagram, how to setup the OPCPublisher edge module with X.509 certificates documentation, and how to emit ExtensionFields in Pub sub mode using key frame counter. (#1917, #2091, #2083)
+- Fix incorrect API definitions in OpenAPI JSON for OPC publisher
+- FileSystem target now appends data instead of updating the file content. FileSystem target now supports arbitrary chars in topics.
 
 ## Azure Industrial IoT OPC Publisher 2.9.2
 
