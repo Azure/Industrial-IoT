@@ -720,6 +720,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         await ApplySubscriptionAsync(currentSubscriptions, true, isNew,
                                             ct).ConfigureAwait(false);
 
+                                        _reconnectRequired = 0;
                                         currentSessionState = SessionState.Connected;
                                         break;
 
@@ -976,7 +977,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 case StatusCodes.BadSessionIdInvalid:
                 case StatusCodes.BadSessionClosed:
                 case StatusCodes.BadConnectionClosed:
-                    if (_reconnectingSession == null)
+                    if (Interlocked.Increment(ref _reconnectRequired) == 0)
                     {
                         // Ensure we reconnect
                         TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
@@ -1064,7 +1065,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status))
                 {
-                    TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
+                    if (Interlocked.Increment(ref _reconnectRequired) == 0)
+                    {
+                        TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
+                    }
 
                     _logger.LogInformation(
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
@@ -1601,6 +1605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private OpcUaSession? _session;
         private OpcUaSession? _reconnectingSession;
+        private int _reconnectRequired;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
