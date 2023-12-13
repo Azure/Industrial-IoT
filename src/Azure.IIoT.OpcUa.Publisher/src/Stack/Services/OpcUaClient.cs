@@ -975,13 +975,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (e.Status.Code)
             {
                 case StatusCodes.BadSessionIdInvalid:
+                case StatusCodes.BadSecureChannelClosed:
                 case StatusCodes.BadSessionClosed:
                 case StatusCodes.BadConnectionClosed:
-                    if (Interlocked.Increment(ref _reconnectRequired) == 0)
+                case StatusCodes.BadNoCommunication:
+                    if (Interlocked.Increment(ref _reconnectRequired) == 1)
                     {
                         // Ensure we reconnect
                         TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
                     }
+                    break;
+                case StatusCodes.BadRequestTimeout:
+                case StatusCodes.BadTimeout:
+                    // TODO: Count and also handle if above (threshold * #subscriptions)
+                    _logger.LogDebug("Timeout during publishing.");
                     break;
                 case StatusCodes.BadTooManyOperations:
                     SetCode(e.Status, StatusCodes.BadServerHalted);
@@ -1065,7 +1072,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status))
                 {
-                    if (Interlocked.Increment(ref _reconnectRequired) == 0)
+                    if (Interlocked.Increment(ref _reconnectRequired) == 1)
                     {
                         TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
                     }
