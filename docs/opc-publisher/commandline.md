@@ -474,7 +474,7 @@ Subscription settings
                                multiple of the keep alive counter and when
                                reached instructs the server to declare the
                                subscription invalid.
-                               Default: `20`.
+                               Default: `100`.
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
                                subscribed if a display name was not specified

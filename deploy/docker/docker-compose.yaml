@@ -16,8 +16,8 @@ services:
       "--ses",
       "--ei=${EVENT_NODES:-100}",
       "--gn=${GUID_NODES:-100}",
-      "--fn=${FAST_NODES:-199900}",
-      "--sn=${SLOW_NODES:-199900}",
+      "--fn=${FAST_NODES:-99900}",
+      "--sn=${SLOW_NODES:-99900}",
       "--aa"
       ]
     volumes:
@@ -43,7 +43,7 @@ services:
       "--dm=True",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
-      "--npd=${NODES_PER_DATASET:-20000}"
+      "--npd=${NODES_PER_DATASET:-10000}"
       ]
     environment:
       EdgeHubConnectionString:
