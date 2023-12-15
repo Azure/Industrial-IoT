@@ -1026,11 +1026,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (_forceRecreate)
                 {
+                    _forceRecreate = false;
                     _logger.LogInformation(
                         "Closing subscription {Subscription} and then re-creating...", this);
                     // Does not throw
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                    _forceRecreate = false;
                 }
             }
 
