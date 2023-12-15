@@ -440,6 +440,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
+                subscription.PublishStatusChanged -= OnPublishStatusChange;
+                subscription.StateChanged -= OnStateChange;
+
                 subscription.Dispose();
             }
         }
@@ -1007,6 +1010,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .FirstOrDefault(s => s.Handle.Equals(Id));
                 if (currentSubscription == null)
                 {
+                    _logger.LogInformation(
+                        "Closing old subscription {Subscription} since session is new...", this);
                     // Does not throw
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 }
@@ -1018,6 +1023,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Should not happen if session has not been updated.
                 Debug.Assert(session.Subscriptions.FirstOrDefault(
                     s => s.Handle.Equals(Id)) == _currentSubscription);
+
+                if (_forceRecreate)
+                {
+                    _logger.LogInformation(
+                        "Closing subscription {Subscription} and then re-creating...", this);
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                    _forceRecreate = false;
+                }
             }
 
             // Create or update the subscription inside the raw session object.
@@ -1047,15 +1061,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await subscription.ApplyChangesAsync(ct).ConfigureAwait(false);
             }
 
-            if (!subscription.PublishingEnabled)
+            var shouldEnable = _currentlyMonitored.Values
+                .Any(m => m.Item != null && m.Item.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
+            var isEnabled = subscription.PublishingEnabled;
+            if ((!isEnabled && shouldEnable) || (isEnabled && !shouldEnable))
             {
-                await subscription.SetPublishingModeAsync(subscription.MonitoredItemCount != 0,
-                    ct).ConfigureAwait(false);
+                await subscription.SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "{State} Subscription {Subscription} in session {Session}.",
-                    subscription.MonitoredItemCount != 0 ? "Enabled" : "Disabled",
-                    this, handle);
+                    shouldEnable ? "Enabled" : "Disabled", this, handle);
             }
         }
 
@@ -1106,8 +1121,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     RepublishAfterTransfer = true,
                     FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
-                    FastEventCallback = OnSubscriptionEventNotificationList
+                    FastEventCallback = OnSubscriptionEventNotificationList,
                 };
+
+                subscription.PublishStatusChanged += OnPublishStatusChange;
+                subscription.StateChanged += OnStateChange;
+
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                 ReapplySessionOperationTimeout(session, subscription);
@@ -1682,13 +1701,17 @@ Actual (revised) state/desired state:
                 _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
                 return;
             }
-            var keepAliveWatchdogTimeout = (int)
-                (subscription.CurrentPublishingInterval * (subscription.CurrentKeepAliveCount + 1));
-            if (keepAliveWatchdogTimeout <= 0)
+            var keepAliveTimeout = TimeSpan.FromMilliseconds(
+                (subscription.CurrentPublishingInterval *
+                    (subscription.CurrentKeepAliveCount + 1)) + 1000);
+            try
             {
-                keepAliveWatchdogTimeout = Timeout.Infinite;
+                _keepAliveWatcher.Change(keepAliveTimeout, keepAliveTimeout);
             }
-            _keepAliveWatcher.Change(keepAliveWatchdogTimeout, keepAliveWatchdogTimeout);
+            catch (ArgumentOutOfRangeException)
+            {
+                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+            }
         }
 
         /// <summary>
@@ -1701,19 +1724,28 @@ Actual (revised) state/desired state:
             _continuouslyMissingKeepAlives++;
 
             var subscription = _currentSubscription;
-            if (subscription != null &&
-                _continuouslyMissingKeepAlives == subscription.CurrentLifetimeCount + 1)
+            if (subscription != null)
             {
-                _logger.LogCritical(
-                    "#{Count}: Lifetime counter exceeded. Resetting subscription {Subscription}...",
-                    _continuouslyMissingKeepAlives, this);
+                if (_continuouslyMissingKeepAlives == subscription.CurrentLifetimeCount + 1)
+                {
+                    _logger.LogCritical(
+                        "#{Count}/{Lifetimecount}: Keep alive count exceeded. Resetting {Subscription}...",
+                        _continuouslyMissingKeepAlives, subscription.CurrentLifetimeCount, this);
 
-                // TODO: option to fail fast here
-                OnSubscriptionManagementTriggered(this);
+                    // TODO: option to fail fast here
+                    _forceRecreate = true;
+                    OnSubscriptionManagementTriggered(this);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "#{Count}/{Lifetimecount}: Subscription {Subscription} is missing keep alive.",
+                        _continuouslyMissingKeepAlives, subscription.CurrentLifetimeCount, this);
+                }
             }
             else
             {
-                _logger.LogDebug("#{Count}: Subscription {Subscription} is missing keep alive.",
+                _logger.LogInformation("#{Count}: Subscription {Subscription} is missing keep alive.",
                     _continuouslyMissingKeepAlives, this);
             }
 
@@ -1721,6 +1753,97 @@ Actual (revised) state/desired state:
             {
                 // Stop watchdog
                 _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+            }
+        }
+
+        /// <summary>
+        /// Publish status changed
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="e"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
+        {
+            if (e.Status.HasFlag(PublishStateChangedMask.Stopped))
+            {
+                _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
+                _online = false;
+                ResetKeepAliveTimer();
+            }
+            if (e.Status.HasFlag(PublishStateChangedMask.Recovered))
+            {
+                _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
+                _online = true;
+                ResetKeepAliveTimer();
+            }
+            if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
+            {
+                _logger.LogInformation("Subscription {Subscription} transferred.", this);
+            }
+            if (e.Status.HasFlag(PublishStateChangedMask.Republish))
+            {
+                _logger.LogInformation("Subscription {Subscription} republishing...", this);
+            }
+            if (e.Status.HasFlag(PublishStateChangedMask.KeepAlive))
+            {
+                _logger.LogDebug("Subscription {Subscription} keep alive.", this);
+                ResetKeepAliveTimer();
+            }
+            if (e.Status.HasFlag(PublishStateChangedMask.Timeout))
+            {
+                _logger.LogWarning("Subscription {Subscription} timed out! Re-creating...", this);
+
+                //
+                // Timed out on server - this means that the subscription is gone and
+                // needs to be recreated.
+                //
+                _forceRecreate = true;
+                OnSubscriptionManagementTriggered(this);
+            }
+        }
+
+        /// <summary>
+        /// Subscription status changed
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="e"></param>
+        private void OnStateChange(Subscription subscription, SubscriptionStateChangedEventArgs e)
+        {
+            if (e.Status.HasFlag(SubscriptionChangeMask.Created))
+            {
+                _logger.LogDebug("Subscription {Subscription} created.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.Deleted))
+            {
+                _logger.LogDebug("Subscription {Subscription} deleted.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.Modified))
+            {
+                _logger.LogDebug("Subscription {Subscription} modified", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.ItemsAdded))
+            {
+                _logger.LogDebug("Subscription {Subscription} items added.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.ItemsRemoved))
+            {
+                _logger.LogDebug("Subscription {Subscription} items removed.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.ItemsCreated))
+            {
+                _logger.LogDebug("Subscription {Subscription} items created.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.ItemsDeleted))
+            {
+                _logger.LogDebug("Subscription {Subscription} items deleted.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.ItemsModified))
+            {
+                _logger.LogDebug("Subscription {Subscription} items modified.", this);
+            }
+            if (e.Status.HasFlag(SubscriptionChangeMask.Transferred))
+            {
+                _logger.LogDebug("Subscription {Subscription} transferred.", this);
             }
         }
 
@@ -2044,6 +2167,7 @@ Actual (revised) state/desired state:
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;
         private bool _closed;
+        private bool _forceRecreate;
         private readonly Lazy<MetaDataLoader> _metaDataLoader;
         private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;
