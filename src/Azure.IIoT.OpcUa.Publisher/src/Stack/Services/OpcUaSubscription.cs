@@ -50,10 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
 
         /// <inheritdoc/>
-        public event EventHandler<(int, int, int)>? OnSubscriptionDataDiagnosticsChange;
+        public event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
 
-        ///  <inheritdoc/>
-        public event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
+        /// <inheritdoc/>
+        public event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
         /// Current metadata
@@ -87,6 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             Id = SequenceNumber.Increment16(ref _lastIndex);
             _timer = new Timer(OnSubscriptionManagementTriggered);
+            _keepAliveWatcher = new Timer(OnKeepAliveMissing);
             InitializeMetrics();
         }
 
@@ -296,6 +297,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
+                _currentlyMonitored = ImmutableDictionary<uint, IOpcUaMonitoredItem>.Empty;
+                NumberOfCreatedItems = 0;
+                NumberOfNotCreatedItems = 0;
+
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 client?.Dispose();
@@ -313,6 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(_closed);
             }
 
+            _keepAliveWatcher.Dispose();
             _timer.Dispose();
             _meter.Dispose();
             _lock.Dispose();
@@ -346,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 onSubscriptionEventChange.Invoke(this, message);
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
-                    onSubscriptionEventDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                    onSubscriptionEventDiagnosticsChange.Invoke(this, (false, message.Notifications.Count));
                 }
             }
             else
@@ -364,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
                     onSubscriptionDataDiagnosticsChange.Invoke(this,
-                        (message.Notifications.Count, message.Heartbeats, message.CyclicReads));
+                        (false, message.Notifications.Count, message.Heartbeats, message.CyclicReads));
                 }
             }
 
@@ -399,6 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             _currentSubscription = null;
+            ResetKeepAliveTimer();
             try
             {
 #if !DEBUG // Get the wrong subscription callbacks in debug
@@ -1004,6 +1011,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 }
                 _currentSubscription = currentSubscription;
+                ResetKeepAliveTimer();
             }
             else
             {
@@ -1076,6 +1084,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var enablePublishing =
                     _subscription?.Configuration?.EnableImmediatePublishing ?? false;
+                var sequentialPublishing =
+                    _subscription?.Configuration?.EnableSequentialPublishing ?? false;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var subscription = new Subscription(session.DefaultSubscription)
@@ -1091,7 +1101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Priority = configuredPriority,
                     // TODO: use a channel and reorder task before calling OnMessage
                     // to order or else republish is called too often
-                    SequentialPublishing = true,
+                    SequentialPublishing = sequentialPublishing,
                     DisableMonitoredItemCache = true, // Not needed anymore
                     RepublishAfterTransfer = true,
                     FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
@@ -1193,6 +1203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     LogRevisedValues(subscription, false);
                 }
             }
+            ResetKeepAliveTimer();
             return _currentSubscription;
         }
 
@@ -1318,9 +1329,12 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            ResetKeepAliveTimer();
+
             var onSubscriptionEventChange = OnSubscriptionEventChange;
             if (onSubscriptionEventChange == null)
             {
+                _logger.LogDebug("No callback registered for event change - skip.");
                 return;
             }
 
@@ -1370,7 +1384,7 @@ Actual (revised) state/desired state:
                         if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, eventFieldList, message.Notifications))
                         {
-                            _logger.LogDebug("Failed to get monitored item notification for Event " +
+                            _logger.LogDebug("Skipping the monitored item notification for Event " +
                                 "received for subscription {Subscription}", this);
                         }
 
@@ -1378,6 +1392,10 @@ Actual (revised) state/desired state:
                         {
                             onSubscriptionEventChange.Invoke(this, message);
                             numOfEvents++;
+                        }
+                        else
+                        {
+                            _logger.LogDebug("No notifications added to the message.");
                         }
                     }
                     else
@@ -1389,7 +1407,7 @@ Actual (revised) state/desired state:
                     }
                 }
                 var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
-                onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
+                onSubscriptionEventDiagnosticsChange?.Invoke(this, (true, numOfEvents));
             }
             catch (Exception e)
             {
@@ -1424,9 +1442,19 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            ResetKeepAliveTimer();
+
+            if (!subscription.PublishingEnabled)
+            {
+                _logger.LogDebug(
+                    "Keep alive event received while publishing is not enabled - skip.");
+                return;
+            }
+
             var onSubscriptionKeepAlive = OnSubscriptionKeepAlive;
             if (onSubscriptionKeepAlive == null)
             {
+                _logger.LogDebug("No callback registered for keep alive events - skip.");
                 return;
             }
 
@@ -1474,9 +1502,12 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            ResetKeepAliveTimer();
+
             var onSubscriptionDataChange = OnSubscriptionDataChange;
             if (onSubscriptionDataChange == null)
             {
+                _logger.LogDebug("No callback registered for data change events - skip.");
                 return;
             }
             try
@@ -1525,7 +1556,7 @@ Actual (revised) state/desired state:
                             publishTime, item, message.Notifications))
                         {
                             _logger.LogDebug(
-                                "Failed to get monitored item notification for DataChange " +
+                                "Skipping the monitored item notification for DataChange " +
                                 "received for subscription {Subscription}", this);
                         }
                     }
@@ -1543,7 +1574,7 @@ Actual (revised) state/desired state:
                 var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
-                    onSubscriptionDataDiagnosticsChange.Invoke(this, (message.Notifications.Count, 0, 0));
+                    onSubscriptionDataDiagnosticsChange.Invoke(this, (true, message.Notifications.Count, 0, 0));
                 }
             }
             catch (Exception e)
@@ -1602,6 +1633,54 @@ Actual (revised) state/desired state:
                 _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
                 _currentSequenceNumber = sequenceNumber.Value;
+            }
+        }
+
+        /// <summary>
+        /// Reset keep alive timer
+        /// </summary>
+        private void ResetKeepAliveTimer()
+        {
+            _continuouslyMissingKeepAlives = 0;
+            var subscription = _currentSubscription;
+            if (subscription == null)
+            {
+                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+            var keepAliveWatchdogTimeout = (int)
+                (subscription.CurrentPublishingInterval * (subscription.CurrentKeepAliveCount + 1));
+            if (keepAliveWatchdogTimeout <= 0)
+            {
+                keepAliveWatchdogTimeout = Timeout.Infinite;
+            }
+            _keepAliveWatcher.Change(keepAliveWatchdogTimeout, keepAliveWatchdogTimeout);
+        }
+
+        /// <summary>
+        /// Called when keep alive callback was missing
+        /// </summary>
+        /// <param name="state"></param>
+        private void OnKeepAliveMissing(object? state)
+        {
+            NumberOfMissingKeepAlives++;
+            _continuouslyMissingKeepAlives++;
+
+            var subscription = _currentSubscription;
+            if (subscription != null &&
+                _continuouslyMissingKeepAlives == subscription.CurrentLifetimeCount + 1)
+            {
+                _logger.LogCritical(
+                    "#{Count}: Lifetime counter exceeded. Resetting subscription {Subscription}...",
+                    _continuouslyMissingKeepAlives, this);
+
+                // TODO: option to fail fast here
+                OnSubscriptionManagementTriggered(this);
+            }
+            else
+            {
+                _logger.LogError("#{Count}: Subscription {Subscription} is missing keep alive.",
+                    _continuouslyMissingKeepAlives, this);
             }
         }
 
@@ -1886,15 +1965,19 @@ Actual (revised) state/desired state:
 
         private int NumberOfCreatedItems { get; set; }
         private int NumberOfNotCreatedItems { get; set; }
+        private int NumberOfMissingKeepAlives { get; set; }
 
         /// <summary>
         /// Create observable metrics
         /// </summary>
         public void InitializeMetrics()
         {
+            _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
+                () => new Measurement<long>(NumberOfMissingKeepAlives, _metrics.TagList),
+                "Keep Alives", "Number of missing keep alives in subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfCreatedItems, _metrics.TagList),
-                "Monitored items", "Monitored items successfully created..");
+                "Monitored items", "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfNotCreatedItems, _metrics.TagList),
                 "Monitored items", "Monitored items with errors.");
@@ -1929,8 +2012,10 @@ Actual (revised) state/desired state:
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;
         private readonly Timer _timer;
+        private readonly Timer _keepAliveWatcher;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private uint _currentSequenceNumber;
+        private int _continuouslyMissingKeepAlives;
     }
 }

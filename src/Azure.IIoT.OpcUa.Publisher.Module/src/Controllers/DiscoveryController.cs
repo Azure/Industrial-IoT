@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>OPC UA and network discovery related API.</para>
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel endpoint, CancellationToken ct = default)
+            [FromBody][Required] ServerEndpointQueryModel endpoint, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             return await _servers.FindServerAsync(endpoint, ct).ConfigureAwait(false);
@@ -82,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("register")]
-        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request,
+        public async Task<bool> RegisterAsync(
+            [FromBody][Required] ServerRegistrationRequestModel request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -106,7 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost]
-        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request,
+        public async Task<bool> DiscoverAsync(
+            [FromBody][Required] DiscoveryRequestModel request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -129,7 +132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("cancel")]
-        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request,
+        public async Task<bool> CancelAsync(
+            [FromBody][Required] DiscoveryCancelRequestModel request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

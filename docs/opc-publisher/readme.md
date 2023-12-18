@@ -436,7 +436,7 @@ The configuration schema is used with the file based configuration, but also wit
 }
 ```
 
-(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md).
+(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described here](./readme.md#configuring-event-subscriptions).
 
 Each [published nodes entry model](./definitions.md#publishednodesentrymodel) has the following attributes:
 
@@ -591,6 +591,8 @@ FlagBits = Value & 0x0000FFFF;
 
 1152 == 0x480 == DataValueInfo | OverflowBit
 ```
+
+You can find more information in [Part 4](https://reference.opcfoundation.org/v105/Core/docs/Part4/7.39.1) of the OPC UA reference.
 
 #### Heartbeat
 
@@ -941,10 +943,10 @@ A handy way to program against OPC Publisher is inside the IoT Edge Development 
 Follow the instructions to install [IoTEdgeHubDev](https://github.com/Azure/iotedgehubdev). Make sure the docker daemon is started and accessible. You can now use the official OPC Publisher images on Microsoft container registry (mcr.microsoft.com/iotedge/opc-publisher:latest) or build a local version from the root of this repository as follows:
 
 ```bash
-dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj --os linux --arch x64 /p:ContainerImageTags=latest
+dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj --os linux --arch x64 /p:ContainerImageTags=debug
 ```
 
-Doing this will produce the container image `iotedge/opc-publisher:latest`. The [sample deployment manifest](deployment.json?raw=1) already points to the local container image. If you would like to use a different container image (e.g., the official one on MCR or from your private Azure Container Registry) update the name in the manifest accordingly. To start the IoT Edge simulation run
+Doing this will produce the container image `iotedge/opc-publisher:debug`. The [sample deployment manifest](deployment.json?raw=1) already points to the local container image. If you would like to use a different container image (e.g., the official one on MCR or from your private Azure Container Registry) update the image name in the manifest accordingly. To start the IoT Edge simulation run
 
 ```bash
 iotedgehubdev start -d docs/opc-publisher/deployment.json -v
@@ -1105,8 +1107,6 @@ A single session is opened on demand per endpoint so the OPC UA server is not ov
 OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
 The pki path of OPC Publisher can be configured using the `PkiRootPath` or `--pki` command line argument (the default folder is `/pki`). It is usually a good idea to specify a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores are found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
-
-> 2.9.3 OPC Publisher module runs root-less. When specifying a host volume you must run OPC Publisher as `root` though. The [deployment manifest template](deployment.json?raw=1) shows how to do this. On docker you can use the `--user root` command line option. For other platforms see the respective documentation on how to do this.
 
 By default, the OPC Publisher module will create a self signed x509 *Application certificate* with a 1 year expiration in the `own` store. This default, self signed cert includes the Subject `Microsoft.Azure.IIoT`. This certificate is fine as a demonstration, but for production systems customers may want to [use their own certificate](#pki-management).
 

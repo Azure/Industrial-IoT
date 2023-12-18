@@ -19,7 +19,6 @@ When both environment variable and CLI argument are provided, the command line o
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
                                                                          2.9.3
-
 General
 -------
 
@@ -337,6 +336,10 @@ Transport settings
                                Publisher using v3 schema (yaml).
                                Only valid if Open API endpoint is not disabled.
                                Default: `v2` (json).
+      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
+                             If set a new tls certificate is created during
+                               startup updating any previously created ones.
+                               Default: `false`.
 
 Routing configuration
 ---------------------
@@ -534,6 +537,10 @@ Subscription settings
                                notifications only when the data has been
                                successfully published.
                                Default: `false`.
+      --sqp, --sequentialpublishing, --EnableSequentialPublishing[=VALUE]
+                             (Experimental) Explicitly disable or enable
+                               sequential publishing.
+                               Default: `true` (enabled).
       --ucr, --usecyclicreads, --DefaultSamplingUsingCyclicRead[=VALUE]
                              (Experimental) All nodes should be sampled using
                                periodical client reads instead of subscriptions
@@ -816,6 +823,13 @@ Diagnostic options
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
                                Default: `disabled`.
+      --lnf, --lognotificationfilter[=VALUE]
+                             Only log notifications where the data set field
+                               name, subscription name, or data set name match
+                               the provided regular expression pattern.
+                               If set implicitly enables debug logging via `--
+                               ln`.
+                               Default: `null` (matches all).
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.

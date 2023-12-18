@@ -1285,7 +1285,7 @@ Constants defined for the ValueRank attribute.
 ### OpcAuthenticationMode
 Enum that defines the authentication method
 
-*Type* : enum (Anonymous, UsernamePassword)
+*Type* : enum (Anonymous, UsernamePassword, Certificate)
 
 
 <a name="opcnodemodel"></a>
@@ -1593,6 +1593,7 @@ Contains the nodes which should be published
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+|**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
 
 
@@ -1601,6 +1602,11 @@ Contains the nodes which should be published
 PublishNodes direct method response
 
 *Type* : object
+
+
+<a name="qos"></a>
+### QoS
+*Type* : enum (AtMostOnce, AtLeastOnce, ExactlyOnce)
 
 
 <a name="querycompilationrequestmodel"></a>
@@ -2361,7 +2367,7 @@ Certificate chain
 |Name|Description|Schema|
 |---|---|---|
 |**chain**  <br>*optional*|Chain|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
-|**status**  <br>*optional*|Chain validation status if validated|enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
+|**status**  <br>*optional*|Chain validation status if validated|enum (NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
 
 
 <a name="x509certificatemodel"></a>
@@ -2385,7 +2391,7 @@ Certificate model
 ### X509ChainStatus
 Status of x509 chain
 
-*Type* : enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
+*Type* : enum (NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
 
 
 

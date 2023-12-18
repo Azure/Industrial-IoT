@@ -1574,9 +1574,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <param name="defaultValue"></param>
+        /// <param name="outerException"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private static IList<T?> ToTypedArray<T>(object? value, T? defaultValue)
+        private static IList<T?> ToTypedArray<T>(object? value, T? defaultValue,
+            Func<Exception, Exception>? outerException = null)
         {
             if (value == null)
             {
@@ -1603,18 +1605,42 @@ namespace Azure.IIoT.OpcUa.Encoders
                     result[index] = defaultValue;
                     continue;
                 }
+                if (item is not byte[] &&
+                    item is Array itemArray)
+                {
+                    return ToTypedArray(itemArray, defaultValue,
+                        ex => GetException(value, arr, item, ex));
+                }
                 try
                 {
-                    result[index] = item.As<T?>();
+                    result[index] = (T?)item;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Bad variant: Value '{value}' of type '{value.GetType().FullName}'" +
-                        $" is not of type '{typeof(T).GetType().FullName}'.", ex);
+                    try
+                    {
+                        result[index] = item.As<T?>();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (outerException != null)
+                        {
+                            ex = outerException(ex);
+                        }
+                        throw GetException(value, arr, item, ex);
+                    }
                 }
             }
             return result;
+
+            static ServiceResultException GetException(object value, Array arr, object item,
+                Exception ex)
+            {
+                return new ServiceResultException(StatusCodes.BadEncodingError, "Bad variant: " +
+                    $"Value '{value}' with length {arr.Length} of type '{value.GetType().FullName}'" +
+                    $" with item '{item}' of type '{item.GetType().FullName}' is not of type " +
+                    $"'{typeof(T).GetType().FullName}'.", ex);
+            }
         }
 
         /// <summary>

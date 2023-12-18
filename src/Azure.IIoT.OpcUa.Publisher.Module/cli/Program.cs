@@ -277,7 +277,6 @@ Options:
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
                 arguments.Add("--cl=5"); // enable 5 second client linger
-                arguments.Add("--da"); // disable auto ack
                 if (acceptAll)
                 {
                     // Accept all certificates
@@ -410,8 +409,6 @@ Options:
             /// Create wrapper
             /// </summary>
             /// <param name="logger"></param>
-            /// <param name="disconnectInterval"></param>
-            /// <param name="reconnectDelay"></param>
             /// <param name="reverseConnectPort"></param>
             public ServerWrapper(ILoggerFactory logger, int? reverseConnectPort)
             {

@@ -47,6 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? configuration?.AsyncMetaDataLoadThreshold,
                 EnableImmediatePublishing = dataSetSource.SubscriptionSettings?.EnableImmediatePublishing
                     ?? configuration?.EnableImmediatePublishing ?? false,
+                EnableSequentialPublishing = dataSetSource.SubscriptionSettings?.EnableSequentialPublishing
+                    ?? configuration?.EnableSequentialPublishing ?? true,
                 MetaData = configuration?.DisableDataSetMetaData == true
                     ? null : dataSetMetaData
             };

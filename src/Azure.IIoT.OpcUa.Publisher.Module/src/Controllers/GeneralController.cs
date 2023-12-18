@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>
@@ -71,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("capabilities")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -98,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/first")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(
-            RequestEnvelope<BrowseFirstRequestModel> request,
+            [FromBody][Required] RequestEnvelope<BrowseFirstRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -122,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
-            RequestEnvelope<BrowseNextRequestModel> request,
+            [FromBody][Required] RequestEnvelope<BrowseNextRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -150,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse")]
         public IAsyncEnumerable<BrowseStreamChunkModel> BrowseStreamAsync(
-            RequestEnvelope<BrowseStreamRequestModel> request,
+            [FromBody][Required] RequestEnvelope<BrowseStreamRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -176,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/path")]
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
-            RequestEnvelope<BrowsePathRequestModel> request,
+            [FromBody][Required] RequestEnvelope<BrowsePathRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -202,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("read")]
         public async Task<ValueReadResponseModel> ValueReadAsync(
-            RequestEnvelope<ValueReadRequestModel> request,
+            [FromBody][Required] RequestEnvelope<ValueReadRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -228,7 +230,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("write")]
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
-            RequestEnvelope<ValueWriteRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<ValueWriteRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -255,7 +258,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("metadata")]
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
-            RequestEnvelope<NodeMetadataRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<NodeMetadataRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -277,7 +281,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The compilation response.</returns>
         [HttpPost("query/compile")]
         public async Task<QueryCompilationResponseModel> CompileQueryAsync(
-            RequestEnvelope<QueryCompilationRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<QueryCompilationRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -302,7 +307,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("call/$metadata")]
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
-            RequestEnvelope<MethodMetadataRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<MethodMetadataRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -330,7 +336,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("call")]
         public async Task<MethodCallResponseModel> MethodCallAsync(
-            RequestEnvelope<MethodCallRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<MethodCallRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -358,7 +365,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("read/attributes")]
         public async Task<ReadResponseModel> NodeReadAsync(
-            RequestEnvelope<ReadRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<ReadRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -386,7 +394,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("write/attributes")]
         public async Task<WriteResponseModel> NodeWriteAsync(
-            RequestEnvelope<WriteRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<WriteRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -413,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("historyread/first")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            RequestEnvelope<HistoryReadRequestModel<VariantValue>> request,
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<VariantValue>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -440,7 +449,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("historyread/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -466,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("historyupdate")]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -491,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            EndpointModel endpoint, CancellationToken ct = default)
+            [FromBody][Required] EndpointModel endpoint, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             return await _certificates.GetEndpointCertificateAsync(endpoint,
@@ -513,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -535,7 +545,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("history/configuration")]
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
-            RequestEnvelope<HistoryConfigurationRequestModel> request,
+            [FromBody][Required] RequestEnvelope<HistoryConfigurationRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -561,7 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("connect")]
         public async Task<ConnectResponseModel> ConnectAsync(
-            RequestEnvelope<ConnectRequestModel> request,
+            [FromBody][Required] RequestEnvelope<ConnectRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -587,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("test")]
         public async Task<TestConnectionResponseModel> TestConnectionAsync(
-            RequestEnvelope<TestConnectionRequestModel> request,
+            [FromBody][Required] RequestEnvelope<TestConnectionRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -610,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("disconnect")]
         public async Task DisconnectAsync(
-            RequestEnvelope<DisconnectRequestModel> request,
+            [FromBody][Required] RequestEnvelope<DisconnectRequestModel> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

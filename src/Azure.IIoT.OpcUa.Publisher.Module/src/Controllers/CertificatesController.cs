@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>
@@ -97,7 +98,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch("{store}/certs")]
         public async Task AddCertificateAsync(CertificateStoreName store,
-            byte[] pfxBlob, [FromQuery] string? password, CancellationToken ct = default)
+            [FromBody][Required] byte[] pfxBlob, [FromQuery] string? password,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(pfxBlob);
             await _certificates.AddCertificateAsync(store, pfxBlob, password,
@@ -118,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPatch("{store}/crls")]
         public async Task AddCertificateRevocationListAsync(CertificateStoreName store,
-            byte[] crl, CancellationToken ct = default)
+            [FromBody][Required] byte[] crl, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(crl);
             await _certificates.AddCertificateRevocationListAsync(store, crl,
@@ -138,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
         [HttpPost("trusted/certs")]
-        public async Task AddCertificateChainAsync(byte[] certificateChain,
+        public async Task AddCertificateChainAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificateChain);
@@ -176,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
         [HttpPost("https/certs")]
-        public async Task AddTrustedHttpsCertificateAsync(byte[] certificateChain,
+        public async Task AddTrustedHttpsCertificateAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificateChain);

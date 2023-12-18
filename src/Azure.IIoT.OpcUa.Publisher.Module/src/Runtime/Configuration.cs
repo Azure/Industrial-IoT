@@ -6,9 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
-    using Autofac;
     using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -19,13 +17,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
-    using Microsoft.AspNetCore.Server.Kestrel.Https;
-    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
+    using Autofac;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
@@ -35,7 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Globalization;
     using System.Linq;
     using System.Net;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
 
     /// <summary>

@@ -479,6 +479,9 @@ dotnet_diagnostic.CA1812.severity = silent
 # CA1003: Use generic event handler instances
 dotnet_diagnostic.CA1003.severity = silent
 
+# CA1008: Enums should have zero value
+dotnet_diagnostic.CA1008.severity = silent
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
@@ -506,3 +509,7 @@ dotnet_diagnostic.CA5370.severity = suggestion
 dotnet_diagnostic.CA5372.severity = suggestion
 dotnet_diagnostic.CA5374.severity = warning
 dotnet_diagnostic.CA2251.severity = suggestion
+dotnet_style_prefer_collection_expression = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent

@@ -19,9 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Watchdog with Last known value
         /// </summary>
         [EnumMember(Value = "WatchdogLKV")]
-#pragma warning disable CA1008 // Enums should have zero value
         WatchdogLKV = 0x0,
-#pragma warning restore CA1008 // Enums should have zero value
 
         /// <summary>
         /// Watchdog with last good value

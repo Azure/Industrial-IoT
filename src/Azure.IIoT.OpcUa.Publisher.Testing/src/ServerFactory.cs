@@ -127,7 +127,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// </summary>
             /// <param name="ports"></param>
             /// <param name="pkiRootPath"></param>
-            /// <param name="configure"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
                 IEnumerable<int> ports, string pkiRootPath)

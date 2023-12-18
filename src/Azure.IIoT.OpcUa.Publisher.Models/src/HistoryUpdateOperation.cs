@@ -14,11 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum HistoryUpdateOperation
     {
         /// <summary>
-        /// None
-        /// </summary>
-        None = 0,
-
-        /// <summary>
         /// Insert
         /// </summary>
         [EnumMember(Value = "Insert")]

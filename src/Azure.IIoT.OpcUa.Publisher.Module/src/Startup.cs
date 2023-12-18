@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     // options.SingleLine = true;
                     options.IncludeScopes = true;
                     options.UseUtcTimestamp = true;
-                    options.TimestampFormat = "[HH:mm:ss.ffff] ";
+                    options.TimestampFormat = "[yy-MM-dd HH:mm:ss.ffff] ";
                 })
                 .AddOpenTelemetry(Configuration, options =>
                 {

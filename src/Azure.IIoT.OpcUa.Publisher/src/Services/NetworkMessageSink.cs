@@ -18,7 +18,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
@@ -77,8 +79,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _diagnostics = diagnostics;
             _cts = new CancellationTokenSource();
 
+            _logNotificationsFilter = _options.Value.DebugLogNotificationsFilter == null ?
+                null : new Regex(_options.Value.DebugLogNotificationsFilter);
             _logNotifications = _options.Value.DebugLogNotifications
-                ?? false;
+                ?? (_logNotificationsFilter != null);
             _maxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
                 ?? _options.Value.BatchSize ?? 0;
             _maxNetworkMessageSize = (int?)writerGroup.MaxNetworkMessageSize
@@ -223,11 +227,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private async Task SendAsync((IEvent Event, Action Complete) message)
         {
+            if (_cts.IsCancellationRequested)
+            {
+                message.Complete();
+                message.Event.Dispose();
+                return;
+            }
             try
             {
                 // Do not give up and try to send the message until cancelled.
                 var sw = Stopwatch.StartNew();
-                for (var attempt = 1; ; attempt++)
+                for (var attempt = 1; !_cts.IsCancellationRequested; attempt++)
                 {
                     try
                     {
@@ -236,11 +246,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _logger.LogDebug("#{Attempt}: Network message sent.", attempt);
                         break;
                     }
-                    catch (Exception e) when (
-                        e is not OperationCanceledException &&
-                        e is not ObjectDisposedException)
+                    catch (OperationCanceledException) { }
+                    catch (Exception e) when (e is not ObjectDisposedException)
                     {
                         kMessagesErrors.Add(1, _metrics.TagList);
+
+                        // Fail fast for authentication exceptions
+                        var aux = e as AuthenticationException;
+                        if (aux == null && e is AggregateException ag)
+                        {
+                            aux = ag
+                                .Flatten().InnerExceptions
+                                .OfType<AuthenticationException>()
+                                .FirstOrDefault();
+                        }
+                        if (aux?.Message.Equals("TLS authentication error.",
+                            StringComparison.Ordinal) == true)
+                        {
+                            _logger.LogCritical(aux,
+                                "#{Attempt}: Wrong TLS certificate trust list " +
+                                "provisioned - trying to reset and reload configuration...",
+                                attempt);
+                            Runtime.FailFast(aux.Message, aux);
+                        }
 
                         var delay = TimeSpan.FromMilliseconds(attempt * 100);
                         const string error = "#{Attempt}: Error '{Error}' during " +
@@ -257,6 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             _logger.LogError(error, attempt, e.Message, delay);
                         }
+
                         // Throws if cancelled
                         await Task.Delay(delay, _cts.Token).ConfigureAwait(false);
                     }
@@ -354,6 +383,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="dropped"></param>
         private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
         {
+            // Filter fields to log
+            if (_logNotificationsFilter != null)
+            {
+                var matched = args.SubscriptionName != null &&
+                    _logNotificationsFilter.IsMatch(args.SubscriptionName);
+
+                for (var i = 0; i < args.Notifications.Count && !matched; i++)
+                {
+                    var itemName =
+                        args.Notifications[i].DataSetFieldName ??
+                        args.Notifications[i].DataSetName;
+                    if (itemName != null)
+                    {
+                        matched = _logNotificationsFilter.IsMatch(itemName);
+                    }
+                }
+                if (!matched)
+                {
+                    // Do not log anything
+                    return;
+                }
+            }
+
             _logger.LogInformation(
                 "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
                 dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
@@ -438,6 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
+        private readonly Regex? _logNotificationsFilter;
         private readonly BatchBlock<IOpcUaSubscriptionNotification> _notificationBufferBlock;
         private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
         private readonly ActionBlock<(IEvent, Action)> _sinkBlock;

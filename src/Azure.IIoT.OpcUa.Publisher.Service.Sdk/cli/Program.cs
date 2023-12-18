@@ -49,7 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// Configure Dependency injection
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="useMsgPack"></param>
         public Program(IConfiguration configuration)
         {
             _client = new ServiceClient(configuration,

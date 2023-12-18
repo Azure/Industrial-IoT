@@ -34,6 +34,6 @@ using var response = await httpClient.SendAsync(request, HttpCompletionOption.Re
 response.EnsureSuccessStatusCode();
 await foreach (var result in JsonSerializer.DeserializeAsyncEnumerable<JsonElement>(response.Content.ReadAsStream(), cancellationToken: cts.Token)!)
 {
-    var browseElementJson = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+    var browseElementJson = JsonSerializer.Serialize(result, Parameters.Indented);
     Console.WriteLine(browseElementJson);
 }

@@ -42,9 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// more dimensions.
         /// </summary>
         [EnumMember(Value = "OneOrMoreDimensions")]
-#pragma warning disable CA1008 // Enums should have zero value
         OneOrMoreDimensions = 0,
-#pragma warning restore CA1008 // Enums should have zero value
 
         /// <summary>
         /// The variable is always one dimensional array.

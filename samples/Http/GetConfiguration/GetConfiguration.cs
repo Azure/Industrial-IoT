@@ -20,12 +20,12 @@ var configuration = await httpClient.GetFromJsonAsync<JsonElement>(parameters.Op
 var endpoints = configuration.GetProperty("endpoints").EnumerateArray();
 foreach (var endpoint in endpoints)
 {
-    var endpointJson = JsonSerializer.Serialize(endpoint, new JsonSerializerOptions { WriteIndented = true });
+    var endpointJson = JsonSerializer.Serialize(endpoint, Parameters.Indented);
     Console.WriteLine(endpointJson);
     var response = await httpClient.PostAsJsonAsync(parameters.OpcPublisher + "/v2/configuration/endpoints/list/nodes",
         endpoint, cts.Token).ConfigureAwait(false);
     var nodesJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(
         await response.Content.ReadAsStringAsync(cts.Token).ConfigureAwait(false)),
-        new JsonSerializerOptions { WriteIndented = true });
+        Parameters.Indented);
     Console.WriteLine(nodesJson);
 }

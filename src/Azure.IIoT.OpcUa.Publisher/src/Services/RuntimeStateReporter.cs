@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Runtime.InteropServices;
     using System.Globalization;
+    using System.Net.Sockets;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
-            IIoTEdgeDeviceIdentity? identity = null, IoTEdgeWorkloadApi? workload = null)
+            IIoTEdgeDeviceIdentity? identity = null, IIoTEdgeWorkloadApi? workload = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -178,8 +179,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
             }
 
+            var dnsName = Dns.GetHostName();
+
             // The certificate must be in the same store as the api key or else we generate a new one.
-            if (apiKeyStore != null &&
+            if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
+                apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
                     out var cert) && cert.IsBytes)
             {
@@ -189,7 +193,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
                     var now = DateTime.UtcNow.AddDays(1);
-                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey)
+                    if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
+                        Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
+                            .Any(a => a.GetSingleElementValue() == dnsName))
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
@@ -212,7 +218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Create new certificate
             var nowOffset = DateTimeOffset.UtcNow;
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
-            var dnsName = Dns.GetHostName();
 
             Certificate?.Dispose();
             Certificate = null;
@@ -221,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     var certificates = await _workload.CreateServerCertificateAsync(
-                        dnsName, expiration.Date, default).ConfigureAwait(false);
+                        dnsName, expiration.Date).ConfigureAwait(false);
 
                     Debug.Assert(certificates.Count > 0);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -246,14 +251,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Certificate.Dispose();
                         Certificate = null;
-                        _logger.LogInformation(
+                        _logger.LogWarning(
                             "Failed to get certificate with private key using workload API.");
                     }
                     else
                     {
-                        _logger.LogDebug(
-                            "Using server certificate with private key from workload API.");
+                        _logger.LogInformation(
+                            "Using server certificate with private key from workload API...");
                     }
+                }
+                catch (NotSupportedException nse)
+                {
+                    _logger.LogWarning("Not supported: {Message}. " +
+                        "Unable to use workload API to obtain the certificate!", nse.Message);
                 }
                 catch (Exception ex)
                 {
@@ -264,10 +274,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 using var ecdsa = ECDsa.Create();
                 var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
+                var san = new SubjectAlternativeNameBuilder();
+                san.AddDnsName(dnsName);
+                var altDns = _identity?.ModuleId ?? _identity?.DeviceId;
+                if (!string.IsNullOrEmpty(altDns) &&
+                    !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
+                {
+                    san.AddDnsName(altDns);
+                }
+                req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
-
                 Debug.Assert(Certificate.HasPrivateKey);
-                _logger.LogDebug("Created self-signed ECC server certificate.");
+                _logger.LogInformation("Created self-signed ECC server certificate...");
             }
 
             Debug.Assert(_stores.Count > 0);
@@ -281,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
 
             _logger.LogInformation(
-                "Created new Certificate in {Store} store (renewal in {Duration})...",
+                "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
                 apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
         }
@@ -551,6 +569,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Monitored Opc nodes failed count   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
+                    .Append("  # Subscriptions count                : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
+                        .AppendLine()
                     ;
             }
         }
@@ -576,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IIoTEdgeDeviceIdentity? _identity;
         private readonly IDiagnosticCollector _collector;
-        private readonly IoTEdgeWorkloadApi? _workload;
+        private readonly IIoTEdgeWorkloadApi? _workload;
         private readonly Timer _renewalTimer;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;

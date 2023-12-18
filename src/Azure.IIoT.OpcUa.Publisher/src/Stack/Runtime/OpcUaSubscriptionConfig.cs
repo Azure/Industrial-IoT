@@ -41,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string AsyncMetaDataLoadThresholdKey = "AsyncMetaDataLoadThreshold";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
+        public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -134,6 +135,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.EnableImmediatePublishing == null)
             {
                 options.EnableImmediatePublishing = GetBoolOrNull(EnableImmediatePublishingKey);
+            }
+            if (options.EnableSequentialPublishing == null)
+            {
+                options.EnableSequentialPublishing = GetBoolOrNull(EnableSequentialPublishingKey);
             }
             if (options.DisableSessionPerWriterGroup == null)
             {
