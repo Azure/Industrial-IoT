@@ -10,11 +10,20 @@
     <PackageReference Include="Furly.Azure.IoT.Edge" Version="1.0.13" />
     <PackageReference Include="Irony" Version="1.2.0" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.4.372.91-preview" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.372.91-preview" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.372.91-preview" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)'=='Release'">
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.372.106" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.372.106" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Debug" Version="1.4.372.106" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.Debug" Version="1.4.372.106" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
