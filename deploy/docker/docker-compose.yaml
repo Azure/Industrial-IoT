@@ -5,7 +5,7 @@ services:
   ############################
   opcplc:
     container_name: opcplc
-    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-latest}
+    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-2.9.10}
     ports:
       - "50000:50000"
     command: [

@@ -1720,6 +1720,13 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnKeepAliveMissing(object? state)
         {
+            if (!_online || _closed)
+            {
+                // Stop watchdog
+                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+
             NumberOfMissingKeepAlives++;
             _continuouslyMissingKeepAlives++;
 
@@ -1747,12 +1754,6 @@ Actual (revised) state/desired state:
             {
                 _logger.LogInformation("#{Count}: Subscription {Subscription} is missing keep alive.",
                     _continuouslyMissingKeepAlives, this);
-            }
-
-            if (subscription == null || !_online)
-            {
-                // Stop watchdog
-                _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
             }
         }
 
