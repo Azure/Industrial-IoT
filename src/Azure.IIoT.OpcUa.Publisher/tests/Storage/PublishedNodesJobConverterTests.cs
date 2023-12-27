@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Moq;
@@ -2638,6 +2637,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             return options.Value;
         }
 
-        private readonly NewtonsoftJsonSerializer _serializer = new ();
+        private readonly NewtonsoftJsonSerializer _serializer = new();
     }
 }

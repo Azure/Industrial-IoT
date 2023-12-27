@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
-            using  var runtimeStateReporter = new RuntimeStateReporter(
+            using var runtimeStateReporter = new RuntimeStateReporter(
                 client.Object.YieldReturn(),
                 _serializer,
                 new MemoryKVStore().YieldReturn(),

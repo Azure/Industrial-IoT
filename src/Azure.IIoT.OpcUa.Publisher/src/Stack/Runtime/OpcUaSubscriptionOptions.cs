@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// Subscription configuration

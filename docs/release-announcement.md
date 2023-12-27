@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.4](#azure-industrial-iot-opc-publisher-294)
+  - [Changes in 2.9.4](#changes-in-294)
 - [Azure Industrial IoT OPC Publisher 2.9.3](#azure-industrial-iot-opc-publisher-293)
   - [Breaking changes in 2.9.3](#breaking-changes-in-293)
   - [New features in 2.9.3](#new-features-in-293)
@@ -38,6 +40,22 @@
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
 
+## Azure Industrial IoT OPC Publisher 2.9.4
+
+We are pleased to announce the release of version 2.9.4 of OPC Publisher and the companion web api. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.4
+
+- Fix release build issue which broke support for ARM64 images running on RPi4 (#2145).
+- Update console diagnostics output to provide better naming and reflect other transports than IoT Edge Hub (#2141)
+- Add keep alive notification counts to Diagnostics output and messages
+- Add a full version that includes runtime, framework and full version string to runtime state message, twin, diagnostic object, and in console output.
+- When only using cyclic reads, the underlying dummy subscription should stay disabled (#2139)
+- Recreate session if it expires on server (#2138)
+- Log subscription keep alive error only when session is connected (#2137)
+- Update OPC UA .net stack to latest version (1.4.372.106) to enable fully async reconnect
+- Fix issue where certain publish errors cause reconnect state machine to fail (#2104, #2136)
+
 ## Azure Industrial IoT OPC Publisher 2.9.3
 
 We are pleased to announce the release of version 2.9.3 of OPC Publisher and the companion web api. This release moves OPC Publisher to .net 8 which is the latest LTS version of .net and comes with several new features, bug and security fixes. 2.9.3 is the latest supported release.
@@ -66,6 +84,7 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 ### Bug fixes in 2.9.3
 
 - 2.8 Start instrument was missing on 2.9 prometheus endpoint (#2110)
+- Fix Publisher cannot get ssl cert from workload api, HTTPS API returning SSL_ERROR_SYSCALL error (#2101)
 - Harden when OPC UA server sometimes reports monitored items samples changes unordered in subscription notification and thus samples messages are also unordered (#2108)
 - Need to have timestamp information and other information in runtime state reporting message, need to have a special routing path for runtime state messages feature request. Restart announcement now includes additional information, including version, timestamp of (re-)start, module and device ids. (#2111)
 - Optimize metadata collection, do not collect metadata from servers for built in types (#2105)

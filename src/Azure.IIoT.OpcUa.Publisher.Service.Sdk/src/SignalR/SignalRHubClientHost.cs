@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <inheritdoc/>
             public void Dispose()
             {
-               _cts.Dispose();
+                _cts.Dispose();
             }
 
             /// <summary>

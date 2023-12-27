@@ -21,9 +21,14 @@ namespace Azure.IIoT.OpcUa
         public const string TwinPropertySiteKey = "__siteid__";
 
         /// <summary>
-        /// Version property name constant
+        /// Semver Version property name constant
         /// </summary>
         public const string TwinPropertyVersionKey = "__version__";
+
+        /// <summary>
+        /// Full Version property name constant
+        /// </summary>
+        public const string TwinPropertyFullVersionKey = "__fullversion__";
 
         /// <summary>
         /// Spi key property name constant

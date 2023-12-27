@@ -1121,7 +1121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     RepublishAfterTransfer = true,
                     FastKeepAliveCallback = OnSubscriptionKeepAliveNotification,
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
-                    FastEventCallback = OnSubscriptionEventNotificationList,
+                    FastEventCallback = OnSubscriptionEventNotificationList
                 };
 
                 subscription.PublishStatusChanged += OnPublishStatusChange;

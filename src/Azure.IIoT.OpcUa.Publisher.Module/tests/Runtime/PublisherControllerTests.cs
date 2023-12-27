@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Microsoft.AspNetCore.Hosting.Server;
-    using NuGet.Frameworks;
     using System;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;

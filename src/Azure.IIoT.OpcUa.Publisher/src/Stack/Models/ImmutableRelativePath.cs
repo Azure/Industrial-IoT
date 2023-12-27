@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
 
     /// <summary>

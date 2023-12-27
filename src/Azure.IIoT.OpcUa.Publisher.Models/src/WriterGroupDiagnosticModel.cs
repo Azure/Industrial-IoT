@@ -230,5 +230,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "NumberOfSubscriptions", Order = 30,
             EmitDefaultValue = true)]
         public long NumberOfSubscriptions { get; set; }
+
+        /// <summary>
+        /// Number of incoming keep alive notifications
+        /// </summary>
+        [DataMember(Name = "IngressKeepAliveNotifications", Order = 31,
+            EmitDefaultValue = true)]
+        public long IngressKeepAliveNotifications { get; set; }
+
+        /// <summary>
+        /// Publisher version
+        /// </summary>
+        [DataMember(Name = "PublisherVersion", Order = 99,
+            EmitDefaultValue = true)]
+        public string? PublisherVersion { get; set; }
     }
 }

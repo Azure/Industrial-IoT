@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;
     using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Utils;
