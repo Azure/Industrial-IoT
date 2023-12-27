@@ -75,7 +75,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             $extra += "--no-build"
         }
 
-        $baseImage = $($properties.ContainerRepository -split "-")[0]
+        $baseImage = $($properties.ContainerBaseImage -split "-")[0]
 
         # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
         if ($script:Arch -eq "x64") {
@@ -93,6 +93,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
+            /p:ContainerBaseImage=$baseImage `
             /p:ContainerRepository=$fullName `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra
