@@ -40,32 +40,35 @@ The following table describes the instruments that are collected per writer grou
 
 | Log line item name                      | Diagnostic info property name       | Description |
 |-----------------------------------------|-------------------------------------|-------------|
+| # OPC Publisher Version (Runtime)       | n/a                                 | The full version and runtime used by the publisher |
+| # Time                    | timestamp                   | The timestamp of the diagnostics information |
 | # Ingestion duration                    | ingestionDuration                   | How long the data flow inside the publisher has been executing after it was created (either from file or API) |
-| # Ingress DataChanges (from OPC)        | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
-| # Ingress ValueChanges (from OPC)       | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
-| # of which are Heartbeats               | ingressHeartbeats                   | The number of heartbeats inside the published value changes. |
-| # of which are Cyclic reads             | ingressCyclicReads                  | The number of cyclic reads of the total number of value changes. |
-| # Ingress EventData (from OPC)          | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
-| # Ingress Events (from OPC)             | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
-| # Ingress BatchBlock buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
-| # Encoding Block input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
-| # Encoding Block input / output size    | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
-| # Encoder Notifications processed       | encoderNotificationsProcessed       | The total number of subscription notifications processed by the encoder stage of the data flow pipeline since the pipeline started. |
-| # Encoder Notifications dropped         | encoderNotificationsDropped         | The total number of subscription notifications that were dropped because they could not be encoded, e.g., due to their size being to large to fit into the message. |
-| # Encoder IoT Messages processed        | encoderIoTMessagesProcessed         | The total number of encoded messages produced by the encoder since the start of the pipeline. |
-| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were pressed into a message. |
-| # Encoder avg IoT Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
-| # Encoder avg IoT Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
-| # Estimated IoT Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
-| # Outgress Batch Block buffer size      | outgressBatchBlockBufferSize        | The number of messages that are waiting to be sent to all configured telemetry message destination via the message sink. |
-| # Outgress input bufffer count          | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
-| # Outgress input buffer dropped         | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
-| # Outgress IoT message count            | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
-|                                         | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
-| # Connection retries                    | connectionRetries                   | How many times connections to the OPC UA server broke and needed to be reconnected as it pertains to the data flow. |
 | # Opc endpoint connected?               | opcEndpointConnected                | Whether the pipeline is currently connected to the OPC UA server endpoint or in a reconnect attempt. |
+| # Connection retries                    | connectionRetries                   | How many times connections to the OPC UA server broke and needed to be reconnected as it pertains to the data flow. |
 | # Monitored Opc nodes succeeded count   | monitoredOpcNodesSucceededCount     | How many of the configured monitored items have been established successfully inside the data flow's OPC UA subscription and should be producing data. |
 | # Monitored Opc nodes failed count      | monitoredOpcNodesFailedCount        | How many of the configured monitored items inside the data flow failed to be created in the subscription (the logs will provide more information). |
+| # Subscriptions count                   | subscriptionsCount                  | How many subscriptions were created that contain above monitored items. |
+| # Ingress value changes                 | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
+| # Ingress Events                        | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
+| # Received Data Change notifications    | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
+| # Received Event List notifications     | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
+| # Received Keep Alive notifications     | ingressEventNotifications           | The number of received OPC UA subscription notification messages that were keep alive messages |
+| # Generated Cyclic read notifications   | ingressCyclicReads                  | The number of cyclic read notifications generated from sampling nodes on the client side. Each notification contains the changed value. |
+| # Generated Heartbeats notifications    | ingressHeartbeats                   | The number of notifications that contain heartbeats. Each notification contains the heartbeat value. |
+| # Notification batch buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
+| # Encoder input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
+|                                  | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
+| # Encoder Notifications processed       | encoderNotificationsProcessed       | The total number of subscription notifications processed by the encoder stage of the data flow pipeline since the pipeline started. |
+| # Encoder Notifications dropped         | encoderNotificationsDropped         | The total number of subscription notifications that were dropped because they could not be encoded, e.g., due to their size being to large to fit into the message. |
+| # Encoder Network Messages produced     | encoderIoTMessagesProcessed         | The total number of encoded messages produced by the encoder since the start of the pipeline. |
+| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were pressed into a message. |
+| # Encoder avg Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
+| # Encoder avg Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
+| # Estimated Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
+| # Egress messages ready to send     | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
+| # Egress messages dropped           | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
+| # Egress messages successfully sent | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
+|                                     | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
 
 ## Available metrics
 
@@ -308,7 +311,7 @@ In this tutorial two pre-configured docker images (for Prometheus and Grafana) m
   - <http://{edge> host IP or name}:3000
   - When prompted for a user name and password enter the values entered in the environment variables
   - **Note**: When using a VM, make sure to add an inbound rule for port 3000
-  
+
 - Prometheus has already been configured as a data source and can now be directly accessed. Prometheus is scraping EdgeHub and OPC Publisher metrics.
 
 - Select the dashboards option to view the available dashboards and select “Publisher” to view the pre-configured dashboard as shown below.
