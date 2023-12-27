@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Messaging;
-
     /// <summary>
     /// Writer group Model extensions
     /// </summary>

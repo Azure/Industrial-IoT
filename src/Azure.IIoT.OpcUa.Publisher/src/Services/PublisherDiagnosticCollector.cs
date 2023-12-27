@@ -9,17 +9,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
-    using System.Globalization;
     using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -52,7 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void ResetWriterGroup(string writerGroupId)
         {
-            var diag = new AggregateDiagnosticModel { IngestionStart = DateTime.UtcNow };
+            var diag = new AggregateDiagnosticModel
+            {
+                PublisherVersion = PublisherConfig.Version,
+                IngestionStart = DateTime.UtcNow
+            };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
             _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
                 writerGroupId);
@@ -212,6 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public WriterGroupDiagnosticModel this[string dataSetWriterId] =>
                 _writers.GetOrAdd(dataSetWriterId, new WriterGroupDiagnosticModel
                 {
+                    PublisherVersion = PublisherConfig.Version,
                     IngestionStart = DateTime.UtcNow
                 });
 
@@ -236,6 +236,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (d, i) => d.IngressDataChangesInLastMinute = (long)i,
                 ["iiot_edge_publisher_value_changes_per_second_last_min"] =
                 (d, i) => d.IngressValueChangesInLastMinute = (long)i,
+                ["iiot_edge_publisher_keep_alive_notifications"] =
+                (d, i) => d.IngressKeepAliveNotifications = (long)i,
                 ["iiot_edge_publisher_events"] =
                 (d, i) => d.IngressEvents = (long)i,
                 ["iiot_edge_publisher_heartbeats"] =

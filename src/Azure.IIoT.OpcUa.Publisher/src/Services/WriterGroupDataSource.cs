@@ -565,6 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="notification"></param>
             private void OnSubscriptionKeepAliveNotification(object? sender, IOpcUaSubscriptionNotification notification)
             {
+                Interlocked.Increment(ref _outer._keepAliveCount);
                 if (_sendKeepAlives)
                 {
                     CallMessageReceiverDelegates(sender, notification);
@@ -963,7 +964,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
                 () => new Measurement<long>(ValueChangesCountLastMinute, _metrics.TagList), "Values",
                 "Opc Value changes/second delivered for processing in last 60s.");
-
             _meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
                 () => new Measurement<long>(_eventNotificationCount, _metrics.TagList), "Notifications",
                 "Total Opc Event notifications delivered for processing.");
@@ -976,6 +976,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
                 () => new Measurement<long>(DataChangesCountLastMinute, _metrics.TagList), "Notifications",
                 "Opc Data change notifications/second delivered for processing in last 60s.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_keep_alive_notifications",
+                () => new Measurement<long>(_keepAliveCount, _metrics.TagList), "Notifications",
+                "Total Opc keep alive notifications delivered for processing.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
@@ -992,6 +995,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly SemaphoreSlim _lock = new(1, 1);
         private WriterGroupModel _writerGroup;
         private int _lastPointerValueChanges;
+        private long _keepAliveCount;
         private long _valueChangesCount;
         private int _lastPointerDataChanges;
         private long _dataChangesCount;

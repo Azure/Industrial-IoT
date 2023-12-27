@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;

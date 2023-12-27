@@ -9,12 +9,13 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
-    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Configuration;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices;
+    using System.Text;
 
     /// <summary>
     /// Publisher configuration
@@ -390,6 +391,22 @@ namespace Azure.IIoT.OpcUa.Publisher
         {
             _identity = identity;
         }
+
+        /// <summary>
+        /// Publisher version
+        /// </summary>
+        public static string Version { get; } =
+            new StringBuilder(ThisAssembly.AssemblyInformationalVersion)
+#if DEBUG
+                .Append(" [DEBUG]")
+#endif
+                .Append(" (")
+                .Append(RuntimeInformation.FrameworkDescription)
+                .Append('/')
+                .Append(AppContext.GetData("RUNTIME_IDENTIFIER") as string
+                    ?? RuntimeInformation.ProcessArchitecture.ToString())
+                .Append(')')
+                .ToString();
 
         private readonly IProcessIdentity? _identity;
     }

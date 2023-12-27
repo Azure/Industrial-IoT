@@ -75,8 +75,25 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             $extra += "--no-build"
         }
 
+        $baseImage = $($properties.ContainerBaseImage -split "-")[0]
+
+        # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
+        if ($script:Arch -eq "x64") {
+	        $baseImage = "$($baseImage)-cbl-mariner-distroless-amd64"
+	        $runtimeId = "$($script:Os)-$($script:Arch)"
+	    }
+	    if ($script:Arch -eq "arm64") {
+	        $baseImage = "$($baseImage)-cbl-mariner-distroless-arm64v8"
+	        $runtimeId = "$($script:Os)-$($script:Arch)"
+	    }
+	    if ($script:Arch -eq "arm") {
+	        $baseImage = "$($baseImage)-alpine-arm32v7"
+	        $runtimeId = "$($script:Os)-musl-$($script:Arch)"
+	    }
+
         dotnet publish $projFile.FullName -c $configuration --self-contained false `
-            /p:TargetLatestRuntimePatch=true `
+            -r $runtimeId /p:TargetLatestRuntimePatch=true `
+            /p:ContainerBaseImage=$baseImage `
             /p:ContainerRepository=$fullName `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra

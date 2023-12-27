@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int InvalidMonitoredItemRetryDelayDefaultSec = 5 * 60;
         public const int BadMonitoredItemRetryDelayDefaultSec = 30 * 60;
         public const int DefaultSessionTimeoutDefaultSec = 60;
-        public const int KeepAliveIntervalDefaultSec = 30;
+        public const int KeepAliveIntervalDefaultSec = 10;
         public const int CreateSessionTimeoutDefaultSec = 5;
         public const int MaxReconnectDelayDefault = 60 * 1000;
         public const int MinReconnectDelayDefault = 1000;

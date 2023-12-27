@@ -7,12 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Utils;
-    using Microsoft.Extensions.Configuration;
     using System;
-    using System.Data.Common;
-    using System.Net;
-    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Publisher identity

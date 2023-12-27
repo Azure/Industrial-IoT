@@ -332,24 +332,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .ConvertAll(
                         opcNodes => (opcNodes.First().Header, WriterGroup: group.Key.Group,
                             Source: new PublishedDataSetSourceModel
-                        {
-                            Connection = new ConnectionModel
                             {
-                                Endpoint = group.Key.Endpoint.Clone(),
-                                User = group.Key.User.Clone(),
-                                Diagnostics = group.Key.Diagnostics.Clone(),
-                                IsReverse = group.Key.IsReverse
-                            },
-                            SubscriptionSettings = new PublishedDataSetSettingsModel
-                            {
-                                MaxKeepAliveCount = opcNodes.First().Header.MaxKeepAliveCount,
-                                Priority = opcNodes.First().Header.Priority,
-                                PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
-                                // ...
-                            },
-                            PublishedVariables = new PublishedDataItemsModel
-                            {
-                                PublishedData = opcNodes.Where(node => node.Node.EventFilter == null)
+                                Connection = new ConnectionModel
+                                {
+                                    Endpoint = group.Key.Endpoint.Clone(),
+                                    User = group.Key.User.Clone(),
+                                    Diagnostics = group.Key.Diagnostics.Clone(),
+                                    IsReverse = group.Key.IsReverse
+                                },
+                                SubscriptionSettings = new PublishedDataSetSettingsModel
+                                {
+                                    MaxKeepAliveCount = opcNodes.First().Header.MaxKeepAliveCount,
+                                    Priority = opcNodes.First().Header.Priority,
+                                    PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
+                                    // ...
+                                },
+                                PublishedVariables = new PublishedDataItemsModel
+                                {
+                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter == null)
                                     .Select(node => new PublishedDataSetVariableModel
                                     {
                                         Id = node.Node.DataSetFieldId,
@@ -378,10 +378,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         DeadbandValue = node.Node.DeadbandValue,
                                         DeadbandType = node.Node.DeadbandType
                                     }).ToList()
-                            },
-                            PublishedEvents = new PublishedEventItemsModel
-                            {
-                                PublishedData = opcNodes.Where(node => node.Node.EventFilter != null)
+                                },
+                                PublishedEvents = new PublishedEventItemsModel
+                                {
+                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter != null)
                                     .Select(node => new PublishedDataSetEventModel
                                     {
                                         Id = node.Node.DataSetFieldId,
@@ -397,8 +397,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Filter = node.Node.EventFilter?.WhereClause.Clone(),
                                         ConditionHandling = node.Node.ConditionHandling.Clone()
                                     }).ToList()
-                            }
-                        })
+                                }
+                            })
                     ));
 
                 if (flattenedEndpoints.Count == 0)

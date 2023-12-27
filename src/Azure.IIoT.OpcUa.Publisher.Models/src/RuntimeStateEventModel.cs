@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public DateTime TimestampUtc { get; set; }
 
         /// <summary>
-        /// The Publisher Id if available
+        /// The Publisher semver version
         /// </summary>
         [DataMember(Name = "Version", Order = 3,
             EmitDefaultValue = true)]
@@ -69,5 +69,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ModuleId", Order = 7,
             EmitDefaultValue = true)]
         public string? ModuleId { get; set; }
+
+        /// <summary>
+        /// The Publisher full version string
+        /// </summary>
+        [DataMember(Name = "FullVersion", Order = 8,
+            EmitDefaultValue = true)]
+        public string? FullVersion { get; set; }
     }
 }

@@ -624,6 +624,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
 
-        private readonly NewtonsoftJsonSerializer _serializer = new ();
+        private readonly NewtonsoftJsonSerializer _serializer = new();
     }
 }

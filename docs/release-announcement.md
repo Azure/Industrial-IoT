@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.4](#azure-industrial-iot-opc-publisher-294)
+  - [Changes in 2.9.4](#changes-in-294)
 - [Azure Industrial IoT OPC Publisher 2.9.3](#azure-industrial-iot-opc-publisher-293)
   - [Breaking changes in 2.9.3](#breaking-changes-in-293)
   - [New features in 2.9.3](#new-features-in-293)
@@ -38,6 +40,22 @@
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
 
+## Azure Industrial IoT OPC Publisher 2.9.4
+
+We are pleased to announce the release of version 2.9.4 of OPC Publisher and the companion web api. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.4
+
+- Fix release build issue which broke support for ARM64 images running on RPi4 (#2145).
+- Update console diagnostics output to provide better naming and reflect other transports than IoT Edge Hub (#2141)
+- Add keep alive notification counts to Diagnostics output and messages
+- Add a full version that includes runtime, framework and full version string to runtime state message, twin, diagnostic object, and in console output.
+- When only using cyclic reads, the underlying dummy subscription should stay disabled (#2139)
+- Recreate session if it expires on server (#2138)
+- Log subscription keep alive error only when session is connected (#2137)
+- Update OPC UA .net stack to latest version (1.4.372.106) to enable fully async reconnect
+- Fix issue where certain publish errors cause reconnect state machine to fail (#2104, #2136)
+
 ## Azure Industrial IoT OPC Publisher 2.9.3
 
 We are pleased to announce the release of version 2.9.3 of OPC Publisher and the companion web api. This release moves OPC Publisher to .net 8 which is the latest LTS version of .net and comes with several new features, bug and security fixes. 2.9.3 is the latest supported release.
@@ -60,11 +78,13 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 - X509 User Authentication support using secrets reference feature request (#2005)
 - New API to manage the PKI infrastructure of the OPC Publisher (certificate stores). You can now list, add and remove certificates from the OPC UA certificate stores remotely. (#1996)
 - You can now configure OPC Publisher to re-use a session across writer groups with the same endpoint url and security settings. (#2065)
+- Subscription Watchdog monitors keep alive notifications and generates metric and logs when subscription keep alive is missing (#2060)
 - Added samples to show how to call OPC Publisher API over MQTT, HTTP and IoT Hub.
 
 ### Bug fixes in 2.9.3
 
 - 2.8 Start instrument was missing on 2.9 prometheus endpoint (#2110)
+- Fix Publisher cannot get ssl cert from workload api, HTTPS API returning SSL_ERROR_SYSCALL error (#2101)
 - Harden when OPC UA server sometimes reports monitored items samples changes unordered in subscription notification and thus samples messages are also unordered (#2108)
 - Need to have timestamp information and other information in runtime state reporting message, need to have a special routing path for runtime state messages feature request. Restart announcement now includes additional information, including version, timestamp of (re-)start, module and device ids. (#2111)
 - Optimize metadata collection, do not collect metadata from servers for built in types (#2105)
@@ -73,11 +93,13 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 - Dapr now works without requiring state component. Dapr now runs over http instead of https by default. New option to select the url scheme (#2102, #2119, #2117, #2109
 - It is now possible to disable retrying subscription re-creation by configuring a value of 0. (#2100)
 - Fix that extension field values show up wrong in samples mode. (#2092)
-- FIx Event subscription using the REST Api fails with: "The request field is required." (#2078)
+- Fix Event subscription using the REST Api fails with: "The request field is required." (#2078)
 - The configuration of the OpcPublisher 2.9.2 fails using the REST Api bug (#2066)
 - For each configured in pn.json Dataset publisher must try to reuse an existing session for this EndpointUrl with the identical security settings (if exists). feature request
 - Address issues deploying the web api, e.g., getting error when trying to use option 2 to deploy Azure IIoT Deployment and ./aad-register.ps1 errors with "A parameter cannot be found that matches the parameter name 'ReplyUrl'." (#2063, #2064)
 - Update documentation, including breaking changes, Add Azure Storage, Azure Key Vault services, and Application Insights to arch diagram, how to setup the OPCPublisher edge module with X.509 certificates documentation, and how to emit ExtensionFields in Pub sub mode using key frame counter. (#1917, #2091, #2083)
+- Fix incorrect API definitions in OpenAPI JSON for OPC publisher
+- FileSystem target now appends data instead of updating the file content. FileSystem target now supports arbitrary chars in topics.
 
 ## Azure Industrial IoT OPC Publisher 2.9.2
 

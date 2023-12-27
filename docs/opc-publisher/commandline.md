@@ -18,7 +18,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.3
+                                                                         2.9.4
 General
 -------
 
@@ -464,11 +464,17 @@ Subscription settings
                                Also can be set using `DefaultPublishingInterval`
                                 environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
-      --kt, --keepalivethreshold, --MaxKeepAliveCount=VALUE
-                             Specify the default number of keep alive packets a
-                               server can miss, before the session is
-                               disconneced.
-                               Default: `50`.
+      --ska, --keepalivecount, --DefaultKeepAliveCount=VALUE
+                             Specifies the default number of publishing
+                               intervals before a keep alive is returned with
+                               the next queued publishing response.
+                               Default: `10`.
+      --slt, --lifetimecount, --DefaultLifetimeCount=VALUE
+                             Default subscription lifetime count which is a
+                               multiple of the keep alive counter and when
+                               reached instructs the server to declare the
+                               subscription invalid.
+                               Default: `100`.
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
                                subscribed if a display name was not specified
@@ -528,10 +534,6 @@ Subscription settings
                                Also can be set using `DefaultHeartbeatInterval`
                                environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
-      --slt, --MinSubscriptionLifetime=VALUE
-                             Minimum subscription lifetime in seconds as per
-                               OPC UA definition.
-                               Default: `not set`.
       --da, --deferredacks, --UseDeferredAcknoledgements[=VALUE]
                              (Experimental) Acknoledge subscription
                                notifications only when the data has been

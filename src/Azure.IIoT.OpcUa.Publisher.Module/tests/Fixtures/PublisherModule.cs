@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Divergic.Logging.Xunit;
     using Furly.Azure;
     using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;

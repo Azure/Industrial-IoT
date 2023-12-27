@@ -406,16 +406,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
-            _logger.LogInformation(
-                "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
-                dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
-                args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
-                args.SubscriptionName, Stringify(args.Notifications));
+            var notifications = Stringify(args.Notifications);
+            if (!string.IsNullOrEmpty(notifications))
+            {
+                _logger.LogInformation(
+                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                    dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
+                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
+                    args.SubscriptionName, notifications);
+            }
 
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
             {
                 var sb = new StringBuilder();
-                foreach (var item in notifications)
+                // Filter heartbeats
+                foreach (var item in notifications.Where(n => !n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat)))
                 {
                     sb
                         .AppendLine()

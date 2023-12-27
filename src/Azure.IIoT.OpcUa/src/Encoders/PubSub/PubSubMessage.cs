@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     break;
             }
 #pragma warning restore CA1308 // Normalize strings to uppercase
-                              // Failed
+            // Failed
             return null;
         }
 

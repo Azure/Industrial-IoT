@@ -33,8 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultDataChangeTriggerKey = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayNameKey = "FetchOpcNodeDisplayName";
         public const string DefaultQueueSize = "DefaultQueueSize";
-        public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
-        public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";
+        public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
+        public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
@@ -47,10 +47,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Default values
         /// </summary>
-        public const int MaxKeepAliveCountDefault = 10;
+        public const int DefaultKeepAliveCountDefault = 10;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const bool ResolveDisplayNameDefault = false;
-        public const int MinSubscriptionLifetimeDefaultSec = 10;
+        public const int DefaultLifetimeCountDefault = 100;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const int AsyncMetaDataLoadThresholdDefault = 30;
@@ -109,13 +109,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
             if (options.DefaultKeepAliveCount == null)
             {
-                options.DefaultKeepAliveCount = (uint)GetIntOrDefault(MaxKeepAliveCountKey,
-                    MaxKeepAliveCountDefault);
+                options.DefaultKeepAliveCount = (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
+                    DefaultKeepAliveCountDefault);
             }
             if (options.DefaultLifeTimeCount == null)
             {
-                options.DefaultLifeTimeCount = (uint)GetIntOrDefault(MinSubscriptionLifetimeKey,
-                    MinSubscriptionLifetimeDefaultSec) * 1000;
+                options.DefaultLifeTimeCount = (uint)GetIntOrDefault(DefaultLifetimeCountKey,
+                    DefaultLifetimeCountDefault);
             }
             if (options.DisableDataSetMetaData == null)
             {

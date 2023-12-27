@@ -44,7 +44,7 @@ if (!$script:PublishTags) {
     }
 }
 $platforms = @{
-    "linux" = @( "x64", "arm", "arm64")
+    "linux" = @( "x64", "arm64", "arm")
 }
 
 $Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
