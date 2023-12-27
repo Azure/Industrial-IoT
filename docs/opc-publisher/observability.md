@@ -50,11 +50,11 @@ The following table describes the instruments that are collected per writer grou
 | # Subscriptions count                   | subscriptionsCount                  | How many subscriptions were created that contain above monitored items. |
 | # Ingress value changes                 | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
 | # Ingress Events                        | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
-| # Received Data Change notifications    | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
-| # Received Event List notifications     | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
-| # Received Keep Alive notifications     | ingressEventNotifications           | The number of received OPC UA subscription notification messages that were keep alive messages |
-| # Generated Cyclic read notifications   | ingressCyclicReads                  | The number of cyclic read notifications generated from sampling nodes on the client side. Each notification contains the changed value. |
-| # Generated Heartbeats notifications    | ingressHeartbeats                   | The number of notifications that contain heartbeats. Each notification contains the heartbeat value. |
+| # Received Data Change Notifications    | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
+| # Received Event Notifications     | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
+| # Received Keep Alive Notifications     | ingressEventNotifications           | The number of received OPC UA subscription notification messages that were keep alive messages |
+| # Generated Cyclic read Notifications   | ingressCyclicReads                  | The number of cyclic read notifications generated from sampling nodes on the client side. Each notification contains the changed value. |
+| # Generated Heartbeats Notifications    | ingressHeartbeats                   | The number of notifications that contain heartbeats. Each notification contains the heartbeat value. |
 | # Notification batch buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
 | # Encoder input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
 |                                  | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
@@ -65,9 +65,9 @@ The following table describes the instruments that are collected per writer grou
 | # Encoder avg Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
 | # Encoder avg Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
 | # Estimated Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
-| # Egress messages ready to send     | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
-| # Egress messages dropped           | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
-| # Egress messages successfully sent | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
+| # Egress Messages ready to send     | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
+| # Egress Messages dropped           | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
+| # Egress Messages successfully sent | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
 |                                     | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
 
 ## Available metrics
