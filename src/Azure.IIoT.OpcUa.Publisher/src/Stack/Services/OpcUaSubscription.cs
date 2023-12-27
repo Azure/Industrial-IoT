@@ -2149,8 +2149,8 @@ Actual (revised) state/desired state:
                 () => new Measurement<long>(_currentlyMonitored.Count, _metrics.TagList),
                 "Monitored items", "Monitored item count.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(_connectionAttempts, _metrics.TagList),
-                "Connection attempts", "OPC UA connect retries.");
+                () => new Measurement<long>(_connectionAttempts - 1, _metrics.TagList),
+                "Attempts", "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
                 () => new Measurement<int>(_online && !_closed ? 1 : 0, _metrics.TagList),
                 "", "OPC UA connection success flag.");

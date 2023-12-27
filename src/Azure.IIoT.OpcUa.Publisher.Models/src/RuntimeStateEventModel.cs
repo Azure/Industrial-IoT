@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// The Publisher full version string
         /// </summary>
-        [DataMember(Name = "Version", Order = 9,
+        [DataMember(Name = "FullVersion", Order = 8,
             EmitDefaultValue = true)]
         public string? FullVersion { get; set; }
     }
