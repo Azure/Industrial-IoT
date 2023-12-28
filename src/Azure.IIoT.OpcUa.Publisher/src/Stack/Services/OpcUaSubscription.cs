@@ -1064,7 +1064,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var shouldEnable = _currentlyMonitored.Values
                 .Any(m => m.Item != null && m.Item.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             var isEnabled = subscription.PublishingEnabled;
-            if ((!isEnabled && shouldEnable) || (isEnabled && !shouldEnable))
+            if (isEnabled ^ shouldEnable)
             {
                 await subscription.SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
 

@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await client.Value.DisposeAsync().ConfigureAwait(false);
+                    await client.Value.CloseAsync().ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)

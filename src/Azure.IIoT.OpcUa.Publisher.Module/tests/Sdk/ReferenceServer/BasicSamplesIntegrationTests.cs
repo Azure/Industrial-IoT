@@ -241,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var serviceMessageContext = new ServiceMessageContext();
             serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
 
-            using (var stream = new MemoryStream(buffer))
+            await using (var stream = new MemoryStream(buffer))
             {
                 using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
                 var actual = new EncodeableDictionary();

@@ -30,8 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : IAsyncDisposable, IOpcUaClient,
-        ISessionAccessor
+    internal sealed class OpcUaClient : IOpcUaClient, ISessionAccessor
     {
         /// <summary>
         /// The session keepalive interval to be used in ms.
@@ -226,8 +225,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
+        /// <summary>
+        /// Close client
+        /// </summary>
+        /// <returns></returns>
+        internal async ValueTask CloseAsync()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             try
@@ -1610,10 +1612,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
             "iiot_edge_publisher_session_count", "Number of active sessions.");
 
-        private OpcUaSession? _session;
         private OpcUaSession? _reconnectingSession;
         private int _reconnectRequired;
 #pragma warning disable CA2213 // Disposable fields should be disposed
+        private OpcUaSession? _session;
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
@@ -1633,9 +1635,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConnectionModel _connection;
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly SessionReconnectHandler _reconnectHandler;
-        private readonly TimeSpan _maxReconnectPeriod;
         private readonly CancellationTokenSource _cts;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<TimeSpan, Sampler> _samplers = new();

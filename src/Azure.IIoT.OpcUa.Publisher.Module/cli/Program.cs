@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Azure;
 
     /// <summary>
     /// Publisher module host process
@@ -358,44 +359,46 @@ Options:
                 options => options.ConnectionString = connectionString);
             builder.AddDefaultJsonSerializer();
             builder.AddLogging();
-            using var container = builder.Build();
-
-            var registry = container.Resolve<IIoTHubTwinServices>();
-
-            // Create iot edge gateway
-            try
+            var container = builder.Build();
+            await using (container.ConfigureAwait(false))
             {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                var registry = container.Resolve<IIoTHubTwinServices>();
+
+                // Create iot edge gateway
+                try
                 {
-                    Id = deviceId,
-                    Tags = new Dictionary<string, VariantValue>
+                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
                     {
-                        [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
-                    },
-                    IotEdge = true
-                }, false).ConfigureAwait(false);
-            }
-            catch (ResourceConflictException)
-            {
-                logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
-            }
-
-            // Create publisher module
-            try
-            {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                        Id = deviceId,
+                        Tags = new Dictionary<string, VariantValue>
+                        {
+                            [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
+                        },
+                        IotEdge = true
+                    }, false).ConfigureAwait(false);
+                }
+                catch (ResourceConflictException)
                 {
-                    Id = deviceId,
-                    ModuleId = moduleId
-                }, false, default).ConfigureAwait(false);
+                    logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
+                }
+
+                // Create publisher module
+                try
+                {
+                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                    {
+                        Id = deviceId,
+                        ModuleId = moduleId
+                    }, false, default).ConfigureAwait(false);
+                }
+                catch (ResourceConflictException)
+                {
+                    logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
+                }
+                var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
+                return ConnectionString.CreateModuleConnectionString(registry.HostName,
+                    deviceId, moduleId, module.PrimaryKey);
             }
-            catch (ResourceConflictException)
-            {
-                logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
-            }
-            var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
-            return ConnectionString.CreateModuleConnectionString(registry.HostName,
-                deviceId, moduleId, module.PrimaryKey);
         }
 
         /// <summary>

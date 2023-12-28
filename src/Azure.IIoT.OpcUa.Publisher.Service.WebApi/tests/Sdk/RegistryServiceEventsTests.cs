@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishPublisherEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(678)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishDiscovererEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(375)]
         public async Task TestPublishDiscovererEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishSupervisorEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(4634)]
         public async Task TestPublishSupervisorEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -247,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishApplicationEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -286,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(4634)]
         public async Task TestPublishApplicationEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishEndpointEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -361,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(7384)]
         public async Task TestPublishEndpointEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -400,7 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishGatewayEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -432,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(100)]
         public async Task TestPublishGatewayEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishDiscoveryProgressWithDiscovererIdAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -505,7 +505,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishDiscoveryProgressWithRequestIdAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 
@@ -555,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(678)]
         public async Task TestPublishDiscoveryProgressAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
 

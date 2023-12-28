@@ -23,11 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetApplicationCertificateTest1Async()
         {
-            using var bootstrap = Build();
+            await using var bootstrap = Build();
             var oldCerts = bootstrap.Resolve<IOpcUaCertificates>();
             await CleanAsync(oldCerts, CertificateStoreName.Application);
 
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
             var own = Assert.Single(certificates);
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetApplicationCertificateTest2Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Application);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application);
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetTrustedCertificatesTest1Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetTrustedCertificatesTest2Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetTrustedCertificatesTest3Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Trusted);
@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetTrustedCertificatesTest4Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             await CleanAsync(certs, CertificateStoreName.Issuer);
@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetTrustedHttpsCertificatesTestAsync()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Https);
             await CleanAsync(certs, CertificateStoreName.HttpsIssuer);
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task ApproveRejectedCertificateTestAsync()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.Trusted);
             await CleanAsync(certs, CertificateStoreName.Rejected);
@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task ApproveRejectedCertificateNotFoundTestAsync()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task RemoveCertificateNotFoundTestAsync()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             using var rejectedCert = CreateRSACertificate("test1");
             await Assert.ThrowsAsync<ResourceNotFoundException>(
@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetUserCertificateTest1Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
@@ -278,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetUserCertificateTest2Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);
@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         [Fact]
         public async Task GetUserCertificateTest3Async()
         {
-            using var container = Build();
+            await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             await CleanAsync(certs, CertificateStoreName.User);
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.User);

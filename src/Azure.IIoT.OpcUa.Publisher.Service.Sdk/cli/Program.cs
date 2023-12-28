@@ -908,30 +908,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         private async Task GetConfiguredEndpointsAsync(CliOptions options)
         {
             var file = options.GetValueOrNull<string>("f", "--file");
-            using var stream = file == null ? Console.Out : File.CreateText(file);
-
-            await stream.WriteLineAsync("[").ConfigureAwait(false);
-            var empty = true;
-
-            await foreach (var endpoint in _client.Registry.GetConfiguredEndpointsAsync(
-                GetPublisherId(options), new GetConfiguredEndpointsRequestModel
-                {
-                    IncludeNodes = options.IsProvidedOrNull("-n", "--nodes")
-                }))
+            var stream = file == null ? Console.Out : File.CreateText(file);
+            await using (stream.ConfigureAwait(false))
             {
+                await stream.WriteLineAsync("[").ConfigureAwait(false);
+                var empty = true;
+
+                await foreach (var endpoint in _client.Registry.GetConfiguredEndpointsAsync(
+                    GetPublisherId(options), new GetConfiguredEndpointsRequestModel
+                    {
+                        IncludeNodes = options.IsProvidedOrNull("-n", "--nodes")
+                    }))
+                {
+                    if (!empty)
+                    {
+                        await stream.WriteLineAsync(",").ConfigureAwait(false);
+                    }
+                    empty = false;
+                    await stream.WriteAsync(_client.Serializer.SerializeToString(endpoint,
+                        options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format"))).ConfigureAwait(false);
+                }
                 if (!empty)
                 {
-                    await stream.WriteLineAsync(",").ConfigureAwait(false);
+                    await stream.WriteLineAsync().ConfigureAwait(false);
                 }
-                empty = false;
-                await stream.WriteAsync(_client.Serializer.SerializeToString(endpoint,
-                    options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format"))).ConfigureAwait(false);
+                await stream.WriteLineAsync("]").ConfigureAwait(false);
             }
-            if (!empty)
-            {
-                await stream.WriteLineAsync().ConfigureAwait(false);
-            }
-            await stream.WriteLineAsync("]").ConfigureAwait(false);
         }
 
         /// <summary>
