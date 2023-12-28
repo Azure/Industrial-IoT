@@ -16,19 +16,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Collections.Generic;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.Metrics;
-    using System.Runtime.InteropServices;
-    using System.Globalization;
 
     /// <summary>
     /// This class manages reporting of runtime state.

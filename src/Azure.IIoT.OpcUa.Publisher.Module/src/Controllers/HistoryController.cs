@@ -11,9 +11,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// <para>

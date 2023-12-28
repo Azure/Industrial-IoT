@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Divergic.Logging.Xunit;
     using Furly.Azure;
     using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
@@ -44,7 +45,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
-    using Furly.Azure.IoT.Edge;
 
     /// <summary>
     /// Publisher telemetry
