@@ -59,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             var instances = 1;
             string publishProfile = null;
+            string publishedNodesFilePath = null;
             var unknownArgs = new List<string>();
             try
             {
@@ -119,6 +120,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --publish-profile");
+                        case "--pnjson":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                publishedNodesFilePath = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing argument for --pnjson");
                         default:
                             unknownArgs.Add(args[i]);
                             break;
@@ -171,7 +181,8 @@ Options:
                 if (!withServer)
                 {
                     hostingTask = HostAsync(cs, loggerFactory,
-                        deviceId, moduleId, args, reverseConnectPort, !checkTrust, cts.Token);
+                        deviceId, moduleId, args, reverseConnectPort, !checkTrust,
+                        publishedNodesFilePath, cts.Token);
                 }
                 else
                 {
@@ -215,7 +226,7 @@ Options:
         private static readonly AsyncAutoResetEvent _restartPublisher = new(false);
 
         /// <summary>
-        /// Host the module giving it its connection string.
+        /// Host the module with connection string loaded from iot hub
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="loggerFactory"></param>
@@ -224,14 +235,23 @@ Options:
         /// <param name="args"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="acceptAll"></param>
+        /// <param name="publishedNodesFilePath"></param>
         /// <param name="ct"></param>
         private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
-            bool acceptAll, CancellationToken ct)
+            bool acceptAll, string publishedNodesFilePath = null, CancellationToken ct = default)
         {
             var logger = loggerFactory.CreateLogger<PublisherModule>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
+
+            if (publishedNodesFilePath != null)
+            {
+                args = args.Concat(new[]
+                {
+                    $"--pf={publishedNodesFilePath}"
+                }).ToArray();
+            }
 
             ConnectionString cs;
             while (true)
@@ -315,31 +335,37 @@ Options:
                 // Start test server
                 using (var server = new ServerWrapper(loggerFactory, reverseConnectPort))
                 {
-                    if (publishProfile != null)
-                    {
-                        var publishedNodesFile = $"./Profiles/{publishProfile}.json";
-                        if (File.Exists(publishedNodesFile))
-                        {
-                            var publishedNodesFilePath = Path.GetTempFileName();
-
-                            await File.WriteAllTextAsync(publishedNodesFilePath,
-                                (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                                .Replace("{{EndpointUrl}}", $"opc.tcp://localhost:{server.Port}/UA/SampleServer",
-                                    StringComparison.Ordinal), ct).ConfigureAwait(false);
-
-                            args = args.Concat(new[]
-                            {
-                                $"--pf={publishedNodesFilePath}"
-                            }).ToArray();
-                        }
-                    }
+                    var publishedNodesFilePath = await LoadPnJson(publishProfile,
+                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
 
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, reverseConnectPort, acceptAll, ct).ConfigureAwait(false);
+                        args, reverseConnectPort, acceptAll, publishedNodesFilePath, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
+        }
+
+        private static async Task<string> LoadPnJson(string publishProfile,
+            string endpointUrl, CancellationToken ct)
+        {
+            string publishedNodesFile = null;
+            if (publishProfile != null)
+            {
+                publishedNodesFile = $"./Profiles/{publishProfile}.json";
+            }
+            if (publishedNodesFile != null && File.Exists(publishedNodesFile))
+            {
+                var publishedNodesFilePath = Path.GetTempFileName();
+
+                await File.WriteAllTextAsync(publishedNodesFilePath,
+                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                    .Replace("{{EndpointUrl}}", endpointUrl,
+                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                return publishedNodesFilePath;
+            }
+            return null;
         }
 
         /// <summary>
