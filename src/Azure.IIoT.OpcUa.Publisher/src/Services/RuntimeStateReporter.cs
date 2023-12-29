@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -146,8 +147,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     MessageVersion = 1,
                     MessageType = RuntimeStateEventType.RestartAnnouncement,
                     PublisherId = _options.Value.PublisherId,
-                    FullVersion = PublisherConfig.Version,
-                    Version = GetType().Assembly.GetReleaseVersion().ToString(),
+                    SemVer = GetType().Assembly.GetReleaseVersion().ToString(),
+                    Version = PublisherConfig.Version,
+                    StackVersion = OpcUaClientConfig.Version,
                     Site = _options.Value.Site,
                     DeviceId = _identity?.DeviceId,
                     ModuleId = _identity?.ModuleId

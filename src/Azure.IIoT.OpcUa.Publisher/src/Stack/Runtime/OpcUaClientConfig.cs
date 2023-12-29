@@ -11,6 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Text;
 
     /// <summary>
@@ -437,5 +439,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public OpcUaClientConfig(IConfiguration configuration) : base(configuration)
         {
         }
+
+        /// <summary>
+        /// Stack version
+        /// </summary>
+        public static string Version { get; } =
+            typeof(SessionChannel).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion
+            ??
+            typeof(SessionChannel).Assembly.GetReleaseVersion().ToString();
     }
 }

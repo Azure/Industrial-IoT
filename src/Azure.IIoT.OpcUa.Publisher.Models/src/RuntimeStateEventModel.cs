@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public DateTime TimestampUtc { get; set; }
 
         /// <summary>
-        /// The Publisher semver version
+        /// The Publisher version
         /// </summary>
         [DataMember(Name = "Version", Order = 3,
             EmitDefaultValue = true)]
@@ -71,10 +71,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? ModuleId { get; set; }
 
         /// <summary>
-        /// The Publisher full version string
+        /// The Publisher semantic version string
         /// </summary>
-        [DataMember(Name = "FullVersion", Order = 8,
+        [DataMember(Name = "SemVer", Order = 8,
             EmitDefaultValue = true)]
-        public string? FullVersion { get; set; }
+        public string? SemVer { get; set; }
+
+        /// <summary>
+        /// The Opc Ua stack full version string
+        /// </summary>
+        [DataMember(Name = "StackVersion", Order = 9,
+            EmitDefaultValue = true)]
+        public string? StackVersion { get; set; }
     }
 }

@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             $"or when a batch of {_maxNotificationsPerMessage} notifications is ready",
                 _maxNetworkMessageSize == int.MaxValue ?
                     "unlimited" : $"at most {_maxNetworkMessageSize / 1024} kb",
-                _eventClient.Name, writerGroup.HeaderLayoutUri,
+                _eventClient.Name, writerGroup.HeaderLayoutUri ?? "unknown layout",
                 writerGroup.MessageType ?? MessageEncoding.Json, _maxPublishQueueSize);
         }
 

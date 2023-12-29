@@ -47,19 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var logger = loggerFactory.CreateLogger<PublisherModule>();
 
             logger.LogInformation("Publisher module command line interface.");
-            var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
-                .Build();
-            var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
-            if (string.IsNullOrEmpty(cs))
-            {
-                cs = configuration.GetValue<string>("_HUB_CS", null);
-            }
             var instances = 1;
+            string connectionString = null;
             string publishProfile = null;
             string publishedNodesFilePath = null;
+            var useNullTransport = false;
             var unknownArgs = new List<string>();
             try
             {
@@ -72,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             i++;
                             if (i < args.Length)
                             {
-                                cs = args[i];
+                                connectionString = args[i];
                                 break;
                             }
                             throw new ArgumentException(
@@ -105,6 +97,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--only-trusted":
                             checkTrust = true;
                             break;
+                        case "-X":
+                        case "--out-null":
+                            useNullTransport = true;
+                            break;
                         case "-S":
                         case "--with-server":
                             withServer = true;
@@ -129,18 +125,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --pnjson");
+                        case "--":
+                            break;
                         default:
                             unknownArgs.Add(args[i]);
                             break;
                     }
                 }
-                if (string.IsNullOrEmpty(cs))
+
+                if (string.IsNullOrEmpty(connectionString) && !useNullTransport)
                 {
-                    throw new ArgumentException("Missing connection string.");
-                }
-                if (!ConnectionString.TryParse(cs, out var connectionString))
-                {
-                    throw new ArgumentException("Bad connection string.");
+                    try
+                    {
+                        var configuration = new ConfigurationBuilder()
+                            .AddFromDotEnvFile()
+                            .AddEnvironmentVariables()
+                            .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
+                            .Build();
+                        connectionString = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
+                        if (string.IsNullOrEmpty(connectionString))
+                        {
+                            connectionString = configuration.GetValue<string>("_HUB_CS", null);
+                        }
+                        if (!string.IsNullOrEmpty(connectionString) &&
+                            !ConnectionString.TryParse(connectionString, out _))
+                        {
+                            throw new ArgumentException("Bad connection string configured.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogInformation("Error {Error}: Missing connection string - continue...",
+                            e.Message);
+                    }
                 }
 
                 deviceId = Utils.GetHostName();
@@ -180,13 +197,13 @@ Options:
             {
                 if (!withServer)
                 {
-                    hostingTask = HostAsync(cs, loggerFactory,
+                    hostingTask = HostAsync(connectionString, loggerFactory,
                         deviceId, moduleId, args, reverseConnectPort, !checkTrust,
                         publishedNodesFilePath, cts.Token);
                 }
                 else
                 {
-                    hostingTask = WithServerAsync(cs, loggerFactory, deviceId, moduleId, args,
+                    hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId, moduleId, args,
                         publishProfile, !checkTrust, reverseConnectPort, cts.Token);
                 }
 
@@ -245,30 +262,25 @@ Options:
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
-            if (publishedNodesFilePath != null)
+            ConnectionString cs = null;
+            if (connectionString != null)
             {
-                args = args.Concat(new[]
+                while (true)
                 {
-                    $"--pf={publishedNodesFilePath}"
-                }).ToArray();
-            }
+                    try
+                    {
+                        cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
+                            logger).ConfigureAwait(false);
 
-            ConnectionString cs;
-            while (true)
-            {
-                try
-                {
-                    cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
-                        logger).ConfigureAwait(false);
-
-                    logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
-                       deviceId, moduleId);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
-                        deviceId, moduleId);
+                        logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
+                           deviceId, moduleId);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
+                            deviceId, moduleId);
+                    }
                 }
             }
 
@@ -277,7 +289,7 @@ Options:
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
                 var running = RunAsync(logger, deviceId, moduleId, args, acceptAll, cs,
-                    reverseConnectPort, cts.Token);
+                    reverseConnectPort, publishedNodesFilePath, cts.Token);
 
                 Console.WriteLine("Publisher running (Press P to restart)...");
                 await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
@@ -290,12 +302,25 @@ Options:
             }
 
             static async Task RunAsync(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool acceptAll, ConnectionString cs, int? reverseConnectPort, CancellationToken ct)
+                bool acceptAll, ConnectionString cs, int? reverseConnectPort, string publishedNodesFilePath,
+                CancellationToken ct)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
-                arguments.Add($"--ec={cs}");
+
+                if (publishedNodesFilePath != null)
+                {
+                    arguments.Add($"--pf={publishedNodesFilePath}");
+                }
+                if (cs != null)
+                {
+                    arguments.Add($"--ec={cs}");
+                }
+                else
+                {
+                    arguments.Add("-t=Null");
+                }
                 arguments.Add("--cl=5"); // enable 5 second client linger
                 if (acceptAll)
                 {
