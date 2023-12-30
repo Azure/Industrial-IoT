@@ -53,6 +53,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal ISession Session { get; }
 
         /// <summary>
+        /// Update the publish request count
+        /// </summary>
+        internal int MinPublishRequestCount
+        {
+            get
+            {
+                return Session.MinPublishRequestCount;
+            }
+            set
+            {
+                Session.MinPublishRequestCount =
+                    Math.Max(Math.Min(value, 100), kMinPublishRequestCount);
+            }
+        }
+
+        /// <summary>
         /// Type system has loaded
         /// </summary>
         internal bool IsTypeSystemLoaded => _complexTypeSystem?.IsCompleted ?? false;
@@ -66,6 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="operationTimeout"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="minPublishCount"></param>
         /// <param name="errorHandler"></param>
         /// <param name="ackHandler"></param>
         /// <param name="preloadComplexTypeSystem"></param>
@@ -73,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
             TimeSpan keepAliveInterval, TimeSpan operationTimeout,
             IJsonSerializer serializer, ILogger<OpcUaSession> logger,
-            PublishErrorEventHandler? errorHandler = null,
+            int minPublishCount, PublishErrorEventHandler? errorHandler = null,
             PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null,
             bool preloadComplexTypeSystem = true)
         {
@@ -87,9 +104,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // support transfer
             Session.DeleteSubscriptionsOnClose = false;
             Session.TransferSubscriptionsOnReconnect = true;
-            Session.MinPublishRequestCount = 3;
             Session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
             Session.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
+            MinPublishRequestCount = minPublishCount;
 
             _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
                 "AuthenticationToken",
@@ -1018,6 +1035,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly LogScope? _logScope;
         }
 
+        private const int kMinPublishRequestCount = 3;
         private ServerCapabilitiesModel? _server;
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;

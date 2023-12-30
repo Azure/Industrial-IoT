@@ -330,8 +330,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="messageType"></param>
         /// <param name="dataSetName"></param>
         /// <param name="notifications"></param>
+        /// <param name="diagnosticsOnly"></param>
         internal void SendNotification(MessageType messageType, string? dataSetName,
-            IEnumerable<MonitoredItemNotificationModel> notifications)
+            IEnumerable<MonitoredItemNotificationModel> notifications, bool diagnosticsOnly)
         {
             var subscription = _currentSubscription;
             if (subscription == null || subscription.Id == 0)
@@ -349,10 +350,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = CreateMessage(notifications, messageType, dataSetName, subscription);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                onSubscriptionEventChange.Invoke(this, message);
+                if (!diagnosticsOnly)
+                {
+                    onSubscriptionEventChange.Invoke(this, message);
+                }
                 if (message.Notifications.Count > 0 && onSubscriptionEventDiagnosticsChange != null)
                 {
-                    onSubscriptionEventDiagnosticsChange.Invoke(this, (false, message.Notifications.Count));
+                    onSubscriptionEventDiagnosticsChange.Invoke(this,
+                        (false, message.Notifications.Count));
                 }
             }
             else
@@ -366,7 +371,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = CreateMessage(notifications, messageType, dataSetName, subscription);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                onSubscriptionDataChange.Invoke(this, message);
+                if (!diagnosticsOnly)
+                {
+                    onSubscriptionDataChange.Invoke(this, message);
+                }
                 if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null)
                 {
                     onSubscriptionDataDiagnosticsChange.Invoke(this,

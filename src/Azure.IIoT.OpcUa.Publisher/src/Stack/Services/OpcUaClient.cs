@@ -63,14 +63,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? LingerTimeout { get; set; }
 
         /// <summary>
-        /// Is reconnecting
-        /// </summary>
-        internal bool IsConnected => _session?.Session.Connected ?? false;
-
-        /// <summary>
         /// Disable complex type preloading.
         /// </summary>
         public bool? DisableComplexTypePreloading { get; set; }
+
+        /// <summary>
+        /// Is reconnecting
+        /// </summary>
+        internal bool IsConnected
+            => _session?.Session.Connected ?? false;
+
+        /// <summary>
+        /// Bad publish requests tracked by this client
+        /// </summary>
+        public int BadPublishRequestCount
+            => _session?.Session?.DefunctRequestCount ?? 0;
+
+        /// <summary>
+        /// Good publish requests tracked by this client
+        /// </summary>
+        public int GoodPublishRequestCount
+            => _session?.Session?.GoodPublishRequestCount ?? 0;
 
         /// <summary>
         /// Create client
@@ -181,6 +194,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     _subscriptions = _subscriptions.Add(subscription);
+
+                    var session = _session;
+                    if (session != null)
+                    {
+                        session.MinPublishRequestCount = _subscriptions.Count + 1;
+                    }
                 }
                 AddRef();
             }
@@ -212,6 +231,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     _subscriptions = _subscriptions.Remove(subscription);
+
+                    var session = _session;
+                    if (session != null)
+                    {
+                        session.MinPublishRequestCount = _subscriptions.Count + 1;
+                    }
                 }
                 Release();
 
@@ -1124,7 +1149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 KeepAliveInterval ?? TimeSpan.FromSeconds(30),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                Session_HandlePublishError, Session_PublishSequenceNumbersToAcknowledge,
+                _subscriptions.Count + 1, Session_HandlePublishError,
+                Session_PublishSequenceNumbersToAcknowledge,
                 DisableComplexTypePreloading != true);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
@@ -1607,6 +1633,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
                 () => new Measurement<int>(_refCount, _metrics.TagList), "References",
                 "Number of references to this client.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_good_publish_requests_count",
+                () => new Measurement<int>(GoodPublishRequestCount,
+                _metrics.TagList), "Requests", "Number of good publish requests.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_bad_publish_requests_count",
+                () => new Measurement<int>(BadPublishRequestCount,
+                _metrics.TagList), "Requests", "Number of bad publish requests.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_min_publish_requests_count",
+                () => new Measurement<int>(_session?.MinPublishRequestCount ?? 0,
+                _metrics.TagList), "Requests", "Number of min publish requests that should be queued.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
+                () => new Measurement<int>(_session?.Session?.OutstandingRequestCount ?? 0,
+                _metrics.TagList), "Requests", "Number of outstanding requests.");
         }
 
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(

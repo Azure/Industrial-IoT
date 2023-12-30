@@ -581,26 +581,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 lock (_lock)
                 {
-                    if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
-                    {
-                        // reset both
-                        _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
-                            " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
-                            "value changes were invoked by message source.",
-                            Id, _outer.DataChangesCount, _outer.ValueChangesCount);
-                        _outer.DataChangesCount = 0;
-                        _outer.ValueChangesCount = 0;
-                        _outer._heartbeatsCount = 0;
-                        _outer._cyclicReadsCount = 0;
-                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
-                    }
-
-                    _outer.ValueChangesCount += notificationCounts.Item2;
                     _outer._heartbeatsCount += notificationCounts.Item3;
                     _outer._cyclicReadsCount += notificationCounts.Item4;
                     if (notificationCounts.Item1)
                     {
+                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
+                        {
+                            // reset both
+                            _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
+                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
+                                "value changes were invoked by message source.",
+                                Id, _outer.DataChangesCount, _outer.ValueChangesCount);
+                            _outer.DataChangesCount = 0;
+                            _outer.ValueChangesCount = 0;
+                            _outer._heartbeatsCount = 0;
+                            _outer._cyclicReadsCount = 0;
+                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                        }
+
+                        _outer.ValueChangesCount += notificationCounts.Item2;
                         _outer.DataChangesCount++;
                     }
                 }
