@@ -18,7 +18,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                         2.9.4
+
 General
 -------
 
@@ -250,6 +250,7 @@ Messaging configuration
                                    `Dapr`
                                    `Http`
                                    `FileSystem`
+                                   `Null`
                                Default: `IoTHub` or the first configured
                                transport of the allowed value list.
 
@@ -522,6 +523,7 @@ Subscription settings
                                    `PeriodicLKV`
                                    `PeriodicLKG`
                                    `WatchdogLKVWithUpdatedTimestamps`
+                                   `WatchdogLKVDiagnosticsOnly`
                                Default: `WatchdogLKV` (Sending LKV in a
                                watchdog fashion).
       --hb, --heartbeatinterval, --DefaultHeartbeatInterval=VALUE
