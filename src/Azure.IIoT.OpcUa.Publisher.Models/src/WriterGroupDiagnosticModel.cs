@@ -225,18 +225,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public double EncoderMaxMessageSplitRatio { get; set; }
 
         /// <summary>
+        /// Number of incoming keep alive notifications
+        /// </summary>
+        [DataMember(Name = "IngressKeepAliveNotifications", Order = 30,
+            EmitDefaultValue = true)]
+        public long IngressKeepAliveNotifications { get; set; }
+
+        /// <summary>
         /// Number Of Subscriptions in the writer group
         /// </summary>
-        [DataMember(Name = "NumberOfSubscriptions", Order = 30,
+        [DataMember(Name = "NumberOfSubscriptions", Order = 31,
             EmitDefaultValue = true)]
         public long NumberOfSubscriptions { get; set; }
 
         /// <summary>
-        /// Number of incoming keep alive notifications
+        /// Publish requests ratio per group
         /// </summary>
-        [DataMember(Name = "IngressKeepAliveNotifications", Order = 31,
+        [DataMember(Name = "PublishRequestsRatio", Order = 32,
             EmitDefaultValue = true)]
-        public long IngressKeepAliveNotifications { get; set; }
+        public double PublishRequestsRatio { get; set; }
+
+        /// <summary>
+        /// Good publish requests ratio per group
+        /// </summary>
+        [DataMember(Name = "GoodPublishRequestsRatio", Order = 33,
+            EmitDefaultValue = true)]
+        public double GoodPublishRequestsRatio { get; set; }
+
+        /// <summary>
+        /// Bad publish requests ratio per group
+        /// </summary>
+        [DataMember(Name = "BadPublishRequestsRatio", Order = 34,
+            EmitDefaultValue = true)]
+        public double BadPublishRequestsRatio { get; set; }
+
+        /// <summary>
+        /// Min publish requests assigned to the group
+        /// </summary>
+        [DataMember(Name = "MinPublishRequestsRatio", Order = 35,
+            EmitDefaultValue = true)]
+        public double MinPublishRequestsRatio { get; set; }
 
         /// <summary>
         /// Publisher version

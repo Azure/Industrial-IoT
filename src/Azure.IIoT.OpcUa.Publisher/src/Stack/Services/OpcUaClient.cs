@@ -30,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : IOpcUaClient, ISessionAccessor
+    internal sealed class OpcUaClient : IOpcUaClient, ISessionAccessor,
+        IOpcUaClientState
     {
         /// <summary>
         /// The session keepalive interval to be used in ms.
@@ -67,23 +68,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public bool? DisableComplexTypePreloading { get; set; }
 
-        /// <summary>
-        /// Is reconnecting
-        /// </summary>
-        internal bool IsConnected
+        /// <inheritdoc/>
+        public bool IsConnected
             => _session?.Session.Connected ?? false;
 
-        /// <summary>
-        /// Bad publish requests tracked by this client
-        /// </summary>
+        /// <inheritdoc/>
         public int BadPublishRequestCount
             => _session?.Session?.DefunctRequestCount ?? 0;
 
-        /// <summary>
-        /// Good publish requests tracked by this client
-        /// </summary>
+        /// <inheritdoc/>
         public int GoodPublishRequestCount
             => _session?.Session?.GoodPublishRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int OutstandingRequestCount
+            => _session?.Session?.OutstandingRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int SubscriptionCount
+            => _session?.Session?.SubscriptionCount ?? _subscriptions.Count;
+
+        /// <inheritdoc/>
+        public int MinPublishRequestCount
+            => _session?.MinPublishRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int ReconnectCount => _numberOfConnectRetries;
+
+        /// <summary>
+        /// Disconnected state
+        /// </summary>
+        internal static IOpcUaClientState Disconnected { get; }
+            = new DisconnectState();
 
         /// <summary>
         /// Create client
@@ -837,8 +853,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         if (online != null)
                         {
-                            subscription.OnSubscriptionStateChanged(online.Value,
-                                _numberOfConnectRetries);
+                            subscription.OnSubscriptionStateChanged(online.Value, this);
                         }
                     }
                     catch (OperationCanceledException) { }
@@ -973,8 +988,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation(
                         "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
-
-                    _numberOfConnectRetries++;
 
                     _logger.LogInformation("Client {Client} CONNECTED to {EndpointUrl}!",
                         this, endpointUrl);
@@ -1617,6 +1630,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Disconnected state
+        /// </summary>
+        private sealed class DisconnectState : IOpcUaClientState
+        {
+            /// <inheritdoc/>
+            public int BadPublishRequestCount => 0;
+            /// <inheritdoc/>
+            public int GoodPublishRequestCount => 0;
+            /// <inheritdoc/>
+            public int OutstandingRequestCount => 0;
+            /// <inheritdoc/>
+            public int SubscriptionCount => 0;
+            /// <inheritdoc/>
+            public bool IsConnected => false;
+            /// <inheritdoc/>
+            public int ReconnectCount => 0;
+            /// <inheritdoc/>
+            public int MinPublishRequestCount => 0;
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics()
@@ -1640,10 +1674,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 () => new Measurement<int>(BadPublishRequestCount,
                 _metrics.TagList), "Requests", "Number of bad publish requests.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_min_publish_requests_count",
-                () => new Measurement<int>(_session?.MinPublishRequestCount ?? 0,
+                () => new Measurement<int>(MinPublishRequestCount,
                 _metrics.TagList), "Requests", "Number of min publish requests that should be queued.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
-                () => new Measurement<int>(_session?.Session?.OutstandingRequestCount ?? 0,
+                () => new Measurement<int>(OutstandingRequestCount,
                 _metrics.TagList), "Requests", "Number of outstanding requests.");
         }
 

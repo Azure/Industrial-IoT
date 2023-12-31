@@ -124,9 +124,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void OnSubscriptionStateChanged(bool online, int connectionAttempts)
+        public void OnSubscriptionStateChanged(bool online, IOpcUaClientState state)
         {
-            _connectionAttempts = connectionAttempts;
+            _state = state;
             _online = online;
 
             foreach (var monitoredItem in _currentlyMonitored.Values)
@@ -304,6 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 client?.Dispose();
+                _state = OpcUaClient.Disconnected;
                 _lock.Release();
             }
         }
@@ -2145,23 +2146,38 @@ Actual (revised) state/desired state:
         public void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
-                () => new Measurement<long>(NumberOfMissingKeepAlives, _metrics.TagList),
-                "Keep Alives", "Number of missing keep alives in subscription.");
+                () => new Measurement<long>(NumberOfMissingKeepAlives,
+                _metrics.TagList), "Keep Alives", "Number of missing keep alives in subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
-                () => new Measurement<long>(NumberOfCreatedItems, _metrics.TagList),
-                "Monitored items", "Monitored items successfully created.");
+                () => new Measurement<long>(NumberOfCreatedItems,
+                _metrics.TagList), "Monitored items", "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
-                () => new Measurement<long>(NumberOfNotCreatedItems, _metrics.TagList),
-                "Monitored items", "Monitored items with errors.");
+                () => new Measurement<long>(NumberOfNotCreatedItems,
+                _metrics.TagList), "Monitored items", "Monitored items with errors.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(_currentlyMonitored.Count, _metrics.TagList),
-                "Monitored items", "Monitored item count.");
+                () => new Measurement<long>(_currentlyMonitored.Count,
+                _metrics.TagList), "Monitored items", "Monitored item count.");
+
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(_connectionAttempts - 1, _metrics.TagList),
-                "Attempts", "OPC UA connect retries.");
+                () => new Measurement<long>(_state.ReconnectCount,
+                _metrics.TagList), "Attempts", "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(_online && !_closed ? 1 : 0, _metrics.TagList),
-                "", "OPC UA connection success flag.");
+                () => new Measurement<int>(_online && !_closed ? 1 : 0,
+                _metrics.TagList), "Online", "OPC UA connection success flag.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(_state.OutstandingRequestCount, _state.SubscriptionCount),
+                _metrics.TagList), "Requests per Subscription", "Good publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(_state.GoodPublishRequestCount, _state.SubscriptionCount),
+                _metrics.TagList), "Requests per Subscription", "Good publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(_state.BadPublishRequestCount, _state.SubscriptionCount),
+                _metrics.TagList), "Requests per Subscription", "Bad publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_min_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(_state.MinPublishRequestCount, _state.SubscriptionCount),
+                _metrics.TagList), "Requests per Subscription", "Min publish requests queued per subsciption.");
+
+            static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
@@ -2170,8 +2186,8 @@ Actual (revised) state/desired state:
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Subscription? _currentSubscription;
 #pragma warning restore CA2213 // Disposable fields should be disposed
+        private IOpcUaClientState _state = OpcUaClient.Disconnected;
         private bool _online;
-        private long _connectionAttempts;
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;
