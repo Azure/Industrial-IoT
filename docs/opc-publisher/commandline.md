@@ -19,6 +19,9 @@ When both environment variable and CLI argument are provided, the command line o
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
+                                                                       2.9.4 (.NET 8.0.0/win-x64)
+                                 (OPC Stack 1.4.372.112+a1c2216c2c97625ca521bde0a7a9fd04982075e3)
+
 General
 -------
 
@@ -613,6 +616,14 @@ OPC UA Client configuration
                              The port to use when accepting inbound reverse
                                connect requests from servers.
                                Default: `4840`.
+      --mpr, --minpublishrequests, --MinPublishRequests=VALUE
+                             Minimum number of publish requests to queue once
+                               subscriptions are created in the session.
+                               Default: `3`.
+      --ppr, --percentpublishrequests, --PublishRequestsPerSubscriptionPercent=VALUE
+                             Percentage ratio of publish requests per
+                               subscriptions in the session in percent.
+                               Default: `100`% (1 request per subscription).
       --smi, --subscriptionmanagementinterval, --SubscriptionManagementInterval=VALUE
                              The interval in seconds after which the publisher
                                re-applies the desired state of the subscription
