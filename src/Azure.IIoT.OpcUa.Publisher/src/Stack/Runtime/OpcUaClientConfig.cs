@@ -72,6 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
+        public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
+        public const string MinPublishRequestsKey = "MinPublishRequests";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -105,6 +107,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectSha1SignedCertificatesDefault = false;
         public const bool AddAppCertToTrustedStoreDefault = true;
         public const bool RejectUnknownRevocationStatusDefault = true;
+        public const int MinPublishRequestsDefault = 3;
+        public const int PublishRequestsPerSubscriptionPercentDefault = 100;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -237,6 +241,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 {
                     options.SubscriptionManagementInterval = TimeSpan.FromSeconds(managementInterval);
                 }
+            }
+
+            if (options.MinPublishRequests == null)
+            {
+                options.MinPublishRequests = GetIntOrDefault(MinPublishRequestsKey,
+                    MinPublishRequestsDefault);
+            }
+
+            if (options.PublishRequestsPerSubscriptionPercent == null)
+            {
+                options.PublishRequestsPerSubscriptionPercent = GetIntOrNull(
+                    PublishRequestsPerSubscriptionPercentKey,
+                    PublishRequestsPerSubscriptionPercentDefault);
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)

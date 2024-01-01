@@ -333,6 +333,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The port to use when accepting inbound reverse connect requests from servers.\nDefault: `{OpcUaClientConfig.ReverseConnectPortDefault}`.\n",
                     (ushort u) => this[OpcUaClientConfig.ReverseConnectPortKey] = u.ToString(CultureInfo.CurrentCulture) },
 
+                { $"mpr|minpublishrequests=|{OpcUaClientConfig.MinPublishRequestsKey}=",
+                    $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
+                    (int u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ppr|percentpublishrequests=|{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey}=",
+                    $"Percentage ratio of publish requests per subscriptions in the session in percent.\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
+                    (int u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.CurrentCulture) },
+
                 { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalKey}=",
                     "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `never` (only on configuration change).\n",
                     (int i) => this[OpcUaClientConfig.SubscriptionManagementIntervalKey] = TimeSpan.FromSeconds(i).ToString() },

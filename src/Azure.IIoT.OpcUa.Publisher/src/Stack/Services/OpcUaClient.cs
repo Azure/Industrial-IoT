@@ -59,6 +59,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
+        /// Minimum number of publish requests to queue
+        /// </summary>
+        public int? MinPublishRequests { get; set; }
+
+        /// <summary>
+        /// Percentage ratio of publish requests per subscription
+        /// </summary>
+        public int? PublishRequestsPerSubscriptionPercent { get; set; }
+
+        /// <summary>
         /// The linger timeout.
         /// </summary>
         public TimeSpan? LingerTimeout { get; set; }
@@ -86,11 +96,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public int SubscriptionCount
-            => _session?.Session?.SubscriptionCount ?? _subscriptions.Count;
+            => _session?.Session?.Subscriptions.Count(s => s.Created) ?? 0;
 
         /// <inheritdoc/>
         public int MinPublishRequestCount
-            => _session?.MinPublishRequestCount ?? 0;
+            => _session?.Session?.MinPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int ReconnectCount => _numberOfConnectRetries;
@@ -210,12 +220,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     _subscriptions = _subscriptions.Add(subscription);
-
-                    var session = _session;
-                    if (session != null)
-                    {
-                        session.MinPublishRequestCount = _subscriptions.Count + 1;
-                    }
                 }
                 AddRef();
             }
@@ -247,12 +251,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     _subscriptions = _subscriptions.Remove(subscription);
-
-                    var session = _session;
-                    if (session != null)
-                    {
-                        session.MinPublishRequestCount = _subscriptions.Count + 1;
-                    }
                 }
                 Release();
 
@@ -864,6 +862,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 })).ConfigureAwait(false);
 
+                EnsureMinimumNumberOfPublishRequestsQueued();
+
                 if (subscriptions.Count > 1)
                 {
                     // Clear the node cache - TODO: we should have a real node cache here
@@ -886,6 +886,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     reconnectPeriod = _maxReconnectPeriod;
                 }
                 return (int)reconnectPeriod.TotalMilliseconds;
+            }
+        }
+
+        private const int kMinPublishRequestCount = 3;
+
+        /// <summary>
+        /// Ensure min publish requests are queued
+        /// </summary>
+        private void EnsureMinimumNumberOfPublishRequestsQueued()
+        {
+            var session = _session?.Session;
+            if (session == null)
+            {
+                return;
+            }
+            var created = SubscriptionCount;
+            if (created == 0)
+            {
+                return;
+            }
+
+            var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
+            var desiredRequests = Math.Max(
+                MinPublishRequests ?? kMinPublishRequestCount,
+                percentage == 100 || percentage < 0 ? created :
+                    (int)Math.Ceiling(created * (percentage / 100.0)));
+            if (desiredRequests < 0)
+            {
+                _logger.LogDebug("Negative number of publish requests configured.");
+                desiredRequests = kMinPublishRequestCount;
+            }
+            if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
+            {
+                desiredRequests = _maxPublishRequests.Value;
+            }
+            session.MinPublishRequestCount = desiredRequests;
+
+            // Queue requests
+            for (var i = GoodPublishRequestCount; i < desiredRequests; i++)
+            {
+                session.BeginPublish(session.OperationTimeout);
             }
         }
 
@@ -1014,6 +1055,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             switch (e.Status.Code)
             {
+                case StatusCodes.BadTooManyPublishRequests:
+                    _maxPublishRequests = GoodPublishRequestCount;
+                    _logger.LogDebug("Limit publish requests to {Limit}...",
+                        _maxPublishRequests);
+                    break;
                 case StatusCodes.BadSessionIdInvalid:
                 case StatusCodes.BadSecureChannelClosed:
                 case StatusCodes.BadSessionClosed:
@@ -1162,7 +1208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 KeepAliveInterval ?? TimeSpan.FromSeconds(30),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                _subscriptions.Count + 1, Session_HandlePublishError,
+                Session_HandlePublishError,
                 Session_PublishSequenceNumbersToAcknowledge,
                 DisableComplexTypePreloading != true);
 
@@ -1695,6 +1741,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
+        private int? _maxPublishRequests;
         private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly ISessionFactory _sessionFactory;

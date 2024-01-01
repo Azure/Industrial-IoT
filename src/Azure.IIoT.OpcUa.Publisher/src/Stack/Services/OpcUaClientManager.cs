@@ -559,7 +559,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     CreateSessionTimeout = _options.Value.CreateSessionTimeout,
                     KeepAliveInterval = _options.Value.KeepAliveInterval,
                     SessionTimeout = _options.Value.DefaultSessionTimeout,
-                    LingerTimeout = _options.Value.LingerTimeout
+                    LingerTimeout = _options.Value.LingerTimeout,
+
+                    MinPublishRequests = _options.Value.MinPublishRequests,
+                    PublishRequestsPerSubscriptionPercent =
+                        _options.Value.PublishRequestsPerSubscriptionPercent,
                 };
                 _logger.LogInformation("New client {Client} created.", client);
                 return client;
