@@ -456,15 +456,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public OpcUaClientConfig(IConfiguration configuration) : base(configuration)
         {
         }
-
-        /// <summary>
-        /// Stack version
-        /// </summary>
-        public static string Version { get; } =
-            typeof(SessionChannel).Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion
-            ??
-            typeof(SessionChannel).Assembly.GetReleaseVersion().ToString();
     }
 }

@@ -149,7 +149,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     PublisherId = _options.Value.PublisherId,
                     SemVer = GetType().Assembly.GetReleaseVersion().ToString(),
                     Version = PublisherConfig.Version,
-                    StackVersion = OpcUaClientConfig.Version,
                     Site = _options.Value.Site,
                     DeviceId = _identity?.DeviceId,
                     ModuleId = _identity?.ModuleId

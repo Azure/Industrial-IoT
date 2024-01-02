@@ -76,12 +76,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "SemVer", Order = 8,
             EmitDefaultValue = true)]
         public string? SemVer { get; set; }
-
-        /// <summary>
-        /// The Opc Ua stack full version string
-        /// </summary>
-        [DataMember(Name = "StackVersion", Order = 9,
-            EmitDefaultValue = true)]
-        public string? StackVersion { get; set; }
     }
 }

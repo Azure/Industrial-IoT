@@ -6,10 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
     using System;
     using System.Configuration;
     using System.Linq;
@@ -405,6 +407,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .Append('/')
                 .Append(AppContext.GetData("RUNTIME_IDENTIFIER") as string
                     ?? RuntimeInformation.ProcessArchitecture.ToString())
+                .Append("/OPC Stack ")
+                .Append(typeof(SessionChannel).Assembly.GetReleaseVersion().ToString())
                 .Append(')')
                 .ToString();
 

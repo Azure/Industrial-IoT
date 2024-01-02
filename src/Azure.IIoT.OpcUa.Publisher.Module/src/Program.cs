@@ -36,7 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 {PublisherConfig.Version.PadLeft(97)}
-{("(OPC Stack " + OpcUaClientConfig.Version + ")").PadLeft(97)}
 ");
         }
 
