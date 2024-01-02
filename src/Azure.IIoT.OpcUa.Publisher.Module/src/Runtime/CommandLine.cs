@@ -476,10 +476,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
                     (bool? b) => this[Configuration.Otlp.EnableMetricsKey] = b?.ToString() ?? "True" },
                 { $"cap|capturedevice=|{OpcUaClientConfig.CaptureDeviceKey}=",
-                    $"The capture device to use to capture network traffic.\nAvailable devices on this system:\n    `{string.Join("`\n    `", OpcUaClientCapture.AvailableDevices)}`\nDefault: `null` (disabled).\n",
+                    $"The capture device to use to capture network traffic.\n{SupportsCapture(OpcUaClientCapture.AvailableDevices)}\n",
                     (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
                 { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
-                    $"The file name to capture traffic to.\nA device must be selected using `--cd`.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
+                    $"The file name to capture traffic to.\nA device must be selected using `--cd` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
                     (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
@@ -617,6 +617,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 throw new OptionException("Bad store type", optionName);
             }
         }
+
+        private static string SupportsCapture(IReadOnlyList<string> devices)
+        {
+            if (devices.Count == 0)
+            {
+                return "Network capture is not supported on this system.";
+            }
+            return $"Available devices on your system:\n    `{string.Join("`\n    `", devices)}`\nDefault: `null` (disabled).";
+        }
+
         private readonly CommandLineLogger _logger;
     }
 

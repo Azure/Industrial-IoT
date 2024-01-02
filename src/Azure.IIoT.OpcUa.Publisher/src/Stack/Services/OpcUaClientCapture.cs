@@ -8,8 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+#if SHARPPCAP
     using SharpPcap;
     using SharpPcap.LibPcap;
+#endif
     using System.Collections.Generic;
     using System.Linq;
     using System.IO;
@@ -27,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             get
             {
+#if SHARPPCAP
                 try
                 {
                     return LibPcapLiveDeviceList.Instance
@@ -34,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         .ToArray();
                 }
                 catch
+#endif
                 {
                     return Array.Empty<string>();
                 }
@@ -62,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
+#if SHARPPCAP
             _logger.LogInformation("Using SharpPcap {Version}", Pcap.SharpPcapVersion);
             var device = FindDeviceByName(deviceName);
             if (device == null)
@@ -73,15 +78,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _device?.Dispose();
             _device = new CaptureDevice(this, device, _options.Value.CaptureFileName);
+#else
+            _logger.LogWarning("SharpPcap is not included in this build.");
+#endif
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
+#if SHARPPCAP
             _device?.Dispose();
             _device = null;
+#endif
         }
 
+#if SHARPPCAP
         /// <summary>
         /// Find device by name
         /// </summary>
@@ -173,6 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private CaptureDevice? _device;
+#endif
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ILogger<OpcUaClientCapture> _logger;
     }

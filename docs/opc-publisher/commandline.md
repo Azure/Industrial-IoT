@@ -859,21 +859,11 @@ Diagnostic options
       --cap, --capturedevice, --CaptureDevice=VALUE
                              The capture device to use to capture network
                                traffic.
-                               Available devices on this system:
-                                   `Local Area Connection* 10`
-                                   `Local Area Connection* 9`
-                                   `Local Area Connection* 8`
-                                   `vEthernet (Default Switch)`
-                                   `Bluetooth Network Connection`
-                                   `Local Area Connection* 2`
-                                   `Local Area Connection* 1`
-                                   `Ethernet`
-                                   `Wi-Fi`
-                                   `\Device\NPF_Loopback`
-                               Default: `null` (disabled).
+                               Network capture is not supported on this system.
       --cpf, --capturefile, --CaptureFileName=VALUE
                              The file name to capture traffic to.
-                               A device must be selected using `--cd`.
+                               A device must be selected using `--cd` if
+                               capture capability is supported on this system.
                                Default: `opcua.pcap`.
 ```
 
