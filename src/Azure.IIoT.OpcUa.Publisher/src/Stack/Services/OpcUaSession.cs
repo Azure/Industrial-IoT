@@ -87,7 +87,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // support transfer
             Session.DeleteSubscriptionsOnClose = false;
             Session.TransferSubscriptionsOnReconnect = true;
-            Session.MinPublishRequestCount = 3;
             Session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
             Session.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
 

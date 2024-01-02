@@ -30,8 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : IAsyncDisposable, IOpcUaClient,
-        ISessionAccessor
+    internal sealed class OpcUaClient : IOpcUaClient, ISessionAccessor,
+        IOpcUaClientState
     {
         /// <summary>
         /// The session keepalive interval to be used in ms.
@@ -59,19 +59,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
+        /// Minimum number of publish requests to queue
+        /// </summary>
+        public int? MinPublishRequests { get; set; }
+
+        /// <summary>
+        /// Percentage ratio of publish requests per subscription
+        /// </summary>
+        public int? PublishRequestsPerSubscriptionPercent { get; set; }
+
+        /// <summary>
         /// The linger timeout.
         /// </summary>
         public TimeSpan? LingerTimeout { get; set; }
 
         /// <summary>
-        /// Is reconnecting
-        /// </summary>
-        internal bool IsConnected => _session?.Session.Connected ?? false;
-
-        /// <summary>
         /// Disable complex type preloading.
         /// </summary>
         public bool? DisableComplexTypePreloading { get; set; }
+
+        /// <inheritdoc/>
+        public bool IsConnected
+            => _session?.Session.Connected ?? false;
+
+        /// <inheritdoc/>
+        public int BadPublishRequestCount
+            => _session?.Session?.DefunctRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int GoodPublishRequestCount
+            => _session?.Session?.GoodPublishRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int OutstandingRequestCount
+            => _session?.Session?.OutstandingRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int SubscriptionCount
+            => _session?.Session?.Subscriptions.Count(s => s.Created) ?? 0;
+
+        /// <inheritdoc/>
+        public int MinPublishRequestCount
+            => _session?.Session?.MinPublishRequestCount ?? 0;
+
+        /// <inheritdoc/>
+        public int ReconnectCount => _numberOfConnectRetries;
+
+        /// <summary>
+        /// Disconnected state
+        /// </summary>
+        internal static IOpcUaClientState Disconnected { get; }
+            = new DisconnectState();
 
         /// <summary>
         /// Create client
@@ -226,8 +264,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
+        /// <summary>
+        /// Close client
+        /// </summary>
+        /// <returns></returns>
+        internal async ValueTask CloseAsync()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             try
@@ -810,8 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         if (online != null)
                         {
-                            subscription.OnSubscriptionStateChanged(online.Value,
-                                _numberOfConnectRetries);
+                            subscription.OnSubscriptionStateChanged(online.Value, this);
                         }
                     }
                     catch (OperationCanceledException) { }
@@ -821,6 +861,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             subscription);
                     }
                 })).ConfigureAwait(false);
+
+                EnsureMinimumNumberOfPublishRequestsQueued();
 
                 if (subscriptions.Count > 1)
                 {
@@ -844,6 +886,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     reconnectPeriod = _maxReconnectPeriod;
                 }
                 return (int)reconnectPeriod.TotalMilliseconds;
+            }
+        }
+
+        private const int kMinPublishRequestCount = 3;
+
+        /// <summary>
+        /// Ensure min publish requests are queued
+        /// </summary>
+        private void EnsureMinimumNumberOfPublishRequestsQueued()
+        {
+            var session = _session?.Session;
+            if (session == null)
+            {
+                return;
+            }
+            var created = SubscriptionCount;
+            if (created == 0)
+            {
+                return;
+            }
+
+            var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
+            var desiredRequests = Math.Max(
+                MinPublishRequests ?? kMinPublishRequestCount,
+                percentage == 100 || percentage < 0 ? created :
+                    (int)Math.Ceiling(created * (percentage / 100.0)));
+            if (desiredRequests < 0)
+            {
+                _logger.LogDebug("Negative number of publish requests configured.");
+                desiredRequests = kMinPublishRequestCount;
+            }
+            if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
+            {
+                desiredRequests = _maxPublishRequests.Value;
+            }
+            session.MinPublishRequestCount = desiredRequests;
+
+            // Queue requests
+            for (var i = GoodPublishRequestCount; i < desiredRequests; i++)
+            {
+                session.BeginPublish(session.OperationTimeout);
             }
         }
 
@@ -947,8 +1030,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
-                    _numberOfConnectRetries++;
-
                     _logger.LogInformation("Client {Client} CONNECTED to {EndpointUrl}!",
                         this, endpointUrl);
                     return true;
@@ -974,6 +1055,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             switch (e.Status.Code)
             {
+                case StatusCodes.BadTooManyPublishRequests:
+                    _maxPublishRequests = GoodPublishRequestCount;
+                    _logger.LogDebug("Limit publish requests to {Limit}...",
+                        _maxPublishRequests);
+                    break;
                 case StatusCodes.BadSessionIdInvalid:
                 case StatusCodes.BadSecureChannelClosed:
                 case StatusCodes.BadSessionClosed:
@@ -1122,7 +1208,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 KeepAliveInterval ?? TimeSpan.FromSeconds(30),
                 OperationTimeout ?? TimeSpan.FromMinutes(1),
                 _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                Session_HandlePublishError, Session_PublishSequenceNumbersToAcknowledge,
+                Session_HandlePublishError,
+                Session_PublishSequenceNumbersToAcknowledge,
                 DisableComplexTypePreloading != true);
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
@@ -1589,6 +1676,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Disconnected state
+        /// </summary>
+        private sealed class DisconnectState : IOpcUaClientState
+        {
+            /// <inheritdoc/>
+            public int BadPublishRequestCount => 0;
+            /// <inheritdoc/>
+            public int GoodPublishRequestCount => 0;
+            /// <inheritdoc/>
+            public int OutstandingRequestCount => 0;
+            /// <inheritdoc/>
+            public int SubscriptionCount => 0;
+            /// <inheritdoc/>
+            public bool IsConnected => false;
+            /// <inheritdoc/>
+            public int ReconnectCount => 0;
+            /// <inheritdoc/>
+            public int MinPublishRequestCount => 0;
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics()
@@ -1605,15 +1713,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
                 () => new Measurement<int>(_refCount, _metrics.TagList), "References",
                 "Number of references to this client.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_good_publish_requests_count",
+                () => new Measurement<int>(GoodPublishRequestCount,
+                _metrics.TagList), "Requests", "Number of good publish requests.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_bad_publish_requests_count",
+                () => new Measurement<int>(BadPublishRequestCount,
+                _metrics.TagList), "Requests", "Number of bad publish requests.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_min_publish_requests_count",
+                () => new Measurement<int>(MinPublishRequestCount,
+                _metrics.TagList), "Requests", "Number of min publish requests that should be queued.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
+                () => new Measurement<int>(OutstandingRequestCount,
+                _metrics.TagList), "Requests", "Number of outstanding requests.");
         }
 
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
             "iiot_edge_publisher_session_count", "Number of active sessions.");
 
-        private OpcUaSession? _session;
         private OpcUaSession? _reconnectingSession;
         private int _reconnectRequired;
 #pragma warning disable CA2213 // Disposable fields should be disposed
+        private OpcUaSession? _session;
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
@@ -1621,6 +1741,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
+        private int? _maxPublishRequests;
         private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly ISessionFactory _sessionFactory;
@@ -1633,9 +1754,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConnectionModel _connection;
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly SessionReconnectHandler _reconnectHandler;
-        private readonly TimeSpan _maxReconnectPeriod;
         private readonly CancellationTokenSource _cts;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<TimeSpan, Sampler> _samplers = new();

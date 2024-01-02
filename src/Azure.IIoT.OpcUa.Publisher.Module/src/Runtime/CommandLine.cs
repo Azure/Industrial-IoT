@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
@@ -333,6 +334,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The port to use when accepting inbound reverse connect requests from servers.\nDefault: `{OpcUaClientConfig.ReverseConnectPortDefault}`.\n",
                     (ushort u) => this[OpcUaClientConfig.ReverseConnectPortKey] = u.ToString(CultureInfo.CurrentCulture) },
 
+                { $"mpr|minpublishrequests=|{OpcUaClientConfig.MinPublishRequestsKey}=",
+                    $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
+                    (int u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ppr|percentpublishrequests=|{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey}=",
+                    $"Percentage ratio of publish requests per subscriptions in the session in percent.\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
+                    (int u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.CurrentCulture) },
+
                 { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalKey}=",
                     "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `never` (only on configuration change).\n",
                     (int i) => this[OpcUaClientConfig.SubscriptionManagementIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
@@ -467,6 +475,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
                     (bool? b) => this[Configuration.Otlp.EnableMetricsKey] = b?.ToString() ?? "True" },
+                { $"cap|capturedevice=|{OpcUaClientConfig.CaptureDeviceKey}=",
+                    $"The capture device to use to capture network traffic.\nAvailable devices on this system:\n    `{string.Join("`\n    `", OpcUaClientCapture.AvailableDevices)}`\nDefault: `null` (disabled).\n",
+                    (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
+                { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
+                    $"The file name to capture traffic to.\nA device must be selected using `--cd`.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
+                    (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
 

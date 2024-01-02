@@ -34,9 +34,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// or when the subscription was disconnected.
         /// </summary>
         /// <param name="online"></param>
-        /// <param name="connectionAttempts"></param>
+        /// <param name="state"></param>
         void OnSubscriptionStateChanged(bool online,
-            int connectionAttempts);
+            IOpcUaClientState state);
 
         /// <summary>
         /// Try get the current position in the out stream.

@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public virtual bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges,
-            Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+            Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
         {
             if (Item == null)
             {
@@ -659,7 +659,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 return true;
             }
@@ -1229,7 +1229,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges,
                     cb);
@@ -1331,14 +1331,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0
                 };
-                callback(MessageType.DeltaFrame, null, heartbeat.YieldReturn());
+                callback(MessageType.DeltaFrame, null, heartbeat.YieldReturn(),
+                    (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
+                        == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly);
             }
 
             private readonly Timer _heartbeatTimer;
             private TimeSpan _timerInterval;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
             private DateTime? _lastValueReceived;
         }
 
@@ -1459,7 +1461,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 // Dont call base implementation as it is not what we want.
                 if (Item == null)
@@ -1521,7 +1523,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Flags = MonitoredItemSourceFlags.CyclicRead,
                     Value = value
                 };
-                callback(MessageType.DeltaFrame, null, notification.YieldReturn());
+                callback(MessageType.DeltaFrame, null, notification.YieldReturn(), false);
             }
 
             /// <summary>
@@ -1544,7 +1546,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             private readonly ConnectionIdentifier _connection;
             private readonly IClientSampler<ConnectionModel> _sampler;
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
 #pragma warning disable CA2213 // Disposable fields should be disposed
             private IAsyncDisposable? _sampling;
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -1706,7 +1708,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 if (!base.TryCompleteChanges(subscription, ref applyChanges, cb))
                 {
@@ -2370,7 +2372,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>> cb)
+                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 if (!AttachedToSubscription || !result)
@@ -2518,7 +2520,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 foreach (var conditionNotification in notifications)
                 {
-                    callback(MessageType.Condition, DataSetName, conditionNotification);
+                    callback(MessageType.Condition, DataSetName, conditionNotification, false);
                 }
             }
 
@@ -2546,7 +2548,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     = new Dictionary<string, List<MonitoredItemNotificationModel>>();
             }
 
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>>? _callback;
+            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
             private ConditionHandlingState _conditionHandlingState;
             private DateTime _lastSentPendingConditions = DateTime.UtcNow;
             private int _snapshotInterval;

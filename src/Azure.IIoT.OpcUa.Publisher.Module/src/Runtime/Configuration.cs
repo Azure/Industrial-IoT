@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
@@ -22,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
-    using Autofac;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;

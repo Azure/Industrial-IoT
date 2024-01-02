@@ -92,7 +92,7 @@ az acr import --name $acrName --force --source mcr.microsoft.com/azuremonitor/co
 echo "API proxy..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-api-proxy:latest --image azureiotedge-api-proxy:latest
 echo "IIoT - OpcPlc server ..."
-az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-plc:latest --image opc-plc:latest
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-plc:latest --image opc-plc:2.9.10
 echo "IIoT - OPC Publisher..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.8.4 --image opc-publisher:2.8.4
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.8.4 --image iotedge/opc-publisher:2.8.4

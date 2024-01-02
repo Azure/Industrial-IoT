@@ -362,10 +362,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 request.Token))
             {
                 // Log progress
-                using (var progress = new Timer(_ => ProgressTimer(
+                var progress = new Timer(_ => ProgressTimer(
                     () => _progress.OnNetScanProgress(request.Request, netscanner.ActiveProbes,
                         netscanner.ScanCount, request.TotalAddresses, addresses.Count)),
-                    null, kProgressInterval, kProgressInterval))
+                    null, kProgressInterval, kProgressInterval);
+                await using (progress.ConfigureAwait(false))
                 {
                     await netscanner.WaitToCompleteAsync().ConfigureAwait(false);
                 }
@@ -401,10 +402,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 request.Configuration.MinPortProbesPercent,
                 request.Configuration.PortProbeTimeout, request.Token))
             {
-                using (var progress = new Timer(_ => ProgressTimer(
+                var progress = new Timer(_ => ProgressTimer(
                     () => _progress.OnPortScanProgress(request.Request, portscan.ActiveProbes,
                         portscan.ScanCount, totalPorts, ports.Count)),
-                    null, kProgressInterval, kProgressInterval))
+                    null, kProgressInterval, kProgressInterval);
+                await using (progress.ConfigureAwait(false))
                 {
                     await portscan.WaitToCompleteAsync().ConfigureAwait(false);
                 }

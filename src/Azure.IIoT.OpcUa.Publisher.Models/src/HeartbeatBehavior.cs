@@ -43,8 +43,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Update value timestamps to be different
         /// </summary>
         [EnumMember(Value = "WatchdogLKVWithUpdatedTimestamps")]
-        WatchdogLKVWithUpdatedTimestamps = 0x4
+        WatchdogLKVWithUpdatedTimestamps = 0x4,
 
         // Others can be combining Cont, LKG with 0x4
+
+        /// <summary>
+        /// Does not send heartbeat but counts it in
+        /// diagnostics
+        /// </summary>
+        [EnumMember(Value = "WatchdogLKVDiagnosticsOnly")]
+        WatchdogLKVDiagnosticsOnly = 0x8,
+
+        // Others can be combining Cont, LKG with 0x8
     }
 }

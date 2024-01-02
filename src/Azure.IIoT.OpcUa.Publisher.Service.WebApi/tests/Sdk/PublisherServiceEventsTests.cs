@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Fact]
         public async Task TestPublishVariantTelemetryEventAndReceiveAsync()
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = scope.Resolve<IPublisherServiceEvents>();
 
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [InlineData(262345)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
-            using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
+            await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = scope.Resolve<IPublisherServiceEvents>();
 

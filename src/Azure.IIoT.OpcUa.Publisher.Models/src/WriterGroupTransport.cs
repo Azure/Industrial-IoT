@@ -41,6 +41,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// File system
         /// </summary>
         [EnumMember(Value = "FileSystem")]
-        FileSystem
+        FileSystem,
+
+        /// <summary>
+        /// Null
+        /// </summary>
+        [EnumMember(Value = "Null")]
+        Null
     }
 }

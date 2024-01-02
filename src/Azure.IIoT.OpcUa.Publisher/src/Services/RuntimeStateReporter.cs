@@ -16,19 +16,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Collections.Generic;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.Metrics;
-    using System.Runtime.InteropServices;
-    using System.Globalization;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -146,8 +147,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     MessageVersion = 1,
                     MessageType = RuntimeStateEventType.RestartAnnouncement,
                     PublisherId = _options.Value.PublisherId,
-                    FullVersion = PublisherConfig.Version,
-                    Version = GetType().Assembly.GetReleaseVersion().ToString(),
+                    SemVer = GetType().Assembly.GetReleaseVersion().ToString(),
+                    Version = PublisherConfig.Version,
                     Site = _options.Value.Site,
                     DeviceId = _identity?.DeviceId,
                     ModuleId = _identity?.ModuleId
@@ -517,6 +518,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Subscriptions count                : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
                         .AppendLine()
+                    .Append("  # Queued/Minimum request count       : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.MinPublishRequestsRatio)
+                        .AppendLine()
+                    .Append("  # Good/Bad Publish request count     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.GoodPublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.BadPublishRequestsRatio)
+                        .AppendLine()
                     .Append("  # Ingress value changes              : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
                         .AppendLine(valueChangesPerSecFormatted)
@@ -526,16 +535,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Received Data Change Notifications : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges)
                         .Append(' ').AppendLine(dataChangesPerSecFormatted)
-                    .Append("  # Received Event List notifications  : ")
+                    .Append("  # Received Event Notifications       : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
                         .AppendLine()
-                    .Append("  # Received Keep Alive notifications  : ")
+                    .Append("  # Received Keep Alive Notifications  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressKeepAliveNotifications)
                         .AppendLine()
-                    .Append("  # Generated Cyclic read notifications: ")
+                    .Append("  # Generated Cyclic read Notifications: ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads)
                         .AppendLine()
-                    .Append("  # Generated Heartbeat notifications  : ")
+                    .Append("  # Generated Heartbeat Notifications  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressHeartbeats)
                         .AppendLine()
                     .Append("  # Notification batch buffer size     : ")
@@ -543,12 +552,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine()
                     .Append("  # Encoder input/output buffer size   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncodingBlockInputSize).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncodingBlockOutputSize).AppendLine()
-                    .Append("  # Encoder Notifications processed    : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncodingBlockOutputSize)
                         .AppendLine()
-                    .Append("  # Encoder Notifications dropped      : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsDropped)
+                    .Append("  # Encoder Notif. processed/dropped   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncoderNotificationsDropped)
                         .AppendLine()
                     .Append("  # Encoder Network Messages produced  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderIoTMessagesProcessed)
@@ -557,7 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncoderAvgNotificationsMessage)
                         .AppendLine()
                     .Append("  # Encoder worst Message split ratio  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}", info.EncoderMaxMessageSplitRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.EncoderMaxMessageSplitRatio)
                         .AppendLine()
                     .Append("  # Encoder avg Message body size      : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgIoTMessageBodySize)
@@ -568,15 +576,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Estimated Chunks (4 KB) per day    : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EstimatedIoTChunksPerDay)
                         .AppendLine()
-                    .Append("  # Egress messages ready to send      : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount)
+                    .Append("  # Egress Messages queued/dropped     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.OutgressInputBufferDropped)
                         .AppendLine()
-                    .Append("  # Egress messages dropped            : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferDropped)
-                        .AppendLine()
-                    .Append("  # Egress messages successfully sent  : ")
+                    .Append("  # Egress Messages successfully sent  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressIoTMessageCount)
-                        .Append(' ').AppendLine(sentMessagesPerSecFormatted)
+                        .Append(' ')
+                        .AppendLine(sentMessagesPerSecFormatted)
                     ;
             }
         }

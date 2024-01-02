@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishUnpublishNodesTestAsync(string publishedNodesFile)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
-            using var configService = InitPublisherConfigService();
+            await using var configService = InitPublisherConfigService();
 
             var methodsController = new ConfigurationController(configService);
 
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishUnpublishAllNodesTestAsync(string publishedNodesFile)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
-            using var configService = InitPublisherConfigService();
+            await using var configService = InitPublisherConfigService();
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -235,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishNodesToJobTestAsync(string publishedNodesFile)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
-            using var configService = InitPublisherConfigService();
+            await using var configService = InitPublisherConfigService();
 
             var methodsController = new ConfigurationController(configService);
 
@@ -527,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiGetConfiguredEndpointsTestAsync(string publishedNodesFile)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
-            using var configService = InitPublisherConfigService();
+            await using var configService = InitPublisherConfigService();
             var methodsController = new ConfigurationController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -579,7 +579,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiGetDiagnosticInfoTestAsync()
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
-            using var configService = InitPublisherConfigService();
+            await using var configService = InitPublisherConfigService();
             var methodsController = new ConfigurationController(configService);
 
             var response = await FluentActions

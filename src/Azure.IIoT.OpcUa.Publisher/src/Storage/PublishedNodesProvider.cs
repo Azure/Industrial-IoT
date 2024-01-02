@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to read content of published nodes file from \"{Path}\"",
+                _logger.LogDebug(e, "Failed to read content of published nodes file from \"{Path}\"",
                     _fileName);
                 throw;
             }

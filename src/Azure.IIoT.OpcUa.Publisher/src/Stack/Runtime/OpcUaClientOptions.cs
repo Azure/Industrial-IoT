@@ -113,5 +113,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Enable traces in the stack beyond errors
         /// </summary>
         public bool? EnableOpcUaStackLogging { get; set; }
+
+        /// <summary>
+        /// Minimum number of publish requests to queue
+        /// at all times. Default is 3.
+        /// </summary>
+        public int? MinPublishRequests { get; set; }
+
+        /// <summary>
+        /// The publish requests per subscription factor in
+        /// percent, e.g., 120% means 1.2 requests per
+        /// subscription. Use this to control network latency
+        /// </summary>
+        public int? PublishRequestsPerSubscriptionPercent { get; set; }
+
+        /// <summary>
+        /// Use the specific device to capture traffice.
+        /// </summary>
+        public string? CaptureDevice { get; set; }
+
+        /// <summary>
+        /// Use the specified capture file
+        /// </summary>
+        public string? CaptureFileName { get; set; }
     }
 }

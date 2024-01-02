@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <returns></returns>
         bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges, Action<MessageType, string?,
-                IEnumerable<MonitoredItemNotificationModel>> cb);
+                IEnumerable<MonitoredItemNotificationModel>, bool> cb);
 
         /// <summary>
         /// Get any changes in the monitoring mode to apply if any.

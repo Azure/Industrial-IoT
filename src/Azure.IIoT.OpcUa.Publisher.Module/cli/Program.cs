@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -47,18 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var logger = loggerFactory.CreateLogger<PublisherModule>();
 
             logger.LogInformation("Publisher module command line interface.");
-            var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
-                .Build();
-            var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
-            if (string.IsNullOrEmpty(cs))
-            {
-                cs = configuration.GetValue<string>("_HUB_CS", null);
-            }
             var instances = 1;
+            string connectionString = null;
             string publishProfile = null;
+            string publishedNodesFilePath = null;
+            var useNullTransport = false;
             var unknownArgs = new List<string>();
             try
             {
@@ -71,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             i++;
                             if (i < args.Length)
                             {
-                                cs = args[i];
+                                connectionString = args[i];
                                 break;
                             }
                             throw new ArgumentException(
@@ -104,6 +97,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--only-trusted":
                             checkTrust = true;
                             break;
+                        case "-X":
+                        case "--out-null":
+                            useNullTransport = true;
+                            break;
                         case "-S":
                         case "--with-server":
                             withServer = true;
@@ -119,18 +116,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --publish-profile");
+                        case "--pnjson":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                publishedNodesFilePath = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing argument for --pnjson");
+                        case "--":
+                            break;
                         default:
                             unknownArgs.Add(args[i]);
                             break;
                     }
                 }
-                if (string.IsNullOrEmpty(cs))
+
+                if (string.IsNullOrEmpty(connectionString) && !useNullTransport)
                 {
-                    throw new ArgumentException("Missing connection string.");
-                }
-                if (!ConnectionString.TryParse(cs, out var connectionString))
-                {
-                    throw new ArgumentException("Bad connection string.");
+                    try
+                    {
+                        var configuration = new ConfigurationBuilder()
+                            .AddFromDotEnvFile()
+                            .AddEnvironmentVariables()
+                            .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
+                            .Build();
+                        connectionString = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
+                        if (string.IsNullOrEmpty(connectionString))
+                        {
+                            connectionString = configuration.GetValue<string>("_HUB_CS", null);
+                        }
+                        if (!string.IsNullOrEmpty(connectionString) &&
+                            !ConnectionString.TryParse(connectionString, out _))
+                        {
+                            throw new ArgumentException("Bad connection string configured.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogInformation("Error {Error}: Missing connection string - continue...",
+                            e.Message);
+                    }
                 }
 
                 deviceId = Utils.GetHostName();
@@ -170,12 +197,13 @@ Options:
             {
                 if (!withServer)
                 {
-                    hostingTask = HostAsync(cs, loggerFactory,
-                        deviceId, moduleId, args, reverseConnectPort, !checkTrust, cts.Token);
+                    hostingTask = HostAsync(connectionString, loggerFactory,
+                        deviceId, moduleId, args, reverseConnectPort, !checkTrust,
+                        publishedNodesFilePath, cts.Token);
                 }
                 else
                 {
-                    hostingTask = WithServerAsync(cs, loggerFactory, deviceId, moduleId, args,
+                    hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId, moduleId, args,
                         publishProfile, !checkTrust, reverseConnectPort, cts.Token);
                 }
 
@@ -215,7 +243,7 @@ Options:
         private static readonly AsyncAutoResetEvent _restartPublisher = new(false);
 
         /// <summary>
-        /// Host the module giving it its connection string.
+        /// Host the module with connection string loaded from iot hub
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="loggerFactory"></param>
@@ -224,31 +252,35 @@ Options:
         /// <param name="args"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="acceptAll"></param>
+        /// <param name="publishedNodesFilePath"></param>
         /// <param name="ct"></param>
         private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
-            bool acceptAll, CancellationToken ct)
+            bool acceptAll, string publishedNodesFilePath = null, CancellationToken ct = default)
         {
             var logger = loggerFactory.CreateLogger<PublisherModule>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
-            ConnectionString cs;
-            while (true)
+            ConnectionString cs = null;
+            if (connectionString != null)
             {
-                try
+                while (true)
                 {
-                    cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
-                        logger).ConfigureAwait(false);
+                    try
+                    {
+                        cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
+                            logger).ConfigureAwait(false);
 
-                    logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
-                       deviceId, moduleId);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
-                        deviceId, moduleId);
+                        logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
+                           deviceId, moduleId);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
+                            deviceId, moduleId);
+                    }
                 }
             }
 
@@ -257,7 +289,7 @@ Options:
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
                 var running = RunAsync(logger, deviceId, moduleId, args, acceptAll, cs,
-                    reverseConnectPort, cts.Token);
+                    reverseConnectPort, publishedNodesFilePath, cts.Token);
 
                 Console.WriteLine("Publisher running (Press P to restart)...");
                 await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
@@ -270,12 +302,25 @@ Options:
             }
 
             static async Task RunAsync(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool acceptAll, ConnectionString cs, int? reverseConnectPort, CancellationToken ct)
+                bool acceptAll, ConnectionString cs, int? reverseConnectPort, string publishedNodesFilePath,
+                CancellationToken ct)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
-                arguments.Add($"--ec={cs}");
+
+                if (publishedNodesFilePath != null)
+                {
+                    arguments.Add($"--pf={publishedNodesFilePath}");
+                }
+                if (cs != null)
+                {
+                    arguments.Add($"--ec={cs}");
+                }
+                else
+                {
+                    arguments.Add("-t=Null");
+                }
                 arguments.Add("--cl=5"); // enable 5 second client linger
                 if (acceptAll)
                 {
@@ -315,31 +360,37 @@ Options:
                 // Start test server
                 using (var server = new ServerWrapper(loggerFactory, reverseConnectPort))
                 {
-                    if (publishProfile != null)
-                    {
-                        var publishedNodesFile = $"./Profiles/{publishProfile}.json";
-                        if (File.Exists(publishedNodesFile))
-                        {
-                            var publishedNodesFilePath = Path.GetTempFileName();
-
-                            await File.WriteAllTextAsync(publishedNodesFilePath,
-                                (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                                .Replace("{{EndpointUrl}}", $"opc.tcp://localhost:{server.Port}/UA/SampleServer",
-                                    StringComparison.Ordinal), ct).ConfigureAwait(false);
-
-                            args = args.Concat(new[]
-                            {
-                                $"--pf={publishedNodesFilePath}"
-                            }).ToArray();
-                        }
-                    }
+                    var publishedNodesFilePath = await LoadPnJson(publishProfile,
+                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
 
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, reverseConnectPort, acceptAll, ct).ConfigureAwait(false);
+                        args, reverseConnectPort, acceptAll, publishedNodesFilePath, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
+        }
+
+        private static async Task<string> LoadPnJson(string publishProfile,
+            string endpointUrl, CancellationToken ct)
+        {
+            string publishedNodesFile = null;
+            if (publishProfile != null)
+            {
+                publishedNodesFile = $"./Profiles/{publishProfile}.json";
+            }
+            if (publishedNodesFile != null && File.Exists(publishedNodesFile))
+            {
+                var publishedNodesFilePath = Path.GetTempFileName();
+
+                await File.WriteAllTextAsync(publishedNodesFilePath,
+                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                    .Replace("{{EndpointUrl}}", endpointUrl,
+                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                return publishedNodesFilePath;
+            }
+            return null;
         }
 
         /// <summary>
@@ -358,44 +409,46 @@ Options:
                 options => options.ConnectionString = connectionString);
             builder.AddDefaultJsonSerializer();
             builder.AddLogging();
-            using var container = builder.Build();
-
-            var registry = container.Resolve<IIoTHubTwinServices>();
-
-            // Create iot edge gateway
-            try
+            var container = builder.Build();
+            await using (container.ConfigureAwait(false))
             {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                var registry = container.Resolve<IIoTHubTwinServices>();
+
+                // Create iot edge gateway
+                try
                 {
-                    Id = deviceId,
-                    Tags = new Dictionary<string, VariantValue>
+                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
                     {
-                        [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
-                    },
-                    IotEdge = true
-                }, false).ConfigureAwait(false);
-            }
-            catch (ResourceConflictException)
-            {
-                logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
-            }
-
-            // Create publisher module
-            try
-            {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                        Id = deviceId,
+                        Tags = new Dictionary<string, VariantValue>
+                        {
+                            [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
+                        },
+                        IotEdge = true
+                    }, false).ConfigureAwait(false);
+                }
+                catch (ResourceConflictException)
                 {
-                    Id = deviceId,
-                    ModuleId = moduleId
-                }, false, default).ConfigureAwait(false);
+                    logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
+                }
+
+                // Create publisher module
+                try
+                {
+                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                    {
+                        Id = deviceId,
+                        ModuleId = moduleId
+                    }, false, default).ConfigureAwait(false);
+                }
+                catch (ResourceConflictException)
+                {
+                    logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
+                }
+                var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
+                return ConnectionString.CreateModuleConnectionString(registry.HostName,
+                    deviceId, moduleId, module.PrimaryKey);
             }
-            catch (ResourceConflictException)
-            {
-                logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
-            }
-            var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
-            return ConnectionString.CreateModuleConnectionString(registry.HostName,
-                deviceId, moduleId, module.PrimaryKey);
         }
 
         /// <summary>

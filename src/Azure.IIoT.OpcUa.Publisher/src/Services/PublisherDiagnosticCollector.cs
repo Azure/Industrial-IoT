@@ -198,7 +198,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ConnectionRetries = writers.Count == 0 ? 0 : (int)
                             writers.Average(w => w.ConnectionRetries),
                         OpcEndpointConnected = OpcEndpointConnected ||
-                            writers.Any(w => w.OpcEndpointConnected)
+                            writers.Any(w => w.OpcEndpointConnected),
+                        PublishRequestsRatio = PublishRequestsRatio +
+                            writers.Sum(w => w.PublishRequestsRatio),
+                        BadPublishRequestsRatio = BadPublishRequestsRatio +
+                            writers.Sum(w => w.BadPublishRequestsRatio),
+                        GoodPublishRequestsRatio = GoodPublishRequestsRatio +
+                            writers.Sum(w => w.GoodPublishRequestsRatio),
+                        MinPublishRequestsRatio = MinPublishRequestsRatio +
+                            writers.Sum(w => w.MinPublishRequestsRatio),
                     };
                 }
             }
@@ -283,7 +291,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_connection_retries"] =
                 (d, i) => d.ConnectionRetries = (long)i,
                 ["iiot_edge_publisher_subscriptions"] =
-                (d, i) => d.NumberOfSubscriptions = (long)i
+                (d, i) => d.NumberOfSubscriptions = (long)i,
+                ["iiot_edge_publisher_publish_requests_per_subscription"] =
+                (d, i) => d.PublishRequestsRatio = (double)i,
+                ["iiot_edge_publisher_good_publish_requests_per_subscription"] =
+                (d, i) => d.GoodPublishRequestsRatio = (double)i,
+                ["iiot_edge_publisher_bad_publish_requests_per_subscription"] =
+                (d, i) => d.BadPublishRequestsRatio = (double)i,
+                ["iiot_edge_publisher_min_publish_requests_per_subscription"] =
+                (d, i) => d.MinPublishRequestsRatio = (double)i
 
                 // ... Add here more items if needed
             };

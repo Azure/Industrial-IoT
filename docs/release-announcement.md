@@ -3,6 +3,7 @@
 ## Table Of Contents <!-- omit in toc -->
 
 - [Azure Industrial IoT OPC Publisher 2.9.4](#azure-industrial-iot-opc-publisher-294)
+  - [Breaking changes in 2.9.4](#breaking-changes-in-294)
   - [Changes in 2.9.4](#changes-in-294)
 - [Azure Industrial IoT OPC Publisher 2.9.3](#azure-industrial-iot-opc-publisher-293)
   - [Breaking changes in 2.9.3](#breaking-changes-in-293)
@@ -42,7 +43,14 @@
 
 ## Azure Industrial IoT OPC Publisher 2.9.4
 
-We are pleased to announce the release of version 2.9.4 of OPC Publisher and the companion web api. This release comes with several bug and security fixes and is the latest supported release.
+We are pleased to announce the release of version 2.9.4 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release.
+
+### Breaking changes in 2.9.4
+
+> IMPORTANT. Please read when updating from previous versions of OPC Publisher
+
+- Arm64 and AMD64 container images are published now with Mariner (Azure) Linux (distroless) as base images instead of Alpine.
+- Arm32 (v7) images of OPC Publisher continue to use Alpine as base image. Support transitions to the same model as for "preview" features.  Security updates are released as a result of updates to the AMD64 and ARM64 version of OPC Publisher.
 
 ### Changes in 2.9.4
 
@@ -64,7 +72,8 @@ We are pleased to announce the release of version 2.9.3 of OPC Publisher and the
 
 > IMPORTANT. Please read when updating from previous versions of OPC Publisher
 
-- All container images published now use Mariner Linux (distroless) base images instead of Alpine.
+- Arm64 and AMD64 container images are published now with (Azure) Mariner Linux (distroless) as base images instead of Alpine.
+- Arm32 (v7) images of OPC Publisher continue to use Alpine as base image. Support transitions to the same model as for "preview" features.  Security updates are released as a result of updates to the AMD64 and ARM64 version of OPC Publisher.
 - Metadata collection has shown to be very taxing on OPC UA servers. When 2.9 was dropped in to replace 2.8 in production, memory consumption was too large and connections would drop. OPC Publisher now defaults to `--dm=true` in 2.9.3 to disable metadata messages to be compatible with 2.8 when `--strict` / `-c` is not specified. If you need meta data messages but do not use strict mode (not recommended) you must explicitly enable it using `--dm=false`.
 
 ### New features in 2.9.3

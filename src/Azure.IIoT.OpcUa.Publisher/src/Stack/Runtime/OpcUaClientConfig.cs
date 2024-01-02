@@ -11,6 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Text;
 
     /// <summary>
@@ -70,6 +72,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
+        public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
+        public const string MinPublishRequestsKey = "MinPublishRequests";
+        public const string CaptureDeviceKey = "CaptureDevice";
+        public const string CaptureFileNameKey = "CaptureFileName";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -83,8 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string PkiRootPathDefault = "pki";
         public const int SecurityTokenLifetimeDefault = 60 * 60 * 1000;
         public const int ChannelLifetimeDefault = 300 * 1000;
-        public const int MaxBufferSizeDefault = 8 * 1024;
-        public const int MaxMessageSizeDefault = 4 * 1024 * 1024;
+        public const int MaxBufferSizeDefault = 64 * 1024;
+        public const int MaxMessageSizeDefault = 8 * 1024 * 1024;
         public const int MaxArrayLengthDefault = (64 * 1024) - 1;
         public const int MaxByteStringLengthDefault = 1024 * 1024;
         public const int MaxStringLengthDefault = (128 * 1024) - 256;
@@ -103,6 +109,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectSha1SignedCertificatesDefault = false;
         public const bool AddAppCertToTrustedStoreDefault = true;
         public const bool RejectUnknownRevocationStatusDefault = true;
+        public const int MinPublishRequestsDefault = 3;
+        public const int PublishRequestsPerSubscriptionPercentDefault = 100;
+        public const string CaptureFileNameDefault = "opcua.pcap";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -235,6 +244,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 {
                     options.SubscriptionManagementInterval = TimeSpan.FromSeconds(managementInterval);
                 }
+            }
+
+            if (options.MinPublishRequests == null)
+            {
+                options.MinPublishRequests = GetIntOrDefault(MinPublishRequestsKey,
+                    MinPublishRequestsDefault);
+            }
+
+            if (options.PublishRequestsPerSubscriptionPercent == null)
+            {
+                options.PublishRequestsPerSubscriptionPercent = GetIntOrNull(
+                    PublishRequestsPerSubscriptionPercentKey,
+                    PublishRequestsPerSubscriptionPercentDefault);
+            }
+
+            if (string.IsNullOrEmpty(options.CaptureDevice))
+            {
+                options.CaptureDevice = GetStringOrDefault(CaptureDeviceKey);
+            }
+
+            if (string.IsNullOrEmpty(options.CaptureFileName))
+            {
+                options.CaptureFileName = GetStringOrDefault(CaptureFileNameKey,
+                    CaptureFileNameDefault);
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)
