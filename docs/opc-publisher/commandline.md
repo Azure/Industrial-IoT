@@ -19,8 +19,7 @@ When both environment variable and CLI argument are provided, the command line o
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
-                                                                       2.9.4 (.NET 8.0.0/win-x64)
-                                 (OPC Stack 1.4.372.112+a1c2216c2c97625ca521bde0a7a9fd04982075e3)
+                                                 2.9.4 (.NET 8.0.0/win-x64/OPC Stack 1.4.372.106)
 
 General
 -------

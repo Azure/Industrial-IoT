@@ -87,8 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string PkiRootPathDefault = "pki";
         public const int SecurityTokenLifetimeDefault = 60 * 60 * 1000;
         public const int ChannelLifetimeDefault = 300 * 1000;
-        public const int MaxBufferSizeDefault = 8 * 1024;
-        public const int MaxMessageSizeDefault = 4 * 1024 * 1024;
+        public const int MaxBufferSizeDefault = 64 * 1024;
+        public const int MaxMessageSizeDefault = 8 * 1024 * 1024;
         public const int MaxArrayLengthDefault = (64 * 1024) - 1;
         public const int MaxByteStringLengthDefault = 1024 * 1024;
         public const int MaxStringLengthDefault = (128 * 1024) - 256;
