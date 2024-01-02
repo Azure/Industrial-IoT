@@ -20,7 +20,6 @@ When both environment variable and CLI argument are provided, the command line o
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
                                                  2.9.4 (.NET 8.0.0/win-x64/OPC Stack 1.4.372.106)
-
 General
 -------
 
@@ -857,6 +856,25 @@ Diagnostic options
                                metrics directly on the standard path.
                                Default: `disabled` if Otlp collector is
                                configured, otherwise `enabled`.
+      --cap, --capturedevice, --CaptureDevice=VALUE
+                             The capture device to use to capture network
+                               traffic.
+                               Available devices on this system:
+                                   `Local Area Connection* 10`
+                                   `Local Area Connection* 9`
+                                   `Local Area Connection* 8`
+                                   `vEthernet (Default Switch)`
+                                   `Bluetooth Network Connection`
+                                   `Local Area Connection* 2`
+                                   `Local Area Connection* 1`
+                                   `Ethernet`
+                                   `Wi-Fi`
+                                   `\Device\NPF_Loopback`
+                               Default: `null` (disabled).
+      --cpf, --capturefile, --CaptureFileName=VALUE
+                             The file name to capture traffic to.
+                               A device must be selected using `--cd`.
+                               Default: `opcua.pcap`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).
