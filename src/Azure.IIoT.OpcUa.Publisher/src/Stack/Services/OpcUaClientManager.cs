@@ -563,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     MinPublishRequests = _options.Value.MinPublishRequests,
                     PublishRequestsPerSubscriptionPercent =
-                        _options.Value.PublishRequestsPerSubscriptionPercent,
+                        _options.Value.PublishRequestsPerSubscriptionPercent
                 };
                 _logger.LogInformation("New client {Client} created.", client);
                 return client;

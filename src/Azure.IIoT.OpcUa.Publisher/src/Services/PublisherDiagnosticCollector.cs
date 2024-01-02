@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_bad_publish_requests_per_subscription"] =
                 (d, i) => d.BadPublishRequestsRatio = (double)i,
                 ["iiot_edge_publisher_min_publish_requests_per_subscription"] =
-                (d, i) => d.MinPublishRequestsRatio = (double)i,
+                (d, i) => d.MinPublishRequestsRatio = (double)i
 
                 // ... Add here more items if needed
             };

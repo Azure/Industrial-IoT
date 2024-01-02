@@ -126,5 +126,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// subscription. Use this to control network latency
         /// </summary>
         public int? PublishRequestsPerSubscriptionPercent { get; set; }
+
+        /// <summary>
+        /// Use the specific device to capture traffice.
+        /// </summary>
+        public string? CaptureDevice { get; set; }
+
+        /// <summary>
+        /// Use the specified capture file
+        /// </summary>
+        public string? CaptureFileName { get; set; }
     }
 }
