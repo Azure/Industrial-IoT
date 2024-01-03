@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Assigned index
         /// </summary>
-        ushort Id { get; }
+        ushort LocalIndex { get; }
 
         /// <summary>
         /// Connection

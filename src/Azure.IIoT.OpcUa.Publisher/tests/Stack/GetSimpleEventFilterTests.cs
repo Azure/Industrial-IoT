@@ -33,12 +33,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<EventFilter>(monitoredItem.Filter);
+            var eventFilter = (EventFilter)monitoredItem.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(2, eventFilter.SelectClauses.Count);
@@ -74,12 +74,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<EventFilter>(monitoredItem.Filter);
+            var eventFilter = (EventFilter)monitoredItem.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(7, eventFilter.SelectClauses.Count);
@@ -131,12 +131,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
             // Assert
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<EventFilter>(monitoredItem.Filter);
+            var eventFilter = (EventFilter)monitoredItem.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(8, eventFilter.SelectClauses.Count);

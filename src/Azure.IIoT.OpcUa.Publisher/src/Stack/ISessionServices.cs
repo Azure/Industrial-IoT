@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToAdd"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
+        ValueTask<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
             AddNodesItemCollection nodesToAdd, CancellationToken ct);
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="referencesToAdd"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<AddReferencesResponse> AddReferencesAsync(RequestHeader requestHeader,
+        ValueTask<AddReferencesResponse> AddReferencesAsync(RequestHeader requestHeader,
             AddReferencesItemCollection referencesToAdd, CancellationToken ct);
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToBrowse"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<BrowseResponse> BrowseAsync(RequestHeader requestHeader,
+        ValueTask<BrowseResponse> BrowseAsync(RequestHeader requestHeader,
             ViewDescription? view, uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct);
 
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="continuationPoints"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<BrowseNextResponse> BrowseNextAsync(RequestHeader requestHeader,
+        ValueTask<BrowseNextResponse> BrowseNextAsync(RequestHeader requestHeader,
             bool releaseContinuationPoints, ByteStringCollection continuationPoints,
             CancellationToken ct);
 
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="methodsToCall"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CallResponse> CallAsync(RequestHeader requestHeader,
+        ValueTask<CallResponse> CallAsync(RequestHeader requestHeader,
             CallMethodRequestCollection methodsToCall, CancellationToken ct);
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToDelete"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DeleteNodesResponse> DeleteNodesAsync(RequestHeader requestHeader,
+        ValueTask<DeleteNodesResponse> DeleteNodesAsync(RequestHeader requestHeader,
             DeleteNodesItemCollection nodesToDelete, CancellationToken ct);
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="referencesToDelete"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DeleteReferencesResponse> DeleteReferencesAsync(RequestHeader requestHeader,
+        ValueTask<DeleteReferencesResponse> DeleteReferencesAsync(RequestHeader requestHeader,
             DeleteReferencesItemCollection referencesToDelete, CancellationToken ct);
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToRead"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryReadResponse> HistoryReadAsync(RequestHeader requestHeader,
+        ValueTask<HistoryReadResponse> HistoryReadAsync(RequestHeader requestHeader,
             ExtensionObject? historyReadDetails, TimestampsToReturn timestampsToReturn,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
             CancellationToken ct);
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="historyUpdateDetails"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponse> HistoryUpdateAsync(RequestHeader requestHeader,
+        ValueTask<HistoryUpdateResponse> HistoryUpdateAsync(RequestHeader requestHeader,
             ExtensionObjectCollection historyUpdateDetails, CancellationToken ct);
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="maxReferencesToReturn"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<QueryFirstResponse> QueryFirstAsync(RequestHeader requestHeader,
+        ValueTask<QueryFirstResponse> QueryFirstAsync(RequestHeader requestHeader,
             ViewDescription view, NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
             uint maxDataSetsToReturn, uint maxReferencesToReturn, CancellationToken ct);
 
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="continuationPoint"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<QueryNextResponse> QueryNextAsync(RequestHeader requestHeader,
+        ValueTask<QueryNextResponse> QueryNextAsync(RequestHeader requestHeader,
             bool releaseContinuationPoint, byte[] continuationPoint, CancellationToken ct);
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToRead"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ReadResponse> ReadAsync(RequestHeader requestHeader, double maxAge,
+        ValueTask<ReadResponse> ReadAsync(RequestHeader requestHeader, double maxAge,
             TimestampsToReturn timestampsToReturn, ReadValueIdCollection nodesToRead,
             CancellationToken ct);
 
@@ -161,8 +161,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToRegister"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<RegisterNodesResponse> RegisterNodesAsync(RequestHeader requestHeader,
+        ValueTask<RegisterNodesResponse> RegisterNodesAsync(RequestHeader requestHeader,
             NodeIdCollection nodesToRegister, CancellationToken ct);
+
+        /// <summary>
+        /// Unregister nodes
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToUnregister"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<UnregisterNodesResponse> UnregisterNodesAsync(RequestHeader requestHeader,
+            NodeIdCollection nodesToUnregister, CancellationToken ct);
 
         /// <summary>
         /// Translate browse paths
@@ -171,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="browsePaths"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
+        ValueTask<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
             RequestHeader requestHeader, BrowsePathCollection browsePaths,
             CancellationToken ct);
 
@@ -182,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="nodesToWrite"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
+        ValueTask<WriteResponse> WriteAsync(RequestHeader requestHeader,
             WriteValueCollection nodesToWrite, CancellationToken ct);
     }
 }

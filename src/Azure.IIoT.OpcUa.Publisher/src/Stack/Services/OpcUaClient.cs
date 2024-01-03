@@ -26,14 +26,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using System.Reflection.Metadata.Ecma335;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : IOpcUaClient, ISessionAccessor,
+    internal sealed class OpcUaClient : DefaultSessionFactory, IOpcUaClient, ISessionAccessor,
         IOpcUaClientState
     {
+        /// <summary>
+        /// Client namespace
+        /// </summary>
+        internal const string Namespace = "http://opcfoundation.org/UA/Client/Types.xsd";
+
         /// <summary>
         /// The session keepalive interval to be used in ms.
         /// </summary>
@@ -81,27 +86,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public bool IsConnected
-            => _session?.Session.Connected ?? false;
+            => _session?.Connected ?? false;
 
         /// <inheritdoc/>
         public int BadPublishRequestCount
-            => _session?.Session?.DefunctRequestCount ?? 0;
+            => _session?.DefunctRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int GoodPublishRequestCount
-            => _session?.Session?.GoodPublishRequestCount ?? 0;
+            => _session?.GoodPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int OutstandingRequestCount
-            => _session?.Session?.OutstandingRequestCount ?? 0;
+            => _session?.OutstandingRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int SubscriptionCount
-            => _session?.Session?.Subscriptions.Count(s => s.Created) ?? 0;
+            => _session?.Subscriptions.Count(s => s.Created) ?? 0;
 
         /// <inheritdoc/>
         public int MinPublishRequestCount
-            => _session?.Session?.MinPublishRequestCount ?? 0;
+            => _session?.MinPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int ReconnectCount => _numberOfConnectRetries;
@@ -122,7 +127,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="meter"></param>
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
-        /// <param name="sessionFactory"></param>
         /// <param name="reverseConnectManager"></param>
         /// <param name="maxReconnectPeriod"></param>
         /// <param name="sessionName"></param>
@@ -131,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, Meter meter, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
-            ISessionFactory sessionFactory, ReverseConnectManager? reverseConnectManager,
+            ReverseConnectManager? reverseConnectManager,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint?.Url == null)
@@ -153,8 +157,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
-            _sessionFactory = sessionFactory ??
-                throw new ArgumentNullException(nameof(sessionFactory));
             _notifier = notifier;
 
             InitializeMetrics();
@@ -205,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public bool TryGetSession([NotNullWhen(true)] out ISession? session)
         {
-            session = _session?.Session;
+            session = _session;
             return session != null;
         }
 
@@ -263,6 +265,94 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 TriggerConnectionEvent(ConnectionEvent.SubscriptionChange);
             }
+        }
+
+        /// <inheritdoc/>
+        public override Session Create(ISessionChannel channel, ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint)
+        {
+            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+                (ITransportChannel)channel, configuration, endpoint);
+        }
+
+        /// <inheritdoc/>
+        public override Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
+            EndpointDescriptionCollection? availableEndpoints,
+            StringCollection? discoveryProfileUris)
+        {
+            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+                channel, configuration, endpoint,
+                clientCertificate, availableEndpoints, discoveryProfileUris);
+        }
+
+        /// <inheritdoc/>
+        public override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint, bool updateBeforeConnect, string sessionName,
+            uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
+            CancellationToken ct)
+        {
+            return CreateAsync(configuration, endpoint, updateBeforeConnect, false,
+                sessionName, sessionTimeout, identity, preferredLocales, ct);
+        }
+
+        /// <inheritdoc/>
+        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint, bool updateBeforeConnect, bool checkDomain,
+            string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
+            CancellationToken ct)
+        {
+            return await Session.Create(this, configuration, (ITransportWaitingConnection?)null, endpoint,
+                updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
+                identity, preferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+            ITransportWaitingConnection connection, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
+            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
+            IList<string> preferredLocales, CancellationToken ct)
+        {
+            return await Session.Create(this, configuration, connection, endpoint, updateBeforeConnect,
+                checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override ISession Create(ApplicationConfiguration configuration, ITransportChannel channel,
+            ConfiguredEndpoint endpoint, X509Certificate2 clientCertificate,
+            EndpointDescriptionCollection? availableEndpoints, StringCollection? discoveryProfileUris)
+        {
+            return Session.Create(this, configuration, channel, endpoint, clientCertificate,
+                availableEndpoints, discoveryProfileUris);
+        }
+
+        /// <inheritdoc/>
+        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+            ReverseConnectManager? reverseConnectManager, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
+            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity userIdentity,
+            IList<string> preferredLocales, CancellationToken ct)
+        {
+            if (reverseConnectManager == null)
+            {
+                return await CreateAsync(configuration, endpoint, updateBeforeConnect,
+                    checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
+            }
+            ITransportWaitingConnection? connection;
+            do
+            {
+                connection = await reverseConnectManager.WaitForConnection(endpoint.EndpointUrl,
+                    endpoint.ReverseConnect?.ServerUri, ct).ConfigureAwait(false);
+                if (updateBeforeConnect)
+                {
+                    await endpoint.UpdateFromServerAsync(endpoint.EndpointUrl, connection,
+                        endpoint.Description.SecurityMode, endpoint.Description.SecurityPolicyUri,
+                        ct).ConfigureAwait(false);
+                    updateBeforeConnect = false;
+                    connection = null;
+                }
+            } while (connection == null);
+            return await CreateAsync(configuration, connection, endpoint, false, checkDomain,
+                sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -686,7 +776,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                         _logger.LogInformation("Reconnecting session {Session} due to error {Error}...",
                                             _sessionName, context as ServiceResult);
-                                        var state = _reconnectHandler.BeginReconnect(_session!.Session,
+                                        var state = _reconnectHandler.BeginReconnect(_session,
                                             _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                             {
                                                 if (ReferenceEquals(sender, _reconnectHandler))
@@ -728,7 +818,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         //
                                         if (reconnected == null)
                                         {
-                                            reconnected = _reconnectingSession?.Session;
+                                            reconnected = _reconnectingSession;
                                         }
 
                                         Debug.Assert(reconnected != null, "reconnected should never be null");
@@ -841,6 +931,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var session = _session;
                 Debug.Assert(session != null || online == false, $"Session is null but online is {online}");
 
+                if (online != false && session != null)
+                {
+                    // Reload namespace tables should they have changed...
+                    await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
+                }
+
                 await Task.WhenAll(subscriptions.Select(async subscription =>
                 {
                     try
@@ -898,7 +994,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void EnsureMinimumNumberOfPublishRequestsQueued()
         {
-            var session = _session?.Session;
+            var session = _session;
             if (session == null)
             {
                 return;
@@ -1018,7 +1114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }.ToList();
 
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
-                    var session = await _sessionFactory.CreateAsync(_configuration,
+                    var session = await CreateAsync(_configuration,
                         _reverseConnectManager, endpoint,
                         // Update endpoint through discovery
                         updateBeforeConnect: _reverseConnectManager != null,
@@ -1053,7 +1149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
+        internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
         {
             switch (e.Status.Code)
             {
@@ -1111,7 +1207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private void Session_PublishSequenceNumbersToAcknowledge(ISession session,
+        internal void Session_PublishSequenceNumbersToAcknowledge(ISession session,
             PublishSequenceNumbersToAcknowledgeEventArgs e)
         {
             // Reset timeout counter
@@ -1164,12 +1260,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
+        internal void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
         {
             try
             {
                 // check for events from discarded sessions.
-                if (!ReferenceEquals(session, _session?.Session))
+                if (!ReferenceEquals(session, _session))
                 {
                     return;
                 }
@@ -1210,6 +1306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask<bool> UpdateSessionAsync(ISession session)
         {
             _publishTimeoutCounter = 0;
+            Debug.Assert(session is OpcUaSession);
 
             if (_session == null)
             {
@@ -1218,20 +1315,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             Debug.Assert(_reconnectingSession == null);
-            if (ReferenceEquals(_session?.Session, session))
+            if (ReferenceEquals(_session, session))
             {
                 // Not a new session
                 return false;
             }
 
             await CloseSessionAsync().ConfigureAwait(false);
-            _session = new OpcUaSession(session, Session_KeepAlive,
-                KeepAliveInterval ?? TimeSpan.FromSeconds(30),
-                OperationTimeout ?? TimeSpan.FromMinutes(1),
-                _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                Session_HandlePublishError,
-                Session_PublishSequenceNumbersToAcknowledge,
-                DisableComplexTypePreloading != true);
+            _session = (OpcUaSession)session;
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             kSessions.Add(1, _metrics.TagList);
@@ -1259,9 +1350,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             async ValueTask DisposeAsync(OpcUaSession session)
             {
-                await session.CloseAsync(default).ConfigureAwait(false);
-                session.Dispose();
-                kSessions.Add(-1, _metrics.TagList);
+                try
+                {
+                    await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+
+                    _logger.LogDebug("Successfully closed session {Session}.", session);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to close session {Session}.", session);
+                }
+                finally
+                {
+                    session.Dispose();
+                    kSessions.Add(-1, _metrics.TagList);
+                }
             }
         }
 
@@ -1771,7 +1874,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _publishTimeoutCounter;
         private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
-        private readonly ISessionFactory _sessionFactory;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
         private readonly IJsonSerializer _serializer;
