@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
+    using System.Collections.Frozen;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
-            _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
+            _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (ObjectDisposedException) { } // client accessor already disposed
             finally
             {
-                _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
+                _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                 NumberOfCreatedItems = 0;
                 NumberOfNotCreatedItems = 0;
 
@@ -534,9 +534,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         new ConnectionIdentifier(_subscription.Id.Connection))
                 .ToHashSet();
 
-            var previouslyMonitored = _currentlyMonitored.Values.ToImmutableHashSet();
-            var remove = previouslyMonitored.Except(desired);
-            var add = desired.Except(previouslyMonitored).ToImmutableHashSet();
+            var previouslyMonitored = _currentlyMonitored.Values.ToHashSet();
+            var remove = previouslyMonitored.Except(desired).ToHashSet();
+            var add = desired.Except(previouslyMonitored).ToHashSet();
             var same = previouslyMonitored.ToHashSet();
             same.IntersectWith(desired);
 
@@ -735,6 +735,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _subscription?.Configuration?.EnableImmediatePublishing != true)
                 {
                     await rawSubscription.SetPublishingModeAsync(false, ct).ConfigureAwait(false);
+
+                    _logger.LogInformation(
+                        "Disabled empty Subscription {Subscription} in session {Session}.",
+                        this, session);
                 }
             }
 
@@ -847,15 +851,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // metadata. Then we need a way to retain the previous metadata until
             // switching over.
             //
-            var set = successfullyCompletedItems.ToImmutableHashSet();
+            var set = successfullyCompletedItems.ToHashSet();
+            // Create currently monitored items list
+            Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
+                "Client handles are not distinct or one of the items is null");
+            var currentlyMonitored = set
+                .ToDictionary(m => m.ClientHandle, m => m)
+                .ToFrozenDictionary();
             if (metadataChanged)
             {
                 var threshold =
                     _subscription?.Configuration?.AsyncMetaDataLoadThreshold
                         ?? 30; // Synchronous loading for 30 or less items
-                var tcs = (set.Count <= threshold) ? new TaskCompletionSource() : null;
+                var tcs = (currentlyMonitored.Count <= threshold) ? new TaskCompletionSource() : null;
                 var args = new MetaDataLoader.MetaDataLoaderArguments(tcs, sessionHandle,
-                    session.NamespaceUris, set);
+                    session.NamespaceUris, currentlyMonitored.Values.ToList());
                 _metaDataLoader.Value.Reload(args);
                 if (tcs != null)
                 {
@@ -925,20 +935,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToList()
                 .ForEach(m => m.Dispose());
 
-            // Create currently monitored items list
-            Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
-                "Client handles are not distinct or one of the items is null");
-            _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty.SetItems(
-                set.Select(m =>
-                    new KeyValuePair<uint, OpcUaMonitoredItem>(m.ClientHandle, m)));
-
             // Update subscription state
+            _currentlyMonitored = currentlyMonitored;
             NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = set.Count;
+            NumberOfCreatedItems = currentlyMonitored.Count;
 
             _logger.LogInformation(
                 "Now monitoring {Count} nodes in subscription {Subscription}.",
-                set.Count, this);
+                currentlyMonitored.Count, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -2178,7 +2182,7 @@ Actual (revised) state/desired state:
 
             internal record MetaDataLoaderArguments(TaskCompletionSource? tcs,
                 IOpcUaSession sessionHandle, NamespaceTable namespaces,
-                ImmutableHashSet<OpcUaMonitoredItem> monitoredItemsInDataSet);
+                List<OpcUaMonitoredItem> monitoredItemsInDataSet);
             private MetaDataLoaderArguments? _arguments;
             private readonly Task _loader;
             private readonly CancellationTokenSource _cts = new();
@@ -2231,7 +2235,7 @@ Actual (revised) state/desired state:
         }
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
-        private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
+        private FrozenDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Subscription? _currentSubscription;

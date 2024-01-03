@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
     using System.Runtime.Serialization;
+    using System.Data.Common;
 
     /// <summary>
     /// Monitored item
@@ -39,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public virtual string? DataSetName { get; }
 
         /// <inheritdoc/>
-        public bool AttachedToSubscription { get; protected internal set; }
+        public bool AttachedToSubscription { get; protected internal set; } // TODO: Use Subscription property != null
 
         /// <inheritdoc/>
         public virtual (string NodeId, UpdateNodeId Update)? Register
@@ -72,6 +73,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             NodeId = nodeId;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="copyEventHandlers"></param>
+        /// <param name="copyClientHandle"></param>
+        protected OpcUaMonitoredItem(OpcUaMonitoredItem item,
+            bool copyEventHandlers, bool copyClientHandle)
+            : base(item, copyEventHandlers, copyClientHandle)
+        {
+            NodeId = item.NodeId;
+            _logger = item._logger;
+
+            LastReceivedValue = item.LastReceivedValue;
+            AttachedToSubscription = item.AttachedToSubscription;
+            Valid = item.Valid;
+        }
+
+        /// <inheritdoc/>
+        public override abstract MonitoredItem CloneMonitoredItem(
+            bool copyEventHandlers, bool copyClientHandle);
+
+        /// <inheritdoc/>
+        public override object Clone()
+        {
+            return CloneMonitoredItem(true, true);
         }
 
         /// <summary>
@@ -584,6 +613,26 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Template = template;
             }
 
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected FieldItem(FieldItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new FieldItem(this, copyEventHandlers, copyClientHandle);
+            }
+
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
@@ -783,6 +832,27 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // from the registered and thus effective node id
                 //
                 TheResolvedNodeId = template.StartNodeId;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected DataItem(DataItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                TheResolvedNodeId = item.TheResolvedNodeId;
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItem(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -1148,6 +1218,29 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
             }
 
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private DataItemWithHeartbeat(DataItemWithHeartbeat item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _heartbeatInterval = item._heartbeatInterval;
+                _timerInterval = item._timerInterval;
+                _heartbeatBehavior = item._heartbeatBehavior;
+                _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItemWithHeartbeat(this, copyEventHandlers, copyClientHandle);
+            }
+
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
@@ -1386,6 +1479,27 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 };
             }
 
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private DataItemWithCyclicRead(DataItemWithCyclicRead item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _sampler = item._sampler;
+                _connection = item._connection;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItemWithCyclicRead(this, copyEventHandlers, copyClientHandle);
+            }
+
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
@@ -1612,6 +1726,27 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ILogger<EventItem> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected EventItem(EventItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Fields = item.Fields;
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new EventItem(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -2213,6 +2348,29 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 _conditionHandlingState = new ConditionHandlingState();
                 _conditionTimer = new Timer(OnConditionTimerElapsed);
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private Condition(Condition item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _snapshotInterval = item._snapshotInterval;
+                _updateInterval = item._updateInterval;
+                _conditionHandlingState = item._conditionHandlingState;
+                _conditionTimer = new Timer(OnConditionTimerElapsed);
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new Condition(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
