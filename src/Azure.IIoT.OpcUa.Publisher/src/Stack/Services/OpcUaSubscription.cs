@@ -1431,8 +1431,8 @@ Actual (revised) state/desired state:
                     {
                         _logger.LogWarning(
                             "Monitored item not found with client handle {ClientHandle} " +
-                            "for Event received for subscription {Subscription}.",
-                            eventFieldList.ClientHandle, this);
+                            "for Event received for subscription {Subscription} ({Count}).",
+                            eventFieldList.ClientHandle, this, _currentlyMonitored.Count);
                     }
                 }
                 var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
@@ -1618,8 +1618,8 @@ Actual (revised) state/desired state:
                     {
                         _logger.LogWarning(
                             "Monitored item not found with client handle {ClientHandle} " +
-                            "for DataChange received for subscription {Subscription}",
-                            item.ClientHandle, this);
+                            "for DataChange received for subscription {Subscription} ({Count}).",
+                            item.ClientHandle, this, _currentlyMonitored.Count);
                     }
                 }
 

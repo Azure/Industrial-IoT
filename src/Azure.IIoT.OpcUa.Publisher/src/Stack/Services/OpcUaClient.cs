@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using System.Reflection.Metadata.Ecma335;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -890,6 +891,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private const int kMinPublishRequestCount = 3;
+        private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
         /// Ensure min publish requests are queued
@@ -1057,7 +1059,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 case StatusCodes.BadTooManyPublishRequests:
                     _maxPublishRequests = GoodPublishRequestCount;
-                    _logger.LogDebug("Limit publish requests to {Limit}...",
+                    _logger.LogDebug("Limiting number of queued publish requests to {Limit}...",
                         _maxPublishRequests);
                     break;
                 case StatusCodes.BadSessionIdInvalid:
@@ -1065,21 +1067,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 case StatusCodes.BadSessionClosed:
                 case StatusCodes.BadConnectionClosed:
                 case StatusCodes.BadNoCommunication:
-                    if (Interlocked.Increment(ref _reconnectRequired) == 1)
-                    {
-                        // Ensure we reconnect
-                        TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
-                    }
+                    TriggerReconnect(e);
                     break;
                 case StatusCodes.BadRequestTimeout:
                 case StatusCodes.BadTimeout:
-                    // TODO: Count and also handle if above (threshold * #subscriptions)
-                    _logger.LogDebug("Timeout during publishing.");
-                    break;
+                    var threshold = MinPublishRequestCount * kPublishTimeoutsMultiplier;
+                    if (Interlocked.Increment(ref _publishTimeoutCounter) > threshold)
+                    {
+                        _logger.LogError(
+                            "{Count} Timeouts (> {Threshold}) during publishing. Reconnecting...",
+                            _publishTimeoutCounter, threshold);
+                        TriggerReconnect(e);
+                    }
+                    return;
                 case StatusCodes.BadTooManyOperations:
                     SetCode(e.Status, StatusCodes.BadServerHalted);
                     break;
             }
+
+            // Reset timeout counter - we only care about subsequent timeouts
+            _publishTimeoutCounter = 0;
 
             // Reach into the private field and update it.
             static void SetCode(ServiceResult status, uint fixup)
@@ -1087,6 +1094,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 typeof(ServiceResult).GetField("m_code",
                     System.Reflection.BindingFlags.NonPublic |
                     System.Reflection.BindingFlags.Instance)?.SetValue(status, fixup);
+            }
+
+            void TriggerReconnect(PublishErrorEventArgs e)
+            {
+                if (Interlocked.Increment(ref _reconnectRequired) == 1)
+                {
+                    // Ensure we reconnect
+                    TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
+                }
             }
         }
 
@@ -1098,6 +1114,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void Session_PublishSequenceNumbersToAcknowledge(ISession session,
             PublishSequenceNumbersToAcknowledgeEventArgs e)
         {
+            // Reset timeout counter
+            _publishTimeoutCounter = 0;
+
             var acks = e.AcknowledgementsToSend
                 .Concat(e.DeferredAcknowledgementsToSend)
                 .ToHashSet();
@@ -1190,6 +1209,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="session"></param>
         private async ValueTask<bool> UpdateSessionAsync(ISession session)
         {
+            _publishTimeoutCounter = 0;
+
             if (_session == null)
             {
                 _session = _reconnectingSession;
@@ -1233,6 +1254,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await DisposeAsync(_session).ConfigureAwait(false);
                 _session = null;
             }
+
+            _publishTimeoutCounter = 0;
 
             async ValueTask DisposeAsync(OpcUaSession session)
             {
@@ -1725,6 +1748,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
                 () => new Measurement<int>(OutstandingRequestCount,
                 _metrics.TagList), "Requests", "Number of outstanding requests.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_publish_timeout_count",
+                () => new Measurement<int>(_publishTimeoutCounter,
+                _metrics.TagList), "Requests", "Number of timed out requests.");
         }
 
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
@@ -1742,6 +1768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool _disposed;
         private int _refCount;
         private int? _maxPublishRequests;
+        private int _publishTimeoutCounter;
         private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly ISessionFactory _sessionFactory;
