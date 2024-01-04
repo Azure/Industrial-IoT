@@ -165,7 +165,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _tokens = new Dictionary<string, CancellationTokenSource>();
             _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
-            _subscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
             _maxReconnectPeriod = maxReconnectPeriod ?? TimeSpan.Zero;
             if (_maxReconnectPeriod == TimeSpan.Zero)
             {
@@ -212,59 +211,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void RegisterSubscription(ISubscriptionHandle subscription)
-        {
-            try
-            {
-                lock (_subscriptionsLock)
-                {
-                    if (_subscriptions.Contains(subscription))
-                    {
-                        return;
-                    }
-                    _subscriptions = _subscriptions.Add(subscription);
-                }
-                AddRef();
-            }
-            finally
-            {
-                TriggerConnectionEvent(ConnectionEvent.SubscriptionChange,
-                    subscription);
-            }
-        }
-
-        /// <inheritdoc/>
         public void ManageSubscription(ISubscriptionHandle subscription)
         {
-            TriggerConnectionEvent(ConnectionEvent.SubscriptionManage,
-                    subscription);
-        }
-
-        /// <inheritdoc/>
-        public void UnregisterSubscription(ISubscriptionHandle subscription)
-        {
-            try
-            {
-                lock (_subscriptionsLock)
-                {
-                    if (!_subscriptions.Contains(subscription))
-                    {
-                        _logger.LogWarning("Subscription {Subscription} not found in {Client}.",
-                            subscription, this);
-                        return;
-                    }
-                    _subscriptions = _subscriptions.Remove(subscription);
-                }
-                Release();
-
-                _logger.LogDebug(
-                    "Subscription {Subscription} unregistered from {Client} (remaining:{Now}).",
-                    subscription, this, _subscriptions.Count);
-            }
-            finally
-            {
-                TriggerConnectionEvent(ConnectionEvent.SubscriptionChange);
-            }
+            TriggerConnectionEvent(ConnectionEvent.SubscriptionManage, subscription);
         }
 
         /// <inheritdoc/>
@@ -666,10 +615,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task ManageSessionStateMachineAsync(CancellationToken ct)
         {
             var currentSessionState = SessionState.Disconnected;
-            var currentSubscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
+            IReadOnlyList<ISubscriptionHandle> currentSubscriptions;
+            var queuedSubscriptions = new HashSet<ISubscriptionHandle>();
 
             var reconnectPeriod = 0;
             var reconnectTimer = new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
+            currentSubscriptions = Array.Empty<ISubscriptionHandle>();
             await using (reconnectTimer.ConfigureAwait(false))
             {
                 try
@@ -713,9 +664,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         _disconnectLock.Dispose();
                                         _disconnectLock = null;
 
-                                        currentSubscriptions = _subscriptions;
-                                        await ApplySubscriptionAsync(currentSubscriptions, true, true,
-                                            ct).ConfigureAwait(false);
+                                        currentSubscriptions = _session.SubscriptionHandles;
+                                        queuedSubscriptions.ExceptWith(currentSubscriptions);
+                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions, ct).ConfigureAwait(false);
 
                                         currentSessionState = SessionState.Connected;
                                         break;
@@ -729,34 +680,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 }
                                 break;
 
-                            case ConnectionEvent.SubscriptionChange: // Sent when the subscription list changed
-                                var changedSubscription = context as ISubscriptionHandle;
-                                var subscriptions = _subscriptions; // Snapshot the list of subscriptions
-                                switch (currentSessionState)
-                                {
-                                    case SessionState.Connected:
-                                        // What changed?
-                                        var diff = currentSubscriptions.Except(subscriptions);
-                                        if (changedSubscription != null &&
-                                            subscriptions.Contains(changedSubscription) &&
-                                            !diff.Contains(changedSubscription))
-                                        {
-                                            diff = diff.Add(changedSubscription);
-                                        }
-                                        await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
-                                        currentSubscriptions = subscriptions;
-                                        break;
-                                }
-                                break;
-
                             case ConnectionEvent.SubscriptionManage:
+                                var item = context as ISubscriptionHandle;
+                                Debug.Assert(item != null);
                                 switch (currentSessionState)
                                 {
                                     case SessionState.Connected:
-                                        var item = context as ISubscriptionHandle;
-                                        Debug.Assert(item != null);
-                                        var diff = ImmutableHashSet.Create(item);
-                                        await ApplySubscriptionAsync(diff, cancellationToken: ct).ConfigureAwait(false);
+                                        queuedSubscriptions.Remove(item);
+                                        await ApplySubscriptionAsync(new[] { item }, queuedSubscriptions,
+                                            cancellationToken: ct).ConfigureAwait(false);
+                                        break;
+                                    case SessionState.Disconnected:
+                                        break;
+                                    default:
+                                        queuedSubscriptions.Add(item);
                                         break;
                                 }
                                 break;
@@ -766,9 +703,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 {
                                     case SessionState.Connected: // only valid when connected.
                                         Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
-
-                                        await ApplySubscriptionAsync(currentSubscriptions, false, false,
-                                            ct).ConfigureAwait(false);
 
                                         // Ensure no more access to the session through reader locks
                                         Debug.Assert(_disconnectLock == null);
@@ -848,9 +782,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         _disconnectLock.Dispose();
                                         _disconnectLock = null;
 
-                                        currentSubscriptions = _subscriptions;
-                                        await ApplySubscriptionAsync(currentSubscriptions, true, isNew,
-                                            ct).ConfigureAwait(false);
+                                        currentSubscriptions = _session.SubscriptionHandles; // Snapshot
+                                        queuedSubscriptions.ExceptWith(currentSubscriptions);
+                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions, ct).ConfigureAwait(false);
 
                                         _reconnectRequired = 0;
                                         currentSessionState = SessionState.Connected;
@@ -873,9 +807,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 _reconnectHandler.CancelReconnect();
                                 reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
-                                await ApplySubscriptionAsync(currentSubscriptions, false, false,
-                                    ct).ConfigureAwait(false);
-                                currentSubscriptions = ImmutableHashSet<ISubscriptionHandle>.Empty;
+                                queuedSubscriptions.Clear();
+                                currentSubscriptions = Array.Empty<ISubscriptionHandle>();
 
                                 // if not already disconnected, aquire writer lock
                                 if (_disconnectLock == null)
@@ -922,34 +855,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            async ValueTask ApplySubscriptionAsync(ImmutableHashSet<ISubscriptionHandle> subscriptions,
-                bool? online = null, bool newSession = false, CancellationToken cancellationToken = default)
+            async ValueTask ApplySubscriptionAsync(IReadOnlyList<ISubscriptionHandle> subscriptions,
+                HashSet<ISubscriptionHandle> extra, CancellationToken cancellationToken = default)
             {
-                _logger.LogDebug("Applying changes to {Count} subscriptions...", subscriptions.Count);
+                var numberOfSubscriptions = subscriptions.Count + extra.Count;
+                _logger.LogDebug("Applying changes to {Count} subscriptions...", numberOfSubscriptions);
                 var sw = Stopwatch.StartNew();
 
                 var session = _session;
-                Debug.Assert(session != null || online == false, $"Session is null but online is {online}");
+                Debug.Assert(session != null, "Session is null");
 
-                if (online != false && session != null)
-                {
-                    // Reload namespace tables should they have changed...
-                    await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
-                }
+                // Reload namespace tables should they have changed...
+                await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
 
-                await Task.WhenAll(subscriptions.Select(async subscription =>
+                await Task.WhenAll(subscriptions.Concat(extra).Select(async subscription =>
                 {
                     try
                     {
-                        if (online != false && session != null)
-                        {
-                            await subscription.SyncWithSessionAsync(session, newSession,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-                        if (online != null)
-                        {
-                            subscription.OnSubscriptionStateChanged(online.Value, this);
-                        }
+                        await subscription.SyncWithSessionAsync(session, cancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
@@ -961,13 +884,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 EnsureMinimumNumberOfPublishRequestsQueued();
 
-                if (subscriptions.Count > 1)
+                if (numberOfSubscriptions > 1)
                 {
                     // Clear the node cache - TODO: we should have a real node cache here
                     session?.NodeCache.Clear();
 
                     _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
-                        subscriptions.Count, sw.Elapsed);
+                        numberOfSubscriptions, sw.Elapsed);
                 }
             }
 
@@ -1222,7 +1145,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             e.AcknowledgementsToSend.Clear();
             e.DeferredAcknowledgementsToSend.Clear();
-            foreach (var subscription in _subscriptions)
+
+            foreach (var subscription in ((OpcUaSession)session).SubscriptionHandles)
             {
                 if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
                 {
@@ -1615,7 +1539,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Disconnect,
             StartReconnect,
             ReconnectComplete,
-            SubscriptionChange,
             SubscriptionManage
         }
 
@@ -1831,7 +1754,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 () => new Measurement<int>((int)_lastState, _metrics.TagList),
                 "EndpointConnectivityState", "Client connectivity state.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
-                () => new Measurement<int>(_subscriptions.Count, _metrics.TagList),
+                () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 "Subscriptions", "Number of client managed subscriptions.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
                 () => new Measurement<int>(_numberOfConnectRetries, _metrics.TagList),
@@ -1866,13 +1789,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
-        private ImmutableHashSet<ISubscriptionHandle> _subscriptions;
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
         private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
-        private readonly object _subscriptionsLock = new();
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;

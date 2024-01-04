@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Opc.Ua.Client;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -20,23 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the session.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="sessionIsNew"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask SyncWithSessionAsync(IOpcUaSession session,
-            bool sessionIsNew, CancellationToken ct = default);
-
-        /// <summary>
-        /// Called to signal the underlying session is
-        /// disconnected and the subscription is offline, or
-        /// when it is reconnected and the session is back online.
-        /// This is the case during reconnect handler execution
-        /// or when the subscription was disconnected.
-        /// </summary>
-        /// <param name="online"></param>
-        /// <param name="state"></param>
-        void OnSubscriptionStateChanged(bool online,
-            IOpcUaClientState state);
+        ValueTask SyncWithSessionAsync(ISession session,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Try get the current position in the out stream.

@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
     using System.Runtime.Serialization;
-    using System.Data.Common;
 
     /// <summary>
     /// Monitored item
@@ -167,12 +166,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc/>
-        public virtual void OnMonitoredItemStateChanged(bool online)
-        {
-            // No op
         }
 
         /// <inheritdoc/>

@@ -128,12 +128,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             CancellationToken ct);
 
         /// <summary>
-        /// Subscription state changed
-        /// </summary>
-        /// <param name="online"></param>
-        void OnMonitoredItemStateChanged(bool online);
-
-        /// <summary>
         /// Try get monitored item notifications from
         /// the subscription's monitored item event payload.
         /// </summary>

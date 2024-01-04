@@ -67,13 +67,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
-            SubscriptionModel subscription, IMetricsContext metrics,
-            CancellationToken ct)
+        public ValueTask CreateSubscriptionAsync(
+            SubscriptionModel subscription, ISubscriptionCallbacks callback,
+            IMetricsContext metrics, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             return OpcUaSubscription.CreateAsync(this, _options, subscription,
-                _loggerFactory, new OpcUaClientTagList(
+                _loggerFactory, callback, new OpcUaClientTagList(
                     subscription.Id.Connection, metrics ?? _metrics), ct);
         }
 
@@ -83,15 +83,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             connection.ThrowIfInvalid(nameof(connection));
             return GetOrAddClient(connection);
-        }
-
-        /// <inheritdoc/>
-        public IOpcUaClient? GetClient(ConnectionModel connection)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            var client = FindClient(connection);
-            client?.AddRef();
-            return client;
         }
 
         /// <inheritdoc/>

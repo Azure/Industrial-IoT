@@ -14,47 +14,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Subscription abstraction
     /// </summary>
-    public interface IOpcUaSubscription : IDisposable
+    public interface IOpcUaSubscription
     {
-        /// <summary>
-        /// Subscription keep alive events
-        /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionKeepAlive;
-
-        /// <summary>
-        /// Subscription data change events
-        /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionDataChange;
-
-        /// <summary>
-        /// Subscription event change events
-        /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
-
-        /// <summary>
-        /// Subscription data change diagnostics events
-        /// </summary>
-        event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
-
-        /// <summary>
-        /// Subscription event change diagnostics events
-        /// </summary>
-        event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
-
         /// <summary>
         /// Identifier of the subscription
         /// </summary>
-        string? Name { get; }
+        string Name { get; }
 
         /// <summary>
         /// Assigned index
         /// </summary>
         ushort LocalIndex { get; }
-
-        /// <summary>
-        /// Connection
-        /// </summary>
-        ConnectionModel? Connection { get; }
 
         /// <summary>
         /// Create a keep alive notification

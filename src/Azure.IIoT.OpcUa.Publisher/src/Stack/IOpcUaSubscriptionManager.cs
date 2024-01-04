@@ -18,11 +18,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Get or create new subscription
         /// </summary>
         /// <param name="subscription"></param>
+        /// <param name="callback"></param>
         /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
-            SubscriptionModel subscription, IMetricsContext metrics,
+        ValueTask CreateSubscriptionAsync(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics,
             CancellationToken ct = default);
     }
 }

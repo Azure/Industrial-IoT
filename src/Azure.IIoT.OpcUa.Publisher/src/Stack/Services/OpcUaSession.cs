@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
     using System.Runtime.Serialization;
+    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -43,7 +44,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Type system has loaded
         /// </summary>
-        internal bool IsTypeSystemLoaded => _complexTypeSystem?.IsCompleted ?? false;
+        internal bool IsTypeSystemLoaded
+            => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
+
+        /// <summary>
+        /// Get list of subscription handles registered in the session
+        /// </summary>
+        internal List<ISubscriptionHandle> SubscriptionHandles
+        {
+            get
+            {
+                lock (SyncRoot)
+                {
+                    return Subscriptions.OfType<ISubscriptionHandle>().ToList();
+                }
+            }
+        }
 
         /// <summary>
         /// Create session
@@ -72,53 +88,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
             Initialize();
-
-            PublishError +=
-                _client.Session_HandlePublishError;
-            PublishSequenceNumbersToAcknowledge +=
-                _client.Session_PublishSequenceNumbersToAcknowledge;
-            KeepAlive +=
-                _client.Session_KeepAlive;
-            SessionConfigurationChanged +=
-                Session_SessionConfigurationChanged;
-
             Codec = new JsonVariantEncoder(MessageContext, serializer);
         }
 
         /// <summary>
         /// Copy constructor
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="serializer"></param>
-        /// <param name="logger"></param>
+        /// <param name="session"></param>
         /// <param name="channel"></param>
         /// <param name="template"></param>
         /// <param name="copyEventHandlers"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        private OpcUaSession(OpcUaClient client,
-            IJsonSerializer serializer, ILogger<OpcUaSession> logger,
+        private OpcUaSession(OpcUaSession session,
             ITransportChannel channel, Session template, bool copyEventHandlers)
             : base(channel, template, copyEventHandlers)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _logger = session._logger;
+            _client = session._client;
+            _serializer = session._serializer;
+
+            _complexTypeSystem = session._complexTypeSystem;
+            _history = session._history;
+            _limits = session._limits;
+            _server = session._server;
 
             Initialize();
-
-            if (!copyEventHandlers)
-            {
-                PublishError +=
-                    client.Session_HandlePublishError;
-                PublishSequenceNumbersToAcknowledge +=
-                    client.Session_PublishSequenceNumbersToAcknowledge;
-                KeepAlive +=
-                    client.Session_KeepAlive;
-                SessionConfigurationChanged +=
-                    Session_SessionConfigurationChanged;
-            }
-
-            Codec = new JsonVariantEncoder(MessageContext, serializer);
+            Codec = new JsonVariantEncoder(MessageContext, _serializer);
         }
 
         /// <inheritdoc/>
@@ -127,19 +121,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (disposing && !_disposed)
             {
                 _disposed = true;
+
+                PublishError -=
+                    _client.Session_HandlePublishError;
+                PublishSequenceNumbersToAcknowledge -=
+                    _client.Session_PublishSequenceNumbersToAcknowledge;
+                KeepAlive -=
+                    _client.Session_KeepAlive;
+                SessionConfigurationChanged -=
+                    Session_SessionConfigurationChanged;
+
                 try
                 {
                     _cts.Cancel();
-
-                    PublishError -=
-                        _client.Session_HandlePublishError;
-                    PublishSequenceNumbersToAcknowledge -=
-                        _client.Session_PublishSequenceNumbersToAcknowledge;
-                    KeepAlive -=
-                        _client.Session_KeepAlive;
-                    SessionConfigurationChanged -=
-                        Session_SessionConfigurationChanged;
-
                     _logger.LogDebug("Session {Name} disposed.", SessionName);
                 }
                 finally
@@ -154,8 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override Session CloneSession(ITransportChannel channel, bool copyEventHandlers)
         {
-            return new OpcUaSession(_client, _serializer, (ILogger<OpcUaSession>)_logger,
-                channel, this, copyEventHandlers);
+            return new OpcUaSession(this, channel, this, copyEventHandlers);
         }
 
         /// <inheritdoc/>
@@ -229,25 +222,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(CancellationToken ct)
         {
-            try
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                Debug.Assert(_complexTypeSystem != null);
-                return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                // Throw any cancellation token exception
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to get complex type system for client {Client}.", this);
+                try
+                {
+                    Debug.Assert(_complexTypeSystem != null);
+                    return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    // Throw any cancellation token exception
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Attempt #{Attempt}. Failed to get complex type system for client {Client}.",
+                        attempt, this);
 
-                // Try again. TODO: Throttle using a timer or so...
-                _complexTypeSystem = LoadComplexTypeSystemAsync();
-                return null;
+                    // Try again. TODO: Throttle using a timer or so...
+                    _complexTypeSystem = LoadComplexTypeSystemAsync();
+                }
             }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -628,6 +625,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             DeleteSubscriptionsOnClose = false;
             TransferSubscriptionsOnReconnect = true;
 
+            PublishError +=
+                _client.Session_HandlePublishError;
+            PublishSequenceNumbersToAcknowledge +=
+                _client.Session_PublishSequenceNumbersToAcknowledge;
+            KeepAlive +=
+                _client.Session_KeepAlive;
+            SessionConfigurationChanged +=
+                Session_SessionConfigurationChanged;
+
             KeepAliveInterval =
                 (int)(_client.KeepAliveInterval ?? TimeSpan.FromSeconds(30)).TotalMilliseconds;
             OperationTimeout =
@@ -933,13 +939,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var complexTypeSystem = new ComplexTypeSystem(this);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.LogInformation(
-                        "Complex type system loaded into client {Client}.", this);
 
-                    // Clear cache to release memory.
-                    // TODO: we should have a real node cache here
-                    NodeCache.Clear();
-                    return complexTypeSystem;
+                    if (Connected)
+                    {
+                        _logger.LogInformation(
+                            "Complex type system loaded into client {Client}.", this);
+
+                        // Clear cache to release memory.
+                        // TODO: we should have a real node cache here
+                        NodeCache?.Clear();
+                        return complexTypeSystem;
+                    }
                 }
                 throw new ServiceResultException(StatusCodes.BadNotConnected);
             }, _cts.Token);
