@@ -1138,8 +1138,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     System.Reflection.BindingFlags.NonPublic |
                     System.Reflection.BindingFlags.Instance)?.SetValue(status, fixup);
             }
-
-
         }
 
         /// <summary>
