@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_template.Id}:{Id}";
+            return $"{_template.Id.Id}:{Id}";
         }
 
         /// <inheritdoc/>

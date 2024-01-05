@@ -498,6 +498,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var eventNotificationsPerSecFormatted = info.IngressEventNotifications > 0
     ? $"(All time ~{info.IngressEventNotifications / s:0.##}/s)"
                     : string.Empty;
+                var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0
+                    ? "(Partially Connected)" : "(Connected)") : "(Disconnected)";
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
@@ -512,8 +514,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine(" (dd:hh:mm:ss)")
                     .Append("  # Endpoints connected/disconnected   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfConnectedEndpoints).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.NumberOfDisconnectedEndpoints)
-                        .AppendLine()
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.NumberOfDisconnectedEndpoints).Append(' ')
+                        .AppendLine(connectivityState)
                     .Append("  # Connection retries                 : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.ConnectionRetries)
                         .AppendLine()
