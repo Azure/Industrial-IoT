@@ -24,8 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Amqp.Framing;
-    using static Microsoft.IO.RecyclableMemoryStreamManager;
 
     /// <summary>
     /// Client manager

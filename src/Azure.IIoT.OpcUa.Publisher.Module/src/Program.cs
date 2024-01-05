@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// Module

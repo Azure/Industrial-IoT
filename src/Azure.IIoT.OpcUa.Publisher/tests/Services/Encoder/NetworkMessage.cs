@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
-    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Threading;

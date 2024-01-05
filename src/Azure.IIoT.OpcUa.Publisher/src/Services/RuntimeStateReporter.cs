@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// This class manages reporting of runtime state.

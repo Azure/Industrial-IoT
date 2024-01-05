@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
     using System.Runtime.Serialization;
-    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// OPC UA session extends the SDK session

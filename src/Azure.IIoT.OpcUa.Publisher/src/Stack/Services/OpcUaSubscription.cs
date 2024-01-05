@@ -1126,7 +1126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         $"Failed to create subscription {this} in session {session}");
                 }
 
-                LogRevisedValues( true);
+                LogRevisedValues(true);
                 Debug.Assert(Id != 0);
                 Debug.Assert(Created);
 
@@ -2166,7 +2166,7 @@ Actual (revised) state/desired state:
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
-        private readonly SemaphoreSlim _lock = new (1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly Timer _timer;
         private readonly Timer _keepAliveWatcher;
         private readonly Meter _meter = Diagnostics.NewMeter();

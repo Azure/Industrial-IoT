@@ -11,8 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using System;
     using System.Globalization;
     using System.IO;
-    using System.Reflection;
-    using System.Runtime.InteropServices;
     using System.Text;
 
     /// <summary>
