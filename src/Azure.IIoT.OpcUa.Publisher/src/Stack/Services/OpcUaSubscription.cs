@@ -1363,7 +1363,7 @@ Actual (revised) state/desired state:
                 foreach (var eventFieldList in notification.Events)
                 {
                     Debug.Assert(eventFieldList != null);
-                    if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var wrapper))
+                    if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var monitoredItem))
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         var message = new Notification(this, Id, sequenceNumber: sequenceNumber)
@@ -1372,14 +1372,14 @@ Actual (revised) state/desired state:
                             ApplicationUri = Session?.Endpoint?.Server?.ApplicationUri,
                             EndpointUrl = Session?.Endpoint?.EndpointUrl,
                             SubscriptionName = Name,
-                            DataSetName = wrapper.DataSetName,
+                            DataSetName = monitoredItem.DataSetName,
                             SubscriptionId = LocalIndex,
                             SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                             MessageType = MessageType.Event,
                             PublishTimestamp = publishTime
                         };
 
-                        if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                        if (!monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, eventFieldList, message.Notifications))
                         {
                             _logger.LogDebug("Skipping the monitored item notification for Event " +
@@ -1398,10 +1398,16 @@ Actual (revised) state/desired state:
                     }
                     else
                     {
-                        _logger.LogWarning(
-                            "Monitored item not found with client handle {ClientHandle} " +
-                            "for Event received for subscription {Subscription} ({Count}).",
-                            eventFieldList.ClientHandle, this, _currentlyMonitored.Count);
+                        var found = subscription.FindItemByClientHandle(eventFieldList.ClientHandle);
+                        _unassignedNotifications++;
+
+                        if (_logger.IsEnabled(LogLevel.Debug) || found != null)
+                        {
+                            _logger.LogDebug(
+                                "Monitored item not found with client handle {ClientHandle} for " +
+                                "for Event received for subscription {Subscription} ({Count}, {Item}).",
+                                eventFieldList.ClientHandle, this, _currentlyMonitored.Count, found);
+                        }
                     }
                 }
                 _callbacks.OnSubscriptionEventDiagnosticsChange(true, numOfEvents);
@@ -1549,9 +1555,9 @@ Actual (revised) state/desired state:
                 foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
                 {
                     Debug.Assert(item != null);
-                    if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var wrapper))
+                    if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var monitoredItem))
                     {
-                        if (!wrapper.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                        if (!monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, item, message.Notifications))
                         {
                             _logger.LogDebug(
@@ -1561,10 +1567,16 @@ Actual (revised) state/desired state:
                     }
                     else
                     {
-                        _logger.LogWarning(
-                            "Monitored item not found with client handle {ClientHandle} " +
-                            "for DataChange received for subscription {Subscription} ({Count}).",
-                            item.ClientHandle, this, _currentlyMonitored.Count);
+                        var found = subscription.FindItemByClientHandle(item.ClientHandle);
+                        _unassignedNotifications++;
+
+                        if (_logger.IsEnabled(LogLevel.Debug) || found != null)
+                        {
+                            _logger.LogWarning(
+                                "Monitored item not found with client handle {ClientHandle} for " +
+                                "for DataChange received for subscription {Subscription} ({Count}, {Item}).",
+                                item.ClientHandle, this, _currentlyMonitored.Count, found);
+                        }
                     }
                 }
 
@@ -2113,6 +2125,9 @@ Actual (revised) state/desired state:
             _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
                 () => new Measurement<long>(NumberOfMissingKeepAlives,
                 _metrics.TagList), "Keep Alives", "Number of missing keep alives in subscription.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_unassigned_notification_count",
+                () => new Measurement<long>(_unassignedNotifications,
+                _metrics.TagList), "Notifications", "Number of notifications that could not be assigned.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfCreatedItems,
                 _metrics.TagList), "Monitored items", "Monitored items successfully created.");
@@ -2122,7 +2137,6 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
                 () => new Measurement<long>(_currentlyMonitored.Count,
                 _metrics.TagList), "Monitored items", "Monitored item count.");
-
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(State.ReconnectCount,
                 _metrics.TagList), "Attempts", "OPC UA connect retries.");
@@ -2174,5 +2188,6 @@ Actual (revised) state/desired state:
         private uint _currentSequenceNumber;
         private int _continuouslyMissingKeepAlives;
         private bool _disposed;
+        private long _unassignedNotifications;
     }
 }

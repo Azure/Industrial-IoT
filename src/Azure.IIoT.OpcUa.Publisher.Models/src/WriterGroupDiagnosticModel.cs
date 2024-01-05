@@ -281,6 +281,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public int NumberOfDisconnectedEndpoints { get; set; }
 
         /// <summary>
+        /// Number values or events that were not assignable to
+        /// the items in the subscription.
+        /// </summary>
+        [DataMember(Name = "IngressUnassignedChanges", Order = 38,
+            EmitDefaultValue = true)]
+        public long IngressUnassignedChanges { get; set; }
+
+        /// <summary>
         /// Publisher version
         /// </summary>
         [DataMember(Name = "PublisherVersion", Order = 99,
