@@ -393,6 +393,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public void OnSubscriptionUpdated(IOpcUaSubscription? subscription)
             {
                 Subscription = subscription;
+
+                if (subscription != null)
+                {
+                    _outer._logger.LogInformation("Writer received updated subscription!");
+                }
+                else
+                {
+                    _outer._logger.LogInformation("Writer subscription removed after close!");
+                }
             }
 
             /// <inheritdoc/>

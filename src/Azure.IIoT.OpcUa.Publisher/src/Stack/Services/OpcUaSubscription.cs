@@ -123,8 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _currentlyMonitored = subscription._currentlyMonitored;
             _currentSequenceNumber = subscription._currentSequenceNumber;
             _previousSequenceNumber = subscription._previousSequenceNumber;
-            _closed = subscription._closed;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
+            _closed = subscription._closed;
 
             Initialize();
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
@@ -440,6 +440,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both;
             DisableMonitoredItemCache = true;
             RepublishAfterTransfer = true;
+
+            _callbacks.OnSubscriptionUpdated(_closed ? null : this);
         }
 
         /// <summary>
