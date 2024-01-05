@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
-    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -38,7 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.EventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     [KnownType(typeof(OpcUaMonitoredItem.FieldItem))]
-    internal sealed class OpcUaSubscription : Subscription, IOpcUaSubscription, ISubscriptionHandle
+    internal sealed class OpcUaSubscription : Subscription, IOpcUaSubscription,
+        ISubscriptionHandle
     {
         /// <inheritdoc/>
         public string Name => _template.Id.Id;
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
-        private OpcUaSubscription(IClientAccessor<ConnectionModel> clients,
+        internal OpcUaSubscription(IClientAccessor<ConnectionModel> clients,
             ISubscriptionCallbacks callbacks, SubscriptionModel template,
             IOptions<OpcUaClientOptions> options, ILoggerFactory loggerFactory,
             IMetricsContext metrics)
@@ -83,9 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _callbacks = callbacks ?? throw new ArgumentNullException(nameof(callbacks));
-
-            ValidateSubscriptionInfo(template);
-            _template = template;
+            _template = ValidateSubscriptionInfo(template);
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
             _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
@@ -97,6 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
 
             InitializeMetrics();
+            TriggerManageSubscription(true);
         }
 
         /// <summary>
@@ -111,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
             _metrics = subscription._metrics;
-            _template = subscription._template;
+            _template = ValidateSubscriptionInfo(subscription._template);
             _callbacks = subscription._callbacks;
 
             LocalIndex = subscription.LocalIndex;
@@ -177,9 +176,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            var subscriptionName = _template?.Id?.ToString() ?? "<new>";
-            var subscriptionId = Id.ToString(CultureInfo.CurrentCulture) ?? "<new>";
-            return $"{subscriptionName}:{subscriptionId}";
+            return $"{_template.Id}:{Id}";
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            if (obj is not OpcUaSubscription subscription)
+            {
+                return false;
+            }
+            return subscription._template.Id.Equals(_template.Id);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return _template.Id.GetHashCode();
         }
 
         /// <inheritdoc/>
@@ -228,50 +241,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask UpdateAsync(SubscriptionModel subscription, CancellationToken ct)
         {
-            ValidateSubscriptionInfo(subscription);
-
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var previousTemplate = _template.Id;
-
                 // Update subscription configuration
-                _template = subscription.Clone();
+                var previousTemplateId = _template.Id;
 
-                if (previousTemplate is not null)
+                _template = ValidateSubscriptionInfo(subscription, previousTemplateId.Id);
+                Debug.Assert(Name == previousTemplateId.Id, "The name must not change");
+
+                // But connection information could have changed
+                if (previousTemplateId != _template.Id)
                 {
-                    Debug.Assert(Name == previousTemplate.Id, "The name must not change");
+                    _logger.LogError("Upgrading subscription to different session.");
 
-                    // But connection information could have changed
-                    if (previousTemplate != _template.Id)
-                    {
-                        _logger.LogError("Upgrading subscription to different session.");
+                    // Force closing of the subscription and ...
+                    _forceRecreate = true;
 
-                        // Force closing of the subscription and ...
-                        _forceRecreate = true;
-
-                        // ... release client handle to cause closing of session if last reference.
-                        _client?.Dispose();
-                        _client = null;
-                    }
+                    // ... release client handle to cause closing of session if last reference.
+                    _client?.Dispose();
+                    _client = null;
                 }
-
-                //
-                // Ensure a client and session exists for this subscription. This takes a
-                // reference that must be released when the subscription is closed or the
-                // underlying connection information changes.
-                //
-                if (_client == null)
-                {
-                    _client = _clients.GetOrCreateClient(_template.Id.Connection);
-                }
-
-                // Execute creation/update on the session management thread inside the client
-                Debug.Assert(_client != null);
-
-                _logger.LogInformation("Trigger management of subscription {Subscription}...",
-                    this);
-                _client.ManageSubscription(this);
+                TriggerManageSubscription(true);
             }
             finally
             {
@@ -282,9 +273,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask SyncWithSessionAsync(ISession session, CancellationToken ct)
         {
-            if (_closed)
+            if (_closed || _disposed)
             {
-                _logger.LogDebug("Subscription {Subscription} already closed!", this);
+                _logger.LogError("Subscription {Subscription} already closed!", this);
                 return;
             }
 
@@ -1279,7 +1270,36 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnSubscriptionManagementTriggered(object? state)
         {
-            _client?.ManageSubscription(this);
+            TriggerManageSubscription(false);
+        }
+
+        /// <summary>
+        /// Trigger managing of this subscription, ensure client exists if it is null
+        /// </summary>
+        /// <param name="ensureClientExists"></param>
+        private void TriggerManageSubscription(bool ensureClientExists)
+        {
+            //
+            // Ensure a client and session exists for this subscription. This takes a
+            // reference that must be released when the subscription is closed or the
+            // underlying connection information changes.
+            //
+            if (_client == null)
+            {
+                if (!ensureClientExists)
+                {
+                    return;
+                }
+                _client = _clients.GetOrCreateClient(_template.Id.Connection);
+            }
+
+            // Execute creation/update on the session management thread inside the client
+            Debug.Assert(_client != null);
+
+            _logger.LogInformation("Trigger management of subscription {Subscription}...",
+                this);
+
+            _client.ManageSubscription(this);
         }
 
         /// <summary>
@@ -1776,8 +1796,10 @@ Actual (revised) state/desired state:
         /// Helper to validate subscription template
         /// </summary>
         /// <param name="subscription"></param>
+        /// <param name="subscriptionName"></param>
         /// <exception cref="ArgumentException"></exception>
-        private static void ValidateSubscriptionInfo(SubscriptionModel subscription)
+        private static SubscriptionModel ValidateSubscriptionInfo(SubscriptionModel subscription,
+            string? subscriptionName = null)
         {
             ArgumentNullException.ThrowIfNull(subscription);
             if (subscription.Configuration == null)
@@ -1788,6 +1810,16 @@ Actual (revised) state/desired state:
             {
                 throw new ArgumentException("Missing connection information", nameof(subscription));
             }
+            return subscription with
+            {
+                Configuration = subscription.Configuration with
+                {
+                    MetaData = subscription.Configuration.MetaData.Clone()
+                },
+                Id = new SubscriptionIdentifier(subscription.Id.Connection,
+                    subscriptionName ?? subscription.Id.Id),
+                MonitoredItems = subscription.MonitoredItems?.ToList()
+            };
         }
 
         /// <summary>
@@ -2095,7 +2127,10 @@ Actual (revised) state/desired state:
                 () => new Measurement<long>(State.ReconnectCount,
                 _metrics.TagList), "Attempts", "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(IsOnline ? 1 : 0,
+                () => new Measurement<int>(State.State == EndpointConnectivityState.Ready ? 1 : 0,
+                _metrics.TagList), "Online", "OPC UA connection success flag.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
+                () => new Measurement<int>(State.State != EndpointConnectivityState.Ready ? 1 : 0,
                 _metrics.TagList), "Online", "OPC UA connection success flag.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),

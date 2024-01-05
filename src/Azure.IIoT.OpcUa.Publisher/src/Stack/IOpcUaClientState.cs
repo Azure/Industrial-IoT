@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+
     /// <summary>
     /// Safely access client state for diagnostics
     /// </summary>
@@ -31,9 +33,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         int SubscriptionCount { get; }
 
         /// <summary>
-        /// Is connected
+        /// Connectivity state
         /// </summary>
-        bool IsConnected { get; }
+        EndpointConnectivityState State { get; }
 
         /// <summary>
         /// Connection attempts

@@ -76,8 +76,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 foreach (var writer in _writerGroup.DataSetWriters ?? Enumerable.Empty<DataSetWriterModel>())
                 {
                     // Create writer subscriptions
-                    var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                        this, writer, ct).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var writerSubscription = new DataSetWriterSubscription(this, writer);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
             }
@@ -151,8 +152,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (!_subscriptions.ContainsKey(writer.Key))
                     {
                         // Add
-                        var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                            this, writer.Value, ct).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        var writerSubscription = new DataSetWriterSubscription(this, writer.Value);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
@@ -281,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="dataSetWriter"></param>
-            private DataSetWriterSubscription(WriterGroupDataSource outer,
+            public DataSetWriterSubscription(WriterGroupDataSource outer,
                 DataSetWriterModel dataSetWriter)
             {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
@@ -289,6 +291,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, outer._writerGroup.WriterGroupId);
+
+                _outer._logger.LogDebug("Open new writer with subscription {Id} in writer group {Name}...",
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty;
                 var builder = new TopicBuilder(_outer._options, new Dictionary<string, string>
@@ -314,24 +319,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new KeyValuePair<string, object?>(Constants.DataSetWriterIdTag,
                         dataSetWriter.DataSetWriterName)
                 };
-            }
 
-            /// <summary>
-            /// Create subscription
-            /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="dataSetWriter"></param>
-            /// <param name="ct"></param>
-            public static async ValueTask<DataSetWriterSubscription> CreateAsync(
-                WriterGroupDataSource outer, DataSetWriterModel dataSetWriter,
-                CancellationToken ct)
-            {
-                var dataSetSubscription = new DataSetWriterSubscription(outer, dataSetWriter);
+                //
+                // Creating inner OPC UA subscription object. This will create a session
+                // if none already exist and transfer the subscription into the session
+                // management realm
+                //
+                _outer._subscriptionManager.CreateSubscription(_subscriptionInfo, this, this);
 
-                // Open subscription which creates the underlying OPC UA subscription
-                await dataSetSubscription.OpenAsync(ct).ConfigureAwait(false);
+                _frameCount = 0;
+                InitializeMetaDataTrigger();
+                InitializeKeepAlive();
 
-                return dataSetSubscription;
+                _metadataTimer?.Start();
+                _outer._logger.LogInformation(
+                    "New writer with subscription {Id} in writer group {Name} opened.",
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <summary>
@@ -486,34 +489,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _outer._eventCount++;
                     }
                 }
-            }
-
-            /// <summary>
-            /// Open subscription
-            /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async ValueTask OpenAsync(CancellationToken ct)
-            {
-                _outer._logger.LogDebug("Open new writer with subscription {Id} in writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
-
-                //
-                // Creating inner OPC UA subscription object. This will create a session
-                // if none already exist and transfer the subscription into the session
-                // management realm
-                //
-                await _outer._subscriptionManager.CreateSubscriptionAsync(
-                    _subscriptionInfo, this, this, ct).ConfigureAwait(false);
-
-                _frameCount = 0;
-                InitializeMetaDataTrigger();
-                InitializeKeepAlive();
-
-                _metadataTimer?.Start();
-                _outer._logger.LogInformation(
-                    "New writer with subscription {Id} in writer group {Name} opened.",
-                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <summary>

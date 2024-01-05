@@ -267,6 +267,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public double MinPublishRequestsRatio { get; set; }
 
         /// <summary>
+        /// Number of endpoints connected
+        /// </summary>
+        [DataMember(Name = "NumberOfConnectedEndpoints", Order = 36,
+            EmitDefaultValue = true)]
+        public int NumberOfConnectedEndpoints { get; set; }
+
+        /// <summary>
+        /// Number of endpoints disconnected
+        /// </summary>
+        [DataMember(Name = "NumberOfDisconnectedEndpoints", Order = 37,
+            EmitDefaultValue = true)]
+        public int NumberOfDisconnectedEndpoints { get; set; }
+
+        /// <summary>
         /// Publisher version
         /// </summary>
         [DataMember(Name = "PublisherVersion", Order = 99,

@@ -197,8 +197,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
                         ConnectionRetries = writers.Count == 0 ? 0 : (int)
                             writers.Average(w => w.ConnectionRetries),
-                        OpcEndpointConnected = OpcEndpointConnected ||
-                            writers.Any(w => w.OpcEndpointConnected),
+                        NumberOfDisconnectedEndpoints = NumberOfDisconnectedEndpoints +
+                            writers.Sum(w => w.NumberOfDisconnectedEndpoints),
+                        NumberOfConnectedEndpoints = NumberOfConnectedEndpoints +
+                            writers.Sum(w => w.NumberOfConnectedEndpoints),
+                        OpcEndpointConnected = NumberOfConnectedEndpoints != 0 ||
+                            writers.Any(w => w.NumberOfConnectedEndpoints != 0),
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
                         BadPublishRequestsRatio = BadPublishRequestsRatio +
@@ -287,7 +291,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_bad_nodes"] =
                 (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
                 ["iiot_edge_publisher_is_connection_ok"] =
-                (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
+                (d, i) => d.NumberOfConnectedEndpoints = (int)i,
+                ["iiot_edge_publisher_is_disconnected"] =
+                (d, i) => d.NumberOfDisconnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_connection_retries"] =
                 (d, i) => d.ConnectionRetries = (long)i,
                 ["iiot_edge_publisher_subscriptions"] =

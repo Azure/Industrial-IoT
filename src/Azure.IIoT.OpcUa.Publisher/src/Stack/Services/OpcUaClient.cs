@@ -84,9 +84,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public bool? DisableComplexTypePreloading { get; set; }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Client is connected
+        /// </summary>
         public bool IsConnected
             => _session?.Connected ?? false;
+
+        /// <inheritdoc/>
+        public EndpointConnectivityState State
+            => _lastState;
 
         /// <inheritdoc/>
         public int BadPublishRequestCount
@@ -665,8 +671,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         _disconnectLock = null;
 
                                         currentSubscriptions = _session.SubscriptionHandles;
+                                        //
+                                        // Equality is through subscriptionidentifer therefore only subscriptions
+                                        // that are not yet created inside the session remain in queued state.
+                                        //
                                         queuedSubscriptions.ExceptWith(currentSubscriptions);
-                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions, ct).ConfigureAwait(false);
+                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions,
+                                            ct).ConfigureAwait(false);
 
                                         currentSessionState = SessionState.Connected;
                                         break;
@@ -783,8 +794,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         _disconnectLock = null;
 
                                         currentSubscriptions = _session.SubscriptionHandles; // Snapshot
+                                        //
+                                        // Equality is through subscriptionidentifer therefore only subscriptions
+                                        // that are not yet created inside the session remain in queued state.
+                                        //
                                         queuedSubscriptions.ExceptWith(currentSubscriptions);
-                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions, ct).ConfigureAwait(false);
+                                        await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions,
+                                            ct).ConfigureAwait(false);
 
                                         _reconnectRequired = 0;
                                         currentSessionState = SessionState.Connected;
@@ -831,11 +847,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                 }
 
+                                NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+
                                 // Clean up
                                 await CloseSessionAsync().ConfigureAwait(false);
                                 Debug.Assert(_session == null);
 
-                                NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
                                 currentSessionState = SessionState.Disconnected;
                                 break;
                         }
@@ -865,8 +882,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var session = _session;
                 Debug.Assert(session != null, "Session is null");
 
-                // Reload namespace tables should they have changed...
-                await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
+                try
+                {
+                    // Reload namespace tables should they have changed...
+                    await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
+                }
+                catch (ServiceResultException sre)
+                {
+                    _logger.LogWarning(sre, "Failed to fetch namespace table...");
+                }
 
                 await Task.WhenAll(subscriptions.Concat(extra).Select(async subscription =>
                 {
@@ -1086,7 +1110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 case StatusCodes.BadSessionClosed:
                 case StatusCodes.BadConnectionClosed:
                 case StatusCodes.BadNoCommunication:
-                    TriggerReconnect(e);
+                    TriggerReconnect(e.Status);
                     break;
                 case StatusCodes.BadRequestTimeout:
                 case StatusCodes.BadTimeout:
@@ -1096,7 +1120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogError(
                             "{Count} Timeouts (> {Threshold}) during publishing. Reconnecting...",
                             _publishTimeoutCounter, threshold);
-                        TriggerReconnect(e);
+                        TriggerReconnect(e.Status);
                     }
                     return;
                 case StatusCodes.BadTooManyOperations:
@@ -1115,14 +1139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     System.Reflection.BindingFlags.Instance)?.SetValue(status, fixup);
             }
 
-            void TriggerReconnect(PublishErrorEventArgs e)
-            {
-                if (Interlocked.Increment(ref _reconnectRequired) == 1)
-                {
-                    // Ensure we reconnect
-                    TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
-                }
-            }
+
         }
 
         /// <summary>
@@ -1197,10 +1214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status))
                 {
-                    if (Interlocked.Increment(ref _reconnectRequired) == 1)
-                    {
-                        TriggerConnectionEvent(ConnectionEvent.StartReconnect, e.Status);
-                    }
+                    TriggerReconnect(e.Status);
 
                     _logger.LogInformation(
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
@@ -1210,6 +1224,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnKeepAlive for client {Client}.", this);
+            }
+        }
+
+        /// <summary>
+        /// Trigger reconnect
+        /// </summary>
+        /// <param name="sr"></param>
+        void TriggerReconnect(ServiceResult sr)
+        {
+            if (Interlocked.Increment(ref _reconnectRequired) == 1)
+            {
+                // Ensure we reconnect
+                TriggerConnectionEvent(ConnectionEvent.StartReconnect, sr);
             }
         }
 
@@ -1730,19 +1757,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private sealed class DisconnectState : IOpcUaClientState
         {
             /// <inheritdoc/>
-            public int BadPublishRequestCount => 0;
+            public int BadPublishRequestCount
+                => 0;
             /// <inheritdoc/>
-            public int GoodPublishRequestCount => 0;
+            public int GoodPublishRequestCount
+                => 0;
             /// <inheritdoc/>
-            public int OutstandingRequestCount => 0;
+            public int OutstandingRequestCount
+                => 0;
             /// <inheritdoc/>
-            public int SubscriptionCount => 0;
+            public int SubscriptionCount
+                => 0;
             /// <inheritdoc/>
-            public bool IsConnected => false;
+            public EndpointConnectivityState State
+                => EndpointConnectivityState.Disconnected;
             /// <inheritdoc/>
-            public int ReconnectCount => 0;
+            public int ReconnectCount
+                => 0;
             /// <inheritdoc/>
-            public int MinPublishRequestCount => 0;
+            public int MinPublishRequestCount
+                => 0;
         }
 
         /// <summary>

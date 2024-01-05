@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Amqp.Framing;
+    using static Microsoft.IO.RecyclableMemoryStreamManager;
 
     /// <summary>
     /// Client manager
@@ -67,14 +69,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask CreateSubscriptionAsync(
-            SubscriptionModel subscription, ISubscriptionCallbacks callback,
-            IMetricsContext metrics, CancellationToken ct)
+        public void CreateSubscription(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return OpcUaSubscription.CreateAsync(this, _options, subscription,
-                _loggerFactory, callback, new OpcUaClientTagList(
-                    subscription.Id.Connection, metrics ?? _metrics), ct);
+            // Create subscription which will register with callback/client
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            _ = new OpcUaSubscription(this, callback, subscription,
+                _options, _loggerFactory, new OpcUaClientTagList(
+                    subscription.Id.Connection, metrics ?? _metrics));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <inheritdoc/>
