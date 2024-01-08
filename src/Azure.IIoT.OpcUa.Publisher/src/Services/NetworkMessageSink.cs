@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _diagnostics?.Dispose();
-                await Source.DisposeAsync().ConfigureAwait(false);
+                Source.Dispose();
             }
         }
 

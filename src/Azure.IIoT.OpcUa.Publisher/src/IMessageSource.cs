@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Writer group
     /// </summary>
-    public interface IMessageSource : IAsyncDisposable
+    public interface IMessageSource : IDisposable
     {
         /// <summary>
         /// Subscribe to writer messages

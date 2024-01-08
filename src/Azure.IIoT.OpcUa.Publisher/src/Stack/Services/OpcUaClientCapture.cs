@@ -13,8 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using SharpPcap.LibPcap;
 #endif
     using System.Collections.Generic;
-    using System.Linq;
-    using System.IO;
     using Autofac;
 
     /// <summary>

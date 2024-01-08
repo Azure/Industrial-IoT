@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Service message context
         /// </summary>
-        IServiceMessageContext? ServiceMessageContext { get; }
+        IServiceMessageContext ServiceMessageContext { get; }
 
         /// <summary>
         /// Notification

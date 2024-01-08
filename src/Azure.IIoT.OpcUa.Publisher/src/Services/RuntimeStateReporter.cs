@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -473,24 +472,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             StringBuilder Append(StringBuilder builder, string writerGroupId,
                 WriterGroupDiagnosticModel info)
             {
-                var ingestionDuration = info.IngestionDuration;
-                var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
-                var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
-                var dataChangesLastMin = info.IngressDataChangesInLastMinute
-                    .ToString("D2", CultureInfo.CurrentCulture);
-                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute /
-                    Math.Min(ingestionDuration.TotalSeconds, 60d);
-                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute /
-                    Math.Min(ingestionDuration.TotalSeconds, 60d);
+                var s = info.IngestionDuration.TotalSeconds == 0 ? 1 : info.IngestionDuration.TotalSeconds;
+                var min = info.IngestionDuration.TotalMinutes == 0 ? 1 : info.IngestionDuration.TotalMinutes;
 
-                var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
+                var eventsPerSec = info.IngressEvents / s;
+                var eventNotificationsPerSec = info.IngressEventNotifications / s;
+
+                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(s, 60d);
+                var dataChangesPerSecFormatted = info.IngressDataChanges > 0
+    ? $"(All time ~{info.IngressDataChanges / s:0.##}/s; {info.IngressDataChangesInLastMinute} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
                     : string.Empty;
-                var valueChangesPerSecFormatted = info.IngressValueChanges > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"(All time ~{valueChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
+                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute / Math.Min(s, 60d);
+                var valueChangesPerSecFormatted = info.IngressValueChanges > 0
+    ? $"(All time ~{info.IngressValueChanges / s:0.##}/s; {info.IngressValueChangesInLastMinute} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
                     : string.Empty;
-                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && ingestionDuration.TotalSeconds > 0
-        ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
+                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0
+    ? $"({info.SentMessagesPerSec:0.##}/s)"
+                    : string.Empty;
+                var keepAliveChangesPerSecFormatted = info.IngressKeepAliveNotifications > 0
+    ? $"(All time ~{info.IngressKeepAliveNotifications / min:0.##}/min)"
+                    : string.Empty;
+                var eventsPerSecFormatted = info.IngressEventNotifications > 0
+    ? $"(All time ~{info.IngressEventNotifications / s:0.##}/s)"
+                    : string.Empty;
+                var eventNotificationsPerSecFormatted = info.IngressEventNotifications > 0
+    ? $"(All time ~{info.IngressEventNotifications / s:0.##}/s)"
+                    : string.Empty;
+                var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0
+                    ? "(Partially Connected)" : "(Connected)") : "(Disconnected)";
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
@@ -501,11 +510,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:O}", info.Timestamp)
                         .AppendLine()
                     .Append("  # Ingestion duration                 : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", ingestionDuration)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", info.IngestionDuration)
                         .AppendLine(" (dd:hh:mm:ss)")
-                    .Append("  # Opc endpoint connected?            : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.OpcEndpointConnected)
-                        .AppendLine()
+                    .Append("  # Endpoints connected/disconnected   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfConnectedEndpoints).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.NumberOfDisconnectedEndpoints).Append(' ')
+                        .AppendLine(connectivityState)
                     .Append("  # Connection retries                 : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.ConnectionRetries)
                         .AppendLine()
@@ -530,17 +540,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
                         .AppendLine(valueChangesPerSecFormatted)
                     .Append("  # Ingress events                     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents).Append(' ')
+                        .AppendLine(eventsPerSecFormatted)
+                    .Append("  # Ingress values/events unassignable : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressUnassignedChanges)
                         .AppendLine()
                     .Append("  # Received Data Change Notifications : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges)
-                        .Append(' ').AppendLine(dataChangesPerSecFormatted)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges).Append(' ')
+                        .AppendLine(dataChangesPerSecFormatted)
                     .Append("  # Received Event Notifications       : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
-                        .AppendLine()
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications).Append(' ')
+                        .AppendLine(eventNotificationsPerSecFormatted)
                     .Append("  # Received Keep Alive Notifications  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressKeepAliveNotifications)
-                        .AppendLine()
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressKeepAliveNotifications).Append(' ')
+                        .AppendLine(keepAliveChangesPerSecFormatted)
                     .Append("  # Generated Cyclic read Notifications: ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads)
                         .AppendLine()

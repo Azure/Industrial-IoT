@@ -5,46 +5,47 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The subscription handle is an internal interface
-    /// between opc ua client and the subscription owned
-    /// by the client.
+    /// Subscription handle is a safe abstraction that allows the owner of the
+    /// subscription to update and control without requiring access to the
+    /// underlying state in the opc ua client session.
     /// </summary>
-    internal interface ISubscriptionHandle
+    public interface ISubscriptionHandle
     {
         /// <summary>
-        /// Apply the current subscription configuration to
-        /// the session.
+        /// Identifier of the subscription
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="sessionIsNew"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask SyncWithSessionAsync(IOpcUaSession session,
-            bool sessionIsNew, CancellationToken ct = default);
+        string Name { get; }
 
         /// <summary>
-        /// Called to signal the underlying session is
-        /// disconnected and the subscription is offline, or
-        /// when it is reconnected and the session is back online.
-        /// This is the case during reconnect handler execution
-        /// or when the subscription was disconnected.
+        /// Assigned index
         /// </summary>
-        /// <param name="online"></param>
-        /// <param name="state"></param>
-        void OnSubscriptionStateChanged(bool online,
-            IOpcUaClientState state);
+        ushort LocalIndex { get; }
 
         /// <summary>
-        /// Try get the current position in the out stream.
+        /// Create a keep alive notification
         /// </summary>
-        /// <param name="subscriptionId"></param>
-        /// <param name="sequenceNumber"></param>
         /// <returns></returns>
-        bool TryGetCurrentPosition(out uint subscriptionId,
-            out uint sequenceNumber);
+        IOpcUaSubscriptionNotification? CreateKeepAlive();
+
+        /// <summary>
+        /// Apply desired state of the subscription and its monitored items.
+        /// This will attempt a differential update of the subscription
+        /// and monitored items state. It is called periodically, when the
+        /// configuration is updated or when a session is reconnected and
+        /// the subscription needs to be recreated.
+        /// </summary>
+        /// <param name="configuration"></param>
+        void Update(SubscriptionModel configuration);
+
+        /// <summary>
+        /// Close and delete subscription
+        /// </summary>
+        /// <returns></returns>
+        void Close();
     }
 }

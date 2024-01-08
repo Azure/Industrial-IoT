@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
-    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -192,12 +191,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                             DataSetFieldId = nodeId,
                             DataSetFieldName = displayName,
                         };
-                        eventItem.Item = new MonitoredItem
-                        {
-                            DisplayName = displayName,
-                            StartNodeId = new NodeId(nodeId, 0),
-                            Handle = eventItem
-                        };
+                        eventItem.DisplayName = displayName;
+                        eventItem.StartNodeId = new NodeId(nodeId, 0);
+                        eventItem.Handle = eventItem;
+                        eventItem.Valid = true;
                         eventItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, eventFieldList, notifications);
                     }
                     else
@@ -218,12 +215,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                             DataSetFieldId = nodeId,
                             DataSetFieldName = displayName,
                         };
-                        dataItem.Item = new MonitoredItem
-                        {
-                            DisplayName = displayName,
-                            StartNodeId = new NodeId(nodeId, 0),
-                            Handle = dataItem
-                        };
+                        dataItem.DisplayName = displayName;
+                        dataItem.StartNodeId = new NodeId(nodeId, 0);
+                        dataItem.Handle = dataItem;
+                        dataItem.Valid = true;
                         dataItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, monitoredItemNotification, notifications);
                     }
                 }

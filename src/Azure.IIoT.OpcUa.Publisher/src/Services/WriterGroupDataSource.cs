@@ -22,11 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using Opc.Ua.Client;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed class WriterGroupDataSource : IMessageSource, IDisposable
+    public sealed class WriterGroupDataSource : IMessageSource
     {
         /// <inheritdoc/>
         public event EventHandler<IOpcUaSubscriptionNotification>? OnMessage;
@@ -76,8 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 foreach (var writer in _writerGroup.DataSetWriters ?? Enumerable.Empty<DataSetWriterModel>())
                 {
                     // Create writer subscriptions
-                    var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                        this, writer, ct).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var writerSubscription = new DataSetWriterSubscription(this, writer);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
             }
@@ -100,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var subscription in _subscriptions.Values)
                     {
-                        await subscription.DisposeAsync().ConfigureAwait(false);
+                        subscription.Dispose();
                     }
                     _logger.LogInformation("Removed all subscriptions from writer group {Name}.",
                         writerGroup.WriterGroupId);
@@ -133,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_subscriptions.Remove(id, out var s))
                         {
-                            await s.DisposeAsync().ConfigureAwait(false);
+                            s.Dispose();
                         }
                     }
                     else
@@ -141,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Update
                         if (_subscriptions.TryGetValue(id, out var s))
                         {
-                            await s.UpdateAsync(writer, ct).ConfigureAwait(false);
+                            s.Update(writer);
                         }
                     }
                 }
@@ -151,8 +153,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (!_subscriptions.ContainsKey(writer.Key))
                     {
                         // Add
-                        var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                            this, writer.Value, ct).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        var writerSubscription = new DataSetWriterSubscription(this, writer.Value);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
@@ -178,23 +181,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                DisposeAsync().AsTask().GetAwaiter().GetResult();
+                foreach (var s in _subscriptions.Values)
+                {
+                    s.Dispose();
+                }
+                _subscriptions.Clear();
             }
             finally
             {
                 _lock.Dispose();
                 _meter.Dispose();
             }
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var s in _subscriptions.Values)
-            {
-                await s.DisposeAsync().ConfigureAwait(false);
-            }
-            _subscriptions.Clear();
         }
 
         /// <summary>
@@ -260,7 +257,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Helper to manage subscriptions
         /// </summary>
-        private sealed class DataSetWriterSubscription : IMetricsContext, IAsyncDisposable
+        private sealed class DataSetWriterSubscription : IDisposable, ISubscriptionCallbacks,
+            IMetricsContext
         {
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -273,14 +271,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Active subscription
             /// </summary>
-            public IOpcUaSubscription? Subscription { get; set; }
+            public ISubscriptionHandle? Subscription { get; set; }
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="dataSetWriter"></param>
-            private DataSetWriterSubscription(WriterGroupDataSource outer,
+            public DataSetWriterSubscription(WriterGroupDataSource outer,
                 DataSetWriterModel dataSetWriter)
             {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
@@ -288,6 +286,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, outer._writerGroup.WriterGroupId);
+
+                _outer._logger.LogDebug("Open new writer with subscription {Id} in writer group {Name}...",
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty;
                 var builder = new TopicBuilder(_outer._options, new Dictionary<string, string>
@@ -313,32 +314,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new KeyValuePair<string, object?>(Constants.DataSetWriterIdTag,
                         dataSetWriter.DataSetWriterName)
                 };
-            }
 
-            /// <summary>
-            /// Create subscription
-            /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="dataSetWriter"></param>
-            /// <param name="ct"></param>
-            public static async ValueTask<DataSetWriterSubscription> CreateAsync(
-                WriterGroupDataSource outer, DataSetWriterModel dataSetWriter,
-                CancellationToken ct)
-            {
-                var dataSetSubscription = new DataSetWriterSubscription(outer, dataSetWriter);
+                //
+                // Creating inner OPC UA subscription object. This will create a session
+                // if none already exist and transfer the subscription into the session
+                // management realm
+                //
+                _outer._subscriptionManager.CreateSubscription(_subscriptionInfo, this, this);
 
-                // Open subscription which creates the underlying OPC UA subscription
-                await dataSetSubscription.OpenAsync(ct).ConfigureAwait(false);
+                _frameCount = 0;
+                InitializeMetaDataTrigger();
+                InitializeKeepAlive();
 
-                return dataSetSubscription;
+                _metadataTimer?.Start();
+                _outer._logger.LogInformation(
+                    "New writer with subscription {Id} in writer group {Name} opened.",
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <summary>
             /// Update subscription content
             /// </summary>
             /// <param name="dataSetWriter"></param>
-            /// <param name="ct"></param>
-            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct)
+            public void Update(DataSetWriterModel dataSetWriter)
             {
                 _outer._logger.LogDebug("Updating writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
@@ -347,7 +345,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, _outer._writerGroup.WriterGroupId);
 
-                if (Subscription == null)
+                var subscription = Subscription;
+                if (subscription == null)
                 {
                     _outer._logger.LogWarning("Writer does not have a subscription to update yet!");
                     return;
@@ -357,24 +356,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 InitializeKeepAlive();
 
                 // Apply changes
-                await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
+                subscription.Update(_subscriptionInfo);
 
                 _outer._logger.LogInformation("Updated subscription for writer {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
+            public void Dispose()
             {
                 try
                 {
-                    if (Subscription == null)
+                    if (_disposed)
                     {
                         return;
                     }
+                    _disposed = true;
                     _metadataTimer?.Stop();
 
-                    await CloseAsync().ConfigureAwait(false);
+                    Close();
                 }
                 finally
                 {
@@ -383,72 +383,133 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
-            /// <summary>
-            /// Open subscription
-            /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async ValueTask OpenAsync(CancellationToken ct)
+            /// <inheritdoc/>
+            public void OnSubscriptionUpdated(ISubscriptionHandle? subscription)
             {
-                _outer._logger.LogDebug("Open new writer with subscription {Id} in writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
+                Subscription = subscription;
 
-                //
-                // Creating inner OPC UA subscription object. This will create a session
-                // if none already exist and transfer the subscription into the session
-                // management realm
-                //
-                Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
-                    _subscriptionInfo, this, ct).ConfigureAwait(false);
+                if (subscription != null)
+                {
+                    _outer._logger.LogInformation("Writer received updated subscription!");
+                }
+                else
+                {
+                    _outer._logger.LogInformation("Writer subscription removed after close!");
+                }
+            }
 
-                _frameCount = 0;
-                InitializeMetaDataTrigger();
-                InitializeKeepAlive();
+            /// <inheritdoc/>
+            public void OnSubscriptionDataChange(IOpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(ProcessKeyFrame(notification));
 
-                Subscription.OnSubscriptionKeepAlive
-                    += OnSubscriptionKeepAliveNotification;
-                Subscription.OnSubscriptionDataChange
-                    += OnSubscriptionDataChangeNotification;
-                Subscription.OnSubscriptionEventChange
-                    += OnSubscriptionEventNotification;
-                Subscription.OnSubscriptionDataDiagnosticsChange
-                    += OnSubscriptionDataDiagnosticsChanged;
-                Subscription.OnSubscriptionEventDiagnosticsChange
-                    += OnSubscriptionEventDiagnosticsChanged;
+                IOpcUaSubscriptionNotification ProcessKeyFrame(IOpcUaSubscriptionNotification notification)
+                {
+                    var keyFrameCount = _dataSetWriter.KeyFrameCount
+                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
+                    if (keyFrameCount > 0)
+                    {
+                        var frameCount = Interlocked.Increment(ref _frameCount);
+                        if (((frameCount - 1) % keyFrameCount) == 0)
+                        {
+                            notification.TryUpgradeToKeyFrame();
+                        }
+                    }
+                    return notification;
+                }
+            }
 
-                _metadataTimer?.Start();
-                _outer._logger.LogInformation("New writer with subscription {Id} in writer group {Name} opened.",
-                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
+            /// <inheritdoc/>
+            public void OnSubscriptionKeepAlive(IOpcUaSubscriptionNotification notification)
+            {
+                Interlocked.Increment(ref _outer._keepAliveCount);
+                if (_sendKeepAlives)
+                {
+                    CallMessageReceiverDelegates(notification);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int notificationCounts,
+                int heartbeat, int cyclic)
+            {
+                lock (_lock)
+                {
+                    _outer._heartbeatsCount += heartbeat;
+                    _outer._cyclicReadsCount += cyclic;
+                    if (liveData)
+                    {
+                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
+                        {
+                            // reset both
+                            _outer._logger.LogDebug(
+                                "Notifications counter in subscription {Id} has been reset to prevent" +
+                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
+                                "value changes were invoked by message source.",
+                                Id, _outer.DataChangesCount, _outer.ValueChangesCount);
+                            _outer.DataChangesCount = 0;
+                            _outer.ValueChangesCount = 0;
+                            _outer._heartbeatsCount = 0;
+                            _outer._cyclicReadsCount = 0;
+                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                        }
+
+                        _outer.ValueChangesCount += notificationCounts;
+                        _outer.DataChangesCount++;
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventChange(IOpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts)
+            {
+                lock (_lock)
+                {
+                    if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
+                    {
+                        // reset both
+                        _outer._logger.LogDebug(
+                            "Notifications counter in subscription {Id} has been reset to prevent" +
+                            " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
+                            "event value changes were invoked by message source.",
+                            Id, _outer._eventCount, _outer._eventNotificationCount);
+                        _outer._eventCount = 0;
+                        _outer._eventNotificationCount = 0;
+                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                    }
+
+                    _outer._eventNotificationCount += notificationCounts;
+                    if (liveData)
+                    {
+                        _outer._eventCount++;
+                    }
+                }
             }
 
             /// <summary>
             /// Close subscription
             /// </summary>
             /// <returns></returns>
-            private async ValueTask CloseAsync()
+            private void Close()
             {
-                if (Subscription == null)
+                var subscription = Subscription;
+                if (subscription == null)
                 {
                     return;
                 }
 
                 _outer._logger.LogDebug("Closing writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
-                await Subscription.CloseAsync().ConfigureAwait(false);
 
-                Subscription.OnSubscriptionKeepAlive
-                    -= OnSubscriptionKeepAliveNotification;
-                Subscription.OnSubscriptionDataChange
-                    -= OnSubscriptionDataChangeNotification;
-                Subscription.OnSubscriptionEventChange
-                    -= OnSubscriptionEventNotification;
-                Subscription.OnSubscriptionDataDiagnosticsChange
-                    -= OnSubscriptionDataDiagnosticsChanged;
-                Subscription.OnSubscriptionEventDiagnosticsChange
-                    -= OnSubscriptionEventDiagnosticsChanged;
-
-                Subscription.Dispose();
-                Subscription = null;
+                subscription.Close();
 
                 _outer._logger.LogInformation("Writer with subscription {Id} in writer group {Name} closed.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
@@ -524,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (notification != null)
                 {
                     // This call udpates the message type, so no need to do it here.
-                    CallMessageReceiverDelegates(this, notification, true);
+                    CallMessageReceiverDelegates(notification, true);
                 }
                 else
                 {
@@ -534,126 +595,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Handle subscription data change messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notification"></param>
-            private void OnSubscriptionDataChangeNotification(object? sender, IOpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
-
-                IOpcUaSubscriptionNotification ProcessKeyFrame(IOpcUaSubscriptionNotification notification)
-                {
-                    var keyFrameCount = _dataSetWriter.KeyFrameCount
-                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
-                    if (keyFrameCount > 0)
-                    {
-                        var frameCount = Interlocked.Increment(ref _frameCount);
-                        if (((frameCount - 1) % keyFrameCount) == 0)
-                        {
-                            notification.TryUpgradeToKeyFrame();
-                        }
-                    }
-                    return notification;
-                }
-            }
-
-            /// <summary>
-            /// Handle subscription keep alive messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notification"></param>
-            private void OnSubscriptionKeepAliveNotification(object? sender, IOpcUaSubscriptionNotification notification)
-            {
-                Interlocked.Increment(ref _outer._keepAliveCount);
-                if (_sendKeepAlives)
-                {
-                    CallMessageReceiverDelegates(sender, notification);
-                }
-            }
-
-            /// <summary>
-            /// Handle subscription data diagnostics change messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notificationCounts"></param>
-            private void OnSubscriptionDataDiagnosticsChanged(object? sender, (bool, int, int, int) notificationCounts)
-            {
-                lock (_lock)
-                {
-                    _outer._heartbeatsCount += notificationCounts.Item3;
-                    _outer._cyclicReadsCount += notificationCounts.Item4;
-                    if (notificationCounts.Item1)
-                    {
-                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
-                        {
-                            // reset both
-                            _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
-                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
-                                "value changes were invoked by message source.",
-                                Id, _outer.DataChangesCount, _outer.ValueChangesCount);
-                            _outer.DataChangesCount = 0;
-                            _outer.ValueChangesCount = 0;
-                            _outer._heartbeatsCount = 0;
-                            _outer._cyclicReadsCount = 0;
-                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
-                        }
-
-                        _outer.ValueChangesCount += notificationCounts.Item2;
-                        _outer.DataChangesCount++;
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Handle subscription change messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notification"></param>
-            private void OnSubscriptionEventNotification(object? sender, IOpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(sender, notification);
-            }
-
-            /// <summary>
-            /// Handle subscription event diagnostics change messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notificationCounts"></param>
-            private void OnSubscriptionEventDiagnosticsChanged(object? sender, (bool, int) notificationCounts)
-            {
-                lock (_lock)
-                {
-                    if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
-                    {
-                        // reset both
-                        _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
-                            " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
-                            "event value changes were invoked by message source.",
-                            Id, _outer._eventCount, _outer._eventNotificationCount);
-                        _outer._eventCount = 0;
-                        _outer._eventNotificationCount = 0;
-                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
-                    }
-
-                    _outer._eventNotificationCount += notificationCounts.Item2;
-                    if (notificationCounts.Item1)
-                    {
-                        _outer._eventCount++;
-                    }
-                }
-            }
-
-            /// <summary>
             /// handle subscription change messages
             /// </summary>
-            /// <param name="sender"></param>
             /// <param name="notification"></param>
             /// <param name="metaDataTimer"></param>
-            private void CallMessageReceiverDelegates(object? sender,
-                IOpcUaSubscriptionNotification notification, bool metaDataTimer = false)
+            private void CallMessageReceiverDelegates(IOpcUaSubscriptionNotification notification,
+                bool metaDataTimer = false)
             {
                 try
                 {
@@ -683,7 +630,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         () => Interlocked.Increment(ref _metadataSequenceNumber))
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                                _outer.OnMessage?.Invoke(sender, metadata);
+                                _outer.OnMessage?.Invoke(this, metadata);
                                 InitializeMetaDataTrigger();
                             }
                         }
@@ -695,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 () => Interlocked.Increment(ref _dataSetSequenceNumber));
                             _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
-                            _outer.OnMessage?.Invoke(sender, notification);
+                            _outer.OnMessage?.Invoke(this, notification);
                         }
                     }
                 }
@@ -761,7 +708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public object? Context { get; set; }
 
                 /// <inheritdoc/>
-                public IServiceMessageContext? ServiceMessageContext { get; set; }
+                public IServiceMessageContext ServiceMessageContext { get; set; }
 
                 /// <inheritdoc/>
                 public IList<MonitoredItemNotificationModel> Notifications { get; }
@@ -808,6 +755,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private uint _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;
             private bool _sendKeepAlives;
+            private bool _disposed;
         }
 
         /// <summary>

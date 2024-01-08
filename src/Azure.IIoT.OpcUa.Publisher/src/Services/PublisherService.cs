@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        await group.Value.DisposeAsync().ConfigureAwait(false);
+                        group.Value.Dispose();
                         _logger.LogInformation("Writer group job {Job} stopped.",
                             group.Key);
                     }
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await delete.DisposeAsync().ConfigureAwait(false);
+                    delete.Dispose();
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Job context
         /// </summary>
-        private sealed class WriterGroupJob : IAsyncDisposable
+        private sealed class WriterGroupJob : IDisposable
         {
             /// <summary>
             /// Immutable writer group identifier
@@ -337,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (Exception ex)
                 {
                     outer._logger.LogError(ex, "Failed to create writer group job {Name}", context.Id);
-                    await context.DisposeAsync().ConfigureAwait(false);
+                    context.Dispose();
                     throw;
                 }
             }
@@ -373,11 +373,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
+            public void Dispose()
             {
                 try
                 {
-                    await Source.DisposeAsync().ConfigureAwait(false);
+                    Source.Dispose();
                 }
                 catch (Exception ex)
                 {

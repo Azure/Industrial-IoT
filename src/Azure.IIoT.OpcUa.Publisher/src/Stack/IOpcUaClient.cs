@@ -34,32 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             CancellationToken ct = default);
 
         /// <summary>
-        /// Register a subscription which takes a reference on the session
-        /// handle. Must be unregistered to release the reference count.
-        /// Reference count going to 1 means that the connect thread is
-        /// started to unblock the writer lock on the session once connected.
-        /// Once the session is connected the subcription state is applied.
-        /// If the session is already connected it is applied inline.
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        void RegisterSubscription(ISubscriptionHandle subscription);
-
-        /// <summary>
         /// Trigger the client to manage the subscription. This is a
         /// no op if the subscription is not registered or the client
         /// is not connected.
         /// </summary>
         /// <param name="subscription"></param>
-        void ManageSubscription(ISubscriptionHandle subscription);
-
-        /// <summary>
-        /// Removes a subscription and releases the reference count. If the
-        /// refernce count goes to 0 the session is disconnected and the
-        /// writer lock is aquired until it is going back to 1 or higher.
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        void UnregisterSubscription(ISubscriptionHandle subscription);
+        void ManageSubscription(IOpcUaSubscription subscription);
     }
 }

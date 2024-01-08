@@ -5,79 +5,34 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
+    using Opc.Ua.Client;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Subscription abstraction
+    /// The opc ua subscription is an internal interface
+    /// between opc ua client and the subscription owned
+    /// by the client.
     /// </summary>
-    public interface IOpcUaSubscription : IDisposable
+    internal interface IOpcUaSubscription
     {
         /// <summary>
-        /// Subscription keep alive events
+        /// Apply the current subscription configuration to
+        /// the session.
         /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionKeepAlive;
-
-        /// <summary>
-        /// Subscription data change events
-        /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionDataChange;
-
-        /// <summary>
-        /// Subscription event change events
-        /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnSubscriptionEventChange;
-
-        /// <summary>
-        /// Subscription data change diagnostics events
-        /// </summary>
-        event EventHandler<(bool, int, int, int)>? OnSubscriptionDataDiagnosticsChange;
-
-        /// <summary>
-        /// Subscription event change diagnostics events
-        /// </summary>
-        event EventHandler<(bool, int)>? OnSubscriptionEventDiagnosticsChange;
-
-        /// <summary>
-        /// Identifier of the subscription
-        /// </summary>
-        string? Name { get; }
-
-        /// <summary>
-        /// Assigned index
-        /// </summary>
-        ushort Id { get; }
-
-        /// <summary>
-        /// Connection
-        /// </summary>
-        ConnectionModel? Connection { get; }
-
-        /// <summary>
-        /// Create a keep alive notification
-        /// </summary>
-        /// <returns></returns>
-        IOpcUaSubscriptionNotification? CreateKeepAlive();
-
-        /// <summary>
-        /// Apply desired state of the subscription and its monitored items.
-        /// This will attempt a differential update of the subscription
-        /// and monitored items state. It is called periodically, when the
-        /// configuration is updated or when a session is reconnected and
-        /// the subscription needs to be recreated.
-        /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="session"></param>
         /// <param name="ct"></param>
-        ValueTask UpdateAsync(SubscriptionModel configuration,
+        /// <returns></returns>
+        ValueTask SyncWithSessionAsync(ISession session,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Close and delete subscription
+        /// Try get the current position in the out stream.
         /// </summary>
+        /// <param name="subscriptionId"></param>
+        /// <param name="sequenceNumber"></param>
         /// <returns></returns>
-        ValueTask CloseAsync();
+        bool TryGetCurrentPosition(out uint subscriptionId,
+            out uint sequenceNumber);
     }
 }

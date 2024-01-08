@@ -195,10 +195,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
-                        ConnectionRetries = writers.Count == 0 ? 0 : (int)
-                            writers.Average(w => w.ConnectionRetries),
-                        OpcEndpointConnected = OpcEndpointConnected ||
-                            writers.Any(w => w.OpcEndpointConnected),
+                        ConnectionRetries = ConnectionRetries +
+                            writers.Sum(w => w.ConnectionRetries),
+                        NumberOfDisconnectedEndpoints = NumberOfDisconnectedEndpoints +
+                            writers.Sum(w => w.NumberOfDisconnectedEndpoints),
+                        NumberOfConnectedEndpoints = NumberOfConnectedEndpoints +
+                            writers.Sum(w => w.NumberOfConnectedEndpoints),
+                        OpcEndpointConnected = NumberOfConnectedEndpoints != 0 ||
+                            writers.Any(w => w.NumberOfConnectedEndpoints != 0),
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
                         BadPublishRequestsRatio = BadPublishRequestsRatio +
@@ -254,6 +258,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (d, i) => d.IngressCyclicReads = (long)i,
                 ["iiot_edge_publisher_event_notifications"] =
                 (d, i) => d.IngressEventNotifications = (long)i,
+                ["iiot_edge_publisher_unassigned_notification_count"] =
+                (d, i) => d.IngressUnassignedChanges = (long)i,
                 ["iiot_edge_publisher_estimated_message_chunks_per_day"] =
                 (d, i) => d.EstimatedIoTChunksPerDay = (double)i,
                 ["iiot_edge_publisher_messages_per_second"] =
@@ -287,7 +293,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_bad_nodes"] =
                 (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
                 ["iiot_edge_publisher_is_connection_ok"] =
-                (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
+                (d, i) => d.NumberOfConnectedEndpoints = (int)i,
+                ["iiot_edge_publisher_is_disconnected"] =
+                (d, i) => d.NumberOfDisconnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_connection_retries"] =
                 (d, i) => d.ConnectionRetries = (long)i,
                 ["iiot_edge_publisher_subscriptions"] =

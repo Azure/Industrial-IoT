@@ -35,15 +35,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public interface IOpcUaMonitoredItem : IDisposable
     {
         /// <summary>
-        /// Monitored item once added to the subscription. Contract:
-        /// The item will be null until the subscription calls
+        /// The item is valid once added to the subscription. Contract:
+        /// The item will be invalid until the subscription calls
         /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
         /// to add it to the subscription. After removal the item
-        /// is still valid, but the Handle is null. The item is
-        /// again null after <see cref="IDisposable.Dispose"/> is
+        /// is still Valid, but not Created. The item is
+        /// again invalid after <see cref="IDisposable.Dispose"/> is
         /// called.
         /// </summary>
-        MonitoredItem? Item { get; }
+        bool Valid { get; }
 
         /// <summary>
         /// Data set name
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Get the display name for the node. This is called after
         /// the node is resolved and registered as applicable.
         /// </summary>
-        (string NodeId, UpdateString Update)? DisplayName { get; }
+        (string NodeId, UpdateString Update)? GetDisplayName { get; }
 
         /// <summary>
         /// Add the item to the subscription
@@ -126,12 +126,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes,
             CancellationToken ct);
-
-        /// <summary>
-        /// Subscription state changed
-        /// </summary>
-        /// <param name="online"></param>
-        void OnMonitoredItemStateChanged(bool online);
 
         /// <summary>
         /// Try get monitored item notifications from

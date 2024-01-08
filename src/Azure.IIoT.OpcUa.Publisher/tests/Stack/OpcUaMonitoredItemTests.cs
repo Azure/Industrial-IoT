@@ -26,13 +26,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 DiscardNew = null
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
 
-            Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
-            Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
-            Assert.Equal(1000, monitoredItemWrapper.Item.SamplingInterval);
-            Assert.True(monitoredItemWrapper.Item.DiscardOldest);
-            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.Equal(Attributes.Value, monitoredItem.AttributeId);
+            Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItem.MonitoringMode);
+            Assert.Equal(1000, monitoredItem.SamplingInterval);
+            Assert.True(monitoredItem.DiscardOldest);
+            Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -43,17 +43,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
-            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
-            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            Assert.False(monitoredItem.TrySetSkipFirst(true));
+            Assert.True(monitoredItem.TrySetSkipFirst(false));
+            Assert.True(monitoredItem.TrySetSkipFirst(true));
+            Assert.True(monitoredItem.TrySetSkipFirst(false));
+            Assert.True(monitoredItem.TrySetSkipFirst(true));
+            Assert.True(monitoredItem.SkipMonitoredItemNotification());
             // This is allowed since it does not matter
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
-            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
-            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.True(monitoredItem.TrySetSkipFirst(false));
+            Assert.False(monitoredItem.TrySetSkipFirst(true));
+            Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -64,15 +64,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
-            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
-            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            Assert.True(monitoredItem.SkipMonitoredItemNotification());
+            Assert.False(monitoredItem.TrySetSkipFirst(true));
             // This is allowed since it does not matter
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
-            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.True(monitoredItem.TrySetSkipFirst(false));
+            Assert.False(monitoredItem.TrySetSkipFirst(true));
             // This is allowed since it does not matter
-            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
-            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.True(monitoredItem.TrySetSkipFirst(false));
+            Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -82,10 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
                 StartNodeId = "i=2258"
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
-            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
-            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
-            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            Assert.False(monitoredItem.SkipMonitoredItemNotification());
+            Assert.False(monitoredItem.TrySetSkipFirst(true));
+            Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -106,19 +106,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
 
-            Assert.Equal("DisplayName", monitoredItemWrapper.Item.DisplayName);
-            Assert.Equal((uint)NodeAttribute.Value, monitoredItemWrapper.Item.AttributeId);
-            Assert.Equal("5:20", monitoredItemWrapper.Item.IndexRange);
-            Assert.Null(monitoredItemWrapper.Item.RelativePath);
-            Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItemWrapper.Item.MonitoringMode);
-            Assert.Equal("i=2258", monitoredItemWrapper.Item.StartNodeId);
-            Assert.Equal(10u, monitoredItemWrapper.Item.QueueSize);
-            Assert.Equal(10000, monitoredItemWrapper.Item.SamplingInterval);
-            Assert.False(monitoredItemWrapper.Item.DiscardOldest);
-            Assert.Null(monitoredItemWrapper.Item.Handle);
-            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.Equal("DisplayName", monitoredItem.DisplayName);
+            Assert.Equal((uint)NodeAttribute.Value, monitoredItem.AttributeId);
+            Assert.Equal("5:20", monitoredItem.IndexRange);
+            Assert.Null(monitoredItem.RelativePath);
+            Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItem.MonitoringMode);
+            Assert.Equal("i=2258", monitoredItem.StartNodeId);
+            Assert.Equal(10u, monitoredItem.QueueSize);
+            Assert.Equal(10000, monitoredItem.SamplingInterval);
+            Assert.False(monitoredItem.DiscardOldest);
+            Assert.Null(monitoredItem.Handle);
+            Assert.True(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -134,12 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     DeadbandValue = 10.0
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<DataChangeFilter>(monitoredItemWrapper.Item.Filter);
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<DataChangeFilter>(monitoredItem.Filter);
 
-            var dataChangeFilter = (DataChangeFilter)monitoredItemWrapper.Item.Filter;
+            var dataChangeFilter = (DataChangeFilter)monitoredItem.Filter;
             Assert.Equal(DataChangeTrigger.StatusValue, dataChangeFilter.Trigger);
             Assert.Equal((uint)Opc.Ua.DeadbandType.Percent, dataChangeFilter.DeadbandType);
             Assert.Equal(10.0, dataChangeFilter.DeadbandValue);
@@ -174,12 +174,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     }
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<EventFilter>(monitoredItem.Filter);
 
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            var eventFilter = (EventFilter)monitoredItem.Filter;
             Assert.NotEmpty(eventFilter.SelectClauses);
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Equal("EventId", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
@@ -206,12 +206,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     UpdateInterval = 20
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
 
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
+            Assert.NotNull(monitoredItem.Filter);
+            Assert.IsType<EventFilter>(monitoredItem.Filter);
 
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            var eventFilter = (EventFilter)monitoredItem.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(11, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[9].AttributeId);
@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             });
             var eventItem = GetMonitoredItem(template, namespaceTable) as OpcUaMonitoredItem.EventItem;
 
-            Assert.Equal(((EventFilter)eventItem.Item.Filter).SelectClauses.Count, eventItem.Fields.Count);
+            Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", eventItem.Fields[1].Name);
         }
@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
             var eventItem = GetMonitoredItem(template, namespaceUris) as OpcUaMonitoredItem.EventItem;
 
-            Assert.Equal(((EventFilter)eventItem.Item.Filter).SelectClauses.Count, eventItem.Fields.Count);
+            Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", eventItem.Fields[1].Name);
         }

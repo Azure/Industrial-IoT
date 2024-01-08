@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Subscription manager
@@ -15,14 +13,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public interface IOpcUaSubscriptionManager
     {
         /// <summary>
-        /// Get or create new subscription
+        /// Create new subscription with the subscription model
+        /// The callback will have been called with the new subscription
+        /// which then can be used to manage the subscription.
         /// </summary>
-        /// <param name="subscription"></param>
-        /// <param name="metrics"></param>
-        /// <param name="ct"></param>
+        /// <param name="subscription">The subscription template</param>
+        /// <param name="callback">Callbacks from the subscription</param>
+        /// <param name="metrics">Additional metrics information</param>
         /// <returns></returns>
-        ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
-            SubscriptionModel subscription, IMetricsContext metrics,
-            CancellationToken ct = default);
+        void CreateSubscription(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics);
     }
 }

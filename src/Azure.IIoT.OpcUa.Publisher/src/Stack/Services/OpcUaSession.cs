@@ -22,12 +22,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Runtime.Serialization;
 
     /// <summary>
-    /// OPC UA Client based on official ua client reference sample.
+    /// OPC UA session extends the SDK session
     /// </summary>
-    internal sealed class OpcUaSession : IOpcUaSession, ISessionServices,
-        ISessionAccessor, IDisposable
+    [DataContract(Namespace = OpcUaClient.Namespace)]
+    [KnownType(typeof(OpcUaSubscription))]
+    [KnownType(typeof(OpcUaMonitoredItem))]
+    internal sealed class OpcUaSession : Session, IOpcUaSession,
+        ISessionServices, ISessionAccessor
     {
         /// <inheritdoc/>
         public IVariantEncoder Codec { get; }
@@ -35,122 +40,127 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ISessionServices Services => this;
 
-        /// <inheritdoc/>
-        public ITypeTable TypeTree => Session.TypeTree;
-
-        /// <inheritdoc/>
-        public INodeCache NodeCache => Session.NodeCache;
-
-        /// <inheritdoc/>
-        public IServiceMessageContext MessageContext => Session.MessageContext;
-
-        /// <inheritdoc/>
-        public ISystemContext SystemContext => Session.SystemContext;
-
-        /// <summary>
-        /// The underlying session
-        /// </summary>
-        internal ISession Session { get; }
-
         /// <summary>
         /// Type system has loaded
         /// </summary>
-        internal bool IsTypeSystemLoaded => _complexTypeSystem?.IsCompleted ?? false;
+        internal bool IsTypeSystemLoaded
+            => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
+
+        /// <summary>
+        /// Get list of subscription handles registered in the session
+        /// </summary>
+        internal List<IOpcUaSubscription> SubscriptionHandles
+        {
+            get
+            {
+                lock (SyncRoot)
+                {
+                    return Subscriptions.OfType<IOpcUaSubscription>().ToList();
+                }
+            }
+        }
 
         /// <summary>
         /// Create session
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="keepAlive"></param>
-        /// <param name="keepAliveInterval"></param>
-        /// <param name="operationTimeout"></param>
+        /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        /// <param name="errorHandler"></param>
-        /// <param name="ackHandler"></param>
-        /// <param name="preloadComplexTypeSystem"></param>
+        /// <param name="channel"></param>
+        /// <param name="configuration"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="clientCertificate"></param>
+        /// <param name="availableEndpoints"></param>
+        /// <param name="discoveryProfileUris"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public OpcUaSession(ISession session, KeepAliveEventHandler keepAlive,
-            TimeSpan keepAliveInterval, TimeSpan operationTimeout,
+        public OpcUaSession(OpcUaClient client,
             IJsonSerializer serializer, ILogger<OpcUaSession> logger,
-            PublishErrorEventHandler? errorHandler = null,
-            PublishSequenceNumbersToAcknowledgeEventHandler? ackHandler = null,
-            bool preloadComplexTypeSystem = true)
+            ITransportChannel channel, ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
+            EndpointDescriptionCollection? availableEndpoints = null,
+            StringCollection? discoveryProfileUris = null)
+            : base(channel, configuration, endpoint, clientCertificate,
+                  availableEndpoints, discoveryProfileUris)
         {
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
-            _keepAlive = keepAlive ??
-                throw new ArgumentNullException(nameof(keepAlive));
-            Session = session ??
-                throw new ArgumentNullException(nameof(session));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
-            // support transfer
-            Session.DeleteSubscriptionsOnClose = false;
-            Session.TransferSubscriptionsOnReconnect = true;
-            Session.KeepAliveInterval = (int)keepAliveInterval.TotalMilliseconds;
-            Session.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
+            Initialize();
+            Codec = new JsonVariantEncoder(MessageContext, serializer);
+        }
 
-            _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
-                "AuthenticationToken",
-                    System.Reflection.BindingFlags.NonPublic |
-                    System.Reflection.BindingFlags.Instance)?.GetValue(session)
-                ?? NodeId.Null;
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="channel"></param>
+        /// <param name="template"></param>
+        /// <param name="copyEventHandlers"></param>
+        private OpcUaSession(OpcUaSession session,
+            ITransportChannel channel, Session template, bool copyEventHandlers)
+            : base(channel, template, copyEventHandlers)
+        {
+            _logger = session._logger;
+            _client = session._client;
+            _serializer = session._serializer;
 
-            Codec = new JsonVariantEncoder(session.MessageContext, serializer);
-            if (errorHandler != null)
-            {
-                Session.PublishError += errorHandler;
-                _errorHandler = errorHandler;
-            }
-            if (ackHandler != null)
-            {
-                Session.PublishSequenceNumbersToAcknowledge += ackHandler;
-                _ackHandler = ackHandler;
-            }
-            Session.KeepAlive += keepAlive;
+            _complexTypeSystem = session._complexTypeSystem;
+            _history = session._history;
+            _limits = session._limits;
+            _server = session._server;
 
-            _cts = new CancellationTokenSource();
-            _complexTypeSystem = preloadComplexTypeSystem ?
-                LoadComplexTypeSystemAsync() : null;
+            Initialize();
+            Codec = new JsonVariantEncoder(MessageContext, _serializer);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            try
+            if (disposing && !_disposed)
             {
-                _cts.Cancel();
-                Session.KeepAlive -= _keepAlive;
-                if (_ackHandler != null)
-                {
-                    Session.PublishSequenceNumbersToAcknowledge -= _ackHandler;
-                }
-                if (_errorHandler != null)
-                {
-                    Session.PublishError -= _errorHandler;
-                }
+                _disposed = true;
 
-                Session.Dispose();
-                _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
+                PublishError -=
+                    _client.Session_HandlePublishError;
+                PublishSequenceNumbersToAcknowledge -=
+                    _client.Session_PublishSequenceNumbersToAcknowledge;
+                KeepAlive -=
+                    _client.Session_KeepAlive;
+                SessionConfigurationChanged -=
+                    Session_SessionConfigurationChanged;
+
+                try
+                {
+                    _cts.Cancel();
+                    _logger.LogDebug("Session {Name} disposed.", SessionName);
+                }
+                finally
+                {
+                    _activitySource.Dispose();
+                    _cts.Dispose();
+                }
             }
-            finally
-            {
-                _activitySource.Dispose();
-                _cts.Dispose();
-            }
+            base.Dispose(disposing);
+        }
+
+        /// <inheritdoc/>
+        public override Session CloneSession(ITransportChannel channel, bool copyEventHandlers)
+        {
+            return new OpcUaSession(this, channel, this, copyEventHandlers);
         }
 
         /// <inheritdoc/>
         public bool TryGetSession([NotNullWhen(true)] out ISession? session)
         {
-            session = Session;
+            session = this;
             return true;
         }
 
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return Session.SessionName;
+            return SessionName;
         }
 
         /// <inheritdoc/>
@@ -211,29 +221,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(CancellationToken ct)
         {
-            try
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                Debug.Assert(_complexTypeSystem != null);
-                return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                // Throw any cancellation token exception
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to get complex type system for client {Client}.", this);
+                try
+                {
+                    Debug.Assert(_complexTypeSystem != null);
+                    return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    // Throw any cancellation token exception
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Attempt #{Attempt}. Failed to get complex type system for client {Client}.",
+                        attempt, this);
 
-                // Try again. TODO: Throttle using a timer or so...
-                _complexTypeSystem = LoadComplexTypeSystemAsync();
-                return null;
+                    // Try again. TODO: Throttle using a timer or so...
+                    _complexTypeSystem = LoadComplexTypeSystemAsync();
+                }
             }
+            return null;
         }
 
         /// <inheritdoc/>
-        public async Task<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
+        async ValueTask<AddNodesResponse> ISessionServices.AddNodesAsync(RequestHeader requestHeader,
             AddNodesItemCollection nodesToAdd, CancellationToken ct)
         {
             using var activity = Begin<AddNodesResponse>(requestHeader);
@@ -246,13 +260,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 NodesToAdd = nodesToAdd
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<AddReferencesResponse> AddReferencesAsync(
+        async ValueTask<AddReferencesResponse> ISessionServices.AddReferencesAsync(
             RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
             CancellationToken ct)
         {
@@ -266,13 +280,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 ReferencesToAdd = referencesToAdd
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<DeleteNodesResponse> DeleteNodesAsync(
+        async ValueTask<DeleteNodesResponse> ISessionServices.DeleteNodesAsync(
             RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
             CancellationToken ct)
         {
@@ -286,13 +300,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 NodesToDelete = nodesToDelete
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<DeleteReferencesResponse> DeleteReferencesAsync(
+        async ValueTask<DeleteReferencesResponse> ISessionServices.DeleteReferencesAsync(
             RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
             CancellationToken ct)
         {
@@ -306,13 +320,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 ReferencesToDelete = referencesToDelete
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponse> BrowseAsync(
+        async ValueTask<BrowseResponse> ISessionServices.BrowseAsync(
             RequestHeader requestHeader, ViewDescription? view,
             uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
@@ -329,13 +343,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestedMaxReferencesPerNode = requestedMaxReferencesPerNode,
                 NodesToBrowse = nodesToBrowse
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseNextResponse> BrowseNextAsync(
+        async ValueTask<BrowseNextResponse> ISessionServices.BrowseNextAsync(
             RequestHeader requestHeader, bool releaseContinuationPoints,
             ByteStringCollection continuationPoints, CancellationToken ct)
         {
@@ -350,13 +364,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoints = releaseContinuationPoints,
                 ContinuationPoints = continuationPoints
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
+        async ValueTask<TranslateBrowsePathsToNodeIdsResponse> ISessionServices.TranslateBrowsePathsToNodeIdsAsync(
             RequestHeader requestHeader, BrowsePathCollection browsePaths,
             CancellationToken ct)
         {
@@ -371,13 +385,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 BrowsePaths = browsePaths
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<RegisterNodesResponse> RegisterNodesAsync(
+        async ValueTask<RegisterNodesResponse> ISessionServices.RegisterNodesAsync(
             RequestHeader requestHeader, NodeIdCollection nodesToRegister,
             CancellationToken ct)
         {
@@ -391,13 +405,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 NodesToRegister = nodesToRegister
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<UnregisterNodesResponse> UnregisterNodesAsync(
+        async ValueTask<UnregisterNodesResponse> ISessionServices.UnregisterNodesAsync(
             RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
             CancellationToken ct)
         {
@@ -411,13 +425,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 NodesToUnregister = nodesToUnregister
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<QueryFirstResponse> QueryFirstAsync(
+        async ValueTask<QueryFirstResponse> ISessionServices.QueryFirstAsync(
             RequestHeader requestHeader, ViewDescription view,
             NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
             uint maxDataSetsToReturn, uint maxReferencesToReturn,
@@ -437,13 +451,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxDataSetsToReturn = maxDataSetsToReturn,
                 MaxReferencesToReturn = maxReferencesToReturn
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<QueryNextResponse> QueryNextAsync(
+        async ValueTask<QueryNextResponse> ISessionServices.QueryNextAsync(
             RequestHeader requestHeader, bool releaseContinuationPoint,
             byte[] continuationPoint, CancellationToken ct)
         {
@@ -458,13 +472,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoint = releaseContinuationPoint,
                 ContinuationPoint = continuationPoint
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<ReadResponse> ReadAsync(RequestHeader requestHeader,
+        async ValueTask<ReadResponse> ISessionServices.ReadAsync(RequestHeader requestHeader,
             double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
             ReadValueIdCollection nodesToRead, CancellationToken ct)
         {
@@ -480,13 +494,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TimestampsToReturn = timestampsToReturn,
                 NodesToRead = nodesToRead
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResponse> HistoryReadAsync(
+        async ValueTask<HistoryReadResponse> ISessionServices.HistoryReadAsync(
             RequestHeader requestHeader, ExtensionObject? historyReadDetails,
             Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
             HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
@@ -504,13 +518,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoints = releaseContinuationPoints,
                 NodesToRead = nodesToRead
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
+        async ValueTask<WriteResponse> ISessionServices.WriteAsync(RequestHeader requestHeader,
             WriteValueCollection nodesToWrite, CancellationToken ct)
         {
             using var activity = Begin<WriteResponse>(requestHeader);
@@ -523,13 +537,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 NodesToWrite = nodesToWrite
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryUpdateResponse> HistoryUpdateAsync(
+        async ValueTask<HistoryUpdateResponse> ISessionServices.HistoryUpdateAsync(
             RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
             CancellationToken ct)
         {
@@ -543,13 +557,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 HistoryUpdateDetails = historyUpdateDetails
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
         /// <inheritdoc/>
-        public async Task<CallResponse> CallAsync(RequestHeader requestHeader,
+        async ValueTask<CallResponse> ISessionServices.CallAsync(RequestHeader requestHeader,
             CallMethodRequestCollection methodsToCall, CancellationToken ct)
         {
             using var activity = Begin<CallResponse>(requestHeader);
@@ -562,24 +576,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestHeader = requestHeader,
                 MethodsToCall = methodsToCall
             };
-            var response = await Session.TransportChannel.SendRequestAsync(
+            var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return activity.ValidateResponse(response);
         }
 
-        /// <inheritdoc/>
-        public async ValueTask CloseAsync(CancellationToken ct)
+        /// <summary>
+        /// Called when session is created
+        /// </summary>
+        /// <param name="sessionId"></param>
+        /// <param name="sessionCookie"></param>
+        public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
-            try
-            {
-                await Session.CloseAsync(ct).ConfigureAwait(false);
+            base.SessionCreated(sessionId, sessionCookie);
+            //PreloadComplexTypeSystem();
+        }
 
-                _logger.LogDebug("Successfully closed session {Session}.", this);
-            }
-            catch (Exception ex)
+        /// <summary>
+        /// Called when session configuration changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Session_SessionConfigurationChanged(object? sender, EventArgs e)
+        {
+            PreloadComplexTypeSystem();
+        }
+
+        /// <summary>
+        /// Preload type system
+        /// </summary>
+        private void PreloadComplexTypeSystem()
+        {
+            if (_complexTypeSystem != null || !Connected ||
+                _client.DisableComplexTypePreloading == true)
             {
-                _logger.LogError(ex, "Failed to close session {Session}.", this);
+                return;
             }
+            _complexTypeSystem = LoadComplexTypeSystemAsync();
+        }
+
+        /// <summary>
+        /// Initialize session settings from client configuration
+        /// </summary>
+        private void Initialize()
+        {
+            SessionFactory = _client;
+            DeleteSubscriptionsOnClose = false;
+            TransferSubscriptionsOnReconnect = true;
+
+            PublishError +=
+                _client.Session_HandlePublishError;
+            PublishSequenceNumbersToAcknowledge +=
+                _client.Session_PublishSequenceNumbersToAcknowledge;
+            KeepAlive +=
+                _client.Session_KeepAlive;
+            SessionConfigurationChanged +=
+                Session_SessionConfigurationChanged;
+
+            KeepAliveInterval =
+                (int)(_client.KeepAliveInterval ?? TimeSpan.FromSeconds(30)).TotalMilliseconds;
+            OperationTimeout =
+                (int)(_client.OperationTimeout ?? TimeSpan.FromMinutes(1)).TotalMilliseconds;
         }
 
         /// <summary>
@@ -592,7 +649,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancellationToken ct)
         {
             // Fetch limits into the session using the new api
-            var maxNodesPerRead = Validate32(Session.OperationLimits.MaxNodesPerRead);
+            var maxNodesPerRead = Validate32(OperationLimits.MaxNodesPerRead);
 
             // Read once more to ensure we have all we need and also correctly show what is not provided.
             var nodes = new[] {
@@ -626,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         NodeId = n,
                         AttributeId = Attributes.Value
                     }));
-                var response = await Session.ReadAsync(header, 0,
+                var response = await ReadAsync(header, 0,
                     Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, d => d.StatusCode,
                     response.DiagnosticInfos, requests);
@@ -877,17 +934,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             return Task.Run(async () =>
             {
-                if (Session?.Connected == true)
+                if (Connected)
                 {
-                    var complexTypeSystem = new ComplexTypeSystem(Session);
+                    var complexTypeSystem = new ComplexTypeSystem(this);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.LogInformation(
-                        "Complex type system loaded into client {Client}.", this);
 
-                    // Clear cache to release memory.
-                    // TODO: we should have a real node cache here
-                    NodeCache.Clear();
-                    return complexTypeSystem;
+                    if (Connected)
+                    {
+                        _logger.LogInformation(
+                            "Complex type system loaded into client {Client}.", this);
+
+                        // Clear cache to release memory.
+                        // TODO: we should have a real node cache here
+                        NodeCache?.Clear();
+                        return complexTypeSystem;
+                    }
                 }
                 throw new ServiceResultException(StatusCodes.BadNotConnected);
             }, _cts.Token);
@@ -903,7 +964,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             where T : IServiceResponse, new()
         {
             var activity = new SessionActivity<T>(this, typeof(T).Name[0..^8]);
-            if (!Session.Connected)
+            if (!Connected)
             {
                 var error = new T();
                 error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
@@ -924,8 +985,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             else
             {
-                header.RequestHandle = Session.NewRequestHandle();
-                header.AuthenticationToken = _authenticationToken;
+                header.RequestHandle = NewRequestHandle();
+                header.AuthenticationToken = AuthenticationToken;
                 header.Timestamp = DateTime.UtcNow;
             }
             return activity;
@@ -1021,12 +1082,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
-        private readonly CancellationTokenSource _cts;
-        private readonly NodeId _authenticationToken;
-        private readonly KeepAliveEventHandler _keepAlive;
+        private bool _disposed;
+        private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
-        private readonly PublishErrorEventHandler? _errorHandler;
-        private readonly PublishSequenceNumbersToAcknowledgeEventHandler? _ackHandler;
+        private readonly OpcUaClient _client;
+        private readonly IJsonSerializer _serializer;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

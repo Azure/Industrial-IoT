@@ -83,6 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
             Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
             Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+            _output.WriteLine(message.ToJsonString());
             Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
 
             var timestamps = new HashSet<DateTime> { message.GetProperty("Timestamp").GetDateTime() };

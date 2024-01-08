@@ -43,10 +43,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="options"></param>
         /// <param name="configuration"></param>
         /// <param name="metrics"></param>
-        /// <param name="sessionFactory"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
             IOptions<OpcUaClientOptions> options, IOpcUaConfiguration configuration,
-            IMetricsContext? metrics = null, ISessionFactory? sessionFactory = null)
+            IMetricsContext? metrics = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
@@ -60,7 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(configuration));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
-            _sessionFactory = sessionFactory ?? DefaultSessionFactory.Instance;
             _reverseConnectManager = new ReverseConnectManager();
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
@@ -69,14 +67,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
-            SubscriptionModel subscription, IMetricsContext metrics,
-            CancellationToken ct)
+        public void CreateSubscription(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return OpcUaSubscription.CreateAsync(this, _options, subscription,
-                _loggerFactory, new OpcUaClientTagList(
-                    subscription.Id.Connection, metrics ?? _metrics), ct);
+            // Create subscription which will register with callback/client
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            _ = new OpcUaSubscription(this, callback, subscription,
+                _options, _loggerFactory, new OpcUaClientTagList(
+                    subscription.Id.Connection, metrics ?? _metrics));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <inheritdoc/>
@@ -85,15 +85,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             connection.ThrowIfInvalid(nameof(connection));
             return GetOrAddClient(connection);
-        }
-
-        /// <inheritdoc/>
-        public IOpcUaClient? GetClient(ConnectionModel connection)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            var client = FindClient(connection);
-            client?.AddRef();
-            return client;
         }
 
         /// <inheritdoc/>
@@ -142,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _configuration.Value).ConfigureAwait(false);
             try
             {
-                using var session = await _sessionFactory.CreateAsync(
+                using var session = await DefaultSessionFactory.Instance.CreateAsync(
                     _configuration.Value, reverseConnectManager: null, configuredEndpoint,
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect
@@ -547,7 +538,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    _loggerFactory, _meter, _metrics, OnConnectionStateChange, _sessionFactory,
+                    _loggerFactory, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     _options.Value.MaxReconnectDelay)
                 {
@@ -622,7 +613,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
-        private readonly ISessionFactory _sessionFactory;
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }

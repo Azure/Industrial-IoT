@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
-    using MonitoringMode = Publisher.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Data;
@@ -21,32 +20,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract class OpcUaMonitoredItem : IOpcUaMonitoredItem
+    internal abstract class OpcUaMonitoredItem : MonitoredItem, IOpcUaMonitoredItem
     {
         /// <summary>
         /// Assigned monitored item id on server
         /// </summary>
-        public uint? ServerId => Item?.Status.Id;
+        public uint? RemoteId => Created ? Status.Id : null;
 
         /// <inheritdoc/>
-        public MonitoredItem? Item { get; protected internal set; }
+        public bool Valid { get; protected internal set; }
 
         /// <inheritdoc/>
         public virtual string? DataSetName { get; }
 
         /// <inheritdoc/>
-        public bool AttachedToSubscription { get; protected internal set; }
+        public bool AttachedToSubscription { get; protected internal set; } // TODO: Use Subscription property != null
 
         /// <inheritdoc/>
         public virtual (string NodeId, UpdateNodeId Update)? Register
             => null;
 
         /// <inheritdoc/>
-        public virtual (string NodeId, UpdateString Update)? DisplayName
+        public virtual (string NodeId, UpdateString Update)? GetDisplayName
             => null;
 
         /// <inheritdoc/>
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Last saved value
         /// </summary>
-        public IEncodeable? LastValue { get; private set; }
+        public IEncodeable? LastReceivedValue { get; private set; }
 
         /// <summary>
         /// Create item
@@ -75,6 +75,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="copyEventHandlers"></param>
+        /// <param name="copyClientHandle"></param>
+        protected OpcUaMonitoredItem(OpcUaMonitoredItem item,
+            bool copyEventHandlers, bool copyClientHandle)
+            : base(item, copyEventHandlers, copyClientHandle)
+        {
+            NodeId = item.NodeId;
+            _logger = item._logger;
+
+            LastReceivedValue = item.LastReceivedValue;
+            AttachedToSubscription = item.AttachedToSubscription;
+            Valid = item.Valid;
+        }
+
+        /// <inheritdoc/>
+        public override abstract MonitoredItem CloneMonitoredItem(
+            bool copyEventHandlers, bool copyClientHandle);
+
+        /// <inheritdoc/>
+        public override object Clone()
+        {
+            return CloneMonitoredItem(true, true);
+        }
+
+        /// <summary>
         /// Create items
         /// </summary>
         /// <param name="items"></param>
@@ -82,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="clients"></param>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public static IEnumerable<IOpcUaMonitoredItem> Create(
+        public static IEnumerable<OpcUaMonitoredItem> Create(
             IEnumerable<BaseMonitoredItemModel> items, ILoggerFactory factory,
             IClientSampler<ConnectionModel>? clients = null,
             ConnectionIdentifier? connection = null)
@@ -141,12 +169,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public virtual void OnMonitoredItemStateChanged(bool online)
-        {
-            // No op
-        }
-
-        /// <inheritdoc/>
         public abstract ValueTask GetMetaDataAsync(IOpcUaSession session,
             ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct);
@@ -157,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && Item != null)
+            if (disposing && Valid)
             {
                 if (AttachedToSubscription)
                 {
@@ -165,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogError("Unexpected state: Item {Item} must " +
                         "already be removed from subscription, but wasn't.", this);
                 }
-                Item = null;
+                Valid = false;
             }
         }
 
@@ -173,9 +195,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public virtual bool AddTo(Subscription subscription,
             IOpcUaSession session, out bool metadataChanged)
         {
-            if (Item != null)
+            if (Valid)
             {
-                subscription.AddItem(Item);
+                subscription.AddItem(this);
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription #{SubscriptionId}.",
                     this, subscription.Id);
@@ -197,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (AttachedToSubscription)
             {
-                subscription.RemoveItem(Item);
+                subscription.RemoveItem(this);
                 _logger.LogDebug(
                     "Removed monitored item {Item} from subscription #{SubscriptionId}.",
                     this, subscription.Id);
@@ -214,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ref bool applyChanges,
             Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
         {
-            if (Item == null)
+            if (!Valid)
             {
                 return false;
             }
@@ -223,59 +245,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug(
                     "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
-                    this, subscription.Id, Item.Status.Error);
+                    this, subscription.Id, Status.Error);
                 // Complete removal
                 return true;
             }
 
-            if (Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+            if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
                 return false;
             }
 
-            if (Item.Status.Error != null &&
-                StatusCode.IsNotGood(Item.Status.Error.StatusCode))
+            if (Status.Error == null || !StatusCode.IsNotGood(Status.Error.StatusCode))
             {
-                _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Item.Status.Error);
-
-                // Not needed, mode changes applied after
-                // applyChanges = true;
-                return false;
-            }
-
-            if (Item.SamplingInterval != Item.Status.SamplingInterval ||
-                Item.QueueSize != Item.Status.QueueSize)
-            {
-                _logger.LogInformation(
-                    @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
+                if (SamplingInterval != Status.SamplingInterval ||
+                    QueueSize != Status.QueueSize)
+                {
+                    _logger.LogInformation(
+                        @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
 The item's actual/desired states:
 SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},
 QueueSize {CurrentQueueSize}/{QueueSize}",
-                    Item.StartNodeId, Item.DisplayName, subscription.Id,
-                    Item.Status.SamplingInterval, Item.SamplingInterval,
-                    Item.Status.QueueSize, Item.QueueSize);
+                        StartNodeId, DisplayName, subscription.Id,
+                        Status.SamplingInterval, SamplingInterval,
+                        Status.QueueSize, QueueSize);
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "Item {Item} added to subscription #{SubscriptionId} successfully.",
+                        this, subscription.Id);
+                }
+                return true;
             }
-            else
-            {
-                _logger.LogDebug(
-                    "Item {Item} added to subscription #{SubscriptionId} successfully.",
-                    this, subscription.Id);
-            }
-            return true;
+
+            _logger.LogWarning(
+                "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.",
+                this, subscription.Id, Status.Error);
+
+            // Not needed, mode changes applied after
+            // applyChanges = true;
+            return false;
         }
 
         /// <inheritdoc/>
         public virtual Opc.Ua.MonitoringMode? GetMonitoringModeChange()
         {
-            if (!AttachedToSubscription || Item == null)
+            if (!AttachedToSubscription || !Valid)
             {
                 return null;
             }
-            var currentMode = Item.Status?.MonitoringMode
+            var currentMode = Status?.MonitoringMode
                 ?? Opc.Ua.MonitoringMode.Disabled;
-            var desiredMode = Item.MonitoringMode;
+            var desiredMode = MonitoringMode;
             return currentMode != desiredMode ? desiredMode : null;
         }
 
@@ -283,12 +304,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
             IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
         {
-            var item = Item;
-            if (item == null)
+            if (!Valid)
             {
                 return false;
             }
-            LastValue = evt;
+            LastReceivedValue = evt;
             return true;
         }
 
@@ -296,11 +316,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         public virtual bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
             IList<MonitoredItemNotificationModel> notifications)
         {
-            var lastValue = LastValue;
-            if (lastValue == null || Item?.Status?.Error != null)
+            var lastValue = LastReceivedValue;
+            if (lastValue == null || Status?.Error != null)
             {
                 return TryGetErrorMonitoredItemNotifications(sequenceNumber,
-                    Item?.Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
+                    Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
                     notifications);
             }
             return TryGetMonitoredItemNotifications(sequenceNumber, DateTime.UtcNow,
@@ -333,7 +353,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             metadataChanged = false;
             updated = template;
 
-            if (Item == null)
+            if (!Valid)
             {
                 return false;
             }
@@ -346,7 +366,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     this, updated.DiscardNew ?? false,
                     desired.DiscardNew ?? false);
                 updated = updated with { DiscardNew = desired.DiscardNew };
-                Item.DiscardOldest = !(updated.DiscardNew ?? false);
+                DiscardOldest = !(updated.DiscardNew ?? false);
                 itemChange = true;
             }
             if (updated.QueueSize != desired.QueueSize)
@@ -355,17 +375,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     this, updated.QueueSize,
                     desired.QueueSize);
                 updated = updated with { QueueSize = desired.QueueSize };
-                Item.QueueSize = updated.QueueSize;
+                QueueSize = updated.QueueSize;
                 itemChange = true;
             }
-            if ((updated.MonitoringMode ?? MonitoringMode.Reporting) !=
-                (desired.MonitoringMode ?? MonitoringMode.Reporting))
+            if ((updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
+                (desired.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting))
             {
                 _logger.LogDebug("{Item}: Changing monitoring mode from {Old} to {New}",
-                    this, updated.MonitoringMode ?? MonitoringMode.Reporting,
-                    desired.MonitoringMode ?? MonitoringMode.Reporting);
+                    this, updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting,
+                    desired.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting);
                 updated = updated with { MonitoringMode = desired.MonitoringMode };
-                Item.MonitoringMode = updated.MonitoringMode.ToStackType()
+                MonitoringMode = updated.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
 
                 // Not a change yet, will be done as bulk update
@@ -388,7 +408,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 updated.DisplayName != desired.DisplayName)
             {
                 updated = updated with { DataSetFieldName = desired.DataSetFieldName };
-                Item.DisplayName = updated.DisplayName;
+                DisplayName = updated.DisplayName;
                 metadataChanged = true;
                 itemChange = true;
             }
@@ -563,6 +583,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <summary>
         /// Extension Field item
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal class FieldItem : OpcUaMonitoredItem
         {
             /// <summary>
@@ -579,6 +603,26 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ILogger<FieldItem> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected FieldItem(FieldItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new FieldItem(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -635,7 +679,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 metadataChanged = true;
                 _value = new DataValue(session.Codec.Decode(Template.Value, BuiltInType.Variant));
-                Item = new MonitoredItem();
+                Valid = true;
                 return true;
             }
 
@@ -652,7 +696,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 metadataChanged = true;
                 _value = new DataValue();
-                Item = null;
+                Valid = false;
                 return true;
             }
 
@@ -668,7 +712,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
                 IList<MonitoredItemNotificationModel> notifications)
             {
-                if (Item == null)
+                if (!Valid)
                 {
                     return false;
                 }
@@ -700,7 +744,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <returns></returns>
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(uint sequenceNumber)
             {
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 return new MonitoredItemNotificationModel
@@ -721,24 +765,28 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <summary>
         /// Data item
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal class DataItem : OpcUaMonitoredItem
         {
             /// <inheritdoc/>
             public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
-                    (ResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(ResolvedNodeId)) ?
+                    (TheResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(TheResolvedNodeId)) ?
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        (v, context) => ResolvedNodeId = NodeId
+                        (v, context) => TheResolvedNodeId = NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
-                => Template.RegisterRead && !string.IsNullOrEmpty(ResolvedNodeId) ?
-                    (ResolvedNodeId, (v, context) => NodeId
+                => Template.RegisterRead && !string.IsNullOrEmpty(TheResolvedNodeId) ?
+                    (TheResolvedNodeId, (v, context) => NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
-            public override (string NodeId, UpdateString Update)? DisplayName
+            public override (string NodeId, UpdateString Update)? GetDisplayName
                 => Template.FetchDataSetFieldName == true && Template.DataSetFieldName != null &&
                     !string.IsNullOrEmpty(NodeId) ?
                     (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
@@ -751,7 +799,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Resolved node id
             /// </summary>
-            protected string ResolvedNodeId { get; private set; }
+            protected string TheResolvedNodeId { get; private set; }
 
             /// <summary>
             /// Field identifier either configured or randomly assigned
@@ -775,7 +823,28 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // We also track the resolved node id so we distinguish it
                 // from the registered and thus effective node id
                 //
-                ResolvedNodeId = template.StartNodeId;
+                TheResolvedNodeId = template.StartNodeId;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected DataItem(DataItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                TheResolvedNodeId = item.TheResolvedNodeId;
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItem(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -839,8 +908,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Data Item '{Template.StartNodeId}' with server id {ServerId} - " +
-                    $"{(Item?.Status?.Created == true ? "" : "not ")}created";
+                return $"Data Item '{Template.StartNodeId}' with server id {RemoteId} - " +
+                    $"{(Status?.Created == true ? "" : "not ")}created";
             }
 
             /// <inheritdoc/>
@@ -882,23 +951,21 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return false;
                 }
 
-                Item = new MonitoredItem
-                {
-                    DisplayName = Template.DisplayName,
-                    AttributeId = (uint)(Template.AttributeId ??
-                        (NodeAttribute)Attributes.Value),
-                    IndexRange = Template.IndexRange,
-                    StartNodeId = nodeId,
-                    MonitoringMode = Template.MonitoringMode.ToStackType()
-                        ?? Opc.Ua.MonitoringMode.Reporting,
-                    QueueSize = Template.QueueSize,
-                    SamplingInterval = (int)Template.SamplingInterval.
-                        GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                    Filter = Template.DataChangeFilter.ToStackModel() ??
-                        (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
-                            session.MessageContext),
-                    DiscardOldest = !(Template.DiscardNew ?? false)
-                };
+                DisplayName = Template.DisplayName;
+                AttributeId = (uint)(Template.AttributeId ??
+                    (NodeAttribute)Attributes.Value);
+                IndexRange = Template.IndexRange;
+                StartNodeId = nodeId;
+                MonitoringMode = Template.MonitoringMode.ToStackType()
+                    ?? Opc.Ua.MonitoringMode.Reporting;
+                QueueSize = Template.QueueSize;
+                SamplingInterval = (int)Template.SamplingInterval.
+                    GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                Filter = Template.DataChangeFilter.ToStackModel() ??
+                    (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
+                        session.MessageContext);
+                DiscardOldest = !(Template.DiscardNew ?? false);
+                Valid = true;
 
                 if (!TrySetSkipFirst(Template.SkipFirst))
                 {
@@ -924,7 +991,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not DataItem model || Item == null)
+                if (item is not DataItem model || !Valid)
                 {
                     return false;
                 }
@@ -945,7 +1012,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         model.Template.SamplingInterval.GetValueOrDefault(
                             TimeSpan.FromSeconds(1)).TotalMilliseconds);
                     Template = Template with { SamplingInterval = model.Template.SamplingInterval };
-                    Item.SamplingInterval =
+                    SamplingInterval =
                         (int)Template.SamplingInterval.GetValueOrDefault(
                             TimeSpan.FromSeconds(1)).TotalMilliseconds;
                     itemChange = true;
@@ -965,7 +1032,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     Template = Template with { DataChangeFilter = model.Template.DataChangeFilter };
                     _logger.LogDebug("{Item}: Changing data change filter.", this);
-                    Item.Filter = Template.DataChangeFilter.ToStackModel();
+                    Filter = Template.DataChangeFilter.ToStackModel();
                     itemChange = true;
                 }
 
@@ -974,7 +1041,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     Template = Template with { AggregateFilter = model.Template.AggregateFilter };
                     _logger.LogDebug("{Item}: Changing aggregate change filter.", this);
-                    Item.Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
+                    Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
                     itemChange = true;
                 }
                 if (model.Template.SkipFirst != Template.SkipFirst)
@@ -1045,7 +1112,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
                 uint sequenceNumber, DataValue dataValue)
             {
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 return new MonitoredItemNotificationModel
@@ -1121,6 +1188,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// cache on the subscription object caching _all_ values received.
         /// </para>
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal sealed class DataItemWithHeartbeat : DataItem
         {
             /// <summary>
@@ -1137,6 +1208,29 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _heartbeatBehavior = dataTemplate.HeartbeatBehavior
                     ?? HeartbeatBehavior.WatchdogLKV;
                 _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private DataItemWithHeartbeat(DataItemWithHeartbeat item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _heartbeatInterval = item._heartbeatInterval;
+                _timerInterval = item._timerInterval;
+                _heartbeatBehavior = item._heartbeatBehavior;
+                _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItemWithHeartbeat(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -1160,7 +1254,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 return $"Data Item '{Template.StartNodeId}' " +
                     $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) " +
-                    $"with server id {ServerId} - {(Item?.Status?.Created == true ? "" :
+                    $"with server id {RemoteId} - {(Status?.Created == true ? "" :
                         "not ")}created";
             }
 
@@ -1179,10 +1273,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 DateTime timestamp, MonitoredItemNotification monitoredItemNotification,
                 IList<MonitoredItemNotificationModel> notifications)
             {
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
 
                 // Last value should be this notification
-                Debug.Assert(monitoredItemNotification == LastValue);
+                Debug.Assert(monitoredItemNotification == LastReceivedValue);
                 if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
                     _heartbeatTimer.Change(_timerInterval, _timerInterval);
@@ -1197,7 +1291,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not DataItemWithHeartbeat model || Item == null)
+                if (item is not DataItemWithHeartbeat model || !Valid)
                 {
                     return false;
                 }
@@ -1231,10 +1325,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ref bool applyChanges,
                 Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges,
-                    cb);
-
-                if (!AttachedToSubscription || !result)
+                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                if (!AttachedToSubscription ||
+                    (!result && (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                        != HeartbeatBehavior.WatchdogLKG))
                 {
                     _callback = null;
                     // Stop heartbeat
@@ -1285,24 +1379,31 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private void SendHeartbeatNotifications()
             {
                 var callback = _callback;
-                var item = Item;
-
-                if (callback == null || item == null || LastValue == null)
+                if (callback == null || !Valid)
                 {
                     return;
                 }
 
-                var lastNofication = LastValue as MonitoredItemNotification;
+                var lastNofication = LastReceivedValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG &&
                         !IsGoodDataValue(lastNofication?.Value))
                 {
-                    // Currently no good value to send
+                    // Currently no last known good value (LKG) to send
                     return;
                 }
 
-                var lastValue = lastNofication?.Value ??
-                    new DataValue(item.Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
+                var lastValue = lastNofication?.Value;
+                if (lastValue == null && Status?.Error?.StatusCode != null)
+                {
+                    lastValue = new DataValue(Status.Error.StatusCode);
+                }
+
+                if (lastValue == null)
+                {
+                    // Currently no last known value (LKV) to send
+                    return;
+                }
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                         == HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                 {
@@ -1349,6 +1450,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// execute through the client sampler periodically (at the configured
         /// sampling rate).
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal sealed class DataItemWithCyclicRead : DataItem
         {
             /// <summary>
@@ -1363,16 +1468,37 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ILogger<DataItemWithCyclicRead> logger) : base(template with
                 {
                     // Always ensure item is disabled
-                    MonitoringMode = MonitoringMode.Disabled
+                    MonitoringMode = Publisher.Models.MonitoringMode.Disabled
                 }, logger)
             {
                 _sampler = sampler;
                 _connection = connection;
 
-                LastValue = new MonitoredItemNotification
+                LastReceivedValue = new MonitoredItemNotification
                 {
                     Value = new DataValue(StatusCodes.GoodNoData)
                 };
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private DataItemWithCyclicRead(DataItemWithCyclicRead item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _sampler = item._sampler;
+                _connection = item._connection;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataItemWithCyclicRead(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -1442,14 +1568,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 else if (_sampling == null)
                 {
-                    Debug.Assert(Item?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
+                    Debug.Assert(MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
                     _sampling = _sampler.Sample(_connection.Connection,
-                        TimeSpan.FromMilliseconds(Item.SamplingInterval),
+                        TimeSpan.FromMilliseconds(SamplingInterval),
                         new ReadValueId
                         {
-                            AttributeId = Item.AttributeId,
-                            IndexRange = Item.IndexRange,
-                            NodeId = Item.ResolvedNodeId
+                            AttributeId = AttributeId,
+                            IndexRange = IndexRange,
+                            NodeId = ResolvedNodeId
                         }, OnSampledDataValueReceived);
 
                     _logger.LogDebug("Item {Item} successfully registered with sampler.",
@@ -1464,7 +1590,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
                 // Dont call base implementation as it is not what we want.
-                if (Item == null)
+                if (!Valid)
                 {
                     return false;
                 }
@@ -1533,14 +1659,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 get
                 {
-                    Debug.Assert(LastValue is MonitoredItemNotification);
-                    return ((MonitoredItemNotification)LastValue).Value
+                    Debug.Assert(LastReceivedValue is MonitoredItemNotification);
+                    return ((MonitoredItemNotification)LastReceivedValue).Value
                         ?? new DataValue(StatusCodes.GoodNoData);
                 }
                 set
                 {
-                    Debug.Assert(LastValue is MonitoredItemNotification);
-                    ((MonitoredItemNotification)LastValue).Value = value;
+                    Debug.Assert(LastReceivedValue is MonitoredItemNotification);
+                    ((MonitoredItemNotification)LastReceivedValue).Value = value;
                 }
             }
 
@@ -1555,10 +1681,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <summary>
         /// Event monitored item
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal class EventItem : OpcUaMonitoredItem
         {
             /// <inheritdoc/>
-            public override (string NodeId, UpdateString Update)? DisplayName
+            public override (string NodeId, UpdateString Update)? GetDisplayName
                 => Template.FetchDataSetFieldName == true &&
                     !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId) &&
                     Template.DataSetFieldName == null ?
@@ -1597,6 +1727,27 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ILogger<EventItem> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected EventItem(EventItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Fields = item.Fields;
+                Template = item.Template;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new EventItem(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -1656,8 +1807,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Event Item '{Template.StartNodeId}' with server id {ServerId} - " +
-                    $"{(Item?.Status?.Created == true ? "" : "not ")}created";
+                return $"Event Item '{Template.StartNodeId}' with server id {RemoteId} - " +
+                    $"{(Status?.Created == true ? "" : "not ")}created";
             }
 
             /// <inheritdoc/>
@@ -1665,7 +1816,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
                 NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
             {
-                if (Item?.Filter is not EventFilter eventFilter)
+                if (Filter is not EventFilter eventFilter)
                 {
                     return;
                 }
@@ -1714,10 +1865,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     return false;
                 }
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
 
                 // TODO: Instead figure out how to get the filter status and inspect
-                return TestWhereClauseAsync(subscription.Session, Item.Filter as EventFilter).Result;
+                return TestWhereClauseAsync(subscription.Session, Filter as EventFilter).Result;
             }
 
             /// <inheritdoc/>
@@ -1730,19 +1881,18 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     metadataChanged = false;
                     return false;
                 }
-                Item = new MonitoredItem
-                {
-                    DisplayName = Template.DisplayName,
-                    AttributeId = (uint)(Template.AttributeId
-                        ?? (NodeAttribute)Attributes.EventNotifier),
-                    MonitoringMode = Template.MonitoringMode.ToStackType()
-                        ?? Opc.Ua.MonitoringMode.Reporting,
-                    StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
-                    QueueSize = Template.QueueSize,
-                    SamplingInterval = 0,
-                    Filter = GetEventFilter(session),
-                    DiscardOldest = !(Template.DiscardNew ?? false)
-                };
+                DisplayName = Template.DisplayName;
+                AttributeId = (uint)(Template.AttributeId
+                    ?? (NodeAttribute)Attributes.EventNotifier);
+                MonitoringMode = Template.MonitoringMode.ToStackType()
+                    ?? Opc.Ua.MonitoringMode.Reporting;
+                StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext);
+                QueueSize = Template.QueueSize;
+                SamplingInterval = 0;
+                Filter = GetEventFilter(session);
+                DiscardOldest = !(Template.DiscardNew ?? false);
+                Valid = true;
+
                 return base.AddTo(subscription, session, out metadataChanged);
             }
 
@@ -1751,7 +1901,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not EventItem model || Item == null)
+                if (item is not EventItem model || !Valid)
                 {
                     return false;
                 }
@@ -1777,7 +1927,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 if (metadataChanged)
                 {
-                    Item.Filter = GetEventFilter(session);
+                    Filter = GetEventFilter(session);
                 }
                 return itemChange;
             }
@@ -1848,7 +1998,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             protected IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
                 uint sequenceNumber, EventFieldList eventFields)
             {
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 if (Fields.Count >= eventFields.EventFields.Count)
@@ -2178,6 +2328,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <summary>
         /// Condition item
         /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        [KnownType(typeof(DataChangeFilter))]
+        [KnownType(typeof(EventFilter))]
+        [KnownType(typeof(AggregateFilter))]
         internal class Condition : EventItem
         {
             /// <summary>
@@ -2195,6 +2349,29 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 _conditionHandlingState = new ConditionHandlingState();
                 _conditionTimer = new Timer(OnConditionTimerElapsed);
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private Condition(Condition item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _snapshotInterval = item._snapshotInterval;
+                _updateInterval = item._updateInterval;
+                _conditionHandlingState = item._conditionHandlingState;
+                _conditionTimer = new Timer(OnConditionTimerElapsed);
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new Condition(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -2217,8 +2394,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             public override string ToString()
             {
                 return
-                    $"Condition Item '{Template.StartNodeId}' with server id {ServerId}" +
-                    $" - {(Item?.Status?.Created == true ? "" : "not ")}created";
+                    $"Condition Item '{Template.StartNodeId}' with server id {RemoteId}" +
+                    $" - {(Status?.Created == true ? "" : "not ")}created";
             }
 
             /// <inheritdoc/>
@@ -2235,10 +2412,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             protected override bool ProcessEventNotification(uint sequenceNumber, DateTime timestamp,
                 EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
             {
-                Debug.Assert(Item != null);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
-                var evFilter = Item.Filter as EventFilter;
+                var evFilter = Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter.SelectClauses
                         .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
@@ -2275,23 +2452,23 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
                             "a RefreshRequired event", this, Template.DisplayName,
-                            Item.Subscription.DisplayName);
+                            Subscription.DisplayName);
                         try
                         {
-                            Item.Subscription.ConditionRefresh();
+                            Subscription.ConditionRefresh();
                         }
                         catch (Exception e)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Item.Subscription.DisplayName, e.Message);
+                                this, Template.DisplayName, Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.DisplayName, Item.Subscription.DisplayName);
+                                Template.DisplayName, Subscription.DisplayName);
                         }
                         return true;
                     }
@@ -2339,7 +2516,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Condition model || Item == null)
+                if (item is not Condition model || !Valid)
                 {
                     return false;
                 }
@@ -2469,7 +2646,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 var state = _conditionHandlingState;
                 try
                 {
-                    if (Item?.Created != true)
+                    if (!Created)
                     {
                         return;
                     }
