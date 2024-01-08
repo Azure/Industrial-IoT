@@ -773,12 +773,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 "Completing {Count} items in subscription {Subscription}...",
                 desiredMonitoredItems.Count, this);
 
+            var set = MonitoredItems
+                .OfType<OpcUaMonitoredItem>()
+                .ToHashSet();
             foreach (var monitoredItem in desiredMonitoredItems)
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
                 {
                     // Apply any changes from this second pass
                     invalidItems++;
+                }
+                else
+                {
+                    set.Add(monitoredItem);
                 }
             }
 
@@ -800,7 +807,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // metadata. Then we need a way to retain the previous metadata until
             // switching over.
             //
-            var set = MonitoredItems.OfType<OpcUaMonitoredItem>().ToHashSet();
             // Create currently monitored items list
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
                 "Client handles are not distinct or one of the items is null");
