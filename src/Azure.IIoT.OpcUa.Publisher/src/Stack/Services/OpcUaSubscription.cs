@@ -193,9 +193,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         return null;
                     }
-                    return new Notification(this, Id)
+                    return new Notification(this, Id, session.MessageContext)
                     {
-                        ServiceMessageContext = session.MessageContext,
                         ApplicationUri = session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = session.Endpoint.EndpointUrl,
                         SubscriptionName = Name,
@@ -354,11 +353,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
+            var session = Session;
+            if (session?.MessageContext == null)
+            {
+                return;
+            }
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var message = new Notification(this, Id, session.MessageContext, notifications)
+            {
+                ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                EndpointUrl = session.Endpoint?.EndpointUrl,
+                SubscriptionName = Name,
+                DataSetName = dataSetName,
+                SubscriptionId = LocalIndex,
+                SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                MessageType = messageType
+            };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = CreateMessage(notifications, messageType, dataSetName);
-#pragma warning restore CA2000 // Dispose objects before losing scope
                 if (!diagnosticsOnly)
                 {
                     _callbacks.OnSubscriptionEventChange(message);
@@ -370,9 +385,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             else
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = CreateMessage(notifications, messageType, dataSetName);
-#pragma warning restore CA2000 // Dispose objects before losing scope
                 if (!diagnosticsOnly)
                 {
                     _callbacks.OnSubscriptionDataChange(message);
@@ -382,22 +394,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _callbacks.OnSubscriptionDataDiagnosticsChange(false,
                         message.Notifications.Count, message.Heartbeats, message.CyclicReads);
                 }
-            }
-
-            Notification CreateMessage(IEnumerable<MonitoredItemNotificationModel> notifications,
-                MessageType messageType, string? dataSetName)
-            {
-                return new Notification(this, Id, notifications)
-                {
-                    ServiceMessageContext = Session?.MessageContext,
-                    ApplicationUri = Session?.Endpoint?.Server?.ApplicationUri,
-                    EndpointUrl = Session?.Endpoint?.EndpointUrl,
-                    SubscriptionName = Name,
-                    DataSetName = dataSetName,
-                    SubscriptionId = LocalIndex,
-                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                    MessageType = messageType
-                };
             }
         }
 
@@ -777,17 +773,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 "Completing {Count} items in subscription {Subscription}...",
                 desiredMonitoredItems.Count, this);
 
-            var successfullyCompletedItems = new List<OpcUaMonitoredItem>();
             foreach (var monitoredItem in desiredMonitoredItems)
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
                 {
                     // Apply any changes from this second pass
                     invalidItems++;
-                }
-                else
-                {
-                    successfullyCompletedItems.Add(monitoredItem);
                 }
             }
 
@@ -809,13 +800,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // metadata. Then we need a way to retain the previous metadata until
             // switching over.
             //
-            var set = successfullyCompletedItems.ToHashSet();
+            var set = MonitoredItems.OfType<OpcUaMonitoredItem>().ToHashSet();
             // Create currently monitored items list
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
                 "Client handles are not distinct or one of the items is null");
             var currentlyMonitored = set
-                .ToDictionary(m => m.ClientHandle, m => m)
-                .ToFrozenDictionary();
+                .ToFrozenDictionary(m => m.ClientHandle, m => m);
             if (metadataChanged)
             {
                 var threshold =
@@ -834,7 +824,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.LogDebug(
                 "Setting monitoring mode on {Count} items in subscription {Subscription}...",
-                successfullyCompletedItems.Count, this);
+                set.Count, this);
 
             //
             // Finally change the monitoring mode as required. Batch the requests
@@ -842,8 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // the monitoring mode was already configured. This is for updates as
             // they are not applied through ApplyChanges
             //
-            foreach (var change in successfullyCompletedItems
-                .GroupBy(i => i.GetMonitoringModeChange()))
+            foreach (var change in set.GroupBy(i => i.GetMonitoringModeChange()))
             {
                 if (change.Key == null)
                 {
@@ -896,11 +885,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Update subscription state
             _currentlyMonitored = currentlyMonitored;
             NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = currentlyMonitored.Count;
+            NumberOfCreatedItems = currentlyMonitored.Count - invalidItems;
 
             _logger.LogInformation(
-                "Now monitoring {Count} nodes in subscription {Subscription}.",
-                currentlyMonitored.Count, this);
+                "Now monitoring {Count} (Good:{Good}/Bad:{Bad}) nodes in subscription {Subscription}.",
+                currentlyMonitored.Count, NumberOfCreatedItems, NumberOfNotCreatedItems, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -934,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
-            else if (desiredMonitoredItems.Count != set.Count)
+            else if (desiredMonitoredItems.Count != currentlyMonitored.Count)
             {
                 // Try to periodically update the subscription
                 // TODO: Trigger on address space model changes...
@@ -1307,6 +1296,15 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            var session = Session;
+            if (session?.MessageContext == null)
+            {
+                _logger.LogWarning(
+                    "EventChange for subscription {Subscription} received without a session {Session}.",
+                    this, session);
+                return;
+            }
+
             ResetKeepAliveTimer();
 
             var sw = Stopwatch.StartNew();
@@ -1340,11 +1338,10 @@ Actual (revised) state/desired state:
                     if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var monitoredItem))
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                        var message = new Notification(this, Id, sequenceNumber: sequenceNumber)
+                        var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
                         {
-                            ServiceMessageContext = Session?.MessageContext,
-                            ApplicationUri = Session?.Endpoint?.Server?.ApplicationUri,
-                            EndpointUrl = Session?.Endpoint?.EndpointUrl,
+                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                            EndpointUrl = session.Endpoint?.EndpointUrl,
                             SubscriptionName = Name,
                             DataSetName = monitoredItem.DataSetName,
                             SubscriptionId = LocalIndex,
@@ -1426,6 +1423,15 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            var session = Session;
+            if (session?.MessageContext == null)
+            {
+                _logger.LogWarning(
+                    "Keep alive event for subscription {Subscription} received without session {Session}.",
+                    this, session);
+                return;
+            }
+
             var sw = Stopwatch.StartNew();
             try
             {
@@ -1438,11 +1444,10 @@ Actual (revised) state/desired state:
                     this, sequenceNumber, publishTime);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id)
+                var message = new Notification(this, Id, session.MessageContext)
                 {
-                    ServiceMessageContext = Session?.MessageContext,
-                    ApplicationUri = Session?.Endpoint?.Server?.ApplicationUri,
-                    EndpointUrl = Session?.Endpoint?.EndpointUrl,
+                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = session.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
                     PublishTimestamp = publishTime,
                     SubscriptionId = LocalIndex,
@@ -1486,6 +1491,15 @@ Actual (revised) state/desired state:
                 return;
             }
 
+            var session = Session;
+            if (session?.MessageContext == null)
+            {
+                _logger.LogWarning(
+                    "DataChange for subscription {Subscription} received without session {Session}.",
+                    this, session);
+                return;
+            }
+
             ResetKeepAliveTimer();
 
             var sw = Stopwatch.StartNew();
@@ -1495,11 +1509,10 @@ Actual (revised) state/desired state:
                 var publishTime = notification.PublishTime;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, sequenceNumber: sequenceNumber)
+                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
                 {
-                    ServiceMessageContext = Session?.MessageContext,
-                    ApplicationUri = Session?.Endpoint?.Server?.ApplicationUri,
-                    EndpointUrl = Session?.Endpoint?.EndpointUrl,
+                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = session.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
                     SubscriptionId = LocalIndex,
                     PublishTimestamp = publishTime,
@@ -1845,7 +1858,7 @@ Actual (revised) state/desired state:
             public uint? PublishSequenceNumber { get; }
 
             /// <inheritdoc/>
-            public IServiceMessageContext? ServiceMessageContext { get; internal set; }
+            public IServiceMessageContext ServiceMessageContext { get; }
 
             /// <inheritdoc/>
             public IList<MonitoredItemNotificationModel> Notifications { get; }
@@ -1870,15 +1883,18 @@ Actual (revised) state/desired state:
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="subscriptionId"></param>
+            /// <param name="messageContext"></param>
             /// <param name="notifications"></param>
             /// <param name="sequenceNumber"></param>
             public Notification(OpcUaSubscription outer, uint subscriptionId,
+                IServiceMessageContext messageContext,
                 IEnumerable<MonitoredItemNotificationModel>? notifications = null,
                 uint? sequenceNumber = null)
             {
                 _outer = outer;
                 PublishSequenceNumber = sequenceNumber;
                 CreatedTimestamp = DateTime.UtcNow;
+                ServiceMessageContext = messageContext;
                 _subscriptionId = subscriptionId;
 
                 MetaData = _outer.CurrentMetaData;

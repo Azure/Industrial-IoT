@@ -255,37 +255,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return false;
             }
 
-            if (Status.Error != null &&
-                StatusCode.IsNotGood(Status.Error.StatusCode))
+            if (Status.Error == null || !StatusCode.IsNotGood(Status.Error.StatusCode))
             {
-                _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Status.Error);
-
-                // Not needed, mode changes applied after
-                // applyChanges = true;
-                return false;
-            }
-
-            if (SamplingInterval != Status.SamplingInterval ||
-                QueueSize != Status.QueueSize)
-            {
-                _logger.LogInformation(
-                    @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
+                if (SamplingInterval != Status.SamplingInterval ||
+                    QueueSize != Status.QueueSize)
+                {
+                    _logger.LogInformation(
+                        @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
 The item's actual/desired states:
 SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},
 QueueSize {CurrentQueueSize}/{QueueSize}",
-                    StartNodeId, DisplayName, subscription.Id,
-                    Status.SamplingInterval, SamplingInterval,
-                    Status.QueueSize, QueueSize);
+                        StartNodeId, DisplayName, subscription.Id,
+                        Status.SamplingInterval, SamplingInterval,
+                        Status.QueueSize, QueueSize);
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "Item {Item} added to subscription #{SubscriptionId} successfully.",
+                        this, subscription.Id);
+                }
+                return true;
             }
-            else
-            {
-                _logger.LogDebug(
-                    "Item {Item} added to subscription #{SubscriptionId} successfully.",
-                    this, subscription.Id);
-            }
-            return true;
+
+            _logger.LogWarning(
+                "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.",
+                this, subscription.Id, Status.Error);
+
+            // Not needed, mode changes applied after
+            // applyChanges = true;
+            return false;
         }
 
         /// <inheritdoc/>
@@ -1326,10 +1325,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 ref bool applyChanges,
                 Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges,
-                    cb);
-
-                if (!AttachedToSubscription || !result)
+                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                if (!AttachedToSubscription ||
+                    (!result && (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                        != HeartbeatBehavior.WatchdogLKG))
                 {
                     _callback = null;
                     // Stop heartbeat
@@ -1380,7 +1379,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             private void SendHeartbeatNotifications()
             {
                 var callback = _callback;
-                if (callback == null || !Valid || LastReceivedValue == null)
+                if (callback == null || !Valid)
                 {
                     return;
                 }
@@ -1390,7 +1389,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         == HeartbeatBehavior.WatchdogLKG &&
                         !IsGoodDataValue(lastNofication?.Value))
                 {
-                    // Currently no good value to send
+                    // Currently no last known good value (LKG) to send
                     return;
                 }
 

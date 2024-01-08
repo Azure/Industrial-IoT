@@ -708,7 +708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public object? Context { get; set; }
 
                 /// <inheritdoc/>
-                public IServiceMessageContext? ServiceMessageContext { get; set; }
+                public IServiceMessageContext ServiceMessageContext { get; set; }
 
                 /// <inheritdoc/>
                 public IList<MonitoredItemNotificationModel> Notifications { get; }

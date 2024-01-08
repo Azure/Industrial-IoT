@@ -589,7 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
             base.SessionCreated(sessionId, sessionCookie);
-            PreloadComplexTypeSystem();
+            //PreloadComplexTypeSystem();
         }
 
         /// <summary>

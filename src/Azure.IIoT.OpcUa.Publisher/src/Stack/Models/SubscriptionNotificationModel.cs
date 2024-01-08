@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public object? Context { get; set; }
 
         /// <inheritdoc/>
-        public IServiceMessageContext? ServiceMessageContext { get; set; }
+        public IServiceMessageContext ServiceMessageContext { get; set; } = null!;
 
         /// <inheritdoc/>
         public IList<MonitoredItemNotificationModel> Notifications { get; set; }
