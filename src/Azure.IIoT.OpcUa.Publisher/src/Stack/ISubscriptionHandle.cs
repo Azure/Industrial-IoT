@@ -10,10 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Subscription handle is a safe abstraction that allows
-    /// the owner of the subscription to update and control
-    /// without requiring access to the underlying state in
-    /// the opc ua client session.
+    /// Subscription handle is a safe abstraction that allows the owner of the
+    /// subscription to update and control without requiring access to the
+    /// underlying state in the opc ua client session.
     /// </summary>
     public interface ISubscriptionHandle
     {
@@ -41,14 +40,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the subscription needs to be recreated.
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="ct"></param>
-        ValueTask UpdateAsync(SubscriptionModel configuration,
-            CancellationToken ct = default);
+        void Update(SubscriptionModel configuration);
 
         /// <summary>
         /// Close and delete subscription
         /// </summary>
         /// <returns></returns>
-        ValueTask CloseAsync();
+        void Close();
     }
 }

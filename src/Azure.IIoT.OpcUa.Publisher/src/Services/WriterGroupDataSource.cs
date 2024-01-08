@@ -22,11 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using Opc.Ua.Client;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed class WriterGroupDataSource : IMessageSource, IDisposable
+    public sealed class WriterGroupDataSource : IMessageSource
     {
         /// <inheritdoc/>
         public event EventHandler<IOpcUaSubscriptionNotification>? OnMessage;
@@ -101,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var subscription in _subscriptions.Values)
                     {
-                        await subscription.DisposeAsync().ConfigureAwait(false);
+                        subscription.Dispose();
                     }
                     _logger.LogInformation("Removed all subscriptions from writer group {Name}.",
                         writerGroup.WriterGroupId);
@@ -134,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_subscriptions.Remove(id, out var s))
                         {
-                            await s.DisposeAsync().ConfigureAwait(false);
+                            s.Dispose();
                         }
                     }
                     else
@@ -142,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Update
                         if (_subscriptions.TryGetValue(id, out var s))
                         {
-                            await s.UpdateAsync(writer, ct).ConfigureAwait(false);
+                            s.Update(writer);
                         }
                     }
                 }
@@ -180,23 +181,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                DisposeAsync().AsTask().GetAwaiter().GetResult();
+                foreach (var s in _subscriptions.Values)
+                {
+                    s.Dispose();
+                }
+                _subscriptions.Clear();
             }
             finally
             {
                 _lock.Dispose();
                 _meter.Dispose();
             }
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var s in _subscriptions.Values)
-            {
-                await s.DisposeAsync().ConfigureAwait(false);
-            }
-            _subscriptions.Clear();
         }
 
         /// <summary>
@@ -262,8 +257,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Helper to manage subscriptions
         /// </summary>
-        private sealed class DataSetWriterSubscription : IAsyncDisposable,
-            ISubscriptionCallbacks, IMetricsContext
+        private sealed class DataSetWriterSubscription : IDisposable, ISubscriptionCallbacks,
+            IMetricsContext
         {
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -341,8 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Update subscription content
             /// </summary>
             /// <param name="dataSetWriter"></param>
-            /// <param name="ct"></param>
-            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct)
+            public void Update(DataSetWriterModel dataSetWriter)
             {
                 _outer._logger.LogDebug("Updating writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
@@ -362,14 +356,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 InitializeKeepAlive();
 
                 // Apply changes
-                await subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
+                subscription.Update(_subscriptionInfo);
 
                 _outer._logger.LogInformation("Updated subscription for writer {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
+            public void Dispose()
             {
                 try
                 {
@@ -380,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _disposed = true;
                     _metadataTimer?.Stop();
 
-                    await CloseAsync().ConfigureAwait(false);
+                    Close();
                 }
                 finally
                 {
@@ -504,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Close subscription
             /// </summary>
             /// <returns></returns>
-            private async ValueTask CloseAsync()
+            private void Close()
             {
                 var subscription = Subscription;
                 if (subscription == null)
@@ -515,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _outer._logger.LogDebug("Closing writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
-                await subscription.CloseAsync().ConfigureAwait(false);
+                subscription.Close();
 
                 _outer._logger.LogInformation("Writer with subscription {Id} in writer group {Name} closed.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);

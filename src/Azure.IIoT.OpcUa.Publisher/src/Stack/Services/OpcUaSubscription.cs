@@ -146,33 +146,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new OpcUaSubscription(this, copyEventHandlers);
         }
 
-        /// <summary>
-        /// Create subscription
-        /// </summary>
-        /// <param name="outer"></param>
-        /// <param name="options"></param>
-        /// <param name="subscription"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="callbacks"></param>
-        /// <param name="metrics"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        internal static async ValueTask CreateAsync(
-            IClientAccessor<ConnectionModel> outer, IOptions<OpcUaClientOptions> options,
-            SubscriptionModel subscription, ILoggerFactory loggerFactory,
-            ISubscriptionCallbacks callbacks, IMetricsContext metrics,
-            CancellationToken ct = default)
-        {
-            // Create object
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            var newSubscription = new OpcUaSubscription(outer, callbacks, subscription,
-                options, loggerFactory, metrics);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
-            // Initialize
-            await newSubscription.UpdateAsync(subscription, ct).ConfigureAwait(false);
-        }
-
         /// <inheritdoc/>
         public override string? ToString()
         {
@@ -206,44 +179,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IOpcUaSubscriptionNotification? CreateKeepAlive()
         {
-            _lock.Wait();
-            try
+            lock (_lock)
             {
-                var session = Session;
-                if (session == null)
+                if (_disposed)
                 {
+                    _logger.LogError("Subscription {Subscription} already DISPOSED!", this);
                     return null;
                 }
-                return new Notification(this, Id)
+                try
                 {
-                    ServiceMessageContext = session.MessageContext,
-                    ApplicationUri = session.Endpoint.Server.ApplicationUri,
-                    EndpointUrl = session.Endpoint.EndpointUrl,
-                    SubscriptionName = Name,
-                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                    SubscriptionId = LocalIndex,
-                    MessageType = MessageType.KeepAlive
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to create a subscription notification for subscription {Subscription}.",
-                    this);
-                return null;
-            }
-            finally
-            {
-                _lock.Release();
+                    var session = Session;
+                    if (session == null)
+                    {
+                        return null;
+                    }
+                    return new Notification(this, Id)
+                    {
+                        ServiceMessageContext = session.MessageContext,
+                        ApplicationUri = session.Endpoint.Server.ApplicationUri,
+                        EndpointUrl = session.Endpoint.EndpointUrl,
+                        SubscriptionName = Name,
+                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                        SubscriptionId = LocalIndex,
+                        MessageType = MessageType.KeepAlive
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to create a subscription notification for subscription {Subscription}.",
+                        this);
+                    return null;
+                }
             }
         }
 
         /// <inheritdoc/>
-        public async ValueTask UpdateAsync(SubscriptionModel subscription, CancellationToken ct)
+        public void Update(SubscriptionModel subscription)
         {
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try
+            Debug.Assert(!_closed);
+            lock (_lock)
             {
+                if (_disposed)
+                {
+                    _logger.LogError("Subscription {Subscription} already DISPOSED!", this);
+                    return;
+                }
+
                 // Update subscription configuration
                 var previousTemplateId = _template.Id;
 
@@ -259,78 +241,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _forceRecreate = true;
 
                     // ... release client handle to cause closing of session if last reference.
-                    _client?.Dispose();
+                    var client = _client;
                     _client = null;
+
+                    client?.Dispose();
                 }
+
                 TriggerManageSubscription(true);
             }
-            finally
+        }
+
+        /// <inheritdoc/>
+        public void Close()
+        {
+            lock (_lock)
             {
-                _lock.Release();
+                if (_disposed)
+                {
+                    _logger.LogError("Subscription {Subscription} already DISPOSED!", this);
+                    return;
+                }
+
+                Debug.Assert(!_closed);
+                _closed = true;
+                TriggerManageSubscription(true);
             }
         }
 
         /// <inheritdoc/>
         public async ValueTask SyncWithSessionAsync(ISession session, CancellationToken ct)
         {
-            if (_closed || _disposed)
+            if (_disposed)
             {
-                _logger.LogError("Subscription {Subscription} already closed!", this);
                 return;
             }
-
-            // Lock access to the subscription state while we are applying the template.
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                try
+                if (_closed) // Finalize closing the subscription
                 {
-                    await SyncWithSessionInternalAsync(session, ct).ConfigureAwait(false);
+                    _callbacks.OnSubscriptionUpdated(null);
+
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+
+                    _client?.Dispose();
+                    _client = null;
                     return;
                 }
-                catch (Exception e)
-                {
-                    _logger.LogDebug(e,
-                        "Failed to apply state to Subscription {Subscription} in session {Session}...",
-                        this, session);
 
-                    // Retry in 2 seconds
-                    TriggerSubscriptionManagementCallbackIn(
-                        _options.Value.SubscriptionErrorRetryDelay, kDefaultErrorRetryDelay);
-                }
+                await SyncWithSessionInternalAsync(session, ct).ConfigureAwait(false);
             }
-            finally
+            catch (Exception e)
             {
-                _lock.Release();
-            }
-        }
+                _logger.LogDebug(e,
+                    "Failed to apply state to Subscription {Subscription} in session {Session}...",
+                    this, session);
 
-        /// <inheritdoc/>
-        public async ValueTask CloseAsync()
-        {
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (_closed)
-                {
-                    return;
-                }
-                _closed = true;
-
-                _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
-                NumberOfCreatedItems = 0;
-                NumberOfNotCreatedItems = 0;
-
-                // Does not throw
-                await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-                _callbacks.OnSubscriptionUpdated(null);
-
-                _client?.Dispose();
-                _client = null;
-            }
-            finally
-            {
-                _lock.Release();
+                // Retry in 2 seconds
+                TriggerSubscriptionManagementCallbackIn(
+                    _options.Value.SubscriptionErrorRetryDelay, kDefaultErrorRetryDelay);
             }
         }
 
@@ -339,21 +308,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             try
             {
-                if (disposing && !_disposed)
+                if (disposing)
                 {
-                    _disposed = true;
+                    lock (_lock)
+                    {
+                        if (!_disposed)
+                        {
+                            _disposed = true;
 
-                    FastDataChangeCallback = null;
-                    FastEventCallback = null;
-                    FastKeepAliveCallback = null;
+                            FastDataChangeCallback = null;
+                            FastEventCallback = null;
+                            FastKeepAliveCallback = null;
 
-                    PublishStatusChanged -= OnPublishStatusChange;
-                    StateChanged -= OnStateChange;
+                            PublishStatusChanged -= OnPublishStatusChange;
+                            StateChanged -= OnStateChange;
 
-                    _keepAliveWatcher.Dispose();
-                    _timer.Dispose();
-                    _meter.Dispose();
-                    _lock.Dispose();
+                            _keepAliveWatcher.Dispose();
+                            _timer.Dispose();
+                            _meter.Dispose();
+                        }
+                    }
                 }
 
                 Debug.Assert(!_disposed || FastDataChangeCallback == null);
@@ -450,8 +424,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task CloseCurrentSubscriptionAsync()
         {
-            Debug.Assert(_lock.CurrentCount == 0); // Should be always under lock
-
             ResetKeepAliveTimer();
             if (Handle == null)
             {
@@ -463,7 +435,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
+
+                _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                 _currentSequenceNumber = 0;
+                NumberOfCreatedItems = 0;
+                NumberOfNotCreatedItems = 0;
 
                 await Try.Async(
                     () => SetPublishingModeAsync(false)).ConfigureAwait(false);
@@ -502,8 +478,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task<bool> SynchronizeMonitoredItemsAsync(
             IEnumerable<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
         {
-            Debug.Assert(_lock.CurrentCount == 0);
-
             var session = Session as OpcUaSession;
             Debug.Assert(session != null);
 
@@ -1021,8 +995,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask SyncWithSessionInternalAsync(ISession session,
             CancellationToken ct)
         {
-            Debug.Assert(_lock.CurrentCount == 0);
-
             if (session?.Connected != true)
             {
                 _logger.LogError(
@@ -1081,7 +1053,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask SynchronizeSubscriptionAsync(ISession session, CancellationToken ct)
         {
             Debug.Assert(session.DefaultSubscription != null, "No default subscription template.");
-            Debug.Assert(_lock.CurrentCount == 0); // Under lock
 
             GetSubscriptionConfiguration(session.DefaultSubscription,
                 out var configuredPublishingInterval, out var configuredPriority,
@@ -1286,6 +1257,7 @@ Actual (revised) state/desired state:
             // reference that must be released when the subscription is closed or the
             // underlying connection information changes.
             //
+
             if (_client == null)
             {
                 if (!ensureClientExists)
@@ -1613,31 +1585,29 @@ Actual (revised) state/desired state:
         private bool TryGetNotifications(uint sequenceNumber,
             [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
         {
-            _lock.Wait();
-            try
+            lock (_lock)
             {
-                if (Handle == null)
+                try
+                {
+                    if (Handle == null)
+                    {
+                        notifications = null;
+                        return false;
+                    }
+                    notifications = new List<MonitoredItemNotificationModel>();
+                    foreach (var item in _currentlyMonitored.Values)
+                    {
+                        item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
+                    }
+                    return true;
+                }
+                catch (Exception ex)
                 {
                     notifications = null;
+                    _logger.LogError(ex, "Failed to get a notifications from monitored " +
+                        "items in subscription {Subscription}.", this);
                     return false;
                 }
-                notifications = new List<MonitoredItemNotificationModel>();
-                foreach (var item in _currentlyMonitored.Values)
-                {
-                    item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                notifications = null;
-                _logger.LogError(ex, "Failed to get a notifications from monitored " +
-                    "items in subscription {Subscription}.", this);
-                return false;
-            }
-            finally
-            {
-                _lock.Release();
             }
         }
 
@@ -2182,14 +2152,14 @@ Actual (revised) state/desired state:
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
-        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly Timer _timer;
         private readonly Timer _keepAliveWatcher;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private uint _currentSequenceNumber;
         private int _continuouslyMissingKeepAlives;
-        private bool _disposed;
         private long _unassignedNotifications;
+        private bool _disposed;
+        private readonly object _lock = new();
     }
 }
