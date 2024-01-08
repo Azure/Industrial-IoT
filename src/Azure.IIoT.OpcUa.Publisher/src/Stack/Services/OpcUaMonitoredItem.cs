@@ -1393,8 +1393,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return;
                 }
 
-                var lastValue = lastNofication?.Value ??
-                    new DataValue(Status?.Error?.StatusCode ?? StatusCodes.GoodNoData);
+                var lastValue = lastNofication?.Value;
+                if (lastValue == null && Status?.Error?.StatusCode != null)
+                {
+                    lastValue = new DataValue(Status.Error.StatusCode);
+                }
+
+                if (lastValue == null)
+                {
+                    // Currently no last known value (LKV) to send
+                    return;
+                }
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                         == HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
                 {

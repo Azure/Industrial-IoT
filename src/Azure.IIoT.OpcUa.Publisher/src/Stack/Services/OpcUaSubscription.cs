@@ -459,11 +459,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogError(e, "Failed to close subscription {Subscription}", this);
             }
-            finally
-            {
-                PublishStatusChanged -= OnPublishStatusChange;
-                StateChanged -= OnStateChange;
-            }
         }
 
         /// <summary>
@@ -1714,6 +1709,11 @@ Actual (revised) state/desired state:
         /// <exception cref="NotImplementedException"></exception>
         private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (e.Status.HasFlag(PublishStateChangedMask.Stopped))
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
@@ -1757,6 +1757,11 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnStateChange(Subscription subscription, SubscriptionStateChangedEventArgs e)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             if (e.Status.HasFlag(SubscriptionChangeMask.Created))
             {
                 _logger.LogDebug("Subscription {Subscription} created.", this);
