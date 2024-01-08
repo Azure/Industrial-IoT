@@ -5,34 +5,50 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Opc.Ua.Client;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The subscription handle is an internal interface
-    /// between opc ua client and the subscription owned
-    /// by the client.
+    /// Subscription handle is a safe abstraction that allows
+    /// the owner of the subscription to update and control
+    /// without requiring access to the underlying state in
+    /// the opc ua client session.
     /// </summary>
-    internal interface ISubscriptionHandle
+    public interface ISubscriptionHandle
     {
         /// <summary>
-        /// Apply the current subscription configuration to
-        /// the session.
+        /// Identifier of the subscription
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="ct"></param>
+        string Name { get; }
+
+        /// <summary>
+        /// Assigned index
+        /// </summary>
+        ushort LocalIndex { get; }
+
+        /// <summary>
+        /// Create a keep alive notification
+        /// </summary>
         /// <returns></returns>
-        ValueTask SyncWithSessionAsync(ISession session,
+        IOpcUaSubscriptionNotification? CreateKeepAlive();
+
+        /// <summary>
+        /// Apply desired state of the subscription and its monitored items.
+        /// This will attempt a differential update of the subscription
+        /// and monitored items state. It is called periodically, when the
+        /// configuration is updated or when a session is reconnected and
+        /// the subscription needs to be recreated.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="ct"></param>
+        ValueTask UpdateAsync(SubscriptionModel configuration,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Try get the current position in the out stream.
+        /// Close and delete subscription
         /// </summary>
-        /// <param name="subscriptionId"></param>
-        /// <param name="sequenceNumber"></param>
         /// <returns></returns>
-        bool TryGetCurrentPosition(out uint subscriptionId,
-            out uint sequenceNumber);
+        ValueTask CloseAsync();
     }
 }

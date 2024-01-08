@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Called when the subscription is updated
         /// </summary>
-        /// <param name="subscription"></param>
+        /// <param name="subscriptionHandle"></param>
         public void OnSubscriptionUpdated(
-            IOpcUaSubscription? subscription);
+            ISubscriptionHandle? subscriptionHandle);
 
         /// <summary>
         /// Called when a keep alive notification is received

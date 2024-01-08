@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Active subscription
             /// </summary>
-            public IOpcUaSubscription? Subscription { get; set; }
+            public ISubscriptionHandle? Subscription { get; set; }
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionUpdated(IOpcUaSubscription? subscription)
+            public void OnSubscriptionUpdated(ISubscriptionHandle? subscription)
             {
                 Subscription = subscription;
 

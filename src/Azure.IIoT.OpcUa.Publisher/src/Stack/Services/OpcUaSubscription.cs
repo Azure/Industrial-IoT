@@ -37,8 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.EventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     [KnownType(typeof(OpcUaMonitoredItem.FieldItem))]
-    internal sealed class OpcUaSubscription : Subscription, IOpcUaSubscription,
-        ISubscriptionHandle
+    internal sealed class OpcUaSubscription : Subscription, ISubscriptionHandle,
+        IOpcUaSubscription
     {
         /// <inheritdoc/>
         public string Name => _template.Id.Id;
@@ -61,8 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Client state
         /// </summary>
-        internal IOpcUaClientState State
-            => (_client as IOpcUaClientState) ?? OpcUaClient.Disconnected;
+        internal IOpcUaClientDiagnostics State
+            => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
 
         /// <summary>
         /// Subscription

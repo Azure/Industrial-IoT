@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
     internal sealed class OpcUaClient : DefaultSessionFactory, IOpcUaClient, ISessionAccessor,
-        IOpcUaClientState
+        IOpcUaClientDiagnostics
     {
         /// <summary>
         /// Client namespace
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Disconnected state
         /// </summary>
-        internal static IOpcUaClientState Disconnected { get; }
+        internal static IOpcUaClientDiagnostics Disconnected { get; }
             = new DisconnectState();
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void ManageSubscription(ISubscriptionHandle subscription)
+        public void ManageSubscription(IOpcUaSubscription subscription)
         {
             TriggerConnectionEvent(ConnectionEvent.SubscriptionManage, subscription);
         }
@@ -621,12 +621,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task ManageSessionStateMachineAsync(CancellationToken ct)
         {
             var currentSessionState = SessionState.Disconnected;
-            IReadOnlyList<ISubscriptionHandle> currentSubscriptions;
-            var queuedSubscriptions = new HashSet<ISubscriptionHandle>();
+            IReadOnlyList<IOpcUaSubscription> currentSubscriptions;
+            var queuedSubscriptions = new HashSet<IOpcUaSubscription>();
 
             var reconnectPeriod = 0;
             var reconnectTimer = new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
-            currentSubscriptions = Array.Empty<ISubscriptionHandle>();
+            currentSubscriptions = Array.Empty<IOpcUaSubscription>();
             await using (reconnectTimer.ConfigureAwait(false))
             {
                 try
@@ -692,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 break;
 
                             case ConnectionEvent.SubscriptionManage:
-                                var item = context as ISubscriptionHandle;
+                                var item = context as IOpcUaSubscription;
                                 Debug.Assert(item != null);
                                 switch (currentSessionState)
                                 {
@@ -824,7 +824,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
                                 queuedSubscriptions.Clear();
-                                currentSubscriptions = Array.Empty<ISubscriptionHandle>();
+                                currentSubscriptions = Array.Empty<IOpcUaSubscription>();
 
                                 // if not already disconnected, aquire writer lock
                                 if (_disconnectLock == null)
@@ -872,8 +872,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            async ValueTask ApplySubscriptionAsync(IReadOnlyList<ISubscriptionHandle> subscriptions,
-                HashSet<ISubscriptionHandle> extra, CancellationToken cancellationToken = default)
+            async ValueTask ApplySubscriptionAsync(IReadOnlyList<IOpcUaSubscription> subscriptions,
+                HashSet<IOpcUaSubscription> extra, CancellationToken cancellationToken = default)
             {
                 var numberOfSubscriptions = subscriptions.Count + extra.Count;
                 _logger.LogDebug("Applying changes to {Count} subscriptions...", numberOfSubscriptions);
@@ -1068,6 +1068,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         checkDomain: false, // Domain must match on connect
                         _sessionName, (uint)sessionTimeout.TotalMilliseconds,
                         userIdentity, preferredLocales, ct).ConfigureAwait(false);
+
+                    session.RenewUserIdentity += (_, _) => userIdentity;
+
                     // Assign the created session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                     Debug.Assert(isNew);
@@ -1752,7 +1755,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Disconnected state
         /// </summary>
-        private sealed class DisconnectState : IOpcUaClientState
+        private sealed class DisconnectState : IOpcUaClientDiagnostics
         {
             /// <inheritdoc/>
             public int BadPublishRequestCount
