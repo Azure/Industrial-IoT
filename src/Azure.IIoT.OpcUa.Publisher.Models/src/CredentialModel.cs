@@ -5,11 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Credential model
+    /// Credential model. For backwards compatibility
+    /// the actual credentials to pass to the server is set
+    /// through the value property.
     /// </summary>
     [DataContract]
     public sealed record class CredentialModel
@@ -22,10 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public CredentialType? Type { get; set; }
 
         /// <summary>
-        /// Credential to pass to server.
+        /// Credential to pass to server. Can be omitted in case of
+        /// <see cref="CredentialType.None"/>.
         /// </summary>
         [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
-        public VariantValue? Value { get; set; }
+        public UserIdentityModel? Value { get; set; }
     }
 }

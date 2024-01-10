@@ -260,11 +260,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
-                Value = new DefaultJsonSerializer().FromObject(new
+                Value = new UserIdentityModel
                 {
-                    user = "DC=user2",
-                    password = p2
-                })
+                    User = "DC=user2",
+                    Password = p2
+                }
             };
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
@@ -305,11 +305,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
-                Value = new DefaultJsonSerializer().FromObject(new
+                Value = new UserIdentityModel
                 {
-                    thumbprint = newCert3.Thumbprint,
-                    password = p3
-                })
+                    Thumbprint = newCert3.Thumbprint,
+                    Password = p3
+                }
             };
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
@@ -350,11 +350,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
-                Value = new DefaultJsonSerializer().FromObject(new
+                Value = new UserIdentityModel
                 {
-                    thumbprint = newCert3.Thumbprint,
-                    password = p1
-                })
+                    Thumbprint = newCert3.Thumbprint,
+                    Password = p1
+                }
             };
             var ex = await Assert.ThrowsAsync<ServiceResultException>(
                 async () => await credential.ToUserIdentityAsync(config.Value));
@@ -364,10 +364,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
-                Value = new DefaultJsonSerializer().FromObject(new
+                Value = new UserIdentityModel
                 {
-                    password = p3
-                })
+                    Password = p3
+                }
             };
             ex = await Assert.ThrowsAsync<ServiceResultException>(
                 async () => await credential.ToUserIdentityAsync(config.Value));
@@ -377,10 +377,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             credential = new CredentialModel
             {
                 Type = CredentialType.X509Certificate,
-                Value = new DefaultJsonSerializer().FromObject(new
+                Value = new UserIdentityModel
                 {
-                    thumbprint = newCert3.Thumbprint,
-                })
+                    Thumbprint = newCert3.Thumbprint
+                }
             };
             ex = await Assert.ThrowsAsync<ServiceResultException>(
                 async () => await credential.ToUserIdentityAsync(config.Value));

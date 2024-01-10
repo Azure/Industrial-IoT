@@ -86,8 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
             Assert.NotNull(credential);
             Assert.Equal(CredentialType.UserName, credential.Type);
-            Assert.Equal("OpcAuthenticationPassword", credential.Value["password"]);
-            Assert.Equal("OpcAuthenticationUsername", credential.Value["user"]);
+            Assert.Equal("OpcAuthenticationPassword", credential.Value.Password);
+            Assert.Equal("OpcAuthenticationUsername", credential.Value.User);
 
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
             entry = Assert.Single(entries);
@@ -137,8 +137,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
             Assert.NotNull(credential);
             Assert.Equal(CredentialType.UserName, credential.Type);
-            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
-            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+            Assert.Equal("DecryptedAuthPassword", credential.Value.Password);
+            Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
             entry = Assert.Single(entries);
@@ -286,8 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
             Assert.NotNull(credential);
             Assert.Equal(CredentialType.UserName, credential.Type);
-            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
-            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+            Assert.Equal("DecryptedAuthPassword", credential.Value.Password);
+            Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
             // Now we should have converted back to plain text
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
@@ -340,8 +340,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var credential = Assert.Single(group.DataSetWriters).DataSet?.DataSetSource?.Connection?.User;
             Assert.NotNull(credential);
             Assert.Equal(CredentialType.UserName, credential.Type);
-            Assert.Equal("DecryptedAuthPassword", credential.Value["password"]);
-            Assert.Equal("DecryptedAuthUsername", credential.Value["user"]);
+            Assert.Equal("DecryptedAuthPassword", credential.Value.Password);
+            Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
             // Now we should have converted back to encrypted
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
@@ -403,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Null(credential.Value);
 
             // Fake credential
-            credential.Value = _serializer.FromObject(new { user = "user", password = "password" });
+            credential.Value = new UserIdentityModel { User = "user", Password = "password" };
             credential.Type = CredentialType.UserName;
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
             Assert.True(failFastCalled); // Process exited
@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             // Now we should have converted back to encrypted
             // Fake credential
-            credential.Value = _serializer.FromObject(new { user = "user", password = "password" });
+            credential.Value = new UserIdentityModel { User = "user", Password = "password" };
             credential.Type = CredentialType.UserName;
             entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
             Assert.True(failFastCalled); // Process exited

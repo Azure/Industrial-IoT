@@ -389,12 +389,15 @@ Content filter
 
 <a name="credentialmodel"></a>
 ### CredentialModel
-Credential model
+Credential model. For backwards compatibility
+the actual credentials to pass to the server is set
+through the value property.
 
 
 |Name|Schema|
 |---|---|
 |**type**  <br>*optional*|[CredentialType](definitions.md#credentialtype)|
+|**value**  <br>*optional*|[UserIdentityModel](definitions.md#useridentitymodel)|
 
 
 <a name="credentialtype"></a>
@@ -733,7 +736,7 @@ Result of GetConfiguredNodesOnEndpoint method call
 ### HeartbeatBehavior
 Heartbeat behavior
 
-*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps)
+*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps, WatchdogLKVDiagnosticsOnly)
 
 
 <a name="historiceventmodel"></a>
@@ -2151,6 +2154,18 @@ connection endpoint
 |**request**  <br>*optional*|[UpdateValuesDetailsModelHistoryUpdateRequestModel](definitions.md#updatevaluesdetailsmodelhistoryupdaterequestmodel)|
 
 
+<a name="useridentitymodel"></a>
+### UserIdentityModel
+User identity model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**password**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the password of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the passcode to export the configured certificate's<br>            private key.<br>            <br><br><br>            Not used for the other authentication types.|string|
+|**thumbprint**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the thumbprint of the configured certificate to use.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
+|**user**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the name of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the subject name of the certificate that has been<br>            configured.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
+
+
 <a name="valuereadrequestmodel"></a>
 ### ValueReadRequestModel
 Request node value read
@@ -2356,7 +2371,7 @@ Result of attribute write
 ### WriterGroupTransport
 Desired writer group transport
 
-*Type* : enum (IoTHub, Mqtt, Dapr, Http, FileSystem)
+*Type* : enum (IoTHub, Mqtt, Dapr, Http, FileSystem, Null)
 
 
 <a name="x509certificatechainmodel"></a>

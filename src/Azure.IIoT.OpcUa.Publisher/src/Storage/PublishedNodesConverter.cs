@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -556,18 +557,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             return publishedNodesEntryModel;
 
             async Task<(string? user, string? password, bool encrypted)> ToUserNamePasswordCredentialAsync(
-                VariantValue? credential)
+                UserIdentityModel? credential)
             {
-                if (credential == null || !credential.TryGetProperty("user", out var user) ||
-                    !user.TryGetString(out var userString, false, CultureInfo.InvariantCulture))
-                {
-                    userString = string.Empty;
-                }
-                if (credential == null || !credential.TryGetProperty("password", out var password) ||
-                    !password.TryGetString(out var passwordString, false, CultureInfo.InvariantCulture))
-                {
-                    passwordString = string.Empty;
-                }
+                var userString = credential?.User ?? string.Empty;
+                var passwordString = credential?.Password ?? string.Empty;
 
                 if (_forceCredentialEncryption)
                 {
@@ -861,7 +854,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         Type = entry.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
                             CredentialType.X509Certificate :
                             CredentialType.UserName,
-                        Value = _serializer.FromObject(new { user, password })
+                        Value = new UserIdentityModel { User = user, Password = password }
                     };
             }
             return new CredentialModel

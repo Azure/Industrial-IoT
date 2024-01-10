@@ -54,14 +54,17 @@ We are pleased to announce the release of version 2.9.4 of OPC Publisher and the
 
 ### Changes in 2.9.4
 
+- Send the error of CreateMonitoredItem as part of the keyframe field and in heartbeats if WatchdogLKV heartbeat behavior is used (#2150).
+- Credential based authentication uses concrete types for credentials now which are documented in openapi.json (#2152)
+- OPC Publisher can now obtain TLS certificates from IoT Edge workload API to secure the HTTPS API (#2101)
 - Fix release build issue which broke support for ARM64 images running on RPi4 (#2145).
-- Update console diagnostics output to provide better naming and reflect other transports than IoT Edge Hub (#2141)
+- Update console diagnostics output to provide better naming, additional diagnostics and reflect other transports than IoT Edge Hub (#2141)
 - Add keep alive notification counts to Diagnostics output and messages
 - Add a full version that includes runtime, framework and full version string to runtime state message, twin, diagnostic object, and in console output.
 - When only using cyclic reads, the underlying dummy subscription should stay disabled (#2139)
 - Recreate session if it expires on server (#2138)
 - Log subscription keep alive error only when session is connected (#2137)
-- Update OPC UA .net stack to latest version (1.4.372.106) to enable fully async reconnect
+- Update OPC UA .net stack to latest version (1.4.372.116-preview) to enable fully async reconnect and fix several issues in previous versions.
 - Fix issue where certain publish errors cause reconnect state machine to fail (#2104, #2136)
 
 ## Azure Industrial IoT OPC Publisher 2.9.3

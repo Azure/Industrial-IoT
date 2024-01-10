@@ -20,11 +20,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static string? GetPassword(this CredentialModel? model)
         {
             if (model?.Type == CredentialType.UserName &&
-                model.Value?.IsObject == true &&
-                model.Value.TryGetProperty("password", out var password) &&
-                password.IsString)
+                model.Value != null)
             {
-                return (string?)password;
+                return model.Value.Password;
             }
             return null;
         }
@@ -37,13 +35,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static string? GetUserName(this CredentialModel? model)
         {
             if (model?.Type == CredentialType.UserName &&
-                model.Value?.IsObject == true &&
-                model.Value.TryGetProperty("user", out var user) &&
-                user.IsString)
+                model.Value != null)
             {
-                return (string?)user;
+                return model.Value.User;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Equality comparison
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this CredentialModel? model, CredentialModel? that)
+        {
+            if (model == that)
+            {
+                return true;
+            }
+
+            model ??= new CredentialModel();
+            that ??= new CredentialModel();
+
+            if (that.Type != model.Type)
+            {
+                return false;
+            }
+            if (!that.Value.IsSameAs(model.Value))
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -56,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                Value = model.Value?.Copy()
+                Value = model.Value.Clone()
             });
         }
     }

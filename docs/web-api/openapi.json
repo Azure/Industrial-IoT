@@ -4908,14 +4908,14 @@
             }
         },
         "CredentialModel": {
-            "description": "Credential model",
+            "description": "Credential model. For backwards compatibility\r\nthe actual credentials to pass to the server is set\r\nthrough the value property.",
             "type": "object",
             "properties": {
                 "type": {
                     "$ref": "#/definitions/CredentialType"
                 },
                 "value": {
-                    "description": "Credential to pass to server."
+                    "$ref": "#/definitions/UserIdentityModel"
                 }
             }
         },
@@ -5730,7 +5730,8 @@
                 "WatchdogLKG",
                 "PeriodicLKV",
                 "PeriodicLKG",
-                "WatchdogLKVWithUpdatedTimestamps"
+                "WatchdogLKVWithUpdatedTimestamps",
+                "WatchdogLKVDiagnosticsOnly"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -8259,6 +8260,24 @@
                 }
             }
         },
+        "UserIdentityModel": {
+            "description": "User identity model",
+            "type": "object",
+            "properties": {
+                "user": {
+                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the name of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the subject name of the certificate that has been\r\n            configured.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the password of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the passcode to export the configured certificate's\r\n            private key.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "type": "string"
+                },
+                "thumbprint": {
+                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the thumbprint of the configured certificate to use.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "type": "string"
+                }
+            }
+        },
         "ValueReadRequestModel": {
             "description": "Request node value read",
             "type": "object",
@@ -8524,7 +8543,8 @@
                 "Mqtt",
                 "Dapr",
                 "Http",
-                "FileSystem"
+                "FileSystem",
+                "Null"
             ],
             "type": "string",
             "x-ms-enum": {

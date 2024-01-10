@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (!VariantValue.DeepEquals(that.User?.Value, model.User?.Value))
+            if (!that.User.IsSameAs(model.User))
             {
                 return false;
             }
@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             hashCode = (hashCode * -1521134295) +
                 model.Endpoint?.CreateConsistentHash() ?? 0;
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<VariantValue>.Default.GetHashCode(model.User?.Value ?? VariantValue.Null);
+                EqualityComparer<CredentialModel>.Default.GetHashCode(model.User ?? new CredentialModel());
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
