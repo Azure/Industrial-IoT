@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  ############################
+  # OPC PLC Simulation
+  ############################
+  opcplc:
+    command: [
+      "--sph=True",
+      "--spf=/shared/pn.json",
+      "--pn=50000",
+      "--alm=True",
+      "--ses=True",
+      "--fn=10000",
+      "--sn=10000",
+      "--aa=True",
+      "--ut=True"
+      ]
+  ############################
+  # Network capture
+  ############################
+  pcap:
+    container_name: pcap
+    image: travelping/pcap
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    volumes:
+      - dump:/data
+    environment:
+      IFACE: any
+      FORMAT: pcapng
+      FILENAME: dump.pcap
+      FILTER: "tcp port 50000"
+volumes:
+  dump:

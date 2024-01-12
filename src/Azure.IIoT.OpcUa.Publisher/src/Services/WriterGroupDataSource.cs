@@ -886,6 +886,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        private IEnumerable<IOpcUaClientDiagnostics> UsedClients => _subscriptions.Values
+            .Select(s => s.Subscription?.State!)
+            .Where(s => s != null)
+            .Distinct();
+
+        private int ReconnectCount => UsedClients
+            .Sum(s => s.ReconnectCount);
+
+        private int ConnectedClients => UsedClients
+            .Count(s => s.State == EndpointConnectivityState.Ready);
+
+        private int DisconnectedClients => UsedClients
+            .Count(s => s.State != EndpointConnectivityState.Ready);
+
         /// <summary>
         /// Create observable metrics
         /// </summary>
@@ -927,6 +941,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableCounter("iiot_edge_publisher_keep_alive_notifications",
                 () => new Measurement<long>(_keepAliveCount, _metrics.TagList), "Notifications",
                 "Total Opc keep alive notifications delivered for processing.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+                () => new Measurement<long>(ReconnectCount,
+                _metrics.TagList), "Attempts", "OPC UA connect retries.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
+                () => new Measurement<int>(ConnectedClients,
+                _metrics.TagList), "Endpoints", "OPC UA endpoints that are successfully connected.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
+                () => new Measurement<int>(DisconnectedClients,
+                _metrics.TagList), "Endpoints", "OPC UA endpoints that are disconnected.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;

@@ -39,6 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// is not connected.
         /// </summary>
         /// <param name="subscription"></param>
-        void ManageSubscription(IOpcUaSubscription subscription);
+        /// <param name="closeSubscription"></param>
+        void ManageSubscription(IOpcUaSubscription subscription,
+            bool closeSubscription = false);
     }
 }

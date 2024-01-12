@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Safely access client state for diagnostics
     /// </summary>
-    internal interface IOpcUaClientDiagnostics
+    public interface IOpcUaClientDiagnostics
     {
         /// <summary>
         /// Bad publish requests tracked by this client
