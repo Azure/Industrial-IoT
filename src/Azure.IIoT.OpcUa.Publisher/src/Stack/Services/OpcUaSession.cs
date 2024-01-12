@@ -123,8 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 PublishError -=
                     _client.Session_HandlePublishError;
-                PublishSequenceNumbersToAcknowledge -=
-                    _client.Session_PublishSequenceNumbersToAcknowledge;
+                //PublishSequenceNumbersToAcknowledge -=
+                //    _client.Session_PublishSequenceNumbersToAcknowledge;
                 KeepAlive -=
                     _client.Session_KeepAlive;
                 SessionConfigurationChanged -=
@@ -626,8 +626,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             PublishError +=
                 _client.Session_HandlePublishError;
-            PublishSequenceNumbersToAcknowledge +=
-                _client.Session_PublishSequenceNumbersToAcknowledge;
+            // PublishSequenceNumbersToAcknowledge +=
+            //     _client.Session_PublishSequenceNumbersToAcknowledge;
             KeepAlive +=
                 _client.Session_KeepAlive;
             SessionConfigurationChanged +=
