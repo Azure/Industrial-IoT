@@ -2169,9 +2169,7 @@ Actual (revised) state/desired state:
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _template;
-#pragma warning disable CA2213 // Disposable fields should be disposed
         private IOpcUaClient? _client;
-#pragma warning restore CA2213 // Disposable fields should be disposed
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;

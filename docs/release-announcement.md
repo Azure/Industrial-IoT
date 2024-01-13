@@ -65,6 +65,7 @@ We are pleased to announce the release of version 2.9.4 of OPC Publisher and the
 - Recreate session if it expires on server (#2138)
 - Log subscription keep alive error only when session is connected (#2137)
 - Update OPC UA .net stack to latest version (1.4.372.116-preview) to enable fully async reconnect and fix several issues in previous versions.
+- Added the ability to switch publisher to emit logs in syslog or systemd format using --lfm command line option.
 - Fix issue where certain publish errors cause reconnect state machine to fail (#2104, #2136)
 
 ## Azure Industrial IoT OPC Publisher 2.9.3

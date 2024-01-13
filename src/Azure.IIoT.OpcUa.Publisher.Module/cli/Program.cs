@@ -381,7 +381,7 @@ Options:
             }
             if (publishedNodesFile != null && File.Exists(publishedNodesFile))
             {
-                var publishedNodesFilePath = "profile.json";
+                const string publishedNodesFilePath = "profile.json";
 
                 await File.WriteAllTextAsync(publishedNodesFilePath,
                     (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))

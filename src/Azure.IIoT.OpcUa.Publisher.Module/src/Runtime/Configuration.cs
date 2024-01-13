@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static partial class Configuration
+    public static class Configuration
     {
         /// <summary>
         /// Add all publisher dependencies minus connectivity components.
@@ -511,7 +511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 ConsoleFormatterNames.Simple,
                 Syslog.FormatterName,
-                ConsoleFormatterNames.Systemd,
+                ConsoleFormatterNames.Systemd
             };
 
             /// <summary>

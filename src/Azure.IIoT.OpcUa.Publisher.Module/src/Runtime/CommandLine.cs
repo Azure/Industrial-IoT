@@ -452,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The loglevel to use.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
                     (LogLevel l) => this[Configuration.LoggingLevel.LogLevelKey] = l.ToString() },
                { $"lfm|logformat=|{Configuration.LoggingFormat.LogFormatKey}=",
-                    $"The logling format to use.\nAllowed values:\n    `{string.Join("`\n    `", Configuration.LoggingFormat.LogFormatsSupported)}`\nDefault: `{Configuration.LoggingFormat.LogFormatDefault}`.\n",
+                    $"The log format to use when writing to the console.\nAllowed values:\n    `{string.Join("`\n    `", Configuration.LoggingFormat.LogFormatsSupported)}`\nDefault: `{Configuration.LoggingFormat.LogFormatDefault}`.\n",
                     (string s) => this[Configuration.LoggingFormat.LogFormatKey] = s },
                 { $"di|diagnosticsinterval=|{PublisherConfig.DiagnosticsIntervalKey}=",
                     "Produce publisher diagnostic information at this specified interval in seconds.\nBy default diagnostics are written to the OPC Publisher logger (which requires at least --loglevel `information`) unless configured differently using `--pd`.\n`0` disables diagnostic output.\nDefault:60000 (60 seconds).\nAlso can be set using `DiagnosticsInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`\".\n",
@@ -478,12 +478,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
                     (bool? b) => this[Configuration.Otlp.EnableMetricsKey] = b?.ToString() ?? "True" },
-                { $"cap|capturedevice=|{OpcUaClientConfig.CaptureDeviceKey}=",
-                    $"The capture device to use to capture network traffic.\n{SupportsCapture(OpcUaClientCapture.AvailableDevices)}\n",
-                    (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
-                { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
-                    $"The file name to capture traffic to.\nA device must be selected using `--cd` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
-                    (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
 
@@ -619,15 +613,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 throw new OptionException("Bad store type", optionName);
             }
-        }
-
-        private static string SupportsCapture(IReadOnlyList<string> devices)
-        {
-            if (devices.Count == 0)
-            {
-                return "Network capture is not supported on this system.";
-            }
-            return $"Available devices on your system:\n    `{string.Join("`\n    `", devices)}`\nDefault: `null` (disabled).";
         }
 
         private readonly CommandLineLogger _logger;

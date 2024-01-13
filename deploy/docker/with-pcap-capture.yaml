@@ -4,6 +4,7 @@ services:
   # OPC PLC Simulation
   ############################
   opcplc:
+    hostname: opcplc
     command: [
       "--sph=True",
       "--spf=/shared/pn.json",
@@ -29,7 +30,9 @@ services:
     environment:
       IFACE: any
       FORMAT: pcapng
+      MAXFILENUM: 5
+      MAXFILESIZE: 10
       FILENAME: dump.pcap
-      FILTER: "tcp port 50000"
+      FILTER: "host opcplc"
 volumes:
   dump:

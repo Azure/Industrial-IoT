@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="Syslog"/> class.
         /// </summary>
+        /// <param name="options"></param>
         public Syslog(IOptionsMonitor<ConsoleFormatterOptions> options)
             : base(FormatterName)
         {
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 _includeScopes = opt.IncludeScopes;
             });
             _options = options.CurrentValue;
-            _serviceId = "opcpublisher" + "@311";
+            _serviceId = "opcpublisher@311";
             _timestampFormat = DefaultTimestampFormat;
             _includeScopes = _options.IncludeScopes;
         }
@@ -95,12 +96,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /* Info  */ "<6>",
             /* Warn */  "<4>",
             /* Error */ "<3>",
-            /* Crit  */ "<3>",
+            /* Crit  */ "<3>"
         };
 
         private readonly IDisposable? _optionsReloadToken;
-        private string _timestampFormat;
-        private string _serviceId;
+        private readonly string _timestampFormat;
+        private readonly string _serviceId;
         private bool _includeScopes;
         private ConsoleFormatterOptions _options;
     }
