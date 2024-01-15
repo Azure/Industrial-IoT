@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Subscription handle is a safe abstraction that allows the owner of the
@@ -25,6 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Assigned index
         /// </summary>
         ushort LocalIndex { get; }
+
+        /// <summary>
+        /// State of the underlying client
+        /// </summary>
+        IOpcUaClientDiagnostics State { get; }
 
         /// <summary>
         /// Create a keep alive notification

@@ -46,6 +46,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ushort LocalIndex { get; }
 
+        /// <inheritdoc/>
+        public IOpcUaClientDiagnostics State
+            => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
+
         /// <summary>
         /// Current metadata
         /// </summary>
@@ -57,12 +61,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         internal bool IsOnline
             => Handle != null && Session?.Connected == true && !_closed;
-
-        /// <summary>
-        /// Client state
-        /// </summary>
-        internal IOpcUaClientDiagnostics State
-            => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
 
         /// <summary>
         /// Subscription
@@ -96,6 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             InitializeMetrics();
             TriggerManageSubscription(true);
+            Debug.Assert(_client != null);
         }
 
         /// <summary>
@@ -240,10 +239,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _forceRecreate = true;
 
                     // ... release client handle to cause closing of session if last reference.
-                    var client = _client;
+                    _client?.Dispose();
                     _client = null;
-
-                    client?.Dispose();
                 }
 
                 TriggerManageSubscription(true);
@@ -263,31 +260,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 Debug.Assert(!_closed);
                 _closed = true;
+
                 TriggerManageSubscription(true);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask CloseInSessionAsync(ISession? session, CancellationToken ct)
+        {
+            Debug.Assert(_closed);
+
+            // Finalize closing the subscription
+            ResetKeepAliveTimer();
+
+            _callbacks.OnSubscriptionUpdated(null);
+
+            // Does not throw
+            await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+
+            lock (_lock)
+            {
+                _client?.Dispose();
+                _client = null;
             }
         }
 
         /// <inheritdoc/>
         public async ValueTask SyncWithSessionAsync(ISession session, CancellationToken ct)
         {
-            if (_disposed)
+            if (_disposed || _closed)
             {
                 return;
             }
             try
             {
-                if (_closed) // Finalize closing the subscription
-                {
-                    _callbacks.OnSubscriptionUpdated(null);
-
-                    // Does not throw
-                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-
-                    _client?.Dispose();
-                    _client = null;
-                    return;
-                }
-
                 await SyncWithSessionInternalAsync(session, ct).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -314,6 +320,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (!_disposed)
                         {
                             _disposed = true;
+                            if (_closed)
+                            {
+                                _client?.Dispose();
+                                _client = null;
+                            }
 
                             FastDataChangeCallback = null;
                             FastEventCallback = null;
@@ -1233,7 +1244,10 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnSubscriptionManagementTriggered(object? state)
         {
-            TriggerManageSubscription(false);
+            lock (_lock)
+            {
+                TriggerManageSubscription(false);
+            }
         }
 
         /// <summary>
@@ -1263,7 +1277,7 @@ Actual (revised) state/desired state:
             _logger.LogInformation("Trigger management of subscription {Subscription}...",
                 this);
 
-            _client.ManageSubscription(this);
+            _client.ManageSubscription(this, _closed);
         }
 
         /// <summary>
@@ -2136,15 +2150,6 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
                 () => new Measurement<long>(_currentlyMonitored.Count,
                 _metrics.TagList), "Monitored items", "Monitored item count.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(State.ReconnectCount,
-                _metrics.TagList), "Attempts", "OPC UA connect retries.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(State.State == EndpointConnectivityState.Ready ? 1 : 0,
-                _metrics.TagList), "Online", "OPC UA connection success flag.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
-                () => new Measurement<int>(State.State != EndpointConnectivityState.Ready ? 1 : 0,
-                _metrics.TagList), "Online", "OPC UA connection success flag.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
                 _metrics.TagList), "Requests per Subscription", "Good publish requests per subsciption.");
@@ -2164,9 +2169,7 @@ Actual (revised) state/desired state:
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _template;
-#pragma warning disable CA2213 // Disposable fields should be disposed
         private IOpcUaClient? _client;
-#pragma warning restore CA2213 // Disposable fields should be disposed
         private uint _previousSequenceNumber;
         private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;

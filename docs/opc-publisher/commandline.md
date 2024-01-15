@@ -18,8 +18,8 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                 2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.4.372.116)
 
-                                                 2.9.4 (.NET 8.0.0/win-x64/OPC Stack 1.4.372.106)
 General
 -------
 
@@ -806,6 +806,14 @@ Diagnostic options
                                    `Critical`
                                    `None`
                                Default: `Information`.
+      --lfm, --logformat, --LogFormat=VALUE
+                             The logging format to use when writing to the 
+                               console.
+                               Allowed values:
+                                   `simple`
+                                   `syslog`
+                                   `systemd`
+                               Default: `simple`.
       --di, --diagnosticsinterval, --DiagnosticsInterval=VALUE
                              Produce publisher diagnostic information at this
                                specified interval in seconds.
@@ -856,15 +864,6 @@ Diagnostic options
                                metrics directly on the standard path.
                                Default: `disabled` if Otlp collector is
                                configured, otherwise `enabled`.
-      --cap, --capturedevice, --CaptureDevice=VALUE
-                             The capture device to use to capture network
-                               traffic.
-                               Network capture is not supported on this system.
-      --cpf, --capturefile, --CaptureFileName=VALUE
-                             The file name to capture traffic to.
-                               A device must be selected using `--cd` if
-                               capture capability is supported on this system.
-                               Default: `opcua.pcap`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

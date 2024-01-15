@@ -195,14 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
-                        ConnectionRetries = ConnectionRetries +
-                            writers.Sum(w => w.ConnectionRetries),
-                        NumberOfDisconnectedEndpoints = NumberOfDisconnectedEndpoints +
-                            writers.Sum(w => w.NumberOfDisconnectedEndpoints),
-                        NumberOfConnectedEndpoints = NumberOfConnectedEndpoints +
-                            writers.Sum(w => w.NumberOfConnectedEndpoints),
-                        OpcEndpointConnected = NumberOfConnectedEndpoints != 0 ||
-                            writers.Any(w => w.NumberOfConnectedEndpoints != 0),
+                        OpcEndpointConnected = NumberOfConnectedEndpoints != 0,
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
                         BadPublishRequestsRatio = BadPublishRequestsRatio +

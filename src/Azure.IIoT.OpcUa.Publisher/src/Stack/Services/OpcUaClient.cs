@@ -217,9 +217,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void ManageSubscription(IOpcUaSubscription subscription)
+        public void ManageSubscription(IOpcUaSubscription subscription, bool closeSubscription)
         {
-            TriggerConnectionEvent(ConnectionEvent.SubscriptionManage, subscription);
+            TriggerConnectionEvent(closeSubscription ?
+                ConnectionEvent.SubscriptionClose : ConnectionEvent.SubscriptionManage, subscription);
         }
 
         /// <inheritdoc/>
@@ -707,6 +708,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         queuedSubscriptions.Add(item);
                                         break;
                                 }
+                                break;
+
+                            case ConnectionEvent.SubscriptionClose:
+                                var sub = context as IOpcUaSubscription;
+                                Debug.Assert(sub != null);
+                                queuedSubscriptions.Remove(sub);
+                                await sub.CloseInSessionAsync(_session, ct).ConfigureAwait(false);
                                 break;
 
                             case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
@@ -1270,6 +1278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (ReferenceEquals(_session, session))
             {
                 // Not a new session
+                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
                 return false;
             }
 
@@ -1567,7 +1576,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Disconnect,
             StartReconnect,
             ReconnectComplete,
-            SubscriptionManage
+            SubscriptionManage,
+            SubscriptionClose
         }
 
         private enum SessionState

@@ -5,20 +5,20 @@ services:
   ############################
   opcplc:
     container_name: opcplc
-    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-2.9.10}
+    image: mcr.microsoft.com/iotedge/opc-plc:${OPC_PLC_TAG:-latest}
     ports:
       - "50000:50000"
     command: [
-      "--sph",
+      "--sph=True",
       "--spf=/shared/pn.json",
       "--pn=50000",
-      "--alm",
-      "--ses",
+      "--alm=True",
+      "--ses=True",
       "--ei=${EVENT_NODES:-100}",
       "--gn=${GUID_NODES:-100}",
       "--fn=${FAST_NODES:-99900}",
       "--sn=${SLOW_NODES:-99900}",
-      "--aa"
+      "--aa=True"
       ]
     volumes:
       - shared:/shared:rw
@@ -41,6 +41,7 @@ services:
       "--cl=5",
       "--rs",
       "--dm=True",
+      "--lfm=syslog",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-10000}"

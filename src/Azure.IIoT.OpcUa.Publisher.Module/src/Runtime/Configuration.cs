@@ -33,6 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using Microsoft.Extensions.Logging.Console;
+    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
 
     /// <summary>
     /// Configuration extensions
@@ -54,8 +56,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CommandLine>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<Logging>()
+            builder.RegisterType<LoggingLevel>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<ConsoleLogging<ConsoleFormatterOptions>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ConsoleLogging<SimpleConsoleFormatterOptions>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ConsoleLogging<JsonConsoleFormatterOptions>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<Syslog>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Kestrel>()
                 .AsImplementedInterfaces();
 
@@ -445,9 +455,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Configure logger factory
+        /// Configure logger filter
         /// </summary>
-        internal sealed class Logging : ConfigureOptionBase<LoggerFilterOptions>
+        internal sealed class LoggingLevel : ConfigureOptionBase<LoggerFilterOptions>
         {
             /// <summary>
             /// Configuration
@@ -457,9 +467,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, LoggerFilterOptions options)
             {
-                if (Enum.TryParse<LogLevel>(GetStringOrDefault(LogLevelKey), out var logLevel))
+                var levelString = GetStringOrDefault(LogLevelKey);
+                if (!string.IsNullOrEmpty(levelString))
                 {
-                    options.MinLevel = logLevel;
+                    if (Enum.TryParse<LogLevel>(levelString, out var logLevel))
+                    {
+                        options.MinLevel = logLevel;
+                    }
+                    else
+                    {
+                        // Compatibilty with serilog
+                        switch (levelString)
+                        {
+                            case "Verbose":
+                                options.MinLevel = LogLevel.Trace;
+                                break;
+                            case "Fatal":
+                                options.MinLevel = LogLevel.Critical;
+                                break;
+                        }
+                    }
                 }
             }
 
@@ -467,7 +494,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Create logging configurator
             /// </summary>
             /// <param name="configuration"></param>
-            public Logging(IConfiguration configuration) : base(configuration)
+            public LoggingLevel(IConfiguration configuration) : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Logging format
+        /// </summary>
+        internal class LoggingFormat : PostConfigureOptionBase<ConsoleLoggerOptions>
+        {
+            /// <summary>
+            /// Supported formats
+            /// </summary>
+            public static readonly string[] LogFormatsSupported = new[]
+            {
+                ConsoleFormatterNames.Simple,
+                Syslog.FormatterName,
+                ConsoleFormatterNames.Systemd
+            };
+
+            /// <summary>
+            /// Configuration
+            /// </summary>
+            public const string LogFormatKey = "LogFormat";
+
+            /// <summary>
+            /// Default format
+            /// </summary>
+            public const string LogFormatDefault = ConsoleFormatterNames.Simple;
+
+            /// <inheritdoc/>
+            public override void PostConfigure(string? name, ConsoleLoggerOptions options)
+            {
+                switch (GetStringOrDefault(LogFormatKey))
+                {
+                    case Syslog.FormatterName:
+                        options.FormatterName = Syslog.FormatterName;
+                        break;
+                    case ConsoleFormatterNames.Systemd:
+                        options.FormatterName = ConsoleFormatterNames.Systemd;
+                        break;
+                    case ConsoleFormatterNames.Simple:
+                        options.FormatterName = ConsoleFormatterNames.Simple;
+                        break;
+                    default:
+                        options.FormatterName = LogFormatDefault;
+                        break;
+                }
+            }
+
+            /// <summary>
+            /// Create logging configurator
+            /// </summary>
+            /// <param name="configuration"></param>
+            public LoggingFormat(IConfiguration configuration) : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Logging format
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        internal sealed class ConsoleLogging<T> : LoggingFormat,
+            IConfigureOptions<T>, IConfigureNamedOptions<T> where T : ConsoleFormatterOptions
+        {
+            /// <inheritdoc/>
+            public void Configure(string? name, T options)
+            {
+                options.TimestampFormat = "[yy-MM-dd HH:mm:ss.ffff] ";
+                options.IncludeScopes = true;
+                options.UseUtcTimestamp = true;
+            }
+
+            /// <inheritdoc/>
+            public void Configure(T options)
+            {
+                Configure(null, options);
+            }
+
+            /// <summary>
+            /// Create logging configurator
+            /// </summary>
+            /// <param name="configuration"></param>
+            public ConsoleLogging(IConfiguration configuration) : base(configuration)
             {
             }
         }
