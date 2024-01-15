@@ -4,15 +4,11 @@ services:
   # OPC PLC Simulation
   ############################
   opcplc:
-    hostname: opcplc
     command: [
       "--sph=True",
       "--spf=/shared/pn.json",
       "--pn=50000",
-      "--alm=True",
-      "--ses=True",
-      "--fn=10000",
-      "--sn=10000",
+      "--fn=8000",
       "--aa=True",
       "--ut=True"
       ]
@@ -26,13 +22,13 @@ services:
       - NET_ADMIN
     network_mode: host
     volumes:
-      - dump:/data
+      - shared:/data:rw
     environment:
       IFACE: any
       FORMAT: pcapng
-      MAXFILENUM: 5
-      MAXFILESIZE: 10
+      MAXFILENUM: 10
+      MAXFILESIZE: 200
       FILENAME: dump.pcap
-      FILTER: "host opcplc"
+      FILTER: "src or dst host 192.168.80.2"
 volumes:
-  dump:
+  shared:

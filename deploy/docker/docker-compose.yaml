@@ -41,6 +41,7 @@ services:
       "--cl=5",
       "--rs",
       "--dm=True",
+      "--lfm=syslog",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-10000}"
