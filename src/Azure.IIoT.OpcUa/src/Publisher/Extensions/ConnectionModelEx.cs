@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;

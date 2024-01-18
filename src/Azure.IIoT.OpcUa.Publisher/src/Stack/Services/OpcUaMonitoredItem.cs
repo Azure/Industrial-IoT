@@ -18,9 +18,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Data;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// Monitored item

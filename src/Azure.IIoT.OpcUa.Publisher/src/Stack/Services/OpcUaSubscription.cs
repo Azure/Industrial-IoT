@@ -16,15 +16,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
-    using System.Collections.Generic;
     using System.Collections.Frozen;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// Subscription implementation

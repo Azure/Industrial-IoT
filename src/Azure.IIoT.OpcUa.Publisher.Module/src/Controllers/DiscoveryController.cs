@@ -8,12 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Tunnel.Router;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Authorization;
 
     /// <summary>
     /// <para>OPC UA and network discovery related API.</para>

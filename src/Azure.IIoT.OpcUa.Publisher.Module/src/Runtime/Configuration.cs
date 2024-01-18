@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Autofac;
     using Furly.Azure.IoT.Edge;
@@ -21,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
     using OpenTelemetry.Exporter;
@@ -33,8 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using Microsoft.Extensions.Logging.Console;
-    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
 
     /// <summary>
     /// Configuration extensions

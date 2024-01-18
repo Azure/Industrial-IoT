@@ -20,10 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Runtime.Serialization;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// OPC UA session extends the SDK session

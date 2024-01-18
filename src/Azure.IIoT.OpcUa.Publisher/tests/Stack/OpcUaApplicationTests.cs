@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Autofac;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers.Json;
     using Opc.Ua;
     using System;
     using System.Linq;
