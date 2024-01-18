@@ -181,6 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
+            _traceModeTimer = new Timer(_ => OnTraceModeExpired());
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
         }
 
@@ -312,6 +313,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Reset the client
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal Task ResetAsync(CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var tcs = new TaskCompletionSource();
+            try
+            {
+                ct.Register(() => tcs.TrySetCanceled());
+                _logger.LogDebug("Resetting client {Client}...", this);
+                TriggerConnectionEvent(ConnectionEvent.Reset, tcs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reset client {Client}.", this);
+                tcs.TrySetException(ex);
+            }
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Enable trace mode
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task SetTraceModeAsync(CancellationToken ct)
+        {
+            bool reset;
+            lock (_lock)
+            {
+                reset = !_traceMode;
+                _traceMode = true;
+
+                _traceModeTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+            }
+
+            if (reset)
+            {
+                // Reset the client into trace mode
+                await ResetAsync(ct).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Disable trace mode if necessary when watchdog expires
+        /// </summary>
+        private void OnTraceModeExpired()
+        {
+            bool reset;
+            lock (_lock)
+            {
+                reset = _traceMode;
+
+                _traceMode = false;
+                _traceModeTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            }
+            if (reset)
+            {
+                TriggerConnectionEvent(ConnectionEvent.Reset);
+            }
+        }
+
+        /// <summary>
         /// Close client
         /// </summary>
         /// <returns></returns>
@@ -350,6 +416,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             finally
             {
                 _cts.Dispose();
+
+                await _traceModeTimer.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -639,6 +707,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         switch (trigger)
                         {
+                            case ConnectionEvent.Reset:
+                                // If currently reconnecting, dispose the reconnect handler and stop timer
+                                _reconnectHandler.CancelReconnect();
+                                NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+
+                                // Clean up
+                                await CloseSessionAsync().ConfigureAwait(false);
+                                Debug.Assert(_session == null);
+
+                                currentSessionState = SessionState.Disconnected;
+                                (context as TaskCompletionSource)?.TrySetResult();
+
+                                goto case ConnectionEvent.Connect;
                             case ConnectionEvent.Connect:
                                 if (currentSessionState == SessionState.Disconnected)
                                 {
@@ -1011,13 +1092,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         connection = await _reverseConnectManager.WaitForConnection(
                             endpointUrl, null, ct).ConfigureAwait(false);
                     }
+
                     //
                     // Get the endpoint by connecting to server's discovery endpoint.
                     // Try to find the first endpoint with security.
                     //
+                    var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.Best;
+                    var securityProfile = _connection.Endpoint.SecurityPolicy;
+                    if (_traceMode)
+                    {
+                        securityMode = SecurityMode.None;
+                        securityProfile = null;
+                    }
+
                     var endpointDescription = await SelectEndpointAsync(endpointUrl,
-                        connection, _connection.Endpoint.SecurityMode ?? SecurityMode.Best,
-                        _connection.Endpoint.SecurityPolicy).ConfigureAwait(false);
+                        connection, securityMode, securityProfile).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
                         _logger.LogWarning(
@@ -1032,18 +1121,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var endpoint = new ConfiguredEndpoint(null, endpointDescription,
                         endpointConfiguration);
 
-                    if (_connection.Endpoint.SecurityMode.HasValue &&
-                        _connection.Endpoint.SecurityMode != SecurityMode.None &&
+                    var credential = _connection.User;
+                    if (securityMode == SecurityMode.Best &&
                         endpointDescription.SecurityMode == MessageSecurityMode.None)
                     {
                         _logger.LogWarning("Although the use of security was configured, " +
                             "there was no security-enabled endpoint available at url " +
                             "{EndpointUrl}. An endpoint with no security will be used " +
-                            "for session {Name}.",
+                            "for session {Name} but no credentials will be sent over it.",
                             endpointUrl, _sessionName);
+
+                        credential = null;
                     }
 
-                    var userIdentity = await _connection.User.ToUserIdentityAsync(
+                    var userIdentity = await credential.ToUserIdentityAsync(
                         _configuration).ConfigureAwait(false);
 
                     var identityPolicy = endpoint.Description.FindUserTokenPolicy(
@@ -1576,6 +1667,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Disconnect,
             StartReconnect,
             ReconnectComplete,
+            Reset,
             SubscriptionManage,
             SubscriptionClose
         }
@@ -1839,6 +1931,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _refCount;
         private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
+        private bool _traceMode;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -1850,6 +1943,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
 #pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly Timer _traceModeTimer;
         private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed

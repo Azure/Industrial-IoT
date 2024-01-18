@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // Api key
             var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
             client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("api-key", apiKey);
+                new AuthenticationHeaderValue("ApiKey", apiKey);
             client.Timeout = TimeSpan.FromMinutes(10);
             return client;
         }

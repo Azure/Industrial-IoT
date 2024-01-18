@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using OpenTelemetry.Logs;
@@ -20,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
-    using Microsoft.Extensions.Logging.Console;
 
     /// <summary>
     /// Webservice startup

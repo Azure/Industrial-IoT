@@ -30,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
         IOpcUaSubscriptionManager, IEndpointDiscovery, ICertificateServices<EndpointModel>,
-        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>, IDisposable
+        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>,
+        IClientDiagnostics, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
@@ -167,6 +168,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = FindClient(connection);
             client?.Release(request.ConnectionHandle);
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task ResetAllClients(CancellationToken ct)
+        {
+            return Task.WhenAll(_clients.Values.Select(c => c.ResetAsync(ct)).ToArray());
+        }
+
+        /// <inheritdoc/>
+        public Task SetTraceModeAsync(CancellationToken ct)
+        {
+            return Task.WhenAll(_clients.Values.Select(c => c.SetTraceModeAsync(ct)).ToArray());
         }
 
         /// <inheritdoc/>

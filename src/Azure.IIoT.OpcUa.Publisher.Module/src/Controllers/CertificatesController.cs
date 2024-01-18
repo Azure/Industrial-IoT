@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Authorization;
 
     /// <summary>
     /// <para>
@@ -36,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/pki")]
     [ApiController]
+    [Authorize]
     public class CertificatesController : ControllerBase, IMethodController
     {
         /// <summary>
