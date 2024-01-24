@@ -99,7 +99,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 var publishedNodesEntries = items
                     .Where(group => group?.DataSetWriters?.Count > 0)
                     .SelectMany(group => group.DataSetWriters!
-                        .Where(writer => writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData != null
+                        .Where(writer =>
+                               writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData != null
+                            || writer.DataSet?.DataSetSource?.PublishedModelChanges != null
                             || writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData != null)
                         .Select(writer => (WriterGroup: group, Writer: writer)))
                     .Select(item => AddConnectionModel(item.Writer.DataSet?.DataSetSource?.Connection,
@@ -130,6 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     null : item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
                                 RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
+                            ReportModelChanges = item.Writer.DataSet?.DataSetSource?.PublishedModelChanges.Clone(),
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
                             OpcNodes = (item.Writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData ??
@@ -347,6 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
                                     // ...
                                 },
+                                PublishedModelChanges = opcNodes.First().Header.ReportModelChanges.Clone(),
                                 PublishedVariables = new PublishedDataItemsModel
                                 {
                                     PublishedData = opcNodes.Where(node => node.Node.EventFilter == null)
@@ -449,6 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Diagnostics = dataSet.Source.Connection?.Diagnostics.Clone(),
                                         IsReverse = dataSet.Source.Connection?.IsReverse
                                     },
+                                    PublishedModelChanges = dataSet.Source.PublishedModelChanges.Clone(),
                                     PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
                                     PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
                                     SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()

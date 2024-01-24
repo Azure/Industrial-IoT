@@ -3,20 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using System;
+
     /// <summary>
-    /// Access to clients
+    /// Monitor the address space
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal interface IClientAccessor<T>
+    public sealed record class MonitoredAddressSpaceModel : BaseMonitoredItemModel
     {
         /// <summary>
-        /// Get a client handle. The client handle must be
-        /// disposed when not used anymore.
+        /// Rebrowse period to use when monitoring
         /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        IOpcUaClient GetOrCreateClient(T connection);
+        public TimeSpan? RebrowsePeriod { get; set; }
     }
 }

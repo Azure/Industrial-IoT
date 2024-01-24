@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     public class GetSimpleEventFilterTests : OpcUaMonitoredItemTestsBase
     {
         [Fact]
-        public void SetupSimpleFilterForBaseEventType()
+        public async Task SetupSimpleFilterForBaseEventType()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = await GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public void SetupSimpleFilterForConditionType()
+        public async Task SetupSimpleFilterForConditionType()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = await GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);
@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public void SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled()
+        public async Task SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = GetMonitoredItem(template) as OpcUaMonitoredItem;
+            var monitoredItem = await GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);

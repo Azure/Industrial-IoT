@@ -419,8 +419,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             static string Stringify(IList<MonitoredItemNotificationModel> notifications)
             {
                 var sb = new StringBuilder();
-                // Filter heartbeats
-                foreach (var item in notifications.Where(n => !n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat)))
+                // Filter heartbeats and model changes
+                foreach (var item in notifications
+                    .Where(n => (n.Flags & (MonitoredItemSourceFlags.Heartbeat | MonitoredItemSourceFlags.ModelChanges)) == 0))
                 {
                     sb
                         .AppendLine()

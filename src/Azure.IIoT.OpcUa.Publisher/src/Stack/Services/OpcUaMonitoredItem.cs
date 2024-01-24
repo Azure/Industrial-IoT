@@ -21,35 +21,101 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Timer = System.Timers.Timer;
+    using Microsoft.Azure.Amqp;
+    using Newtonsoft.Json.Linq;
+
+    /// <summary>
+    /// Update display name
+    /// </summary>
+    /// <param name="displayName"></param>
+    public delegate void UpdateString(string displayName);
+
+    /// <summary>
+    /// Update node id
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="messageContext"></param>
+    public delegate void UpdateNodeId(NodeId nodeId,
+        IServiceMessageContext messageContext);
+
+    /// <summary>
+    /// Callback
+    /// </summary>
+    /// <param name="messageType"></param>
+    /// <param name="notifications"></param>
+    /// <param name="session"></param>
+    /// <param name="dataSetName"></param>
+    /// <param name="diagnosticsOnly"></param>
+    public delegate void Callback(MessageType messageType,
+        IEnumerable<MonitoredItemNotificationModel> notifications,
+        ISession? session = null, string? dataSetName = null,
+        bool diagnosticsOnly = false);
 
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract class OpcUaMonitoredItem : MonitoredItem, IOpcUaMonitoredItem
+    internal abstract class OpcUaMonitoredItem : MonitoredItem, IDisposable
     {
         /// <summary>
         /// Assigned monitored item id on server
         /// </summary>
         public uint? RemoteId => Created ? Status.Id : null;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// The item is valid once added to the subscription. Contract:
+        /// The item will be invalid until the subscription calls
+        /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
+        /// to add it to the subscription. After removal the item
+        /// is still Valid, but not Created. The item is
+        /// again invalid after <see cref="IDisposable.Dispose"/> is
+        /// called.
+        /// </summary>
         public bool Valid { get; protected internal set; }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Data set name
+        /// </summary>
         public virtual string? DataSetName { get; }
 
         /// <inheritdoc/>
-        public bool AttachedToSubscription { get; protected internal set; } // TODO: Use Subscription property != null
+        public bool AttachedToSubscription
+        {
+            get
+            {
+                // TODO: Use Subscription property != null
+                Debug.Assert(
+                    (_attachedToSubscription && Subscription != null) ||
+                    (!_attachedToSubscription && Subscription == null));
+                return _attachedToSubscription;
+            }
 
-        /// <inheritdoc/>
+            protected internal set
+            {
+                _attachedToSubscription = value;
+            }
+        }
+        private bool _attachedToSubscription;
+
+        /// <summary>
+        /// Registered read node updater. If this property is null then
+        /// the node does not need to be registered.
+        /// </summary>
         public virtual (string NodeId, UpdateNodeId Update)? Register
             => null;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Get the display name for the node. This is called after
+        /// the node is resolved and registered as applicable.
+        /// </summary>
         public virtual (string NodeId, UpdateString Update)? GetDisplayName
             => null;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Resolve relative path first. If this returns null
+        /// the relative path either does not exist or we let
+        /// subscription take care of resolving the path.
+        /// </summary>
         public virtual (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
             => null;
 
@@ -107,13 +173,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="items"></param>
         /// <param name="factory"></param>
-        /// <param name="clients"></param>
-        /// <param name="connection"></param>
+        /// <param name="client"></param>
         /// <returns></returns>
         public static IEnumerable<OpcUaMonitoredItem> Create(
             IEnumerable<BaseMonitoredItemModel> items, ILoggerFactory factory,
-            IClientSampler<ConnectionModel>? clients = null,
-            ConnectionIdentifier? connection = null)
+            IOpcUaClient? client = null)
         {
             foreach (var item in items)
             {
@@ -121,11 +185,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     case DataMonitoredItemModel dmi:
                         if (dmi.SamplingUsingCyclicRead &&
-                            clients != null && connection is not null)
+                            client != null)
                         {
-                            yield return new DataItemWithCyclicRead(clients,
-                                connection, dmi,
-                                factory.CreateLogger<DataItemWithCyclicRead>());
+                            yield return new DataItemWithCyclicRead(client,
+                                dmi, factory.CreateLogger<DataItemWithCyclicRead>());
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
@@ -150,6 +213,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 factory.CreateLogger<EventItem>());
                         }
                         break;
+                    case MonitoredAddressSpaceModel mam:
+                        if (client != null)
+                        {
+                            yield return new ModelChangeEventItem(mam, client,
+                                factory.CreateLogger<ModelChangeEventItem>());
+                        }
+                        break;
                     case ExtensionFieldModel efm:
                         yield return new FieldItem(efm,
                             factory.CreateLogger<FieldItem>());
@@ -168,7 +238,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             GC.SuppressFinalize(this);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Try and get metadata for the item
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="typeSystem"></param>
+        /// <param name="fields"></param>
+        /// <param name="dataTypes"></param>
+        /// <param name="ct"></param>
         public abstract ValueTask GetMetaDataAsync(IOpcUaSession session,
             ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct);
@@ -191,9 +268,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        /// <inheritdoc/>
-        public virtual bool AddTo(Subscription subscription,
-            IOpcUaSession session, out bool metadataChanged)
+        /// <summary>
+        /// Add the item to the subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="session"></param>
+        /// <param name="metadataChanged"></param>
+        /// <returns></returns>
+        public virtual bool AddTo(Subscription subscription, IOpcUaSession session,
+            out bool metadataChanged)
         {
             if (Valid)
             {
@@ -209,11 +292,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return false;
         }
 
-        /// <inheritdoc/>
-        public abstract bool MergeWith(IOpcUaMonitoredItem item,
+        /// <summary>
+        /// Finalize add
+        /// </summary>
+        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo { get; }
+
+        /// <summary>
+        /// Merge item in the subscription with this item
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="session"></param>
+        /// <param name="metadataChanged"></param>
+        /// <returns></returns>
+        public abstract bool MergeWith(OpcUaMonitoredItem item,
             IOpcUaSession session, out bool metadataChanged);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Finalize merge
+        /// </summary>
+        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith { get; }
+
+        /// <summary>
+        /// Remove from subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="metadataChanged"></param>
+        /// <returns></returns>
         public virtual bool RemoveFrom(Subscription subscription,
             out bool metadataChanged)
         {
@@ -231,10 +335,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return false;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Finalize remove from
+        /// </summary>
+        public virtual Func<CancellationToken, Task>? FinalizeRemoveFrom { get; }
+
+        /// <summary>
+        /// Complete changes previously made and provide callback
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="applyChanges"></param>
+        /// <param name="cb"></param>
+        /// <returns></returns>
         public virtual bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges,
-            Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
+            Callback cb)
         {
             if (!Valid)
             {
@@ -287,7 +402,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             return false;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Called on all items after monitoring mode was changed
+        /// successfully.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Func<CancellationToken, Task>? FinalizeCompleteChanges { get; }
+
+        /// <summary>
+        /// Get any changes in the monitoring mode to apply if any.
+        /// Otherwise the returned value is null.
+        /// </summary>
         public virtual Opc.Ua.MonitoringMode? GetMonitoringModeChange()
         {
             if (!AttachedToSubscription || !Valid)
@@ -300,19 +425,39 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             return currentMode != desiredMode ? desiredMode : null;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Called on all items after monitoring mode was changed
+        /// successfully.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Func<CancellationToken, Task>? FinalizeMonitoringModeChange { get; }
+
+        /// <summary>
+        /// Try get monitored item notifications from
+        /// the subscription's monitored item event payload.
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="encodeablePayload"></param>
+        /// <param name="notifications"></param>
+        /// <returns></returns>
         public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
-            IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            IEncodeable encodeablePayload, IList<MonitoredItemNotificationModel> notifications)
         {
             if (!Valid)
             {
                 return false;
             }
-            LastReceivedValue = evt;
+            LastReceivedValue = encodeablePayload;
             return true;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Get last monitored item notification saved
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="notifications"></param>
+        /// <returns></returns>
         public virtual bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
             IList<MonitoredItemNotificationModel> notifications)
         {
@@ -431,8 +576,17 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             ComplexTypeSystem? typeSystem, VariableNode variable,
             string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
-            var builtInType = await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                session.TypeTree, ct).ConfigureAwait(false);
+            byte builtInType = 0;
+            try
+            {
+                builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
+                    session.TypeTree, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("{Item}: Failed to get built in type for type {DataType}" +
+                    " with message: {Message}", this, variable.DataType, ex.Message);
+            }
             fields.Add(new FieldMetaData
             {
                 Name = fieldName,
@@ -447,7 +601,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 // If the Property is EngineeringUnits, the unit of the Field Value
                 // shall match the unit of the FieldMetaData.
                 Properties = null, // TODO: Add engineering units etc. to properties
-                BuiltInType = (byte)builtInType
+                BuiltInType = builtInType
             });
             await AddDataTypesAsync(dataTypes, variable.DataType, session, typeSystem,
                 ct).ConfigureAwait(false);
@@ -478,8 +632,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     var dataType = await session.NodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
                     if (dataType == null)
                     {
-                        _logger.LogWarning(
-                            "{Item}: Failed to find node for data type {BaseType}!",
+                        _logger.LogWarning("{Item}: Failed to find node for data type {BaseType}!",
                             this, baseType);
                         break;
                     }
@@ -546,10 +699,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogDebug(ex, "{Item}: Failed to get meta data for type {DataType}" +
+                    _logger.LogInformation("{Item}: Failed to get meta data for type {DataType}" +
                         " (base: {BaseType}) with message: {Message}", this, dataTypeId,
                         baseType, ex.Message);
-                    throw;
+                    break;
                 }
             }
 
@@ -616,6 +769,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 Template = item.Template;
+                _fieldId = item._fieldId;
+                _value = item._value;
             }
 
             /// <inheritdoc/>
@@ -684,7 +839,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                 out bool metadataChanged)
             {
                 metadataChanged = false;
@@ -703,7 +858,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
+                Callback cb)
             {
                 return true;
             }
@@ -838,6 +993,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 TheResolvedNodeId = item.TheResolvedNodeId;
                 Template = item.Template;
+                _fieldId = item._fieldId;
+                _skipDataChangeNotification = item._skipDataChangeNotification;
             }
 
             /// <inheritdoc/>
@@ -934,9 +1091,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogDebug(ex, "{Item}: Failed to get meta data for field {Field} " +
-                        "with node {NodeId}.", this, Template.DisplayName, nodeId);
-                    throw;
+                    _logger.LogInformation("{Item}: Failed to get meta data for field {Field} " +
+                        "with node {NodeId} with message {Message}.", this, Template.DisplayName,
+                        nodeId, ex.Message);
                 }
             }
 
@@ -987,7 +1144,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                  out bool metadataChanged)
             {
                 metadataChanged = false;
@@ -1207,7 +1364,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _timerInterval = Timeout.InfiniteTimeSpan;
                 _heartbeatBehavior = dataTemplate.HeartbeatBehavior
                     ?? HeartbeatBehavior.WatchdogLKV;
-                _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
+                _heartbeatTimer = new Timer();
+                _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
+                _heartbeatTimer.AutoReset = true;
+                _heartbeatTimer.Enabled = true;
             }
 
             /// <summary>
@@ -1223,7 +1383,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _heartbeatInterval = item._heartbeatInterval;
                 _timerInterval = item._timerInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
-                _heartbeatTimer = new Timer(_ => SendHeartbeatNotifications());
+                _lastValueReceived = item._lastValueReceived;
+                _callback = item._callback;
+                _heartbeatTimer = item.CloneTimer();
+                if (_heartbeatTimer != null)
+                {
+                    _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
+                }
             }
 
             /// <inheritdoc/>
@@ -1263,7 +1429,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 if (disposing)
                 {
-                    _heartbeatTimer.Dispose();
+                    var timer = CloneTimer();
+                    timer?.Dispose();
                 }
                 base.Dispose(disposing);
             }
@@ -1275,11 +1442,14 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 Debug.Assert(Valid);
 
-                // Last value should be this notification
-                Debug.Assert(monitoredItemNotification == LastReceivedValue);
-                if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                if (_heartbeatTimer != null)
                 {
-                    _heartbeatTimer.Change(_timerInterval, _timerInterval);
+                    // Last value should be this notification
+                    Debug.Assert(monitoredItemNotification == LastReceivedValue);
+                    if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                    {
+                        _heartbeatTimer.Interval = _timerInterval.TotalMilliseconds;
+                    }
                 }
 
                 return base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
@@ -1287,7 +1457,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                  out bool metadataChanged)
             {
                 metadataChanged = false;
@@ -1323,27 +1493,33 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
+                Callback cb)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
-                if (!AttachedToSubscription ||
-                    (!result && (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
-                        != HeartbeatBehavior.WatchdogLKG))
+                if (_heartbeatTimer == null)
                 {
-                    _callback = null;
-                    // Stop heartbeat
-                    _heartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    _timerInterval = Timeout.InfiniteTimeSpan;
+                    return false;
                 }
-                else
+                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 {
-                    Debug.Assert(AttachedToSubscription);
-                    _callback = cb;
-                    if (_timerInterval != _heartbeatInterval)
+                    if (!AttachedToSubscription ||
+                        (!result && (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                            != HeartbeatBehavior.WatchdogLKG))
                     {
-                        // Start heartbeat after completion
-                        _heartbeatTimer.Change(_heartbeatInterval, _heartbeatInterval);
-                        _timerInterval = _heartbeatInterval;
+                        _callback = null;
+                        // Stop heartbeat
+                        _heartbeatTimer.Interval = Timeout.Infinite;
+                        _timerInterval = Timeout.InfiniteTimeSpan;
+                    }
+                    else
+                    {
+                        Debug.Assert(AttachedToSubscription);
+                        _callback = cb;
+                        if (_timerInterval != _heartbeatInterval)
+                        {
+                            // Start heartbeat after completion
+                            _heartbeatTimer.Interval = _heartbeatInterval.TotalMilliseconds;
+                            _timerInterval = _heartbeatInterval;
+                        }
                     }
                 }
                 return result;
@@ -1376,7 +1552,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Send heartbeat
             /// </summary>
-            private void SendHeartbeatNotifications()
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+            private void SendHeartbeatNotifications(object? sender, System.Timers.ElapsedEventArgs e)
             {
                 var callback = _callback;
                 if (callback == null || !Valid)
@@ -1432,16 +1610,31 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0
                 };
-                callback(MessageType.DeltaFrame, null, heartbeat.YieldReturn(),
-                    (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
+                callback(MessageType.DeltaFrame, heartbeat.YieldReturn(),
+                    diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
                         == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly);
             }
 
-            private readonly Timer _heartbeatTimer;
+            /// <summary>
+            /// Clone the timer
+            /// </summary>
+            /// <returns></returns>
+            private Timer? CloneTimer()
+            {
+                var timer = _heartbeatTimer;
+                _heartbeatTimer = null;
+                if (timer != null)
+                {
+                    timer.Elapsed -= SendHeartbeatNotifications;
+                }
+                return timer;
+            }
+
+            private Timer? _heartbeatTimer;
             private TimeSpan _timerInterval;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
+            private Callback? _callback;
             private DateTime? _lastValueReceived;
         }
 
@@ -1459,20 +1652,18 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Create cyclic read item
             /// </summary>
-            /// <param name="sampler"></param>
-            /// <param name="connection"></param>
+            /// <param name="client"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public DataItemWithCyclicRead(IClientSampler<ConnectionModel> sampler,
-                ConnectionIdentifier connection, DataMonitoredItemModel template,
-                ILogger<DataItemWithCyclicRead> logger) : base(template with
+            public DataItemWithCyclicRead(IOpcUaClient client,
+                DataMonitoredItemModel template, ILogger<DataItemWithCyclicRead> logger)
+                : base(template with
                 {
                     // Always ensure item is disabled
                     MonitoringMode = Publisher.Models.MonitoringMode.Disabled
                 }, logger)
             {
-                _sampler = sampler;
-                _connection = connection;
+                _client = client;
 
                 LastReceivedValue = new MonitoredItemNotification
                 {
@@ -1490,8 +1681,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 bool copyClientHandle)
                 : base(item, copyEventHandlers, copyClientHandle)
             {
-                _sampler = item._sampler;
-                _connection = item._connection;
+                _client = item._client;
+                _sampler = item.CloneSampler();
+                _callback = item._callback;
+                if (_sampler != null)
+                {
+                    _sampler.OnValueChange += OnSampledDataValueReceived;
+                }
             }
 
             /// <inheritdoc/>
@@ -1502,13 +1698,25 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
+            {
+                // Cleanup
+                var sampler = CloneSampler();
+                if (sampler != null)
+                {
+                    sampler.CloseAsync().AsTask().GetAwaiter().GetResult();
+                }
+                base.Dispose(disposing);
+            }
+
+            /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
                 if (obj is not DataItemWithCyclicRead cyclicRead)
                 {
                     return false;
                 }
-                if (_connection != cyclicRead._connection)
+                if (_client != cyclicRead._client)
                 {
                     return false;
                 }
@@ -1525,7 +1733,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 var hashCode = base.GetHashCode();
                 hashCode = (hashCode * -1521134295) +
-                    _connection.GetHashCode();
+                    _client.GetHashCode();
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<TimeSpan>.Default.GetHashCode(
                         Template.SamplingInterval ?? TimeSpan.FromSeconds(1));
@@ -1540,7 +1748,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                 out bool metadataChanged)
             {
                 if (item is not DataItemWithCyclicRead)
@@ -1552,42 +1760,40 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override Opc.Ua.MonitoringMode? GetMonitoringModeChange()
+            public override Func<CancellationToken, Task>? FinalizeMonitoringModeChange => async ct =>
             {
-                var monitoringMode = base.GetMonitoringModeChange();
-
                 if (!AttachedToSubscription)
                 {
                     // Disabling sampling
-                    if (_sampling != null)
+                    if (_sampler != null)
                     {
-                        _sampling.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                        _sampler.OnValueChange -= OnSampledDataValueReceived;
+                        await _sampler.CloseAsync().ConfigureAwait(false);
+                        _sampler = null;
+
                         _logger.LogDebug("Item {Item} unregistered from sampler.", this);
                     }
-                    _sampling = null;
                 }
-                else if (_sampling == null)
+                else if (_sampler == null)
                 {
                     Debug.Assert(MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
-                    _sampling = _sampler.Sample(_connection.Connection,
-                        TimeSpan.FromMilliseconds(SamplingInterval),
+                    _sampler = _client.Sample(TimeSpan.FromMilliseconds(SamplingInterval),
                         new ReadValueId
                         {
                             AttributeId = AttributeId,
                             IndexRange = IndexRange,
                             NodeId = ResolvedNodeId
-                        }, OnSampledDataValueReceived);
-
+                        });
+                    _sampler.OnValueChange += OnSampledDataValueReceived;
                     _logger.LogDebug("Item {Item} successfully registered with sampler.",
                         this);
                 }
-                return monitoringMode;
-            }
+            };
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
+                Callback cb)
             {
                 // Dont call base implementation as it is not what we want.
                 if (!Valid)
@@ -1627,9 +1833,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <summary>
             /// Called when data is received from the sampler
             /// </summary>
-            /// <param name="sequenceNumber"></param>
-            /// <param name="value"></param>
-            private void OnSampledDataValueReceived(uint sequenceNumber, DataValue value)
+            /// <param name="o"></param>
+            /// <param name="e"></param>
+            private void OnSampledDataValueReceived(object? o, DataValueChange e)
             {
                 var callback = _callback;
                 if (callback == null)
@@ -1637,7 +1843,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return;
                 }
 
-                LastSampledValue = value;
+                LastSampledValue = e.Value;
 
                 var notification = new MonitoredItemNotificationModel
                 {
@@ -1645,11 +1851,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     DataSetFieldName = Template.DisplayName,
                     NodeId = Template.StartNodeId,
-                    SequenceNumber = sequenceNumber,
+                    SequenceNumber = e.SequenceNumber,
                     Flags = MonitoredItemSourceFlags.CyclicRead,
-                    Value = value
+                    Value = e.Value
                 };
-                callback(MessageType.DeltaFrame, null, notification.YieldReturn(), false);
+                callback(MessageType.DeltaFrame, notification.YieldReturn(),
+                    o as ISession);
             }
 
             /// <summary>
@@ -1670,12 +1877,426 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
             }
 
-            private readonly ConnectionIdentifier _connection;
-            private readonly IClientSampler<ConnectionModel> _sampler;
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
-#pragma warning disable CA2213 // Disposable fields should be disposed
-            private IAsyncDisposable? _sampling;
-#pragma warning restore CA2213 // Disposable fields should be disposed
+            /// <summary>
+            /// Clone the sampler
+            /// </summary>
+            /// <returns></returns>
+            private IOpcUaSampler? CloneSampler()
+            {
+                var sampler = _sampler;
+                _sampler = null;
+                if (sampler != null)
+                {
+                    sampler.OnValueChange -= OnSampledDataValueReceived;
+                }
+                return sampler;
+            }
+
+            private readonly IOpcUaClient _client;
+            private Callback? _callback;
+            private IOpcUaSampler? _sampler;
+        }
+
+        /// <summary>
+        /// Model Change item
+        /// </summary>
+        [DataContract(Namespace = Namespaces.OpcUaXsd)]
+        internal class ModelChangeEventItem : OpcUaMonitoredItem
+        {
+            /// <summary>
+            /// Monitored item as event
+            /// </summary>
+            public MonitoredAddressSpaceModel Template { get; protected internal set; }
+
+            /// <summary>
+            /// Create model change item
+            /// </summary>
+            /// <param name="template"></param>
+            /// <param name="client"></param>
+            /// <param name="logger"></param>
+            public ModelChangeEventItem(MonitoredAddressSpaceModel template, IOpcUaClient client,
+                ILogger<ModelChangeEventItem> logger) : base(logger, template.StartNodeId)
+            {
+                Template = template;
+                _client = client;
+                _fields = GetEventFields().ToArray();
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private ModelChangeEventItem(ModelChangeEventItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Template = item.Template;
+                _client = item._client;
+                _callback = item._callback;
+                _fields = item._fields;
+
+                _browser = item.CloneBrowser();
+                if (_browser != null)
+                {
+                    _browser.OnReferenceChange += OnReferenceChange;
+                    _browser.OnNodeChange += OnNodeChange;
+                }
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new ModelChangeEventItem(this, copyEventHandlers, copyClientHandle);
+            }
+
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
+            {
+                // Cleanup
+                var browser = CloneBrowser();
+                if (browser != null)
+                {
+                    browser.CloseAsync().AsTask().GetAwaiter().GetResult();
+                }
+                base.Dispose(disposing);
+            }
+
+            /// <inheritdoc/>
+            public override bool Equals(object? obj)
+            {
+                if (obj is not ModelChangeEventItem modelChange)
+                {
+                    return false;
+                }
+                if ((Template.DataSetFieldId ?? string.Empty) !=
+                    (modelChange.Template.DataSetFieldId ?? string.Empty))
+                {
+                    return false;
+                }
+                if ((Template.DataSetFieldName ?? string.Empty) !=
+                    (modelChange.Template.DataSetFieldName ?? string.Empty))
+                {
+                    return false;
+                }
+                if (Template.StartNodeId != modelChange.Template.StartNodeId)
+                {
+                    return false;
+                }
+                if (_client != modelChange._client)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override int GetHashCode()
+            {
+                var hashCode = 435243663;
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.DataSetFieldName ?? string.Empty);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.DataSetFieldId ?? string.Empty);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.StartNodeId);
+                hashCode = (hashCode * -1521134295) +
+                    _client.GetHashCode();
+                return hashCode;
+            }
+
+            /// <inheritdoc/>
+            public override string ToString()
+            {
+                return
+                    $"Model Change Item with server id {RemoteId}" +
+                    $" - {(Status?.Created == true ? "" : "not ")}created";
+            }
+
+            /// <inheritdoc/>
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                 out bool metadataChanged)
+            {
+                metadataChanged = false;
+                if (item is not ModelChangeEventItem || !Valid)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            /// <inheritdoc/>
+            public override ValueTask GetMetaDataAsync(IOpcUaSession session,
+                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
+                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
+            {
+                fields.AddRange(_fields);
+                return ValueTask.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges,
+                Callback cb)
+            {
+                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                if (!AttachedToSubscription)
+                {
+                    _callback = null;
+                }
+                else
+                {
+                    _callback = cb;
+                }
+                return result;
+            }
+
+            /// <inheritdoc/>
+            public override Func<CancellationToken, Task>? FinalizeCompleteChanges => async ct =>
+            {
+                if (!AttachedToSubscription)
+                {
+                    // Stop the browser
+                    if (_browser != null)
+                    {
+                        _browser.OnReferenceChange -= OnReferenceChange;
+                        _browser.OnNodeChange -= OnNodeChange;
+
+                        await _browser.CloseAsync().ConfigureAwait(false);
+                        _logger.LogDebug("Item {Item} unregistered from browser.", this);
+                        _browser = null;
+                    }
+                }
+                else
+                {
+                    // Start the browser
+                    if (_browser == null)
+                    {
+                        _browser = _client.Browse(Template.RebrowsePeriod ??
+                            TimeSpan.FromHours(12), Template.StartNodeId);
+
+                        _browser.OnReferenceChange += OnReferenceChange;
+                        _browser.OnNodeChange += OnNodeChange;
+                        _logger.LogDebug("Item {Item} registered with browser.", this);
+                    }
+                }
+            };
+
+            /// <inheritdoc/>
+            public override bool AddTo(Subscription subscription,
+                IOpcUaSession session, out bool metadataChanged)
+            {
+                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                if (Opc.Ua.NodeId.IsNull(nodeId))
+                {
+                    metadataChanged = false;
+                    return false;
+                }
+                DisplayName = Template.DisplayName;
+                AttributeId = Attributes.EventNotifier;
+                MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
+                StartNodeId = nodeId;
+                QueueSize = Template.QueueSize;
+                SamplingInterval = 0;
+                Filter = GetEventFilter();
+                DiscardOldest = !(Template.DiscardNew ?? false);
+                Valid = true;
+
+                return base.AddTo(subscription, session, out metadataChanged);
+
+                static MonitoringFilter GetEventFilter()
+                {
+                    var eventFilter = new EventFilter();
+                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
+                    {
+                        BrowsePath = new QualifiedNameCollection { BrowseNames.EventType },
+                        TypeDefinitionId = ObjectTypeIds.BaseModelChangeEventType,
+                        AttributeId = Attributes.NodeId
+                    });
+                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
+                    {
+                        BrowsePath = new QualifiedNameCollection { BrowseNames.Changes },
+                        TypeDefinitionId = ObjectTypeIds.GeneralModelChangeEventType,
+                        AttributeId = Attributes.Value
+                    });
+                    eventFilter.WhereClause = new ContentFilter();
+                    eventFilter.WhereClause.Push(FilterOperator.OfType,
+                        ObjectTypeIds.BaseModelChangeEventType);
+                    return eventFilter;
+                }
+            }
+
+            /// <inheritdoc/>
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
+                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            {
+                if (evt is not EventFieldList eventFields ||
+                    !base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                {
+                    return false;
+                }
+
+                // Rebrowse and find changes or just process and send the changes
+                Debug.Assert(Valid);
+                Debug.Assert(Template != null);
+
+                var evFilter = Filter as EventFilter;
+                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
+                    evFilter.SelectClauses
+                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+
+                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1)
+                {
+                    var eventType = eventFields.EventFields[eventTypeIndex.Value].Value as NodeId;
+                    if (eventType == ObjectTypeIds.GeneralModelChangeEventType)
+                    {
+                        // Find what changed and refresh only that
+                        // return true;
+                    }
+                    else
+                    {
+                        Debug.Assert(eventType == ObjectTypeIds.BaseModelChangeEventType);
+                    }
+                }
+
+                // The model changed, trigger Rebrowse
+                _browser?.Rebrowse();
+                return true;
+            }
+
+            /// <inheritdoc/>
+            protected override bool TryGetErrorMonitoredItemNotifications(
+                uint sequenceNumber, StatusCode statusCode,
+                IList<MonitoredItemNotificationModel> notifications)
+            {
+                return true;
+            }
+
+            /// <summary>
+            /// Called when node changed
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+            private void OnNodeChange(object? sender, Change<Node> e)
+            {
+                _callback?.Invoke(MessageType.Event, CreateEvent(_nodeChangeType, e),
+                    sender as ISession, DataSetName);
+            }
+
+            /// <summary>
+            /// Called when reference changes
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+            private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
+            {
+                _callback?.Invoke(MessageType.Event, CreateEvent(_refChangeType, e),
+                    sender as ISession, DataSetName);
+            }
+
+            /// <summary>
+            /// Clone the browser
+            /// </summary>
+            /// <returns></returns>
+            private IOpcUaBrowser? CloneBrowser()
+            {
+                var browser = _browser;
+                _browser = null;
+                if (browser != null)
+                {
+                    browser.OnReferenceChange -= OnReferenceChange;
+                    browser.OnNodeChange -= OnNodeChange;
+                }
+                return browser;
+            }
+
+            /// <summary>
+            /// Create the event
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="eventType"></param>
+            /// <param name="changeFeedNotification"></param>
+            /// <returns></returns>
+            private IEnumerable<MonitoredItemNotificationModel> CreateEvent<T>(ExpandedNodeId eventType,
+                Change<T> changeFeedNotification) where T : class
+            {
+                for (var i = 0; i < _fields.Length; i++)
+                {
+                    Variant? value = null;
+                    var field = _fields[i];
+                    switch (i)
+                    {
+                        case 0:
+                            value = new Variant((Uuid)Guid.NewGuid());
+                            break;
+                        case 1:
+                            value = eventType;
+                            break;
+                        case 2:
+                            value = new Variant(changeFeedNotification.Source);
+                            break;
+                        case 3:
+                            value = new Variant(changeFeedNotification.Timestamp);
+                            break;
+                        case 4:
+                            value = changeFeedNotification.ChangedItem == null ?
+                                Variant.Null : new Variant(changeFeedNotification.ChangedItem);
+                            break;
+                    }
+                    if (value == null)
+                    {
+                        continue;
+                    }
+                    yield return new MonitoredItemNotificationModel
+                    {
+                        Id = Template.Id ?? string.Empty,
+                        DataSetName = Template.DisplayName,
+                        DataSetFieldName = field.Name,
+                        NodeId = Template.StartNodeId,
+                        Value = new DataValue(value.Value),
+                        Flags = MonitoredItemSourceFlags.ModelChanges,
+                        SequenceNumber = changeFeedNotification.SequenceNumber
+                    };
+                }
+            }
+
+            private static IEnumerable<FieldMetaData> GetEventFields()
+            {
+                yield return Create(BrowseNames.EventId, builtInType: BuiltInType.ByteString);
+                yield return Create(BrowseNames.EventType, builtInType: BuiltInType.NodeId);
+                yield return Create(BrowseNames.SourceNode, builtInType: BuiltInType.NodeId);
+                yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
+                yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
+
+                static FieldMetaData Create(string fieldName, NodeId? dataType = null,
+                    BuiltInType builtInType = BuiltInType.ExtensionObject)
+                {
+                    return new FieldMetaData
+                    {
+                        DataSetFieldId = (Uuid)Guid.NewGuid(),
+                        DataType = dataType ?? new NodeId((uint)builtInType),
+                        Name = fieldName,
+                        ValueRank = ValueRanks.Scalar,
+                        // ArrayDimensions =
+                        BuiltInType = (byte)builtInType
+                    };
+                }
+            }
+
+            private static readonly ExpandedNodeId _refChangeType
+                = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
+            private static readonly ExpandedNodeId _nodeChangeType
+                = new("NodeChange", "http://www.microsoft.com/opc-publisher");
+            private readonly FieldMetaData[] _fields;
+            private readonly IOpcUaClient _client;
+            private IOpcUaBrowser? _browser;
+            private Callback? _callback;
         }
 
         /// <summary>
@@ -1856,20 +2477,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
             }
 
-            /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
-            {
-                if (!base.TryCompleteChanges(subscription, ref applyChanges, cb))
-                {
-                    return false;
-                }
-                Debug.Assert(Valid);
-
-                // TODO: Instead figure out how to get the filter status and inspect
-                return TestWhereClauseAsync(subscription.Session, Filter as EventFilter).Result;
-            }
+            public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo
+                => async (session, ct)
+                => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
@@ -1886,10 +2496,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     ?? (NodeAttribute)Attributes.EventNotifier);
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
-                StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext);
+                StartNodeId = nodeId;
                 QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
-                Filter = GetEventFilter(session);
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
@@ -1897,7 +2506,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                  out bool metadataChanged)
             {
                 metadataChanged = false;
@@ -1924,13 +2533,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     metadataChanged = true;
                     itemChange = true;
                 }
-
-                if (metadataChanged)
-                {
-                    Filter = GetEventFilter(session);
-                }
                 return itemChange;
             }
+
+            public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith
+                => async (session, ct)
+                => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
@@ -2022,10 +2630,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// Get event filter
             /// </summary>
             /// <param name="session"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
-            protected virtual EventFilter GetEventFilter(IOpcUaSession session)
+            protected virtual async ValueTask<EventFilter> GetEventFilterAsync(IOpcUaSession session,
+                CancellationToken ct)
             {
-                var eventFilter = GetEventFilter(session, out var internalSelectClauses);
+                var (eventFilter, internalSelectClauses) =
+                    await BuildEventFilterAsync(session, ct).ConfigureAwait(false);
                 UpdateFieldNames(session, eventFilter, internalSelectClauses);
                 return eventFilter;
             }
@@ -2037,7 +2648,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="eventFilter"></param>
             /// <param name="internalSelectClauses"></param>
             protected void UpdateFieldNames(IOpcUaSession session, EventFilter eventFilter,
-                IReadOnlyList<SimpleAttributeOperand> internalSelectClauses)
+                List<SimpleAttributeOperand> internalSelectClauses)
             {
                 // let's loop thru the final set of select clauses and setup the field names used
                 Fields.Clear();
@@ -2078,18 +2689,26 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <summary>
-            /// Get event filter
+            /// Build event filter
             /// </summary>
             /// <param name="session"></param>
-            /// <param name="selectClauses"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
-            protected EventFilter GetEventFilter(IOpcUaSession session, out List<SimpleAttributeOperand> selectClauses)
+            protected async ValueTask<(EventFilter, List<SimpleAttributeOperand>)> BuildEventFilterAsync(
+                IOpcUaSession session, CancellationToken ct)
             {
-                var eventFilter = !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId)
-                    ? GetSimpleEventFilterAsync(session).Result : session.Codec.Decode(Template.EventFilter);
+                EventFilter? eventFilter;
+                if (!string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId))
+                {
+                    eventFilter = await GetSimpleEventFilterAsync(session, ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    eventFilter = session.Codec.Decode(Template.EventFilter);
+                }
 
                 // let's keep track of the internal fields we add so that they don't show up in the output
-                selectClauses = new List<SimpleAttributeOperand>();
+                var selectClauses = new List<SimpleAttributeOperand>();
                 if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                     && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
                 {
@@ -2097,7 +2716,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     eventFilter.SelectClauses.Add(selectClause);
                     selectClauses.Add(selectClause);
                 }
-                return eventFilter;
+                return (eventFilter, selectClauses);
             }
 
             /// <summary>
@@ -2106,8 +2725,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <param name="session"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async Task<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
-                CancellationToken ct = default)
+            private async ValueTask<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
+                CancellationToken ct)
             {
                 Debug.Assert(Template != null);
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
@@ -2168,63 +2787,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
 
                 return eventFilter;
-            }
-
-            /// <summary>
-            /// Test where clause
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="eventFilter"></param>
-            /// <param name="ct"></param>
-            private async Task<bool> TestWhereClauseAsync(ISession session, EventFilter? eventFilter,
-                CancellationToken ct = default)
-            {
-                var isValid = eventFilter != null;
-                try
-                {
-                    if (eventFilter?.WhereClause != null)
-                    {
-                        foreach (var element in eventFilter.WhereClause.Elements)
-                        {
-                            if (element.FilterOperator != FilterOperator.OfType)
-                            {
-                                continue;
-                            }
-                            if (element.FilterOperands == null)
-                            {
-                                continue;
-                            }
-                            foreach (var filterOperand in element.FilterOperands)
-                            {
-                                var nodeId = default(NodeId);
-                                try
-                                {
-                                    nodeId = (filterOperand.Body as LiteralOperand)?.Value
-                                        .ToString().ToNodeId(session.MessageContext);
-                                    // it will throw an exception if it doesn't work
-                                    await session.NodeCache.FetchNodeAsync(nodeId?.ToExpandedNodeId(
-                                        session.MessageContext.NamespaceUris), ct).ConfigureAwait(false);
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogWarning(
-                                        "{Item}: Where clause is doing OfType({NodeId}) and " +
-                                        "we got this message {Message} while looking it up",
-                                        this, nodeId, ex.Message);
-
-                                    isValid = false;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogError("{Item}: Failed to validate filter with error {Message}.",
-                        this, ex.Message);
-                    isValid = false;
-                }
-                return isValid;
             }
 
             /// <summary>
@@ -2348,7 +2910,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     ?? _snapshotInterval;
 
                 _conditionHandlingState = new ConditionHandlingState();
-                _conditionTimer = new Timer(OnConditionTimerElapsed);
+                _conditionTimer = new Timer();
+                _conditionTimer.Elapsed += OnConditionTimerElapsed;
+                _conditionTimer.AutoReset = false;
+                _conditionTimer.Enabled = true;
             }
 
             /// <summary>
@@ -2364,7 +2929,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _snapshotInterval = item._snapshotInterval;
                 _updateInterval = item._updateInterval;
                 _conditionHandlingState = item._conditionHandlingState;
-                _conditionTimer = new Timer(OnConditionTimerElapsed);
+                _lastSentPendingConditions = item._lastSentPendingConditions;
+                _callback = item._callback;
+                _conditionTimer = item.CloneTimer();
+                if (_conditionTimer != null)
+                {
+                    _conditionTimer.Elapsed += OnConditionTimerElapsed;
+                }
             }
 
             /// <inheritdoc/>
@@ -2403,7 +2974,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 if (disposing)
                 {
-                    _conditionTimer.Dispose();
+                    var timer = CloneTimer();
+                    timer?.Dispose();
                 }
                 base.Dispose(disposing);
             }
@@ -2414,6 +2986,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
+
+                if (_conditionTimer == null)
+                {
+                    return false;
+                }
 
                 var evFilter = Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
@@ -2430,7 +3007,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     if (eventType == ObjectTypeIds.RefreshStartEventType)
                     {
                         // stop the timers during condition refresh
-                        _conditionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        _conditionTimer.Interval = Timeout.Infinite;
                         state.Active.Clear();
                         _logger.LogDebug("{Item}: Stopped pending alarm handling " +
                             "during condition refresh.", this);
@@ -2439,7 +3016,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     else if (eventType == ObjectTypeIds.RefreshEndEventType)
                     {
                         // restart the timers once condition refresh is done.
-                        _conditionTimer.Change(1000, Timeout.Infinite);
+                        _conditionTimer.Interval = 1000;
                         _logger.LogDebug("{Item}: Restarted pending alarm handling " +
                             "after condition refresh.", this);
                         return true;
@@ -2512,7 +3089,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(IOpcUaMonitoredItem item, IOpcUaSession session,
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
                  out bool metadataChanged)
             {
                 metadataChanged = false;
@@ -2549,18 +3126,22 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges,
-                Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool> cb)
+                Callback cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                if (_conditionTimer == null)
+                {
+                    return false;
+                }
                 if (!AttachedToSubscription || !result)
                 {
                     _callback = null;
-                    _conditionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _conditionTimer.Interval = Timeout.Infinite;
                 }
                 else
                 {
                     _callback = cb;
-                    _conditionTimer.Change(1000, Timeout.Infinite);
+                    _conditionTimer.Interval = 1000;
                 }
                 return result;
             }
@@ -2569,10 +3150,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// Get event filter
             /// </summary>
             /// <param name="session"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
-            protected override EventFilter GetEventFilter(IOpcUaSession session)
+            protected override async ValueTask<EventFilter> GetEventFilterAsync(IOpcUaSession session,
+                CancellationToken ct)
             {
-                var eventFilter = GetEventFilter(session, out var internalSelectClauses);
+                var (eventFilter, internalSelectClauses) =
+                    await BuildEventFilterAsync(session, ct).ConfigureAwait(false);
 
                 var conditionHandlingState = InitializeConditionHandlingState(
                     eventFilter, internalSelectClauses);
@@ -2580,7 +3164,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 UpdateFieldNames(session, eventFilter, internalSelectClauses);
 
                 _conditionHandlingState = conditionHandlingState;
-                _conditionTimer.Change(1000, Timeout.Infinite);
+                if (_conditionTimer != null)
+                {
+                    _conditionTimer.Interval = 1000;
+                }
+
                 return eventFilter;
             }
 
@@ -2639,7 +3227,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             /// Called when the condition timer fires
             /// </summary>
             /// <param name="sender"></param>
-            private void OnConditionTimerElapsed(object? sender)
+            /// <param name="e"></param>
+            private void OnConditionTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
             {
                 Debug.Assert(Template != null);
                 var now = DateTime.UtcNow;
@@ -2671,7 +3260,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 finally
                 {
-                    _conditionTimer.Change(1000, Timeout.Infinite);
+                    if (_conditionTimer != null)
+                    {
+                        _conditionTimer.Interval = 1000;
+                    }
                 }
             }
 
@@ -2697,8 +3289,24 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 foreach (var conditionNotification in notifications)
                 {
-                    callback(MessageType.Condition, DataSetName, conditionNotification, false);
+                    callback(MessageType.Condition, conditionNotification,
+                        dataSetName: DataSetName);
                 }
+            }
+
+            /// <summary>
+            /// Clone the timer
+            /// </summary>
+            /// <returns></returns>
+            private Timer? CloneTimer()
+            {
+                var timer = _conditionTimer;
+                _conditionTimer = null;
+                if (timer != null)
+                {
+                    timer.Elapsed -= OnConditionTimerElapsed;
+                }
+                return timer;
             }
 
             private sealed class ConditionHandlingState
@@ -2725,12 +3333,12 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     = new Dictionary<string, List<MonitoredItemNotificationModel>>();
             }
 
-            private Action<MessageType, string?, IEnumerable<MonitoredItemNotificationModel>, bool>? _callback;
+            private Callback? _callback;
             private ConditionHandlingState _conditionHandlingState;
             private DateTime _lastSentPendingConditions = DateTime.UtcNow;
             private int _snapshotInterval;
             private int _updateInterval;
-            private readonly Timer _conditionTimer;
+            private Timer? _conditionTimer;
         }
 
         /// <summary>

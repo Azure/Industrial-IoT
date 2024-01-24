@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long IngressHeartbeats { get; set; }
 
         /// <summary>
-        /// Number of cyclic reads of the total values
+        /// Number of cyclic reads of all sampled values
         /// </summary>
         [DataMember(Name = "IngressCyclicReads", Order = 7,
             EmitDefaultValue = true)]
@@ -287,6 +287,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "IngressUnassignedChanges", Order = 38,
             EmitDefaultValue = true)]
         public long IngressUnassignedChanges { get; set; }
+
+        /// <summary>
+        /// Number of model changes generated
+        /// </summary>
+        [DataMember(Name = "IngressModelChanges", Order = 39,
+            EmitDefaultValue = true)]
+        public long IngressModelChanges { get; set; }
 
         /// <summary>
         /// Publisher version

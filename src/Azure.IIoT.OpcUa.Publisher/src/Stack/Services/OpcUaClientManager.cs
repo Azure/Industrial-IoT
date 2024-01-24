@@ -89,15 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public IAsyncDisposable Sample(ConnectionModel connection,
-            TimeSpan samplingRate, ReadValueId nodeToRead, Action<uint, DataValue> callback)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            using var client = GetOrAddClient(connection);
-            return client.RegisterSampler(samplingRate, nodeToRead, callback);
-        }
-
-        /// <inheritdoc/>
         public Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
             ConnectRequestModel request, CancellationToken ct)
         {

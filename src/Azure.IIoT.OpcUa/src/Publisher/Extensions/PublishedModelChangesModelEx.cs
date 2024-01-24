@@ -3,22 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack
+namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Opc.Ua.Client;
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// Internal unsafe session access
+    /// Published model change items extensions
     /// </summary>
-    internal interface ISessionAccessor
+    public static class PublishedModelChangesModelEx
     {
         /// <summary>
-        /// Get an unsafe reference of the underlying session or
-        /// null when no session was found.
+        /// Clone
         /// </summary>
-        /// <param name="session"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        bool TryGetSession([NotNullWhen(true)] out ISession? session);
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedModelChangesModel? Clone(this PublishedModelChangesModel? model)
+        {
+            return model == null ? null : (model with { });
+        }
     }
 }

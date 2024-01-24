@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
@@ -31,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : DefaultSessionFactory, IOpcUaClient, ISessionAccessor,
+    internal sealed class OpcUaClient : DefaultSessionFactory, IOpcUaClient,
         IOpcUaClientDiagnostics
     {
         /// <summary>
@@ -198,26 +197,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ISessionHandle GetSessionHandle()
-        {
-            return new LockedHandle(_lock.ReaderLock(), this);
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<ISessionHandle> GetSessionHandleAsync(
-            CancellationToken ct)
-        {
-            return new LockedHandle(await _lock.ReaderLockAsync(ct), this);
-        }
-
-        /// <inheritdoc/>
-        public bool TryGetSession([NotNullWhen(true)] out ISession? session)
-        {
-            session = _session;
-            return session != null;
-        }
-
-        /// <inheritdoc/>
         public void ManageSubscription(IOpcUaSubscription subscription, bool closeSubscription)
         {
             TriggerConnectionEvent(closeSubscription ?
@@ -312,6 +291,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
+        public IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNode)
+        {
+            lock (_browsers)
+            {
+                if (!_browsers.TryGetValue((startNode, rebrowsePeriod), out var browser))
+                {
+                    browser = new Browser(this, startNode, rebrowsePeriod);
+                    _browsers.Add((startNode, rebrowsePeriod), browser);
+                }
+                browser.AddRef();
+                return browser;
+            }
+        }
+
+        /// <inheritdoc/>
+        public IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId item)
+        {
+            lock (_engines)
+            {
+                var sampler = new Sampler(this, samplingRate, item);
+                if (!_engines.TryGetValue(samplingRate, out var engine))
+                {
+                    engine = new SamplingEngine(this, samplingRate, sampler);
+                    _engines.Add(samplingRate, engine);
+                }
+                else
+                {
+                    engine.Add(sampler);
+                }
+                return sampler;
+            }
+        }
+
         /// <summary>
         /// Reset the client
         /// </summary>
@@ -393,12 +406,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _sessionManager.ConfigureAwait(false);
                 _reconnectHandler.Dispose();
 
-                foreach (var sampler in _samplers.Values)
+                foreach (var sampler in _engines.Values)
                 {
                     await sampler.DisposeAsync().ConfigureAwait(false);
                 }
 
-                _samplers.Clear();
+                _engines.Clear();
+
+                foreach (var browser in _browsers.Values)
+                {
+                    await browser.DisposeAsync().ConfigureAwait(false);
+                }
+
+                _browsers.Clear();
 
                 if (_session != null)
                 {
@@ -531,45 +551,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     yield return result;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Register sampling of values through this client.
-        /// </summary>
-        /// <param name="samplingRate"></param>
-        /// <param name="item"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        internal IAsyncDisposable RegisterSampler(TimeSpan samplingRate, ReadValueId item,
-            Action<uint, DataValue> callback)
-        {
-            lock (_samplers)
-            {
-                if (!_samplers.TryGetValue(samplingRate, out var sampler))
-                {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    sampler = new Sampler(this, samplingRate, item, callback);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                }
-                else
-                {
-                    sampler.Add(item, callback);
-                }
-
-                // Remove sampler
-                return Nito.Disposables.AsyncDisposable.Create(async () =>
-                {
-                    lock (_samplers)
-                    {
-                        if (!sampler.Remove(item))
-                        {
-                            return;
-                        }
-                        _samplers.Remove(samplingRate);
-                    }
-                    await sampler.DisposeAsync().ConfigureAwait(false);
-                });
             }
         }
 
@@ -1443,8 +1424,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _connection.Endpoint!.Url, previous);
                 return;
             }
-
             _lastState = state;
+
+            if (state == EndpointConnectivityState.Ready)
+            {
+                lock (_browsers)
+                {
+                    foreach (var browser in _browsers.Values)
+                    {
+                        browser.OnConnected();
+                    }
+                }
+            }
+
             _logger.LogInformation(
                 "Session {Name} with {Endpoint} changed from {Previous} to {State}",
                 _sessionName, _connection.Endpoint!.Url, previous, state);
@@ -1681,47 +1673,570 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// A locked handle
+        /// Browser utility class
         /// </summary>
-        private sealed class LockedHandle : ISessionHandle
+        private sealed class Browser : IAsyncDisposable, IOpcUaBrowser
+        {
+            /// <summary>
+            /// Reference changes
+            /// </summary>
+            public event EventHandler<Change<ReferenceDescription>>? OnReferenceChange;
+
+            /// <summary>
+            /// Node changes
+            /// </summary>
+            public event EventHandler<Change<Node>>? OnNodeChange;
+
+            /// <summary>
+            /// Create browser
+            /// </summary>
+            /// <param name="client"></param>
+            /// <param name="startNodeId"></param>
+            /// <param name="browseDelay"></param>
+            public Browser(OpcUaClient client, NodeId startNodeId, TimeSpan browseDelay)
+            {
+                _client = client;
+                _logger = client._logger;
+                _startNodeId = NodeId.IsNull(startNodeId) ? ObjectIds.RootFolder : startNodeId;
+                _browseDelay = browseDelay == TimeSpan.Zero ? Timeout.InfiniteTimeSpan : browseDelay;
+                _channel = Channel.CreateUnbounded<bool>();
+
+                // Order is important
+                _browser = RunAsync(_cts.Token);
+                _channel.Writer.TryWrite(true);
+                _rebrowseTimer = new Timer(_ => _channel.Writer.TryWrite(true));
+            }
+
+            /// <inheritdoc/>
+            public async ValueTask CloseAsync()
+            {
+                if (Release())
+                {
+                    await DisposeAsync().ConfigureAwait(false);
+                }
+            }
+
+            /// <inheritdoc/>
+            public async ValueTask DisposeAsync()
+            {
+                if (!_disposed)
+                {
+                    _disposed = true;
+                    try
+                    {
+                        _rebrowseTimer.Dispose();
+                        _channel.Writer.TryComplete();
+
+                        await _cts.CancelAsync().ConfigureAwait(false);
+
+                        await _browser.ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _cts.Dispose();
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Rebrowse()
+            {
+                _channel.Writer.TryWrite(true);
+            }
+
+            /// <summary>
+            /// Signal session connected
+            /// </summary>
+            public void OnConnected()
+            {
+                _channel.Writer.TryWrite(false);
+            }
+
+            /// <summary>
+            /// Continously browse
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task RunAsync(CancellationToken ct)
+            {
+                _logger.LogDebug("Starting continous browsing process...");
+                var sw = Stopwatch.StartNew();
+                await foreach (var result in _channel.Reader.ReadAllAsync(ct))
+                {
+                    if (!result)
+                    {
+                        // Start browsing in 10 seconds
+                        _rebrowseTimer.Change(TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
+                        continue;
+                    }
+
+                    _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    try
+                    {
+                        var session = _client._session;
+                        if (session?.Connected != true)
+                        {
+                            continue;
+                        }
+
+                        _logger.LogInformation("Browsing started after {Elapsed}...", sw.Elapsed);
+                        sw.Restart();
+
+                        await BrowseAddressSpaceAsync(session, ct).ConfigureAwait(false);
+
+                        _logger.LogInformation("Browsing completed and took {Elapsed}. " +
+                            "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
+                            "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
+                            sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded,
+                            _nodesChanged, _nodesRemoved, _errors);
+                    }
+                    catch (ServiceResultException sre)
+                    {
+                        _logger.LogInformation("Browsing completed due to error {Error} took {Elapsed}." +
+                            "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
+                            "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
+                            sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved,
+                            _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
+                        if (!_client.IsConnected)
+                        {
+                            _logger.LogDebug("Not connected - waiting to reconnect.");
+                            continue;
+                        }
+                        _logger.LogError(sre, "Error occurred during browsing");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Continue
+                        _logger.LogError(ex, "Browsing completed due to an exception and took {Elapsed}.",
+                            sw.Elapsed);
+                    }
+                    finally
+                    {
+                        sw.Restart();
+                        _referencesAdded = _referencesRemoved = 0;
+                        _nodesAdded = _nodesChanged = _nodesRemoved = 0;
+                        _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
+                    }
+                }
+                _logger.LogInformation("Browser process exited.");
+            }
+
+            /// <summary>
+            /// Browse address space
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task BrowseAddressSpaceAsync(OpcUaSession session, CancellationToken ct)
+            {
+                var browseTemplate = new BrowseDescription
+                {
+                    NodeId = _startNodeId,
+                    BrowseDirection = Opc.Ua.BrowseDirection.Forward,
+                    ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                    IncludeSubtypes = true,
+                    NodeClassMask = 0,
+                    ResultMask = (uint)BrowseResultMask.All
+                };
+                var browseDescriptionCollection = CreateBrowseDescriptionCollectionFromNodeId(
+                    new NodeIdCollection(new[] { _startNodeId }), browseTemplate);
+
+                // Browse
+                var foundReferences = new Dictionary<ReferenceDescription, NodeId>(
+                    Compare.Using<ReferenceDescription>(Utils.IsEqual));
+                var foundNodes = new Dictionary<NodeId, Node>();
+                try
+                {
+                    int searchDepth = 0;
+                    uint maxNodesPerBrowse = session.OperationLimits.MaxNodesPerBrowse;
+                    while (browseDescriptionCollection.Count != 0 && searchDepth < kMaxSearchDepth)
+                    {
+                        searchDepth++;
+
+                        bool repeatBrowse;
+                        var allBrowseResults = new List<(NodeId, BrowseResult)>();
+                        var unprocessedOperations = new BrowseDescriptionCollection();
+
+                        BrowseResultCollection? browseResultCollection = null;
+                        do
+                        {
+                            var browseCollection = maxNodesPerBrowse == 0
+                                ? browseDescriptionCollection
+                                : browseDescriptionCollection.Take((int)maxNodesPerBrowse).ToArray();
+                            repeatBrowse = false;
+                            try
+                            {
+                                var browseResponse = await session.BrowseAsync(null, null,
+                                    kMaxReferencesPerNode, browseCollection, ct).ConfigureAwait(false);
+                                browseResultCollection = browseResponse.Results;
+                                ClientBase.ValidateResponse(browseResultCollection, browseCollection);
+                                ClientBase.ValidateDiagnosticInfos(
+                                    browseResponse.DiagnosticInfos, browseCollection);
+
+                                // seperate unprocessed nodes for later
+                                for (var index = 0; index < browseResultCollection.Count; index++)
+                                {
+                                    var browseResult = browseResultCollection[index];
+                                    // check for error.
+                                    StatusCode statusCode = browseResult.StatusCode;
+                                    if (StatusCode.IsBad(statusCode))
+                                    {
+                                        //
+                                        // this error indicates that the server does not have enough
+                                        // simultaneously active continuation points. This request will
+                                        // need to be re-sent after the other operations have been
+                                        // completed and their continuation points released.
+                                        //
+                                        if (statusCode == StatusCodes.BadNoContinuationPoints)
+                                        {
+                                            unprocessedOperations.Add(browseCollection[index]);
+                                            continue;
+                                        }
+                                    }
+                                    // save results.
+                                    allBrowseResults.Add((browseCollection[index].NodeId, browseResult));
+                                }
+                            }
+                            catch (ServiceResultException sre) when
+                                (sre.StatusCode == StatusCodes.BadEncodingLimitsExceeded ||
+                                 sre.StatusCode == StatusCodes.BadResponseTooLarge)
+                            {
+                                // try to address by overriding operation limit
+                                maxNodesPerBrowse = maxNodesPerBrowse == 0 ?
+                                    (uint)browseCollection.Count / 2 : maxNodesPerBrowse / 2;
+                                repeatBrowse = true;
+                            }
+                        }
+                        while (repeatBrowse);
+
+                        // Browse next
+                        Debug.Assert(browseResultCollection != null);
+                        var (nodeIds, continuationPoints) = PrepareBrowseNext(
+                            new NodeIdCollection(browseDescriptionCollection
+                                .Take(browseResultCollection.Count).Select(r => r.NodeId)),
+                            browseResultCollection);
+                        while (continuationPoints.Count != 0)
+                        {
+                            var browseNextResult = await session.BrowseNextAsync(null, false,
+                                continuationPoints, ct).ConfigureAwait(false);
+                            var browseNextResultCollection = browseNextResult.Results;
+                            ClientBase.ValidateResponse(browseNextResultCollection, continuationPoints);
+                            ClientBase.ValidateDiagnosticInfos(
+                                browseNextResult.DiagnosticInfos, continuationPoints);
+
+                            allBrowseResults.AddRange(browseNextResultCollection
+                                .Select((r, i) => (browseDescriptionCollection[i].NodeId, r)));
+                            (nodeIds, continuationPoints) = PrepareBrowseNext(nodeIds, browseNextResultCollection);
+                        }
+
+                        if (maxNodesPerBrowse == 0)
+                        {
+                            browseDescriptionCollection.Clear();
+                        }
+                        else
+                        {
+                            browseDescriptionCollection = browseDescriptionCollection
+                                .Skip(browseResultCollection.Count)
+                                .ToArray();
+                        }
+
+                        static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
+                            NodeIdCollection browseSourceCollection, BrowseResultCollection results)
+                        {
+                            var continuationPoints = new ByteStringCollection();
+                            var nodeIdCollection = new NodeIdCollection();
+                            for (var i = 0; i < results.Count; i++)
+                            {
+                                var browseResult = results[i];
+                                if (browseResult.ContinuationPoint != null)
+                                {
+                                    nodeIdCollection.Add(browseSourceCollection[i]);
+                                    continuationPoints.Add(browseResult.ContinuationPoint);
+                                }
+                            }
+                            return (nodeIdCollection, continuationPoints);
+                        }
+
+                        // Build browse request for next level
+                        var browseTable = new NodeIdCollection();
+                        foreach (var (source, browseResult) in allBrowseResults)
+                        {
+                            var nodesToRead = new List<NodeId>();
+                            foreach (var reference in browseResult.References)
+                            {
+                                if (foundReferences.TryAdd(reference, source))
+                                {
+                                    if (!_knownReferences.Remove(reference))
+                                    {
+                                        // Send new reference
+                                        _referencesAdded++;
+                                        OnReferenceChange?.Invoke(session,
+                                            CreateChange(source, null, reference));
+                                    }
+
+                                    var targetNodeId = ExpandedNodeId.ToNodeId(reference.NodeId, session.NamespaceUris);
+                                    browseTable.Add(targetNodeId);
+                                    await ReadNodeAsync(session, targetNodeId, foundNodes, ct).ConfigureAwait(false);
+                                }
+                            }
+                        }
+                        browseDescriptionCollection.AddRange(CreateBrowseDescriptionCollectionFromNodeId(
+                            browseTable, browseTemplate));
+                        // add unprocessed nodes if any
+                        browseDescriptionCollection.AddRange(unprocessedOperations);
+                    }
+
+                    _referencesRemoved += _knownReferences.Count;
+                    foreach (var removedReference in _knownReferences)
+                    {
+                        OnReferenceChange?.Invoke(session, CreateChange(
+                            removedReference.Value, removedReference.Key, null));
+                    }
+                    _knownReferences.Clear();
+
+                    _nodesRemoved += _knownNodes.Count;
+                    foreach (var removedNode in _knownNodes)
+                    {
+                        OnNodeChange?.Invoke(session, CreateChange(
+                            removedNode.Key, removedNode.Value, null));
+                    }
+                    _knownNodes.Clear();
+                }
+                catch (Exception ex)
+                {
+                    HandleException(foundReferences, foundNodes, ex);
+                    throw;
+                }
+                finally
+                {
+                    _knownReferences = foundReferences;
+                    _knownNodes = foundNodes;
+                }
+
+                static BrowseDescriptionCollection CreateBrowseDescriptionCollectionFromNodeId(
+                    NodeIdCollection nodeIdCollection, BrowseDescription template)
+                {
+                    var browseDescriptionCollection = new BrowseDescriptionCollection();
+                    foreach (var nodeId in nodeIdCollection)
+                    {
+                        var browseDescription = (BrowseDescription)template.MemberwiseClone();
+                        browseDescription.NodeId = nodeId;
+                        browseDescriptionCollection.Add(browseDescription);
+                    }
+                    return browseDescriptionCollection;
+                }
+
+                void HandleException(Dictionary<ReferenceDescription, NodeId> foundReferences,
+                    Dictionary<NodeId, Node> foundNodes, Exception ex)
+                {
+                    _logger.LogDebug(ex, "Stopping browse due to error.");
+
+                    // Reset stream by resetting the sequence number to 0
+                    _sequenceNumber = 0u;
+
+                    //
+                    // In case of exception we could not process the entire address space
+                    // We add the remainder of the remaining existing references and nodes
+                    // back to the currently known nodes and references and sort those out
+                    // next time around.
+                    //
+                    foreach (var removedReference in _knownReferences)
+                    {
+                        // Re-add
+                        foundReferences.AddOrUpdate(removedReference.Key, removedReference.Value);
+                    }
+                    _knownReferences.Clear();
+
+                    foreach (var removedNode in _knownNodes)
+                    {
+                        // Re-add
+                        foundNodes.AddOrUpdate(removedNode.Key, removedNode.Value);
+                    }
+                    _knownNodes.Clear();
+                }
+            }
+
+            /// <summary>
+            /// Read node and send add or change notification
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="targetNodeId"></param>
+            /// <param name="foundNodes"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
+                Dictionary<NodeId, Node> foundNodes, CancellationToken ct)
+            {
+                try
+                {
+                    var node = await session.ReadNodeAsync(targetNodeId,
+                        ct).ConfigureAwait(false);
+                    if (NodeId.IsNull(node.NodeId))
+                    {
+                        return;
+                    }
+                    if (_knownNodes.Remove(node.NodeId, out var existingNode) &&
+                        !Utils.IsEqual(existingNode, node))
+                    {
+                        // send updated node
+                        _nodesChanged++;
+                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, existingNode, node));
+                    }
+
+                    if (foundNodes.TryAdd(node.NodeId, node) && existingNode == null)
+                    {
+                        // Send added node
+                        _nodesAdded++;
+                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, null, node));
+                    }
+                }
+                catch (Exception) when (session.Connected)
+                {
+                    // TODO: Notify error here, but we are anyway sending a removal...
+                    _errors++;
+                }
+            }
+
+            /// <summary>
+            /// Helper to create a change structure
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="source"></param>
+            /// <param name="existing"></param>
+            /// <param name="New"></param>
+            /// <returns></returns>
+            private Change<T> CreateChange<T>(NodeId source, T? existing, T? New) where T : class
+                => new Change<T>(source, existing, New, Interlocked.Increment(ref _sequenceNumber),
+                    DateTime.UtcNow) ;
+
+            /// <summary>
+            /// Take a reference on this browser
+            /// </summary>
+            internal void AddRef() => _refCount++;
+
+            /// <summary>
+            /// Release browser and remove from browser list
+            /// </summary>
+            /// <returns></returns>
+            private bool Release()
+            {
+                bool cleanup = false;
+                lock (_client._browsers)
+                {
+                    if (--_refCount == 0 && _client._browsers.Remove((_startNodeId, _browseDelay)))
+                    {
+                        cleanup = true;
+                    }
+                }
+                return cleanup;
+            }
+
+            const int kMaxSearchDepth = 128;
+            const int kMaxReferencesPerNode = 1000;
+
+            private bool _disposed;
+            private uint _sequenceNumber;
+            private int _refCount;
+            private int _referencesAdded;
+            private int _referencesRemoved;
+            private int _nodesAdded;
+            private int _nodesChanged;
+            private int _nodesRemoved;
+            private int _errors;
+            private Dictionary<NodeId, Node> _knownNodes = new();
+            private Dictionary<ReferenceDescription, NodeId> _knownReferences =
+                new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
+            private readonly NodeId _startNodeId;
+            private readonly Task _browser;
+            private readonly OpcUaClient _client;
+            private readonly ILogger _logger;
+            private readonly Channel<bool> _channel;
+            private readonly Timer _rebrowseTimer;
+            private readonly CancellationTokenSource _cts = new();
+            private readonly TimeSpan _browseDelay;
+        }
+
+        /// <summary>
+        /// A sampled node registered with a sampler
+        /// </summary>
+        private sealed class Sampler : IOpcUaSampler
         {
             /// <inheritdoc/>
-            public IOpcUaSession Handle => _client._session!;
+            public event EventHandler<DataValueChange>? OnValueChange;
 
-            /// <inheritdoc/>
-            public LockedHandle(IDisposable readerLock, OpcUaClient client)
+            /// <summary>
+            /// Sampling rate
+            /// </summary>
+            public TimeSpan SamplingRate { get; }
+
+            /// <summary>
+            /// Item to monito
+            /// </summary>
+            public ReadValueId InitialValue { get; }
+
+            /// <summary>
+            /// Create node
+            /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="samplingRate"></param>
+            /// <param name="item"></param>
+            public Sampler(OpcUaClient outer, TimeSpan samplingRate,
+                ReadValueId item)
             {
-                _readerLock = readerLock;
-                _client = client;
+                _outer = outer;
+                SamplingRate = samplingRate;
+                InitialValue = item;
+                item.Handle = this;
             }
 
             /// <inheritdoc/>
-            public void Dispose()
+            public async ValueTask CloseAsync()
             {
-                _readerLock.Dispose();
+                SamplingEngine? sampler;
+                lock (_outer._engines)
+                {
+                    if (!_outer._engines.TryGetValue(SamplingRate, out sampler)
+                        || !sampler.Remove(this))
+                    {
+                        return;
+                    }
+                    _outer._engines.Remove(SamplingRate);
+                }
+                await sampler.DisposeAsync().ConfigureAwait(false);
             }
 
-            private readonly IDisposable _readerLock;
-            private readonly OpcUaClient _client;
+            /// <summary>
+            /// Notify value
+            /// </summary>
+            /// <param name="sequenceNumber"></param>
+            /// <param name="value"></param>
+            public void OnSample(uint sequenceNumber, DataValue value)
+            {
+                OnValueChange?.Invoke(this, new DataValueChange(value, sequenceNumber));
+            }
+
+            private readonly OpcUaClient _outer;
         }
 
         /// <summary>
         /// A set of client sampled values
         /// </summary>
-        private sealed class Sampler : IAsyncDisposable
+        private sealed class SamplingEngine : IAsyncDisposable
         {
             /// <summary>
             /// Creates the sampler
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="samplingRate"></param>
-            /// <param name="initialValue"></param>
-            /// <param name="callback"></param>
-            public Sampler(OpcUaClient outer, TimeSpan samplingRate,
-                ReadValueId initialValue, Action<uint, DataValue> callback)
+            /// <param name="value"></param>
+            public SamplingEngine(OpcUaClient outer, TimeSpan samplingRate,
+                Sampler value)
             {
-                initialValue.Handle = callback;
-                _values = ImmutableHashSet<ReadValueId>.Empty.Add(initialValue);
+                _samplers = ImmutableHashSet<Sampler>.Empty.Add(value);
 
                 _outer = outer;
                 _cts = new CancellationTokenSource();
@@ -1747,26 +2262,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
-            /// Add value to sampler
+            /// Add sampler
             /// </summary>
-            /// <param name="value"></param>
-            /// <param name="callback"></param>
-            public Sampler Add(ReadValueId value, Action<uint, DataValue> callback)
+            /// <param name="node"></param>
+            /// <returns></returns>
+            public SamplingEngine Add(Sampler node)
             {
-                value.Handle = callback;
-                _values = _values.Add(value);
+                _samplers = _samplers.Add(node);
                 return this;
             }
 
             /// <summary>
-            /// Remove value
+            /// Remove sampler
             /// </summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Remove(ReadValueId value)
+            public bool Remove(Sampler value)
             {
-                _values = _values.Remove(value);
-                return _values.Count == 0;
+                _samplers = _samplers.Remove(value);
+                return _samplers.Count == 0;
             }
 
             /// <summary>
@@ -1783,7 +2297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         continue;
                     }
 
-                    var nodesToRead = new ReadValueIdCollection(_values);
+                    var nodesToRead = new ReadValueIdCollection(_samplers.Select(n => n.InitialValue));
                     try
                     {
                         // Wait until period completed
@@ -1825,7 +2339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         // Notify clients of the values
-                        values.ForEach(i => ((Action<uint, DataValue>)i.Request.Handle)(
+                        values.ForEach(i => ((Sampler)i.Request.Handle).OnSample(
                             sequenceNumber, i.Result));
                     }
                     catch (OperationCanceledException) { }
@@ -1842,11 +2356,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 static void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode)
                 {
                     var dataValue = new DataValue(statusCode);
-                    nodesToRead.ForEach(i => ((Action<uint, DataValue>)i.Handle)(seq, dataValue));
+                    nodesToRead.ForEach(i => ((Sampler)i.Handle).OnSample(seq, dataValue));
                 }
             }
 
-            private ImmutableHashSet<ReadValueId> _values;
+            private ImmutableHashSet<Sampler> _samplers;
             private readonly CancellationTokenSource _cts;
             private readonly Task _sampler;
             private readonly OpcUaClient _outer;
@@ -1950,7 +2464,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<TimeSpan, Sampler> _samplers = new();
+        private readonly Dictionary<TimeSpan, SamplingEngine> _engines = new();
+        private readonly Dictionary<(NodeId, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
     }

@@ -29,8 +29,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         Condition = 0x4,
 
         /// <summary>
+        /// ModelChanges are the source of the notification.
+        /// </summary>
+        ModelChanges = 0x8,
+
+        /// <summary>
         /// An error is the source of the notification
         /// </summary>
-        Error = 0x8
+        Error = 0x10
     }
 }

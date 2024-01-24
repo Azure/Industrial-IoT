@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public NodeModel? Attributes { get; init; }
 
         /// <summary>
-        /// Refernce read from the source node to a target
+        /// References read from the source node to a target
         /// node. This can be null, then attributes is not
         /// null.
         /// </summary>

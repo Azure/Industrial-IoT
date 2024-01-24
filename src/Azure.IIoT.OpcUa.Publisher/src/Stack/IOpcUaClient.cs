@@ -5,9 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Opc.Ua;
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Opc Ua client provides access to sessions services. It must be disposed
@@ -16,22 +15,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     internal interface IOpcUaClient : IDisposable
     {
         /// <summary>
-        /// Safe access underlying session or null if session not available.
-        /// The object return must be disposed to release the reader lock
-        /// guarding the session. While holding the reader lock the session is
-        /// not disposed or replaced.
+        /// Registers a callback that will trigger at the specified
+        /// sampling rate and executing the read operation.
         /// </summary>
-        ISessionHandle GetSessionHandle();
+        /// <param name="samplingRate"></param>
+        /// <param name="nodeToRead"></param>
+        /// <returns></returns>
+        IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId nodeToRead);
 
         /// <summary>
-        /// Get access to a session handle. Waits on the reader lock to
-        /// ensure the handle is connected. While holding the reader lock
-        /// the session is not disposed or replaced.
+        /// Create a browser to browse the address space and provide
+        /// the differences from last browsing operation.
         /// </summary>
-        /// <param name="ct"></param>
+        /// <param name="rebrowsePeriod"></param>
+        /// <param name="startNodeId"></param>
         /// <returns></returns>
-        ValueTask<ISessionHandle> GetSessionHandleAsync(
-            CancellationToken ct = default);
+        IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNodeId);
 
         /// <summary>
         /// Trigger the client to manage the subscription. This is a

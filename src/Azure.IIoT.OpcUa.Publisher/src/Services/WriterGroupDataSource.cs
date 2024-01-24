@@ -467,27 +467,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts)
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts, int modelChanges)
             {
                 lock (_lock)
                 {
-                    if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
-                    {
-                        // reset both
-                        _outer._logger.LogDebug(
-                            "Notifications counter in subscription {Id} has been reset to prevent" +
-                            " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
-                            "event value changes were invoked by message source.",
-                            Id, _outer._eventCount, _outer._eventNotificationCount);
-                        _outer._eventCount = 0;
-                        _outer._eventNotificationCount = 0;
-                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
-                    }
+                    _outer._modelChangesCount += modelChanges;
 
-                    _outer._eventNotificationCount += notificationCounts;
                     if (liveData)
                     {
+                        if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
+                        {
+                            // reset both
+                            _outer._logger.LogDebug(
+                                "Notifications counter in subscription {Id} has been reset to prevent" +
+                                " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
+                                "event value changes were invoked by message source.",
+                                Id, _outer._eventCount, _outer._eventNotificationCount);
+                            _outer._eventCount = 0;
+                            _outer._eventNotificationCount = 0;
+                            _outer._modelChangesCount = 0;
+
+                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                        }
+
+                        _outer._eventNotificationCount += notificationCounts;
                         _outer._eventCount++;
                     }
                 }
@@ -916,6 +920,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
                 () => new Measurement<long>(_cyclicReadsCount, _metrics.TagList), "Reads",
                 "Total Cyclic reads delivered for processing.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_modelchanges",
+                () => new Measurement<long>(_modelChangesCount, _metrics.TagList), "Changes",
+                "Total Number of changes found in the address spaces of the connected servers.");
             _meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
                 () => new Measurement<long>(ValueChangesCount, _metrics.TagList), "Values",
                 "Total Opc Value changes delivered for processing.");
@@ -973,6 +980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private long _eventCount;
         private long _heartbeatsCount;
         private long _cyclicReadsCount;
+        private long _modelChangesCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
         private readonly DateTime _startTime = DateTime.UtcNow;

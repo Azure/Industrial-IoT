@@ -53,7 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="liveData"></param>
         /// <param name="events"></param>
+        /// <param name="modelChanges"></param>
         void OnSubscriptionEventDiagnosticsChange(bool liveData,
-            int events);
+            int events, int modelChanges);
     }
 }

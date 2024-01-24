@@ -492,8 +492,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var keepAliveChangesPerSecFormatted = info.IngressKeepAliveNotifications > 0
     ? $"(All time ~{info.IngressKeepAliveNotifications / min:0.##}/min)"
                     : string.Empty;
-                var eventsPerSecFormatted = info.IngressEventNotifications > 0
-    ? $"(All time ~{info.IngressEventNotifications / s:0.##}/s)"
+                var eventsPerSecFormatted = info.IngressEvents > 0
+    ? $"(All time ~{info.IngressEvents / s:0.##}/s)"
                     : string.Empty;
                 var eventNotificationsPerSecFormatted = info.IngressEventNotifications > 0
     ? $"(All time ~{info.IngressEventNotifications / s:0.##}/s)"
@@ -519,14 +519,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Connection retries                 : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.ConnectionRetries)
                         .AppendLine()
-                    .Append("  # Monitored Opc nodes succeeded count: ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesSucceededCount)
-                        .AppendLine()
-                    .Append("  # Monitored Opc nodes failed count   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesFailedCount)
-                        .AppendLine()
                     .Append("  # Subscriptions count                : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
+                        .AppendLine()
+                    .Append("  # Good/Bad Monitored Items count     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesSucceededCount).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
                     .Append("  # Queued/Minimum request count       : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
@@ -559,6 +557,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine()
                     .Append("  # Generated Heartbeat Notifications  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressHeartbeats)
+                        .AppendLine()
+                    .Append("  # Generated Model Changes            : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressModelChanges)
                         .AppendLine()
                     .Append("  # Notification batch buffer size     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.IngressBatchBlockBufferSize)

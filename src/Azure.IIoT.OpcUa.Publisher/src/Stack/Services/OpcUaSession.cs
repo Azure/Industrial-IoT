@@ -31,8 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [DataContract(Namespace = OpcUaClient.Namespace)]
     [KnownType(typeof(OpcUaSubscription))]
     [KnownType(typeof(OpcUaMonitoredItem))]
-    internal sealed class OpcUaSession : Session, IOpcUaSession,
-        ISessionServices, ISessionAccessor
+    internal sealed class OpcUaSession : Session, IOpcUaSession, ISessionServices
     {
         /// <inheritdoc/>
         public IVariantEncoder Codec { get; }
@@ -148,13 +147,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override Session CloneSession(ITransportChannel channel, bool copyEventHandlers)
         {
             return new OpcUaSession(this, channel, this, copyEventHandlers);
-        }
-
-        /// <inheritdoc/>
-        public bool TryGetSession([NotNullWhen(true)] out ISession? session)
-        {
-            session = this;
-            return true;
         }
 
         /// <inheritdoc/>

@@ -249,6 +249,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (d, i) => d.IngressHeartbeats = (long)i,
                 ["iiot_edge_publisher_cyclicreads"] =
                 (d, i) => d.IngressCyclicReads = (long)i,
+                ["iiot_edge_publisher_modelchanges"] =
+                (d, i) => d.IngressModelChanges = (long)i,
                 ["iiot_edge_publisher_event_notifications"] =
                 (d, i) => d.IngressEventNotifications = (long)i,
                 ["iiot_edge_publisher_unassigned_notification_count"] =
