@@ -109,6 +109,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal(timestamp != MessageTimestamp.PublishTime ? messages.Count : 1, timestamps.Count);
         }
 
+        [Theory]
+        [InlineData(HeartbeatBehavior.WatchdogLKV)]
+        [InlineData(HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)]
+        [InlineData(HeartbeatBehavior.PeriodicLKV)]
+        public async Task CanSendHeartbeatWithMIErrorToIoTHubTest(HeartbeatBehavior behavior)
+        {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTest), "./Resources/HeartbeatErrors.json",
+                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
+
+            // Assert
+            Assert.True(messages.Count > 1);
+            var message = messages[0].Message;
+            _output.WriteLine(message.ToJsonString());
+
+            Assert.Equal("i=932534", message.GetProperty("NodeId").GetString());
+            Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
+            Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+            Assert.Equal("BadNodeIdUnknown", message.GetProperty("Value").GetProperty("StatusCode").GetProperty("Symbol").GetString());
+        }
+
         [Fact]
         public async Task CanSendDeadbandItemsToIoTHubTest()
         {

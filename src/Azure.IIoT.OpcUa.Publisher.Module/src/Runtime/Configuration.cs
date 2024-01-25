@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Autofac;
     using Furly.Azure.IoT.Edge;
@@ -762,39 +761,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, OpenApiOptions options)
             {
-                if (_isDisabled)
-                {
-                    options.UIEnabled = false;
-                }
-                else
-                {
-                    var uiEnabled = GetBoolOrNull(DisableSwaggerUIKey);
-                    if (uiEnabled != null)
-                    {
-                        options.UIEnabled = uiEnabled.Value;
-                    }
+                options.SchemaVersion = GetBoolOrDefault(UseOpenApiV3Key) ? 3 : 2;
 
-                    var useV3 = GetBoolOrNull(UseOpenApiV3Key);
-                    if (useV3 != null)
-                    {
-                        options.SchemaVersion = useV3.Value ? 3 : 2;
-                    }
-                }
+                options.ProjectUri = new Uri("https://github.com/Azure/Industrial-IoT");
+                options.License = new OpenApiLicense
+                {
+                    Name = "MIT LICENSE",
+                    Url = new Uri("https://opensource.org/licenses/MIT")
+                };
             }
 
             /// <summary>
             /// Create configuration
             /// </summary>
             /// <param name="configuration"></param>
-            /// <param name="options"></param>
-            public OpenApi(IConfiguration configuration,
-                IOptions<PublisherOptions>? options = null)
+            public OpenApi(IConfiguration configuration)
                 : base(configuration)
             {
-                _isDisabled = options?.Value.DisableOpenApiEndpoint == true;
             }
-
-            private readonly bool _isDisabled;
         }
 
         /// <summary>

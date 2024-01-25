@@ -22,8 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
     using Timer = System.Timers.Timer;
-    using Microsoft.Azure.Amqp;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Update display name
@@ -1501,13 +1499,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 }
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 {
-                    if (!AttachedToSubscription ||
-                        (!result && (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
-                            != HeartbeatBehavior.WatchdogLKG))
+                    var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                            == HeartbeatBehavior.WatchdogLKG;
+                    if (!AttachedToSubscription || (!result && lkg))
                     {
                         _callback = null;
                         // Stop heartbeat
-                        _heartbeatTimer.Interval = Timeout.Infinite;
+                        _heartbeatTimer.Enabled = false;
                         _timerInterval = Timeout.InfiniteTimeSpan;
                     }
                     else
@@ -1520,6 +1518,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             _heartbeatTimer.Interval = _heartbeatInterval.TotalMilliseconds;
                             _timerInterval = _heartbeatInterval;
                         }
+                        _heartbeatTimer.Enabled = true;
                     }
                 }
                 return result;
@@ -3007,7 +3006,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     if (eventType == ObjectTypeIds.RefreshStartEventType)
                     {
                         // stop the timers during condition refresh
-                        _conditionTimer.Interval = Timeout.Infinite;
+                        _conditionTimer.Enabled = false;
                         state.Active.Clear();
                         _logger.LogDebug("{Item}: Stopped pending alarm handling " +
                             "during condition refresh.", this);
@@ -3017,6 +3016,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     {
                         // restart the timers once condition refresh is done.
                         _conditionTimer.Interval = 1000;
+                        _conditionTimer.Enabled = true;
                         _logger.LogDebug("{Item}: Restarted pending alarm handling " +
                             "after condition refresh.", this);
                         return true;
@@ -3136,12 +3136,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 if (!AttachedToSubscription || !result)
                 {
                     _callback = null;
-                    _conditionTimer.Interval = Timeout.Infinite;
+                    _conditionTimer.Enabled = false;
                 }
                 else
                 {
                     _callback = cb;
                     _conditionTimer.Interval = 1000;
+                    _conditionTimer.Enabled = true;
                 }
                 return result;
             }
@@ -3167,6 +3168,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 if (_conditionTimer != null)
                 {
                     _conditionTimer.Interval = 1000;
+                    _conditionTimer.Enabled = true;
                 }
 
                 return eventFilter;
@@ -3263,6 +3265,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     if (_conditionTimer != null)
                     {
                         _conditionTimer.Interval = 1000;
+                        _conditionTimer.Enabled = true;
                     }
                 }
             }

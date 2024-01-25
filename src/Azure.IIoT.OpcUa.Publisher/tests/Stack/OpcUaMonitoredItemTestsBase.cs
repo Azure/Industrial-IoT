@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Opc.Ua.Client;
     using System.Linq;
     using System.Threading.Tasks;
-    using Xunit;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {

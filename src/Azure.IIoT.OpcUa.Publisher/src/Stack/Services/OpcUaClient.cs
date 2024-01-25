@@ -2111,7 +2111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private Change<T> CreateChange<T>(NodeId source, T? existing, T? New) where T : class
                 => new Change<T>(source, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    DateTime.UtcNow) ;
+                    DateTime.UtcNow);
 
             /// <summary>
             /// Take a reference on this browser

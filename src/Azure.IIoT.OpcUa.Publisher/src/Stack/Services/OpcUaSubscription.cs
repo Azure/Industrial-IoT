@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.DataItem))]
     [KnownType(typeof(OpcUaMonitoredItem.DataItemWithCyclicRead))]
     [KnownType(typeof(OpcUaMonitoredItem.DataItemWithHeartbeat))]
+    [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.EventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     [KnownType(typeof(OpcUaMonitoredItem.FieldItem))]

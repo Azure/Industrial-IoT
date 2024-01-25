@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Enable that when publisher starts or restarts it reports its runtime state using a restart message.\nDefault: `False` (disabled)\n",
                     (bool? b) => this[PublisherConfig.EnableRuntimeStateReportingKey] = b?.ToString() ?? "True"},
                 { $"doa|disableopenapi:|{PublisherConfig.DisableOpenApiEndpointKey}:",
-                    "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `enabled`.\n",
+                    "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `False` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableOpenApiEndpointKey] = b?.ToString() ?? "True" },
 
                 "",
