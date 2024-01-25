@@ -896,6 +896,36 @@
                 }
             }
         },
+        "/v2/reset": {
+            "get": {
+                "tags": [
+                    "Diagnostics"
+                ],
+                "summary": "ResetAllClients",
+                "description": "Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.",
+                "operationId": "ResetAllClients",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/v2/tracemode": {
+            "get": {
+                "tags": [
+                    "Diagnostics"
+                ],
+                "summary": "SetTraceMode",
+                "description": "Can be used to set trace mode for all established connections. Call within a minute to keep trace mode up or else trace mode will be disabled again after 1 minute. Enabling and resetting tracemode will cause a reconnect of the client.",
+                "operationId": "SetTraceMode",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
         "/v2/discovery/findserver": {
             "post": {
                 "tags": [
@@ -3038,7 +3068,8 @@
             "type": "object",
             "properties": {
                 "value": {
-                    "description": "Attribute value"
+                    "description": "Attribute value",
+                    "type": "object"
                 },
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
@@ -3063,7 +3094,8 @@
                     "$ref": "#/definitions/NodeAttribute"
                 },
                 "value": {
-                    "description": "Value to write (mandatory)"
+                    "description": "Value to write (mandatory)",
+                    "type": "object"
                 }
             }
         },
@@ -3096,7 +3128,8 @@
                     "type": "string"
                 },
                 "configuration": {
-                    "description": "Method specific configuration"
+                    "description": "Method specific configuration",
+                    "type": "object"
                 }
             }
         },
@@ -4124,7 +4157,8 @@
                     "type": "integer"
                 },
                 "value": {
-                    "description": "Variant value if operand is a literal"
+                    "description": "Variant value if operand is a literal",
+                    "type": "object"
                 },
                 "nodeId": {
                     "description": "Type definition node id if operand is\r\nsimple or full attribute operand.",
@@ -4232,8 +4266,10 @@
             "properties": {
                 "eventFields": {
                     "description": "The selected fields of the event",
+                    "type": "object",
                     "items": {
-                        "description": "A variant which can be represented by any value including null."
+                        "description": "A variant which can be represented by any value including null.",
+                        "type": "object"
                     }
                 }
             }
@@ -4286,7 +4322,8 @@
             "type": "object",
             "properties": {
                 "value": {
-                    "description": ",\r\n            The value of data value."
+                    "description": ",\r\n            The value of data value.",
+                    "type": "object"
                 },
                 "dataType": {
                     "description": "Built in data type of the updated values",
@@ -4715,7 +4752,8 @@
             "type": "object",
             "properties": {
                 "value": {
-                    "description": "Initial value or value to use"
+                    "description": "Initial value or value to use",
+                    "type": "object"
                 },
                 "dataType": {
                     "description": "Data type Id of the value (from meta data)",
@@ -4808,7 +4846,8 @@
                     "$ref": "#/definitions/NodeModel"
                 },
                 "defaultValue": {
-                    "description": "Default value for the argument"
+                    "description": "Default value for the argument",
+                    "type": "object"
                 },
                 "valueRank": {
                     "$ref": "#/definitions/NodeValueRank"
@@ -5161,7 +5200,8 @@
                     "type": "string"
                 },
                 "value": {
-                    "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null."
+                    "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null.",
+                    "type": "object"
                 },
                 "sourcePicoseconds": {
                     "format": "int32",
@@ -5219,7 +5259,8 @@
                     "type": "boolean"
                 },
                 "dataTypeDefinition": {
-                    "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null."
+                    "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null.",
+                    "type": "object"
                 },
                 "accessLevel": {
                     "$ref": "#/definitions/NodeAccessLevel"
@@ -5974,6 +6015,33 @@
                 }
             }
         },
+        "PublishedModelChangesModel": {
+            "description": "Describes how model changes are published",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Identifier of event in the dataset.",
+                    "type": "string"
+                },
+                "eventNotifier": {
+                    "description": "Event notifier to subscribe to (if not server)",
+                    "type": "string"
+                },
+                "rebrowsePeriod": {
+                    "format": "date-span",
+                    "description": "Rebrowse period",
+                    "type": "string"
+                },
+                "startNodeId": {
+                    "description": "Root node to monitor (if not root folder)",
+                    "type": "string"
+                },
+                "publishedEventName": {
+                    "description": "Event name",
+                    "type": "string"
+                }
+            }
+        },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
             "required": [
@@ -6067,7 +6135,8 @@
                     "description": "Optional field and value pairs to insert into the\r\ndata sets emitted by data set writer.",
                     "type": "object",
                     "additionalProperties": {
-                        "description": "A variant which can be represented by any value including null."
+                        "description": "A variant which can be represented by any value including null.",
+                        "type": "object"
                     }
                 },
                 "EndpointSecurityMode": {
@@ -6130,6 +6199,9 @@
                 "OpcAuthenticationPassword": {
                     "description": "plain password",
                     "type": "string"
+                },
+                "ReportModelChanges": {
+                    "$ref": "#/definitions/PublishedModelChangesModel"
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
@@ -7176,7 +7248,8 @@
             "type": "object",
             "properties": {
                 "value": {
-                    "description": "Value read"
+                    "description": "Value read",
+                    "type": "object"
                 },
                 "dataType": {
                     "description": "Built in data type of the value read.",
@@ -7226,7 +7299,8 @@
                     }
                 },
                 "value": {
-                    "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)"
+                    "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)",
+                    "type": "object"
                 },
                 "dataType": {
                     "description": "A built in datatype for the value. This can\r\nbe a data type from browse, or a built in\r\ntype.\r\n(default: best effort)",
@@ -7288,9 +7362,11 @@
         },
         "VariantValueHistoryReadNextResponseModel": {
             "description": "History read continuation result",
+            "type": "object",
             "properties": {
                 "history": {
-                    "description": "History as json encoded extension object"
+                    "description": "History as json encoded extension object",
+                    "type": "object"
                 },
                 "continuationToken": {
                     "description": "Continuation token if more results pending.",
@@ -7307,6 +7383,7 @@
                 "details",
                 "nodeId"
             ],
+            "type": "object",
             "properties": {
                 "nodeId": {
                     "description": "Node to read from (mandatory)",
@@ -7321,7 +7398,8 @@
                     }
                 },
                 "details": {
-                    "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
+                    "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request.",
+                    "type": "object"
                 },
                 "indexRange": {
                     "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
@@ -7352,9 +7430,11 @@
         },
         "VariantValueHistoryReadResponseModel": {
             "description": "History read results",
+            "type": "object",
             "properties": {
                 "history": {
-                    "description": "History as json encoded extension object"
+                    "description": "History as json encoded extension object",
+                    "type": "object"
                 },
                 "continuationToken": {
                     "description": "Continuation token if more results pending.",
@@ -7371,6 +7451,7 @@
                 "details",
                 "nodeId"
             ],
+            "type": "object",
             "properties": {
                 "nodeId": {
                     "description": "Node to update",
@@ -7385,7 +7466,8 @@
                     }
                 },
                 "details": {
-                    "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+                    "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address.",
+                    "type": "object"
                 },
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
@@ -7612,6 +7694,10 @@
         {
             "name": "Configuration",
             "description": "<br>\r\n            This section contains the API to configure OPC Publisher.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+        },
+        {
+            "name": "Diagnostics",
+            "description": "<br>\r\n            This section lists the diagnostics APi provided by OPC Publisher providing\r\n            connection related diagnostics API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "Discovery",

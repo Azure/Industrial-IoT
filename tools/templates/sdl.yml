@@ -108,8 +108,8 @@ jobs:
             serviceTreeId = "59eec07a-6f20-42b9-b41b-d20e0a6322da"
             instanceUrl = "https://msazure.visualstudio.com/defaultcollection"
             projectName = "One"
-            areaPath = "One\IoT\Platform and Devices\IoT Devices\Industrial\Community"
-            iterationPath = "One\Custom\IoT\Industrial\Backlog"
+            areaPath = "One\IoT\Opc Publisher"
+            iterationPath = "One"
             notificationAliases = @("azureiiot@microsoft.com")
             allTools = $True
         } | ConvertTo-Json | Out-File -FilePath "$(Build.SourcesDirectory)\.gdntsa" -Force -Encoding utf8

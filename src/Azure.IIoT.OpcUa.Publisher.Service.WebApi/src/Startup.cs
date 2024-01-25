@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.AspNetCore.OpenApi;
+    using System;
 
     /// <summary>
     /// Webservice startup
@@ -110,6 +112,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .AddNewtonsoftJson()
                 .AddMessagePack();
 
+            services.Configure<OpenApiOptions>(options =>
+            {
+                options.SchemaVersion = 2;
+                options.ProjectUri = new Uri("https://www.github.com/Azure/Industrial-IoT");
+                options.License = new OpenApiLicense
+                {
+                    Name = "MIT LICENSE",
+                    Url = new Uri("https://opensource.org/licenses/MIT")
+                };
+            });
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
             // services.AddOpenTelemetry(ServiceInfo.Name);
             services.AddHostedService<AwaitableStartable>();

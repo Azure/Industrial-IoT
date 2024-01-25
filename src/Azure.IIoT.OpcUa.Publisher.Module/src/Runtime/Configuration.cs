@@ -755,15 +755,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         internal sealed class OpenApi : ConfigureOptionBase<OpenApiOptions>
         {
-            public const string DisableSwaggerUIKey = "DisableSwaggerUI";
             public const string UseOpenApiV3Key = "UseOpenApiV3";
 
             /// <inheritdoc/>
             public override void Configure(string? name, OpenApiOptions options)
             {
                 options.SchemaVersion = GetBoolOrDefault(UseOpenApiV3Key) ? 3 : 2;
-
-                options.ProjectUri = new Uri("https://github.com/Azure/Industrial-IoT");
+                options.ProjectUri = new Uri("https://www.github.com/Azure/Industrial-IoT");
                 options.License = new OpenApiLicense
                 {
                     Name = "MIT LICENSE",

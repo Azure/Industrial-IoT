@@ -174,9 +174,10 @@ Attribute to read
 Attribute value read
 
 
-|Name|Schema|
-|---|---|
-|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**value**  <br>*optional*|Attribute value|object|
 
 
 <a name="attributewriterequestmodel"></a>
@@ -188,6 +189,7 @@ Attribute and value to write to it
 |---|---|---|
 |**attribute**  <br>*required*||[NodeAttribute](definitions.md#nodeattribute)|
 |**nodeId**  <br>*required*|Node to write to (mandatory)  <br>**Minimum length** : `1`|string|
+|**value**  <br>*required*|Value to write (mandatory)|object|
 
 
 <a name="attributewriteresponsemodel"></a>
@@ -207,6 +209,7 @@ Authentication Method model
 
 |Name|Description|Schema|
 |---|---|---|
+|**configuration**  <br>*optional*|Method specific configuration|object|
 |**credentialType**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
 |**id**  <br>*required*|Method id  <br>**Minimum length** : `1`|string|
 |**securityPolicy**  <br>*optional*|Security policy to use when passing credential.|string|
@@ -725,6 +728,7 @@ Filter operand
 |**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int64)|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
+|**value**  <br>*optional*|Variant value if operand is a literal|object|
 
 
 <a name="filteroperatortype"></a>
@@ -812,7 +816,10 @@ Heartbeat behavior
 ### HistoricEventModel
 Historic event
 
-*Type* : object
+
+|Name|Description|Schema|
+|---|---|---|
+|**eventFields**  <br>*optional*|The selected fields of the event|object|
 
 
 <a name="historiceventmodelarrayhistoryreadnextresponsemodel"></a>
@@ -855,6 +862,7 @@ Historic data
 |**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.|integer (int32)|
 |**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.|string (date-time)|
 |**status**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**value**  <br>*optional*|,<br>            The value of data value.|object|
 
 
 <a name="historicvaluemodelarrayhistoryreadnextresponsemodel"></a>
@@ -1023,6 +1031,7 @@ Method argument model
 |Name|Description|Schema|
 |---|---|---|
 |**dataType**  <br>*optional*|Data type Id of the value (from meta data)|string|
+|**value**  <br>*optional*|Initial value or value to use|object|
 
 
 <a name="methodcallrequestmodel"></a>
@@ -1059,6 +1068,7 @@ Method argument metadata model
 |Name|Description|Schema|
 |---|---|---|
 |**arrayDimensions**  <br>*optional*|Optional Array dimension of argument|integer (int64)|
+|**defaultValue**  <br>*optional*|Default value for the argument|object|
 |**description**  <br>*optional*|Optional description of argument|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
 |**name**  <br>*optional*|Name of the argument|string|
@@ -1213,6 +1223,7 @@ Node model
 |**children**  <br>*optional*|Whether node has children which are defined as<br>any forward hierarchical references.<br>(default: unknown)|boolean|
 |**containsNoLoops**  <br>*optional*|Whether a view contains loops. Null if<br>not a view.|boolean|
 |**dataType**  <br>*optional*|If variable the datatype of the variable.<br>(default: null)|string|
+|**dataTypeDefinition**  <br>*optional*|Data type definition in case node is a<br>data type node and definition is available,<br>otherwise null.|object|
 |**description**  <br>*optional*|Description if any|string|
 |**displayName**  <br>*optional*|Display name|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
@@ -1235,6 +1246,7 @@ Node model
 |**userExecutable**  <br>*optional*|If method node class, whether method can<br>be called by current user.<br>(default: false if not executable)|boolean|
 |**userRolePermissions**  <br>*optional*|User Role permissions|< [RolePermissionModel](definitions.md#rolepermissionmodel) > array|
 |**userWriteMask**  <br>*optional*|User write mask for the node<br>(default: 0)|integer (int64)|
+|**value**  <br>*optional*|Value of variable or default value of the<br>subtyped variable in case node is a variable<br>type, otherwise null.|object|
 |**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
 |**writeMask**  <br>*optional*|Default write mask for the node<br>(default: 0)|integer (int64)|
 
@@ -1460,6 +1472,20 @@ A monitored and published item
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
 
 
+<a name="publishedmodelchangesmodel"></a>
+### PublishedModelChangesModel
+Describes how model changes are published
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**eventNotifier**  <br>*optional*|Event notifier to subscribe to (if not server)|string|
+|**id**  <br>*optional*|Identifier of event in the dataset.|string|
+|**publishedEventName**  <br>*optional*|Event name|string|
+|**rebrowsePeriod**  <br>*optional*|Rebrowse period|string (date-span)|
+|**startNodeId**  <br>*optional*|Root node to monitor (if not root folder)|string|
+
+
 <a name="publishednodesentrymodel"></a>
 ### PublishedNodesEntryModel
 Contains the nodes which should be published
@@ -1472,7 +1498,7 @@ Contains the nodes which should be published
 |**BatchTriggerIntervalTimespan**  <br>*optional*|Send network messages at the specified publishing<br>interval.<br>Takes precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.BatchTriggerInterval<br>if defined.|string (date-span)|
 |**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
 |**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
-|**DataSetExtensionFields**  <br>*optional*|Optional field and value pairs to insert into the<br>data sets emitted by data set writer.|object|
+|**DataSetExtensionFields**  <br>*optional*|Optional field and value pairs to insert into the<br>data sets emitted by data set writer.|< string, object > map|
 |**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
 |**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
@@ -1496,6 +1522,7 @@ Contains the nodes which should be published
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
+|**ReportModelChanges**  <br>*optional*||[PublishedModelChangesModel](definitions.md#publishedmodelchangesmodel)|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
@@ -2019,6 +2046,7 @@ Value read response model
 |**serverTimestamp**  <br>*optional*|Timestamp of when value was read at server.|string (date-time)|
 |**sourcePicoseconds**  <br>*optional*|Pico seconds part of when value was read at source.|integer (int32)|
 |**sourceTimestamp**  <br>*optional*|Timestamp of when value was read at source.|string (date-time)|
+|**value**  <br>*optional*|Value read|object|
 
 
 <a name="valuewriterequestmodel"></a>
@@ -2033,6 +2061,7 @@ Value write request model
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to write|string|
 |**nodeId**  <br>*optional*|Node id to write value to.|string|
+|**value**  <br>*required*|Value to write. The system tries to convert<br>the value according to the data type value,<br>e.g. convert comma seperated value strings<br>into arrays.  (Mandatory)|object|
 
 
 <a name="valuewriteresponsemodel"></a>
@@ -2066,6 +2095,7 @@ History read continuation result
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|object|
 
 
 <a name="variantvaluehistoryreadrequestmodel"></a>
@@ -2076,6 +2106,7 @@ Request node history read
 |Name|Description|Schema|
 |---|---|---|
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|object|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
 |**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
@@ -2091,6 +2122,7 @@ History read results
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**history**  <br>*optional*|History as json encoded extension object|object|
 
 
 <a name="variantvaluehistoryupdaterequestmodel"></a>
@@ -2101,6 +2133,7 @@ Request node history update
 |Name|Description|Schema|
 |---|---|---|
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|object|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
 

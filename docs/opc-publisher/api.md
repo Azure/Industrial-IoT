@@ -789,6 +789,55 @@ Stop publishing values from a node on the specified server. The group field that
 * `application/x-msgpack`
 
 
+<a name="diagnostics_resource"></a>
+### Diagnostics
+<br>
+            This section lists the diagnostics APi provided by OPC Publisher providing
+            connection related diagnostics API methods.
+            
+<br>
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="resetallclients"></a>
+#### ResetAllClients
+```
+GET /v2/reset
+```
+
+
+##### Description
+Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="settracemode"></a>
+#### SetTraceMode
+```
+GET /v2/tracemode
+```
+
+
+##### Description
+Can be used to set trace mode for all established connections. Call within a minute to keep trace mode up or else trace mode will be disabled again after 1 minute. Enabling and resetting tracemode will cause a reconnect of the client.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
 <a name="discovery_resource"></a>
 ### Discovery
 <br>OPC UA and network discovery related API.
