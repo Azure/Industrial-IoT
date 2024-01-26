@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             try
             {
                 encoder.UseReversibleEncoding =
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.ReversibleFieldEncoding) != 0;
                 encoder.WriteDataValue(nameof(Value), value);
             }
             finally

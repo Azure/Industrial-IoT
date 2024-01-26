@@ -635,11 +635,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             if ((mask & DataSetContentMask.DataSetWriterName) != 0)
             {
-                result |= JsonDataSetMessageContentMask2.DataSetWriterName;
+                result |= JsonDataSetMessageContentMask.DataSetWriterName;
             }
             if ((mask & DataSetContentMask.ReversibleFieldEncoding) != 0)
             {
-                result |= JsonDataSetMessageContentMask2.ReversibleFieldEncoding;
+                result |= JsonDataSetMessageContentMask.ReversibleFieldEncoding;
             }
 
             if (fieldMask != null)

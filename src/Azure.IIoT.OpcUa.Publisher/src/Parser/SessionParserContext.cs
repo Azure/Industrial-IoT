@@ -56,16 +56,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                 return Enumerable.Empty<IdentifierMetaData>();
             }
 
-            await _session.CollectTypeHierarchyAsync(
-                _header, nodeId, hierarchy,
+            await _session.CollectTypeHierarchyAsync(_header, nodeId, hierarchy,
                 ct).ConfigureAwait(false);
             hierarchy.Reverse(); // Start from Root super type
 
             foreach (var (subType, superType) in hierarchy)
             {
+                // Only request variables to resolve
                 ErrorInfo = await _session.CollectInstanceDeclarationsAsync(
-                    _header, (NodeId)superType.NodeId,
-                    null, declarations, map, _format, ct).ConfigureAwait(false);
+                    _header, (NodeId)superType.NodeId, null, declarations,
+                    map, _format, Opc.Ua.NodeClass.Variable, ct).ConfigureAwait(false);
                 if (ErrorInfo != null)
                 {
                     break;
@@ -73,10 +73,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             }
             if (ErrorInfo == null)
             {
-                // collect the fields for the selected type.
+                // Collect the variables of the selected type.
                 ErrorInfo = await _session.CollectInstanceDeclarationsAsync(
-                    _header, nodeId, null,
-                    declarations, map, _format, ct).ConfigureAwait(false);
+                    _header, nodeId, null, declarations, map, _format,
+                    Opc.Ua.NodeClass.Variable, ct).ConfigureAwait(false);
             }
             if (ErrorInfo != null)
             {

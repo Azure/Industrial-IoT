@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                 }
                 if (!UseCompatibilityMode &&
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0)
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterName) != 0)
                 {
                     encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                 }
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             void WritePayload(JsonEncoderEx jsonEncoder, string? propertyName = null)
             {
                 var useReversibleEncoding =
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.ReversibleFieldEncoding) != 0;
                 var prevReversibleEncoding = jsonEncoder.UseReversibleEncoding;
                 try
                 {
@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         {
                             UseCompatibilityMode = true;
                             dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
-                            dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
+                            dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterName;
                         }
                         else
                         {
@@ -303,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (jsonDecoder.HasField(nameof(DataSetWriterName)))
                 {
                     DataSetWriterName = jsonDecoder.ReadString(nameof(DataSetWriterName));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
+                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterName;
                 }
                 return jsonDecoder.HasField(nameof(Payload));
             }

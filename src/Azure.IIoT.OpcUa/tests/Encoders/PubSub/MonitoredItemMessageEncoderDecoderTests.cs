@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
-                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask2.ReversibleFieldEncoding))
+                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
             networkMessage.UseGzipCompression = compress;
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
-                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask2.ReversibleFieldEncoding))
+                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
             networkMessage.UseGzipCompression = compress;

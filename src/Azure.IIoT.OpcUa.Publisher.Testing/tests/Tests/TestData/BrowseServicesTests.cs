@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.Null(results.Node.Description);
+            Assert.Equal("The root of the server address space.", results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.Null(results.Node.Description);
+            Assert.Equal("The root of the server address space.", results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.Null(results.Node.Description);
+            Assert.Equal("The root of the server address space.", results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("i=84", results.Node.NodeId);
             Assert.Equal("Root", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
-            Assert.Null(results.Node.Description);
+            Assert.Equal("The root of the server address space.", results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);

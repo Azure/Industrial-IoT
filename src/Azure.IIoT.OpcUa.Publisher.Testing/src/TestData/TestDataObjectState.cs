@@ -103,53 +103,46 @@ namespace TestData
             NodeState node,
             ref object value)
         {
-            try
+            if (node.FindChild(context, Opc.Ua.BrowseNames.EURange) is not BaseVariableState euRange)
             {
-                if (node.FindChild(context, Opc.Ua.BrowseNames.EURange) is not BaseVariableState euRange)
-                {
-                    return ServiceResult.Good;
-                }
+                return ServiceResult.Good;
+            }
 
-                if (euRange.Value is not Opc.Ua.Range range)
-                {
-                    return ServiceResult.Good;
-                }
+            if (euRange.Value is not Opc.Ua.Range range)
+            {
+                return ServiceResult.Good;
+            }
 
-                if (value is Array array)
+            if (value is Array array)
+            {
+                for (var ii = 0; ii < array.Length; ii++)
                 {
-                    for (var ii = 0; ii < array.Length; ii++)
+                    var element = array.GetValue(ii);
+
+                    if (typeof(Variant).IsInstanceOfType(element))
                     {
-                        var element = array.GetValue(ii);
-
-                        if (typeof(Variant).IsInstanceOfType(element))
-                        {
-                            element = ((Variant)element).Value;
-                        }
-
-                        var elementNumber = Convert.ToDouble(element);
-
-                        if (elementNumber > range.High || elementNumber < range.Low)
-                        {
-                            return StatusCodes.BadOutOfRange;
-                        }
+                        element = ((Variant)element).Value;
                     }
 
-                    return ServiceResult.Good;
-                }
+                    var elementNumber = Convert.ToDouble(element);
 
-                var number = Convert.ToDouble(value);
-
-                if (number > range.High || number < range.Low)
-                {
-                    return StatusCodes.BadOutOfRange;
+                    if (elementNumber > range.High || elementNumber < range.Low)
+                    {
+                        return StatusCodes.BadOutOfRange;
+                    }
                 }
 
                 return ServiceResult.Good;
             }
-            catch
+
+            var number = Convert.ToDouble(value);
+
+            if (number > range.High || number < range.Low)
             {
-                throw;
+                return StatusCodes.BadOutOfRange;
             }
+
+            return ServiceResult.Good;
         }
 
         /// <summary>

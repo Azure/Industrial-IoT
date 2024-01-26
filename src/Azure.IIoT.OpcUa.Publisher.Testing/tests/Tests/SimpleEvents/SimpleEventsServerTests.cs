@@ -104,6 +104,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassName.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassName.Value"
                     }
                 }
             });
@@ -189,6 +217,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassName.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassName.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
