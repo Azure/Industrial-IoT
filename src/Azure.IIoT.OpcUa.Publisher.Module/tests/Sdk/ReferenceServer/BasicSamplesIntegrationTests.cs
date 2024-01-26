@@ -140,6 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
 
             // Assert
+            _output.WriteLine(messages.ToString());
             var doubleValues = messages
                 .Where(message => message.Message.GetProperty("DisplayName").GetString() == "DoubleValues" &&
                     message.Message.GetProperty("Value").TryGetProperty("Value", out _));

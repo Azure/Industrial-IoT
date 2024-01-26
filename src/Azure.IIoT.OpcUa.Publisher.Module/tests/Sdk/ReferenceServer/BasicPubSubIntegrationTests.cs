@@ -69,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 TimeSpan.FromMinutes(2), 5, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--dm=false" });
 
             // Assert
+            _output.WriteLine(messages.ToString());
             var payload1 = messages[0].Message.GetProperty("Messages")[0].GetProperty("Payload");
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));

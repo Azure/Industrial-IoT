@@ -64,6 +64,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => Handle != null && Session?.Connected == true && !_closed;
 
         /// <summary>
+        /// Currently monitored but unordered
+        /// </summary>
+        private IEnumerable<OpcUaMonitoredItem> CurrentlyMonitored
+            => _additionallyMonitored.Values
+                .Concat(MonitoredItems
+                .OfType<OpcUaMonitoredItem>());
+
+        /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="clients"></param>
@@ -492,9 +500,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private IEnumerable<OpcUaMonitoredItem> CurrentlyMonitored
-            => _additionallyMonitored.Values.Concat(MonitoredItems.OfType<OpcUaMonitoredItem>());
-
         /// <summary>
         /// Synchronize monitored items in subscription (no lock)
         /// </summary>
@@ -806,12 +811,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            var set = MonitoredItems
-                .OfType<OpcUaMonitoredItem>()
-                .ToHashSet();
+            var set = new List<OpcUaMonitoredItem>();
 
-            _logger.LogDebug(
-                "Completing {Count} items in subscription {Subscription}...", set.Count, this);
+            _logger.LogDebug("Completing {Count} items in subscription {Subscription}...",
+                desiredMonitoredItems.Count, this);
             foreach (var monitoredItem in desiredMonitoredItems)
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
@@ -852,19 +855,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // metadata. Then we need a way to retain the previous metadata until
             // switching over.
             //
-            // Create currently monitored items list
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
                 "Client handles are not distinct or one of the items is null");
-            var currentlyMonitored = set
-                .ToFrozenDictionary(m => m.ClientHandle, m => m);
             if (metadataChanged)
             {
                 var threshold =
                     _template.Configuration?.AsyncMetaDataLoadThreshold
                         ?? 30; // Synchronous loading for 30 or less items
-                var tcs = (currentlyMonitored.Count <= threshold) ? new TaskCompletionSource() : null;
+                var tcs = (set.Count <= threshold) ? new TaskCompletionSource() : null;
                 var args = new MetaDataLoader.MetaDataLoaderArguments(tcs, session,
-                    session.NamespaceUris, currentlyMonitored.Values.ToList());
+                    session.NamespaceUris, set.OrderBy(m => m.ClientHandle));
                 _metaDataLoader.Value.Reload(args);
                 if (tcs != null)
                 {
@@ -943,16 +943,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ForEach(m => m.Dispose());
 
             // Update subscription state
-            _additionallyMonitored = currentlyMonitored
-                .Where(m => !m.Value.AttachedToSubscription)
-                .ToFrozenDictionary();
+            _additionallyMonitored = set
+                .Where(m => !m.AttachedToSubscription)
+                .ToFrozenDictionary(m => m.ClientHandle, m => m);
 
             _badMonitoredItems = invalidItems;
-            _goodMonitoredItems = currentlyMonitored.Count - invalidItems;
+            _goodMonitoredItems = set.Count - invalidItems;
 
             _logger.LogInformation(
                 "Now monitoring {Count} (Good:{Good}/Bad:{Bad}) nodes in subscription {Subscription}.",
-                currentlyMonitored.Count, _goodMonitoredItems, _badMonitoredItems, this);
+                set.Count, _goodMonitoredItems, _badMonitoredItems, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -986,7 +986,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
-            else if (desiredMonitoredItems.Count != currentlyMonitored.Count)
+            else if (desiredMonitoredItems.Count != set.Count)
             {
                 // Try to periodically update the subscription
                 // TODO: Trigger on address space model changes...
@@ -1677,7 +1677,9 @@ Actual (revised) state/desired state:
                         return false;
                     }
                     notifications = new List<MonitoredItemNotificationModel>();
-                    foreach (var item in CurrentlyMonitored)
+
+                    // Ensure we order by client handle exactly like the meta data is ordered
+                    foreach (var item in CurrentlyMonitored.OrderBy(m => m.ClientHandle))
                     {
                         item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
                     }
@@ -2178,7 +2180,7 @@ Actual (revised) state/desired state:
 
             internal record MetaDataLoaderArguments(TaskCompletionSource? tcs,
                 IOpcUaSession sessionHandle, NamespaceTable namespaces,
-                List<OpcUaMonitoredItem> monitoredItemsInDataSet);
+                IEnumerable<OpcUaMonitoredItem> monitoredItemsInDataSet);
             private MetaDataLoaderArguments? _arguments;
             private readonly Task _loader;
             private readonly CancellationTokenSource _cts = new();

@@ -16,6 +16,9 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Profiles\Heartbeat2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\ModelChanges.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
