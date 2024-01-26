@@ -346,8 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="cb"></param>
         /// <returns></returns>
         public virtual bool TryCompleteChanges(Subscription subscription,
-            ref bool applyChanges,
-            Callback cb)
+            ref bool applyChanges, Callback cb)
         {
             if (!Valid)
             {
@@ -1791,8 +1790,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges, Callback cb)
             {
                 // Dont call base implementation as it is not what we want.
                 if (!Valid)
@@ -2040,8 +2038,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges, Callback cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 if (!AttachedToSubscription)
@@ -3125,8 +3122,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges, Callback cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
                 if (_conditionTimer == null)

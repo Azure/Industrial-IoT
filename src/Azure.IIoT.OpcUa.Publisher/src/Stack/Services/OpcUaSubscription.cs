@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Subscription implementation
@@ -750,7 +751,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Resolve display names for all nodes that still require a name
             // other than the node id string.
             //
-            // Note that we use the desired set hereand  update the display
+            // Note that we use the desired set here and update the display
             // name after AddTo/MergeWith as it only effects the messages
             // and metadata emitted and not the item as it is set up in the
             // subscription (like what we do when resolving nodes). This
@@ -811,22 +812,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            var set = new List<OpcUaMonitoredItem>();
-
-            _logger.LogDebug("Completing {Count} items in subscription {Subscription}...",
-                desiredMonitoredItems.Count, this);
-            foreach (var monitoredItem in desiredMonitoredItems)
+            _logger.LogDebug(
+                "Completing {Count} same/added and {Removed} removed items in subscription {Subscription}...",
+                desiredMonitoredItems.Count, remove.Count, this);
+            foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
                 {
-                    // Apply any changes from this second pass
+                    // Apply more changes in future passes
                     invalidItems++;
                 }
-                else
-                {
-                    set.Add(monitoredItem);
-                }
             }
+
+            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
+            var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
+            _logger.LogDebug(
+                "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
+                set.Count, desiredMonitoredItems.Count - set.Count, this);
 
             var finalize = set
                 .Where(i => i.FinalizeCompleteChanges != null)
@@ -982,15 +984,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Set up subscription management trigger
             if (invalidItems != 0)
             {
-                // Retry applying invalid items every 5 minutes
+                // There were items that could not be added to subscription
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
             else if (desiredMonitoredItems.Count != set.Count)
             {
-                // Try to periodically update the subscription
-                // TODO: Trigger on address space model changes...
-
+                // There were items !Valid but desired.
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.BadMonitoredItemRetryDelay, TimeSpan.FromMinutes(30));
             }
