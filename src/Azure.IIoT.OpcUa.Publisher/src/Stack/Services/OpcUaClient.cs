@@ -1819,6 +1819,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         sw.Restart();
                         _referencesAdded = _referencesRemoved = 0;
                         _nodesAdded = _nodesChanged = _nodesRemoved = 0;
+                        _errors = 0;
                         _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
                     }
                 }
