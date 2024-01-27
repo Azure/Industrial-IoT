@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Connection = model.Connection.Clone(),
                 PublishedEvents = model.PublishedEvents.Clone(),
                 PublishedVariables = model.PublishedVariables.Clone(),
-                PublishedModelChanges = model.PublishedModelChanges.Clone(),
                 SubscriptionSettings = model.SubscriptionSettings.Clone()
             });
         }

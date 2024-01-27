@@ -8,9 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// Condition options extensions
+    /// Published model change items extensions
     /// </summary>
-    public static class ConditionHandlingOptionsModelEx
+    public static class ModelChangeHandlingOptionsModelEx
     {
         /// <summary>
         /// Clone
@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static ConditionHandlingOptionsModel? Clone(this ConditionHandlingOptionsModel? model)
+        public static ModelChangeHandlingOptionsModel? Clone(this ModelChangeHandlingOptionsModel? model)
         {
             return model == null ? null : (model with { });
         }
@@ -28,8 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        public static bool IsSameAs(this ConditionHandlingOptionsModel? model,
-            ConditionHandlingOptionsModel? that)
+        public static bool IsSameAs(this ModelChangeHandlingOptionsModel? model,
+            ModelChangeHandlingOptionsModel? that)
         {
             if (model == that)
             {
@@ -39,11 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.SnapshotInterval != that.SnapshotInterval)
-            {
-                return false;
-            }
-            if (model.UpdateInterval != that.UpdateInterval)
+            if (model.RebrowsePeriod != that.RebrowsePeriod)
             {
                 return false;
             }

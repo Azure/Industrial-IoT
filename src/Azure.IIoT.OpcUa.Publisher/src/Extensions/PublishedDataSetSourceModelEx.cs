@@ -65,11 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             OpcUaSubscriptionOptions options, IDictionary<string, VariantValue>? extensionFields = null)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
-            if (dataSetSource.PublishedModelChanges != null)
-            {
-                monitoredItems = monitoredItems
-                    .Append(dataSetSource.PublishedModelChanges.ToMonitoredItems(options));
-            }
             if (dataSetSource.PublishedVariables?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
@@ -86,37 +81,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     .Concat(extensionFields.ToMonitoredItems());
             }
             return monitoredItems.ToList();
-        }
-
-        /// <summary>
-        /// Convert to monitored item
-        /// </summary>
-        /// <param name="modelChange"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        internal static BaseMonitoredItemModel ToMonitoredItems(
-            this PublishedModelChangesModel modelChange, OpcUaSubscriptionOptions options)
-        {
-            var eventNotifier = modelChange.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
-            return new MonitoredAddressSpaceModel
-            {
-                DataSetFieldId = modelChange.Id
-                    ?? eventNotifier,
-                DataSetFieldName = modelChange.PublishedEventName
-                    ?? string.Empty,
-                //
-                // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
-                // 0 the Server returns the default queue size for Event Notifications
-                // as revisedQueueSize for event monitored items.
-                //
-                QueueSize = options?.DefaultQueueSize
-                    ?? 0,
-                RebrowsePeriod = modelChange.RebrowsePeriod
-                    ?? options?.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
-                AttributeId = null,
-                MonitoringMode = MonitoringMode.Reporting,
-                StartNodeId = Opc.Ua.ObjectIds.RootFolder.ToString()
-            };
         }
 
         /// <summary>
@@ -188,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedEvent"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        internal static EventMonitoredItemModel? ToMonitoredItemTemplate(
+        internal static BaseMonitoredItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetEventModel publishedEvent,
             OpcUaSubscriptionOptions options)
         {
@@ -198,6 +162,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             var eventNotifier = publishedEvent.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
+
+            if (publishedEvent.ModelChangeHandling != null)
+            {
+                return new MonitoredAddressSpaceModel
+                {
+                    DataSetFieldId = publishedEvent.Id ?? eventNotifier,
+                    DataSetFieldName = publishedEvent.PublishedEventName ?? string.Empty,
+                    //
+                    // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
+                    // 0 the Server returns the default queue size for Event Notifications
+                    // as revisedQueueSize for event monitored items.
+                    //
+                    QueueSize = options?.DefaultQueueSize ?? 0,
+                    RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowsePeriod
+                        ?? options?.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
+                    AttributeId = null,
+                    DiscardNew = false,
+                    MonitoringMode = publishedEvent.MonitoringMode ?? MonitoringMode.Reporting,
+                    StartNodeId = eventNotifier,
+                    RootNodeId = Opc.Ua.ObjectIds.RootFolder.ToString()
+                };
+            }
+
             return new EventMonitoredItemModel
             {
                 DataSetFieldId = publishedEvent.Id ?? eventNotifier,
@@ -211,8 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     WhereClause = publishedEvent.Filter?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
-                DiscardNew = publishedEvent.DiscardNew
-                    ?? options?.DefaultDiscardNew,
+                DiscardNew = publishedEvent.DiscardNew ?? options?.DefaultDiscardNew,
 
                 //
                 // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/

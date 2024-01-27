@@ -101,7 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .SelectMany(group => group.DataSetWriters!
                         .Where(writer =>
                                writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData != null
-                            || writer.DataSet?.DataSetSource?.PublishedModelChanges != null
                             || writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData != null)
                         .Select(writer => (WriterGroup: group, Writer: writer)))
                     .Select(item => AddConnectionModel(item.Writer.DataSet?.DataSetSource?.Connection,
@@ -132,7 +131,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     null : item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
                                 RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
-                            ReportModelChanges = item.Writer.DataSet?.DataSetSource?.PublishedModelChanges.Clone(),
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
                             OpcNodes = (item.Writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData ??
@@ -170,6 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
                                     ExpandedNodeId = null,
                                     ConditionHandling = null,
+                                    ModelChangeHandling = null,
                                     EventFilter = null
                                 })
                                 .Concat((item.Writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData ??
@@ -184,6 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         WhereClause = evt.Filter.Clone()
                                     },
                                     ConditionHandling = evt.ConditionHandling.Clone(),
+                                    ModelChangeHandling = evt.ModelChangeHandling.Clone(),
                                     DataSetFieldId = evt.Id,
                                     DisplayName = evt.PublishedEventName,
                                     FetchDisplayName = evt.ReadEventNameFromNode,
@@ -350,10 +350,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
                                     // ...
                                 },
-                                PublishedModelChanges = opcNodes.First().Header.ReportModelChanges.Clone(),
                                 PublishedVariables = new PublishedDataItemsModel
                                 {
-                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter == null)
+                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter == null && node.Node.ModelChangeHandling == null)
                                     .Select(node => new PublishedDataSetVariableModel
                                     {
                                         Id = node.Node.DataSetFieldId,
@@ -385,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 },
                                 PublishedEvents = new PublishedEventItemsModel
                                 {
-                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter != null)
+                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter != null || node.Node.ModelChangeHandling != null)
                                     .Select(node => new PublishedDataSetEventModel
                                     {
                                         Id = node.Node.DataSetFieldId,
@@ -399,7 +398,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         TypeDefinitionId = node.Node.EventFilter?.TypeDefinitionId,
                                         SelectedFields = node.Node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
                                         Filter = node.Node.EventFilter?.WhereClause.Clone(),
-                                        ConditionHandling = node.Node.ConditionHandling.Clone()
+                                        ConditionHandling = node.Node.ConditionHandling.Clone(),
+                                        ModelChangeHandling = node.Node.ModelChangeHandling.Clone()
                                     }).ToList()
                                 }
                             })
@@ -453,7 +453,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Diagnostics = dataSet.Source.Connection?.Diagnostics.Clone(),
                                         IsReverse = dataSet.Source.Connection?.IsReverse
                                     },
-                                    PublishedModelChanges = dataSet.Source.PublishedModelChanges.Clone(),
                                     PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
                                     PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
                                     SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
@@ -721,7 +720,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DeadbandType = node.DeadbandType,
                             DeadbandValue = node.DeadbandValue,
                             EventFilter = node.EventFilter,
-                            ConditionHandling = node.ConditionHandling
+                            HeartbeatBehavior = node.HeartbeatBehavior,
+                            ConditionHandling = node.ConditionHandling,
+                            ModelChangeHandling = node.ModelChangeHandling
                         });
                     }
                     else
@@ -755,8 +756,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 DeadbandType = node.DeadbandType,
                                 DeadbandValue = node.DeadbandValue,
                                 DiscardNew = node.DiscardNew,
+                                HeartbeatBehavior = node.HeartbeatBehavior,
                                 EventFilter = node.EventFilter,
-                                ConditionHandling = node.ConditionHandling
+                                ConditionHandling = node.ConditionHandling,
+                                ModelChangeHandling = node.ModelChangeHandling
                             });
                         }
                     }

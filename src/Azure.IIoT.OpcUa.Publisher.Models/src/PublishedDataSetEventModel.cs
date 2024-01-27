@@ -92,5 +92,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "readEventNameFromNode", Order = 12,
             EmitDefaultValue = false)]
         public bool? ReadEventNameFromNode { get; set; }
+
+        /// <summary>
+        /// Model change event publishing configuration
+        /// </summary>
+        [DataMember(Name = "modelChangeHandling", Order = 13,
+            EmitDefaultValue = false)]
+        public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; set; }
     }
 }

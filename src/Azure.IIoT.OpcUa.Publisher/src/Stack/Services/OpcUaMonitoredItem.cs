@@ -1438,19 +1438,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Assert(Valid);
-
-                if (_heartbeatTimer != null)
-                {
-                    // Last value should be this notification
-                    Debug.Assert(monitoredItemNotification == LastReceivedValue);
-                    if ((_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
-                    {
-                        _heartbeatTimer.Interval = _timerInterval.TotalMilliseconds;
-                    }
-                }
-
-                return base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
+                var result = base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
                     monitoredItemNotification, notifications);
+
+                if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                {
+                    _heartbeatTimer.Interval = _timerInterval.TotalMilliseconds;
+                    _heartbeatTimer.Enabled = true;
+                }
+                return result;
             }
 
             /// <inheritdoc/>
@@ -1528,6 +1524,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
                 _lastValueReceived = DateTime.UtcNow;
+                if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                {
+                    _heartbeatTimer.Enabled = false;
+                }
                 return base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications);
             }
 
@@ -1560,16 +1560,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     return;
                 }
 
-                var lastNofication = LastReceivedValue as MonitoredItemNotification;
+                var lastNotification = LastReceivedValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG &&
-                        !IsGoodDataValue(lastNofication?.Value))
+                        !IsGoodDataValue(lastNotification?.Value))
                 {
                     // Currently no last known good value (LKG) to send
                     return;
                 }
 
-                var lastValue = lastNofication?.Value;
+                var lastValue = lastNotification?.Value;
                 if (lastValue == null && Status?.Error?.StatusCode != null)
                 {
                     lastValue = new DataValue(Status.Error.StatusCode);
@@ -1906,6 +1906,11 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             public MonitoredAddressSpaceModel Template { get; protected internal set; }
 
             /// <summary>
+            /// Root id
+            /// </summary>
+            public NodeId? RootNodeId { get; private set; }
+
+            /// <summary>
             /// Create model change item
             /// </summary>
             /// <param name="template"></param>
@@ -1933,6 +1938,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _client = item._client;
                 _callback = item._callback;
                 _fields = item._fields;
+                RootNodeId = item.RootNodeId;
 
                 _browser = item.CloneBrowser();
                 if (_browser != null)
@@ -1982,6 +1988,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 {
                     return false;
                 }
+                if (Template.RootNodeId != modelChange.Template.RootNodeId)
+                {
+                    return false;
+                }
                 if (_client != modelChange._client)
                 {
                     return false;
@@ -2002,6 +2012,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.StartNodeId);
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(
+                        Template.RootNodeId ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
                     _client.GetHashCode();
                 return hashCode;
@@ -2074,7 +2087,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     if (_browser == null)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
-                            TimeSpan.FromHours(12), Template.StartNodeId);
+                            TimeSpan.FromHours(12), RootNodeId ?? ObjectIds.RootFolder);
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
@@ -2093,6 +2106,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     metadataChanged = false;
                     return false;
                 }
+
+                RootNodeId = Template.RootNodeId.ToNodeId(session.MessageContext);
+                if (Opc.Ua.NodeId.IsNull(RootNodeId))
+                {
+                    RootNodeId = ObjectIds.RootFolder;
+                }
+
                 DisplayName = Template.DisplayName;
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;

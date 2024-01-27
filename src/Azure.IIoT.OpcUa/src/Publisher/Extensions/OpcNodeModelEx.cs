@@ -127,6 +127,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+
+            if (!model.ModelChangeHandling.IsSameAs(that.ModelChangeHandling))
+            {
+                return false;
+            }
+            if (!model.ConditionHandling.IsSameAs(that.ConditionHandling))
+            {
+                return false;
+            }
+            if ((model.UseCyclicRead ?? false) != (that.UseCyclicRead ?? false))
+            {
+                return false;
+            }
+            if ((model.RegisterNode ?? false) != (that.RegisterNode ?? false))
+            {
+                return false;
+            }
             return true;
         }
 
@@ -172,6 +189,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 hash.Add(model.DeadbandType);
             }
+
+            hash.Add(model.ModelChangeHandling?.RebrowsePeriod);
+            hash.Add(model.ConditionHandling?.UpdateInterval);
+            hash.Add(model.ConditionHandling?.SnapshotInterval);
+            hash.Add(model.UseCyclicRead);
+            hash.Add(model.RegisterNode);
+
             return hash.ToHashCode();
         }
 

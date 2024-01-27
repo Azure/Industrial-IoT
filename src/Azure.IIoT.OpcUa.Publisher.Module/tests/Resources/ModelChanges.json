@@ -2,12 +2,11 @@
     {
         "EndpointUrl": "{{EndpointUrl}}",
         "UseSecurity": false,
-        "ReportModelChanges": {
-            "RebrowsePeriod": "00:00:10"
-        },
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259"
+                "ModelChangeHandling": {
+                    "RebrowsePeriod": "00:00:10"
+                }
             }
         ]
     }

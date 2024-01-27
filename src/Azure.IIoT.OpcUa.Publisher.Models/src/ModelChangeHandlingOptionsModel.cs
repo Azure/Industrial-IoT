@@ -3,23 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
-    /// Monitor the address space
+    /// Describes how model changes are published
     /// </summary>
-    public sealed record class MonitoredAddressSpaceModel : BaseMonitoredItemModel
+    [DataContract]
+    public sealed record class ModelChangeHandlingOptionsModel
     {
         /// <summary>
-        /// Rebrowse period to use when monitoring
+        /// Rebrowse period
         /// </summary>
+        [DataMember(Name = "rebrowsePeriod", Order = 1,
+            EmitDefaultValue = false)]
         public TimeSpan? RebrowsePeriod { get; set; }
-
-        /// <summary>
-        /// Root node to start browsing (optional)
-        /// </summary>
-        public string? RootNodeId { get; set; }
     }
 }

@@ -420,7 +420,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (message.Notifications.Count > 0)
                 {
                     _callbacks.OnSubscriptionEventDiagnosticsChange(false,
-                        message.Notifications.Count, message.ModelChanges);
+                        message.Notifications.Count, message.ModelChanges == 0 ? 0 : 1);
                 }
             }
             else
@@ -1955,7 +1955,7 @@ Actual (revised) state/desired state:
 
             /// <summary>
             /// Number of model changes
-            /// </summary>
+            /// </summary>s
             internal int ModelChanges => Notifications
                 .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges));
 

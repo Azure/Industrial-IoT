@@ -39,12 +39,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "subscriptionSettings", Order = 3,
             EmitDefaultValue = false)]
         public PublishedDataSetSettingsModel? SubscriptionSettings { get; set; }
-
-        /// <summary>
-        /// Or published model changes
-        /// </summary>
-        [DataMember(Name = "publishedModelChanges", Order = 4,
-            EmitDefaultValue = false)]
-        public PublishedModelChangesModel? PublishedModelChanges { get; set; }
     }
 }

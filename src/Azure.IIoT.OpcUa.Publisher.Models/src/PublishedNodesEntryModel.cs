@@ -285,13 +285,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? OpcAuthenticationPassword { get; set; }
 
         /// <summary>
-        /// Enable model change tracking
-        /// </summary>
-        [DataMember(Name = "ReportModelChanges", Order = 36,
-            EmitDefaultValue = false)]
-        public PublishedModelChangesModel? ReportModelChanges { get; set; }
-
-        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 40,
