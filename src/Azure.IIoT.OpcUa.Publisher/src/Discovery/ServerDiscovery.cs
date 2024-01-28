@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     // no match
                     continue;
                 }
-                return ep.ToServiceModel(discoveryUrl.Host, _options.Value.Site,
+                return ep.ToServiceModel(discoveryUrl.Host, _options.Value.SiteId,
                     _options.Value.PublisherId ?? Constants.DefaultPublisherId, _serializer);
             }
             throw new ResourceNotFoundException("Endpoints could not be found.");

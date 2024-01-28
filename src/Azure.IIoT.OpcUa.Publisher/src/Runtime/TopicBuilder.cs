@@ -69,8 +69,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 { nameof(EventsTopic),
                     f => f.Format(_options.Value.EventsTopicTemplate) },
 
-                { nameof(options.Value.Site),
-                    _ => options.Value.Site ?? Constants.DefaultSite },
+                { nameof(options.Value.SiteId),
+                    _ => options.Value.SiteId ?? Constants.DefaultSiteId },
                 { nameof(options.Value.PublisherId),
                     _ => options.Value.PublisherId ?? Constants.DefaultPublisherId }
             };

@@ -113,9 +113,9 @@ namespace Azure.IIoT.OpcUa.Publisher
                     _identity?.Id ?? Dns.GetHostName());
             }
 
-            if (options.Site == null)
+            if (options.SiteId == null)
             {
-                options.Site = GetStringOrDefault(SiteIdKey);
+                options.SiteId = GetStringOrDefault(SiteIdKey);
             }
 
             if (options.PublishedNodesFile == null)

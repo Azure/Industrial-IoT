@@ -476,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var ep in eps)
                 {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _options.Value.Site, _events.Identity, _serializer));
+                        _options.Value.SiteId, _events.Identity, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,

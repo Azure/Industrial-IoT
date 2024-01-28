@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Site of the publisher
         /// </summary>
-        public string? Site { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Configuration file

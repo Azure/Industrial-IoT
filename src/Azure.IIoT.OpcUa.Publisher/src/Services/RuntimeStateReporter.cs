@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var store in _stores)
             {
                 store.State[OpcUa.Constants.TwinPropertySiteKey] =
-                    _options.Value.Site;
+                    _options.Value.SiteId;
                 store.State[OpcUa.Constants.TwinPropertyTypeKey] =
                     OpcUa.Constants.EntityTypePublisher;
                 store.State[OpcUa.Constants.TwinPropertyVersionKey] =
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     PublisherId = _options.Value.PublisherId,
                     SemVer = GetType().Assembly.GetReleaseVersion().ToString(),
                     Version = PublisherConfig.Version,
-                    Site = _options.Value.Site,
+                    Site = _options.Value.SiteId,
                     DeviceId = _identity?.DeviceId,
                     ModuleId = _identity?.ModuleId
                 };

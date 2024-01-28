@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
         public NodeServicesTests2(PlcServer server, ITestOutputHelper output) : base(output)
         {
             _server = server;
-            _module = new PublisherModule(null, /* testOutputHelper: output, */
+            _module = new PublisherModule(null, testOutputHelper: output,
                 version: Furly.Extensions.Mqtt.MqttVersion.v5);
         }
 
