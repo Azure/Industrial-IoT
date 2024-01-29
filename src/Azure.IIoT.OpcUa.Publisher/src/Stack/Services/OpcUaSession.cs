@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogDebug("Session {Name} disposed.", SessionName);
+                    _logger.LogInformation("Session {Session} disposed.", this);
                 }
                 finally
                 {
@@ -140,6 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             base.Dispose(disposing);
+            Debug.Assert(SubscriptionHandles.Count == 0);
         }
 
         /// <inheritdoc/>
