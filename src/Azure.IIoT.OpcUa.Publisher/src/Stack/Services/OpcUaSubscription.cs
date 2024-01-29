@@ -1308,6 +1308,7 @@ Actual (revised) state/desired state:
         /// <param name="ensureClientExists"></param>
         private void TriggerManageSubscription(bool ensureClientExists)
         {
+            Debug.Assert(!_disposed);
             //
             // Ensure a client and session exists for this subscription. This takes a
             // reference that must be released when the subscription is closed or the
@@ -1342,13 +1343,9 @@ Actual (revised) state/desired state:
         private void OnSubscriptionEventNotificationList(Subscription subscription,
             EventNotificationList notification, IList<string>? stringTable)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "EventChange for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
+
             if (notification?.Events == null)
             {
                 _logger.LogWarning(
@@ -1474,13 +1471,8 @@ Actual (revised) state/desired state:
         private void OnSubscriptionKeepAliveNotification(Subscription subscription,
             NotificationData notification)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "Keep Alive for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
 
             ResetKeepAliveTimer();
 
@@ -1551,13 +1543,8 @@ Actual (revised) state/desired state:
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
             DataChangeNotification notification, IList<string>? stringTable)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "DataChange for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
 
             var session = Session;
             if (session?.MessageContext == null)
@@ -1715,6 +1702,7 @@ Actual (revised) state/desired state:
         /// </summary>
         private void ResetKeepAliveTimer()
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _continuouslyMissingKeepAlives = 0;
 
             if (!IsOnline)
@@ -1741,8 +1729,7 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnKeepAliveMissing(object? state)
         {
-            Debug.Assert(!_closed);
-
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (!IsOnline)
             {
                 // Stop watchdog

@@ -1724,7 +1724,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     try
                     {
-                        _rebrowseTimer.Dispose();
+                        _rebrowseTimer.Change(Timeout.Infinite, Timeout.Infinite);
                         _channel.Writer.TryComplete();
 
                         await _cts.CancelAsync().ConfigureAwait(false);
@@ -1734,6 +1734,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     finally
                     {
                         _cts.Dispose();
+                        _rebrowseTimer.Dispose();
                     }
                 }
             }
@@ -2117,7 +2118,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Take a reference on this browser
             /// </summary>
-            internal void AddRef() => _refCount++;
+            internal void AddRef()
+            {
+                _refCount++;
+                _channel.Writer.TryWrite(false); // Ensure we start a rebrowse in 10
+            }
 
             /// <summary>
             /// Release browser and remove from browser list
