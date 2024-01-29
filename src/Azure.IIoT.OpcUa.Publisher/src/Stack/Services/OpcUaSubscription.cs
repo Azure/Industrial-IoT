@@ -336,14 +336,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     lock (_lock)
                     {
-                        if (!_disposed)
+                        if (_disposed)
+                        {
+                            // Double dispose
+                            Debug.Fail("Double dispose in subscription");
+                            return;
+                        }
+                        try
                         {
                             _disposed = true;
-                            if (_closed)
-                            {
-                                _client?.Dispose();
-                                _client = null;
-                            }
+                            _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
                             FastDataChangeCallback = null;
                             FastEventCallback = null;
@@ -352,6 +354,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             PublishStatusChanged -= OnPublishStatusChange;
                             StateChanged -= OnStateChange;
 
+                            if (_closed)
+                            {
+                                _client?.Dispose();
+                                _client = null;
+                            }
+                        }
+                        finally
+                        {
                             _keepAliveWatcher.Dispose();
                             _timer.Dispose();
                             _meter.Dispose();
@@ -1729,7 +1739,11 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnKeepAliveMissing(object? state)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_disposed)
+            {
+                return;
+            }
+
             if (!IsOnline)
             {
                 // Stop watchdog
