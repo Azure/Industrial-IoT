@@ -1284,6 +1284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         internal void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             try
             {
                 // check for events from discarded sessions.
