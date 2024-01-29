@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.20" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.20" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.22" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.22" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
