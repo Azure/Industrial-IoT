@@ -76,24 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public virtual string? DataSetName { get; }
 
-        /// <inheritdoc/>
-        public bool AttachedToSubscription
-        {
-            get
-            {
-                // TODO: Use Subscription property != null
-                Debug.Assert(
-                    (_attachedToSubscription && Subscription != null) ||
-                    (!_attachedToSubscription && Subscription == null));
-                return _attachedToSubscription;
-            }
-
-            protected internal set
-            {
-                _attachedToSubscription = value;
-            }
-        }
-        private bool _attachedToSubscription;
+        /// <summary>
+        /// Whether the item is part of a subscription or not
+        /// </summary>
+        public bool AttachedToSubscription => Subscription != null;
 
         /// <summary>
         /// Registered read node updater. If this property is null then
@@ -152,7 +138,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = item._logger;
 
             LastReceivedValue = item.LastReceivedValue;
-            AttachedToSubscription = item.AttachedToSubscription;
             Valid = item.Valid;
         }
 
@@ -282,7 +267,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                AttachedToSubscription = true;
                 metadataChanged = true;
                 return true;
             }
@@ -325,7 +309,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "Removed monitored item {Item} from subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                AttachedToSubscription = false;
                 metadataChanged = true;
                 return true;
             }
@@ -2066,7 +2049,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             }
 
             /// <inheritdoc/>
-            public override Func<CancellationToken, Task>? FinalizeCompleteChanges => async ct =>
+            public override Func<CancellationToken, Task>? FinalizeCompleteChanges => async _ =>
             {
                 if (!AttachedToSubscription)
                 {
@@ -2077,7 +2060,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                         _browser.OnNodeChange -= OnNodeChange;
 
                         await _browser.CloseAsync().ConfigureAwait(false);
-                        _logger.LogDebug("Item {Item} unregistered from browser.", this);
+                        _logger.LogInformation("Item {Item} unregistered from browser.", this);
                         _browser = null;
                     }
                 }
@@ -2091,7 +2074,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
-                        _logger.LogDebug("Item {Item} registered with browser.", this);
+                        _logger.LogInformation("Item {Item} registered with browser.", this);
                     }
                 }
             };
