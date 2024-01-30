@@ -862,11 +862,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
-                                            currentSubscriptions = _session.SubscriptionHandles; // Snapshot
-                                                                                                 //
-                                                                                                 // Equality is through subscriptionidentifer therefore only subscriptions
-                                                                                                 // that are not yet created inside the session remain in queued state.
-                                                                                                 //
+                                            currentSubscriptions = _session.SubscriptionHandles;
+                                            //
+                                            // Equality is through subscriptionidentifer therefore only subscriptions
+                                            // that are not yet created inside the session remain in queued state.
+                                            //
                                             queuedSubscriptions.ExceptWith(currentSubscriptions);
                                             await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions,
                                                 ct).ConfigureAwait(false);
@@ -943,9 +943,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                foreach (var queuedDisposable in queuedSubscriptions.OfType<IDisposable>())
+                foreach (var queuedSubscription in queuedSubscriptions)
                 {
-                    queuedDisposable.Dispose();
+                    await queuedSubscription.CloseInSessionAsync(_session, ct).ConfigureAwait(false);
+                    (queuedSubscription as IDisposable)?.Dispose();
                 }
                 _logger.LogDebug("Exiting client management loop of Client {Client}.", this);
             }

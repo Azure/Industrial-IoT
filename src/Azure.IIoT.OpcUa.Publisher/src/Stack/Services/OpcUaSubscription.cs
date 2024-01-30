@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Subscription implementation
@@ -334,38 +333,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (disposing)
                 {
-                    lock (_lock)
+                    if (_disposed)
                     {
-                        if (_disposed)
-                        {
-                            // Double dispose
-                            Debug.Fail("Double dispose in subscription");
-                            return;
-                        }
-                        try
-                        {
-                            _disposed = true;
-                            _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                        // Double dispose
+                        Debug.Fail("Double dispose in subscription");
+                        return;
+                    }
+                    try
+                    {
+                        _disposed = true;
+                        _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
-                            FastDataChangeCallback = null;
-                            FastEventCallback = null;
-                            FastKeepAliveCallback = null;
+                        FastDataChangeCallback = null;
+                        FastEventCallback = null;
+                        FastKeepAliveCallback = null;
 
-                            PublishStatusChanged -= OnPublishStatusChange;
-                            StateChanged -= OnStateChange;
+                        PublishStatusChanged -= OnPublishStatusChange;
+                        StateChanged -= OnStateChange;
 
-                            if (_closed)
-                            {
-                                _client?.Dispose();
-                                _client = null;
-                            }
-                        }
-                        finally
+                        if (_closed)
                         {
-                            _keepAliveWatcher.Dispose();
-                            _timer.Dispose();
-                            _meter.Dispose();
+                            _client?.Dispose();
+                            _client = null;
                         }
+                    }
+                    finally
+                    {
+                        _keepAliveWatcher.Dispose();
+                        _timer.Dispose();
+                        _meter.Dispose();
                     }
                 }
 
