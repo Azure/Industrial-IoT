@@ -72,8 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
         public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
         public const string MinPublishRequestsKey = "MinPublishRequests";
-        public const string CaptureDeviceKey = "CaptureDevice";
-        public const string CaptureFileNameKey = "CaptureFileName";
+        public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
+        public const string MaxNodesPerReadOverrideKey = "MaxNodesPerReadOverride";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -109,7 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectUnknownRevocationStatusDefault = true;
         public const int MinPublishRequestsDefault = 3;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;
-        public const string CaptureFileNameDefault = "opcua.pcap";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -257,15 +256,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     PublishRequestsPerSubscriptionPercentDefault);
             }
 
-            if (string.IsNullOrEmpty(options.CaptureDevice))
+            if (options.MaxNodesPerReadOverride == null)
             {
-                options.CaptureDevice = GetStringOrDefault(CaptureDeviceKey);
+                options.MaxNodesPerReadOverride = GetIntOrNull(MaxNodesPerReadOverrideKey);
             }
 
-            if (string.IsNullOrEmpty(options.CaptureFileName))
+            if (options.MaxNodesPerBrowseOverride == null)
             {
-                options.CaptureFileName = GetStringOrDefault(CaptureFileNameKey,
-                    CaptureFileNameDefault);
+                options.MaxNodesPerBrowseOverride = GetIntOrNull(MaxNodesPerBrowseOverrideKey);
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)

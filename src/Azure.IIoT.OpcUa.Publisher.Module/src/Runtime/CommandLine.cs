@@ -336,6 +336,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The port to use when accepting inbound reverse connect requests from servers.\nDefault: `{OpcUaClientConfig.ReverseConnectPortDefault}`.\n",
                     (ushort u) => this[OpcUaClientConfig.ReverseConnectPortKey] = u.ToString(CultureInfo.CurrentCulture) },
 
+                { $"mnr|maxnodesperread=|{OpcUaClientConfig.MaxNodesPerReadOverrideKey}=",
+                    "Limit max number of nodes to read in a single read request when batching reads or the server limit if less.\nDefault: `0` (using server limit).\n",
+                    (int u) => this[OpcUaClientConfig.MaxNodesPerReadOverrideKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"mnb|maxnodesperbrowse=|{OpcUaClientConfig.MaxNodesPerBrowseOverrideKey}=",
+                    "Limit max number of nodes per browse request when batching browse operations or the server limit if less.\nDefault: `0` (using server limit).\n",
+                    (int u) => this[OpcUaClientConfig.MaxNodesPerBrowseOverrideKey] = u.ToString(CultureInfo.CurrentCulture) },
+
                 { $"mpr|minpublishrequests=|{OpcUaClientConfig.MinPublishRequestsKey}=",
                     $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
                     (int u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },

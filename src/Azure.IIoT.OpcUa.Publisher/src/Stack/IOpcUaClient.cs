@@ -20,8 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="samplingRate"></param>
         /// <param name="nodeToRead"></param>
+        /// <param name="group"></param>
         /// <returns></returns>
-        IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId nodeToRead);
+        IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId nodeToRead,
+            string? group = null);
 
         /// <summary>
         /// Create a browser to browse the address space and provide

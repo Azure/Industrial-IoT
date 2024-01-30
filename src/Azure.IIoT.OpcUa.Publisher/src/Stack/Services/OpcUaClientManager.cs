@@ -555,7 +555,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     KeepAliveInterval = _options.Value.KeepAliveInterval,
                     SessionTimeout = _options.Value.DefaultSessionTimeout,
                     LingerTimeout = _options.Value.LingerTimeout,
-
+                    LimitOverrides = new OperationLimits
+                    {
+                        MaxNodesPerRead = (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),
+                        MaxNodesPerBrowse = (uint)(_options.Value.MaxNodesPerBrowseOverride ?? 0)
+                        // ...
+                    },
                     MinPublishRequests = _options.Value.MinPublishRequests,
                     PublishRequestsPerSubscriptionPercent =
                         _options.Value.PublishRequestsPerSubscriptionPercent

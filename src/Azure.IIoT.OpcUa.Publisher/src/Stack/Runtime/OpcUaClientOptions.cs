@@ -128,13 +128,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public int? PublishRequestsPerSubscriptionPercent { get; set; }
 
         /// <summary>
-        /// Use the specific device to capture traffice.
+        /// Limit max nodes to read in a batch operation
         /// </summary>
-        public string? CaptureDevice { get; set; }
+        public int? MaxNodesPerReadOverride { get; set; }
 
         /// <summary>
-        /// Use the specified capture file
+        /// Limit max nodes to browse in a batch operation
         /// </summary>
-        public string? CaptureFileName { get; set; }
+        public int? MaxNodesPerBrowseOverride { get; set; }
     }
 }

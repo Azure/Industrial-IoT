@@ -1764,7 +1764,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             AttributeId = AttributeId,
                             IndexRange = IndexRange,
                             NodeId = ResolvedNodeId
-                        });
+                        },
+                        Subscription.DisplayName);
                     _sampler.OnValueChange += OnSampledDataValueReceived;
                     _logger.LogDebug("Item {Item} successfully registered with sampler.",
                         this);

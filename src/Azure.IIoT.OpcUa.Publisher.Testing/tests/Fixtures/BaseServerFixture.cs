@@ -157,7 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
                     };
-                    logger.LogInformation("Starting server host on {Port}...", _port);
+                    logger.LogInformation("Starting server host {Host} on {Port}...",
+                        serverHost, _port);
                     serverHost.StartAsync(new int[] { _port }).Wait();
 
                     //
@@ -180,8 +181,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                             result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
                     }
 
-                    logger.LogInformation("Server host listening on {EndpointUrl}!",
-                        EndpointUrl);
+                    logger.LogInformation("Server host {Host} listening on {EndpointUrl}!",
+                        _serverHost, EndpointUrl);
                     _serverHost = serverHost;
                     if (!useReverseConnect)
                     {
@@ -219,8 +220,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 {
                     kPorts.AddOrUpdate(_port, false, (_, _) => false);
                     _port = NextPort();
-                    logger.LogError(ex, "Failed to start server, retrying with port {Port}...",
-                        _port);
+                    logger.LogError(ex, "Failed to start host {Host}, retrying with port {Port}...",
+                        serverHost, _port);
                     serverHost?.Dispose();
                     serverHost = null;
                 }
@@ -245,19 +246,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 if (disposing)
                 {
                     var logger = _container.Resolve<ILogger<BaseServerFixture>>();
-                    logger.LogInformation("Disposing server and client fixture...");
-                    _serverHost.Dispose();
+                    logger.LogInformation("Disposing server host {Host} and client fixture...",
+                        _serverHost);
 
-                    // Clean up all created certificates
+                    string? pkiPath = null;
                     if (_container.TryResolve<IOptions<OpcUaClientOptions>>(out var options) &&
                         Directory.Exists(options.Value.Security.PkiRootPath))
                     {
-                        logger.LogInformation("Server disposed - cleaning up server certificates...");
-                        Try.Op(() => Directory.Delete(options.Value.Security.PkiRootPath, true));
+                        pkiPath = options.Value.Security.PkiRootPath;
                     }
+
                     _container.Dispose();
-                    logger.LogInformation("Client disposed - cleaning up client certificates...");
+                    _serverHost.Dispose();
                     kPorts.TryRemove(_port, out _);
+
+                    logger.LogInformation("Client fixture and server host {Host} disposed - " +
+                        "cleaning up server certificates at '{PkiRoot}'...", _serverHost, pkiPath);
+
+                    // Clean up all created certificates
+                    if (!string.IsNullOrEmpty(pkiPath))
+                    {
+                        Try.Op(() => Directory.Delete(pkiPath, true));
+                    }
                 }
                 _disposedValue = true;
             }

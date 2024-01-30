@@ -581,7 +581,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
             base.SessionCreated(sessionId, sessionCookie);
-            //PreloadComplexTypeSystem();
+
+            // Update operation limits with configuration provided overrides
+            OperationLimits.Override(_client.LimitOverrides);
+
+            PreloadComplexTypeSystem();
         }
 
         /// <summary>

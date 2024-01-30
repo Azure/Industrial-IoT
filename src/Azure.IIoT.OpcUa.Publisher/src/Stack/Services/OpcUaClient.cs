@@ -84,6 +84,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool? DisableComplexTypePreloading { get; set; }
 
         /// <summary>
+        /// Operation limits to use in the sessions
+        /// </summary>
+        internal OperationLimits? LimitOverrides { get; set; }
+
+        /// <summary>
         /// Client is connected
         /// </summary>
         public bool IsConnected
@@ -307,15 +312,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId item)
+        public IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId item, string? group)
         {
             lock (_engines)
             {
-                var sampler = new Sampler(this, samplingRate, item);
-                if (!_engines.TryGetValue(samplingRate, out var engine))
+                var key = (group ?? string.Empty, samplingRate);
+                var sampler = new Sampler(this, key, item);
+                if (!_engines.TryGetValue(key, out var engine))
                 {
                     engine = new SamplingEngine(this, samplingRate, sampler);
-                    _engines.Add(samplingRate, engine);
+                    _engines.Add(key, engine);
                 }
                 else
                 {
@@ -2186,9 +2192,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public event EventHandler<DataValueChange>? OnValueChange;
 
             /// <summary>
-            /// Sampling rate
+            /// Sampler key
             /// </summary>
-            public TimeSpan SamplingRate { get; }
+            public (string, TimeSpan) Key { get; }
 
             /// <summary>
             /// Item to monito
@@ -2199,13 +2205,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Create node
             /// </summary>
             /// <param name="outer"></param>
-            /// <param name="samplingRate"></param>
+            /// <param name="key"></param>
             /// <param name="item"></param>
-            public Sampler(OpcUaClient outer, TimeSpan samplingRate,
+            public Sampler(OpcUaClient outer, (string, TimeSpan) key,
                 ReadValueId item)
             {
                 _outer = outer;
-                SamplingRate = samplingRate;
+                Key = key;
                 InitialValue = item;
                 item.Handle = this;
             }
@@ -2216,12 +2222,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SamplingEngine? sampler;
                 lock (_outer._engines)
                 {
-                    if (!_outer._engines.TryGetValue(SamplingRate, out sampler)
+                    if (!_outer._engines.TryGetValue(Key, out sampler)
                         || !sampler.Remove(this))
                     {
                         return;
                     }
-                    _outer._engines.Remove(SamplingRate);
+                    _outer._engines.Remove(Key);
                 }
                 await sampler.DisposeAsync().ConfigureAwait(false);
             }
@@ -2481,7 +2487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<TimeSpan, SamplingEngine> _engines = new();
+        private readonly Dictionary<(string, TimeSpan), SamplingEngine> _engines = new();
         private readonly Dictionary<(NodeId, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
