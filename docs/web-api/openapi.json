@@ -6366,6 +6366,17 @@
                 }
             }
         },
+        "ModelChangeHandlingOptionsModel": {
+            "description": "Describes how model changes are published",
+            "type": "object",
+            "properties": {
+                "rebrowseIntervalTimespan": {
+                    "format": "date-span",
+                    "description": "Rebrowse period",
+                    "type": "string"
+                }
+            }
+        },
         "ModificationInfoModel": {
             "description": "Modification information",
             "type": "object",
@@ -6919,6 +6930,9 @@
                     "description": "Fetch display name from the node",
                     "type": "boolean"
                 },
+                "ModelChangeHandling": {
+                    "$ref": "#/definitions/ModelChangeHandlingOptionsModel"
+                },
                 "ExpandedNodeId": {
                     "description": "Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)",
                     "type": "string"
@@ -7197,33 +7211,6 @@
                 }
             }
         },
-        "PublishedModelChangesModel": {
-            "description": "Describes how model changes are published",
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "Identifier of event in the dataset.",
-                    "type": "string"
-                },
-                "eventNotifier": {
-                    "description": "Event notifier to subscribe to (if not server)",
-                    "type": "string"
-                },
-                "rebrowsePeriod": {
-                    "format": "date-span",
-                    "description": "Rebrowse period",
-                    "type": "string"
-                },
-                "startNodeId": {
-                    "description": "Root node to monitor (if not root folder)",
-                    "type": "string"
-                },
-                "publishedEventName": {
-                    "description": "Event name",
-                    "type": "string"
-                }
-            }
-        },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
             "required": [
@@ -7381,9 +7368,6 @@
                 "OpcAuthenticationPassword": {
                     "description": "plain password",
                     "type": "string"
-                },
-                "ReportModelChanges": {
-                    "$ref": "#/definitions/PublishedModelChangesModel"
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"

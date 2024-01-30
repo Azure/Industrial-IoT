@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 hash.Add(model.DeadbandType);
             }
 
-            hash.Add(model.ModelChangeHandling?.RebrowsePeriod);
+            hash.Add(model.ModelChangeHandling?.RebrowseIntervalTimespan);
             hash.Add(model.ConditionHandling?.UpdateInterval);
             hash.Add(model.ConditionHandling?.SnapshotInterval);
             hash.Add(model.UseCyclicRead);

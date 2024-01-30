@@ -17,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Rebrowse period
         /// </summary>
-        [DataMember(Name = "rebrowsePeriod", Order = 1,
+        [DataMember(Name = "rebrowseIntervalTimespan", Order = 1,
             EmitDefaultValue = false)]
-        public TimeSpan? RebrowsePeriod { get; set; }
+        public TimeSpan? RebrowseIntervalTimespan { get; set; }
     }
 }

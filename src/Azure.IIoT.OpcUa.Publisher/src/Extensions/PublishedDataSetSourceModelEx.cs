@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     // as revisedQueueSize for event monitored items.
                     //
                     QueueSize = options?.DefaultQueueSize ?? 0,
-                    RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowsePeriod
+                    RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan
                         ?? options?.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
                     AttributeId = null,
                     DiscardNew = false,

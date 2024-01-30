@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.RebrowsePeriod != that.RebrowsePeriod)
+            if (model.RebrowseIntervalTimespan != that.RebrowseIntervalTimespan)
             {
                 return false;
             }

@@ -1113,6 +1113,16 @@ Result of method metadata query
 |**outputArguments**  <br>*optional*|output argument meta data|< [MethodMetadataArgumentModel](definitions.md#methodmetadataargumentmodel) > array|
 
 
+<a name="modelchangehandlingoptionsmodel"></a>
+### ModelChangeHandlingOptionsModel
+Describes how model changes are published
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**rebrowseIntervalTimespan**  <br>*optional*|Rebrowse period|string (date-span)|
+
+
 <a name="modificationinfomodel"></a>
 ### ModificationInfoModel
 Modification information
@@ -1322,6 +1332,7 @@ Describing an entry in the node list
 |**HeartbeatIntervalTimespan**  <br>*optional*|Heartbeat interval as TimeSpan.|string (date-span)|
 |**Id**  <br>*optional*|Node Identifier|string|
 |**IndexRange**  <br>*optional*|Index range to read, default to null.|string|
+|**ModelChangeHandling**  <br>*optional*||[ModelChangeHandlingOptionsModel](definitions.md#modelchangehandlingoptionsmodel)|
 |**OpcPublishingInterval**  <br>*optional*|Publishing interval in milliseconds|integer (int32)|
 |**OpcPublishingIntervalTimespan**  <br>*optional*|OpcPublishingInterval as TimeSpan.|string (date-span)|
 |**OpcSamplingInterval**  <br>*optional*|Sampling interval in milliseconds|integer (int32)|
@@ -1472,20 +1483,6 @@ A monitored and published item
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
 
 
-<a name="publishedmodelchangesmodel"></a>
-### PublishedModelChangesModel
-Describes how model changes are published
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**eventNotifier**  <br>*optional*|Event notifier to subscribe to (if not server)|string|
-|**id**  <br>*optional*|Identifier of event in the dataset.|string|
-|**publishedEventName**  <br>*optional*|Event name|string|
-|**rebrowsePeriod**  <br>*optional*|Rebrowse period|string (date-span)|
-|**startNodeId**  <br>*optional*|Root node to monitor (if not root folder)|string|
-
-
 <a name="publishednodesentrymodel"></a>
 ### PublishedNodesEntryModel
 Contains the nodes which should be published
@@ -1522,7 +1519,6 @@ Contains the nodes which should be published
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
-|**ReportModelChanges**  <br>*optional*||[PublishedModelChangesModel](definitions.md#publishedmodelchangesmodel)|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
