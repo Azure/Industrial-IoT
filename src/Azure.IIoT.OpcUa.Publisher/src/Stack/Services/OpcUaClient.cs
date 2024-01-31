@@ -1719,9 +1719,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _channel = Channel.CreateUnbounded<bool>();
 
                 // Order is important
+                _rebrowseTimer = new Timer(_ => _channel.Writer.TryWrite(true));
                 _browser = RunAsync(_cts.Token);
                 _channel.Writer.TryWrite(true);
-                _rebrowseTimer = new Timer(_ => _channel.Writer.TryWrite(true));
             }
 
             /// <inheritdoc/>
@@ -1779,69 +1779,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug("Starting continous browsing process...");
                 var sw = Stopwatch.StartNew();
-                await foreach (var result in _channel.Reader.ReadAllAsync(ct))
+                try
                 {
-                    if (!result)
+                    await foreach (var result in _channel.Reader.ReadAllAsync(ct))
                     {
-                        // Start browsing in 10 seconds
-                        _rebrowseTimer.Change(TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
-                        continue;
-                    }
-
-                    _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                    try
-                    {
-                        var session = _client._session;
-                        if (session?.Connected != true)
+                        if (!result)
                         {
+                            // Start browsing in 10 seconds
+                            _rebrowseTimer.Change(TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
                             continue;
                         }
 
-                        _logger.LogInformation("Browsing started after {Elapsed}...", sw.Elapsed);
-                        sw.Restart();
-
-                        await BrowseAddressSpaceAsync(session, ct).ConfigureAwait(false);
-
-                        _logger.LogInformation("Browsing completed and took {Elapsed}. " +
-                            "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                            "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                            sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded,
-                            _nodesChanged, _nodesRemoved, _errors);
-                    }
-                    catch (ServiceResultException sre)
-                    {
-                        _logger.LogInformation("Browsing completed due to error {Error} took {Elapsed}." +
-                            "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                            "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                            sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved,
-                            _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
-                        if (!_client.IsConnected)
+                        _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                        try
                         {
-                            _logger.LogDebug("Not connected - waiting to reconnect.");
-                            continue;
+                            var session = _client._session;
+                            if (session?.Connected != true)
+                            {
+                                continue;
+                            }
+
+                            _logger.LogInformation("Browsing started after {Elapsed}...", sw.Elapsed);
+                            sw.Restart();
+
+                            await BrowseAddressSpaceAsync(session, ct).ConfigureAwait(false);
+
+                            _logger.LogInformation("Browsing completed and took {Elapsed}. " +
+                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
+                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
+                                sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded,
+                                _nodesChanged, _nodesRemoved, _errors);
                         }
-                        _logger.LogError(sre, "Error occurred during browsing");
+                        catch (ServiceResultException sre)
+                        {
+                            _logger.LogInformation("Browsing completed due to error {Error} took {Elapsed}." +
+                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
+                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
+                                sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved,
+                                _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
+                            if (!_client.IsConnected)
+                            {
+                                _logger.LogDebug("Not connected - waiting to reconnect.");
+                                continue;
+                            }
+                            _logger.LogError(sre, "Error occurred during browsing");
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Continue
+                            _logger.LogError(ex, "Browsing completed due to an exception and took {Elapsed}.",
+                                sw.Elapsed);
+                        }
+                        finally
+                        {
+                            sw.Restart();
+                            _referencesAdded = _referencesRemoved = 0;
+                            _nodesAdded = _nodesChanged = _nodesRemoved = 0;
+                            _errors = 0;
+                            _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
+                        }
                     }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        // Continue
-                        _logger.LogError(ex, "Browsing completed due to an exception and took {Elapsed}.",
-                            sw.Elapsed);
-                    }
-                    finally
-                    {
-                        sw.Restart();
-                        _referencesAdded = _referencesRemoved = 0;
-                        _nodesAdded = _nodesChanged = _nodesRemoved = 0;
-                        _errors = 0;
-                        _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
-                    }
+                    _logger.LogInformation("Browser process exited.");
                 }
-                _logger.LogInformation("Browser process exited.");
+                catch (Exception e)
+                {
+                    _logger.LogCritical(e, "Browser process exited due to unexpected exception.");
+                }
             }
 
             /// <summary>
