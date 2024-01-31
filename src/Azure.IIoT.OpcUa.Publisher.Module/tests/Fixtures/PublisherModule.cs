@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             if (_useMqtt)
             {
                 // Resolve the mqtt server to make sure it is running
-                _ = ClientContainer.Resolve<MqttServer>();
+                _ = ClientContainer.Resolve<MqttServer>().GetAwaiter().GetResult();
             }
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",

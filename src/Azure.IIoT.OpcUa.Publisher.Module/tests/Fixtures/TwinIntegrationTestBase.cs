@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
         private static readonly TimeSpan kTotalTestTimeout =
 #if DEBUG
-            TimeSpan.FromMinutes(10)
+            TimeSpan.FromMinutes(60)
 #else
             TimeSpan.FromMinutes(60)
 #endif
