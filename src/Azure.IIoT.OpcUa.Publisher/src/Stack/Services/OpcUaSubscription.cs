@@ -341,7 +341,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     try
                     {
-                        _disposed = true;
                         _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
                         FastDataChangeCallback = null;
@@ -362,6 +361,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _keepAliveWatcher.Dispose();
                         _timer.Dispose();
                         _meter.Dispose();
+
+                        _disposed = true;
                     }
                 }
 
@@ -1737,6 +1738,7 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
@@ -1778,6 +1780,7 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
@@ -1826,6 +1829,7 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
