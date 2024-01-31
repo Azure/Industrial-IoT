@@ -119,6 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _disposed = true;
 
+                CloseChannel(); // Ensure channel is closed
+
                 PublishError -=
                     _client.Session_HandlePublishError;
                 PublishSequenceNumbersToAcknowledge -=
@@ -131,6 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
+
                     _logger.LogInformation("Session {Session} disposed.", this);
                 }
                 finally
@@ -581,6 +584,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
             base.SessionCreated(sessionId, sessionCookie);
+            if (NodeId.IsNull(sessionId))
+            {
+                // Also called when session closes
+                return;
+            }
+
+            Debug.Assert(!NodeId.IsNull(sessionCookie));
 
             // Update operation limits with configuration provided overrides
             OperationLimits.Override(_client.LimitOverrides);

@@ -309,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _disposed = true;
 
-            _logger.LogInformation("Stopping all clients...");
+            _logger.LogInformation("Stopping all {Count} clients...", _clients.Count);
             foreach (var client in _clients)
             {
                 try
@@ -319,13 +319,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected exception disposing session {Name}",
+                    _logger.LogError(ex, "Unexpected exception disposing client {Name}",
                         client.Key);
                 }
             }
             _clients.Clear();
-            _logger.LogInformation(
-                "Stopped all sessions, current number of sessions is 0");
+            _logger.LogInformation("Stopped all clients, current number of clients is 0");
         }
 
         /// <summary>
@@ -335,9 +334,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private OpcUaClient? FindClient(ConnectionModel connection)
         {
-            // Find session and if not exists create
+            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
+            // try to get an existing client
             if (!_clients.TryGetValue(id, out var client))
             {
                 return null;
@@ -536,9 +535,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find session and if not exists create
+            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
+            // try to get an existing client
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
