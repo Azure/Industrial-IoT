@@ -76,11 +76,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
-#if !NON_PRODUCTION
-                .AddFilter(typeof(IAwaitable).Namespace, LogLevel.Warning)
-#else
-                .SetMinimumLevel(LogLevel.Debug)
-#endif
                 .AddConsole()
                 .AddDebug())
                 ;

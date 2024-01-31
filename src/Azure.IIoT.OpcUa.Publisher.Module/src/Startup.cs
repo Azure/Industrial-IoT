@@ -60,7 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
-                .AddFilter(typeof(IAwaitable).Namespace, LogLevel.Warning)
                 .AddConsole()
                 .AddConsoleFormatter<Syslog, ConsoleFormatterOptions>()
                 .AddOpenTelemetry(Configuration, options =>

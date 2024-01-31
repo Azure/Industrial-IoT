@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     }
 
                     logger.LogInformation("Server host {Host} listening on {EndpointUrl}!",
-                        _serverHost, EndpointUrl);
+                        serverHost, EndpointUrl);
                     _serverHost = serverHost;
                     if (!useReverseConnect)
                     {
