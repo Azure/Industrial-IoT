@@ -316,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e,
+                _logger.LogError(e,
                     "Failed to apply state to Subscription {Subscription} in session {Session}...",
                     this, session);
 
@@ -333,36 +333,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (disposing)
                 {
-                    if (_disposed)
+                    lock (_lock)
                     {
-                        // Double dispose
-                        Debug.Fail("Double dispose in subscription");
-                        return;
-                    }
-                    try
-                    {
-                        _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
-
-                        FastDataChangeCallback = null;
-                        FastEventCallback = null;
-                        FastKeepAliveCallback = null;
-
-                        PublishStatusChanged -= OnPublishStatusChange;
-                        StateChanged -= OnStateChange;
-
-                        if (_closed)
+                        if (_disposed)
                         {
-                            _client?.Dispose();
-                            _client = null;
+                            // Double dispose
+                            Debug.Fail("Double dispose in subscription");
+                            return;
                         }
-                    }
-                    finally
-                    {
-                        _keepAliveWatcher.Dispose();
-                        _timer.Dispose();
-                        _meter.Dispose();
+                        try
+                        {
+                            _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
-                        _disposed = true;
+                            FastDataChangeCallback = null;
+                            FastEventCallback = null;
+                            FastKeepAliveCallback = null;
+
+                            PublishStatusChanged -= OnPublishStatusChange;
+                            StateChanged -= OnStateChange;
+
+                            if (_closed)
+                            {
+                                _client?.Dispose();
+                                _client = null;
+                            }
+                        }
+                        finally
+                        {
+                            _keepAliveWatcher.Dispose();
+                            _timer.Dispose();
+                            _meter.Dispose();
+
+                            _disposed = true;
+                        }
                     }
                 }
 
