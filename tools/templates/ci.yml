@@ -121,4 +121,4 @@ jobs:
     inputs:
       command: test
       projects: '**/tests/*.csproj'
-      arguments: '--blame-hang --blame-hang-timeout 10m --blame-hang-dump-type mini --blame-crash --blame-crash-dump-type mini --configuration Release'
+      arguments: '--blame-hang --blame-hang-timeout 10m --blame-crash --configuration Release'
