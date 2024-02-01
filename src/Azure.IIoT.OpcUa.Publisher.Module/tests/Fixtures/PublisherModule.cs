@@ -141,7 +141,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var mqttCs = $"HostName={mqttOptions.Value.HostName};Port={mqttOptions.Value.Port};" +
                 $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
                 $"UseTls={mqttOptions.Value.UseTls};Protocol={mqttOptions.Value.Protocol};" +
-                $"Partitions={mqttOptions.Value.NumberOfClientPartitions}";
+                $"Partitions={mqttOptions.Value.NumberOfClientPartitions};" +
+                $"KeepAlivePeriod={mqttOptions.Value.KeepAlivePeriod}"
+                ;
             var publisherId = Guid.NewGuid().ToString();
             arguments = arguments.Concat(
                 new[]
@@ -149,6 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
+                    $"--ki=90",
                     "--aa"
                 }).ToArray();
 

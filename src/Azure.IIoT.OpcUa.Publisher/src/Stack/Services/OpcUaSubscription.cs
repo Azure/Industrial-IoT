@@ -1060,7 +1060,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Session {Session} for {Subscription} not connected.",
                     session, this);
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.CreateSessionTimeout, TimeSpan.FromSeconds(10));
+                    _options.Value.CreateSessionTimeoutDuration, TimeSpan.FromSeconds(10));
                 return;
             }
 

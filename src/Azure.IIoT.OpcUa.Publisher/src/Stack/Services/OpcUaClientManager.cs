@@ -543,17 +543,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
-                    _options.Value.MaxReconnectDelay)
+                    _options.Value.MaxReconnectDelayDuration)
                 {
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
 
                     DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading,
-                    MinReconnectDelay = _options.Value.MinReconnectDelay,
-                    CreateSessionTimeout = _options.Value.CreateSessionTimeout,
-                    KeepAliveInterval = _options.Value.KeepAliveInterval,
-                    SessionTimeout = _options.Value.DefaultSessionTimeout,
-                    LingerTimeout = _options.Value.LingerTimeout,
+                    MinReconnectDelay = _options.Value.MinReconnectDelayDuration,
+                    CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
+                    KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,
+                    SessionTimeout = _options.Value.DefaultSessionTimeoutDuration,
+                    LingerTimeout = _options.Value.LingerTimeoutDuration,
                     LimitOverrides = new OperationLimits
                     {
                         MaxNodesPerRead = (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),

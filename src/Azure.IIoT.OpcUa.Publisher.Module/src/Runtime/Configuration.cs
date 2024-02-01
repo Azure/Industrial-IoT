@@ -815,6 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             public const string MqttClientConnectionStringKey = "MqttClientConnectionString";
             public const string ClientPartitionsKey = "MqttClientPartitions";
+            public const string KeepAlivePeriodKey = "MqttBrokerKeepAlivePeriod";
             public const string ClientIdKey = "MqttClientId";
             public const string UserNameKey = "MqttBrokerUserName";
             public const string PasswordKey = "MqttBrokerPasswordKey";
@@ -857,6 +858,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         options.UseTls = useTls;
                     }
+                    if (properties.TryGetValue(nameof(options.KeepAlivePeriod), out value) &&
+                        TimeSpan.TryParse(value, out var keepAlive))
+                    {
+                        options.KeepAlivePeriod = keepAlive;
+                    }
                     if (properties.TryGetValue("Partitions", out value) &&
                         int.TryParse(value, out var partitions))
                     {
@@ -893,6 +899,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     if (options.NumberOfClientPartitions == null)
                     {
                         options.NumberOfClientPartitions = GetIntOrNull(ClientPartitionsKey);
+                    }
+                    if (options.KeepAlivePeriod == null)
+                    {
+                        options.KeepAlivePeriod = GetDurationOrNull(KeepAlivePeriodKey);
                     }
                 }
                 if (string.IsNullOrEmpty(options.ClientId))

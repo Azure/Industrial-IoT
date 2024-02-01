@@ -639,10 +639,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SessionConfigurationChanged +=
                 Session_SessionConfigurationChanged;
 
-            KeepAliveInterval =
-                (int)(_client.KeepAliveInterval ?? TimeSpan.FromSeconds(30)).TotalMilliseconds;
-            OperationTimeout =
-                (int)(_client.OperationTimeout ?? TimeSpan.FromMinutes(1)).TotalMilliseconds;
+            var keepAliveInterval =
+                (int)(_client.KeepAliveInterval ?? kDefaultKeepAliveInterval).TotalMilliseconds;
+            if (keepAliveInterval <= 0)
+            {
+                keepAliveInterval = kDefaultKeepAliveInterval.Milliseconds;
+            }
+            var operationTimeout =
+                (int)(_client.OperationTimeout ?? kDefaultOperationTimeout).TotalMilliseconds;
+            if (operationTimeout <= 0)
+            {
+                operationTimeout = kDefaultOperationTimeout.Milliseconds;
+            }
+
+            KeepAliveInterval = keepAliveInterval;
+            OperationTimeout = operationTimeout;
         }
 
         /// <summary>
@@ -1094,5 +1105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly OpcUaClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
+        private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
     }
 }
