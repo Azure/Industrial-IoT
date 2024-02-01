@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 #if DEBUG
             TimeSpan.FromMinutes(60)
 #else
-            TimeSpan.FromMinutes(60)
+            TimeSpan.FromMinutes(2)
 #endif
             ;
         private readonly CancellationTokenSource _cts;
