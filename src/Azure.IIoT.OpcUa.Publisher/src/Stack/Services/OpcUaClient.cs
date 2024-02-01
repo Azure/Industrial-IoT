@@ -405,8 +405,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             try
             {
-                _logger.LogDebug("Closing client {Client}...", this);
                 _disposed = true;
+
+                _logger.LogDebug("Closing client {Client}...", this);
                 await _cts.CancelAsync().ConfigureAwait(false);
 
                 await _sessionManager.ConfigureAwait(false);
@@ -1299,7 +1300,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         internal void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_disposed)
+            {
+                return;
+            }
             try
             {
                 // check for events from discarded sessions.

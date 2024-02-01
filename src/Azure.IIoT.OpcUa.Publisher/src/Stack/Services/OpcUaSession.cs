@@ -115,12 +115,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing && !_disposed)
             {
-                _disposed = true;
-
-                CloseChannel(); // Ensure channel is closed
-
                 PublishError -=
                     _client.Session_HandlePublishError;
                 PublishSequenceNumbersToAcknowledge -=
@@ -130,10 +127,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionConfigurationChanged -=
                     Session_SessionConfigurationChanged;
 
+                _disposed = true;
+                CloseChannel(); // Ensure channel is closed
+                Debug.Assert(KeepAliveStopped); // Ensure keep alive stopped
+
                 try
                 {
                     _cts.Cancel();
-
                     _logger.LogInformation("Session {Session} disposed.", this);
                 }
                 finally
@@ -142,7 +142,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _cts.Dispose();
                 }
             }
-            base.Dispose(disposing);
             Debug.Assert(SubscriptionHandles.Count == 0);
         }
 
