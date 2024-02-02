@@ -798,7 +798,7 @@ Historic data
 |**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.|integer (int32)|
 |**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.|string (date-time)|
 |**status**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**value**  <br>*optional*|,<br>            The value of data value.|object|
+|**value**  <br>*optional*|The value of data value.|object|
 
 
 <a name="historicvaluemodelarrayhistoryreadnextresponsemodel"></a>

@@ -4322,7 +4322,7 @@
             "type": "object",
             "properties": {
                 "value": {
-                    "description": ",\r\n            The value of data value.",
+                    "description": "The value of data value.",
                     "type": "object"
                 },
                 "dataType": {

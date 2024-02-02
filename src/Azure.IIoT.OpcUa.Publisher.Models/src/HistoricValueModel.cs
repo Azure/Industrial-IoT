@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [DataContract]
     public sealed record class HistoricValueModel
     {
-        /// <summary>,
+        /// <summary>
         /// The value of data value.
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
