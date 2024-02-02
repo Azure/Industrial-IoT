@@ -793,101 +793,101 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_heartbeats",
-                () => new Measurement<long>(_heartbeats.Count, _metrics.TagList), "Heartbeats",
-                "Total Heartbeats delivered for processing.");
+                () => new Measurement<long>(_heartbeats.Count, _metrics.TagList),
+                description: "Total Heartbeats delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_heartbeats_per_second",
-                () => new Measurement<double>(_heartbeats.Count / UpTime, _metrics.TagList), "Heartbeats/sec",
-                "Opc Cyclic reads/second delivered for processing.");
+                () => new Measurement<double>(_heartbeats.Count / UpTime, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_heartbeats_per_second_last_min",
-                () => new Measurement<long>(_heartbeats.LastMinute, _metrics.TagList), "Heartbeats",
-                "Opc Cyclic reads/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_heartbeats.LastMinute, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
-                () => new Measurement<long>(_cyclicReads.Count, _metrics.TagList), "Reads",
-                "Total Cyclic reads delivered for processing.");
+                () => new Measurement<long>(_cyclicReads.Count, _metrics.TagList),
+                description: "Total Cyclic reads delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second",
-                () => new Measurement<double>(_cyclicReads.Count / UpTime, _metrics.TagList), "Reads/sec",
-                "Opc Cyclic reads/second delivered for processing.");
+                () => new Measurement<double>(_cyclicReads.Count / UpTime, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second_last_min",
-                () => new Measurement<long>(_cyclicReads.LastMinute, _metrics.TagList), "Reads",
-                "Opc Cyclic reads/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_cyclicReads.LastMinute, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_modelchanges",
-                () => new Measurement<long>(_modelChanges.Count, _metrics.TagList), "Changes",
-                "Total Number of changes found in the address spaces of the connected servers.");
+                () => new Measurement<long>(_modelChanges.Count, _metrics.TagList),
+                description: "Total Number of changes found in the address spaces of the connected servers.");
             _meter.CreateObservableGauge("iiot_edge_publisher_modelchanges_per_second",
-                () => new Measurement<double>(_modelChanges.Count / UpTime, _metrics.TagList), "Changes/sec",
-                "Address space Model changes/second delivered for processing.");
+                () => new Measurement<double>(_modelChanges.Count / UpTime, _metrics.TagList),
+                description: "Address space Model changes/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_modelchanges_per_second_last_min",
-                () => new Measurement<long>(_modelChanges.LastMinute, _metrics.TagList), "Changes",
-                "Address space Model changes/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_modelChanges.LastMinute, _metrics.TagList),
+                description: "Address space Model changes/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
-                () => new Measurement<long>(_valueChanges.Count, _metrics.TagList), "Values",
-                "Total Opc Value changes delivered for processing.");
+                () => new Measurement<long>(_valueChanges.Count, _metrics.TagList),
+                description: "Total Opc Value changes delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
-                () => new Measurement<double>(_valueChanges.Count / UpTime, _metrics.TagList), "Values/sec",
-                "Opc Value changes/second delivered for processing.");
+                () => new Measurement<double>(_valueChanges.Count / UpTime, _metrics.TagList),
+                description: "Opc Value changes/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
-                () => new Measurement<long>(_valueChanges.LastMinute, _metrics.TagList), "Values",
-                "Opc Value changes/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_valueChanges.LastMinute, _metrics.TagList),
+                description: "Opc Value changes/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_events",
-                () => new Measurement<long>(_events.Count, _metrics.TagList), "Events",
-                "Total Opc Events delivered for processing.");
+                () => new Measurement<long>(_events.Count, _metrics.TagList),
+                description: "Total Opc Events delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_events_per_second",
-                () => new Measurement<double>(_events.Count / UpTime, _metrics.TagList), "Events/sec",
-                "Opc Events/second delivered for processing.");
+                () => new Measurement<double>(_events.Count / UpTime, _metrics.TagList),
+                description: "Opc Events/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_events_per_second_last_min",
-                () => new Measurement<long>(_events.LastMinute, _metrics.TagList), "Events",
-                "Opc Events/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_events.LastMinute, _metrics.TagList),
+                description: "Opc Events/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
-                () => new Measurement<long>(_eventNotification.Count, _metrics.TagList), "Notifications",
-                "Total Opc Event notifications delivered for processing.");
+                () => new Measurement<long>(_eventNotification.Count, _metrics.TagList),
+                description: "Total Opc Event notifications delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_event_notifications_per_second",
-                () => new Measurement<double>(_eventNotification.Count / UpTime, _metrics.TagList), "Notifications/sec",
-                "Opc Event notifications/second delivered for processing.");
+                () => new Measurement<double>(_eventNotification.Count / UpTime, _metrics.TagList),
+                description: "Opc Event notifications/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_event_notifications_per_second_last_min",
-                () => new Measurement<long>(_eventNotification.LastMinute, _metrics.TagList), "Notifications",
-                "Opc Event notifications/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_eventNotification.LastMinute, _metrics.TagList),
+                description: "Opc Event notifications/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
-                () => new Measurement<long>(_dataChanges.Count, _metrics.TagList), "Notifications",
-                "Total Opc Data change notifications delivered for processing.");
+                () => new Measurement<long>(_dataChanges.Count, _metrics.TagList),
+                description: "Total Opc Data change notifications delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
-                () => new Measurement<double>(_dataChanges.Count / UpTime, _metrics.TagList), "Notifications/sec",
-                "Opc Data change notifications/second delivered for processing.");
+                () => new Measurement<double>(_dataChanges.Count / UpTime, _metrics.TagList),
+                description: "Opc Data change notifications/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
-                () => new Measurement<long>(_dataChanges.LastMinute, _metrics.TagList), "Notifications",
-                "Opc Data change notifications/second delivered for processing in last 60s.");
+                () => new Measurement<long>(_dataChanges.LastMinute, _metrics.TagList),
+                description: "Opc Data change notifications/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_queue_overflows",
-                () => new Measurement<long>(_overflows.Count, _metrics.TagList), "Values",
-                "Total values received with a queue overflow indicator.");
+                () => new Measurement<long>(_overflows.Count, _metrics.TagList),
+                description: "Total values received with a queue overflow indicator.");
             _meter.CreateObservableGauge("iiot_edge_publisher_queue_overflows_per_second",
-                () => new Measurement<double>(_overflows.Count / UpTime, _metrics.TagList), "Values/sec",
-                "Values with overflow indicator/second received.");
+                () => new Measurement<double>(_overflows.Count / UpTime, _metrics.TagList),
+                description: "Values with overflow indicator/second received.");
             _meter.CreateObservableGauge("iiot_edge_publisher_queue_overflows_per_second_last_min",
-                () => new Measurement<long>(_overflows.LastMinute, _metrics.TagList), "Values",
-                "Values with overflow indicator/second received in last 60s.");
+                () => new Measurement<long>(_overflows.LastMinute, _metrics.TagList),
+                description: "Values with overflow indicator/second received in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_keep_alive_notifications",
-                () => new Measurement<long>(_keepAliveCount, _metrics.TagList), "Notifications",
-                "Total Opc keep alive notifications delivered for processing.");
+                () => new Measurement<long>(_keepAliveCount, _metrics.TagList),
+                description: "Total Opc keep alive notifications delivered for processing.");
 
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
-                () => new Measurement<long>(_subscriptions.Count, _metrics.TagList), "Subscriptions",
-                "Number of Writers/Subscriptions in the writer group.");
+                () => new Measurement<long>(_subscriptions.Count, _metrics.TagList),
+                description: "Number of Writers/Subscriptions in the writer group.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(ReconnectCount, _metrics.TagList), "Attempts",
-                "OPC UA connect retries.");
+                () => new Measurement<long>(ReconnectCount, _metrics.TagList),
+                description: "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(ConnectedClients, _metrics.TagList), "Endpoints",
-                "OPC UA endpoints that are successfully connected.");
+                () => new Measurement<int>(ConnectedClients, _metrics.TagList),
+                description: "OPC UA endpoints that are successfully connected.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
-                () => new Measurement<int>(DisconnectedClients, _metrics.TagList), "Endpoints",
-                "OPC UA endpoints that are disconnected.");
+                () => new Measurement<int>(DisconnectedClients, _metrics.TagList),
+                description: "OPC UA endpoints that are disconnected.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;

@@ -626,13 +626,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _meter.CreateObservableGauge("iiot_edge_publisher_module_start",
                 () => new Measurement<int>(_runtimeState == RuntimeStateEventType.RestartAnnouncement ? 0 : 1,
-                _metrics.TagList), "Count", "Publisher module started.");
+                _metrics.TagList), description: "Publisher module started.");
             _meter.CreateObservableGauge("iiot_edge_publisher_module_state",
                 () => new Measurement<int>((int)_runtimeState,
-                _metrics.TagList), "State", "Publisher module runtime state.");
+                _metrics.TagList), description: "Publisher module runtime state.");
             _meter.CreateObservableCounter("iiot_edge_publisher_certificate_renewal_count",
                 () => new Measurement<int>(_certificateRenewals,
-                _metrics.TagList), "Count", "Publisher certificate renewals.");
+                _metrics.TagList), description: "Publisher certificate renewals.");
         }
 
         private const int kCertificateLifetimeDays = 30;

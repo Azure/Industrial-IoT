@@ -448,32 +448,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
-                () => new Measurement<long>(_sinkBlockInputDroppedCount, _metrics.TagList), "Messages",
-                "Telemetry messages dropped due to overflow.");
+                () => new Measurement<long>(_sinkBlockInputDroppedCount, _metrics.TagList),
+                description: "Telemetry messages dropped due to overflow.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
-                () => new Measurement<long>(_sinkBlock.InputCount, _metrics.TagList), "Messages",
-                "Telemetry messages queued for sending upstream.");
+                () => new Measurement<long>(_sinkBlock.InputCount, _metrics.TagList),
+                description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
-                () => new Measurement<long>(_notificationBufferInputCount, _metrics.TagList), "Notifications",
-                "Telemetry messages queued for sending upstream.");
+                () => new Measurement<long>(_notificationBufferInputCount, _metrics.TagList),
+                description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
-                () => new Measurement<long>(_encodingBlock.InputCount, _metrics.TagList), "Notifications",
-                "Telemetry messages queued for sending upstream.");
+                () => new Measurement<long>(_encodingBlock.InputCount, _metrics.TagList),
+                description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
-                () => new Measurement<long>(_encodingBlock.OutputCount, _metrics.TagList), "Messages",
-                "Telemetry messages queued for sending upstream.");
+                () => new Measurement<long>(_encodingBlock.OutputCount, _metrics.TagList),
+                description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableCounter("iiot_edge_publisher_messages",
-                () => new Measurement<long>(_messagesSentCount, _metrics.TagList), "Messages",
-                "Number of IoT messages successfully sent via transport.");
+                () => new Measurement<long>(_messagesSentCount, _metrics.TagList),
+                description: "Number of IoT messages successfully sent via transport.");
             _meter.CreateObservableGauge("iiot_edge_publisher_messages_per_second",
-                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList), "Messages/second",
-                "Messages/second sent via transport.");
+                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList),
+                description: "Messages/second sent via transport.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
+                () => new Measurement<long>(_messagesSentCount, _metrics.TagList),
+                description: "Number of IoT messages successfully sent via transport.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
+                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList),
+                description: "Messages/second sent via transport.");
         }
 
         static readonly Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
-            "iiot_edge_publisher_failed_iot_messages", "messages", "Number of failures sending a network message.");
+            "iiot_edge_publisher_failed_iot_messages", description: "Number of failures sending a network message.");
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
-            "iiot_edge_publisher_messages_duration", "milliseconds", "Histogram of message sending durations.");
+            "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
         /// <summary>
         /// With 256k limit this is 1 GB.

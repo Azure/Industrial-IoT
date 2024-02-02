@@ -2468,35 +2468,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _meter.CreateObservableGauge("iiot_edge_publisher_client_connectivity_state",
                 () => new Measurement<int>((int)_lastState, _metrics.TagList),
-                "EndpointConnectivityState", "Client connectivity state.");
+                description: "Client connectivity state.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
-                "Subscriptions", "Number of client managed subscriptions.");
+                description: "Number of client managed subscriptions.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
                 () => new Measurement<int>(_numberOfConnectRetries, _metrics.TagList),
-                "Retries", "Number of connectivity retries on this connection.");
+                description: "Number of connectivity retries on this connection.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
-                () => new Measurement<int>(_refCount, _metrics.TagList), "References",
-                "Number of references to this client.");
+                () => new Measurement<int>(_refCount, _metrics.TagList),
+                description: "Number of references to this client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_good_publish_requests_count",
-                () => new Measurement<int>(GoodPublishRequestCount,
-                _metrics.TagList), "Requests", "Number of good publish requests.");
+                () => new Measurement<int>(GoodPublishRequestCount, _metrics.TagList),
+                description: "Number of good publish requests.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_bad_publish_requests_count",
-                () => new Measurement<int>(BadPublishRequestCount,
-                _metrics.TagList), "Requests", "Number of bad publish requests.");
+                () => new Measurement<int>(BadPublishRequestCount, _metrics.TagList),
+                description: "Number of bad publish requests.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_min_publish_requests_count",
-                () => new Measurement<int>(MinPublishRequestCount,
-                _metrics.TagList), "Requests", "Number of min publish requests that should be queued.");
+                () => new Measurement<int>(MinPublishRequestCount, _metrics.TagList),
+                description: "Number of min publish requests that should be queued.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
-                () => new Measurement<int>(OutstandingRequestCount,
-                _metrics.TagList), "Requests", "Number of outstanding requests.");
+                () => new Measurement<int>(OutstandingRequestCount, _metrics.TagList),
+                description: "Number of outstanding requests.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_publish_timeout_count",
-                () => new Measurement<int>(_publishTimeoutCounter,
-                _metrics.TagList), "Requests", "Number of timed out requests.");
+                () => new Measurement<int>(_publishTimeoutCounter, _metrics.TagList),
+                description: "Number of timed out requests.");
         }
 
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
-            "iiot_edge_publisher_session_count", "Number of active sessions.");
+            "iiot_edge_publisher_session_count", description: "Number of active sessions.");
 
         private OpcUaSession? _reconnectingSession;
         private int _reconnectRequired;
