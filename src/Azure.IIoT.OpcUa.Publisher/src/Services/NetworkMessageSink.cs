@@ -74,6 +74,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     options.Value.DefaultTransport?.ToString(),
                         StringComparison.OrdinalIgnoreCase))
                 ?? registered[0];
+
+            _isIoTEdge = _eventClient.Name.Equals(nameof(WriterGroupTransport.IoTHub),
+                        StringComparison.OrdinalIgnoreCase);
             _messageEncoder = encoder;
             _logger = logger;
             _diagnostics = diagnostics;
@@ -249,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     catch (OperationCanceledException) { }
                     catch (Exception e) when (e is not ObjectDisposedException)
                     {
-                        kMessagesErrors.Add(1, _metrics.TagList);
+                        _errorCount++;
 
                         // Fail fast for authentication exceptions
                         var aux = e as AuthenticationException;
@@ -447,10 +450,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
-            _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
+            _meter.CreateObservableCounter("iiot_edge_publisher_send_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, _metrics.TagList),
                 description: "Telemetry messages dropped due to overflow.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_send_queue_size",
                 () => new Measurement<long>(_sinkBlock.InputCount, _metrics.TagList),
                 description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
@@ -468,16 +471,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_messages_per_second",
                 () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList),
                 description: "Messages/second sent via transport.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_message_send_failures",
+                () => new Measurement<long>(_errorCount, _metrics.TagList),
+                description: "Number of failures sending a network message.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
-                () => new Measurement<long>(_messagesSentCount, _metrics.TagList),
+                () => new Measurement<long>(_isIoTEdge ? _messagesSentCount : 0, _metrics.TagList),
                 description: "Number of IoT messages successfully sent via transport.");
             _meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
-                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList),
+                () => new Measurement<double>(_isIoTEdge ? _messagesSentCount / UpTime : 0d, _metrics.TagList),
                 description: "Messages/second sent via transport.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
+                () => new Measurement<long>(_isIoTEdge ? _sinkBlockInputDroppedCount : 0, _metrics.TagList),
+                description: "Telemetry messages dropped due to overflow.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
+                () => new Measurement<long>(_isIoTEdge ? _sinkBlock.InputCount : 0, _metrics.TagList),
+                description: "Telemetry messages queued for sending upstream.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_failed_iot_messages",
+                () => new Measurement<long>(_isIoTEdge ? _errorCount : 0, _metrics.TagList),
+                description: "Number of failures sending a network message.");
         }
 
-        static readonly Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
-            "iiot_edge_publisher_failed_iot_messages", description: "Number of failures sending a network message.");
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
@@ -489,6 +503,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private long _messagesSentCount;
+        private long _errorCount;
         private long _sinkBlockInputDroppedCount;
         private long _notificationBufferInputCount;
         private DateTime _dataFlowStartTime = DateTime.MinValue;
@@ -510,6 +525,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly CancellationTokenSource _cts;
         private readonly IMetricsContext _metrics;
         private readonly IEventClient _eventClient;
+        private readonly bool _isIoTEdge;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }
