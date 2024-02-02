@@ -12,12 +12,7 @@ services:
       "--sph=True",
       "--spf=/shared/pn.json",
       "--pn=50000",
-      "--alm=True",
-      "--ses=True",
-      "--ei=${EVENT_NODES:-100}",
-      "--gn=${GUID_NODES:-100}",
-      "--fn=${FAST_NODES:-99900}",
-      "--sn=${SLOW_NODES:-99900}",
+      "--fn=${FAST_NODES:-100000}",
       "--aa=True"
       ]
     volumes:
@@ -34,6 +29,8 @@ services:
       - "9072:443"
     command: [
       "-c",
+      "--ucr",
+      "--oi=60000",
       "--aa",
       "--bs=1",
       "--bi=0",

@@ -314,6 +314,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId item, string? group)
         {
+            if (samplingRate == TimeSpan.Zero)
+            {
+                samplingRate = TimeSpan.FromSeconds(1);
+            }
             lock (_engines)
             {
                 var key = (group ?? string.Empty, samplingRate);
@@ -2248,9 +2252,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="sequenceNumber"></param>
             /// <param name="value"></param>
-            public void OnSample(uint sequenceNumber, DataValue value)
+            /// <param name="overflow"></param>
+            public void OnSample(uint sequenceNumber, DataValue value, int overflow)
             {
-                OnValueChange?.Invoke(this, new DataValueChange(value, sequenceNumber));
+                OnValueChange?.Invoke(this, new DataValueChange(value, sequenceNumber, overflow));
             }
 
             private readonly OpcUaClient _outer;
@@ -2324,6 +2329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private async Task RunAsync(CancellationToken ct)
             {
+                var sw = Stopwatch.StartNew();
                 for (var sequenceNumber = 1u; !ct.IsCancellationRequested; sequenceNumber++)
                 {
                     if (sequenceNumber == 0u)
@@ -2340,11 +2346,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             continue;
                         }
 
+                        sw.Restart();
                         // Grab the current session
                         var session = _outer._session;
                         if (session == null)
                         {
-                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected);
+                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected, TimeSpan.Zero);
                             continue;
                         }
 
@@ -2361,37 +2368,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Timestamp = DateTime.UtcNow,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
-                        }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead,
-                            ct).ConfigureAwait(false);
+                        }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead, ct).ConfigureAwait(false);
 
                         var values = response.Validate(response.Results,
                             r => r.StatusCode, response.DiagnosticInfos, nodesToRead);
+
                         if (values.ErrorInfo != null)
                         {
-                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode);
+                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode, sw.Elapsed);
                             continue;
                         }
 
                         // Notify clients of the values
-                        values.ForEach(i => ((Sampler)i.Request.Handle).OnSample(
-                            sequenceNumber, i.Result));
+                        NotifyAll(sequenceNumber, values, sw.Elapsed);
                     }
                     catch (OperationCanceledException) { }
                     catch (ServiceResultException sre)
                     {
-                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode);
+                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode, sw.Elapsed);
                     }
                     catch (Exception ex)
                     {
                         var error = new ServiceResult(ex).StatusCode;
-                        NotifyAll(sequenceNumber, nodesToRead, error.Code);
+                        NotifyAll(sequenceNumber, nodesToRead, error.Code, sw.Elapsed);
                     }
                 }
-                static void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode)
+            }
+
+            private void NotifyAll(uint seq, ServiceResponse<ReadValueId, DataValue> values,
+                TimeSpan elapsed)
+            {
+                var missed = GetMissed(elapsed);
+                values.ForEach(i => ((Sampler)i.Request.Handle).OnSample(seq,
+                    SetOverflow(i.Result, missed > 0), missed));
+                DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
-                    var dataValue = new DataValue(statusCode);
-                    nodesToRead.ForEach(i => ((Sampler)i.Handle).OnSample(seq, dataValue));
+                    result.StatusCode.SetOverflow(overflowBit);
+                    return result;
                 }
+            }
+
+            private void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
+                TimeSpan elapsed)
+            {
+                var missed = GetMissed(elapsed);
+                var dataValue = new DataValue(statusCode);
+                if (missed > 0)
+                {
+                    dataValue.StatusCode.SetOverflow(true);
+                }
+                nodesToRead.ForEach(i => ((Sampler)i.Handle).OnSample(seq, dataValue, missed));
+            }
+
+            private int GetMissed(TimeSpan elapsed)
+            {
+                return (int)Math.Round(elapsed.TotalMilliseconds / _samplingRate.TotalMilliseconds);
             }
 
             private ImmutableHashSet<Sampler> _samplers;

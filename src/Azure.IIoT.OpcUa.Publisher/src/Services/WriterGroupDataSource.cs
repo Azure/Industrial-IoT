@@ -429,33 +429,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int notificationCounts,
+            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int notificationCounts, int overflows,
                 int heartbeat, int cyclic)
             {
                 lock (_lock)
                 {
-                    _outer._heartbeatsCount += heartbeat;
-                    _outer._cyclicReadsCount += cyclic;
+                    _outer._heartbeats.Count += heartbeat;
+                    _outer._cyclicReads.Count += cyclic;
+                    _outer._overflows.Count += overflows;
                     if (liveData)
                     {
-                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
+                        if (_outer._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
+                            _outer._valueChanges.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
                             // reset both
                             _outer._logger.LogDebug(
                                 "Notifications counter in subscription {Id} has been reset to prevent" +
                                 " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
                                 "value changes were invoked by message source.",
-                                Id, _outer.DataChangesCount, _outer.ValueChangesCount);
-                            _outer.DataChangesCount = 0;
-                            _outer.ValueChangesCount = 0;
-                            _outer._heartbeatsCount = 0;
-                            _outer._cyclicReadsCount = 0;
+                                Id, _outer._dataChanges.Count, _outer._valueChanges.Count);
+                            _outer._dataChanges.Count = 0;
+                            _outer._valueChanges.Count = 0;
+                            _outer._heartbeats.Count = 0;
+                            _outer._cyclicReads.Count = 0;
                             _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                         }
 
-                        _outer.ValueChangesCount += notificationCounts;
-                        _outer.DataChangesCount++;
+                        _outer._valueChanges.Count += notificationCounts;
+                        _outer._dataChanges.Count++;
                     }
                 }
             }
@@ -467,32 +468,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts, int modelChanges)
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts, int overflows,
+                int modelChanges)
             {
                 lock (_lock)
                 {
-                    _outer._modelChangesCount += modelChanges;
+                    _outer._modelChanges.Count += modelChanges;
+                    _outer._overflows.Count += overflows;
 
                     if (liveData)
                     {
-                        if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
+                        if (_outer._events.Count >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer._eventNotification.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
                             // reset both
                             _outer._logger.LogDebug(
                                 "Notifications counter in subscription {Id} has been reset to prevent" +
                                 " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
                                 "event value changes were invoked by message source.",
-                                Id, _outer._eventCount, _outer._eventNotificationCount);
-                            _outer._eventCount = 0;
-                            _outer._eventNotificationCount = 0;
-                            _outer._modelChangesCount = 0;
+                                Id, _outer._events.Count, _outer._eventNotification.Count);
+                            _outer._events.Count = 0;
+                            _outer._eventNotification.Count = 0;
+                            _outer._modelChanges.Count = 0;
 
                             _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                         }
 
-                        _outer._eventNotificationCount += notificationCounts;
-                        _outer._eventCount++;
+                        _outer._eventNotification.Count += notificationCounts;
+                        _outer._events.Count++;
                     }
                 }
             }
@@ -762,132 +765,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Iterates the array and add up all values
-        /// </summary>
-        /// <param name="array"></param>
-        /// <param name="lastPointer"></param>
-        /// <param name="bucketWidth"></param>
-        /// <param name="lastWriteTime"></param>
-        private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, DateTime lastWriteTime)
-        {
-            // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
-            UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
-            // with cleaned buffer, we can just accumulate all buckets
-            long sum = 0;
-            for (var index = 0; index < array.Length; index++)
-            {
-                sum += array[index];
-            }
-            return sum;
-        }
-
-        /// <summary>
         /// Runtime duration
         /// </summary>
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
-
-        /// <summary>
-        /// Helper function to distribute values over array based on time
-        /// </summary>
-        /// <param name="array"></param>
-        /// <param name="lastPointer"></param>
-        /// <param name="bucketWidth"></param>
-        /// <param name="difference"></param>
-        /// <param name="lastWriteTime"></param>
-        private static void IncreaseRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, long difference, ref DateTime lastWriteTime)
-        {
-            var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer,
-                bucketWidth, ref lastWriteTime);
-            array[indexPointer] += difference;
-        }
-
-        /// <summary>
-        /// Empty the ring buffer buckets if necessary
-        /// </summary>
-        /// <param name="array"></param>
-        /// <param name="lastPointer"></param>
-        /// <param name="bucketWidth"></param>
-        /// <param name="lastWriteTime"></param>
-        private static int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
-            int bucketWidth, ref DateTime lastWriteTime)
-        {
-            var now = DateTime.UtcNow;
-            var indexPointer = now.Second % bucketWidth;
-
-            // if last update was > bucketsize seconds in the past delete whole array
-            if (lastWriteTime != DateTime.MinValue)
-            {
-                var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
-                if (deleteWholeArray)
-                {
-                    Array.Clear(array, 0, array.Length);
-                    lastPointer = indexPointer;
-                }
-            }
-
-            // reset all buckets, between last write and now
-            while (lastPointer != indexPointer)
-            {
-                lastPointer = (lastPointer + 1) % bucketWidth;
-                array[lastPointer] = 0;
-            }
-
-            lastWriteTime = now;
-
-            return indexPointer;
-        }
-
-        /// <summary>
-        /// Calculate value chnages in the last minute
-        /// </summary>
-        private long ValueChangesCountLastMinute
-        {
-            get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
-                _bucketWidth, _lastWriteTimeValueChange);
-            set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
-                _bucketWidth, value, ref _lastWriteTimeValueChange);
-        }
-
-        /// <summary>
-        /// Get/Update value changes
-        /// </summary>
-        private long ValueChangesCount
-        {
-            get => _valueChangesCount;
-            set
-            {
-                var difference = value - _valueChangesCount;
-                _valueChangesCount = value;
-                ValueChangesCountLastMinute = difference;
-            }
-        }
-
-        /// <summary>
-        /// Datas changes last minute
-        /// </summary>
-        private long DataChangesCountLastMinute
-        {
-            get => CalculateSumForRingBuffer(_dataChangesBuffer,
-                ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
-            set => IncreaseRingBuffer(_dataChangesBuffer,
-                ref _lastPointerDataChanges, _bucketWidth, value, ref _lastWriteTimeDataChange);
-        }
-
-        /// <summary>
-        /// Date changes total
-        /// </summary>
-        private long DataChangesCount
-        {
-            get => _dataChangesCount;
-            set
-            {
-                var difference = value - _dataChangesCount;
-                _dataChangesCount = value;
-                DataChangesCountLastMinute = difference;
-            }
-        }
 
         private IEnumerable<IOpcUaClientDiagnostics> UsedClients => _subscriptions.Values
             .Select(s => s.Subscription?.State!)
@@ -908,61 +788,106 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
-                () => new Measurement<long>(_subscriptions.Count, _metrics.TagList), "Subscriptions",
-                "Number of Writers/Subscriptions in the writer group.");
-            _meter.CreateObservableCounter("iiot_edge_publisher_events",
-                () => new Measurement<long>(_eventCount, _metrics.TagList), "Events",
-                "Total Opc Events delivered for processing.");
             _meter.CreateObservableCounter("iiot_edge_publisher_heartbeats",
-                () => new Measurement<long>(_heartbeatsCount, _metrics.TagList), "Heartbeats",
+                () => new Measurement<long>(_heartbeats.Count, _metrics.TagList), "Heartbeats",
                 "Total Heartbeats delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_heartbeats_per_second",
+                () => new Measurement<double>(_heartbeats.Count / UpTime, _metrics.TagList), "Heartbeats/sec",
+                "Opc Cyclic reads/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_heartbeats_per_second_last_min",
+                () => new Measurement<long>(_heartbeats.LastMinute, _metrics.TagList), "Heartbeats",
+                "Opc Cyclic reads/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
-                () => new Measurement<long>(_cyclicReadsCount, _metrics.TagList), "Reads",
+                () => new Measurement<long>(_cyclicReads.Count, _metrics.TagList), "Reads",
                 "Total Cyclic reads delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second",
+                () => new Measurement<double>(_cyclicReads.Count / UpTime, _metrics.TagList), "Reads/sec",
+                "Opc Cyclic reads/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second_last_min",
+                () => new Measurement<long>(_cyclicReads.LastMinute, _metrics.TagList), "Reads",
+                "Opc Cyclic reads/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_modelchanges",
-                () => new Measurement<long>(_modelChangesCount, _metrics.TagList), "Changes",
+                () => new Measurement<long>(_modelChanges.Count, _metrics.TagList), "Changes",
                 "Total Number of changes found in the address spaces of the connected servers.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_modelchanges_per_second",
+                () => new Measurement<double>(_modelChanges.Count / UpTime, _metrics.TagList), "Changes/sec",
+                "Address space Model changes/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_modelchanges_per_second_last_min",
+                () => new Measurement<long>(_modelChanges.LastMinute, _metrics.TagList), "Changes",
+                "Address space Model changes/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
-                () => new Measurement<long>(ValueChangesCount, _metrics.TagList), "Values",
+                () => new Measurement<long>(_valueChanges.Count, _metrics.TagList), "Values",
                 "Total Opc Value changes delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
-                () => new Measurement<double>(ValueChangesCount / UpTime, _metrics.TagList), "Values/sec",
+                () => new Measurement<double>(_valueChanges.Count / UpTime, _metrics.TagList), "Values/sec",
                 "Opc Value changes/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
-                () => new Measurement<long>(ValueChangesCountLastMinute, _metrics.TagList), "Values",
+                () => new Measurement<long>(_valueChanges.LastMinute, _metrics.TagList), "Values",
                 "Opc Value changes/second delivered for processing in last 60s.");
+
+            _meter.CreateObservableCounter("iiot_edge_publisher_events",
+                () => new Measurement<long>(_events.Count, _metrics.TagList), "Events",
+                "Total Opc Events delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_events_per_second",
+                () => new Measurement<double>(_events.Count / UpTime, _metrics.TagList), "Events/sec",
+                "Opc Events/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_events_per_second_last_min",
+                () => new Measurement<long>(_events.LastMinute, _metrics.TagList), "Events",
+                "Opc Events/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
-                () => new Measurement<long>(_eventNotificationCount, _metrics.TagList), "Notifications",
+                () => new Measurement<long>(_eventNotification.Count, _metrics.TagList), "Notifications",
                 "Total Opc Event notifications delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_event_notifications_per_second",
+                () => new Measurement<double>(_eventNotification.Count / UpTime, _metrics.TagList), "Notifications/sec",
+                "Opc Event notifications/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_event_notifications_per_second_last_min",
+                () => new Measurement<long>(_eventNotification.LastMinute, _metrics.TagList), "Notifications",
+                "Opc Event notifications/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
-                () => new Measurement<long>(DataChangesCount, _metrics.TagList), "Notifications",
+                () => new Measurement<long>(_dataChanges.Count, _metrics.TagList), "Notifications",
                 "Total Opc Data change notifications delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
-                () => new Measurement<double>(DataChangesCount / UpTime, _metrics.TagList), "Notifications/sec",
+                () => new Measurement<double>(_dataChanges.Count / UpTime, _metrics.TagList), "Notifications/sec",
                 "Opc Data change notifications/second delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
-                () => new Measurement<long>(DataChangesCountLastMinute, _metrics.TagList), "Notifications",
+                () => new Measurement<long>(_dataChanges.LastMinute, _metrics.TagList), "Notifications",
                 "Opc Data change notifications/second delivered for processing in last 60s.");
+
+            _meter.CreateObservableCounter("iiot_edge_publisher_queue_overflows",
+                () => new Measurement<long>(_overflows.Count, _metrics.TagList), "Values",
+                "Total values received with a queue overflow indicator.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_queue_overflows_per_second",
+                () => new Measurement<double>(_overflows.Count / UpTime, _metrics.TagList), "Values/sec",
+                "Values with overflow indicator/second received.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_queue_overflows_per_second_last_min",
+                () => new Measurement<long>(_overflows.LastMinute, _metrics.TagList), "Values",
+                "Values with overflow indicator/second received in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_keep_alive_notifications",
                 () => new Measurement<long>(_keepAliveCount, _metrics.TagList), "Notifications",
                 "Total Opc keep alive notifications delivered for processing.");
+
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
+                () => new Measurement<long>(_subscriptions.Count, _metrics.TagList), "Subscriptions",
+                "Number of Writers/Subscriptions in the writer group.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(ReconnectCount,
-                _metrics.TagList), "Attempts", "OPC UA connect retries.");
+                () => new Measurement<long>(ReconnectCount, _metrics.TagList), "Attempts",
+                "OPC UA connect retries.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(ConnectedClients,
-                _metrics.TagList), "Endpoints", "OPC UA endpoints that are successfully connected.");
+                () => new Measurement<int>(ConnectedClients, _metrics.TagList), "Endpoints",
+                "OPC UA endpoints that are successfully connected.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
-                () => new Measurement<int>(DisconnectedClients,
-                _metrics.TagList), "Endpoints", "OPC UA endpoints that are disconnected.");
+                () => new Measurement<int>(DisconnectedClients, _metrics.TagList), "Endpoints",
+                "OPC UA endpoints that are disconnected.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
-        private const int _bucketWidth = 60;
         private readonly Meter _meter = Diagnostics.NewMeter();
-        private readonly long[] _valueChangesBuffer = new long[_bucketWidth];
-        private readonly long[] _dataChangesBuffer = new long[_bucketWidth];
         private readonly ILogger _logger;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly IOpcUaSubscriptionManager _subscriptionManager;
@@ -970,19 +895,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IMetricsContext _metrics;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private WriterGroupModel _writerGroup;
-        private int _lastPointerValueChanges;
+        private readonly RollingAverage _valueChanges = new();
+        private readonly RollingAverage _dataChanges = new();
+        private readonly RollingAverage _cyclicReads = new();
+        private readonly RollingAverage _eventNotification = new();
+        private readonly RollingAverage _events = new();
+        private readonly RollingAverage _modelChanges = new();
+        private readonly RollingAverage _heartbeats = new();
+        private readonly RollingAverage _overflows = new();
         private long _keepAliveCount;
-        private long _valueChangesCount;
-        private int _lastPointerDataChanges;
-        private long _dataChangesCount;
-        private long _eventNotificationCount;
-        private long _eventCount;
-        private long _heartbeatsCount;
-        private long _cyclicReadsCount;
-        private long _modelChangesCount;
-        private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
-        private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
+        private WriterGroupModel _writerGroup;
         private readonly DateTime _startTime = DateTime.UtcNow;
     }
 }

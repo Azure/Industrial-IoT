@@ -43,6 +43,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public uint? SequenceNumber { get; set; }
 
         /// <summary>
+        /// Overflow indicator counts the number of messages likely missed
+        /// </summary>
+        public int Overflow { get; set; }
+
+        /// <summary>
         /// Value of variable change notification
         /// </summary>
         public DataValue? Value { get; set; }

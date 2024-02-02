@@ -129,7 +129,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _disposed = true;
                 CloseChannel(); // Ensure channel is closed
-                Debug.Assert(KeepAliveStopped); // Ensure keep alive stopped
 
                 try
                 {

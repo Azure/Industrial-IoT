@@ -40,6 +40,9 @@
     <None Update="Profiles\MultiEndpoint.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Profiles\CyclicReads.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\RegisteredRead.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

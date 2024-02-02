@@ -296,6 +296,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long IngressModelChanges { get; set; }
 
         /// <summary>
+        /// Events in the last minute
+        /// </summary>
+        [DataMember(Name = "IngressEventsInLastMinute", Order = 40,
+            EmitDefaultValue = true)]
+        public long IngressEventsInLastMinute { get; set; }
+
+        /// <summary>
+        /// Heartbeats in the last minute
+        /// </summary>
+        [DataMember(Name = "IngressHeartbeatsInLastMinute", Order = 41,
+            EmitDefaultValue = true)]
+        public long IngressHeartbeatsInLastMinute { get; set; }
+
+        /// <summary>
+        /// Cyclic reads last minute
+        /// </summary>
+        [DataMember(Name = "IngressCyclicReadsInLastMinute", Order = 42,
+            EmitDefaultValue = true)]
+        public long IngressCyclicReadsInLastMinute { get; set; }
+
+        /// <summary>
+        /// Number of model changes generated
+        /// </summary>
+        [DataMember(Name = "IngressModelChangesInLastMinute", Order = 43,
+            EmitDefaultValue = true)]
+        public long IngressModelChangesInLastMinute { get; set; }
+
+        /// <summary>
+        /// Event list notifications in the last minute
+        /// </summary>
+        [DataMember(Name = "IngressEventNotificationsInLastMinute", Order = 44,
+            EmitDefaultValue = true)]
+        public long IngressEventNotificationsInLastMinute { get; set; }
+
+        /// <summary>
+        /// Messages failed sending
+        /// </summary>
+        [DataMember(Name = "OutgressIoTMessageFailedCount", Order = 45,
+            EmitDefaultValue = true)]
+        public long OutgressIoTMessageFailedCount { get; set; }
+
+        /// <summary>
+        /// Total server queue overflows
+        /// </summary>
+        [DataMember(Name = "ServerQueueOverflows", Order = 46,
+            EmitDefaultValue = true)]
+        public long ServerQueueOverflows { get; set; }
+
+        /// <summary>
+        /// Queue server queue overflows in the last minute
+        /// </summary>
+        [DataMember(Name = "ServerQueueOverflowsInLastMinute", Order = 47,
+            EmitDefaultValue = true)]
+        public long ServerQueueOverflowsInLastMinute { get; set; }
+
+        /// <summary>
         /// Publisher version
         /// </summary>
         [DataMember(Name = "PublisherVersion", Order = 99,

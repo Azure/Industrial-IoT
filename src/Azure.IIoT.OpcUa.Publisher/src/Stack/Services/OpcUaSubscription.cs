@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Client;
 
     /// <summary>
     /// Subscription implementation
@@ -421,16 +422,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+            var count = message.GetDiagnosticCounters(out var modelChanges,
+                out var heartbeats, out var cyclicReads, out var overflows);
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
                 if (!diagnosticsOnly)
                 {
                     _callbacks.OnSubscriptionEventChange(message);
                 }
-                if (message.Notifications.Count > 0)
+                if (count > 0)
                 {
                     _callbacks.OnSubscriptionEventDiagnosticsChange(false,
-                        message.Notifications.Count, message.ModelChanges == 0 ? 0 : 1);
+                        count, overflows, modelChanges == 0 ? 0 : 1);
                 }
             }
             else
@@ -439,10 +442,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _callbacks.OnSubscriptionDataChange(message);
                 }
-                if (message.Notifications.Count > 0)
+                if (count > 0)
                 {
                     _callbacks.OnSubscriptionDataDiagnosticsChange(false,
-                        message.Notifications.Count, message.Heartbeats, message.CyclicReads);
+                        count, overflows, heartbeats, cyclicReads);
                 }
             }
         }
@@ -1406,6 +1409,7 @@ Actual (revised) state/desired state:
                 }
 
                 var numOfEvents = 0;
+                var overflows = 0;
                 foreach (var eventFieldList in notification.Events)
                 {
                     Debug.Assert(eventFieldList != null);
@@ -1437,6 +1441,7 @@ Actual (revised) state/desired state:
                         {
                             _callbacks.OnSubscriptionEventChange(message);
                             numOfEvents++;
+                            overflows += message.Notifications.Sum(n => n.Overflow);
                         }
                         else
                         {
@@ -1456,7 +1461,7 @@ Actual (revised) state/desired state:
                         }
                     }
                 }
-                _callbacks.OnSubscriptionEventDiagnosticsChange(true, numOfEvents, 0);
+                _callbacks.OnSubscriptionEventDiagnosticsChange(true, overflows, numOfEvents, 0);
             }
             catch (Exception e)
             {
@@ -1635,10 +1640,11 @@ Actual (revised) state/desired state:
 
                 _callbacks.OnSubscriptionDataChange(message);
                 Debug.Assert(message.Notifications != null);
-                if (message.Notifications.Count > 0)
+                var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var cyclicReads,
+                    out var overflows);
+                if (count > 0)
                 {
-                    _callbacks.OnSubscriptionDataDiagnosticsChange(true,
-                        message.Notifications.Count, 0, 0);
+                    _callbacks.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats, cyclicReads);
                 }
             }
             catch (Exception e)
@@ -1952,24 +1958,6 @@ Actual (revised) state/desired state:
             public DateTime CreatedTimestamp { get; }
 
             /// <summary>
-            /// Number of heartbeats
-            /// </summary>
-            internal int Heartbeats => Notifications
-                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
-
-            /// <summary>
-            /// Number of model changes
-            /// </summary>s
-            internal int ModelChanges => Notifications
-                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges));
-
-            /// <summary>
-            /// Number of cyclic reads
-            /// </summary>
-            internal int CyclicReads => Notifications
-                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead));
-
-            /// <summary>
             /// Create acknoledgeable notification
             /// </summary>
             /// <param name="outer"></param>
@@ -2026,6 +2014,37 @@ Actual (revised) state/desired state:
             }
             private bool _processed;
 #endif
+
+            /// <summary>
+            /// Number of heartbeats, model changes, cyclic reads
+            /// </summary>
+            internal int GetDiagnosticCounters(out int modelChanges, out int heartbeats,
+                out int cyclicReads, out int overflow)
+            {
+                modelChanges = 0;
+                heartbeats = 0;
+                cyclicReads = 0;
+                overflow = 0;
+                foreach (var n in Notifications)
+                {
+                    /**/
+                    if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
+                    {
+                        modelChanges++;
+                    }
+                    else if (n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead))
+                    {
+                        cyclicReads++;
+                    }
+                    else if (n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat))
+                    {
+                        heartbeats++;
+                    }
+                    overflow += n.Overflow;
+                }
+                return Notifications.Count;
+            }
+
             private readonly OpcUaSubscription _outer;
             private readonly uint _subscriptionId;
         }

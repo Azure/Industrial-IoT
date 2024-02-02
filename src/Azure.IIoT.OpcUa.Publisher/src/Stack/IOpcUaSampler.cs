@@ -14,7 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// </summary>
     /// <param name="Value"></param>
     /// <param name="SequenceNumber"></param>
-    public record struct DataValueChange(DataValue Value, uint SequenceNumber);
+    /// <param name="Overflow"></param>
+    public record struct DataValueChange(DataValue Value,
+        uint SequenceNumber, int Overflow);
 
     /// <summary>
     /// Creates a sampler that allows sampling node values

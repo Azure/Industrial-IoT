@@ -1259,6 +1259,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
                     Value = dataValue,
+                    Overflow = dataValue.StatusCode.Overflow ? 1 : 0,
                     SequenceNumber = sequenceNumber
                 };
             }
@@ -1834,6 +1835,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     NodeId = Template.StartNodeId,
                     SequenceNumber = e.SequenceNumber,
                     Flags = MonitoredItemSourceFlags.CyclicRead,
+                    Overflow = e.Overflow,
                     Value = e.Value
                 };
                 callback(MessageType.DeltaFrame, notification.YieldReturn(),
