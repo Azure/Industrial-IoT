@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             if (_useMqtt)
             {
                 // Resolve the mqtt server to make sure it is running
-                _ = ClientContainer.Resolve<MqttServer>();
+                _ = ClientContainer.Resolve<MqttServer>().GetAwaiter().GetResult();
             }
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
@@ -141,7 +141,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var mqttCs = $"HostName={mqttOptions.Value.HostName};Port={mqttOptions.Value.Port};" +
                 $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
                 $"UseTls={mqttOptions.Value.UseTls};Protocol={mqttOptions.Value.Protocol};" +
-                $"Partitions={mqttOptions.Value.NumberOfClientPartitions}";
+                $"Partitions={mqttOptions.Value.NumberOfClientPartitions};" +
+                $"KeepAlivePeriod={mqttOptions.Value.KeepAlivePeriod}"
+                ;
             var publisherId = Guid.NewGuid().ToString();
             arguments = arguments.Concat(
                 new[]
@@ -149,6 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
+                    "--ki=90",
                     "--aa"
                 }).ToArray();
 
@@ -231,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // Api key
             var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
             client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("api-key", apiKey);
+                new AuthenticationHeaderValue("ApiKey", apiKey);
             client.Timeout = TimeSpan.FromMinutes(10);
             return client;
         }

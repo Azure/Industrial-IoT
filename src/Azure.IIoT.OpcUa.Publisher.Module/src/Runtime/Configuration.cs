@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
     using OpenTelemetry.Exporter;
@@ -33,8 +34,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using Microsoft.Extensions.Logging.Console;
-    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
 
     /// <summary>
     /// Configuration extensions
@@ -756,45 +755,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         internal sealed class OpenApi : ConfigureOptionBase<OpenApiOptions>
         {
-            public const string DisableSwaggerUIKey = "DisableSwaggerUI";
             public const string UseOpenApiV3Key = "UseOpenApiV3";
 
             /// <inheritdoc/>
             public override void Configure(string? name, OpenApiOptions options)
             {
-                if (_isDisabled)
+                options.SchemaVersion = GetBoolOrDefault(UseOpenApiV3Key) ? 3 : 2;
+                options.ProjectUri = new Uri("https://www.github.com/Azure/Industrial-IoT");
+                options.License = new OpenApiLicense
                 {
-                    options.UIEnabled = false;
-                }
-                else
-                {
-                    var uiEnabled = GetBoolOrNull(DisableSwaggerUIKey);
-                    if (uiEnabled != null)
-                    {
-                        options.UIEnabled = uiEnabled.Value;
-                    }
-
-                    var useV3 = GetBoolOrNull(UseOpenApiV3Key);
-                    if (useV3 != null)
-                    {
-                        options.SchemaVersion = useV3.Value ? 3 : 2;
-                    }
-                }
+                    Name = "MIT LICENSE",
+                    Url = new Uri("https://opensource.org/licenses/MIT")
+                };
             }
 
             /// <summary>
             /// Create configuration
             /// </summary>
             /// <param name="configuration"></param>
-            /// <param name="options"></param>
-            public OpenApi(IConfiguration configuration,
-                IOptions<PublisherOptions>? options = null)
+            public OpenApi(IConfiguration configuration)
                 : base(configuration)
             {
-                _isDisabled = options?.Value.DisableOpenApiEndpoint == true;
             }
-
-            private readonly bool _isDisabled;
         }
 
         /// <summary>
@@ -833,6 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             public const string MqttClientConnectionStringKey = "MqttClientConnectionString";
             public const string ClientPartitionsKey = "MqttClientPartitions";
+            public const string KeepAlivePeriodKey = "MqttBrokerKeepAlivePeriod";
             public const string ClientIdKey = "MqttClientId";
             public const string UserNameKey = "MqttBrokerUserName";
             public const string PasswordKey = "MqttBrokerPasswordKey";
@@ -875,6 +858,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         options.UseTls = useTls;
                     }
+                    if (properties.TryGetValue(nameof(options.KeepAlivePeriod), out value) &&
+                        TimeSpan.TryParse(value, out var keepAlive))
+                    {
+                        options.KeepAlivePeriod = keepAlive;
+                    }
                     if (properties.TryGetValue("Partitions", out value) &&
                         int.TryParse(value, out var partitions))
                     {
@@ -911,6 +899,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     if (options.NumberOfClientPartitions == null)
                     {
                         options.NumberOfClientPartitions = GetIntOrNull(ClientPartitionsKey);
+                    }
+                    if (options.KeepAlivePeriod == null)
+                    {
+                        options.KeepAlivePeriod = GetDurationOrNull(KeepAlivePeriodKey);
                     }
                 }
                 if (string.IsNullOrEmpty(options.ClientId))

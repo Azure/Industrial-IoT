@@ -1,0 +1,13 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "ModelChangeHandling": {
+                    "RebrowsePeriod": "00:00:10"
+                }
+            }
+        ]
+    }
+]

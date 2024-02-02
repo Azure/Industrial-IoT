@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
@@ -36,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiVersion("2")]
     [Route("v{version:apiVersion}")]
     [ApiController]
+    [Authorize]
     public class GeneralController : ControllerBase, IMethodController
     {
         /// <summary>

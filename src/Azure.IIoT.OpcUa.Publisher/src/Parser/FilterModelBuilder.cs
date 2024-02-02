@@ -127,7 +127,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         private async Task<EventFilterModel> BuildEventFilterAsync(
             CancellationToken ct)
         {

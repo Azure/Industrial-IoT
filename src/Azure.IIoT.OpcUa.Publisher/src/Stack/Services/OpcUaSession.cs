@@ -18,12 +18,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Runtime.Serialization;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -31,8 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [DataContract(Namespace = OpcUaClient.Namespace)]
     [KnownType(typeof(OpcUaSubscription))]
     [KnownType(typeof(OpcUaMonitoredItem))]
-    internal sealed class OpcUaSession : Session, IOpcUaSession,
-        ISessionServices, ISessionAccessor
+    internal sealed class OpcUaSession : Session, IOpcUaSession, ISessionServices
     {
         /// <inheritdoc/>
         public IVariantEncoder Codec { get; }
@@ -117,10 +115,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing && !_disposed)
             {
-                _disposed = true;
-
                 PublishError -=
                     _client.Session_HandlePublishError;
                 PublishSequenceNumbersToAcknowledge -=
@@ -130,10 +127,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionConfigurationChanged -=
                     Session_SessionConfigurationChanged;
 
+                _disposed = true;
+                CloseChannel(); // Ensure channel is closed
+
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogDebug("Session {Name} disposed.", SessionName);
+                    _logger.LogInformation("Session {Session} disposed.", this);
                 }
                 finally
                 {
@@ -141,20 +141,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _cts.Dispose();
                 }
             }
-            base.Dispose(disposing);
+            Debug.Assert(SubscriptionHandles.Count == 0);
         }
 
         /// <inheritdoc/>
         public override Session CloneSession(ITransportChannel channel, bool copyEventHandlers)
         {
             return new OpcUaSession(this, channel, this, copyEventHandlers);
-        }
-
-        /// <inheritdoc/>
-        public bool TryGetSession([NotNullWhen(true)] out ISession? session)
-        {
-            session = this;
-            return true;
         }
 
         /// <inheritdoc/>
@@ -589,7 +582,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
             base.SessionCreated(sessionId, sessionCookie);
-            //PreloadComplexTypeSystem();
+            if (NodeId.IsNull(sessionId))
+            {
+                // Also called when session closes
+                return;
+            }
+
+            Debug.Assert(!NodeId.IsNull(sessionCookie));
+
+            // Update operation limits with configuration provided overrides
+            OperationLimits.Override(_client.LimitOverrides);
+
+            PreloadComplexTypeSystem();
         }
 
         /// <summary>
@@ -633,10 +637,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SessionConfigurationChanged +=
                 Session_SessionConfigurationChanged;
 
-            KeepAliveInterval =
-                (int)(_client.KeepAliveInterval ?? TimeSpan.FromSeconds(30)).TotalMilliseconds;
-            OperationTimeout =
-                (int)(_client.OperationTimeout ?? TimeSpan.FromMinutes(1)).TotalMilliseconds;
+            var keepAliveInterval =
+                (int)(_client.KeepAliveInterval ?? kDefaultKeepAliveInterval).TotalMilliseconds;
+            if (keepAliveInterval <= 0)
+            {
+                keepAliveInterval = kDefaultKeepAliveInterval.Milliseconds;
+            }
+            var operationTimeout =
+                (int)(_client.OperationTimeout ?? kDefaultOperationTimeout).TotalMilliseconds;
+            if (operationTimeout <= 0)
+            {
+                operationTimeout = kDefaultOperationTimeout.Milliseconds;
+            }
+
+            KeepAliveInterval = keepAliveInterval;
+            OperationTimeout = operationTimeout;
         }
 
         /// <summary>
@@ -1088,5 +1103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly OpcUaClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
+        private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
     }
 }

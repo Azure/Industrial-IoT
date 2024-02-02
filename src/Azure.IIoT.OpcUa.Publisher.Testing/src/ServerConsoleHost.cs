@@ -36,6 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="logger"></param>
         public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger)
         {
+            _instance = Guid.NewGuid().ToString();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server != null)
                     {
-                        _logger.LogInformation("Stopping server.");
+                        _logger.LogInformation("Stopping server {Instance}.", this);
                         try
                         {
                             _server.Stop();
@@ -59,16 +60,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         catch (OperationCanceledException) { }
                         catch (Exception se)
                         {
-                            _logger.LogError(se, "Server not cleanly stopped.");
+                            _logger.LogError(se, "Server {Instance} not cleanly stopped.", this);
                         }
                         _server.Dispose();
+                        _logger.LogInformation("Server {Instance} stopped.", this);
                     }
 #pragma warning restore CA1508 // Avoid dead conditional code
-                    _logger.LogInformation("Server stopped.");
                 }
                 catch (Exception ce)
                 {
-                    _logger.LogError(ce, "Stopping server caused exception.");
+                    _logger.LogError(ce, "Stopping server {Instance} caused exception.", this);
                 }
                 finally
                 {
@@ -92,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Adding reverse connection failed.");
+                _logger.LogError(ex, "Adding reverse connection in server {Instance} failed.", this);
             }
             finally
             {
@@ -113,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Remove reverse connection failed.");
+                _logger.LogError(ex, "Remove reverse connection in server {Instance} failed.", this);
             }
             finally
             {
@@ -139,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Starting server caused exception.");
+                    _logger.LogError(ex, "Starting server {Instance} caused exception.", this);
                     _server?.Dispose();
                     _server = null;
                     throw;
@@ -149,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _lock.Release();
                 }
             }
-            throw new InvalidOperationException("Already started");
+            throw new InvalidOperationException($"Server {this} already started");
         }
 
         /// <inheritdoc/>
@@ -157,6 +158,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             StopAsync().GetAwaiter().GetResult();
             _lock.Dispose();
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return _instance;
         }
 
         /// <summary>
@@ -171,15 +178,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             var config = _factory.CreateServer(ports, pkiRootPath, out _server);
-            _logger.LogInformation("Server created...");
+            _logger.LogInformation("Server {Instance} created...", this);
 
             config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;
             config = ApplicationInstance.FixupAppConfig(config);
 
-            _logger.LogInformation("Validate configuration...");
+            _logger.LogInformation("Server {Instance} - Validate configuration...", this);
             await config.Validate(config.ApplicationType).ConfigureAwait(false);
 
-            _logger.LogInformation("Initialize certificate validation...");
+            _logger.LogInformation("Server {Instance} - Initialize certificate validation...", this);
             var application = new ApplicationInstance(config);
 
             // check the application certificate.
@@ -187,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 silent: true, CertificateFactory.DefaultKeySize).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
-                _logger.LogError("Failed validating own certificate!");
+                _logger.LogError("Server {Instance} - Failed validating own certificate!", this);
                 throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
@@ -196,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
                 {
                     e.Accept = AutoAccept;
-                    _logger.LogInformation("{Action} Certificate {Subject}",
+                    _logger.LogInformation("Server {Instance} - {Action} Certificate {Subject}", this,
                         e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
                 }
             };
@@ -221,10 +228,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses)
             {
-                _logger.LogInformation("Listening on {Endpoint}", ep);
+                _logger.LogInformation("Server {Instance} - Listening on {Endpoint}", this, ep);
             }
 
-            _logger.LogInformation("Server started.");
+            _logger.LogInformation("Server {Instance} started.", this);
         }
 
         /// <inheritdoc/>
@@ -239,6 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        private readonly string _instance;
         private readonly ILogger _logger;
         private readonly IServerFactory _factory;
         private readonly SemaphoreSlim _lock = new(1, 1);

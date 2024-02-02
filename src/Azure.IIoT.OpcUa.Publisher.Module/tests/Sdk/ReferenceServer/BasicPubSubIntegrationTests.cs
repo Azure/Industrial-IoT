@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using FluentAssertions;
+    using Json.More;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -58,6 +59,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
             Assert.NotNull(metadata);
+        }
+
+        [Fact]
+        public async Task CanSendModelChangeEventsToIoTHubTest()
+        {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(nameof(CanSendModelChangeEventsToIoTHubTest), "./Resources/ModelChanges.json",
+                TimeSpan.FromMinutes(2), 5, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--dm=false" });
+
+            // Assert
+            Assert.NotEmpty(messages);
+            var payload1 = messages[0].Message.GetProperty("Messages")[0].GetProperty("Payload");
+            _output.WriteLine(payload1.ToString());
+            Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
+            Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));
+            Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
+                payload1.GetProperty("EventType").GetProperty("Value").GetString());
+            Assert.Equal("i=84", payload1.GetProperty("SourceNode").GetProperty("Value").GetString());
+            Assert.True(DateTime.TryParse(payload1.GetProperty("Time").GetProperty("Value").GetString(), out _));
+            Assert.True(payload1.GetProperty("Change").GetProperty("Value").GetProperty("IsForward").GetBoolean());
+            Assert.Equal("Objects", payload1.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
+
+            var payload2 = messages[1].Message.GetProperty("Messages")[0].GetProperty("Payload");
+            _output.WriteLine(payload2.ToString());
+            Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
+            Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetProperty("Value").GetString(), out _));
+            Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
+                payload2.GetProperty("EventType").GetProperty("Value").GetString());
+            Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());
+            Assert.True(DateTime.TryParse(payload2.GetProperty("Time").GetProperty("Value").GetString(), out _));
+            Assert.Equal("Objects", payload2.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
+
+            // TODO: currently metadata is sent later
+            // Assert.NotNull(metadata);
         }
 
         [Fact]
@@ -354,8 +390,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--dm=False" });
 
             // Assert
-            _output.WriteLine(messages.ToString());
+            Assert.NotEmpty(messages);
             var evt = Assert.Single(messages).Message;
+            _output.WriteLine(evt.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, evt.ValueKind);
             Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);

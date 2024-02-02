@@ -358,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     errorInfo = await context.Session.CollectInstanceDeclarationsAsync(
                         request.Header.ToRequestHeader(), (NodeId)superType.NodeId,
                         null, declarations, map, GetNamespaceFormat(request.Header),
-                        ct).ConfigureAwait(false);
+                        ct: ct).ConfigureAwait(false);
                     if (errorInfo != null)
                     {
                         break;
@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     errorInfo = await context.Session.CollectInstanceDeclarationsAsync(
                         request.Header.ToRequestHeader(), typeId, null,
                         declarations, map, GetNamespaceFormat(request.Header),
-                        ct).ConfigureAwait(false);
+                        ct: ct).ConfigureAwait(false);
                 }
                 return new NodeMetadataResponseModel
                 {

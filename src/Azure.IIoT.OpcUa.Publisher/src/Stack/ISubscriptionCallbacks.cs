@@ -42,18 +42,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Diagnostics for data change notifications
         /// </summary>
         /// <param name="liveData"></param>
+        /// <param name="overflow"></param>
         /// <param name="valueChanges"></param>
         /// <param name="heartbeats"></param>
         /// <param name="cyclicReads"></param>
         void OnSubscriptionDataDiagnosticsChange(bool liveData,
-            int valueChanges, int heartbeats, int cyclicReads);
+            int overflow, int valueChanges, int heartbeats, int cyclicReads);
 
         /// <summary>
         /// Event diagnostics
         /// </summary>
         /// <param name="liveData"></param>
+        /// <param name="overflow"></param>
         /// <param name="events"></param>
+        /// <param name="modelChanges"></param>
         void OnSubscriptionEventDiagnosticsChange(bool liveData,
-            int events);
+            int overflow, int events, int modelChanges);
     }
 }

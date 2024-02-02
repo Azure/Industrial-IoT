@@ -42,6 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
         public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
+        public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -55,10 +56,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
-        public const bool DefaultSamplingUsingCyclicReadDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
+        public static readonly TimeSpan DefaultRebrowsePeriodDefault = TimeSpan.FromHours(12);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -82,8 +83,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
             if (options.DefaultSamplingUsingCyclicRead == null)
             {
-                options.DefaultSamplingUsingCyclicRead = GetBoolOrDefault(
-                    DefaultSamplingUsingCyclicReadKey, DefaultSamplingUsingCyclicReadDefault);
+                options.DefaultSamplingUsingCyclicRead = GetBoolOrNull(DefaultSamplingUsingCyclicReadKey);
+            }
+            if (options.DefaultRebrowsePeriod == null)
+            {
+                options.DefaultRebrowsePeriod = GetDurationOrNull(DefaultRebrowsePeriodKey);
             }
             if (options.DefaultSkipFirst == null)
             {

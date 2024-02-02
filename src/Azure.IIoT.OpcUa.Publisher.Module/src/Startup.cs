@@ -15,12 +15,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Console;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
-    using Microsoft.Extensions.Logging.Console;
 
     /// <summary>
     /// Webservice startup
@@ -60,7 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
-                .AddFilter(typeof(IAwaitable).Namespace, LogLevel.Warning)
                 .AddConsole()
                 .AddConsoleFormatter<Syslog, ConsoleFormatterOptions>()
                 .AddOpenTelemetry(Configuration, options =>

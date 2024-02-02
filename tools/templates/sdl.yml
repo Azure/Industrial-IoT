@@ -39,7 +39,7 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Build Release
     inputs:
-      command: build 
+      command: build
       projects: 'Industrial-IoT.sln'
       # note: /p:SDL=true is used to enable build analyzers
       arguments: '--configuration Release /p:SDL=true'
@@ -108,8 +108,8 @@ jobs:
             serviceTreeId = "59eec07a-6f20-42b9-b41b-d20e0a6322da"
             instanceUrl = "https://msazure.visualstudio.com/defaultcollection"
             projectName = "One"
-            areaPath = "One\IoT\Platform and Devices\IoT Devices\Industrial\Community"
-            iterationPath = "One\Custom\IoT\Industrial\Backlog"
+            areaPath = "One\IoT\Opc Publisher"
+            iterationPath = "One"
             notificationAliases = @("azureiiot@microsoft.com")
             allTools = $True
         } | ConvertTo-Json | Out-File -FilePath "$(Build.SourcesDirectory)\.gdntsa" -Force -Encoding utf8

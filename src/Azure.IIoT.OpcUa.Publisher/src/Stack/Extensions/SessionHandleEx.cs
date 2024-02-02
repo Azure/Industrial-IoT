@@ -485,12 +485,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="instances"></param>
         /// <param name="map"></param>
         /// <param name="namespaceFormat"></param>
+        /// <param name="nodeClassMask"></param>
         /// <param name="ct"></param>
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
             this IOpcUaSession session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
             IDictionary<ImmutableRelativePath, InstanceDeclarationModel> map,
-            NamespaceFormat namespaceFormat, CancellationToken ct)
+            NamespaceFormat namespaceFormat, Opc.Ua.NodeClass? nodeClassMask = null,
+            CancellationToken ct = default)
         {
             // find the children of the type.
             var nodeToBrowse = new BrowseDescriptionCollection {
@@ -499,10 +501,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = ReferenceTypeIds.HasChild,
                     IncludeSubtypes = true,
-                    NodeClassMask =
-                        (uint)Opc.Ua.NodeClass.Object |
-                        (uint)Opc.Ua.NodeClass.Variable |
-                        (uint)Opc.Ua.NodeClass.Method,
+                    NodeClassMask = (uint)Opc.Ua.NodeClass.Object |
+                        (((uint?)nodeClassMask)
+                            ?? (uint)Opc.Ua.NodeClass.Variable | (uint)Opc.Ua.NodeClass.Method),
                     ResultMask = (uint)BrowseResultMask.All
                 }
             };
@@ -631,7 +632,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     instances.Add(child);
                     await session.CollectInstanceDeclarationsAsync(requestHeader,
-                        typeId, child, instances, map, namespaceFormat, ct).ConfigureAwait(false);
+                        typeId, child, instances, map, namespaceFormat, ct: ct).ConfigureAwait(false);
                 }
             }
             return null;

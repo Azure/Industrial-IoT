@@ -121,6 +121,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? DefaultSamplingUsingCyclicRead { get; set; }
 
         /// <summary>
+        /// The default rebrowse period for model change event generation.
+        /// </summary>
+        public TimeSpan? DefaultRebrowsePeriod { get; set; }
+
+        /// <summary>
         /// set the default data change filter for monitored items. Default is
         /// status and value change triggering.
         /// </summary>

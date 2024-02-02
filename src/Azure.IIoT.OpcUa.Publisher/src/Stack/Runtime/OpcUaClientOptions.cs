@@ -30,18 +30,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Default session timeout.
         /// </summary>
-        public TimeSpan? DefaultSessionTimeout { get; set; }
+        public TimeSpan? DefaultSessionTimeoutDuration { get; set; }
 
         /// <summary>
         /// Keep alive interval.
         /// </summary>
-        public TimeSpan? KeepAliveInterval { get; set; }
+        public TimeSpan? KeepAliveIntervalDuration { get; set; }
 
         /// <summary>
         /// How long to wait until connected or until
         /// reconnecting is attempted.
         /// </summary>
-        public TimeSpan? CreateSessionTimeout { get; set; }
+        public TimeSpan? CreateSessionTimeoutDuration { get; set; }
 
         /// <summary>
         /// Reverse connect port to use other than the
@@ -59,17 +59,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// How long to at least wait until reconnecting.
         /// </summary>
-        public TimeSpan? MinReconnectDelay { get; set; }
+        public TimeSpan? MinReconnectDelayDuration { get; set; }
 
         /// <summary>
         /// How long to at most wait until reconnecting.
         /// </summary>
-        public TimeSpan? MaxReconnectDelay { get; set; }
+        public TimeSpan? MaxReconnectDelayDuration { get; set; }
 
         /// <summary>
         /// How long to keep clients around after a service call.
         /// </summary>
-        public TimeSpan? LingerTimeout { get; set; }
+        public TimeSpan? LingerTimeoutDuration { get; set; }
 
         /// <summary>
         /// How long to wait until retrying on errors related
@@ -128,13 +128,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public int? PublishRequestsPerSubscriptionPercent { get; set; }
 
         /// <summary>
-        /// Use the specific device to capture traffice.
+        /// Limit max nodes to read in a batch operation
         /// </summary>
-        public string? CaptureDevice { get; set; }
+        public int? MaxNodesPerReadOverride { get; set; }
 
         /// <summary>
-        /// Use the specified capture file
+        /// Limit max nodes to browse in a batch operation
         /// </summary>
-        public string? CaptureFileName { get; set; }
+        public int? MaxNodesPerBrowseOverride { get; set; }
     }
 }

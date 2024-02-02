@@ -426,6 +426,13 @@ The configuration schema is used with the file based configuration, but also wit
       "DataChangeTrigger": "string",
       "DeadbandType": "string",
       "DeadbandValue": "decimal",
+      "ModelChangeHandling": {
+        "RebrowseIntervalTimespan": "string"
+      },
+      "ConditionHandling": {
+        "UpdateInterval": "integer",
+        "SnapshotInterval": "integer"
+      },
       "EventFilter": {
         (*)
       }
@@ -501,7 +508,9 @@ Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 | `DataChangeTrigger` | No | String | `null` | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./commandline.md). This value is ignored if an EventFilter is configured. |
 | `DeadbandType` | No | String | `1` | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
 | `DeadbandValue` | No | Decimal | `1` | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
-| `EventFilter` | No | [EventFilter](./definitions.md#eventfiltermodel) | `null` | An [event filter](./readme.md) configuration to use when subscribing to events instead of data changes. |
+| `EventFilter` | No | [EventFilter](./definitions.md#eventfiltermodel) | `null` | An [event filter](./readme.md#configuring-event-subscriptions) configuration to use when subscribing to events instead of data changes. |
+| `ConditionHandling` | No | [ConditionHandlingOptions](./definitions.md#conditionhandlingoptionsmodel) | `null` | Configures the special [condition handling logic](./readme.md#condition-handling-options) when subscribing to events. |
+| `ModelChangeHandling` | No | [ModelChangeHandlingOptions](./definitions.md#modelchangehandlingoptionsmodel) | `null` | Configures model change tracking through this node (Experimental). |
 
 > The configuration file syntax has been enhanced over time. OPC Publisher reads old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
 

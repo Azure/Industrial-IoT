@@ -149,13 +149,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         public void Dispose()
         {
-            Try.Async(StopDiscoveryRequestProcessingAsync).Wait();
-
-            // Dispose
-            _cts.Dispose();
-            _timer.Dispose();
-            _lock.Dispose();
-            _request.Dispose();
+            try
+            {
+                _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                Try.Async(StopDiscoveryRequestProcessingAsync).Wait();
+            }
+            finally
+            {
+                // Dispose
+                _cts.Dispose();
+                _timer.Dispose();
+                _lock.Dispose();
+                _request.Dispose();
+            }
         }
 
         /// <summary>
@@ -163,34 +169,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         private void OnScanScheduling()
         {
-            _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            _lock.Wait();
             try
             {
-                foreach (var task in _pending.Where(r => r.IsScan))
+                _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                _lock.Wait();
+                try
                 {
-                    // Cancel any current scan tasks if any
-                    task.Cancel();
-                }
+                    foreach (var task in _pending.Where(r => r.IsScan))
+                    {
+                        // Cancel any current scan tasks if any
+                        task.Cancel();
+                    }
 
-                // Add new discovery request
-                if (_request.Mode != DiscoveryMode.Off)
+                    // Add new discovery request
+                    if (_request.Mode != DiscoveryMode.Off)
+                    {
+                        // Push request
+                        var task = _request.Clone();
+                        if (_channel.Writer.TryWrite(task))
+                        {
+                            _pending.Add(task);
+                        }
+                        else
+                        {
+                            task.Dispose();
+                        }
+                    }
+                }
+                finally
                 {
-                    // Push request
-                    var task = _request.Clone();
-                    if (_channel.Writer.TryWrite(task))
-                    {
-                        _pending.Add(task);
-                    }
-                    else
-                    {
-                        task.Dispose();
-                    }
+                    _lock.Release();
                 }
             }
-            finally
+            catch (ObjectDisposedException ex)
             {
-                _lock.Release();
+                _logger.LogError(ex, "Object disposed but still timer is firing");
             }
         }
 
@@ -476,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var ep in eps)
                 {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _options.Value.Site, _events.Identity, _serializer));
+                        _options.Value.SiteId, _events.Identity, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,

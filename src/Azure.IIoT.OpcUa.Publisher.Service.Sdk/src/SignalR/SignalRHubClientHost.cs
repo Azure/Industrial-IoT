@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             if (!_started.IsCompleted)
             {
                 // This should not happen if this was created when retrieving the hub
-                _logger.LogWarning("No blocking to start connection. " +
+                _logger.LogWarning("Now blocking to start connection. " +
                     "You should await the host connection before registering.");
                 try
                 {
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     ObjectDisposedException.ThrowIf(_isDisposed, this);
                 }
             }
-
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
             Debug.Assert(_connection != null);
             return _connection.On(method, arguments, handler, thiz);
         }

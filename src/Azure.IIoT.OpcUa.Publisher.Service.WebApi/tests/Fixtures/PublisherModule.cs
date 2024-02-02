@@ -86,6 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
                 new[]
                 {
                     $"--ec={edgeHubCs}",
+                    "--ki=90",
                     "--aa"
                 }).ToArray();
 

@@ -16,15 +16,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
-    using System.Collections.Generic;
     using System.Collections.Frozen;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.Serialization;
+    using Microsoft.Azure.Devices.Client;
 
     /// <summary>
     /// Subscription implementation
@@ -34,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.DataItem))]
     [KnownType(typeof(OpcUaMonitoredItem.DataItemWithCyclicRead))]
     [KnownType(typeof(OpcUaMonitoredItem.DataItemWithHeartbeat))]
+    [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.EventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     [KnownType(typeof(OpcUaMonitoredItem.FieldItem))]
@@ -63,6 +65,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => Handle != null && Session?.Connected == true && !_closed;
 
         /// <summary>
+        /// Currently monitored but unordered
+        /// </summary>
+        private IEnumerable<OpcUaMonitoredItem> CurrentlyMonitored
+            => _additionallyMonitored.Values
+                .Concat(MonitoredItems
+                .OfType<OpcUaMonitoredItem>());
+
+        /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="clients"></param>
@@ -84,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _template = ValidateSubscriptionInfo(template);
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
-            _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+            _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
             LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
             Initialize();
@@ -118,8 +128,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = subscription._logger;
             _sequenceNumber = subscription._sequenceNumber;
 
-            // TODO: Should copy?
-            _currentlyMonitored = subscription._currentlyMonitored;
+            _goodMonitoredItems = subscription._goodMonitoredItems;
+            _missingKeepAlives = subscription._missingKeepAlives;
+            _badMonitoredItems = subscription._badMonitoredItems;
+            _unassignedNotifications = subscription._unassignedNotifications;
+
+            _additionallyMonitored = subscription._additionallyMonitored;
             _currentSequenceNumber = subscription._currentSequenceNumber;
             _previousSequenceNumber = subscription._previousSequenceNumber;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
@@ -131,6 +145,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
 
             InitializeMetrics();
+
+            if (!_closed)
+            {
+                TriggerManageSubscription(!_closed);
+            }
         }
 
         /// <inheritdoc/>
@@ -298,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e,
+                _logger.LogError(e,
                     "Failed to apply state to Subscription {Subscription} in session {Session}...",
                     this, session);
 
@@ -317,14 +336,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     lock (_lock)
                     {
-                        if (!_disposed)
+                        if (_disposed)
                         {
-                            _disposed = true;
-                            if (_closed)
-                            {
-                                _client?.Dispose();
-                                _client = null;
-                            }
+                            // Double dispose
+                            Debug.Fail("Double dispose in subscription");
+                            return;
+                        }
+                        try
+                        {
+                            _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
                             FastDataChangeCallback = null;
                             FastEventCallback = null;
@@ -333,9 +353,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             PublishStatusChanged -= OnPublishStatusChange;
                             StateChanged -= OnStateChange;
 
+                            if (_closed)
+                            {
+                                _client?.Dispose();
+                                _client = null;
+                            }
+                        }
+                        finally
+                        {
                             _keepAliveWatcher.Dispose();
                             _timer.Dispose();
                             _meter.Dispose();
+
+                            _disposed = true;
                         }
                     }
                 }
@@ -354,27 +384,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Send notification
         /// </summary>
         /// <param name="messageType"></param>
-        /// <param name="dataSetName"></param>
         /// <param name="notifications"></param>
+        /// <param name="session"></param>
+        /// <param name="dataSetName"></param>
         /// <param name="diagnosticsOnly"></param>
-        internal void SendNotification(MessageType messageType, string? dataSetName,
-            IEnumerable<MonitoredItemNotificationModel> notifications, bool diagnosticsOnly)
+        internal void SendNotification(MessageType messageType,
+            IEnumerable<MonitoredItemNotificationModel> notifications,
+            ISession? session, string? dataSetName, bool diagnosticsOnly)
         {
-            if (!Created)
+            var curSession = session ?? Session;
+            var messageContext = curSession?.MessageContext;
+
+            if (messageContext == null)
             {
-                return;
-            }
-            var session = Session;
-            if (session?.MessageContext == null)
-            {
-                return;
+                if (session == null)
+                {
+                    // Can only send with context
+                    _logger.LogWarning("Failed to send notification since no session exists " +
+                        "to use as context. Notification was dropped.");
+                    return;
+                }
+                _logger.LogWarning("A session was passed to send notification with but without " +
+                    "message context. Using thread context.");
+                messageContext = ServiceMessageContext.ThreadContext;
             }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var message = new Notification(this, Id, session.MessageContext, notifications)
+            var message = new Notification(this, Id, messageContext, notifications)
             {
-                ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
-                EndpointUrl = session.Endpoint?.EndpointUrl,
+                ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
+                EndpointUrl = curSession?.Endpoint?.EndpointUrl,
                 SubscriptionName = Name,
                 DataSetName = dataSetName,
                 SubscriptionId = LocalIndex,
@@ -383,15 +422,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+            var count = message.GetDiagnosticCounters(out var modelChanges,
+                out var heartbeats, out var cyclicReads, out var overflows);
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
                 if (!diagnosticsOnly)
                 {
                     _callbacks.OnSubscriptionEventChange(message);
                 }
-                if (message.Notifications.Count > 0)
+                if (count > 0)
                 {
-                    _callbacks.OnSubscriptionEventDiagnosticsChange(false, message.Notifications.Count);
+                    _callbacks.OnSubscriptionEventDiagnosticsChange(false,
+                        count, overflows, modelChanges == 0 ? 0 : 1);
                 }
             }
             else
@@ -400,10 +442,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _callbacks.OnSubscriptionDataChange(message);
                 }
-                if (message.Notifications.Count > 0)
+                if (count > 0)
                 {
                     _callbacks.OnSubscriptionDataDiagnosticsChange(false,
-                        message.Notifications.Count, message.Heartbeats, message.CyclicReads);
+                        count, overflows, heartbeats, cyclicReads);
                 }
             }
         }
@@ -443,10 +485,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
 
-                _currentlyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+                _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                 _currentSequenceNumber = 0;
-                NumberOfCreatedItems = 0;
-                NumberOfNotCreatedItems = 0;
+                _goodMonitoredItems = 0;
+                _badMonitoredItems = 0;
 
                 await Try.Async(
                     () => SetPublishingModeAsync(false)).ConfigureAwait(false);
@@ -491,12 +533,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var desired = OpcUaMonitoredItem
-                .Create(monitoredItems, _loggerFactory, _clients,
-                    _template.Id.Connection == null ? null :
-                        new ConnectionIdentifier(_template.Id.Connection))
+                .Create(monitoredItems, _loggerFactory, _client)
                 .ToHashSet();
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
-            var previouslyMonitored = _currentlyMonitored.Values.ToHashSet();
+            var previouslyMonitored = CurrentlyMonitored.ToHashSet();
             var remove = previouslyMonitored.Except(desired).ToHashSet();
             var add = desired.Except(previouslyMonitored).ToHashSet();
             var same = previouslyMonitored.ToHashSet();
@@ -596,20 +637,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             foreach (var toUpdate in same)
             {
-                if (!desired.TryGetValue(toUpdate, out var theUpdate))
+                if (!desired.TryGetValue(toUpdate, out var theDesiredUpdate))
                 {
                     errors++;
                     continue;
                 }
-                desired.Remove(theUpdate);
-                Debug.Assert(toUpdate.GetType() == theUpdate.GetType());
+                desired.Remove(theDesiredUpdate);
+                Debug.Assert(toUpdate.GetType() == theDesiredUpdate.GetType());
                 try
                 {
-                    if (toUpdate.MergeWith(theUpdate, session, out var metadata))
+                    if (toUpdate.MergeWith(theDesiredUpdate, session, out var metadata))
                     {
                         _logger.LogDebug(
                             "Trying to update monitored item '{Item}' in {Subscription}...",
                             toUpdate, this);
+                        if (toUpdate.FinalizeMergeWith != null && metadata)
+                        {
+                            await toUpdate.FinalizeMergeWith(session, ct).ConfigureAwait(false);
+                        }
                         updated++;
                         applyChanges = true;
                     }
@@ -627,7 +672,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 finally
                 {
-                    theUpdate.Dispose();
+                    theDesiredUpdate.Dispose();
                 }
             }
 
@@ -669,6 +714,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogDebug(
                             "Adding monitored item '{Item}' to {Subscription}...",
                             toAdd, this);
+
+                        if (toAdd.FinalizeAddTo != null && metadata)
+                        {
+                            await toAdd.FinalizeAddTo(session, ct).ConfigureAwait(false);
+                        }
                         added++;
                         applyChanges = true;
                     }
@@ -714,7 +764,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Resolve display names for all nodes that still require a name
             // other than the node id string.
             //
-            // Note that we use the desired set hereand  update the display
+            // Note that we use the desired set here and update the display
             // name after AddTo/MergeWith as it only effects the messages
             // and metadata emitted and not the item as it is set up in the
             // subscription (like what we do when resolving nodes). This
@@ -776,23 +826,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _logger.LogDebug(
-                "Completing {Count} items in subscription {Subscription}...",
-                desiredMonitoredItems.Count, this);
-
-            var set = MonitoredItems
-                .OfType<OpcUaMonitoredItem>()
-                .ToHashSet();
-            foreach (var monitoredItem in desiredMonitoredItems)
+                "Completing {Count} same/added and {Removed} removed items in subscription {Subscription}...",
+                desiredMonitoredItems.Count, remove.Count, this);
+            foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
                 {
-                    // Apply any changes from this second pass
+                    // Apply more changes in future passes
                     invalidItems++;
                 }
-                else
-                {
-                    set.Add(monitoredItem);
-                }
+            }
+
+            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
+            var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
+            _logger.LogDebug(
+                "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
+                set.Count, desiredMonitoredItems.Count - set.Count, this);
+
+            var finalize = set
+                .Where(i => i.FinalizeCompleteChanges != null)
+                .Select(i => i.FinalizeCompleteChanges!(ct))
+                .ToArray();
+            if (finalize.Length > 0)
+            {
+                await Task.WhenAll(finalize).ConfigureAwait(false);
             }
 
             if (applyChanges)
@@ -813,19 +870,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // metadata. Then we need a way to retain the previous metadata until
             // switching over.
             //
-            // Create currently monitored items list
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
                 "Client handles are not distinct or one of the items is null");
-            var currentlyMonitored = set
-                .ToFrozenDictionary(m => m.ClientHandle, m => m);
             if (metadataChanged)
             {
                 var threshold =
                     _template.Configuration?.AsyncMetaDataLoadThreshold
                         ?? 30; // Synchronous loading for 30 or less items
-                var tcs = (currentlyMonitored.Count <= threshold) ? new TaskCompletionSource() : null;
+                var tcs = (set.Count <= threshold) ? new TaskCompletionSource() : null;
                 var args = new MetaDataLoader.MetaDataLoaderArguments(tcs, session,
-                    session.NamespaceUris, currentlyMonitored.Values.ToList());
+                    session.NamespaceUris, set.OrderBy(m => m.ClientHandle));
                 _metaDataLoader.Value.Reload(args);
                 if (tcs != null)
                 {
@@ -888,6 +942,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            finalize = set
+                .Where(i => i.FinalizeMonitoringModeChange != null)
+                .Select(i => i.FinalizeMonitoringModeChange!(ct))
+                .ToArray();
+            if (finalize.Length > 0)
+            {
+                await Task.WhenAll(finalize).ConfigureAwait(false);
+            }
+
             // Cleanup all items that are not in the currently monitoring list
             previouslyMonitored
                 .Except(set)
@@ -895,13 +958,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ForEach(m => m.Dispose());
 
             // Update subscription state
-            _currentlyMonitored = currentlyMonitored;
-            NumberOfNotCreatedItems = invalidItems;
-            NumberOfCreatedItems = currentlyMonitored.Count - invalidItems;
+            _additionallyMonitored = set
+                .Where(m => !m.AttachedToSubscription)
+                .ToFrozenDictionary(m => m.ClientHandle, m => m);
+
+            _badMonitoredItems = invalidItems;
+            _goodMonitoredItems = set.Count - invalidItems;
 
             _logger.LogInformation(
                 "Now monitoring {Count} (Good:{Good}/Bad:{Bad}) nodes in subscription {Subscription}.",
-                currentlyMonitored.Count, NumberOfCreatedItems, NumberOfNotCreatedItems, this);
+                set.Count, _goodMonitoredItems, _badMonitoredItems, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -931,15 +997,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Set up subscription management trigger
             if (invalidItems != 0)
             {
-                // Retry applying invalid items every 5 minutes
+                // There were items that could not be added to subscription
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
             }
-            else if (desiredMonitoredItems.Count != currentlyMonitored.Count)
+            else if (desiredMonitoredItems.Count != set.Count)
             {
-                // Try to periodically update the subscription
-                // TODO: Trigger on address space model changes...
-
+                // There were items !Valid but desired.
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.BadMonitoredItemRetryDelay, TimeSpan.FromMinutes(30));
             }
@@ -1002,7 +1066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Session {Session} for {Subscription} not connected.",
                     session, this);
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.CreateSessionTimeout, TimeSpan.FromSeconds(10));
+                    _options.Value.CreateSessionTimeoutDuration, TimeSpan.FromSeconds(10));
                 return;
             }
 
@@ -1032,7 +1096,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await ApplyChangesAsync(ct).ConfigureAwait(false);
             }
 
-            var shouldEnable = _currentlyMonitored.Values
+            var shouldEnable = MonitoredItems
+                .OfType<OpcUaMonitoredItem>()
                 .Any(m => m.Valid && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
@@ -1256,6 +1321,7 @@ Actual (revised) state/desired state:
         /// <param name="ensureClientExists"></param>
         private void TriggerManageSubscription(bool ensureClientExists)
         {
+            Debug.Assert(!_disposed);
             //
             // Ensure a client and session exists for this subscription. This takes a
             // reference that must be released when the subscription is closed or the
@@ -1290,13 +1356,9 @@ Actual (revised) state/desired state:
         private void OnSubscriptionEventNotificationList(Subscription subscription,
             EventNotificationList notification, IList<string>? stringTable)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "EventChange for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
+
             if (notification?.Events == null)
             {
                 _logger.LogWarning(
@@ -1347,10 +1409,12 @@ Actual (revised) state/desired state:
                 }
 
                 var numOfEvents = 0;
+                var overflows = 0;
                 foreach (var eventFieldList in notification.Events)
                 {
                     Debug.Assert(eventFieldList != null);
-                    if (_currentlyMonitored.TryGetValue(eventFieldList.ClientHandle, out var monitoredItem))
+                    var monitoredItem = subscription.FindItemByClientHandle(eventFieldList.ClientHandle) as OpcUaMonitoredItem;
+                    if (monitoredItem != null || _additionallyMonitored.TryGetValue(eventFieldList.ClientHandle, out monitoredItem))
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
@@ -1364,6 +1428,7 @@ Actual (revised) state/desired state:
                             MessageType = MessageType.Event,
                             PublishTimestamp = publishTime
                         };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                         if (!monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, eventFieldList, message.Notifications))
@@ -1376,6 +1441,7 @@ Actual (revised) state/desired state:
                         {
                             _callbacks.OnSubscriptionEventChange(message);
                             numOfEvents++;
+                            overflows += message.Notifications.Sum(n => n.Overflow);
                         }
                         else
                         {
@@ -1384,19 +1450,18 @@ Actual (revised) state/desired state:
                     }
                     else
                     {
-                        var found = subscription.FindItemByClientHandle(eventFieldList.ClientHandle);
                         _unassignedNotifications++;
 
-                        if (_logger.IsEnabled(LogLevel.Debug) || found != null)
+                        if (_logger.IsEnabled(LogLevel.Debug))
                         {
                             _logger.LogDebug(
                                 "Monitored item not found with client handle {ClientHandle} for " +
-                                "for Event received for subscription {Subscription} ({Count}, {Item}).",
-                                eventFieldList.ClientHandle, this, _currentlyMonitored.Count, found);
+                                "for Event received for subscription {Subscription}.",
+                                eventFieldList.ClientHandle, this);
                         }
                     }
                 }
-                _callbacks.OnSubscriptionEventDiagnosticsChange(true, numOfEvents);
+                _callbacks.OnSubscriptionEventDiagnosticsChange(true, overflows, numOfEvents, 0);
             }
             catch (Exception e)
             {
@@ -1421,13 +1486,8 @@ Actual (revised) state/desired state:
         private void OnSubscriptionKeepAliveNotification(Subscription subscription,
             NotificationData notification)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "Keep Alive for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
 
             ResetKeepAliveTimer();
 
@@ -1498,13 +1558,8 @@ Actual (revised) state/desired state:
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
             DataChangeNotification notification, IList<string>? stringTable)
         {
-            if (!ReferenceEquals(subscription, this))
-            {
-                _logger.LogWarning(
-                    "DataChange for wrong subscription {Id} received on {Subscription}.",
-                    subscription?.Id, this);
-                return;
-            }
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
 
             var session = Session;
             if (session?.MessageContext == null)
@@ -1534,6 +1589,7 @@ Actual (revised) state/desired state:
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = MessageType.DeltaFrame
                 };
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 Debug.Assert(notification.MonitoredItems != null);
 
@@ -1557,7 +1613,8 @@ Actual (revised) state/desired state:
                 foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
                 {
                     Debug.Assert(item != null);
-                    if (_currentlyMonitored.TryGetValue(item.ClientHandle, out var monitoredItem))
+                    var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle) as OpcUaMonitoredItem;
+                    if (monitoredItem != null || _additionallyMonitored.TryGetValue(item.ClientHandle, out monitoredItem))
                     {
                         if (!monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, item, message.Notifications))
@@ -1569,25 +1626,25 @@ Actual (revised) state/desired state:
                     }
                     else
                     {
-                        var found = subscription.FindItemByClientHandle(item.ClientHandle);
                         _unassignedNotifications++;
 
-                        if (_logger.IsEnabled(LogLevel.Debug) || found != null)
+                        if (_logger.IsEnabled(LogLevel.Debug))
                         {
                             _logger.LogWarning(
                                 "Monitored item not found with client handle {ClientHandle} for " +
-                                "for DataChange received for subscription {Subscription} ({Count}, {Item}).",
-                                item.ClientHandle, this, _currentlyMonitored.Count, found);
+                                "for DataChange received for subscription {Subscription}.",
+                                item.ClientHandle, this);
                         }
                     }
                 }
 
                 _callbacks.OnSubscriptionDataChange(message);
                 Debug.Assert(message.Notifications != null);
-                if (message.Notifications.Count > 0)
+                var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var cyclicReads,
+                    out var overflows);
+                if (count > 0)
                 {
-                    _callbacks.OnSubscriptionDataDiagnosticsChange(true,
-                        message.Notifications.Count, 0, 0);
+                    _callbacks.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats, cyclicReads);
                 }
             }
             catch (Exception e)
@@ -1623,7 +1680,9 @@ Actual (revised) state/desired state:
                         return false;
                     }
                     notifications = new List<MonitoredItemNotificationModel>();
-                    foreach (var item in _currentlyMonitored.Values)
+
+                    // Ensure we order by client handle exactly like the meta data is ordered
+                    foreach (var item in CurrentlyMonitored.OrderBy(m => m.ClientHandle))
                     {
                         item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
                     }
@@ -1659,6 +1718,7 @@ Actual (revised) state/desired state:
         /// </summary>
         private void ResetKeepAliveTimer()
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _continuouslyMissingKeepAlives = 0;
 
             if (!IsOnline)
@@ -1685,7 +1745,11 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnKeepAliveMissing(object? state)
         {
-            Debug.Assert(!_closed);
+            if (_disposed)
+            {
+                Debug.Fail("Should not be called after dispose");
+                return;
+            }
 
             if (!IsOnline)
             {
@@ -1694,7 +1758,7 @@ Actual (revised) state/desired state:
                 return;
             }
 
-            NumberOfMissingKeepAlives++;
+            _missingKeepAlives++;
             _continuouslyMissingKeepAlives++;
 
             if (_continuouslyMissingKeepAlives == CurrentLifetimeCount + 1)
@@ -1725,6 +1789,7 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
@@ -1773,6 +1838,7 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
@@ -1892,18 +1958,6 @@ Actual (revised) state/desired state:
             public DateTime CreatedTimestamp { get; }
 
             /// <summary>
-            /// Number of heartbeats
-            /// </summary>
-            internal int Heartbeats => Notifications
-                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
-
-            /// <summary>
-            /// Number of cyclic reads
-            /// </summary>
-            internal int CyclicReads => Notifications
-                .Count(n => n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead));
-
-            /// <summary>
             /// Create acknoledgeable notification
             /// </summary>
             /// <param name="outer"></param>
@@ -1960,6 +2014,42 @@ Actual (revised) state/desired state:
             }
             private bool _processed;
 #endif
+
+            /// <summary>
+            /// Get diagnostics info from message
+            /// </summary>
+            /// <param name="modelChanges"></param>
+            /// <param name="heartbeats"></param>
+            /// <param name="cyclicReads"></param>
+            /// <param name="overflow"></param>
+            /// <returns></returns>
+            internal int GetDiagnosticCounters(out int modelChanges, out int heartbeats,
+                out int cyclicReads, out int overflow)
+            {
+                modelChanges = 0;
+                heartbeats = 0;
+                cyclicReads = 0;
+                overflow = 0;
+                foreach (var n in Notifications)
+                {
+                    /**/
+                    if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
+                    {
+                        modelChanges++;
+                    }
+                    else if (n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead))
+                    {
+                        cyclicReads++;
+                    }
+                    else if (n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat))
+                    {
+                        heartbeats++;
+                    }
+                    overflow += n.Overflow;
+                }
+                return Notifications.Count;
+            }
+
             private readonly OpcUaSubscription _outer;
             private readonly uint _subscriptionId;
         }
@@ -2118,7 +2208,7 @@ Actual (revised) state/desired state:
 
             internal record MetaDataLoaderArguments(TaskCompletionSource? tcs,
                 IOpcUaSession sessionHandle, NamespaceTable namespaces,
-                List<OpcUaMonitoredItem> monitoredItemsInDataSet);
+                IEnumerable<OpcUaMonitoredItem> monitoredItemsInDataSet);
             private MetaDataLoaderArguments? _arguments;
             private readonly Task _loader;
             private readonly CancellationTokenSource _cts = new();
@@ -2126,29 +2216,25 @@ Actual (revised) state/desired state:
             private readonly OpcUaSubscription _subscription;
         }
 
-        private int NumberOfCreatedItems { get; set; }
-        private int NumberOfNotCreatedItems { get; set; }
-        private int NumberOfMissingKeepAlives { get; set; }
-
         /// <summary>
         /// Create observable metrics
         /// </summary>
         public void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
-                () => new Measurement<long>(NumberOfMissingKeepAlives,
+                () => new Measurement<long>(_missingKeepAlives,
                 _metrics.TagList), "Keep Alives", "Number of missing keep alives in subscription.");
             _meter.CreateObservableCounter("iiot_edge_publisher_unassigned_notification_count",
                 () => new Measurement<long>(_unassignedNotifications,
                 _metrics.TagList), "Notifications", "Number of notifications that could not be assigned.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
-                () => new Measurement<long>(NumberOfCreatedItems,
+                () => new Measurement<long>(_goodMonitoredItems,
                 _metrics.TagList), "Monitored items", "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
-                () => new Measurement<long>(NumberOfNotCreatedItems,
+                () => new Measurement<long>(_badMonitoredItems,
                 _metrics.TagList), "Monitored items", "Monitored items with errors.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(_currentlyMonitored.Count,
+                () => new Measurement<long>(_additionallyMonitored.Count + MonitoredItemCount,
                 _metrics.TagList), "Monitored items", "Monitored item count.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
@@ -2167,7 +2253,7 @@ Actual (revised) state/desired state:
         }
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
-        private FrozenDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
+        private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
         private SubscriptionModel _template;
         private IOpcUaClient? _client;
         private uint _previousSequenceNumber;
@@ -2187,6 +2273,9 @@ Actual (revised) state/desired state:
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private uint _currentSequenceNumber;
+        private int _goodMonitoredItems;
+        private int _badMonitoredItems;
+        private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;
         private long _unassignedNotifications;
         private bool _disposed;

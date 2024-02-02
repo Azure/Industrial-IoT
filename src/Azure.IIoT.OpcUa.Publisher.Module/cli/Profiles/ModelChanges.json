@@ -1,0 +1,13 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "EndpointSecurityMode": "SignAndEncrypt",
+        "OpcNodes": [
+            {
+                "ModelChangeHandling": {
+                    "RebrowsePeriod": "00:00:10"
+                }
+            }
+        ]
+    }
+]

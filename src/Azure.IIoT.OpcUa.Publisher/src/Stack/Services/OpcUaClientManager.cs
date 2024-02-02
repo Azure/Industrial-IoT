@@ -30,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
         IOpcUaSubscriptionManager, IEndpointDiscovery, ICertificateServices<EndpointModel>,
-        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>, IDisposable
+        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>,
+        IClientDiagnostics, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
@@ -85,15 +86,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             connection.ThrowIfInvalid(nameof(connection));
             return GetOrAddClient(connection);
-        }
-
-        /// <inheritdoc/>
-        public IAsyncDisposable Sample(ConnectionModel connection,
-            TimeSpan samplingRate, ReadValueId nodeToRead, Action<uint, DataValue> callback)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            using var client = GetOrAddClient(connection);
-            return client.RegisterSampler(samplingRate, nodeToRead, callback);
         }
 
         /// <inheritdoc/>
@@ -167,6 +159,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = FindClient(connection);
             client?.Release(request.ConnectionHandle);
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task ResetAllClients(CancellationToken ct)
+        {
+            return Task.WhenAll(_clients.Values.Select(c => c.ResetAsync(ct)).ToArray());
+        }
+
+        /// <inheritdoc/>
+        public Task SetTraceModeAsync(CancellationToken ct)
+        {
+            return Task.WhenAll(_clients.Values.Select(c => c.SetTraceModeAsync(ct)).ToArray());
         }
 
         /// <inheritdoc/>
@@ -305,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _disposed = true;
 
-            _logger.LogInformation("Stopping all clients...");
+            _logger.LogInformation("Stopping all {Count} clients...", _clients.Count);
             foreach (var client in _clients)
             {
                 try
@@ -315,13 +319,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected exception disposing session {Name}",
+                    _logger.LogError(ex, "Unexpected exception disposing client {Name}",
                         client.Key);
                 }
             }
             _clients.Clear();
-            _logger.LogInformation(
-                "Stopped all sessions, current number of sessions is 0");
+            _logger.LogInformation("Stopped all clients, current number of clients is 0");
         }
 
         /// <summary>
@@ -331,9 +334,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private OpcUaClient? FindClient(ConnectionModel connection)
         {
-            // Find session and if not exists create
+            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
+            // try to get an existing client
             if (!_clients.TryGetValue(id, out var client))
             {
                 return null;
@@ -532,26 +535,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find session and if not exists create
+            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
+            // try to get an existing client
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
-                    _options.Value.MaxReconnectDelay)
+                    _options.Value.MaxReconnectDelayDuration)
                 {
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
 
                     DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading,
-                    MinReconnectDelay = _options.Value.MinReconnectDelay,
-                    CreateSessionTimeout = _options.Value.CreateSessionTimeout,
-                    KeepAliveInterval = _options.Value.KeepAliveInterval,
-                    SessionTimeout = _options.Value.DefaultSessionTimeout,
-                    LingerTimeout = _options.Value.LingerTimeout,
-
+                    MinReconnectDelay = _options.Value.MinReconnectDelayDuration,
+                    CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
+                    KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,
+                    SessionTimeout = _options.Value.DefaultSessionTimeoutDuration,
+                    LingerTimeout = _options.Value.LingerTimeoutDuration,
+                    LimitOverrides = new OperationLimits
+                    {
+                        MaxNodesPerRead = (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),
+                        MaxNodesPerBrowse = (uint)(_options.Value.MaxNodesPerBrowseOverride ?? 0)
+                        // ...
+                    },
                     MinPublishRequests = _options.Value.MinPublishRequests,
                     PublishRequestsPerSubscriptionPercent =
                         _options.Value.PublishRequestsPerSubscriptionPercent

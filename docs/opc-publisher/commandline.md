@@ -11,14 +11,13 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
-
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
 ██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗
 ██║   ██║██████╔╝██║         ██████╔╝██║   ██║██████╔╝██║     ██║███████╗███████║█████╗  ██████╔╝
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.4.372.116)
+                                                   2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.3)
 
 General
 -------
@@ -71,7 +70,7 @@ General
       --doa, --disableopenapi, --DisableOpenApiEndpoint[=VALUE]
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.
-                               Default: `enabled`.
+                               Default: `False` (enabled).
 
 Messaging configuration
 -----------------------
@@ -537,20 +536,25 @@ Subscription settings
                                Also can be set using `DefaultHeartbeatInterval`
                                environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
+      --ucr, --usecyclicreads, --DefaultSamplingUsingCyclicRead[=VALUE]
+                             All nodes should be sampled using periodical
+                               client reads instead of subscriptions services,
+                               unless otherwise configured.
+                               Default: `false`.
       --da, --deferredacks, --UseDeferredAcknoledgements[=VALUE]
                              (Experimental) Acknoledge subscription
                                notifications only when the data has been
                                successfully published.
                                Default: `false`.
+      --rbp, --rebrowseperiod, --DefaultRebrowsePeriod=VALUE
+                             (Experimental) The default time to wait until the
+                               address space model is browsed again when
+                               generating model change notifications.
+                               Default: `12:00:00`.
       --sqp, --sequentialpublishing, --EnableSequentialPublishing[=VALUE]
                              (Experimental) Explicitly disable or enable
                                sequential publishing.
                                Default: `true` (enabled).
-      --ucr, --usecyclicreads, --DefaultSamplingUsingCyclicRead[=VALUE]
-                             (Experimental) All nodes should be sampled using
-                               periodical client reads instead of subscriptions
-                               services, unless otherwise configured.
-                               Default: `false`.
       --urc, --usereverseconnect, --DefaultUseReverseConnect[=VALUE]
                              (Experimental) Use reverse connect for all
                                endpoints that are part of the subscription
@@ -614,6 +618,16 @@ OPC UA Client configuration
                              The port to use when accepting inbound reverse
                                connect requests from servers.
                                Default: `4840`.
+      --mnr, --maxnodesperread, --MaxNodesPerReadOverride=VALUE
+                             Limit max number of nodes to read in a single read
+                               request when batching reads or the server limit
+                               if less.
+                               Default: `0` (using server limit).
+      --mnb, --maxnodesperbrowse, --MaxNodesPerBrowseOverride=VALUE
+                             Limit max number of nodes per browse request when
+                               batching browse operations or the server limit
+                               if less.
+                               Default: `0` (using server limit).
       --mpr, --minpublishrequests, --MinPublishRequests=VALUE
                              Minimum number of publish requests to queue once
                                subscriptions are created in the session.
@@ -807,8 +821,7 @@ Diagnostic options
                                    `None`
                                Default: `Information`.
       --lfm, --logformat, --LogFormat=VALUE
-                             The logging format to use when writing to the 
-                               console.
+                             The log format to use when writing to the console.
                                Allowed values:
                                    `simple`
                                    `syslog`

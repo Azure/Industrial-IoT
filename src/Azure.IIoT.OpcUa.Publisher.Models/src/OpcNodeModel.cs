@@ -202,6 +202,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? FetchDisplayName { get; set; }
 
         /// <summary>
+        /// Configuration for model change tracking nodes
+        /// </summary>
+        [DataMember(Name = "ModelChangeHandling", Order = 28,
+            EmitDefaultValue = false)]
+        public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; set; }
+
+        /// <summary>
         /// Expanded Node identifier (same as <see cref="Id"/>)
         /// </summary>
         [DataMember(Name = "ExpandedNodeId", Order = 30,

@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 TagList = new TagList(new[]
                 {
                     new KeyValuePair<string, object?>(Constants.SiteIdTag,
-                        _outer._options?.Value.Site ?? Constants.DefaultSite),
+                        _outer._options?.Value.SiteId ?? Constants.DefaultSiteId),
                     new KeyValuePair<string, object?>(Constants.PublisherIdTag,
                         _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,

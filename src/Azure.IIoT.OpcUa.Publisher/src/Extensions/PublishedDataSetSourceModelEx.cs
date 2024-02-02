@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedEvent"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        internal static EventMonitoredItemModel? ToMonitoredItemTemplate(
+        internal static BaseMonitoredItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetEventModel publishedEvent,
             OpcUaSubscriptionOptions options)
         {
@@ -162,6 +162,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             var eventNotifier = publishedEvent.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
+
+            if (publishedEvent.ModelChangeHandling != null)
+            {
+                return new MonitoredAddressSpaceModel
+                {
+                    DataSetFieldId = publishedEvent.Id ?? eventNotifier,
+                    DataSetFieldName = publishedEvent.PublishedEventName ?? string.Empty,
+                    //
+                    // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
+                    // 0 the Server returns the default queue size for Event Notifications
+                    // as revisedQueueSize for event monitored items.
+                    //
+                    QueueSize = options?.DefaultQueueSize ?? 0,
+                    RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan
+                        ?? options?.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
+                    AttributeId = null,
+                    DiscardNew = false,
+                    MonitoringMode = publishedEvent.MonitoringMode ?? MonitoringMode.Reporting,
+                    StartNodeId = eventNotifier,
+                    RootNodeId = Opc.Ua.ObjectIds.RootFolder.ToString()
+                };
+            }
+
             return new EventMonitoredItemModel
             {
                 DataSetFieldId = publishedEvent.Id ?? eventNotifier,
@@ -175,8 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     WhereClause = publishedEvent.Filter?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
-                DiscardNew = publishedEvent.DiscardNew
-                    ?? options?.DefaultDiscardNew,
+                DiscardNew = publishedEvent.DiscardNew ?? options?.DefaultDiscardNew,
 
                 //
                 // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/

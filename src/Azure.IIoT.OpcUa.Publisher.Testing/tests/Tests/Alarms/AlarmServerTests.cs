@@ -14,6 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Text.Json;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Alarms server node tests
@@ -113,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            var expected = new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
@@ -179,9 +181,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassName.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassName.Value"
                     }
                 }
-            });
+            };
+            result.EventFilter.Should().BeEquivalentTo(expected);
         }
 
         public async Task CompileSimpleTripAlarmQueryTestAsync(CancellationToken ct = default)
@@ -195,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            var expected = new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
@@ -313,6 +344,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
+                        TypeDefinitionId = "i=2782",
+                        BrowsePath = new[] { "/SupportsFilteredRetain" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/SupportsFilteredRetain.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
@@ -345,20 +383,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/EnabledState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EnabledState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/EnabledState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EnabledState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -404,41 +428,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/ClientUserId" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ClientUserId.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/Disable" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Disable.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/Enable" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Enable.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/AddComment" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AddComment.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/AddComment", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AddComment/InputArguments.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
@@ -461,20 +450,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/AckedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AckedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/AckedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AckedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState.Value"
@@ -492,48 +467,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/ConfirmedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConfirmedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/ConfirmedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConfirmedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Acknowledge" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Acknowledge.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Acknowledge", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Acknowledge/InputArguments.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Confirm" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Confirm.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Confirm", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Confirm/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -573,20 +506,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/ActiveState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ActiveState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/ActiveState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ActiveState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/InputNode.Value"
@@ -615,20 +534,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SuppressedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SuppressedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SuppressedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SuppressedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState.Value"
@@ -646,20 +551,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/OutOfServiceState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/OutOfServiceState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/OutOfServiceState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/OutOfServiceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -790,20 +681,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SilenceState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SilenceState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SilenceState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SilenceState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OnDelay.Value"
@@ -853,20 +730,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/LatchedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LatchedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/LatchedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LatchedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/<AlarmGroup>.Value"
@@ -887,55 +750,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Silence" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Silence.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Suppress" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Suppress.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Unsuppress" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Unsuppress.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/RemoveFromService" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/RemoveFromService.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/PlaceInService" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/PlaceInService.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Reset" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Reset.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
                         TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/NormalState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/NormalState.Value"
                     }
                 }
-            });
+            };
+            result.EventFilter.Should().BeEquivalentTo(expected);
         }
 
         public async Task CompileAlarmQueryTest1Async(CancellationToken ct = default)
@@ -956,7 +778,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
 
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            var expected = new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
@@ -1033,7 +855,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         }
                     }
                 }
-            });
+            };
+
+            result.EventFilter.Should().BeEquivalentTo(expected);
         }
 
         public async Task CompileAlarmQueryTest2Async(CancellationToken ct = default)
@@ -1053,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotNull(result);
             Assert.Null(result.ErrorInfo);
-            result.EventFilter.Should().BeEquivalentTo(new EventFilterModel
+            var expected = new EventFilterModel
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
@@ -1122,6 +946,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionClassName.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassId" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassId.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = new[] { "/ConditionSubClassName" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/ConditionSubClassName.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
@@ -1171,6 +1023,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
+                        TypeDefinitionId = "i=2782",
+                        BrowsePath = new[] { "/SupportsFilteredRetain" },
+                        AttributeId = NodeAttribute.Value,
+                        DisplayName = "/SupportsFilteredRetain.Value"
+                    },
+                    new SimpleAttributeOperandModel
+                    {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
@@ -1203,20 +1062,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/EnabledState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EnabledState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/EnabledState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EnabledState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -1262,41 +1107,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     },
                     new SimpleAttributeOperandModel
                     {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/ClientUserId" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ClientUserId.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/Disable" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Disable.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/Enable" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Enable.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/AddComment" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AddComment.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2782",
-                        BrowsePath = new[] { "/AddComment", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AddComment/InputArguments.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
@@ -1319,20 +1129,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/AckedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AckedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/AckedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/AckedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState.Value"
@@ -1350,48 +1146,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConfirmedState/TransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/ConfirmedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConfirmedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/ConfirmedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConfirmedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Acknowledge" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Acknowledge.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Acknowledge", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Acknowledge/InputArguments.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Confirm" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Confirm.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2881",
-                        BrowsePath = new[] { "/Confirm", "/InputArguments" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Confirm/InputArguments.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -1431,20 +1185,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/ActiveState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ActiveState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/ActiveState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ActiveState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/InputNode.Value"
@@ -1473,20 +1213,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SuppressedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SuppressedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SuppressedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SuppressedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState.Value"
@@ -1504,20 +1230,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OutOfServiceState/TransitionTime.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/OutOfServiceState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/OutOfServiceState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/OutOfServiceState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/OutOfServiceState/FalseState.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -1648,20 +1360,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SilenceState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SilenceState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/SilenceState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SilenceState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/OnDelay.Value"
@@ -1711,20 +1409,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new SimpleAttributeOperandModel
                     {
                         TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/LatchedState", "/TrueState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LatchedState/TrueState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/LatchedState", "/FalseState" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LatchedState/FalseState.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/<AlarmGroup>.Value"
@@ -1742,48 +1426,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         BrowsePath = new[] { "/ReAlarmRepeatCount" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReAlarmRepeatCount.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Silence" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Silence.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Suppress" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Suppress.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Unsuppress" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Unsuppress.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/RemoveFromService" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/RemoveFromService.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/PlaceInService" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/PlaceInService.Value"
-                    },
-                    new SimpleAttributeOperandModel
-                    {
-                        TypeDefinitionId = "i=2915",
-                        BrowsePath = new[] { "/Reset" },
-                        AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Reset.Value"
                     },
                     new SimpleAttributeOperandModel
                     {
@@ -1844,7 +1486,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         }
                     }
                 }
-            });
+            };
+            result.EventFilter.Should().BeEquivalentTo(expected);
         }
 
         private readonly T _connection;

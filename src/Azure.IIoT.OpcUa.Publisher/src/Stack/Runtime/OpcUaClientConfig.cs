@@ -62,18 +62,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string CreateSessionTimeoutKey = "CreateSessionTimeout";
         public const string MaxReconnectDelayKey = "MaxReconnectDelay";
         public const string MinReconnectDelayKey = "MinReconnectDelay";
-        public const string SubscriptionErrorRetryDelayKey = "SubscriptionErrorRetryDelay";
-        public const string InvalidMonitoredItemRetryDelayKey = "InvalidMonitoredItemRetryDelay";
+        public const string SubscriptionErrorRetryDelaySecondsKey = "SubscriptionErrorRetryDelaySeconds";
+        public const string InvalidMonitoredItemRetryDelaySecondsKey = "InvalidMonitoredItemRetryDelaySeconds";
         public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
         public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
-        public const string LingerTimeoutKey = "LingerTimeout";
+        public const string LingerTimeoutSecondsKey = "LingerTimeoutSeconds";
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
         public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
         public const string MinPublishRequestsKey = "MinPublishRequests";
-        public const string CaptureDeviceKey = "CaptureDevice";
-        public const string CaptureFileNameKey = "CaptureFileName";
+        public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
+        public const string MaxNodesPerReadOverrideKey = "MaxNodesPerReadOverride";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -109,7 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectUnknownRevocationStatusDefault = true;
         public const int MinPublishRequestsDefault = 3;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;
-        public const string CaptureFileNameDefault = "opcua.pcap";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -138,33 +137,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     ProductUriDefault);
             }
 
-            if (options.DefaultSessionTimeout == null)
+            if (options.DefaultSessionTimeoutDuration == null)
             {
                 var sessionTimeout = GetIntOrDefault(DefaultSessionTimeoutKey,
                     DefaultSessionTimeoutDefaultSec);
                 if (sessionTimeout > 0)
                 {
-                    options.DefaultSessionTimeout = TimeSpan.FromSeconds(sessionTimeout);
+                    options.DefaultSessionTimeoutDuration = TimeSpan.FromSeconds(sessionTimeout);
                 }
             }
 
-            if (options.KeepAliveInterval == null)
+            if (options.KeepAliveIntervalDuration == null)
             {
                 var keepAliveInterval = GetIntOrDefault(KeepAliveIntervalKey,
                     KeepAliveIntervalDefaultSec);
                 if (keepAliveInterval > 0)
                 {
-                    options.KeepAliveInterval = TimeSpan.FromSeconds(keepAliveInterval);
+                    options.KeepAliveIntervalDuration = TimeSpan.FromSeconds(keepAliveInterval);
                 }
             }
 
-            if (options.CreateSessionTimeout == null)
+            if (options.CreateSessionTimeoutDuration == null)
             {
                 var createSessionTimeout = GetIntOrDefault(CreateSessionTimeoutKey,
                     CreateSessionTimeoutDefaultSec);
                 if (createSessionTimeout > 0)
                 {
-                    options.CreateSessionTimeout = TimeSpan.FromSeconds(createSessionTimeout);
+                    options.CreateSessionTimeoutDuration = TimeSpan.FromSeconds(createSessionTimeout);
                 }
             }
 
@@ -174,32 +173,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     ReverseConnectPortDefault);
             }
 
-            if (options.MinReconnectDelay == null)
+            if (options.MinReconnectDelayDuration == null)
             {
                 var reconnectDelay = GetIntOrDefault(MinReconnectDelayKey,
                     MinReconnectDelayDefault);
                 if (reconnectDelay > 0)
                 {
-                    options.MinReconnectDelay = TimeSpan.FromMilliseconds(reconnectDelay);
+                    options.MinReconnectDelayDuration = TimeSpan.FromMilliseconds(reconnectDelay);
                 }
             }
 
-            if (options.MaxReconnectDelay == null)
+            if (options.MaxReconnectDelayDuration == null)
             {
                 var reconnectDelay = GetIntOrDefault(MaxReconnectDelayKey,
                     MaxReconnectDelayDefault);
                 if (reconnectDelay > 0)
                 {
-                    options.MaxReconnectDelay = TimeSpan.FromMilliseconds(reconnectDelay);
+                    options.MaxReconnectDelayDuration = TimeSpan.FromMilliseconds(reconnectDelay);
                 }
             }
 
-            if (options.LingerTimeout == null)
+            if (options.LingerTimeoutDuration == null)
             {
-                var lingerTimeout = GetIntOrDefault(LingerTimeoutKey);
+                var lingerTimeout = GetIntOrDefault(LingerTimeoutSecondsKey);
                 if (lingerTimeout > 0)
                 {
-                    options.LingerTimeout = TimeSpan.FromSeconds(lingerTimeout);
+                    options.LingerTimeoutDuration = TimeSpan.FromSeconds(lingerTimeout);
                 }
             }
 
@@ -210,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             if (options.SubscriptionErrorRetryDelay == null)
             {
-                var retryTimeout = GetIntOrDefault(SubscriptionErrorRetryDelayKey);
+                var retryTimeout = GetIntOrDefault(SubscriptionErrorRetryDelaySecondsKey);
                 if (retryTimeout >= 0)
                 {
                     options.SubscriptionErrorRetryDelay = TimeSpan.FromSeconds(retryTimeout);
@@ -228,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             if (options.InvalidMonitoredItemRetryDelay == null)
             {
-                var retryTimeout = GetIntOrDefault(InvalidMonitoredItemRetryDelayKey);
+                var retryTimeout = GetIntOrDefault(InvalidMonitoredItemRetryDelaySecondsKey);
                 if (retryTimeout >= 0)
                 {
                     options.InvalidMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
@@ -257,15 +256,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     PublishRequestsPerSubscriptionPercentDefault);
             }
 
-            if (string.IsNullOrEmpty(options.CaptureDevice))
+            if (options.MaxNodesPerReadOverride == null)
             {
-                options.CaptureDevice = GetStringOrDefault(CaptureDeviceKey);
+                options.MaxNodesPerReadOverride = GetIntOrNull(MaxNodesPerReadOverrideKey);
             }
 
-            if (string.IsNullOrEmpty(options.CaptureFileName))
+            if (options.MaxNodesPerBrowseOverride == null)
             {
-                options.CaptureFileName = GetStringOrDefault(CaptureFileNameKey,
-                    CaptureFileNameDefault);
+                options.MaxNodesPerBrowseOverride = GetIntOrNull(MaxNodesPerBrowseOverrideKey);
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)

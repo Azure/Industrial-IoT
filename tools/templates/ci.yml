@@ -117,8 +117,8 @@ jobs:
       filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Test
-    timeoutInMinutes: 60
+    timeoutInMinutes: 90
     inputs:
       command: test
       projects: '**/tests/*.csproj'
-      arguments: '--blame-hang --blame-hang-timeout 10m --configuration Release'
+      arguments: '--blame-hang --blame-hang-timeout 10m --blame-hang-dump-type full --blame-crash --blame-crash-dump-type full --configuration Release'

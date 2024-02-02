@@ -22,5 +22,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with { });
         }
+
+        /// <summary>
+        /// Check if models are equal
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
+        public static bool IsSameAs(this ConditionHandlingOptionsModel? model,
+            ConditionHandlingOptionsModel? that)
+        {
+            if (model == that)
+            {
+                return true;
+            }
+            if (model == null || that == null)
+            {
+                return false;
+            }
+            if (model.SnapshotInterval != that.SnapshotInterval)
+            {
+                return false;
+            }
+            if (model.UpdateInterval != that.UpdateInterval)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

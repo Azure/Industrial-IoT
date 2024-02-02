@@ -225,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
-            Assert.Equal(34, result.TypeDefinition.Declarations.Count);
+            Assert.Equal(35, result.TypeDefinition.Declarations.Count);
         }
 
         public async Task NodeGetMetadataForServerStatusVariableTestAsync(CancellationToken ct = default)
@@ -352,10 +352,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Equal(NodeClass.Variable, arg.NodeClass);
                 Assert.NotNull(arg.VariableMetadata);
                 Assert.NotNull(arg.VariableMetadata.DataType);
-                Assert.Null(arg.VariableMetadata.ArrayDimensions);
                 Assert.Null(arg.Description);
                 Assert.Null(arg.OverriddenDeclaration);
-                Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
             });
             Assert.Collection(result.TypeDefinition.Declarations,
                 arg =>
@@ -365,6 +363,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("ByteString", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2042", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -373,6 +373,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2043", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -381,6 +383,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2044", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -389,6 +393,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("String", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2045", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -397,6 +403,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2046", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -405,6 +413,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2047", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -413,6 +423,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("TimeZoneDataType", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("i=3190", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -421,6 +433,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("LocalizedText", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2050", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
                 },
                 arg =>
                 {
@@ -429,6 +443,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UInt16", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2051", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
+                },
+                arg =>
+                {
+                    Assert.Equal("/ConditionClassId", Assert.Single(arg.BrowsePath!));
+                    Assert.Equal("ConditionClassId", arg.DisplayName);
+                    Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
+                    Assert.Equal("Optional", arg.ModellingRule);
+                    Assert.Equal("i=31771", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
+                },
+                arg =>
+                {
+                    Assert.Equal("/ConditionClassName", Assert.Single(arg.BrowsePath!));
+                    Assert.Equal("ConditionClassName", arg.DisplayName);
+                    Assert.Equal("LocalizedText", arg.VariableMetadata!.DataType!.DataType);
+                    Assert.Equal("Optional", arg.ModellingRule);
+                    Assert.Equal("i=31772", arg.NodeId);
+                    Assert.Null(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
+                },
+                arg =>
+                {
+                    Assert.Equal("/ConditionSubClassId", Assert.Single(arg.BrowsePath!));
+                    Assert.Equal("ConditionSubClassId", arg.DisplayName);
+                    Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
+                    Assert.Equal("Optional", arg.ModellingRule);
+                    Assert.Equal("i=31773", arg.NodeId);
+                    Assert.NotNull(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(0u, Assert.Single(arg.VariableMetadata.ArrayDimensions));
+                    Assert.Equal(NodeValueRank.OneDimension, arg.VariableMetadata.ValueRank!.Value);
+                },
+                arg =>
+                {
+                    Assert.Equal("/ConditionSubClassName", Assert.Single(arg.BrowsePath!));
+                    Assert.Equal("ConditionSubClassName", arg.DisplayName);
+                    Assert.Equal("LocalizedText", arg.VariableMetadata!.DataType!.DataType);
+                    Assert.Equal("Optional", arg.ModellingRule);
+                    Assert.Equal("i=31774", arg.NodeId);
+                    Assert.NotNull(arg.VariableMetadata.ArrayDimensions);
+                    Assert.Equal(0u, Assert.Single(arg.VariableMetadata.ArrayDimensions));
+                    Assert.Equal(NodeValueRank.OneDimension, arg.VariableMetadata.ValueRank!.Value);
                 });
         }
 
