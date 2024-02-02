@@ -291,9 +291,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 ["iiot_edge_publisher_batch_input_queue_size"] =
                     (d, i) => d.IngressBatchBlockBufferSize = (long)i,
-                ["iiot_edge_publisher_iothub_queue_size"] =
+                ["iiot_edge_publisher_send_queue_size"] =
                     (d, i) => d.OutgressInputBufferCount = (long)i,
-                ["iiot_edge_publisher_iothub_queue_dropped_count"] =
+                ["iiot_edge_publisher_send_queue_dropped_count"] =
                     (d, i) => d.OutgressInputBufferDropped = (long)i,
 
                 ["iiot_edge_publisher_encoding_input_queue_size"] =
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.SentMessagesPerSec = (double)i,
                 ["iiot_edge_publisher_messages"] =
                     (d, i) => d.OutgressIoTMessageCount = (long)i,
-                ["iiot_edge_publisher_failed_iot_messages"] =
+                ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
                 // ... Add here more items if needed

@@ -2216,38 +2216,41 @@ Actual (revised) state/desired state:
             private readonly OpcUaSubscription _subscription;
         }
 
+        private long TotalMonitoredItems => _additionallyMonitored.Count + MonitoredItemCount;
+
         /// <summary>
         /// Create observable metrics
         /// </summary>
         public void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
-                () => new Measurement<long>(_missingKeepAlives,
-                _metrics.TagList), "Keep Alives", "Number of missing keep alives in subscription.");
+                () => new Measurement<long>(_missingKeepAlives, _metrics.TagList),
+                description: "Number of missing keep alives in subscription.");
             _meter.CreateObservableCounter("iiot_edge_publisher_unassigned_notification_count",
-                () => new Measurement<long>(_unassignedNotifications,
-                _metrics.TagList), "Notifications", "Number of notifications that could not be assigned.");
+                () => new Measurement<long>(_unassignedNotifications, _metrics.TagList),
+                description: "Number of notifications that could not be assigned.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
-                () => new Measurement<long>(_goodMonitoredItems,
-                _metrics.TagList), "Monitored items", "Monitored items successfully created.");
+                () => new Measurement<long>(_goodMonitoredItems, _metrics.TagList),
+                description: "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
-                () => new Measurement<long>(_badMonitoredItems,
-                _metrics.TagList), "Monitored items", "Monitored items with errors.");
+                () => new Measurement<long>(_badMonitoredItems, _metrics.TagList),
+                description: "Monitored items with errors.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(_additionallyMonitored.Count + MonitoredItemCount,
-                _metrics.TagList), "Monitored items", "Monitored item count.");
+                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
+                description: "Total monitored item count.");
+
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
-                _metrics.TagList), "Requests per Subscription", "Good publish requests per subsciption.");
+                _metrics.TagList), description: "Good publish requests per subsciption.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.GoodPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), "Requests per Subscription", "Good publish requests per subsciption.");
+                _metrics.TagList), description: "Good publish requests per subsciption.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.BadPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), "Requests per Subscription", "Bad publish requests per subsciption.");
+                _metrics.TagList), description: "Bad publish requests per subsciption.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_min_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.MinPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), "Requests per Subscription", "Min publish requests queued per subsciption.");
+                _metrics.TagList), description: "Min publish requests queued per subsciption.");
 
             static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
