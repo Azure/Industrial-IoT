@@ -2016,8 +2016,13 @@ Actual (revised) state/desired state:
 #endif
 
             /// <summary>
-            /// Number of heartbeats, model changes, cyclic reads
+            /// Get diagnostics info from message
             /// </summary>
+            /// <param name="modelChanges"></param>
+            /// <param name="heartbeats"></param>
+            /// <param name="cyclicReads"></param>
+            /// <param name="overflow"></param>
+            /// <returns></returns>
             internal int GetDiagnosticCounters(out int modelChanges, out int heartbeats,
                 out int cyclicReads, out int overflow)
             {

@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
-                    $"--ki=90",
+                    "--ki=90",
                     "--aa"
                 }).ToArray();
 
