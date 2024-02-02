@@ -389,11 +389,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (subscription != null)
                 {
-                    _outer._logger.LogInformation("Writer received updated subscription!");
+                    _outer._logger.LogInformation(
+                        "Writer with subscription {Id} in writer group {Name} new subscription received.",
+                        Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
                 }
                 else
                 {
-                    _outer._logger.LogInformation("Writer subscription removed after close!");
+                    _outer._logger.LogInformation(
+                        "Writer with subscription {Id} in writer group {Name} subscription removed.",
+                        Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
                 }
             }
 
