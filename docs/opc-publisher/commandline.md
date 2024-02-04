@@ -437,11 +437,8 @@ Routing configuration
       --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
                              Add routing information to messages. The name of
                                the property is `$$RoutingInfo` and the value is
-                               the `DataSetWriterGroup` for that particular
-                               message.
-                               When the `DataSetWriterGroup` is not configured,
-                               the `$$RoutingInfo` property will not be added
-                               to the message even if this argument is set.
+                               the `DataSetWriterGroup` from which the
+                               particular message is emitted.
                                Default: `False`.
 
 Subscription settings
@@ -602,12 +599,12 @@ OPC UA Client configuration
                              The interval in seconds the publisher is sending
                                keep alive messages to the OPC servers on the
                                endpoints it is connected to.
-                               Default: `10000` (10 seconds).
+                               Default: `10` seconds.
       --ot, --operationtimeout, --OperationTimeout=VALUE
                              The operation service call timeout of the
                                publisher OPC UA client in milliseconds.
                                Default: `120000` milliseconds.
-      --cl, --clientlinger, --LingerTimeout=VALUE
+      --cl, --clientlinger, --LingerTimeoutSeconds=VALUE
                              Amount of time in seconds to delay closing a
                                client and underlying session after the a last
                                service call.
@@ -648,13 +645,13 @@ OPC UA Client configuration
                                to a subscription.
                                Set to 0 to disable retrying.
                                Default: `1800` seconds.
-      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelay=VALUE
+      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelaySeconds=VALUE
                              The delay in seconds after which the publisher
                                attempts to re-apply nodes that were incorrectly
                                configured to a subscription.
                                Set to 0 to disable retrying.
                                Default: `300` seconds.
-      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelay=VALUE
+      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelaySeconds=VALUE
                              The delay in seconds between attempts to create a
                                subscription in a session.
                                Set to 0 to disable retrying.
