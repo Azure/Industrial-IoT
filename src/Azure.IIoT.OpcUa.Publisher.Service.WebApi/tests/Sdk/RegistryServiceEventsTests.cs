@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Threading;
 
     public sealed class RegistryServiceEventsTests : IDisposable
     {
@@ -21,17 +22,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         {
             _factory = WebAppFixture.Create(LogFactory.Create(output, Logging.Config));
             _output = output;
+            _cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(kTimeoutMillis));
         }
 
         public void Dispose()
         {
             _factory.Dispose();
+            _cts.Dispose();
         }
 
-        private const int kTimeoutMillis = 10000;
+        private const int kTimeoutMillis = 30000;
         private const int kSubscribeDelay = 100;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
+        private readonly CancellationTokenSource _cts;
+
+        private CancellationToken Ct => _cts.Token;
 
         [Fact]
         public async Task TestPublishPublisherEventAndReceiveAsync()
@@ -50,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnPublisherNewAsync(null, expected);
@@ -88,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -123,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnDiscovererNewAsync(null, expected);
@@ -163,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -193,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnSupervisorNewAsync(null, expected);
@@ -231,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -263,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnApplicationNewAsync(null, expected);
@@ -307,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -341,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnEndpointNewAsync(null, expected);
@@ -384,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -413,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnGatewayNewAsync(null, expected);
@@ -450,7 +456,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
@@ -480,12 +486,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 TimeStamp = DateTime.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, ev =>
-                {
-                    result.SetResult(ev);
-                    return Task.CompletedTask;
-                }))
+            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId, ev =>
+            {
+                result.SetResult(ev);
+                return Task.CompletedTask;
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnDiscoveryProgressAsync(expected);
@@ -527,12 +532,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 TimeStamp = DateTime.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(
-                requestId, ev =>
-                {
-                    result.SetResult(ev);
-                    return Task.CompletedTask;
-                }))
+            await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(requestId, ev =>
+            {
+                result.SetResult(ev);
+                return Task.CompletedTask;
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnDiscoveryProgressAsync(expected);
@@ -569,16 +573,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
-            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, ev =>
+            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId, ev =>
+            {
+                counter++;
+                if (counter == total)
                 {
-                    counter++;
-                    if (counter == total)
-                    {
-                        result.SetResult(true);
-                    }
-                    return Task.CompletedTask;
-                }))
+                    result.SetResult(true);
+                }
+                return Task.CompletedTask;
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)

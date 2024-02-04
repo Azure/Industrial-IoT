@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -17,8 +18,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// at endoint
         /// </summary>
         /// <param name="endpointUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<ICallbackRegistrar> GetHubAsync(
-            string endpointUrl);
+            string endpointUrl, CancellationToken ct = default);
     }
 }

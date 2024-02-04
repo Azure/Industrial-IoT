@@ -126,7 +126,7 @@ The metrics collector module pulls metrics exposed by OPC Publisher and pushes t
 The default configuration to enable scraping metrics is:
 
 ```json
-{ 
+{
     "schemaVersion": "1.0",
     "scrapeFrequencySecs": 120,
     "metricsFormat": "Json",

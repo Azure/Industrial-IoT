@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,66 +19,82 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// Subscribe to application events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
-            Func<ApplicationEventModel?, Task> callback);
+            Func<ApplicationEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to endpoint events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
-            Func<EndpointEventModel?, Task> callback);
+            Func<EndpointEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to gateway events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
-            Func<GatewayEventModel?, Task> callback);
+            Func<GatewayEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to supervisor events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
-            Func<SupervisorEventModel?, Task> callback);
+            Func<SupervisorEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to discoverer events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
-            Func<DiscovererEventModel?, Task> callback);
+            Func<DiscovererEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to publisher events
         /// </summary>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribePublisherEventsAsync(
-            Func<PublisherEventModel?, Task> callback);
+            Func<PublisherEventModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to supervisor discovery events
         /// </summary>
         /// <param name="discovererId"></param>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string discovererId, Func<DiscoveryProgressModel?, Task> callback);
+            string discovererId, Func<DiscoveryProgressModel?, Task> callback,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Subscribe to discovery events for a particular request
         /// </summary>
         /// <param name="requestId"></param>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
-            string requestId, Func<DiscoveryProgressModel?, Task> callback);
+            string requestId, Func<DiscoveryProgressModel?, Task> callback,
+            CancellationToken ct = default);
     }
 }

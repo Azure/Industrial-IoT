@@ -99,7 +99,7 @@ namespace OpcPublisherAEE2ETests
                 {
                     await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
             		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
-                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
                     if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
@@ -683,9 +683,9 @@ namespace OpcPublisherAEE2ETests
                 if (isPayloadCompressed)
                 {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
-                    using (var input = new MemoryStream(compressedPayload))
+                    await using (var input = new MemoryStream(compressedPayload))
                     {
-                        using (var gs = new GZipStream(input, CompressionMode.Decompress))
+                        await using (var gs = new GZipStream(input, CompressionMode.Decompress))
                         {
                             using (var textReader = new StreamReader(gs))
                             {

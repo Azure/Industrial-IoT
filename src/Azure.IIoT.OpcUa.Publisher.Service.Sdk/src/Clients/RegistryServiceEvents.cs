@@ -62,10 +62,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
-            Func<ApplicationEventModel?, Task> callback)
+            Func<ApplicationEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/applications/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/applications/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.ApplicationEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -76,10 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
-            Func<EndpointEventModel?, Task> callback)
+            Func<EndpointEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/endpoints/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/endpoints/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.EndpointEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -90,10 +90,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
-            Func<GatewayEventModel?, Task> callback)
+            Func<GatewayEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/gateways/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/gateways/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.GatewayEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -104,10 +104,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
-            Func<SupervisorEventModel?, Task> callback)
+            Func<SupervisorEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/supervisors/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/supervisors/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.SupervisorEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -118,10 +118,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
-            Func<DiscovererEventModel?, Task> callback)
+            Func<DiscovererEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscovererEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -132,10 +132,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribePublisherEventsAsync(
-            Func<PublisherEventModel?, Task> callback)
+            Func<PublisherEventModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events", ct).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherEventTarget, callback);
             return new AsyncDisposable(() =>
             {
@@ -146,10 +146,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string discovererId, Func<DiscoveryProgressModel?, Task> callback)
+            string discovererId, Func<DiscoveryProgressModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events", ct).ConfigureAwait(false);
             if (hub.ConnectionId == null)
             {
                 throw new IOException("Hub not connected");
@@ -158,12 +158,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 await SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
-                    hub.ConnectionId, default).ConfigureAwait(false);
+                    hub.ConnectionId, ct).ConfigureAwait(false);
                 return new AsyncDisposable(async () =>
                 {
                     registration.Dispose();
+                    using var cts = new CancellationTokenSource(kDefaultUnregisterTimeout);
                     await UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
-                        hub.ConnectionId, default).ConfigureAwait(false);
+                        hub.ConnectionId, cts.Token).ConfigureAwait(false);
                 });
             }
             catch
@@ -175,10 +176,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
-            string requestId, Func<DiscoveryProgressModel?, Task> callback)
+            string requestId, Func<DiscoveryProgressModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events", ct).ConfigureAwait(false);
             if (hub.ConnectionId == null)
             {
                 throw new IOException("Hub not connected");
@@ -187,12 +188,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 await SubscribeDiscoveryProgressByRequestIdAsync(requestId, hub.ConnectionId,
-                    default).ConfigureAwait(false);
+                    ct).ConfigureAwait(false);
                 return new AsyncDisposable(async () =>
                 {
                     registration.Dispose();
+                    using var cts = new CancellationTokenSource(kDefaultUnregisterTimeout);
                     await UnsubscribeDiscoveryProgressByRequestIdAsync(requestId,
-                        hub.ConnectionId, default).ConfigureAwait(false);
+                        hub.ConnectionId, cts.Token).ConfigureAwait(false);
                 });
             }
             catch
@@ -270,6 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
+        private static readonly TimeSpan kDefaultUnregisterTimeout = TimeSpan.FromMinutes(1);
         private readonly IHttpClientFactory _httpClient;
         private readonly string _serviceUri;
         private readonly ISerializer _serializer;

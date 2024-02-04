@@ -248,7 +248,7 @@ namespace IIoTPlatformE2ETests
                 {
                     await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
             		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
-                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
                     if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")

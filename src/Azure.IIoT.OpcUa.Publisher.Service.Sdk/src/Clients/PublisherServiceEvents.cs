@@ -63,10 +63,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
-            Func<MonitoredItemMessageModel?, Task> callback)
+            Func<MonitoredItemMessageModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events",
+                ct).ConfigureAwait(false);
             if (hub.ConnectionId == null)
             {
                 throw new IOException("Hub not connected");
@@ -75,12 +76,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
-                    default).ConfigureAwait(false);
+                    ct).ConfigureAwait(false);
                 return new AsyncDisposable(async () =>
                 {
                     registration.Dispose();
+                    using var cts = new CancellationTokenSource(kDefaultUnregisterTimeout);
                     await NodePublishUnsubscribeByEndpointAsync(endpointId,
-                        hub.ConnectionId, default).ConfigureAwait(false);
+                        hub.ConnectionId, cts.Token).ConfigureAwait(false);
                 });
             }
             catch
@@ -125,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
+        private static readonly TimeSpan kDefaultUnregisterTimeout = TimeSpan.FromMinutes(1);
         private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;

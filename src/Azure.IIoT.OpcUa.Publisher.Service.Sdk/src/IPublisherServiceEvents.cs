@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -19,8 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="callback"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(
-            string endpointId, Func<MonitoredItemMessageModel?, Task> callback);
+            string endpointId, Func<MonitoredItemMessageModel?, Task> callback,
+            CancellationToken ct = default);
     }
 }
