@@ -35,14 +35,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         /// <inheritdoc/>
-        public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl)
+        public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (string.IsNullOrEmpty(endpointUrl))
             {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var lookup = endpointUrl;
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                         _clients.Remove(lookup);
                     }
                     client = await SignalRClientRegistrar.CreateAsync(_options,
-                        endpointUrl, _logger, _jsonSettings, null).ConfigureAwait(false);
+                        endpointUrl, _logger, _jsonSettings, null, ct).ConfigureAwait(false);
                     _clients.Add(lookup, client);
                 }
                 return client;
@@ -127,25 +127,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <param name="logger"></param>
             /// <param name="jsonSettings"></param>
             /// <param name="msgPack"></param>
+            /// <param name="ct"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 IOptions<ServiceSdkOptions> options, string endpointUrl, ILogger logger,
                 INewtonsoftSerializerSettingsProvider? jsonSettings,
-                IMessagePackFormatterResolverProvider? msgPack)
+                IMessagePackFormatterResolverProvider? msgPack, CancellationToken ct)
             {
                 if (string.IsNullOrEmpty(endpointUrl))
                 {
                     throw new ArgumentNullException(nameof(endpointUrl));
                 }
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
                 var host = new SignalRHubClientHost(endpointUrl, options,
                     logger, // TODO: should use logger factory here
                     jsonSettings, msgPack);
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
-                return new SignalRClientRegistrar(await host);
+                await host.WaitAsync(ct).ConfigureAwait(false);
+                return new SignalRClientRegistrar(host);
             }
 
             /// <inheritdoc/>

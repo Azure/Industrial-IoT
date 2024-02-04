@@ -63,10 +63,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
-            Func<MonitoredItemMessageModel?, Task> callback)
+            Func<MonitoredItemMessageModel?, Task> callback, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(callback);
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events",
+                ct).ConfigureAwait(false);
             if (hub.ConnectionId == null)
             {
                 throw new IOException("Hub not connected");
@@ -75,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
-                    default).ConfigureAwait(false);
+                    ct).ConfigureAwait(false);
                 return new AsyncDisposable(async () =>
                 {
                     registration.Dispose();

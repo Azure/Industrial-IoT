@@ -30,11 +30,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         public void Dispose()
         {
             _factory.Dispose();
+            _cts.Dispose();
         }
 
         private const int kTimeoutMillis = 10000;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
+        private readonly CancellationTokenSource _cts = new();
+
+        internal CancellationToken Ct => _cts.Token;
 
         [Fact]
         public async Task TestPublishVariantTelemetryEventAndReceiveAsync()

@@ -131,6 +131,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         /// <summary>
+        /// Ensure it exists
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async ValueTask WaitAsync(CancellationToken ct)
+        {
+            await _started.WaitAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Start signal host client
         /// </summary>
         /// <returns></returns>

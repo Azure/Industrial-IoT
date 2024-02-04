@@ -480,12 +480,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 TimeStamp = DateTime.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, ev =>
-                {
-                    result.SetResult(ev);
-                    return Task.CompletedTask;
-                }))
+            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId, ev =>
+            {
+                result.SetResult(ev);
+                return Task.CompletedTask;
+            }))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnDiscoveryProgressAsync(expected);
@@ -527,12 +526,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 TimeStamp = DateTime.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(
-                requestId, ev =>
-                {
-                    result.SetResult(ev);
-                    return Task.CompletedTask;
-                }))
+            await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(requestId, ev =>
+            {
+                result.SetResult(ev);
+                return Task.CompletedTask;
+            }))
             {
                 await Task.Delay(kSubscribeDelay);
                 await bus.OnDiscoveryProgressAsync(expected);
@@ -569,16 +567,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
-            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, ev =>
+            await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId, ev =>
+            {
+                counter++;
+                if (counter == total)
                 {
-                    counter++;
-                    if (counter == total)
-                    {
-                        result.SetResult(true);
-                    }
-                    return Task.CompletedTask;
-                }))
+                    result.SetResult(true);
+                }
+                return Task.CompletedTask;
+            }))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)
