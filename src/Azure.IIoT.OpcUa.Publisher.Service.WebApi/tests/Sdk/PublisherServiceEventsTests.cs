@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         {
             _factory = WebAppFixture.Create(LogFactory.Create(output, Logging.Config));
             _output = output;
+            _cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(kTimeoutMillis));
         }
 
         public void Dispose()
@@ -33,10 +34,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             _cts.Dispose();
         }
 
-        private const int kTimeoutMillis = 10000;
+        private const int kTimeoutMillis = 30000;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
-        private readonly CancellationTokenSource _cts = new();
+        private readonly CancellationTokenSource _cts;
 
         internal CancellationToken Ct => _cts.Token;
 
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var channel = Channel.CreateUnbounded<MonitoredItemMessageModel>();
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, async ev =>
-                await channel.Writer.WriteAsync(ev)))
+                await channel.Writer.WriteAsync(ev), Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 foreach (var value in GetVariantValues())
@@ -122,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }))
+            }, Ct))
             {
                 await Task.Delay(kSubscribeDelay);
                 for (var i = 0; i < total; i++)

@@ -80,8 +80,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 return new AsyncDisposable(async () =>
                 {
                     registration.Dispose();
+                    using var cts = new CancellationTokenSource(kDefaultUnregisterTimeout);
                     await NodePublishUnsubscribeByEndpointAsync(endpointId,
-                        hub.ConnectionId, default).ConfigureAwait(false);
+                        hub.ConnectionId, cts.Token).ConfigureAwait(false);
                 });
             }
             catch
@@ -126,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
+        private static readonly TimeSpan kDefaultUnregisterTimeout = TimeSpan.FromMinutes(1);
         private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
