@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
 
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()

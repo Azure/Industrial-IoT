@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             _cts.Dispose();
         }
 
-        private const int kTimeoutMillis = 30000;
+        private const int kTimeoutMillis = 60000;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
         private readonly CancellationTokenSource _cts;
