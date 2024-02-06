@@ -172,9 +172,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ApiKey = (string?)apiKeyStore.State[OpcUa.Constants.TwinPropertyApiKeyKey];
                 _logger.LogInformation("Api Key exists in {Store} store...", apiKeyStore.Name);
             }
-            else
+
+            if (!string.IsNullOrWhiteSpace(_options.Value.ApiKeyOverride) &&
+                ApiKey != _options.Value.ApiKeyOverride)
             {
                 Debug.Assert(_stores.Count > 0);
+                _logger.LogInformation("Using Api Key provided in configuration...");
+                ApiKey = _options.Value.ApiKeyOverride;
+
+                _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
+            }
+
+            if (string.IsNullOrWhiteSpace(ApiKey))
+            {
+                Debug.Assert(_stores.Count > 0);
+
                 _logger.LogInformation("Generating new Api Key in {Store} store...",
                     _stores[0].Name);
                 ApiKey = RandomNumberGenerator.GetBytes(20).ToBase64String();

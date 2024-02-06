@@ -18,7 +18,6 @@ When both environment variable and CLI argument are provided, the command line o
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
                                                    2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.3)
-
 General
 -------
 
@@ -67,6 +66,11 @@ General
                                reports its runtime state using a restart
                                message.
                                Default: `False` (disabled)
+      --api-key, --ApiKey=VALUE
+                             Sets the api key that must be used to authenticate
+                               calls on the publisher REST endpoint.
+                               Default: `not set` (Key will be generated if not
+                               available)
       --doa, --disableopenapi, --DisableOpenApiEndpoint[=VALUE]
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.

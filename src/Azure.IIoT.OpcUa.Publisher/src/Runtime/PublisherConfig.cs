@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
+        public const string ApiKeyOverrideKey = "ApiKey";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -379,6 +380,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                         NamespaceFormat.Expanded : NamespaceFormat.Uri;
                 }
                 options.DefaultNamespaceFormat = namespaceFormat;
+            }
+
+            if (options.ApiKeyOverride == null)
+            {
+                options.ApiKeyOverride = GetStringOrDefault(ApiKeyOverrideKey);
             }
         }
 
