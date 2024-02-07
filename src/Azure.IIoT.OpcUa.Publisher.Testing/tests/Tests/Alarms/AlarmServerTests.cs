@@ -14,8 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Text.Json;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Alarms server node tests

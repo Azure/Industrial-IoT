@@ -4,13 +4,13 @@
 
 > This documentation applies to version 2.9
 
-The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceding `--`).
+The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceding `--`). When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
-Secrets such as `ApiKey` or any of the connection strings such as `EdgeHubConnectionString` should never be provided on the command line or as environment variables. It should be avoided at all cost. A file in the `.env` format can be loaded from a file that is specified in the `ADDITIONAL_CONFIGURATION` environment variable. If this environment variable is not provided `/run/secrets/.env` is assumed. This approach integrates with [docker secrets](https://github.com/compose-spec/compose-spec/blob/master/05-services.md#secrets) and other ways to provide secrets to during start up. An example of specifying secrets can be found [here](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/deploy/docker/docker-compose.yaml). Rolling of secrets is not supported.
+> IMPORTANT: The command line of OPC Publisher only understands below command line options. You cannot specify environment variables on the command line (e.g., like `env1=value env2=value`). All option names are **case-sensitive**!
 
-> IMPORTANT The command line of OPC Publisher only understands below command line options. You cannot specify environment variables on the command line (e.g., like `env1=value env2=value`). All option names are **case-sensitive**!
+Secrets such as `EdgeHubConnectionString`, other connection strings, or the `ApiKey` should never be provided on the command line or as environment variables. It should be avoided at all cost. A file using the `.env` format can be specified using the `ADDITIONAL_CONFIGURATION` environment variable. The contents will be loaded before the command line arguments are evaluated. If a file name is not provided via said environment variable, OPC Publisher tries to load the `/run/secrets/.env` file. This approach integrates well with [docker secrets](https://github.com/compose-spec/compose-spec/blob/master/05-services.md#secrets). An example of this can be found [here](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/deploy/docker/docker-compose.yaml).
 
-When both environment variable and CLI argument are provided, the command line option will override the environment variable.
+> Please note that rolling of secrets is not supported and that any errors loading secrets is silently discarded.
 
 ```text
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
@@ -19,7 +19,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                   2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.3)
+                                                 2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.121)
 General
 -------
 
