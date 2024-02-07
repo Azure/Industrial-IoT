@@ -56,6 +56,7 @@ We are pleased to announce the release of version 2.9.4 of OPC Publisher and the
 ### Changes in 2.9.4
 
 - Update OPC UA .net stack to the 1.05 version including latest node set and fixing numerous issues. (#2162)
+- ApiKey and other secrets can now be provided ahead of time through docker secrets (or command line) in addition to being only available in the Module Twin. (#2181)
 - Send the error of CreateMonitoredItem as part of the keyframe field and in heartbeats if WatchdogLKV heartbeat behavior is used (#2150).
 - Credential based authentication uses concrete types for credentials now which are documented in openapi.json (#2152)
 - OPC Publisher can now obtain TLS certificates from IoT Edge workload API to secure the HTTPS API (#2101)
@@ -73,6 +74,7 @@ We are pleased to announce the release of version 2.9.4 of OPC Publisher and the
 - Fix issues with cyclic reads not working as expected, subscribing to nodes > 300 not working (#2160, #2165)
 - Metric names are not like they were in 2.8, some metrics are missing (#2149)
 - SiteId placeholder is not working in TelemetryTopicTemplate (#2161)
+- Messaging mode can now be overridden in Strict mode to use a non-compliant mode. (#2167)
 
 ## Azure Industrial IoT OPC Publisher 2.9.3
 
