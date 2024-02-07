@@ -82,12 +82,14 @@ Messaging configuration
 -----------------------
 
   -c, --strict, --UseStandardsCompliantEncoding[=VALUE]
-                             Use strict UA compliant encodings. Default is '
-                               false' for backwards (2.5.x - 2.8.x)
-                               compatibility. It is recommended to run the
-                               publisher in compliant mode for best
-                               interoperability.
-                               Default: `False`
+                             Use strict OPC UA standard compliance. It is
+                               recommended to run the publisher in compliant
+                               mode for best interoperability.
+                               Be aware that explicitly specifying other
+                               command line options can result in non-
+                               comnpliance despite this option being set.
+                               Default: `False` for backwards compatibility (2.
+                               5.x - 2.8.x)
       --nf, --namespaceformat, --DefaultNamespaceFormat=VALUE
                              The format to use when serializing node ids and
                                qualified names containing a namespace uri into

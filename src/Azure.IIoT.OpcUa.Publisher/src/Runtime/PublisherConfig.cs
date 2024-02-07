@@ -144,19 +144,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                     messagingMode = options.UseStandardsCompliantEncoding == true ?
                         MessagingMode.PubSub : MessagingMode.Samples;
                 }
-                else if (options.UseStandardsCompliantEncoding == true)
-                {
-                    // If user chose compliant encoding then switch mode to be compliant
-                    switch (messagingMode)
-                    {
-                        case MessagingMode.Samples:
-                            messagingMode = MessagingMode.PubSub;
-                            break;
-                        case MessagingMode.FullSamples:
-                            messagingMode = MessagingMode.FullNetworkMessages;
-                            break;
-                    }
-                }
 
                 if (GetBoolOrDefault(FullFeaturedMessage, false))
                 {
