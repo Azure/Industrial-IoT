@@ -1111,55 +1111,6 @@
                 }
             }
         },
-        "/registry/v2/endpoints/{endpointId}/connect": {
-            "post": {
-                "tags": [
-                    "Endpoints"
-                ],
-                "summary": "Connect endpoint",
-                "description": "Connect an endpoint for subsequent use in twin service calls. This call keeps the connection until it expires based on the expiration requested or when disconnected.",
-                "operationId": "Connect",
-                "consumes": [
-                    "application/json-patch+json",
-                    "application/json",
-                    "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
-                ],
-                "produces": [
-                    "text/plain",
-                    "application/json",
-                    "text/json",
-                    "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "endpointId",
-                        "description": "endpoint identifier",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ConnectRequestModel"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/ConnectResponseModel"
-                        }
-                    }
-                }
-            }
-        },
         "/registry/v2/endpoints/{endpointId}/certificate": {
             "get": {
                 "tags": [
@@ -1189,46 +1140,6 @@
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
-                    }
-                }
-            }
-        },
-        "/registry/v2/endpoints/{endpointId}/disconnect": {
-            "post": {
-                "tags": [
-                    "Endpoints"
-                ],
-                "summary": "Disconnect endpoint",
-                "description": "Disconnects the endpoint on the publisher.",
-                "operationId": "Disconnect",
-                "consumes": [
-                    "application/json-patch+json",
-                    "application/json",
-                    "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "endpointId",
-                        "description": "endpoint identifier",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DisconnectRequestModel"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success"
                     }
                 }
             }
@@ -4857,30 +4768,6 @@
                 }
             }
         },
-        "ConnectRequestModel": {
-            "description": "Connect request",
-            "type": "object",
-            "properties": {
-                "expiresAfter": {
-                    "format": "date-span",
-                    "description": "Connection automatically closes after a\r\nspecified duration.",
-                    "type": "string"
-                },
-                "header": {
-                    "$ref": "#/definitions/RequestHeaderModel"
-                }
-            }
-        },
-        "ConnectResponseModel": {
-            "description": "Connect response",
-            "type": "object",
-            "properties": {
-                "connectionHandle": {
-                    "description": "This handle can be used to disconnect the\r\nconnection ahead of expiration.",
-                    "type": "string"
-                }
-            }
-        },
         "ContentFilterElementModel": {
             "description": "An expression element in the filter ast",
             "type": "object",
@@ -5148,23 +5035,6 @@
                     "format": "date-time",
                     "description": "Timestamp of request.\r\n(default: client generated)",
                     "type": "string"
-                }
-            }
-        },
-        "DisconnectRequestModel": {
-            "description": "Disconnect request",
-            "required": [
-                "connectionHandle"
-            ],
-            "type": "object",
-            "properties": {
-                "connectionHandle": {
-                    "description": "This handle can be used to disconnect the\r\nconnection ahead of expiration.",
-                    "minLength": 1,
-                    "type": "string"
-                },
-                "header": {
-                    "$ref": "#/definitions/RequestHeaderModel"
                 }
             }
         },

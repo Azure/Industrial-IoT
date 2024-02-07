@@ -4,11 +4,13 @@
 
 > This documentation applies to version 2.9
 
-The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceding `--`).
+The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceding `--`). When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
-> IMPORTANT The command line of OPC Publisher only understands below command line options. You cannot specify environment variables on the command line (e.g., like `env1=value env2=value`). All option names are **case-sensitive**!
+> IMPORTANT: The command line of OPC Publisher only understands below command line options. You cannot specify environment variables on the command line (e.g., like `env1=value env2=value`). All option names are **case-sensitive**!
 
-When both environment variable and CLI argument are provided, the command line option will override the environment variable.
+Secrets such as `EdgeHubConnectionString`, other connection strings, or the `ApiKey` should never be provided on the command line or as environment variables. It should be avoided at all cost. A file using the `.env` format can be specified using the `ADDITIONAL_CONFIGURATION` environment variable. The contents will be loaded before the command line arguments are evaluated. If a file name is not provided via said environment variable, OPC Publisher tries to load the `/run/secrets/.env` file. This approach integrates well with [docker secrets](https://github.com/compose-spec/compose-spec/blob/master/05-services.md#secrets). An example of this can be found [here](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/deploy/docker/docker-compose.yaml).
+
+> Please note that rolling of secrets is not supported and that any errors loading secrets is silently discarded.
 
 ```text
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
@@ -17,8 +19,7 @@ When both environment variable and CLI argument are provided, the command line o
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                   2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.3)
-
+                                                 2.9.4 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.121)
 General
 -------
 
@@ -67,6 +68,11 @@ General
                                reports its runtime state using a restart
                                message.
                                Default: `False` (disabled)
+      --api-key, --ApiKey=VALUE
+                             Sets the api key that must be used to authenticate
+                               calls on the publisher REST endpoint.
+                               Default: `not set` (Key will be generated if not
+                               available)
       --doa, --disableopenapi, --DisableOpenApiEndpoint[=VALUE]
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.
@@ -76,12 +82,14 @@ Messaging configuration
 -----------------------
 
   -c, --strict, --UseStandardsCompliantEncoding[=VALUE]
-                             Use strict UA compliant encodings. Default is '
-                               false' for backwards (2.5.x - 2.8.x)
-                               compatibility. It is recommended to run the
-                               publisher in compliant mode for best
-                               interoperability.
-                               Default: `False`
+                             Use strict OPC UA standard compliance. It is
+                               recommended to run the publisher in compliant
+                               mode for best interoperability.
+                               Be aware that explicitly specifying other
+                               command line options can result in non-
+                               comnpliance despite this option being set.
+                               Default: `False` for backwards compatibility (2.
+                               5.x - 2.8.x)
       --nf, --namespaceformat, --DefaultNamespaceFormat=VALUE
                              The format to use when serializing node ids and
                                qualified names containing a namespace uri into

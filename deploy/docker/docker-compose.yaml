@@ -47,8 +47,13 @@ services:
       "--npd=${NODES_PER_DATASET:-10000}"
       ]
     environment:
-      EdgeHubConnectionString:
+      ADDITIONAL_CONFIGURATION: /run/secrets/publisher-secrets
+    secrets:
+      - publisher-secrets
     volumes:
       - shared:/shared:rw
 volumes:
   shared:
+secrets:
+  publisher-secrets:
+    file: ./publisher_secrets.txt

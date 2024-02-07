@@ -113,38 +113,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <inheritdoc/>
-        public Task<ConnectResponseModel> ConnectAsync(string endpoint,
-            ConnectRequestModel request, CancellationToken ct)
-        {
-            return Execute("Connect", endpoint, (publisherId, ep) =>
-            {
-                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
-                return client.ConnectAsync(new ConnectionModel
-                {
-                    Endpoint = ep,
-                    User = request.Header?.Elevation,
-                    Group = endpoint
-                }, request, ct);
-            }, ct);
-        }
-
-        /// <inheritdoc/>
-        public Task DisconnectAsync(string endpoint, DisconnectRequestModel request,
-            CancellationToken ct)
-        {
-            return Execute("Disconnect", endpoint, (publisherId, ep) =>
-            {
-                var client = new TwinApiClient(_client, publisherId, kTimeout, _serializer);
-                return client.DisconnectAsync(new ConnectionModel
-                {
-                    Endpoint = ep,
-                    User = request.Header?.Elevation,
-                    Group = endpoint
-                }, request, ct);
-            }, ct);
-        }
-
-        /// <inheritdoc/>
         public Task<BrowseFirstResponseModel> BrowseFirstAsync(string endpoint,
             BrowseFirstRequestModel request, CancellationToken ct)
         {
@@ -866,36 +834,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                     operation, ep.DiscovererId);
 
                 return result;
-            }
-            catch (ResourceNotFoundException)
-            {
-                _cache.Remove(endpoint);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Execute on endpoint
-        /// </summary>
-        /// <param name="operation"></param>
-        /// <param name="endpoint"></param>
-        /// <param name="call"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task Execute(string operation, string endpoint,
-            Func<string, EndpointModel, Task> call, CancellationToken ct)
-        {
-            using var activity = _activitySource.StartActivity(operation);
-            var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
-            try
-            {
-                Debug.Assert(ep.DiscovererId != null);
-                Debug.Assert(ep.Endpoint != null);
-
-                await call(ep.DiscovererId, ep.Endpoint).ConfigureAwait(false);
-
-                _logger.LogDebug("Called {Operation} on publisher {Publisher}.",
-                    operation, ep.DiscovererId);
             }
             catch (ResourceNotFoundException)
             {

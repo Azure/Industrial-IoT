@@ -89,21 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
-            ConnectRequestModel request, CancellationToken ct)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            using var client = GetOrAddClient(connection);
-
-            var handle = Guid.NewGuid().ToString();
-            client.AddRef(handle, request.ExpiresAfter);
-            return Task.FromResult(new ConnectResponseModel
-            {
-                ConnectionHandle = handle
-            });
-        }
-
-        /// <inheritdoc/>
         public async Task<TestConnectionResponseModel> TestConnectionAsync(
             ConnectionModel endpoint, TestConnectionRequestModel request,
             CancellationToken ct)
@@ -149,16 +134,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ErrorInfo = ex.ToServiceResultModel()
                 };
             }
-        }
-
-        /// <inheritdoc/>
-        public Task DisconnectAsync(ConnectionModel connection,
-            DisconnectRequestModel request, CancellationToken ct)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            var client = FindClient(connection);
-            client?.Release(request.ConnectionHandle);
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -325,23 +300,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _clients.Clear();
             _logger.LogInformation("Stopped all clients, current number of clients is 0");
-        }
-
-        /// <summary>
-        /// Find the client using the connection information
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        private OpcUaClient? FindClient(ConnectionModel connection)
-        {
-            // Find client and if not exists create
-            var id = new ConnectionIdentifier(connection);
-            // try to get an existing client
-            if (!_clients.TryGetValue(id, out var client))
-            {
-                return null;
-            }
-            return client;
         }
 
         /// <summary>

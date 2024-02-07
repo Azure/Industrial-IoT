@@ -199,5 +199,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Scale test option
         /// </summary>
         public int? ScaleTestCount { get; set; }
+
+        /// <summary>
+        /// Allow setting or overriding the current api key
+        /// </summary>
+        public string? ApiKeyOverride { get; set; }
     }
 }

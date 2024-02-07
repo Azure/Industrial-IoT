@@ -28,17 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
             CancellationToken ct = default);
 
         /// <summary>
-        /// This call is used to ensure a connection exists for other
-        /// calls and speeds up overall operations.
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
-            ConnectRequestModel request, CancellationToken ct = default);
-
-        /// <summary>
         /// Get the capabilities of the server
         /// </summary>
         /// <param name="connection"></param>
@@ -216,16 +205,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
             ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Disconnect connection using a connection handle that was returned
-        /// by <see cref="ConnectAsync(ConnectionModel, ConnectRequestModel, CancellationToken)"/>
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task DisconnectAsync(ConnectionModel connection,
-            DisconnectRequestModel request, CancellationToken ct = default);
     }
 }

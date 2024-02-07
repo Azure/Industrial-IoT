@@ -330,27 +330,6 @@ Condition handling options model
 |**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
 
 
-<a name="connectrequestmodel"></a>
-### ConnectRequestModel
-Connect request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**expiresAfter**  <br>*optional*|Connection automatically closes after a<br>specified duration.|string (date-span)|
-|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-
-
-<a name="connectresponsemodel"></a>
-### ConnectResponseModel
-Connect response
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**connectionHandle**  <br>*optional*|This handle can be used to disconnect the<br>connection ahead of expiration.|string|
-
-
 <a name="contentfilterelementmodel"></a>
 ### ContentFilterElementModel
 An expression element in the filter ast
@@ -510,17 +489,6 @@ Diagnostics configuration
 |**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
 |**level**  <br>*optional*||[DiagnosticsLevel](definitions.md#diagnosticslevel)|
 |**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
-
-
-<a name="disconnectrequestmodel"></a>
-### DisconnectRequestModel
-Disconnect request
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**connectionHandle**  <br>*required*|This handle can be used to disconnect the<br>connection ahead of expiration.  <br>**Minimum length** : `1`|string|
-|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 
 
 <a name="discovererlistmodel"></a>

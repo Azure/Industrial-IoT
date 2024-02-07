@@ -1869,47 +1869,6 @@
                 }
             }
         },
-        "/v2/connect": {
-            "post": {
-                "tags": [
-                    "General"
-                ],
-                "summary": "Connect",
-                "description": "Connect to a server using the provided connection request information. The connection is established and held active until cancelled or the publisher process is restarted.",
-                "operationId": "Connect",
-                "consumes": [
-                    "application/json",
-                    "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
-                ],
-                "produces": [
-                    "text/plain",
-                    "application/json",
-                    "text/json",
-                    "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ConnectRequestModelRequestEnvelope"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/ConnectResponseModel"
-                        }
-                    }
-                }
-            }
-        },
         "/v2/test": {
             "post": {
                 "tags": [
@@ -1947,38 +1906,6 @@
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
-                    }
-                }
-            }
-        },
-        "/v2/disconnect": {
-            "post": {
-                "tags": [
-                    "General"
-                ],
-                "summary": "Disconnect",
-                "description": "Can be used to disconnect a previously established connection.",
-                "operationId": "Disconnect",
-                "consumes": [
-                    "application/json",
-                    "text/json",
-                    "application/*+json",
-                    "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "The request payload and connection information identifying the server to connect to perform the operation on.",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DisconnectRequestModelRequestEnvelope"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success"
                     }
                 }
             }
@@ -3519,45 +3446,6 @@
                 }
             }
         },
-        "ConnectRequestModel": {
-            "description": "Connect request",
-            "type": "object",
-            "properties": {
-                "expiresAfter": {
-                    "format": "date-span",
-                    "description": "Connection automatically closes after a\r\nspecified duration.",
-                    "type": "string"
-                },
-                "header": {
-                    "$ref": "#/definitions/RequestHeaderModel"
-                }
-            }
-        },
-        "ConnectRequestModelRequestEnvelope": {
-            "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
-            "required": [
-                "connection"
-            ],
-            "type": "object",
-            "properties": {
-                "connection": {
-                    "$ref": "#/definitions/ConnectionModel"
-                },
-                "request": {
-                    "$ref": "#/definitions/ConnectRequestModel"
-                }
-            }
-        },
-        "ConnectResponseModel": {
-            "description": "Connect response",
-            "type": "object",
-            "properties": {
-                "connectionHandle": {
-                    "description": "This handle can be used to disconnect the\r\nconnection ahead of expiration.",
-                    "type": "string"
-                }
-            }
-        },
         "ConnectionModel": {
             "description": "Connection model",
             "type": "object",
@@ -3898,38 +3786,6 @@
                     "format": "date-time",
                     "description": "Timestamp of request.\r\n(default: client generated)",
                     "type": "string"
-                }
-            }
-        },
-        "DisconnectRequestModel": {
-            "description": "Disconnect request",
-            "required": [
-                "connectionHandle"
-            ],
-            "type": "object",
-            "properties": {
-                "connectionHandle": {
-                    "description": "This handle can be used to disconnect the\r\nconnection ahead of expiration.",
-                    "minLength": 1,
-                    "type": "string"
-                },
-                "header": {
-                    "$ref": "#/definitions/RequestHeaderModel"
-                }
-            }
-        },
-        "DisconnectRequestModelRequestEnvelope": {
-            "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
-            "required": [
-                "connection"
-            ],
-            "type": "object",
-            "properties": {
-                "connection": {
-                    "$ref": "#/definitions/ConnectionModel"
-                },
-                "request": {
-                    "$ref": "#/definitions/DisconnectRequestModel"
                 }
             }
         },

@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
+        public const string ApiKeyOverrideKey = "ApiKey";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -142,19 +143,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                 {
                     messagingMode = options.UseStandardsCompliantEncoding == true ?
                         MessagingMode.PubSub : MessagingMode.Samples;
-                }
-                else if (options.UseStandardsCompliantEncoding == true)
-                {
-                    // If user chose compliant encoding then switch mode to be compliant
-                    switch (messagingMode)
-                    {
-                        case MessagingMode.Samples:
-                            messagingMode = MessagingMode.PubSub;
-                            break;
-                        case MessagingMode.FullSamples:
-                            messagingMode = MessagingMode.FullNetworkMessages;
-                            break;
-                    }
                 }
 
                 if (GetBoolOrDefault(FullFeaturedMessage, false))
@@ -379,6 +367,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                         NamespaceFormat.Expanded : NamespaceFormat.Uri;
                 }
                 options.DefaultNamespaceFormat = namespaceFormat;
+            }
+
+            if (options.ApiKeyOverride == null)
+            {
+                options.ApiKeyOverride = GetStringOrDefault(ApiKeyOverrideKey);
             }
         }
 

@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Configuration;
 
     /// <summary>
     /// Module
@@ -85,6 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
                     .AddFromDotEnvFile()
+                    .AddSecrets()
                     .AddInMemoryCollection(new CommandLine(args)))
                 .ConfigureWebHostDefaults(builder => builder
                     //.UseUrls("http://*:9702", "https://*:9703")

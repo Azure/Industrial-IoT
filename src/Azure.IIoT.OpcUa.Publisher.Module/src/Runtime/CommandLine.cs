@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -81,6 +82,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"rs|runtimestatereporting:|{PublisherConfig.EnableRuntimeStateReportingKey}:",
                     "Enable that when publisher starts or restarts it reports its runtime state using a restart message.\nDefault: `False` (disabled)\n",
                     (bool? b) => this[PublisherConfig.EnableRuntimeStateReportingKey] = b?.ToString() ?? "True"},
+                { $"api-key=|{PublisherConfig.ApiKeyOverrideKey}=",
+                    "Sets the api key that must be used to authenticate calls on the publisher REST endpoint.\nDefault: `not set` (Key will be generated if not available) \n",
+                    s => this[PublisherConfig.ApiKeyOverrideKey] = s},
                 { $"doa|disableopenapi:|{PublisherConfig.DisableOpenApiEndpointKey}:",
                     "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `False` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableOpenApiEndpointKey] = b?.ToString() ?? "True" },
@@ -91,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 "",
 
                 { $"c|strict:|{PublisherConfig.UseStandardsCompliantEncodingKey}:",
-                    "Use strict UA compliant encodings. Default is 'false' for backwards (2.5.x - 2.8.x) compatibility. It is recommended to run the publisher in compliant mode for best interoperability.\nDefault: `False`\n",
+                    "Use strict OPC UA standard compliance. It is recommended to run the publisher in compliant mode for best interoperability.\nBe aware that explicitly specifying other command line options can result in non-comnpliance despite this option being set.\nDefault: `False` for backwards compatibility (2.5.x - 2.8.x)\n",
                     (bool? b) => this[PublisherConfig.UseStandardsCompliantEncodingKey] = b?.ToString() ?? "True" },
                 { $"nf|namespaceformat=|{PublisherConfig.DefaultNamespaceFormatKey}=",
                     $"The format to use when serializing node ids and qualified names containing a namespace uri into a string.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(NamespaceFormat)))}`\nDefault: `{nameof(NamespaceFormat.Expanded)}` if `-c` is specified, otherwise `{nameof(NamespaceFormat.Uri)}` for backwards compatibility.\n",
@@ -573,14 +577,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     // Throws if the messaging profile configuration is invalid
                     new PublisherConfig(configuration).ToOptions();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    _logger.Warning("The specified combination of --mm, and --me is not (yet) supported. " +
-                        "Currently supported combinations are: {0}), " +
-                            "please use -h option to get all the supported options.",
-                        MessagingProfile.Supported
-                            .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
-                            .Aggregate((a, b) => $"{a}, {b}"));
+                    _logger.Warning("{0}\nPlease use -h option to get all the supported options.",
+                        ex.Message);
                     _logger.ExitProcess(170);
                     return;
                 }

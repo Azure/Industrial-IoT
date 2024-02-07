@@ -337,6 +337,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Adds secrets from a env file that is located at $ADDITIONAL_CONFIGURATION
+        /// Defaults to .env file in docker /run/secrets folder.
+        /// </summary>
+        /// <param name="builder"></param>
+        public static IConfigurationBuilder AddSecrets(this IConfigurationBuilder builder)
+        {
+            try
+            {
+                return builder.Add(new DotEnvFileSource(
+                    Environment.GetEnvironmentVariable("ADDITIONAL_CONFIGURATION")
+                        ?? "/run/secrets/.env"));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return builder;
+            }
+        }
+
+        /// <summary>
         /// Otlp configuration from environment
         /// </summary>
         internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,

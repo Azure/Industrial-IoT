@@ -78,26 +78,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
-            ConnectRequestModel request, CancellationToken ct)
-        {
-            ArgumentNullException.ThrowIfNull(connection);
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
-            {
-                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
-            }
-            ArgumentNullException.ThrowIfNull(request);
-            var response = await _methodClient.CallMethodAsync(_target,
-                "Connect_V2", _serializer.SerializeToMemory(new
-                {
-                    connection,
-                    request
-                }),
-                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
-            return _serializer.DeserializeResponse<ConnectResponseModel>(response);
-        }
-
-        /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(ConnectionModel connection,
             BrowseFirstRequestModel request, CancellationToken ct)
         {
@@ -454,25 +434,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     request
                 }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
-        }
-
-        /// <inheritdoc/>
-        public async Task DisconnectAsync(ConnectionModel connection,
-            DisconnectRequestModel request, CancellationToken ct)
-        {
-            ArgumentNullException.ThrowIfNull(connection);
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
-            {
-                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
-            }
-            ArgumentNullException.ThrowIfNull(request);
-            await _methodClient.CallMethodAsync(_target,
-                "Disconnect_V2", _serializer.SerializeToMemory(new
-                {
-                    connection,
-                    request
-                }),
-                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
         }
 
         private readonly IJsonSerializer _serializer;
