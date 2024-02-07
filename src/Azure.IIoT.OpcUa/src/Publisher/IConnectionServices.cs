@@ -16,17 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IConnectionServices<T>
     {
         /// <summary>
-        /// Create a connection and keep it alive for the specified
-        /// duration or until disconnected.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ConnectResponseModel> ConnectAsync(T endpoint,
-            ConnectRequestModel request, CancellationToken ct = default);
-
-        /// <summary>
         /// Test connection
         /// </summary>
         /// <param name="endpoint"></param>
@@ -35,15 +24,5 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         Task<TestConnectionResponseModel> TestConnectionAsync(T endpoint,
             TestConnectionRequestModel request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Disconnect using the handle provided by connect call.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task DisconnectAsync(T endpoint, DisconnectRequestModel request,
-            CancellationToken ct = default);
     }
 }

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Furly;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;

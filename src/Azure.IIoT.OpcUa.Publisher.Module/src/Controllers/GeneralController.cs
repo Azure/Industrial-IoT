@@ -558,32 +558,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Connect
-        /// </summary>
-        /// <remarks>
-        /// Connect to a server using the provided connection request information.
-        /// The connection is established and held active until cancelled or the
-        /// publisher process is restarted.
-        /// </remarks>
-        /// <param name="request">The request payload and connection information
-        /// identifying the server to connect to perform the operation on.</param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/>
-        /// is <c>null</c>.</exception>
-        [HttpPost("connect")]
-        public async Task<ConnectResponseModel> ConnectAsync(
-            [FromBody][Required] RequestEnvelope<ConnectRequestModel> request,
-            CancellationToken ct = default)
-        {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Connection);
-            ArgumentNullException.ThrowIfNull(request.Request);
-            return await _endpoints.ConnectAsync(request.Connection,
-                request.Request, ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// TestConnection
         /// </summary>
         /// <remarks>
@@ -606,29 +580,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
             return await _endpoints.TestConnectionAsync(request.Connection,
-                request.Request, ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Disconnect
-        /// </summary>
-        /// <remarks>
-        /// Can be used to disconnect a previously established connection.
-        /// </remarks>
-        /// <param name="request">The request payload and connection information
-        /// identifying the server to connect to perform the operation on.</param>
-        /// <param name="ct"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/>
-        /// is <c>null</c>.</exception>
-        [HttpPost("disconnect")]
-        public async Task DisconnectAsync(
-            [FromBody][Required] RequestEnvelope<DisconnectRequestModel> request,
-            CancellationToken ct = default)
-        {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Connection);
-            ArgumentNullException.ThrowIfNull(request.Request);
-            await _endpoints.DisconnectAsync(request.Connection,
                 request.Request, ct).ConfigureAwait(false);
         }
 

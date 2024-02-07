@@ -8,6 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using FluentAssertions;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
+    using PlcModel;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

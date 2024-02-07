@@ -214,26 +214,6 @@ value.FirstOrDefault()!,
         }
 
         /// <summary>
-        /// Connect endpoint
-        /// </summary>
-        /// <remarks>
-        /// Connect an endpoint for subsequent use in twin service
-        /// calls. This call keeps the connection until it expires
-        /// based on the expiration requested or when disconnected.
-        /// </remarks>
-        /// <param name="endpointId">endpoint identifier</param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        [HttpPost("{endpointId}/connect")]
-        public async Task<ConnectResponseModel> ConnectAsync(
-            string endpointId, [FromBody][Required] ConnectRequestModel request,
-            CancellationToken ct)
-        {
-            return await _connections.ConnectAsync(endpointId,
-                request, ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Get endpoint certificate chain
         /// </summary>
         /// <remarks>
@@ -247,23 +227,6 @@ value.FirstOrDefault()!,
             string endpointId, CancellationToken ct)
         {
             return await _certificates.GetEndpointCertificateAsync(endpointId,
-                ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Disconnect endpoint
-        /// </summary>
-        /// <remarks>
-        /// Disconnects the endpoint on the publisher.
-        /// </remarks>
-        /// <param name="endpointId">endpoint identifier</param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        [HttpPost("{endpointId}/disconnect")]
-        public async Task DisconnectAsync(string endpointId,
-            [FromBody][Required] DisconnectRequestModel request, CancellationToken ct)
-        {
-            await _connections.DisconnectAsync(endpointId, request,
                 ct).ConfigureAwait(false);
         }
 

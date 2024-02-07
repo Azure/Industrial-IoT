@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                    // ... Add here more items if needed
+                // ... Add here more items if needed
             };
     }
 }
