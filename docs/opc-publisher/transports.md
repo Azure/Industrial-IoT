@@ -62,14 +62,14 @@ The following table shows the supported features of the MQTT transport implement
 
 | Feature                  | Supported  | Notes |
 | ------------------------ | ---------- | ----- |
-| State store              | Not yet    | Only if IoT Hub transport was not configured |
+| State store              | No         | |
 | Configuration API        | Yes        | |
 | Twin and Discovery       | Yes        | |
 | Streaming (Browse/HDA)   | No         | |
 | Payload size limits      | 512 MB     | Actual limits depend on MQTT broker and can be configured using the connection string. |
 | Telemetry publishing     | Yes        | |
-| Discovery Events         | (YES)      | Only if IoT Hub transport was not configured |
-| Operational Events       | (YES)      | Only if IoT Hub transport was not configured |
+| Discovery Events         | Yes        | Only if IoT Hub transport was not configured |
+| Operational Events       | Yes        | Only if IoT Hub transport was not configured |
 | Message size limits      | 512 MB     | Actual limits depend on MQTT broker and can be configured using the connection string. |
 | Integrated with Web-Api  | No         | |
 
@@ -85,15 +85,15 @@ The following table shows the supported features of the Dapr transport implement
 
 | Feature                  | Supported  | Notes |
 | ------------------------ | ---------- | ----- |
-| State store              | Not yet    | Only if IoT Hub and MQTT transport were not configured |
-| Configuration API        | No         | |
-| Twin and Discovery       | No         | |
-| Streaming (Browse/HDA)   | No         | |
+| State store              | Yes        | Only if IoT Hub transport was not configured |
+| Configuration API        | Yes        | Via [Dapr Service invoke](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/) of the [REST API](#http) |
+| Twin and Discovery       | Yes        | Via [Dapr Service invoke](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/) of the [REST API](#http) |
+| Streaming (Browse/HDA)   | Yes        | Via [Dapr Service invoke](https://docs.dapr.io/developing-applications/building-blocks/service-invocation/howto-invoke-discover-services/) of the [REST API](#http) |
 | Payload size limits      | No         | |
 | Telemetry publishing     | Yes        | |
-| Discovery Events         | No         | |
-| Operational Events       | No         | |
-| Message size limits      | (*)        | Actual limits depend on the chosen Pub Sub component. Limits can be configured using the connection string |
+| Discovery Events         | Yes        | Only if IoT Hub and MQTT transport were not configured |
+| Operational Events       | Yes        | Only if IoT Hub and MQTT transport were not configured |
+| Message size limits      | No (*)     | Actual limits depend on the chosen Pub Sub component. Limits can be configured using the connection string |
 | Integrated with Web-Api  | No         | |
 
 Whether the Dapr transport is enabled is determined by whether the Dapr Pub Sub component and Api Token are configured. The Pub sub component name and Api token can be provided through the `-d` connection string using the [command line](./commandline.md). The Api Token is automatically provided by the Dapr runtime through the `DAPR_API_TOKEN` environment variable. Whether the component was configured in your Dapr environment is not validated.
@@ -112,11 +112,11 @@ The HTTP transports is split into two parts: The [built in HTTP server](#built-i
 | Configuration API        | Yes        | |
 | Twin and Discovery       | Yes        | |
 | Streaming (Browse/HDA)   | Yes        | |
-| Payload size limits      | None       | |
+| Payload size limits      | No         | |
 | Telemetry publishing     | Yes        | |
-| Discovery Events         | (YES)      | Only if IoT Hub, MQTT, and Dapr transports were not configured |
-| Operational Events       | (YES)      | Only if IoT Hub, MQTT, and Dapr transports were not configured |
-| Message size limits      | None       | |
+| Discovery Events         | Yes        | Only if IoT Hub, MQTT, and Dapr transports were not configured |
+| Operational Events       | Yes        | Only if IoT Hub, MQTT, and Dapr transports were not configured |
+| Message size limits      | No         | |
 | Integrated with Web-Api  | No         | |
 
 ### Built-in HTTP API server
