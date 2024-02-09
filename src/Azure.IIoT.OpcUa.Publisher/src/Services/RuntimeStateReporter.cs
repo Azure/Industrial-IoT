@@ -508,6 +508,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Format(info.IngressHeartbeats, info.IngressHeartbeatsInLastMinute, s);
                 var cyclicReadsPerSecFormatted =
                     Format(info.IngressCyclicReads, info.IngressCyclicReadsInLastMinute, s);
+                var sampledValuesPerSecFormatted =
+                    Format(info.IngressSampledValues, info.IngressSampledValuesInLastMinute, s);
                 var modelChangesPerSecFormatted =
                     Format(info.IngressModelChanges, info.IngressModelChangesInLastMinute, s);
                 var serverQueueOverflowsPerSecFormatted =
@@ -560,6 +562,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Ingress value changes              : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
                         .AppendLine(valueChangesPerSecFormatted)
+                    .Append("  # Ingress sampled values             : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressSampledValues).Append(' ')
+                        .AppendLine(sampledValuesPerSecFormatted)
                     .Append("  # Ingress events                     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents).Append(' ')
                         .AppendLine(eventsPerSecFormatted)
@@ -578,7 +583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Received Keep Alive Notifications  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressKeepAliveNotifications).Append(' ')
                         .AppendLine(keepAliveChangesPerSecFormatted)
-                    .Append("  # Generated Cyclic read Notifications: ")
+                    .Append("  # Received Cyclic read Notifications : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads).Append(' ')
                         .AppendLine(cyclicReadsPerSecFormatted)
                     .Append("  # Generated Heartbeat Notifications  : ")
