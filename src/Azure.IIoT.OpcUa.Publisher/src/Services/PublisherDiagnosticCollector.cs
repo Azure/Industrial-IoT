@@ -268,6 +268,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.IngressValueChanges = (long)i,
                 ["iiot_edge_publisher_value_changes_per_second_last_min"] =
                     (d, i) => d.IngressValueChangesInLastMinute = (long)i,
+                ["iiot_edge_publisher_sampledvalues"] =
+                    (d, i) => d.IngressSampledValues = (long)i,
+                ["iiot_edge_publisher_sampledvalues_per_second_last_min"] =
+                    (d, i) => d.IngressSampledValuesInLastMinute = (long)i,
                 ["iiot_edge_publisher_events"] =
                     (d, i) => d.IngressEvents = (long)i,
                 ["iiot_edge_publisher_events_per_second_last_min"] =

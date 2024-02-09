@@ -28,35 +28,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Called when subscription data changes
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionDataChange(
+        public void OnSubscriptionDataChangeReceived(
+            IOpcUaSubscriptionNotification notification);
+
+        /// <summary>
+        /// Called when sampled values were received
+        /// </summary>
+        /// <param name="notification"></param>
+        public void OnSubscriptionCyclicReadCompleted(
             IOpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when event changes
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionEventChange(
+        public void OnSubscriptionEventReceived(
             IOpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Diagnostics for data change notifications
         /// </summary>
         /// <param name="liveData"></param>
-        /// <param name="overflow"></param>
         /// <param name="valueChanges"></param>
+        /// <param name="overflow"></param>
         /// <param name="heartbeats"></param>
-        /// <param name="cyclicReads"></param>
         void OnSubscriptionDataDiagnosticsChange(bool liveData,
-            int overflow, int valueChanges, int heartbeats, int cyclicReads);
+            int valueChanges, int overflow, int heartbeats);
+
+        /// <summary>
+        /// Diagnostics for data change notifications
+        /// </summary>
+        /// <param name="valuesSampled"></param>
+        /// <param name="overflow"></param>
+        void OnSubscriptionCyclicReadDiagnosticsChange(
+            int valuesSampled, int overflow);
 
         /// <summary>
         /// Event diagnostics
         /// </summary>
         /// <param name="liveData"></param>
-        /// <param name="overflow"></param>
         /// <param name="events"></param>
+        /// <param name="overflow"></param>
         /// <param name="modelChanges"></param>
         void OnSubscriptionEventDiagnosticsChange(bool liveData,
-            int overflow, int events, int modelChanges);
+            int events, int overflow, int modelChanges);
     }
 }

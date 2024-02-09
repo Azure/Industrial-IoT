@@ -25,20 +25,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Amqp;
+    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// Subscription implementation
     /// </summary>
     [DataContract(Namespace = OpcUaClient.Namespace)]
     [KnownType(typeof(OpcUaMonitoredItem))]
-    [KnownType(typeof(OpcUaMonitoredItem.DataItem))]
-    [KnownType(typeof(OpcUaMonitoredItem.DataItemWithCyclicRead))]
-    [KnownType(typeof(OpcUaMonitoredItem.DataItemWithHeartbeat))]
+    [KnownType(typeof(OpcUaMonitoredItem.DataChange))]
+    [KnownType(typeof(OpcUaMonitoredItem.CyclicRead))]
+    [KnownType(typeof(OpcUaMonitoredItem.Heartbeat))]
     [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
-    [KnownType(typeof(OpcUaMonitoredItem.EventItem))]
+    [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
-    [KnownType(typeof(OpcUaMonitoredItem.FieldItem))]
+    [KnownType(typeof(OpcUaMonitoredItem.Field))]
     internal sealed class OpcUaSubscription : Subscription, ISubscriptionHandle,
         IOpcUaSubscription
     {
@@ -422,13 +423,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            var count = message.GetDiagnosticCounters(out var modelChanges,
-                out var heartbeats, out var cyclicReads, out var overflows);
+            var count = message.GetDiagnosticCounters(out var modelChanges, out var heartbeats, out var overflows);
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
                 if (!diagnosticsOnly)
                 {
-                    _callbacks.OnSubscriptionEventChange(message);
+                    _callbacks.OnSubscriptionEventReceived(message);
                 }
                 if (count > 0)
                 {
@@ -440,12 +440,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!diagnosticsOnly)
                 {
-                    _callbacks.OnSubscriptionDataChange(message);
+                    _callbacks.OnSubscriptionDataChangeReceived(message);
                 }
                 if (count > 0)
                 {
                     _callbacks.OnSubscriptionDataDiagnosticsChange(false,
-                        count, overflows, heartbeats, cyclicReads);
+                        count, overflows, heartbeats);
                 }
             }
         }
@@ -1405,7 +1405,7 @@ Actual (revised) state/desired state:
                         "{ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
                         this, sequenceNumber,
                         Opc.Ua.SequenceNumber.ToString(missingSequenceNumbers), dropped ?
-                        "dropped" : "already received", publishTime);
+                            "dropped" : "already received", publishTime);
                 }
 
                 var numOfEvents = 0;
@@ -1413,8 +1413,7 @@ Actual (revised) state/desired state:
                 foreach (var eventFieldList in notification.Events)
                 {
                     Debug.Assert(eventFieldList != null);
-                    var monitoredItem = subscription.FindItemByClientHandle(eventFieldList.ClientHandle) as OpcUaMonitoredItem;
-                    if (monitoredItem != null || _additionallyMonitored.TryGetValue(eventFieldList.ClientHandle, out monitoredItem))
+                    if (TryGetMonitoredItemForNotification(eventFieldList.ClientHandle, out var monitoredItem))
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
@@ -1439,25 +1438,13 @@ Actual (revised) state/desired state:
 
                         if (message.Notifications.Count > 0)
                         {
-                            _callbacks.OnSubscriptionEventChange(message);
+                            _callbacks.OnSubscriptionEventReceived(message);
                             numOfEvents++;
                             overflows += message.Notifications.Sum(n => n.Overflow);
                         }
                         else
                         {
                             _logger.LogDebug("No notifications added to the message.");
-                        }
-                    }
-                    else
-                    {
-                        _unassignedNotifications++;
-
-                        if (_logger.IsEnabled(LogLevel.Debug))
-                        {
-                            _logger.LogDebug(
-                                "Monitored item not found with client handle {ClientHandle} for " +
-                                "for Event received for subscription {Subscription}.",
-                                eventFieldList.ClientHandle, this);
                         }
                     }
                 }
@@ -1549,6 +1536,76 @@ Actual (revised) state/desired state:
         }
 
         /// <summary>
+        /// Handle cyclic read notifications created by the client
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="values"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="publishTime"></param>
+        public void OnSubscriptionCylicReadNotification(Subscription subscription,
+            List<SampledDataValueModel> values, uint sequenceNumber, DateTime publishTime)
+        {
+            Debug.Assert(ReferenceEquals(subscription, this));
+            Debug.Assert(!_disposed);
+            var session = Session;
+            if (session?.MessageContext == null)
+            {
+                _logger.LogWarning(
+                    "DataChange for subscription {Subscription} received without session {Session}.",
+                    this, session);
+                return;
+            }
+
+            var sw = Stopwatch.StartNew();
+            try
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                {
+                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = session.Endpoint?.EndpointUrl,
+                    SubscriptionName = Name,
+                    SubscriptionId = LocalIndex,
+                    PublishTimestamp = publishTime,
+                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = MessageType.DeltaFrame
+                };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+                foreach (var cyclicDataChange in values.OrderBy(m => m.Value?.SourceTimestamp))
+                {
+                    if (TryGetMonitoredItemForNotification(cyclicDataChange.ClientHandle, out var monitoredItem) &&
+                        !monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                            publishTime, cyclicDataChange, message.Notifications))
+                    {
+                        _logger.LogDebug("Skipping the cyclic read data change received for subscription {Subscription}",
+                            this);
+                    }
+                }
+
+                _callbacks.OnSubscriptionCyclicReadCompleted(message);
+                Debug.Assert(message.Notifications != null);
+                var count = message.GetDiagnosticCounters(out var _, out _, out var overflows);
+                if (count > 0)
+                {
+                    _callbacks.OnSubscriptionCyclicReadDiagnosticsChange(count, overflows);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Exception processing cyclic read notification");
+            }
+            finally
+            {
+                _logger.LogDebug("Cyclic read callback took {Elapsed}", sw.Elapsed);
+                if (sw.ElapsedMilliseconds > 1000)
+                {
+                    _logger.LogWarning("Spent more than 1 second in cyclic read callback.");
+                }
+            }
+        }
+
+        /// <summary>
         /// Handle data change notification. Depending on the sequential publishing setting
         /// this will be called in order and thread safe or from different threads.
         /// </summary>
@@ -1613,38 +1670,22 @@ Actual (revised) state/desired state:
                 foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
                 {
                     Debug.Assert(item != null);
-                    var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle) as OpcUaMonitoredItem;
-                    if (monitoredItem != null || _additionallyMonitored.TryGetValue(item.ClientHandle, out monitoredItem))
-                    {
-                        if (!monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
+                    if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
+                        !monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
                             publishTime, item, message.Notifications))
-                        {
-                            _logger.LogDebug(
-                                "Skipping the monitored item notification for DataChange " +
-                                "received for subscription {Subscription}", this);
-                        }
-                    }
-                    else
                     {
-                        _unassignedNotifications++;
-
-                        if (_logger.IsEnabled(LogLevel.Debug))
-                        {
-                            _logger.LogWarning(
-                                "Monitored item not found with client handle {ClientHandle} for " +
-                                "for DataChange received for subscription {Subscription}.",
-                                item.ClientHandle, this);
-                        }
+                        _logger.LogDebug(
+                            "Skipping the monitored item notification for DataChange " +
+                            "received for subscription {Subscription}", this);
                     }
                 }
 
-                _callbacks.OnSubscriptionDataChange(message);
+                _callbacks.OnSubscriptionDataChangeReceived(message);
                 Debug.Assert(message.Notifications != null);
-                var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var cyclicReads,
-                    out var overflows);
+                var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var overflows);
                 if (count > 0)
                 {
-                    _callbacks.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats, cyclicReads);
+                    _callbacks.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats);
                 }
             }
             catch (Exception e)
@@ -1659,6 +1700,31 @@ Actual (revised) state/desired state:
                     _logger.LogWarning("Spent more than 1 second in fast data change callback.");
                 }
             }
+        }
+
+        /// <summary>
+        /// Get monitored item using client handle
+        /// </summary>
+        /// <param name="clientHandle"></param>
+        /// <param name="monitoredItem"></param>
+        /// <returns></returns>
+        private bool TryGetMonitoredItemForNotification(uint clientHandle,
+            [NotNullWhen(true)] out OpcUaMonitoredItem? monitoredItem)
+        {
+            monitoredItem = FindItemByClientHandle(clientHandle) as OpcUaMonitoredItem;
+            if (monitoredItem != null || _additionallyMonitored.TryGetValue(clientHandle, out monitoredItem))
+            {
+                return true;
+            }
+
+            _unassignedNotifications++;
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Monitored item not found with client handle {ClientHandle} in subscription {Subscription}.",
+                    clientHandle, this);
+            }
+            return false;
         }
 
         /// <summary>
@@ -2020,26 +2086,19 @@ Actual (revised) state/desired state:
             /// </summary>
             /// <param name="modelChanges"></param>
             /// <param name="heartbeats"></param>
-            /// <param name="cyclicReads"></param>
             /// <param name="overflow"></param>
             /// <returns></returns>
             internal int GetDiagnosticCounters(out int modelChanges, out int heartbeats,
-                out int cyclicReads, out int overflow)
+                out int overflow)
             {
                 modelChanges = 0;
                 heartbeats = 0;
-                cyclicReads = 0;
                 overflow = 0;
                 foreach (var n in Notifications)
                 {
-                    /**/
-                    if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
+                    /**/ if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
                     {
                         modelChanges++;
-                    }
-                    else if (n.Flags.HasFlag(MonitoredItemSourceFlags.CyclicRead))
-                    {
-                        cyclicReads++;
                     }
                     else if (n.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat))
                     {

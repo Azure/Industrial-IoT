@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using static Azure.IIoT.OpcUa.Publisher.Stack.Services.OpcUaMonitoredItem;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -402,7 +403,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataChange(IOpcUaSubscriptionNotification notification)
+            public void OnSubscriptionKeepAlive(IOpcUaSubscriptionNotification notification)
+            {
+                Interlocked.Increment(ref _outer._keepAliveCount);
+                if (_sendKeepAlives)
+                {
+                    CallMessageReceiverDelegates(notification);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionDataChangeReceived(IOpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(ProcessKeyFrame(notification));
 
@@ -423,30 +434,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionKeepAlive(IOpcUaSubscriptionNotification notification)
-            {
-                Interlocked.Increment(ref _outer._keepAliveCount);
-                if (_sendKeepAlives)
-                {
-                    CallMessageReceiverDelegates(notification);
-                }
-            }
-
-            /// <inheritdoc/>
-            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int notificationCounts, int overflows,
-                int heartbeat, int cyclic)
+            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflows,
+                int heartbeats)
             {
                 lock (_lock)
                 {
-                    _outer._heartbeats.Count += heartbeat;
-                    _outer._cyclicReads.Count += cyclic;
+                    _outer._heartbeats.Count += heartbeats;
                     _outer._overflows.Count += overflows;
                     if (liveData)
                     {
                         if (_outer._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
                             _outer._valueChanges.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
-                            // reset both
                             _outer._logger.LogDebug(
                                 "Notifications counter in subscription {Id} has been reset to prevent" +
                                 " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
@@ -455,24 +454,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._dataChanges.Count = 0;
                             _outer._valueChanges.Count = 0;
                             _outer._heartbeats.Count = 0;
-                            _outer._cyclicReads.Count = 0;
                             _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                         }
 
-                        _outer._valueChanges.Count += notificationCounts;
+                        _outer._valueChanges.Count += valueChanges;
                         _outer._dataChanges.Count++;
                     }
                 }
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventChange(IOpcUaSubscriptionNotification notification)
+            public void OnSubscriptionCyclicReadCompleted(IOpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(notification);
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int notificationCounts, int overflows,
+            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflows)
+            {
+                lock (_lock)
+                {
+                    _outer._overflows.Count += overflows;
+
+                    if (_outer._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer._sampledValues.Count >= kNumberOfInvokedMessagesResetThreshold)
+                    {
+                        _outer._logger.LogDebug(
+                            "Notifications counter in subscription {Id} has been reset to prevent" +
+                            " overflow. So far, {ReadCount} data changes and {ValuesCount} " +
+                            "value changes were invoked by message source.",
+                            Id, _outer._cyclicReads.Count, _outer._sampledValues.Count);
+                        _outer._cyclicReads.Count = 0;
+                        _outer._sampledValues.Count = 0;
+                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                    }
+
+                    _outer._sampledValues.Count += valuesSampled;
+                    _outer._cyclicReads.Count++;
+                }
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventReceived(IOpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflows,
                 int modelChanges)
             {
                 lock (_lock)
@@ -483,7 +512,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (liveData)
                     {
                         if (_outer._events.Count >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer._eventNotification.Count >= kNumberOfInvokedMessagesResetThreshold)
+                            _outer._eventNotification.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
                             // reset both
                             _outer._logger.LogDebug(
@@ -498,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                         }
 
-                        _outer._eventNotification.Count += notificationCounts;
+                        _outer._eventNotification.Count += events;
                         _outer._events.Count++;
                     }
                 }
@@ -802,15 +831,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_heartbeats.LastMinute, _metrics.TagList),
                 description: "Opc Cyclic reads/second delivered for processing in last 60s.");
 
-            _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
-                () => new Measurement<long>(_cyclicReads.Count, _metrics.TagList),
-                description: "Total Cyclic reads delivered for processing.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second",
-                () => new Measurement<double>(_cyclicReads.Count / UpTime, _metrics.TagList),
-                description: "Opc Cyclic reads/second delivered for processing.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second_last_min",
-                () => new Measurement<long>(_cyclicReads.LastMinute, _metrics.TagList),
-                description: "Opc Cyclic reads/second delivered for processing in last 60s.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_sampledvalues",
+                () => new Measurement<long>(_sampledValues.Count, _metrics.TagList),
+                description: "Total sampled values delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_sampledvalues_per_second",
+                () => new Measurement<double>(_sampledValues.Count / UpTime, _metrics.TagList),
+                description: "Opc sampled values/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_sampledvalues_per_second_last_min",
+                () => new Measurement<long>(_sampledValues.LastMinute, _metrics.TagList),
+                description: "Opc sampled values/second delivered for processing in last 60s.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_modelchanges",
                 () => new Measurement<long>(_modelChanges.Count, _metrics.TagList),
@@ -862,6 +891,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_dataChanges.LastMinute, _metrics.TagList),
                 description: "Opc Data change notifications/second delivered for processing in last 60s.");
 
+            _meter.CreateObservableCounter("iiot_edge_publisher_cyclicreads",
+                () => new Measurement<long>(_cyclicReads.Count, _metrics.TagList),
+                description: "Total Cyclic reads delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second",
+                () => new Measurement<double>(_cyclicReads.Count / UpTime, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_cyclicreads_per_second_last_min",
+                () => new Measurement<long>(_cyclicReads.LastMinute, _metrics.TagList),
+                description: "Opc Cyclic reads/second delivered for processing in last 60s.");
+
             _meter.CreateObservableCounter("iiot_edge_publisher_queue_overflows",
                 () => new Measurement<long>(_overflows.Count, _metrics.TagList),
                 description: "Total values received with a queue overflow indicator.");
@@ -901,6 +940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly RollingAverage _valueChanges = new();
         private readonly RollingAverage _dataChanges = new();
+        private readonly RollingAverage _sampledValues = new();
         private readonly RollingAverage _cyclicReads = new();
         private readonly RollingAverage _eventNotification = new();
         private readonly RollingAverage _events = new();

@@ -19,11 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         Heartbeat = 0x1,
 
         /// <summary>
-        /// Cyclic read is the source of the notification
-        /// </summary>
-        CyclicRead = 0x2,
-
-        /// <summary>
         /// Condition is the source of the notification.
         /// </summary>
         Condition = 0x4,
