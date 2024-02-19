@@ -538,6 +538,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSetWriters
                 .Single().DataSetWriterName);
         }
+        [Fact]
+        public void PnPlcPubSubDataSetTelemetryTopicTemplateTest()
+        {
+            const string pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",       
+        ""TelemetryTopicTemplate"": ""event.{PublisherId}.{DataSetWriterGroup}.{DataSetWriterName}"",
+
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+
+            var logger = Log.Console<PublishedNodesConverter>();
+
+            var converter = new PublishedNodesConverter(logger, _serializer);
+
+            var entries = converter.Read(pn);
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("event.{PublisherId}.{DataSetWriterGroup}.{DataSetWriterName}", writerGroups
+                .Single().DataSetWriters
+                .Single().TelemetryTopicTemplate);
+        }
+
 
         [Fact]
         public void PnPlcPubSubDataSetWriterGroupTest()

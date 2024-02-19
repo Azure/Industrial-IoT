@@ -54,5 +54,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary>
+        /// Override the default TelemetryTopicTemplate if set
+        /// </summary>
+        [DataMember(Name = "TelemetryTopicTemplate", Order = 7)]
+        public string? TelemetryTopicTemplate { get; set; }
     }
 }

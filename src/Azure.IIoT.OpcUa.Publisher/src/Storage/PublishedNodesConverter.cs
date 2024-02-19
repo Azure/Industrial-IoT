@@ -431,6 +431,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 dataSet.Header.GetNormalizedMetaDataUpdateTime(),
                             KeyFrameCount =
                                 dataSet.Header.DataSetKeyFrameCount,
+                            TelemetryTopicTemplate =
+                                dataSet.Header.TelemetryTopicTemplate,
 
                             DataSet = new PublishedDataSetModel
                             {

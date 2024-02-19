@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Telemetry topic
         /// </summary>
         public string TelemetryTopic
-            => Format(nameof(TelemetryTopic), _options.Value.TelemetryTopicTemplate);
+            => Format(nameof(TelemetryTopic), _dataSetWriterModel?.TelemetryTopicTemplate ?? _options.Value.TelemetryTopicTemplate);
 
         /// <summary>
         /// Default metadata topic
@@ -56,10 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="options"></param>
         /// <param name="variables"></param>
+        /// <param name="dataSetWriterModel"></param>
         public TopicBuilder(IOptions<PublisherOptions> options,
-            IReadOnlyDictionary<string, string>? variables = null)
+            IReadOnlyDictionary<string, string>? variables = null, DataSetWriterModel? dataSetWriterModel = null)
         {
             _options = options;
+            _dataSetWriterModel = dataSetWriterModel;
             _variables = new Dictionary<string, Func<Formatter, string>>
             {
                 { nameof(TelemetryTopic),
@@ -136,6 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         }
 
         private readonly IOptions<PublisherOptions> _options;
+        private readonly DataSetWriterModel? _dataSetWriterModel;
         private readonly Dictionary<string, Func<Formatter, string>> _variables;
     }
 }
