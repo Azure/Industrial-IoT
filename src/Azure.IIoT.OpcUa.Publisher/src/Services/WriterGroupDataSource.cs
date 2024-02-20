@@ -300,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     [PublisherConfig.DataSetWriterGroupVariableName] =
                         outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId
                     // ...
-                });
+                }, dataSetWriter);
 
                 _topic = builder.TelemetryTopic;
                 _metadataTopic = builder.DataSetMetaDataTopic;

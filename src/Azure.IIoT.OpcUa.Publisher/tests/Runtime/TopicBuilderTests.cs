@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using FluentAssertions;
     using Microsoft.Extensions.Configuration;
     using System.Collections.Generic;
@@ -152,6 +153,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
                 ["DataSetWriterName"] = "Foo",
                 ["DataSetWriterGroup"] = "Bar"
             }).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/writer/Foo/group/Bar/messages");
+        }
+
+        [Fact]
+        public void TestTelemetryTopicBuildingWithDataSetOverride()
+        {
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.PublisherId = "MyPublisher";
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            options.Value.TelemetryTopicTemplate =
+                "{RootTopic}/writer/{DataSetWriterName}/group/{DataSetWriterGroup}/messages".ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
+            var dataSetWriterModel = new DataSetWriterModel { TelemetryTopicTemplate = "{RootTopic}/writer/{DataSetWriterName}/group/{DataSetWriterGroup}/overriden/from/dataset" };
+            new TopicBuilder(options, new Dictionary<string, string>
+            {
+                ["DataSetWriterName"] = "Foo",
+                ["DataSetWriterGroup"] = "Bar"
+            }, dataSetWriterModel).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/writer/Foo/group/Bar/overriden/from/dataset");
         }
 
         [Fact]
