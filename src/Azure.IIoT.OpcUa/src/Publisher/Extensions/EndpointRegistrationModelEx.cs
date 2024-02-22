@@ -23,11 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this IReadOnlyList<EndpointRegistrationModel>? model,
             IReadOnlyList<EndpointRegistrationModel>? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }
@@ -54,11 +54,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this EndpointRegistrationModel? model,
             EndpointRegistrationModel? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }

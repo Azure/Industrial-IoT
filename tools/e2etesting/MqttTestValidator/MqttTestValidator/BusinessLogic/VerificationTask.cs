@@ -27,14 +27,13 @@ namespace MqttTestValidator.BusinessLogic
         private readonly TimeSpan _observationTime;
         private readonly ILogger<IVerificationTask> _logger;
         private readonly string _clientId;
-        private readonly Regex _messageIdRegEx = new Regex(".*?(\"MessageId\":).(\\d*)?", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
-        private MqttVerificationDetailedResponse _result;
-        private static object _lock = new object();
+        private readonly Regex _messageIdRegEx = new(".*?(\"MessageId\":).(\\d*)?", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
+        private readonly MqttVerificationDetailedResponse _result;
+        private static readonly object _lock = new();
         private long _messageCounter;
         private long _lowestMessageId;
         private long _highestMessageId;
         private IMqttClient? _mqttClient;
-
 
         public VerificationTask(ulong id, string mqttBroker, int mqttPort, string mqttTopic, TimeSpan startUpDelay, TimeSpan observationTime, ILogger<IVerificationTask> logger)
         {
@@ -185,7 +184,7 @@ namespace MqttTestValidator.BusinessLogic
                 _logger.LogTrace("{Message}", message);
 
                 var matches = _messageIdRegEx.Matches(message);
-                foreach (Match match in matches.Where(m => m.Success))
+                foreach (var match in matches.Where(m => m.Success))
                 {
                     if (long.TryParse(match.Groups[2].Value, out var messageId))
                     {

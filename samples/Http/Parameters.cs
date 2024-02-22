@@ -72,7 +72,7 @@ internal sealed class Parameters : IDisposable
                 => cert != null && Certificate?.Thumbprint == cert?.Thumbprint
         });
         httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", ApiKey);
+            new AuthenticationHeaderValue("ApiKey", ApiKey);
         return httpClient;
     }
 

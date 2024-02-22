@@ -21,7 +21,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         private readonly ILogger _logger;
 
         private readonly SemaphoreSlim _lock;
-        private readonly Dictionary<string, TimeSpan> _lastOpcDiffToNow = new Dictionary<string, TimeSpan>();
+        private readonly Dictionary<string, TimeSpan> _lastOpcDiffToNow = new();
         private TimeSpan _maxOpcDiffToNow = TimeSpan.Zero;
 
         /// <summary>

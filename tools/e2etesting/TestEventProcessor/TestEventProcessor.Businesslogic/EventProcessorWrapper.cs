@@ -216,10 +216,7 @@ namespace TestEventProcessor.Businesslogic
         /// </summary>
         private Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
-            if (ProcessEvent != null)
-            {
-                ProcessEvent.Invoke(arg);
-            }
+            ProcessEvent?.Invoke(arg);
             return Task.CompletedTask;
         }
 

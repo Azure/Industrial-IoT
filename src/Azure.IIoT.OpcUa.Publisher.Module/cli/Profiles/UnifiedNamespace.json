@@ -1,0 +1,81 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "MessagingMode": "SingleRawDataSet",
+        "DataSetRouting": "UseBrowseNames",
+        "OpcNodes": [
+            {
+                "ModelChangeHandling": {
+                    "RebrowsePeriod": "00:00:10"
+                }
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData"
+            }
+        ]
+    }
+]

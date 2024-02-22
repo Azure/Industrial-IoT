@@ -15,24 +15,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     internal interface IOpcUaClient : IDisposable
     {
         /// <summary>
-        /// Registers a callback that will trigger at the specified
-        /// sampling rate and executing the read operation.
+        /// Registers a value to read with results pushed to the provided
+        /// subscription callback
         /// </summary>
         /// <param name="samplingRate"></param>
         /// <param name="nodeToRead"></param>
-        /// <param name="group"></param>
+        /// <param name="subscriptionName"></param>
+        /// <param name="clientHandle"></param>
         /// <returns></returns>
-        IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId nodeToRead,
-            string? group = null);
+        IAsyncDisposable Sample(TimeSpan samplingRate, ReadValueId nodeToRead,
+            string subscriptionName, uint clientHandle);
 
         /// <summary>
         /// Create a browser to browse the address space and provide
         /// the differences from last browsing operation.
         /// </summary>
         /// <param name="rebrowsePeriod"></param>
-        /// <param name="startNodeId"></param>
+        /// <param name="subscriptionName"></param>
         /// <returns></returns>
-        IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNodeId);
+        IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName);
 
         /// <summary>
         /// Trigger the client to manage the subscription. This is a

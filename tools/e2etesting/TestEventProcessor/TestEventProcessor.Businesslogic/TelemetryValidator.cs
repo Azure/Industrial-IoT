@@ -23,7 +23,7 @@ namespace TestEventProcessor.BusinessLogic
     {
         private TelemetryValidatorProcessor _instance;
         private EventProcessorWrapper _lastClient;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ILogger<TelemetryValidator> _logger;
 
         /// <summary>
@@ -251,10 +251,7 @@ namespace TestEventProcessor.BusinessLogic
             {
                 if (clientWrapper == null || clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration))
                 {
-                    if (clientWrapper != null)
-                    {
-                        clientWrapper.Dispose();
-                    }
+                    clientWrapper?.Dispose();
                     _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
                     await _clientWrapper.InitializeClientAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
                 }
@@ -384,7 +381,7 @@ namespace TestEventProcessor.BusinessLogic
 
                     var properties = arg.Data.Properties;
                     var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema)
-                        ? schema.ToString() == MessageSchemaTypes.NetworkMessageJson : false;
+                        && schema.ToString() == MessageSchemaTypes.NetworkMessageJson;
 
                     var body = arg.Data.Body.ToArray();
                     var content = Encoding.UTF8.GetString(body);
@@ -457,7 +454,7 @@ namespace TestEventProcessor.BusinessLogic
                                         _logger.LogInformation("Message {Message} does not have any 'Payload' object.", entry.ToString());
                                         continue;
                                     }
-                                    foreach (JProperty property in payload.Properties())
+                                    foreach (var property in payload.Properties())
                                     {
                                         if (property.Value is not JObject dataValue)
                                         {

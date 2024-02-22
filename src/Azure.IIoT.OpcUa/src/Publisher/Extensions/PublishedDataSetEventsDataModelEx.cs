@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             return model == null ? null : (model with
             {
                 Filter = model.Filter.Clone(),
+                Triggering = model.Triggering.Clone(),
                 SelectedFields = model.SelectedFields?
                     .Select(f => f.Clone())
                     .ToList(),

@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static bool IsSameAs(this CredentialModel? model, CredentialModel? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }

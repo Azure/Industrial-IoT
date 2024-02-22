@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is BaseNetworkMessage wrapper))
+            if (obj is not BaseNetworkMessage wrapper)
             {
                 return false;
             }

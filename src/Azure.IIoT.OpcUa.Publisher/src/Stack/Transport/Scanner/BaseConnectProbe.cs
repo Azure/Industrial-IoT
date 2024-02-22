@@ -167,10 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
 
                     while (!_cts.IsCancellationRequested)
                     {
-                        if (_arg == null)
-                        {
-                            _arg = new AsyncConnect(this);
-                        }
+                        _arg ??= new AsyncConnect(this);
                         try
                         {
                             if (_arg.BeginConnect(ep, timeout))

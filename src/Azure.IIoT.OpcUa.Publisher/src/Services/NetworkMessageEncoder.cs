@@ -189,13 +189,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
             var result = new List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action, IServiceMessageContext?)>();
-            // Group messages by publisher, then writer group and then by dataset class id
+
+            static QoS GetQos(WriterGroupMessageContext context, QoS? defaultQos)
+            {
+                return context.Qos ?? defaultQos ?? QoS.AtLeastOnce;
+            }
+            // Group messages by topic and qos, then writer group and then by dataset class id
             foreach (var topics in messages
                 .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
                 .Where(m => m.Context != null)
-                .GroupBy(m => m.Context!.Topic))
+                .GroupBy(m => (m.Context!.Topic, GetQos(m.Context, _options.Value.DefaultQualityOfService))))
             {
-                var topic = topics.Key;
+                var (topic, qos) = topics.Key;
                 foreach (var publishers in topics.GroupBy(m => m.Context.PublisherId))
                 {
                     var publisherId = publishers.Key;
@@ -209,7 +214,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             continue;
                         }
                         var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
-                        var qos = writerGroup.QoS ?? _options.Value.DefaultQualityOfService ?? QoS.AtLeastOnce;
                         var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
                         var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
                         if (hasSamplesPayload && !isBatched)
@@ -371,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             UseCompatibilityMode = !standardsCompliant,
                                                             ApplicationUri = Notification.ApplicationUri,
                                                             EndpointUrl = Notification.EndpointUrl,
-                                                            WriterGroupId = writerGroup.WriterGroupId,
+                                                            WriterGroupId = writerGroup.Name,
                                                             NodeId = notification.NodeId,
                                                             MessageType = Notification.MessageType,
                                                             DataSetMessageContentMask = dataSetMessageContentMask,
@@ -440,10 +444,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             MetaData = Notification.MetaData
                                         };
                                     metadataMessage.PublisherId = publisherId;
-                                    metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                                    metadataMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
 
-                                    result.Add((0, metadataMessage, Context.MetaDataTopic, true,
-                                        Context.Writer.MetaDataUpdateTime ?? default, QoS.AtLeastOnce, Notification.Dispose,
+                                    result.Add((0, metadataMessage, topic, true,
+                                        Context.Writer.MetaDataUpdateTime ?? default, qos, Notification.Dispose,
                                             Notification.ServiceMessageContext));
 #if DEBUG
                                     Notification.MarkProcessed();
@@ -485,14 +489,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                                 currentMessage.PublisherId = publisherId;
                                 currentMessage.DataSetClassId = dataSetClassId;
-                                currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                                currentMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
                                 return currentMessage;
                             }
 
                             static string GetDataSetWriterName(IOpcUaSubscriptionNotification Notification,
                                 WriterGroupMessageContext Context)
                             {
-                                var dataSetWriterName = Context.Writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName;
+                                var dataSetWriterName = Context.Writer.DataSetWriterName
+                                    ?? Constants.DefaultDataSetWriterName;
                                 var dataSetName = Notification.DataSetName;
                                 if (!string.IsNullOrWhiteSpace(dataSetName))
                                 {

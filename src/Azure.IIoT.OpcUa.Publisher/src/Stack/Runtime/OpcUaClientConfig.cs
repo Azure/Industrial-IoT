@@ -64,8 +64,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MinReconnectDelayKey = "MinReconnectDelay";
         public const string SubscriptionErrorRetryDelaySecondsKey = "SubscriptionErrorRetryDelaySeconds";
         public const string InvalidMonitoredItemRetryDelaySecondsKey = "InvalidMonitoredItemRetryDelaySeconds";
-        public const string BadMonitoredItemRetryDelayKey = "BadMonitoredItemRetryDelay";
-        public const string SubscriptionManagementIntervalKey = "SubscriptionManagementInterval";
+        public const string BadMonitoredItemRetryDelaySecondsKey = "BadMonitoredItemRetryDelaySeconds";
+        public const string SubscriptionManagementIntervalSecondsKey = "SubscriptionManagementIntervalSeconds";
         public const string LingerTimeoutSecondsKey = "LingerTimeoutSeconds";
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
@@ -167,11 +167,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            if (options.ReverseConnectPort == null)
-            {
-                options.ReverseConnectPort = GetIntOrDefault(ReverseConnectPortKey,
+            options.ReverseConnectPort ??= GetIntOrDefault(ReverseConnectPortKey,
                     ReverseConnectPortDefault);
-            }
 
             if (options.MinReconnectDelayDuration == null)
             {
@@ -198,73 +195,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 var lingerTimeout = GetIntOrDefault(LingerTimeoutSecondsKey);
                 if (lingerTimeout > 0)
                 {
-                    options.LingerTimeoutDuration = TimeSpan.FromSeconds(lingerTimeout);
+                    options.LingerTimeoutDuration =
+                        TimeSpan.FromSeconds(lingerTimeout);
                 }
             }
 
-            if (options.DisableComplexTypePreloading == null)
-            {
-                options.DisableComplexTypePreloading = GetBoolOrDefault(DisableComplexTypePreloadingKey);
-            }
+            options.DisableComplexTypePreloading ??= GetBoolOrDefault(DisableComplexTypePreloadingKey);
 
             if (options.SubscriptionErrorRetryDelay == null)
             {
-                var retryTimeout = GetIntOrDefault(SubscriptionErrorRetryDelaySecondsKey);
-                if (retryTimeout >= 0)
+                var retryTimeout = GetIntOrNull(SubscriptionErrorRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
                 {
-                    options.SubscriptionErrorRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                    options.SubscriptionErrorRetryDelay =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
                 }
             }
 
-            if (options.BadMonitoredItemRetryDelay == null)
+            if (options.BadMonitoredItemRetryDelayDuration == null)
             {
-                var retryTimeout = GetIntOrDefault(BadMonitoredItemRetryDelayKey);
-                if (retryTimeout >= 0)
+                var retryTimeout = GetIntOrNull(BadMonitoredItemRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
                 {
-                    options.BadMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                    options.BadMonitoredItemRetryDelayDuration =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
                 }
             }
 
-            if (options.InvalidMonitoredItemRetryDelay == null)
+            if (options.InvalidMonitoredItemRetryDelayDuration == null)
             {
-                var retryTimeout = GetIntOrDefault(InvalidMonitoredItemRetryDelaySecondsKey);
-                if (retryTimeout >= 0)
+                var retryTimeout = GetIntOrNull(InvalidMonitoredItemRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
                 {
-                    options.InvalidMonitoredItemRetryDelay = TimeSpan.FromSeconds(retryTimeout);
+                    options.InvalidMonitoredItemRetryDelayDuration =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
                 }
             }
 
-            if (options.SubscriptionManagementInterval == null)
+            if (options.SubscriptionManagementIntervalDuration == null)
             {
-                var managementInterval = GetIntOrDefault(SubscriptionManagementIntervalKey);
-                if (managementInterval > 0)
+                var managementInterval = GetIntOrNull(SubscriptionManagementIntervalSecondsKey);
+                if (managementInterval.HasValue)
                 {
-                    options.SubscriptionManagementInterval = TimeSpan.FromSeconds(managementInterval);
+                    options.SubscriptionManagementIntervalDuration =
+                        TimeSpan.FromSeconds(managementInterval.Value);
                 }
             }
 
-            if (options.MinPublishRequests == null)
-            {
-                options.MinPublishRequests = GetIntOrDefault(MinPublishRequestsKey,
+            options.MinPublishRequests ??= GetIntOrDefault(MinPublishRequestsKey,
                     MinPublishRequestsDefault);
-            }
 
-            if (options.PublishRequestsPerSubscriptionPercent == null)
-            {
-                options.PublishRequestsPerSubscriptionPercent = GetIntOrNull(
+            options.PublishRequestsPerSubscriptionPercent ??= GetIntOrNull(
                     PublishRequestsPerSubscriptionPercentKey,
                     PublishRequestsPerSubscriptionPercentDefault);
-            }
 
-            if (options.MaxNodesPerReadOverride == null)
-            {
-                options.MaxNodesPerReadOverride = GetIntOrNull(MaxNodesPerReadOverrideKey);
-            }
+            options.MaxNodesPerReadOverride ??= GetIntOrNull(MaxNodesPerReadOverrideKey);
 
-            if (options.MaxNodesPerBrowseOverride == null)
-            {
-                options.MaxNodesPerBrowseOverride = GetIntOrNull(MaxNodesPerBrowseOverrideKey);
-            }
+            options.MaxNodesPerBrowseOverride ??= GetIntOrNull(MaxNodesPerBrowseOverrideKey);
 
             if (options.Security.MinimumCertificateKeySize == 0)
             {
@@ -406,10 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     SecurityTokenLifetimeDefault);
             }
 
-            if (options.EnableOpcUaStackLogging == null)
-            {
-                options.EnableOpcUaStackLogging = GetBoolOrNull(EnableOpcUaStackLoggingKey);
-            }
+            options.EnableOpcUaStackLogging ??= GetBoolOrNull(EnableOpcUaStackLoggingKey);
 
             if (options.Security.TrustedUserCertificates == null)
             {

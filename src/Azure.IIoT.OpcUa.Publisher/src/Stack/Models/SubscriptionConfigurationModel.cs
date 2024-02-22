@@ -40,8 +40,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 
         /// <summary>
         /// Resolves the display names for the monitored items
+        /// in the subscription.
         /// </summary>
         public bool? ResolveDisplayName { get; set; }
+
+        /// <summary>
+        /// Retrieve paths from root for all monitored items
+        /// in the subscription.
+        /// </summary>
+        public bool ResolveBrowsePathFromRoot { get; set; }
 
         /// <summary>
         /// The metadata header information or null if disabled.

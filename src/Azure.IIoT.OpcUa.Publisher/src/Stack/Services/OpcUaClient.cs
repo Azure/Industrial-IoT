@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Globalization;
@@ -30,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed class OpcUaClient : DefaultSessionFactory, IOpcUaClient,
+    internal sealed partial class OpcUaClient : DefaultSessionFactory, IOpcUaClient,
         IOpcUaClientDiagnostics
     {
         /// <summary>
@@ -297,42 +296,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNode)
+        public IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName)
         {
-            lock (_browsers)
-            {
-                if (!_browsers.TryGetValue((startNode, rebrowsePeriod), out var browser))
-                {
-                    browser = new Browser(this, startNode, rebrowsePeriod);
-                    _browsers.Add((startNode, rebrowsePeriod), browser);
-                }
-                browser.AddRef();
-                return browser;
-            }
+            return Browser.Register(this, rebrowsePeriod, subscriptionName);
         }
 
         /// <inheritdoc/>
-        public IOpcUaSampler Sample(TimeSpan samplingRate, ReadValueId item, string? group)
+        public IAsyncDisposable Sample(TimeSpan samplingRate, ReadValueId item,
+            string subscriptionName, uint clientHandle)
         {
-            if (samplingRate == TimeSpan.Zero)
-            {
-                samplingRate = TimeSpan.FromSeconds(1);
-            }
-            lock (_engines)
-            {
-                var key = (group ?? string.Empty, samplingRate);
-                var sampler = new Sampler(this, key, item);
-                if (!_engines.TryGetValue(key, out var engine))
-                {
-                    engine = new SamplingEngine(this, samplingRate, sampler);
-                    _engines.Add(key, engine);
-                }
-                else
-                {
-                    engine.Add(sampler);
-                }
-                return sampler;
-            }
+            return Sampler.Register(this, samplingRate, item, subscriptionName, clientHandle);
         }
 
         /// <summary>
@@ -417,12 +390,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _sessionManager.ConfigureAwait(false);
                 _reconnectHandler.Dispose();
 
-                foreach (var sampler in _engines.Values)
+                foreach (var sampler in _samplers.Values)
                 {
                     await sampler.DisposeAsync().ConfigureAwait(false);
                 }
 
-                _engines.Clear();
+                _samplers.Clear();
 
                 foreach (var browser in _browsers.Values)
                 {
@@ -841,10 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             // 3) newSession != previous Session
                                             //  => everything reconnected and new session was activated.
                                             //
-                                            if (reconnected == null)
-                                            {
-                                                reconnected = _reconnectingSession;
-                                            }
+                                            reconnected ??= _reconnectingSession;
 
                                             Debug.Assert(reconnected != null, "reconnected should never be null");
                                             Debug.Assert(reconnected.Connected, "reconnected should always be connected");
@@ -907,10 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     currentSubscriptions = Array.Empty<IOpcUaSubscription>();
 
                                     // if not already disconnected, aquire writer lock
-                                    if (_disconnectLock == null)
-                                    {
-                                        _disconnectLock = await _lock.WriterLockAsync(ct);
-                                    }
+                                    _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
                                     _numberOfConnectRetries = 0;
 
@@ -1199,7 +1166,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
+#pragma warning disable IDE0060 // Remove unused parameter
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             switch (e.Status.Code)
             {
@@ -1510,7 +1479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            using (DiscoveryClient client = connection != null ?
+            using (var client = connection != null ?
                 DiscoveryClient.Create(_configuration, connection, endpointConfiguration) :
                 DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
             {
@@ -1698,742 +1667,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Browser utility class
-        /// </summary>
-        private sealed class Browser : IAsyncDisposable, IOpcUaBrowser
-        {
-            /// <summary>
-            /// Reference changes
-            /// </summary>
-            public event EventHandler<Change<ReferenceDescription>>? OnReferenceChange;
-
-            /// <summary>
-            /// Node changes
-            /// </summary>
-            public event EventHandler<Change<Node>>? OnNodeChange;
-
-            /// <summary>
-            /// Create browser
-            /// </summary>
-            /// <param name="client"></param>
-            /// <param name="startNodeId"></param>
-            /// <param name="browseDelay"></param>
-            public Browser(OpcUaClient client, NodeId startNodeId, TimeSpan browseDelay)
-            {
-                _client = client;
-                _logger = client._logger;
-                _startNodeId = NodeId.IsNull(startNodeId) ? ObjectIds.RootFolder : startNodeId;
-                _browseDelay = browseDelay == TimeSpan.Zero ? Timeout.InfiniteTimeSpan : browseDelay;
-                _channel = Channel.CreateUnbounded<bool>();
-
-                // Order is important
-                _rebrowseTimer = new Timer(_ => _channel.Writer.TryWrite(true));
-                _browser = RunAsync(_cts.Token);
-                _channel.Writer.TryWrite(true);
-            }
-
-            /// <inheritdoc/>
-            public async ValueTask CloseAsync()
-            {
-                if (Release())
-                {
-                    await DisposeAsync().ConfigureAwait(false);
-                }
-            }
-
-            /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
-            {
-                if (!_disposed)
-                {
-                    _disposed = true;
-                    try
-                    {
-                        _rebrowseTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                        _channel.Writer.TryComplete();
-
-                        await _cts.CancelAsync().ConfigureAwait(false);
-
-                        await _browser.ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        _cts.Dispose();
-                        _rebrowseTimer.Dispose();
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public void Rebrowse()
-            {
-                _channel.Writer.TryWrite(true);
-            }
-
-            /// <summary>
-            /// Signal session connected
-            /// </summary>
-            public void OnConnected()
-            {
-                _channel.Writer.TryWrite(false);
-            }
-
-            /// <summary>
-            /// Continously browse
-            /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async Task RunAsync(CancellationToken ct)
-            {
-                _logger.LogDebug("Starting continous browsing process...");
-                var sw = Stopwatch.StartNew();
-                try
-                {
-                    await foreach (var result in _channel.Reader.ReadAllAsync(ct))
-                    {
-                        if (!result)
-                        {
-                            // Start browsing in 10 seconds
-                            _rebrowseTimer.Change(TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
-                            continue;
-                        }
-
-                        _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                        try
-                        {
-                            var session = _client._session;
-                            if (session?.Connected != true)
-                            {
-                                continue;
-                            }
-
-                            _logger.LogInformation("Browsing started after {Elapsed}...", sw.Elapsed);
-                            sw.Restart();
-
-                            await BrowseAddressSpaceAsync(session, ct).ConfigureAwait(false);
-
-                            _logger.LogInformation("Browsing completed and took {Elapsed}. " +
-                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                                sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded,
-                                _nodesChanged, _nodesRemoved, _errors);
-                        }
-                        catch (ServiceResultException sre)
-                        {
-                            _logger.LogInformation("Browsing completed due to error {Error} took {Elapsed}." +
-                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                                sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved,
-                                _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
-                            if (!_client.IsConnected)
-                            {
-                                _logger.LogDebug("Not connected - waiting to reconnect.");
-                                continue;
-                            }
-                            _logger.LogError(sre, "Error occurred during browsing");
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            // Continue
-                            _logger.LogError(ex, "Browsing completed due to an exception and took {Elapsed}.",
-                                sw.Elapsed);
-                        }
-                        finally
-                        {
-                            sw.Restart();
-                            _referencesAdded = _referencesRemoved = 0;
-                            _nodesAdded = _nodesChanged = _nodesRemoved = 0;
-                            _errors = 0;
-                            _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
-                        }
-                    }
-                    _logger.LogInformation("Browser process exited.");
-                }
-                catch (Exception e)
-                {
-                    _logger.LogCritical(e, "Browser process exited due to unexpected exception.");
-                }
-            }
-
-            /// <summary>
-            /// Browse address space
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async Task BrowseAddressSpaceAsync(OpcUaSession session, CancellationToken ct)
-            {
-                var browseTemplate = new BrowseDescription
-                {
-                    NodeId = _startNodeId,
-                    BrowseDirection = Opc.Ua.BrowseDirection.Forward,
-                    ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
-                    IncludeSubtypes = true,
-                    NodeClassMask = 0,
-                    ResultMask = (uint)BrowseResultMask.All
-                };
-                var browseDescriptionCollection = CreateBrowseDescriptionCollectionFromNodeId(
-                    new NodeIdCollection(new[] { _startNodeId }), browseTemplate);
-
-                // Browse
-                var foundReferences = new Dictionary<ReferenceDescription, NodeId>(
-                    Compare.Using<ReferenceDescription>(Utils.IsEqual));
-                var foundNodes = new Dictionary<NodeId, Node>();
-                try
-                {
-                    int searchDepth = 0;
-                    uint maxNodesPerBrowse = session.OperationLimits.MaxNodesPerBrowse;
-                    while (browseDescriptionCollection.Count != 0 && searchDepth < kMaxSearchDepth)
-                    {
-                        searchDepth++;
-
-                        bool repeatBrowse;
-                        var allBrowseResults = new List<(NodeId, BrowseResult)>();
-                        var unprocessedOperations = new BrowseDescriptionCollection();
-
-                        BrowseResultCollection? browseResultCollection = null;
-                        do
-                        {
-                            var browseCollection = maxNodesPerBrowse == 0
-                                ? browseDescriptionCollection
-                                : browseDescriptionCollection.Take((int)maxNodesPerBrowse).ToArray();
-                            repeatBrowse = false;
-                            try
-                            {
-                                var browseResponse = await session.BrowseAsync(null, null,
-                                    kMaxReferencesPerNode, browseCollection, ct).ConfigureAwait(false);
-                                browseResultCollection = browseResponse.Results;
-                                ClientBase.ValidateResponse(browseResultCollection, browseCollection);
-                                ClientBase.ValidateDiagnosticInfos(
-                                    browseResponse.DiagnosticInfos, browseCollection);
-
-                                // seperate unprocessed nodes for later
-                                for (var index = 0; index < browseResultCollection.Count; index++)
-                                {
-                                    var browseResult = browseResultCollection[index];
-                                    // check for error.
-                                    StatusCode statusCode = browseResult.StatusCode;
-                                    if (StatusCode.IsBad(statusCode))
-                                    {
-                                        //
-                                        // this error indicates that the server does not have enough
-                                        // simultaneously active continuation points. This request will
-                                        // need to be re-sent after the other operations have been
-                                        // completed and their continuation points released.
-                                        //
-                                        if (statusCode == StatusCodes.BadNoContinuationPoints)
-                                        {
-                                            unprocessedOperations.Add(browseCollection[index]);
-                                            continue;
-                                        }
-                                    }
-                                    // save results.
-                                    allBrowseResults.Add((browseCollection[index].NodeId, browseResult));
-                                }
-                            }
-                            catch (ServiceResultException sre) when
-                                (sre.StatusCode == StatusCodes.BadEncodingLimitsExceeded ||
-                                 sre.StatusCode == StatusCodes.BadResponseTooLarge)
-                            {
-                                // try to address by overriding operation limit
-                                maxNodesPerBrowse = maxNodesPerBrowse == 0 ?
-                                    (uint)browseCollection.Count / 2 : maxNodesPerBrowse / 2;
-                                repeatBrowse = true;
-                            }
-                        }
-                        while (repeatBrowse);
-
-                        // Browse next
-                        Debug.Assert(browseResultCollection != null);
-                        var (nodeIds, continuationPoints) = PrepareBrowseNext(
-                            new NodeIdCollection(browseDescriptionCollection
-                                .Take(browseResultCollection.Count).Select(r => r.NodeId)),
-                            browseResultCollection);
-                        while (continuationPoints.Count != 0)
-                        {
-                            var browseNextResult = await session.BrowseNextAsync(null, false,
-                                continuationPoints, ct).ConfigureAwait(false);
-                            var browseNextResultCollection = browseNextResult.Results;
-                            ClientBase.ValidateResponse(browseNextResultCollection, continuationPoints);
-                            ClientBase.ValidateDiagnosticInfos(
-                                browseNextResult.DiagnosticInfos, continuationPoints);
-
-                            allBrowseResults.AddRange(browseNextResultCollection
-                                .Select((r, i) => (browseDescriptionCollection[i].NodeId, r)));
-                            (nodeIds, continuationPoints) = PrepareBrowseNext(nodeIds, browseNextResultCollection);
-                        }
-
-                        if (maxNodesPerBrowse == 0)
-                        {
-                            browseDescriptionCollection.Clear();
-                        }
-                        else
-                        {
-                            browseDescriptionCollection = browseDescriptionCollection
-                                .Skip(browseResultCollection.Count)
-                                .ToArray();
-                        }
-
-                        static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
-                            NodeIdCollection browseSourceCollection, BrowseResultCollection results)
-                        {
-                            var continuationPoints = new ByteStringCollection();
-                            var nodeIdCollection = new NodeIdCollection();
-                            for (var i = 0; i < results.Count; i++)
-                            {
-                                var browseResult = results[i];
-                                if (browseResult.ContinuationPoint != null)
-                                {
-                                    nodeIdCollection.Add(browseSourceCollection[i]);
-                                    continuationPoints.Add(browseResult.ContinuationPoint);
-                                }
-                            }
-                            return (nodeIdCollection, continuationPoints);
-                        }
-
-                        // Build browse request for next level
-                        var browseTable = new NodeIdCollection();
-                        foreach (var (source, browseResult) in allBrowseResults)
-                        {
-                            var nodesToRead = new List<NodeId>();
-                            foreach (var reference in browseResult.References)
-                            {
-                                if (foundReferences.TryAdd(reference, source))
-                                {
-                                    if (!_knownReferences.Remove(reference))
-                                    {
-                                        // Send new reference
-                                        _referencesAdded++;
-                                        OnReferenceChange?.Invoke(session,
-                                            CreateChange(source, null, reference));
-                                    }
-
-                                    var targetNodeId = ExpandedNodeId.ToNodeId(reference.NodeId, session.NamespaceUris);
-                                    browseTable.Add(targetNodeId);
-                                    await ReadNodeAsync(session, targetNodeId, foundNodes, ct).ConfigureAwait(false);
-                                }
-                            }
-                        }
-                        browseDescriptionCollection.AddRange(CreateBrowseDescriptionCollectionFromNodeId(
-                            browseTable, browseTemplate));
-                        // add unprocessed nodes if any
-                        browseDescriptionCollection.AddRange(unprocessedOperations);
-                    }
-
-                    _referencesRemoved += _knownReferences.Count;
-                    foreach (var removedReference in _knownReferences)
-                    {
-                        OnReferenceChange?.Invoke(session, CreateChange(
-                            removedReference.Value, removedReference.Key, null));
-                    }
-                    _knownReferences.Clear();
-
-                    _nodesRemoved += _knownNodes.Count;
-                    foreach (var removedNode in _knownNodes)
-                    {
-                        OnNodeChange?.Invoke(session, CreateChange(
-                            removedNode.Key, removedNode.Value, null));
-                    }
-                    _knownNodes.Clear();
-                }
-                catch (Exception ex)
-                {
-                    HandleException(foundReferences, foundNodes, ex);
-                    throw;
-                }
-                finally
-                {
-                    _knownReferences = foundReferences;
-                    _knownNodes = foundNodes;
-                }
-
-                static BrowseDescriptionCollection CreateBrowseDescriptionCollectionFromNodeId(
-                    NodeIdCollection nodeIdCollection, BrowseDescription template)
-                {
-                    var browseDescriptionCollection = new BrowseDescriptionCollection();
-                    foreach (var nodeId in nodeIdCollection)
-                    {
-                        var browseDescription = (BrowseDescription)template.MemberwiseClone();
-                        browseDescription.NodeId = nodeId;
-                        browseDescriptionCollection.Add(browseDescription);
-                    }
-                    return browseDescriptionCollection;
-                }
-
-                void HandleException(Dictionary<ReferenceDescription, NodeId> foundReferences,
-                    Dictionary<NodeId, Node> foundNodes, Exception ex)
-                {
-                    _logger.LogDebug(ex, "Stopping browse due to error.");
-
-                    // Reset stream by resetting the sequence number to 0
-                    _sequenceNumber = 0u;
-
-                    //
-                    // In case of exception we could not process the entire address space
-                    // We add the remainder of the remaining existing references and nodes
-                    // back to the currently known nodes and references and sort those out
-                    // next time around.
-                    //
-                    foreach (var removedReference in _knownReferences)
-                    {
-                        // Re-add
-                        foundReferences.AddOrUpdate(removedReference.Key, removedReference.Value);
-                    }
-                    _knownReferences.Clear();
-
-                    foreach (var removedNode in _knownNodes)
-                    {
-                        // Re-add
-                        foundNodes.AddOrUpdate(removedNode.Key, removedNode.Value);
-                    }
-                    _knownNodes.Clear();
-                }
-            }
-
-            /// <summary>
-            /// Read node and send add or change notification
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="targetNodeId"></param>
-            /// <param name="foundNodes"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
-                Dictionary<NodeId, Node> foundNodes, CancellationToken ct)
-            {
-                try
-                {
-                    var node = await session.ReadNodeAsync(targetNodeId,
-                        ct).ConfigureAwait(false);
-                    if (NodeId.IsNull(node.NodeId))
-                    {
-                        return;
-                    }
-                    if (_knownNodes.Remove(node.NodeId, out var existingNode) &&
-                        !Utils.IsEqual(existingNode, node))
-                    {
-                        // send updated node
-                        _nodesChanged++;
-                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, existingNode, node));
-                    }
-
-                    if (foundNodes.TryAdd(node.NodeId, node) && existingNode == null)
-                    {
-                        // Send added node
-                        _nodesAdded++;
-                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, null, node));
-                    }
-                }
-                catch (Exception) when (session.Connected)
-                {
-                    // TODO: Notify error here, but we are anyway sending a removal...
-                    _errors++;
-                }
-            }
-
-            /// <summary>
-            /// Helper to create a change structure
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <param name="source"></param>
-            /// <param name="existing"></param>
-            /// <param name="New"></param>
-            /// <returns></returns>
-            private Change<T> CreateChange<T>(NodeId source, T? existing, T? New) where T : class
-                => new Change<T>(source, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    DateTime.UtcNow);
-
-            /// <summary>
-            /// Take a reference on this browser
-            /// </summary>
-            internal void AddRef()
-            {
-                _refCount++;
-                _channel.Writer.TryWrite(false); // Ensure we start a rebrowse in 10
-            }
-
-            /// <summary>
-            /// Release browser and remove from browser list
-            /// </summary>
-            /// <returns></returns>
-            private bool Release()
-            {
-                bool cleanup = false;
-                lock (_client._browsers)
-                {
-                    if (--_refCount == 0 && _client._browsers.Remove((_startNodeId, _browseDelay)))
-                    {
-                        cleanup = true;
-                    }
-                }
-                return cleanup;
-            }
-
-            const int kMaxSearchDepth = 128;
-            const int kMaxReferencesPerNode = 1000;
-
-            private bool _disposed;
-            private uint _sequenceNumber;
-            private int _refCount;
-            private int _referencesAdded;
-            private int _referencesRemoved;
-            private int _nodesAdded;
-            private int _nodesChanged;
-            private int _nodesRemoved;
-            private int _errors;
-            private Dictionary<NodeId, Node> _knownNodes = new();
-            private Dictionary<ReferenceDescription, NodeId> _knownReferences =
-                new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
-            private readonly NodeId _startNodeId;
-            private readonly Task _browser;
-            private readonly OpcUaClient _client;
-            private readonly ILogger _logger;
-            private readonly Channel<bool> _channel;
-            private readonly Timer _rebrowseTimer;
-            private readonly CancellationTokenSource _cts = new();
-            private readonly TimeSpan _browseDelay;
-        }
-
-        /// <summary>
-        /// A sampled node registered with a sampler
-        /// </summary>
-        private sealed class Sampler : IOpcUaSampler
-        {
-            /// <inheritdoc/>
-            public event EventHandler<DataValueChange>? OnValueChange;
-
-            /// <summary>
-            /// Sampler key
-            /// </summary>
-            public (string, TimeSpan) Key { get; }
-
-            /// <summary>
-            /// Item to monito
-            /// </summary>
-            public ReadValueId InitialValue { get; }
-
-            /// <summary>
-            /// Create node
-            /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="key"></param>
-            /// <param name="item"></param>
-            public Sampler(OpcUaClient outer, (string, TimeSpan) key,
-                ReadValueId item)
-            {
-                _outer = outer;
-                Key = key;
-                InitialValue = item;
-                item.Handle = this;
-            }
-
-            /// <inheritdoc/>
-            public async ValueTask CloseAsync()
-            {
-                SamplingEngine? sampler;
-                lock (_outer._engines)
-                {
-                    if (!_outer._engines.TryGetValue(Key, out sampler)
-                        || !sampler.Remove(this))
-                    {
-                        return;
-                    }
-                    _outer._engines.Remove(Key);
-                }
-                await sampler.DisposeAsync().ConfigureAwait(false);
-            }
-
-            /// <summary>
-            /// Notify value
-            /// </summary>
-            /// <param name="sequenceNumber"></param>
-            /// <param name="value"></param>
-            /// <param name="overflow"></param>
-            public void OnSample(uint sequenceNumber, DataValue value, int overflow)
-            {
-                OnValueChange?.Invoke(this, new DataValueChange(value, sequenceNumber, overflow));
-            }
-
-            private readonly OpcUaClient _outer;
-        }
-
-        /// <summary>
-        /// A set of client sampled values
-        /// </summary>
-        private sealed class SamplingEngine : IAsyncDisposable
-        {
-            /// <summary>
-            /// Creates the sampler
-            /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="samplingRate"></param>
-            /// <param name="value"></param>
-            public SamplingEngine(OpcUaClient outer, TimeSpan samplingRate,
-                Sampler value)
-            {
-                _samplers = ImmutableHashSet<Sampler>.Empty.Add(value);
-
-                _outer = outer;
-                _cts = new CancellationTokenSource();
-                _samplingRate = samplingRate;
-                _timer = new PeriodicTimer(_samplingRate);
-                _sampler = RunAsync(_cts.Token);
-            }
-
-            /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
-            {
-                try
-                {
-                    await _cts.CancelAsync().ConfigureAwait(false);
-                    _timer.Dispose();
-                    await _sampler.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _cts.Dispose();
-                }
-            }
-
-            /// <summary>
-            /// Add sampler
-            /// </summary>
-            /// <param name="node"></param>
-            /// <returns></returns>
-            public SamplingEngine Add(Sampler node)
-            {
-                _samplers = _samplers.Add(node);
-                return this;
-            }
-
-            /// <summary>
-            /// Remove sampler
-            /// </summary>
-            /// <param name="value"></param>
-            /// <returns></returns>
-            public bool Remove(Sampler value)
-            {
-                _samplers = _samplers.Remove(value);
-                return _samplers.Count == 0;
-            }
-
-            /// <summary>
-            /// Run sampling of values on the periodic timer
-            /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async Task RunAsync(CancellationToken ct)
-            {
-                var sw = Stopwatch.StartNew();
-                for (var sequenceNumber = 1u; !ct.IsCancellationRequested; sequenceNumber++)
-                {
-                    if (sequenceNumber == 0u)
-                    {
-                        continue;
-                    }
-
-                    var nodesToRead = new ReadValueIdCollection(_samplers.Select(n => n.InitialValue));
-                    try
-                    {
-                        // Wait until period completed
-                        if (!await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
-                        {
-                            continue;
-                        }
-
-                        sw.Restart();
-                        // Grab the current session
-                        var session = _outer._session;
-                        if (session == null)
-                        {
-                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected, TimeSpan.Zero);
-                            continue;
-                        }
-
-                        // Ensure type system is loaded
-                        if (!session.IsTypeSystemLoaded && _outer.DisableComplexTypePreloading != true)
-                        {
-                            await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
-                        }
-
-                        // Perform the read.
-                        var timeout = _samplingRate.TotalMilliseconds / 2;
-                        var response = await session.ReadAsync(new RequestHeader
-                        {
-                            Timestamp = DateTime.UtcNow,
-                            TimeoutHint = (uint)timeout,
-                            ReturnDiagnostics = 0
-                        }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead, ct).ConfigureAwait(false);
-
-                        var values = response.Validate(response.Results,
-                            r => r.StatusCode, response.DiagnosticInfos, nodesToRead);
-
-                        if (values.ErrorInfo != null)
-                        {
-                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode, sw.Elapsed);
-                            continue;
-                        }
-
-                        // Notify clients of the values
-                        NotifyAll(sequenceNumber, values, sw.Elapsed);
-                    }
-                    catch (OperationCanceledException) { }
-                    catch (ServiceResultException sre)
-                    {
-                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode, sw.Elapsed);
-                    }
-                    catch (Exception ex)
-                    {
-                        var error = new ServiceResult(ex).StatusCode;
-                        NotifyAll(sequenceNumber, nodesToRead, error.Code, sw.Elapsed);
-                    }
-                }
-            }
-
-            private void NotifyAll(uint seq, ServiceResponse<ReadValueId, DataValue> values,
-                TimeSpan elapsed)
-            {
-                var missed = GetMissed(elapsed);
-                values.ForEach(i => ((Sampler)i.Request.Handle).OnSample(seq,
-                    SetOverflow(i.Result, missed > 0), missed));
-                DataValue SetOverflow(DataValue result, bool overflowBit)
-                {
-                    result.StatusCode.SetOverflow(overflowBit);
-                    return result;
-                }
-            }
-
-            private void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
-                TimeSpan elapsed)
-            {
-                var missed = GetMissed(elapsed);
-                var dataValue = new DataValue(statusCode);
-                if (missed > 0)
-                {
-                    dataValue.StatusCode.SetOverflow(true);
-                }
-                nodesToRead.ForEach(i => ((Sampler)i.Handle).OnSample(seq, dataValue, missed));
-            }
-
-            private int GetMissed(TimeSpan elapsed)
-            {
-                return (int)Math.Round(elapsed.TotalMilliseconds / _samplingRate.TotalMilliseconds);
-            }
-
-            private ImmutableHashSet<Sampler> _samplers;
-            private readonly CancellationTokenSource _cts;
-            private readonly Task _sampler;
-            private readonly OpcUaClient _outer;
-            private readonly TimeSpan _samplingRate;
-            private readonly PeriodicTimer _timer;
-        }
-
-        /// <summary>
         /// Disconnected state
         /// </summary>
         private sealed class DisconnectState : IOpcUaClientDiagnostics
@@ -2529,8 +1762,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<(string, TimeSpan), SamplingEngine> _engines = new();
-        private readonly Dictionary<(NodeId, TimeSpan), Browser> _browsers = new();
+        private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
+        private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
     }

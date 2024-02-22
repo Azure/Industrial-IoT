@@ -4849,6 +4849,19 @@
                 "modelAsString": false
             }
         },
+        "DataSetRoutingMode": {
+            "description": "Data set routing",
+            "enum": [
+                "None",
+                "UseBrowseNames",
+                "UseBrowseNamesWithNamespaceIndex"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "DataSetRoutingMode",
+                "modelAsString": false
+            }
+        },
         "DataTypeMetadataModel": {
             "description": "Data type metadata model",
             "type": "object",
@@ -6053,7 +6066,9 @@
                 "FullNetworkMessages",
                 "FullSamples",
                 "DataSetMessages",
-                "RawDataSets"
+                "SingleDataSetMessage",
+                "RawDataSets",
+                "SingleRawDataSet"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -6761,6 +6776,13 @@
                     "description": "Index range to read, default to null.",
                     "type": "string"
                 },
+                "Topic": {
+                    "description": "Topic to publish to - splits network messages\r\nalong the lines of topic name and overrides\r\nthe queue name of the writer and writer group.",
+                    "type": "string"
+                },
+                "QualityOfService": {
+                    "$ref": "#/definitions/QoS"
+                },
                 "HeartbeatBehavior": {
                     "$ref": "#/definitions/HeartbeatBehavior"
                 },
@@ -6802,6 +6824,13 @@
                 },
                 "ModelChangeHandling": {
                     "$ref": "#/definitions/ModelChangeHandlingOptionsModel"
+                },
+                "TriggeredNodes": {
+                    "description": "Nodes that are triggered by the parent node.\r\nNodes cannot themselves trigger other nodes, any\r\nsuch setting is silently discarded. Triggered nodes\r\ncan only be updated as an atomic unit using API.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OpcNodeModel"
+                    }
                 },
                 "ExpandedNodeId": {
                     "description": "Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)",
@@ -7093,7 +7122,7 @@
                     "description": "Version number of the entry",
                     "type": "integer"
                 },
-                "LastChangeTimespan": {
+                "LastChangeDateTime": {
                     "format": "date-time",
                     "description": "Last change to the entry",
                     "type": "string"
@@ -7210,6 +7239,13 @@
                     "description": "Use reverse connect to connect ot the endpoint",
                     "type": "boolean"
                 },
+                "DataSetRouting": {
+                    "$ref": "#/definitions/DataSetRoutingMode"
+                },
+                "WriterGroupQueueName": {
+                    "description": "Writer group queue overrides the default writer group\r\ntopic template to use.",
+                    "type": "string"
+                },
                 "WriterGroupQualityOfService": {
                     "$ref": "#/definitions/QoS"
                 },
@@ -7238,6 +7274,17 @@
                 "OpcAuthenticationPassword": {
                     "description": "plain password",
                     "type": "string"
+                },
+                "QueueName": {
+                    "description": "Writer queue overrides the writer group queue name.\r\nNetwork messages are then split across queues with\r\nQos also accounted for.",
+                    "type": "string"
+                },
+                "MetaDataQueueName": {
+                    "description": "Meta data queue name to use for the writer. Overrides\r\nthe default metadata topic template.",
+                    "type": "string"
+                },
+                "QualityOfService": {
+                    "$ref": "#/definitions/QoS"
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"

@@ -18,6 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests
         /// <summary>
         /// Configuration
         /// </summary>
-        public static LoggingConfig Config => new LoggingConfig { LogLevel = Level };
+        public static LoggingConfig Config => new() { LogLevel = Level };
     }
 }

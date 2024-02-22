@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+namespace InvokeDeviceMethod;
+
 using CommandLine;
 using Microsoft.Azure.Devices;
 using System.Text.Json;
-
-namespace InvokeDeviceMethod;
 
 /// <summary>
 /// Command line parameters

@@ -7,8 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Service.Services.Models;
     using AutoFixture;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Linq;
     using Xunit;
@@ -78,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         public void TestEqualIsEqualWithDeviceModel()
         {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin(_serializer);
+            var m = r1.ToDeviceTwin();
             var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
@@ -94,9 +92,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
 
             var r1 = CreateRegistration();
             var r2 = r1.ToDiscovererModel().ToPublisherRegistration(true);
-            var m1 = r1.Patch(r2, _serializer);
+            var m1 = r1.Patch(r2);
             var r3 = r2.ToDiscovererModel().ToPublisherRegistration(false);
-            var m2 = r2.Patch(r3, _serializer);
+            var m2 = r2.Patch(r3);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
             Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
@@ -119,7 +117,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
                 .Without(x => x.NotSeenSince)
                 .Create();
         }
-
-        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

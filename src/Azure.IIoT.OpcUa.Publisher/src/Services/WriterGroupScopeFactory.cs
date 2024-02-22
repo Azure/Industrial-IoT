@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupModel writerGroup, IJsonSerializer serializer)
             {
                 _outer = outer;
-                _writerGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                _writerGroupId = writerGroup.Id;
 
                 TagList = new TagList(new[]
                 {
@@ -71,7 +71,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new KeyValuePair<string, object?>(Constants.PublisherIdTag,
                         _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,
-                        _writerGroup)
+                        _writerGroupId),
+                    new KeyValuePair<string, object?>(Constants.WriterGroupNameTag,
+                        writerGroup.Name ?? Constants.DefaultWriterGroupName)
                 });
 
                 _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>
@@ -101,17 +103,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void ResetWriterGroupDiagnostics()
             {
-                _outer._collector?.ResetWriterGroup(_writerGroup);
+                _outer._collector?.ResetWriterGroup(_writerGroupId);
             }
 
             /// <inheritdoc/>
             public void Dispose()
             {
-                _outer._collector?.RemoveWriterGroup(_writerGroup);
+                _outer._collector?.RemoveWriterGroup(_writerGroupId);
                 _scope.Dispose();
             }
 
-            private readonly string _writerGroup;
+            private readonly string _writerGroupId;
             private readonly WriterGroupScopeFactory _outer;
             private readonly ILifetimeScope _scope;
         }

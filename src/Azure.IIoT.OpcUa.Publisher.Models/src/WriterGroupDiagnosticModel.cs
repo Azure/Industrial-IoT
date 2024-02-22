@@ -15,6 +15,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public record class WriterGroupDiagnosticModel
     {
         /// <summary>
+        /// Publisher version
+        /// </summary>
+        [DataMember(Name = "PublisherVersion", Order = 99,
+            EmitDefaultValue = true)]
+        public string? PublisherVersion { get; set; }
+
+        /// <summary>
         /// Timestamp for this diagnostics information
         /// </summary>
         [DataMember(Name = "Timestamp", Order = 0,
@@ -352,10 +359,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long ServerQueueOverflowsInLastMinute { get; set; }
 
         /// <summary>
-        /// Publisher version
+        /// Sampled values in the completed cyclic reads
         /// </summary>
-        [DataMember(Name = "PublisherVersion", Order = 99,
+        [DataMember(Name = "IngressSampledValues", Order = 48,
             EmitDefaultValue = true)]
-        public string? PublisherVersion { get; set; }
+        public long IngressSampledValues { get; set; }
+
+        /// <summary>
+        /// Sampled values in the last minute
+        /// </summary>
+        [DataMember(Name = "IngressSampledValuesInLastMinute", Order = 49,
+            EmitDefaultValue = true)]
+        public long IngressSampledValuesInLastMinute { get; set; }
     }
 }

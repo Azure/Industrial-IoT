@@ -754,57 +754,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "boolean",
                     Value = _serializer.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "sbyte",
                     Value = _serializer.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ByteString",
                     Value = _serializer.FromObject(
                         Encoding.UTF8.GetBytes("testtesttest"))
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Int16",
                     Value = _serializer.FromObject(
                         new short[] { short.MinValue, short.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "UInt16",
                     Value = _serializer.FromObject(
                         new ushort[] { ushort.MinValue, ushort.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "int32",
                     Value = _serializer.FromObject(
                         new int[] { int.MinValue, int.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "uInt32",
                     Value = _serializer.FromObject(
                         new uint[] { uint.MinValue, uint.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Int64",
                     Value = _serializer.FromObject(
                         new long[] { long.MinValue, long.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "uint64",
                     Value = _serializer.FromObject(
                         new ulong[] { ulong.MinValue, ulong.MaxValue, 0, 2 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "float",
                     Value = _serializer.FromObject(
                         new float[] { float.MinValue, float.MaxValue, 0.0f, 2.0f })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "DOUBLE",
                     Value = _serializer.FromObject(
                         new double[] { double.MinValue, double.MaxValue, 0.0, 2.0 })
@@ -837,17 +837,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "boolean",
                     Value = _serializer.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "sbyte",
                     Value = _serializer.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ByteString",
                     Value = _serializer.FromObject(
                         Encoding.UTF8.GetBytes("testtesttest"))
@@ -914,17 +914,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel?> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "boolean",
                     Value = _serializer.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "sbyte",
                     Value = _serializer.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "byte",
                     Value = _serializer.FromObject(
                         new ushort[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue })
@@ -936,7 +936,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 null,
                 null,
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "DOUBLE",
                     Value = _serializer.FromObject(
                         new double[] { 1234.4567, 23.34, 33 })
@@ -983,47 +983,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string methodId = "http://test.org/UA/Data/#i=10765";
             const string objectId = "http://test.org/UA/Data/#i=10755";
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "boolean",
                     Value = _serializer.FromObject(Array.Empty<bool>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "sbyte",
                     Value = _serializer.FromObject(Array.Empty<sbyte>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Byte",
                     Value = _serializer.FromObject("[]")
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Int16",
                     Value = _serializer.FromObject(Array.Empty<short>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "UInt16",
                     Value = _serializer.FromObject(Array.Empty<ushort>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "int32",
                     Value = _serializer.FromObject(Array.Empty<int>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "uInt32",
                     Value = _serializer.FromObject(Array.Empty<uint>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Int64",
                     Value = _serializer.FromObject(Array.Empty<long>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "uint64",
                     Value = _serializer.FromObject(Array.Empty<ulong>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "float",
                     Value = _serializer.FromObject(Array.Empty<float>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "DOUBLE",
                     Value = _serializer.FromObject(Array.Empty<double>())
                 }
@@ -1065,7 +1065,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "String",
                     Value = _serializer.FromObject(new string[] {
                         "!adfasdfsdf!",
@@ -1076,7 +1076,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         "ÜÖÄ"
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "DateTime",
                     Value = _serializer.FromObject(new DateTime[] {
                         DateTime.UtcNow,
@@ -1085,7 +1085,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         DateTime.UtcNow
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Guid",
                     Value = _serializer.FromObject(new Guid[] {
                         Guid.NewGuid(),
@@ -1096,7 +1096,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Guid.NewGuid()
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ByteString",
                     Value = _serializer.FromObject(new byte[][] {
                         Encoding.UTF8.GetBytes("!adfasdfsdf!"),
@@ -1107,11 +1107,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         Encoding.UTF8.GetBytes("ÜÖÄ")
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "XmlElement",
                     Value = _serializer.FromObject(Array.Empty<System.Xml.XmlElement>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "NodeId",
                     Value = _serializer.FromObject(new string[]{
                         "byte",
@@ -1120,7 +1120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         "http://test.org/test/#i=354"
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ExpandedNodeId",
                     Value = _serializer.FromObject(new string[] {
                         "byte",
@@ -1129,7 +1129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         "http://test.org/test/#i=354"
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "QualifiedName",
                     Value = _serializer.FromObject(new string[] {
                         "http://test.org/#qn1",
@@ -1138,7 +1138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         "test"
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "LocalizedText",
                     Value = _serializer.FromObject(new object[] {
                         new {
@@ -1154,7 +1154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         }
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "StatusCode",
                     Value = _serializer.FromObject(new object[] {
                         new {
@@ -1239,7 +1239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 null,
                 null,
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "LocalizedText",
                     Value = _serializer.FromObject(new string[] {
                         "unloc1",
@@ -1277,43 +1277,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "String",
                     Value = _serializer.FromObject(Array.Empty<string>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "DateTime",
                     Value = _serializer.FromObject(Array.Empty<DateTime>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Guid",
                     Value = _serializer.FromObject(Array.Empty<Guid>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ByteString",
                     Value = _serializer.FromObject(new byte[0,0])
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "XmlElement",
                     Value = _serializer.FromObject(Array.Empty<System.Xml.XmlElement>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "NodeId",
                     Value = _serializer.FromObject(Array.Empty<string>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ExpandedNodeId",
                     Value = _serializer.FromObject(Array.Empty<string>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "QualifiedName",
                     Value = _serializer.FromObject(Array.Empty<string>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "LocalizedText",
                     Value = _serializer.FromObject(Array.Empty<object>())
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "StatusCode",
                     Value = _serializer.FromObject(Array.Empty<int>())
                 }
@@ -1347,15 +1347,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Variant",
                     Value = _serializer.FromArray()
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "Enumeration",
                     Value = _serializer.FromArray()
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ExtensionObject",
                     Value = _serializer.FromArray()
                 }
@@ -1385,7 +1385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
-                new MethodCallArgumentModel {
+                new() {
                     Value = _serializer.FromObject(new object[] {
                         new {
                             Type = "UInt32",
@@ -1405,11 +1405,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         }
                     })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "int32",
                     Value = _serializer.FromObject(new int[] { 1, 2, 3, 4, 5, 6 })
                 },
-                new MethodCallArgumentModel {
+                new() {
                     DataType = "ExtensionObject",
                     Value = _serializer.FromObject(new object[] {
                         new {

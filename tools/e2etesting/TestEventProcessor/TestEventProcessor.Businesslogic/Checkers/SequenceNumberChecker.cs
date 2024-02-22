@@ -17,11 +17,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class SequenceNumberChecker : IDisposable
     {
-
-        private Dictionary<string, uint> _latestValue = new Dictionary<string, uint>();
-        private Dictionary<string, uint> _duplicateValues = new Dictionary<string, uint>();
-        private Dictionary<string, uint> _droppedValues = new Dictionary<string, uint>();
-        private Dictionary<string, uint> _resetValues = new Dictionary<string, uint>();
+        private readonly Dictionary<string, uint> _latestValue = new();
+        private readonly Dictionary<string, uint> _duplicateValues = new();
+        private readonly Dictionary<string, uint> _droppedValues = new();
+        private readonly Dictionary<string, uint> _resetValues = new();
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
 
@@ -42,13 +41,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// <param name="sequenceNumber"> Value of sequence number. </param>
         public void ProcessEvent(string dataSetWriterId, uint? sequenceNumber)
         {
-            uint curValue = sequenceNumber ?? throw new ArgumentNullException(nameof(sequenceNumber));
+            var curValue = sequenceNumber ?? throw new ArgumentNullException(nameof(sequenceNumber));
 
             // Default value when dataSetWriterId is not detected.
-            if (dataSetWriterId is null)
-            {
-                dataSetWriterId = "$null";
-            }
+            dataSetWriterId ??= "$null";
 
             _lock.Wait();
             try

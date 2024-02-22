@@ -172,7 +172,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             if (expectedDelay != null)
             {
                 i.Should().BeGreaterThan(0);
-                var transitionTime = (p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value);
+                var transitionTime = p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value;
                 // TODO there is no difference in the transition time...
                 // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
             }

@@ -64,11 +64,9 @@ namespace Alarms
             _configuration = configuration.ParseExtension<AlarmConditionServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null)
+            _configuration ??= new AlarmConditionServerConfiguration
             {
-                _configuration = new AlarmConditionServerConfiguration
-                {
-                    Areas = new AreaConfigurationCollection {
+                Areas = new AreaConfigurationCollection {
                         new AreaConfiguration {
                             Name = "Green",
                             SubAreas = new AreaConfigurationCollection {
@@ -118,8 +116,7 @@ namespace Alarms
                             }
                         }
                     }
-                };
-            }
+            };
 
             // create the table to store the available areas.
             _areas = new Dictionary<string, AreaState>();

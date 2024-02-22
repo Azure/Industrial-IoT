@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is JsonDataSetMessage wrapper))
+            if (obj is not JsonDataSetMessage wrapper)
             {
                 return false;
             }

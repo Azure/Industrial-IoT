@@ -346,25 +346,25 @@ namespace Opc.Ua.Extensions
 
                 var idStart = value.IndexOf('#', StringComparison.Ordinal);
 
-                nsUri = idStart >= 0 ? value.Substring(0, idStart) : uri.NoQueryAndFragment().AbsoluteUri;
+                nsUri = idStart >= 0 ? value[..idStart] : uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
             }
 
             var and = value?.IndexOf('&', StringComparison.Ordinal) ?? -1;
             if (and != -1)
             {
-                var remainder = value!.Substring(and);
+                var remainder = value![and..];
                 // See if the query contains the server identfier
                 if (remainder.StartsWith("&srv=", StringComparison.Ordinal))
                 {
                     // The uri denotes an id in a namespace on a server
-                    srvUri = remainder.Substring(5);
+                    srvUri = remainder[5..];
                 }
                 else
                 {
                     throw new FormatException($"{value} does not contain ?srv=");
                 }
-                return ParseIdentifier(value.Substring(0, and));
+                return ParseIdentifier(value[..and]);
             }
             srvUri = null;
             return ParseIdentifier(value);
@@ -381,18 +381,14 @@ namespace Opc.Ua.Extensions
             {
                 return null;
             }
-            if (text.Length > 1)
+            if (text.Length > 1 && text[1] is '=' or '_')
             {
-                if (text[1] == '=' ||
-                    text[1] == '_')
+                try
                 {
-                    try
-                    {
-                        return ParseIdentifier(text[0], text.Substring(2));
-                    }
-                    catch (FormatException)
-                    {
-                    }
+                    return ParseIdentifier(text[0], text[2..]);
+                }
+                catch (FormatException)
+                {
                 }
             }
             // Try to retrieve data type identifier from text
@@ -477,7 +473,7 @@ namespace Opc.Ua.Extensions
             name = null;
             try
             {
-                if (!(identifier is uint uid))
+                if (identifier is not uint uid)
                 {
                     return false;
                 }

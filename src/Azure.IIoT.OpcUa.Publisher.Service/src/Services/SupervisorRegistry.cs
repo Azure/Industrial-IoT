@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
@@ -27,15 +26,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
-        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
-        public SupervisorRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<SupervisorRegistry> logger, ISupervisorRegistryListener? events = null)
+        public SupervisorRegistry(IIoTHubTwinServices iothub, ILogger<SupervisorRegistry> logger,
+            ISupervisorRegistryListener? events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events;
         }
 
@@ -88,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             nameof(supervisorId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
+                    if (twin.ToEntityRegistration(true) is not PublisherRegistration registration)
                     {
                         throw new ResourceNotFoundException($"{supervisorId} is not a supervisor registration.");
                     }
@@ -106,8 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Patch
-                    twin = await _iothub.PatchAsync(registration.Patch(patched.ToPublisherRegistration(),
-                        _serializer), false, ct).ConfigureAwait(false);
+                    twin = await _iothub.PatchAsync(registration.Patch(patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
 
                     if (_events != null)
                     {
@@ -194,6 +190,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private readonly IIoTHubTwinServices _iothub;
         private readonly ISupervisorRegistryListener? _events;
         private readonly ILogger _logger;
-        private readonly IJsonSerializer _serializer;
     }
 }

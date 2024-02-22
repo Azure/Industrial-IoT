@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultMetaDataUpdateTimeKey = "DefaultMetaDataUpdateTime";
         public const string DefaultDataChangeTriggerKey = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayNameKey = "FetchOpcNodeDisplayName";
+        public const string FetchOpcBrowsePathFromRootKey = "FetchOpcBrowsePathFromRoot";
         public const string DefaultQueueSize = "DefaultQueueSize";
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
@@ -65,11 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <inheritdoc/>
         public override void PostConfigure(string? name, OpcUaSubscriptionOptions options)
         {
-            if (options.UseDeferredAcknoledgements == null)
-            {
-                options.UseDeferredAcknoledgements = GetBoolOrDefault(
+            options.UseDeferredAcknoledgements ??= GetBoolOrDefault(
                     UseDeferredAcknoledgementsKey, UseDeferredAcknoledgementsDefault);
-            }
             if (options.DefaultHeartbeatInterval == null)
             {
                 options.DefaultHeartbeatInterval = GetDurationOrNull(
@@ -81,24 +79,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultHeartbeatBehavior = behavior;
             }
-            if (options.DefaultSamplingUsingCyclicRead == null)
-            {
-                options.DefaultSamplingUsingCyclicRead = GetBoolOrNull(DefaultSamplingUsingCyclicReadKey);
-            }
+            options.DefaultSamplingUsingCyclicRead ??= GetBoolOrNull(DefaultSamplingUsingCyclicReadKey);
             if (options.DefaultRebrowsePeriod == null)
             {
                 options.DefaultRebrowsePeriod = GetDurationOrNull(DefaultRebrowsePeriodKey);
             }
-            if (options.DefaultSkipFirst == null)
-            {
-                options.DefaultSkipFirst = GetBoolOrDefault(DefaultSkipFirstKey,
+            options.DefaultSkipFirst ??= GetBoolOrDefault(DefaultSkipFirstKey,
                     DefaultSkipFirstDefault);
-            }
-            if (options.DefaultDiscardNew == null)
-            {
-                options.DefaultDiscardNew = GetBoolOrDefault(DefaultDiscardNewKey,
+            options.DefaultDiscardNew ??= GetBoolOrDefault(DefaultDiscardNewKey,
                     DefaultDiscardNewDefault);
-            }
             if (options.DefaultSamplingInterval == null)
             {
                 options.DefaultSamplingInterval = GetDurationOrNull(DefaultSamplingIntervalKey) ??
@@ -111,61 +100,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
                     DefaultPublishingIntervalDefaultMillis));
             }
-            if (options.DefaultKeepAliveCount == null)
-            {
-                options.DefaultKeepAliveCount = (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
+            options.DefaultKeepAliveCount ??= (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
                     DefaultKeepAliveCountDefault);
-            }
-            if (options.DefaultLifeTimeCount == null)
-            {
-                options.DefaultLifeTimeCount = (uint)GetIntOrDefault(DefaultLifetimeCountKey,
+            options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,
                     DefaultLifetimeCountDefault);
-            }
-            if (options.DisableDataSetMetaData == null)
-            {
-                // Set a default from the strict setting
-                options.DisableDataSetMetaData = GetBoolOrDefault(DisableDataSetMetaDataKey,
-                    !(_options.Value.UseStandardsCompliantEncoding ?? false));
-            }
-            if (options.AsyncMetaDataLoadThreshold == null)
-            {
-                options.AsyncMetaDataLoadThreshold = GetIntOrDefault(
+            // Set a default from the strict setting
+            options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
+                !(_options.Value.UseStandardsCompliantEncoding ?? false));
+            options.AsyncMetaDataLoadThreshold ??= GetIntOrDefault(
                     AsyncMetaDataLoadThresholdKey, AsyncMetaDataLoadThresholdDefault);
-            }
             if (options.DefaultMetaDataUpdateTime == null)
             {
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
             }
-            if (options.EnableImmediatePublishing == null)
-            {
-                options.EnableImmediatePublishing = GetBoolOrNull(EnableImmediatePublishingKey);
-            }
-            if (options.EnableSequentialPublishing == null)
-            {
-                options.EnableSequentialPublishing = GetBoolOrNull(EnableSequentialPublishingKey);
-            }
-            if (options.DisableSessionPerWriterGroup == null)
-            {
-                options.DisableSessionPerWriterGroup = GetBoolOrDefault(DisableSessionPerWriterGroupKey,
+            options.EnableImmediatePublishing ??= GetBoolOrNull(EnableImmediatePublishingKey);
+            options.EnableSequentialPublishing ??= GetBoolOrNull(EnableSequentialPublishingKey);
+            options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
                     DisableSessionPerWriterGroupDefault);
-            }
-            if (options.EnableDataSetKeepAlives == null)
-            {
-                options.EnableDataSetKeepAlives = GetBoolOrDefault(EnableDataSetKeepAlivesKey);
-            }
-            if (options.DefaultKeyFrameCount == null)
-            {
-                options.DefaultKeyFrameCount = (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
-            }
-            if (options.ResolveDisplayName == null)
-            {
-                options.ResolveDisplayName = GetBoolOrDefault(FetchOpcNodeDisplayNameKey,
+            options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
+            options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
+            options.ResolveDisplayName ??= GetBoolOrDefault(FetchOpcNodeDisplayNameKey,
                     ResolveDisplayNameDefault);
-            }
-            if (options.DefaultQueueSize == null)
-            {
-                options.DefaultQueueSize = (uint?)GetIntOrNull(DefaultQueueSize);
-            }
+            options.DefaultQueueSize ??= (uint?)GetIntOrNull(DefaultQueueSize);
+
+            var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
+            options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None
+                ? true : GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
 
             if (options.DefaultDataChangeTrigger == null &&
                 Enum.TryParse<DataChangeTriggerType>(GetStringOrDefault(DefaultDataChangeTriggerKey),
@@ -174,10 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.DefaultDataChangeTrigger = trigger;
             }
 
-            if (options.DefaultUseReverseConnect == null)
-            {
-                options.DefaultUseReverseConnect = GetBoolOrNull(DefaultUseReverseConnectKey);
-            }
+            options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
         }
 
         /// <summary>

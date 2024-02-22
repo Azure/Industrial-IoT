@@ -87,17 +87,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? PublishedEventName { get; set; }
 
         /// <summary>
-        /// Read event name from node
+        /// Read event name from node.
+        /// (Publisher extension)
         /// </summary>
         [DataMember(Name = "readEventNameFromNode", Order = 12,
             EmitDefaultValue = false)]
         public bool? ReadEventNameFromNode { get; set; }
 
         /// <summary>
-        /// Model change event publishing configuration
+        /// Model change event publishing configuration.
+        /// (Publisher extension)
         /// </summary>
         [DataMember(Name = "modelChangeHandling", Order = 13,
             EmitDefaultValue = false)]
         public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; set; }
+
+        /// <summary>
+        /// Triggering configuration.
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "triggering", Order = 14,
+            EmitDefaultValue = false)]
+        public PublishedDataSetTriggerModel? Triggering { get; set; }
+
+        /// <summary>
+        /// Queue settings writer should use to publish messages
+        /// to. Overrides the writer and writer group queue settings.
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "publishing", Order = 15,
+            EmitDefaultValue = false)]
+        public PublishingQueueSettingsModel? Publishing { get; set; }
     }
 }

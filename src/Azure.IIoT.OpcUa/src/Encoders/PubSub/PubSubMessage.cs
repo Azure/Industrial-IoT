@@ -193,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is PubSubMessage wrapper))
+            if (obj is not PubSubMessage wrapper)
             {
                 return false;
             }

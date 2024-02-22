@@ -93,8 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entry = endpoint.ToPublishedNodesEntry();
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 AddItem(currentNodes, entry, request.Item);
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStartResponseModel();
@@ -135,8 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     nodeset.OpcNodes = nodeset.OpcNodes?.Where(n => n.Id != request.NodeId).ToList();
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStopResponseModel();
@@ -190,8 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         AddItem(currentNodes, entry, item);
                     }
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishBulkResponseModel();
@@ -279,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var existingGroups = new List<PublishedNodesEntryModel>();
                 foreach (var entry in GetCurrentPublishedNodes())
                 {
-                    if (entry.HasSameGroup(request))
+                    if (entry.HasSameWriterGroup(request))
                     {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will add nodes only if the whole DataSet definition matches.
@@ -313,8 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     existingGroups.Add(request);
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -441,8 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     existingGroups.Add(entry);
                 }
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -482,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var matchingGroups = new List<PublishedNodesEntryModel>();
                     foreach (var entry in GetCurrentPublishedNodes())
                     {
-                        if (entry.HasSameGroup(request))
+                        if (entry.HasSameWriterGroup(request))
                         {
                             // We may have several entries with the same DataSetGroup definition,
                             // so we will remove nodes only if the whole DataSet definition matches.
@@ -502,8 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             $"Endpoint or node not found: {request.EndpointUrl}");
                     }
 
-                    var jobs = _publishedNodesJobConverter.ToWriterGroups(matchingGroups,
-                        _configuration.Value);
+                    var jobs = _publishedNodesJobConverter.ToWriterGroups(matchingGroups);
                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 }
                 else
@@ -544,8 +538,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(request,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(request);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -624,8 +617,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         currentNodes.Add(updateRequest);
                     }
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
-                    _configuration.Value);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -743,8 +735,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 foreach (var nodes in GetCurrentPublishedNodes())
                 {
-                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(
-                        nodes.DataSetWriterGroup ?? Constants.DefaultWriterGroupId, out var model))
+                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.GetUniqueWriterGroupId(), out var model))
                     {
                         continue;
                     }
@@ -969,8 +960,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
-                                    jobs = _publishedNodesJobConverter.ToWriterGroups(entries,
-                                        _configuration.Value);
+                                    jobs = _publishedNodesJobConverter.ToWriterGroups(entries);
                                     _logger.LogInformation("{Action} publisher configuration completed.",
                                         clear ? "Resetting" : "Refreshing");
                                 }

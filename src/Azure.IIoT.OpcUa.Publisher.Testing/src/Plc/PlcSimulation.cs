@@ -56,8 +56,6 @@ namespace Plc
             {
                 plugin.StartSimulation();
             }
-
-            PrintPublisherConfigJson();
         }
 
         /// <summary>
@@ -119,10 +117,11 @@ namespace Plc
 
             timer.Enabled = false;
         }
+
         /// <summary>
-        /// Show and save pn.json
+        /// Get pn.json
         /// </summary>
-        public void PrintPublisherConfigJson()
+        public string GetPublisherConfigJson()
         {
             var sb = new StringBuilder();
 
@@ -139,16 +138,16 @@ namespace Plc
                 foreach (var node in plugin.Nodes)
                 {
                     // Show only if > 0 and != 1000 ms.
-                    string publishingInterval = node.PublishingInterval > 0 &&
+                    var publishingInterval = node.PublishingInterval > 0 &&
                                                 node.PublishingInterval != 1000
                         ? $", \"OpcPublishingInterval\": {node.PublishingInterval}"
                         : string.Empty;
                     // Show only if > 0 ms.
-                    string samplingInterval = node.SamplingInterval > 0
+                    var samplingInterval = node.SamplingInterval > 0
                         ? $", \"OpcSamplingInterval\": {node.SamplingInterval}"
                         : string.Empty;
 
-                    string nodeId = JsonEncodedText.Encode(node.NodeId, JavaScriptEncoder.Default).ToString();
+                    var nodeId = JsonEncodedText.Encode(node.NodeId, JavaScriptEncoder.Default).ToString();
                     sb.Append("      { \"Id\": \"nsu=")
                         .Append(node.Namespace)
                         .Append(';')
@@ -163,15 +162,14 @@ namespace Plc
                 }
             }
 
-            int trimLen = Environment.NewLine.Length + 1;
+            var trimLen = Environment.NewLine.Length + 1;
             sb
                 .Remove(sb.Length - trimLen, trimLen)
                 .Append(Environment.NewLine).AppendLine("    ]")
                 .AppendLine("  }")
                 .AppendLine("]"); // Trim trailing ,\n.
 
-            string pnJson = sb.ToString();
-            Console.Out.WriteLine(pnJson);
+            return sb.ToString();
         }
 
         /// <summary>

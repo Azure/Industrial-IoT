@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// of the subscription and reapply any state on failed
         /// nodes.
         /// </summary>
-        public TimeSpan? SubscriptionManagementInterval { get; set; }
+        public TimeSpan? SubscriptionManagementIntervalDuration { get; set; }
 
         /// <summary>
         /// At what interval should bad monitored items be retried.
@@ -90,14 +90,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// during subscription update or never successfully
         /// published.
         /// </summary>
-        public TimeSpan? BadMonitoredItemRetryDelay { get; set; }
+        public TimeSpan? BadMonitoredItemRetryDelayDuration { get; set; }
 
         /// <summary>
         /// At what interval should invalid monitored items be
         /// retried. These are items that are potentially
         /// misconfigured.
         /// </summary>
-        public TimeSpan? InvalidMonitoredItemRetryDelay { get; set; }
+        public TimeSpan? InvalidMonitoredItemRetryDelayDuration { get; set; }
 
         /// <summary>
         /// Transport quota

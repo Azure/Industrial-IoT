@@ -33,11 +33,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static bool IsSameAs(this FilterOperandModel? model, FilterOperandModel? other)
         {
-            if (model == null && other == null)
+            if (ReferenceEquals(model, other))
             {
                 return true;
             }
-            if (model == null || other == null)
+            if (model is null || other is null)
             {
                 return false;
             }

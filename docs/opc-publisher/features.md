@@ -29,6 +29,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Browse first/next |-|X||
 | | RegEx Browse filter |-|-||
 | | Streaming browse “Fast browsing” / Partial node set export |-|X|Preview|
+| | Publish model change feed change events |-|X|Experimental|
 | Translate browse path [API](./api.md) ||-|X||
 | Read [API](./api.md#valueread) |||||
 | | Read Value |-|X||
@@ -62,6 +63,9 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Simple (get all events of a type from event notifier)|-|X||
 | | Event filter (filter events on server before sending)|-|X||
 | | Condition handling / Condition snapshots|-|X|Preview|
+| Triggering |||||
+| | Using Server side triggering service (SetTriggering) |-|-||
+| | Client side sampling of values on event |-|-||
 | Re-evaluate subscriptions periodically |||||
 | | Periodically |-|X||
 | | On data model change events |-|-|#1209|
@@ -132,7 +136,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Raw message format |-|X||
 | | Custom configuration using content flags |-|-||
 | | Configurable per writer group |-|X||
-| OPC UA Pub Sub message [encoding](./messageformats.md)
+| OPC UA Pub Sub message [encoding](./messageformats.md) |||||
 | | JSON Encoding |X|X||
 | | JSON Encoding per standard |-|X||
 | | GZIP JSON Encoding |-|X||
@@ -141,7 +145,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | [Samples JSON encoding](./messageformats.md#samples-mode-encoding-legacy) – Legacy |X|X|Deprecated|
 | | Samples Binary encoding – Legacy |X|-||
 | | Configurable per writer group |-|X||
-| OPC UA Part 14 Pub Sub Message types
+| OPC UA Part 14 Pub Sub Message types |||||
 | | [Delta frame messages](./messageformats.md#data-value-change-messages) |-|X||
 | | [Key frame messages](./readme.md#key-frames-delta-frames-and-extension-fields) / Key frame count |-|X||
 | | [Event messages](./messageformats.md#event-messages) |-|X||
@@ -149,3 +153,6 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Data Set Metadata messages (on change and periodic) |-|X||
 | | Discovery messages |-|-||
 | | Publisher status messages |-|-||
+| Unified Namespace |||||
+| | Topic templates at writer group, writer, and node level |-|X|Preview|
+| | Automatic topic routing using OPC UA browse paths |-|X|Preview|

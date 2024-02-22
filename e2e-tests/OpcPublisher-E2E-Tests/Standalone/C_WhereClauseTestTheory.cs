@@ -43,11 +43,10 @@ namespace OpcPublisherAEE2ETests.Standalone
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             // take any message
-            var ev = await messages
-                .FirstAsync(_timeoutToken);
+            var (_, _, payload, _) = await messages.FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateBaseEventTypeFields(ev.payload);
+            ValidateBaseEventTypeFields(payload);
         }
 
         [Fact, PriorityOrder(11)]
@@ -67,11 +66,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
-            var ev = await messages
+            var (_, _, payload, _) = await messages
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateBaseEventTypeFields(ev.payload);
+            ValidateBaseEventTypeFields(payload);
         }
 
         [Fact, PriorityOrder(12)]
@@ -90,11 +89,11 @@ namespace OpcPublisherAEE2ETests.Standalone
                 _writerId);
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
-            var ev = await messages
+            var (_, _, payload, _) = await messages
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateSimpleEventFields(ev.payload);
+            ValidateSimpleEventFields(payload);
         }
 
         private static void ValidateBaseEventTypeFields(JObject ev)

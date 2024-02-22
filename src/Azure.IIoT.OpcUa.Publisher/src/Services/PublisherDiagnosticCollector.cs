@@ -33,8 +33,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _meterListener = new MeterListener();
-            _meterListener.InstrumentPublished = OnInstrumentPublished;
+            _meterListener = new MeterListener
+            {
+                InstrumentPublished = OnInstrumentPublished
+            };
             _meterListener.SetMeasurementEventCallback<long>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<int>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<double>(OnMeasurementRecorded);
@@ -268,6 +270,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.IngressValueChanges = (long)i,
                 ["iiot_edge_publisher_value_changes_per_second_last_min"] =
                     (d, i) => d.IngressValueChangesInLastMinute = (long)i,
+                ["iiot_edge_publisher_sampledvalues"] =
+                    (d, i) => d.IngressSampledValues = (long)i,
+                ["iiot_edge_publisher_sampledvalues_per_second_last_min"] =
+                    (d, i) => d.IngressSampledValuesInLastMinute = (long)i,
                 ["iiot_edge_publisher_events"] =
                     (d, i) => d.IngressEvents = (long)i,
                 ["iiot_edge_publisher_events_per_second_last_min"] =
@@ -325,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                // ... Add here more items if needed
+                    // ... Add here more items if needed
             };
     }
 }

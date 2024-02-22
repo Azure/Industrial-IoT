@@ -10,7 +10,10 @@ namespace OpcPublisherAEE2ETests.TestModels
 
     public static class DataValueObject
     {
-        public static DataValueObject<T> Create<T>(T value) => new DataValueObject<T> { Value = value };
+        public static DataValueObject<T> Create<T>(T value)
+        {
+            return new() { Value = value };
+        }
     }
 
     public class DataValueObject<T>

@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is JsonMetaDataMessage wrapper))
+            if (obj is not JsonMetaDataMessage wrapper)
             {
                 return false;
             }

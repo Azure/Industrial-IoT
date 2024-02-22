@@ -42,92 +42,79 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LocalTime.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassName.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
@@ -155,113 +142,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/EventType.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceName.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Time.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ReceiveTime.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/LocalTime.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Message.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassName.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionSubClassName.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=235",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#CycleId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/CycleId.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=235",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#CurrentStep" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/CurrentStep.Value"
                     },
-                    new SimpleAttributeOperandModel
-                    {
+                    new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=184",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#Steps" },
                         AttributeId = NodeAttribute.Value,
@@ -272,13 +243,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Elements = new List<ContentFilterElementModel>
                     {
-                        new ContentFilterElementModel
-                        {
+                        new() {
                             FilterOperator = FilterOperatorType.OfType,
                             FilterOperands = new List<FilterOperandModel>
                             {
-                                new FilterOperandModel
-                                {
+                                new() {
                                     Value = "http://opcfoundation.org/SimpleEvents#i=184",
                                     DataType = "NodeId"
                                 }

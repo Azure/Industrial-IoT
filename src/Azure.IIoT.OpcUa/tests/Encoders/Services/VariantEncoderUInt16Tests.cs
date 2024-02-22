@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.Integer);
             var expected = new Variant(new Variant[] {
-                new Variant(123L), new Variant(124L), new Variant(125L)
+                new(123L), new(124L), new(125L)
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
-                new Variant(123L), new Variant(124L), new Variant(125L)
+                new(123L), new(124L), new(125L)
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);

@@ -20,6 +20,7 @@ namespace Plc.PluginNodes
         public IReadOnlyCollection<NodeWithIntervals> Nodes { get; private set; } = new List<NodeWithIntervals>();
         public TimeService TimeService { get; set; }
         public ILogger Logger { get; set; }
+        public uint ScaleUnits { get; set; }
 
         private PlcNodeManager _plcNodeManager;
         private SimulatedVariableNode<uint> _node;
@@ -63,8 +64,7 @@ namespace Plc.PluginNodes
 
             Nodes = new List<NodeWithIntervals>
             {
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "Special_" + SpecialChars,
                     Namespace = Plc.Namespaces.PlcApplications
                 }

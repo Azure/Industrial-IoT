@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
 
     /// <summary>
-    /// Topic templating support
+    /// Topic template support
     /// </summary>
     public sealed class TopicBuilder
     {
@@ -19,60 +20,78 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Root topic
         /// </summary>
         public string RootTopic
-            => Format(nameof(RootTopic), _options.Value.RootTopicTemplate);
+            => Format(nameof(RootTopic), _templates.Root
+                ?? _options.Value.TopicTemplates.Root);
 
         /// <summary>
         /// Method topic
         /// </summary>
         public string MethodTopic
-            => Format(nameof(MethodTopic), _options.Value.MethodTopicTemplate);
+            => Format(nameof(MethodTopic), _templates.Method
+                ?? _options.Value.TopicTemplates.Method);
 
         /// <summary>
         /// Events topic
         /// </summary>
         public string EventsTopic
-            => Format(nameof(EventsTopic), _options.Value.EventsTopicTemplate);
+            => Format(nameof(EventsTopic), _templates.Events
+                ?? _options.Value.TopicTemplates.Events);
 
         /// <summary>
         /// Diagnostics topic
         /// </summary>
         public string DiagnosticsTopic
-            => Format(nameof(DiagnosticsTopic), _options.Value.DiagnosticsTopicTemplate);
+            => Format(nameof(DiagnosticsTopic), _templates.Diagnostics
+                ?? _options.Value.TopicTemplates.Diagnostics);
 
         /// <summary>
         /// Telemetry topic
         /// </summary>
         public string TelemetryTopic
-            => Format(nameof(TelemetryTopic), _options.Value.TelemetryTopicTemplate);
+            => Format(nameof(TelemetryTopic), _templates.Telemetry
+                ?? _options.Value.TopicTemplates.Telemetry);
 
         /// <summary>
         /// Default metadata topic
         /// </summary>
         public string DataSetMetaDataTopic
-            => Format(nameof(DataSetMetaDataTopic), _options.Value.DataSetMetaDataTopicTemplate);
+            => Format(nameof(DataSetMetaDataTopic), _templates.DataSetMetaData
+                ?? _options.Value.TopicTemplates.DataSetMetaData);
 
         /// <summary>
         /// Create builder
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="encoding"></param>
+        /// <param name="templates"></param>
         /// <param name="variables"></param>
         public TopicBuilder(IOptions<PublisherOptions> options,
+            MessageEncoding? encoding = null, TopicTemplatesOptions? templates = null,
             IReadOnlyDictionary<string, string>? variables = null)
         {
             _options = options;
+            _templates = templates ?? options.Value.TopicTemplates;
             _variables = new Dictionary<string, Func<Formatter, string>>
             {
                 { nameof(TelemetryTopic),
-                    f => f.Format(_options.Value.TelemetryTopicTemplate) },
+                    f => f.Format(_templates.Telemetry
+                        ?? _options.Value.TopicTemplates.Telemetry) },
                 { nameof(RootTopic),
-                    f => f.Format(_options.Value.RootTopicTemplate) },
+                    f => f.Format(_templates.Root
+                        ?? _options.Value.TopicTemplates.Root) },
                 { nameof(EventsTopic),
-                    f => f.Format(_options.Value.EventsTopicTemplate) },
-
+                    f => f.Format(_templates.Events
+                        ?? _options.Value.TopicTemplates.Events) },
+                { "Encoding",
+                    _ => (encoding
+                        ?? MessageEncoding.Json).ToString() },
                 { nameof(options.Value.SiteId),
-                    _ => options.Value.SiteId ?? Constants.DefaultSiteId },
+                    _ => options.Value.SiteId
+                        ?? Constants.DefaultSiteId },
                 { nameof(options.Value.PublisherId),
-                    _ => options.Value.PublisherId ?? Constants.DefaultPublisherId }
+                    _ => options.Value.PublisherId
+                        ?? options.Value.SiteId
+                        ?? Constants.DefaultPublisherId }
             };
             if (variables != null)
             {
@@ -136,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         }
 
         private readonly IOptions<PublisherOptions> _options;
+        private readonly TopicTemplatesOptions _templates;
         private readonly Dictionary<string, Func<Formatter, string>> _variables;
     }
 }

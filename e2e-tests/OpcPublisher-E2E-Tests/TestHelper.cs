@@ -396,7 +396,7 @@ namespace OpcPublisherAEE2ETests
             string onlyFileName;
             if (fileName.Contains('/', StringComparison.Ordinal))
             {
-                onlyFileName = fileName.Substring(fileName.LastIndexOf('/') + 1);
+                onlyFileName = fileName[(fileName.LastIndexOf('/') + 1)..];
             }
             else
             {
@@ -429,8 +429,8 @@ namespace OpcPublisherAEE2ETests
                                       string storageAccountName,
                                       string storageAccountKey)
         {
-            IResourceGroup resGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName).ConfigureAwait(false);
-            Region azureRegion = resGroup.Region;
+            var resGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName).ConfigureAwait(false);
+            var azureRegion = resGroup.Region;
 
             var containerGroup = await azure.ContainerGroups.Define(containerGroupName)
                 .WithRegion(azureRegion)
@@ -601,14 +601,16 @@ namespace OpcPublisherAEE2ETests
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
         public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId,
             int numberOfBatchesToRead, CancellationToken cancellationToken, IIoTPlatformTestContext context = null) where T : BaseEventTypePayload
-            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, context, cancellationToken)
-                .Select(x =>
-                    new EventData<T>
-                    {
-                        EnqueuedTime = x.enqueuedTime,
-                        WriterGroupId = x.writerGroupId,
-                        Payload = x.payload.ToObject<T>()
-                    });
+        {
+            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, numberOfBatchesToRead, context, cancellationToken)
+                        .Select(x =>
+                            new EventData<T>
+                            {
+                                EnqueuedTime = x.enqueuedTime,
+                                WriterGroupId = x.writerGroupId,
+                                Payload = x.payload.ToObject<T>()
+                            });
+        }
 
         /// <summary>
         /// <para>
@@ -679,7 +681,7 @@ namespace OpcPublisherAEE2ETests
                     // Assert.Fail($"Missing $$ContentType property in message {partitionEvent.DeserializeJson<JToken>()}");
                     continue;
                 }
-                bool isPayloadCompressed = (string)contentType == "application/json+gzip";
+                var isPayloadCompressed = (string)contentType == "application/json+gzip";
                 if (isPayloadCompressed)
                 {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
@@ -716,7 +718,7 @@ namespace OpcPublisherAEE2ETests
 
                 // Expect all messages to be the same
                 var messageIds = new HashSet<string>();
-                foreach (dynamic message in batchedMessages)
+                foreach (var message in batchedMessages)
                 {
                     Assert.NotNull(message.MessageId.Value);
                     Assert.True(messageIds.Add(message.MessageId.Value));
@@ -763,10 +765,7 @@ namespace OpcPublisherAEE2ETests
             object firstSeen = null;
             return source.TakeWhile(predicate: s =>
             {
-                if (firstSeen is null)
-                {
-                    firstSeen = s;
-                }
+                firstSeen ??= s;
                 return predicate((TSource)firstSeen, s);
             });
         }
@@ -963,6 +962,6 @@ namespace OpcPublisherAEE2ETests
             }
         }
 
-        private static readonly JsonSerializer kSerializer = new JsonSerializer();
+        private static readonly JsonSerializer kSerializer = new();
     }
 }

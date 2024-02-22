@@ -64,15 +64,22 @@ For a complete overview of all production deployment settings for IoT Edge, see 
 
 [Retrieve the logs](./observability.md) from publisher and examine.
 
+If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` command line option. Using the logs:
+
+- Observe data throughput and make sure that the data changes over time are as you are expecting.
+- Check whether all endpoints are connected. This can be seen during session establishment and in the periodic diagnostic logs.
+- When OPC Publisher cannot subscribe to a node in the OPC UA server address space the number of failing nodes are logged in the metrics. To understand what happened you need to look at the logs that are emitted during connect.
+- The diagnostic output and metrics include an indicator of how many publishing requests are in flight between publisher and the OPC UA server and how many of these were returned with errors which reflects the health of the session and subscriptions in the writer group.
+- Observe the keep alive notification count in the periodic diagnostics output. If it counts up periodically it shows that while the connection and subscription is active, the server is not providing any data to OPC Publisher.  The keep alive is sent by the server after `(keep alive count) * (publishing interval of subscription)` time has past.
+- Check how many data points were logged as dropped or whether data is queued up in the internal pipeline of the publisher (buffering, encoder, sending).
+
 To log notifications received on a subscription to the log you can use the `--ln` switch.
 
-To increase the log level and see debug logs use the `--ll Debug` switch
+To increase the log level and see debug logs use the `--ll Debug` switch.
 
 To log informational an debug messages of the OPC UA stack to the log, use the `--sl` switch.
 
 To diagnose throughput issues see the [limits and monitoring](#limits-and-contributing-factors) section.
-
-When OPC Publisher cannot subscribe to a node in the OPC UA server address space the number of failing nodes are logged in the metrics. To understand what happened you need to look at the logs that are emitted during connect.
 
 #### BadNodeIdUnknown
 

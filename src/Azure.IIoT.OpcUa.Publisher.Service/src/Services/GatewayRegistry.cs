@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             }
             var deviceId = gatewayId;
             var device = await _iothub.GetAsync(deviceId, null, ct).ConfigureAwait(false);
-            if (!(device.ToEntityRegistration() is GatewayRegistration registration))
+            if (device.ToEntityRegistration() is not GatewayRegistration registration)
             {
                 throw new ResourceNotFoundException(
                     $"{gatewayId} is not a gateway registration.");
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             nameof(gatewayId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is GatewayRegistration registration))
+                    if (twin.ToEntityRegistration(true) is not GatewayRegistration registration)
                     {
                         throw new ResourceNotFoundException($"{gatewayId} is not a gateway registration.");
                     }

@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static ViewDescription? ToStackModel(this BrowseViewModel? model,
             IServiceMessageContext context)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         [return: NotNullIfNotNull(nameof(model))]
         public static DataChangeFilter? ToStackModel(this DataChangeFilterModel? model)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static AggregateFilter? ToStackModel(this AggregateFilterModel? model,
             IServiceMessageContext context)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static AggregateConfiguration ToStackModel(
             this AggregateConfigurationModel? model)
         {
-            if (model == null)
+            if (model is null)
             {
                 return new AggregateConfiguration
                 {
@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static SimpleAttributeOperand? ToStackModel(this SimpleAttributeOperandModel? model,
             IServiceMessageContext context)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static SimpleAttributeOperandModel? ToServiceModel(this SimpleAttributeOperand? model,
             IServiceMessageContext context, NamespaceFormat namespaceFormat)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -266,8 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 return new List<AuthenticationMethodModel>
                 {
-                     new AuthenticationMethodModel
-                     {
+                     new() {
                          Id = "Anonymous",
                          CredentialType = CredentialType.None
                      }
@@ -364,9 +363,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 case CredentialType.UserName:
                     return new UserIdentity(identity.User, identity.Password);
                 case CredentialType.X509Certificate:
-                    string? subjectName = identity.User;
-                    string? thumbprint = identity.Thumbprint;
-                    string? passCode = identity.Password;
+                    var subjectName = identity.User;
+                    var thumbprint = identity.Thumbprint;
+                    var passCode = identity.Password;
                     if (thumbprint != null || subjectName != null)
                     {
                         using var users = configuration.SecurityConfiguration

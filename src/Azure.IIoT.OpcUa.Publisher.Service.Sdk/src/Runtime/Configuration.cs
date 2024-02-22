@@ -49,12 +49,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
             /// <inheritdoc/>
             public override void PostConfigure(string? name, ServiceSdkOptions options)
             {
-                if (options.ServiceUrl == null)
-                {
-                    options.ServiceUrl = GetStringOrDefault(kServiceUrlKey,
+                options.ServiceUrl ??= GetStringOrDefault(kServiceUrlKey,
                         GetStringOrDefault(EnvVars.PCS_SERVICE_URL,
                             "http://localhost:9080"));
-                }
             }
 
             /// <inheritdoc/>

@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 DiscardNew = null
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
 
             Assert.Equal(Attributes.Value, monitoredItem.AttributeId);
             Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItem.MonitoringMode);
@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             Assert.True(monitoredItem.TrySetSkipFirst(false));
             Assert.True(monitoredItem.TrySetSkipFirst(true));
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
             Assert.True(monitoredItem.SkipMonitoredItemNotification());
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             // This is allowed since it does not matter
@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
                 StartNodeId = "i=2258"
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataItem;
+            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
 
             Assert.Equal("DisplayName", monitoredItem.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItem.AttributeId);
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "i=2041",
                             BrowsePath = new []{ "EventId" }
                         }
@@ -163,10 +163,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }
@@ -232,11 +232,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
@@ -244,10 +244,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 "http://opcfoundation.org/UA/Diagnostics",
                 "http://opcfoundation.org/Quickstarts/SimpleEvents"
             });
-            var eventItem = await GetMonitoredItem(template, namespaceTable) as OpcUaMonitoredItem.EventItem;
+            var eventItem = await GetMonitoredItem(template, namespaceTable) as OpcUaMonitoredItem.Event;
 
             Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
@@ -282,11 +282,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
@@ -294,10 +294,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }
@@ -307,7 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 }
             };
 
-            var eventItem = await GetMonitoredItem(template, namespaceUris) as OpcUaMonitoredItem.EventItem;
+            var eventItem = await GetMonitoredItem(template, namespaceUris) as OpcUaMonitoredItem.Event;
 
             Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);

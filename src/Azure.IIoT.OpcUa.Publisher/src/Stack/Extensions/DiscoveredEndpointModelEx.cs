@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     Capabilities = new HashSet<string>(result.Capabilities)
                 },
                 Endpoints = new List<EndpointRegistrationModel> {
-                    new EndpointRegistrationModel {
+                    new() {
                         SiteId = siteId,
                         DiscovererId = discovererId,
                         Id = null,

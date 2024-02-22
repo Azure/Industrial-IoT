@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is JsonNetworkMessage wrapper))
+            if (obj is not JsonNetworkMessage wrapper)
             {
                 return false;
             }
@@ -295,8 +295,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     // Split
                     var len = messages.Length / 2;
-                    var first = messages.Slice(0, len);
-                    var second = messages.Slice(len);
+                    var first = messages[..len];
+                    var second = messages[len..];
 
                     EncodeMessages(first);
                     EncodeMessages(second);

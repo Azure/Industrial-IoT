@@ -8,7 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text;
 
     /// <summary>
     /// PublishedNodesEntryModel extensions
@@ -16,23 +18,93 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     public static class PublishedNodesEntryModelEx
     {
         /// <summary>
+        /// Get unique identifier for the group
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static string GetUniqueWriterGroupId(this PublishedNodesEntryModel model)
+        {
+            var id = new StringBuilder();
+            if (!string.IsNullOrEmpty(model.DataSetWriterGroup))
+            {
+                id.Append(model.DataSetWriterGroup);
+            }
+            if (model.WriterGroupTransport != null)
+            {
+                id.Append(model.WriterGroupTransport);
+            }
+            if (model.WriterGroupQualityOfService != null)
+            {
+                id.Append(model.WriterGroupQualityOfService.Value);
+            }
+            if (!string.IsNullOrEmpty(model.WriterGroupQueueName))
+            {
+                id.Append(model.WriterGroupQueueName);
+            }
+            if (model.MessageEncoding != null)
+            {
+                id.Append(model.MessageEncoding.Value);
+            }
+            if (model.MessagingMode != null)
+            {
+                id.Append(model.MessagingMode.Value);
+            }
+            if (model.BatchSize != null)
+            {
+                id.Append(model.BatchSize.Value);
+            }
+            var batchTriggerInterval = model.GetNormalizedBatchTriggerInterval();
+            if (batchTriggerInterval != null)
+            {
+                id.Append(batchTriggerInterval.Value.TotalMilliseconds);
+            }
+            return id.ToString().ToSha1Hash();
+        }
+
+        /// <summary>
         /// Validates if the entry has same group as the model
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        public static bool HasSameGroup(this PublishedNodesEntryModel model,
+        public static bool HasSameWriterGroup(this PublishedNodesEntryModel model,
             PublishedNodesEntryModel that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (!string.Equals(model.DataSetWriterGroup,
+                that.DataSetWriterGroup, StringComparison.Ordinal))
             {
                 return false;
             }
-            if (!string.Equals(model.DataSetWriterGroup,
-                that.DataSetWriterGroup, StringComparison.Ordinal))
+            if (model.WriterGroupTransport != that.WriterGroupTransport)
+            {
+                return false;
+            }
+            if (model.WriterGroupQualityOfService != that.WriterGroupQualityOfService)
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupQueueName ?? string.Empty,
+                that.WriterGroupQueueName ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (model.MessageEncoding != that.MessageEncoding)
+            {
+                return false;
+            }
+            if (model.MessagingMode != that.MessagingMode)
+            {
+                return false;
+            }
+            if (model.BatchSize != that.BatchSize)
+            {
+                return false;
+            }
+            if (model.GetNormalizedBatchTriggerInterval() !=
+                that.GetNormalizedBatchTriggerInterval())
             {
                 return false;
             }
@@ -49,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedNodesEntryModel? ToPublishedNodesEntry(this ConnectionModel model)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -89,22 +161,146 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         }
 
         /// <summary>
-        /// Check if has same endpoint
+        /// Return a cloaked published nodes entry that can be used as lookup input to
+        /// <see cref="HasSameDataSet(PublishedNodesEntryModel, PublishedNodesEntryModel)"/>
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedNodesEntryModel? ToDataSetEntry(this PublishedNodesEntryModel? model)
+        {
+            if (model is null)
+            {
+                return null;
+            }
+            return model with
+            {
+                NodeId = null,
+                EncryptedAuthPassword = null,
+                OpcAuthenticationPassword = null,
+                OpcNodes = null
+            };
+        }
+
+        /// <summary>
+        /// Get a unique data set writer id from the entry model. Excludes the
+        /// writer group which is assumed be scoping this id already.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="publishingInterval"></param>
+        /// <returns></returns>
+        public static string GetUniqueDataSetWriterId(this PublishedNodesEntryModel model,
+            TimeSpan? publishingInterval = null)
+        {
+            var id = new StringBuilder();
+            if (!string.IsNullOrEmpty(model.DataSetWriterId))
+            {
+                id.Append(model.DataSetWriterId);
+            }
+            if (!string.IsNullOrEmpty(model.EndpointUrl))
+            {
+                id.Append(model.EndpointUrl);
+            }
+            if (model.UseReverseConnect == true)
+            {
+                id.AppendLine();
+            }
+            var securityMode = model.EndpointSecurityMode ??
+                (model.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None);
+            if (securityMode != SecurityMode.None)
+            {
+                id.Append(securityMode);
+            }
+            if (!string.IsNullOrEmpty(model.EndpointSecurityPolicy))
+            {
+                id.Append(model.EndpointSecurityPolicy);
+            }
+            if (model.OpcAuthenticationMode != OpcAuthenticationMode.Anonymous)
+            {
+                id.Append(model.OpcAuthenticationMode);
+            }
+            if (!string.IsNullOrEmpty(model.OpcAuthenticationUsername))
+            {
+                id.Append(model.OpcAuthenticationUsername);
+            }
+            if (!string.IsNullOrEmpty(model.OpcAuthenticationPassword))
+            {
+                id.Append(model.OpcAuthenticationPassword);
+            }
+            if (!string.IsNullOrEmpty(model.EncryptedAuthUsername))
+            {
+                id.Append(model.EncryptedAuthUsername);
+            }
+            if (!string.IsNullOrEmpty(model.EncryptedAuthPassword))
+            {
+                id.Append(model.EncryptedAuthPassword);
+            }
+            if (!string.IsNullOrEmpty(model.DataSetName))
+            {
+                id.Append(model.DataSetName);
+            }
+            var publishingIntervalResolved = publishingInterval ??
+                model.GetNormalizedDataSetPublishingInterval();
+            if (publishingIntervalResolved != null)
+            {
+                id.Append(publishingIntervalResolved.Value.TotalMilliseconds);
+            }
+            if (model.DataSetClassId != Guid.Empty)
+            {
+                id.Append(model.DataSetClassId);
+            }
+            if (model.DataSetKeyFrameCount != null)
+            {
+                id.Append(model.DataSetKeyFrameCount.Value);
+            }
+            if (model.SendKeepAliveDataSetMessages)
+            {
+                id.AppendLine();
+            }
+            if (model.Priority != null)
+            {
+                id.Append(model.Priority.Value);
+            }
+            var metadataUpdateTime = model.GetNormalizedMetaDataUpdateTime();
+            if (metadataUpdateTime != null)
+            {
+                id.Append(metadataUpdateTime.Value.TotalMilliseconds);
+            }
+            if (model.QualityOfService != null)
+            {
+                id.Append(model.QualityOfService.Value);
+            }
+            if (!string.IsNullOrEmpty(model.QueueName))
+            {
+                id.Append(model.QueueName);
+            }
+            if (!string.IsNullOrEmpty(model.MetaDataQueueName))
+            {
+                id.Append(model.MetaDataQueueName);
+            }
+            if ((model.DataSetRouting ?? DataSetRoutingMode.None)
+                != DataSetRoutingMode.None)
+            {
+                id.Append(model.DataSetRouting.ToString());
+            }
+            Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
+            return id.ToString().ToSha1Hash();
+        }
+
+        /// <summary>
+        /// Validates if the entry has same data set definition as the model.
+        /// Comarison excludes OpcNodes and publishing intervals.
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        /// <returns></returns>
-        public static bool HasSameEndpoint(this PublishedNodesEntryModel model,
+        public static bool HasSameDataSet(this PublishedNodesEntryModel model,
             PublishedNodesEntryModel that)
         {
-            if (model == that)
-            {
-                return true;
-            }
-            if (model == null || that == null)
+            if (!model.HasSameWriterGroup(that))
             {
                 return false;
             }
+
             if (model.EndpointUrl != that.EndpointUrl)
             {
                 return false;
@@ -153,50 +349,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            return true;
-        }
 
-        /// <summary>
-        /// Return a cloaked published nodes entry that can be used as lookup input to
-        /// <see cref="HasSameDataSet(PublishedNodesEntryModel, PublishedNodesEntryModel)"/>
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull(nameof(model))]
-        public static PublishedNodesEntryModel? ToDataSetEntry(this PublishedNodesEntryModel? model)
-        {
-            if (model == null)
-            {
-                return null;
-            }
-            return model with
-            {
-                NodeId = null,
-                EncryptedAuthPassword = null,
-                OpcAuthenticationPassword = null,
-                OpcNodes = null
-            };
-        }
-
-        /// <summary>
-        /// Validates if the entry has same data set definition as the model.
-        /// Comarison excludes OpcNodes.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="that"></param>
-        public static bool HasSameDataSet(this PublishedNodesEntryModel model,
-            PublishedNodesEntryModel that)
-        {
             if (!string.Equals(model.DataSetWriterId ?? string.Empty,
                 that.DataSetWriterId ?? string.Empty, StringComparison.Ordinal))
-            {
-                return false;
-            }
-            if (!model.HasSameGroup(that))
-            {
-                return false;
-            }
-            if (!model.HasSameEndpoint(that))
             {
                 return false;
             }
@@ -226,28 +381,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.WriterGroupTransport != that.WriterGroupTransport)
+            if (model.QualityOfService != that.QualityOfService)
             {
                 return false;
             }
-            if (model.WriterGroupQualityOfService != that.WriterGroupQualityOfService)
+            if (!string.Equals(model.QueueName ?? string.Empty,
+                that.QueueName ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }
-            if (model.BatchSize != that.BatchSize)
+            if (!string.Equals(model.MetaDataQueueName ?? string.Empty,
+                that.MetaDataQueueName ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }
-            if (model.GetNormalizedBatchTriggerInterval() !=
-                that.GetNormalizedBatchTriggerInterval())
-            {
-                return false;
-            }
-            if (model.MessageEncoding != that.MessageEncoding)
-            {
-                return false;
-            }
-            if (model.MessagingMode != that.MessagingMode)
+
+            if ((model.DataSetRouting ?? DataSetRoutingMode.None) !=
+                (that.DataSetRouting ?? DataSetRoutingMode.None))
             {
                 return false;
             }

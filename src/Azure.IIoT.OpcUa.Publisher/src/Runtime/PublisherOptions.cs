@@ -115,34 +115,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public MessageTimestamp? MessageTimestamp { get; set; }
 
         /// <summary>
-        /// Root topic template
+        /// Default topic templates
         /// </summary>
-        public string? RootTopicTemplate { get; set; }
-
-        /// <summary>
-        /// Method topic template
-        /// </summary>
-        public string? MethodTopicTemplate { get; set; }
-
-        /// <summary>
-        /// Events topic template
-        /// </summary>
-        public string? EventsTopicTemplate { get; set; }
-
-        /// <summary>
-        /// Diagnostics topic template
-        /// </summary>
-        public string? DiagnosticsTopicTemplate { get; set; }
-
-        /// <summary>
-        /// Telemetry topic template
-        /// </summary>
-        public string? TelemetryTopicTemplate { get; set; }
-
-        /// <summary>
-        /// Default metadata queue name
-        /// </summary>
-        public string? DataSetMetaDataTopicTemplate { get; set; }
+        public TopicTemplatesOptions TopicTemplates { get; } = new TopicTemplatesOptions();
 
         /// <summary>
         /// Default transport to use if not found
@@ -204,5 +179,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Allow setting or overriding the current api key
         /// </summary>
         public string? ApiKeyOverride { get; set; }
+
+        /// <summary>
+        /// Use auto routing based on the opc ua address space
+        /// browse paths.
+        /// </summary>
+        public DataSetRoutingMode? DefaultDataSetRouting { get; set; }
     }
 }

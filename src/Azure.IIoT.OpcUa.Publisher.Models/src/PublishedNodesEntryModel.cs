@@ -28,9 +28,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Last change to the entry
         /// </summary>
-        [DataMember(Name = "LastChangeTimespan", Order = 1,
+        [DataMember(Name = "LastChangeDateTime", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime? LastChangeTimespan { get; set; }
+        public DateTime? LastChangeDateTime { get; set; }
 
         /// <summary>
         /// Name of the data set writer.
@@ -230,6 +230,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? UseReverseConnect { get; set; }
 
         /// <summary>
+        /// Configure the dataset routing behavior for the
+        /// contained nodes.
+        /// </summary>
+        [DataMember(Name = "DataSetRouting", Order = 26,
+            EmitDefaultValue = false)]
+        public DataSetRoutingMode? DataSetRouting { get; set; }
+
+        /// <summary>
+        /// Writer group queue overrides the default writer group
+        /// topic template to use.
+        /// </summary>
+        [DataMember(Name = "WriterGroupQueueName", Order = 27,
+            EmitDefaultValue = false)]
+        public string? WriterGroupQueueName { get; set; }
+
+        /// <summary>
         /// The quality of service to use
         /// </summary>
         [DataMember(Name = "WriterGroupQualityOfService", Order = 28,
@@ -283,6 +299,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "OpcAuthenticationPassword", Order = 35,
             EmitDefaultValue = false)]
         public string? OpcAuthenticationPassword { get; set; }
+
+        /// <summary>
+        /// Writer queue overrides the writer group queue name.
+        /// Network messages are then split across queues with
+        /// Qos also accounted for.
+        /// </summary>
+        [DataMember(Name = "QueueName", Order = 36,
+            EmitDefaultValue = false)]
+        public string? QueueName { get; set; }
+
+        /// <summary>
+        /// Meta data queue name to use for the writer. Overrides
+        /// the default metadata topic template.
+        /// </summary>
+        [DataMember(Name = "MetaDataQueueName", Order = 37,
+            EmitDefaultValue = false)]
+        public string? MetaDataQueueName { get; set; }
+
+        /// <summary>
+        /// Quality of service to use for the writer. Overrides
+        /// the Writer group quality of service and together with
+        /// queue name causes network messages to be split.
+        /// </summary>
+        [DataMember(Name = "QualityOfService", Order = 38,
+            EmitDefaultValue = false)]
+        public QoS? QualityOfService { get; set; }
 
         /// <summary>
         /// The node to monitor in "ns=" syntax.

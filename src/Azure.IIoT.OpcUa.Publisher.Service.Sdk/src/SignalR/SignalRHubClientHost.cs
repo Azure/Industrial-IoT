@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                             if (token?.StartsWith("Bearer ", StringComparison.Ordinal) == true)
                             {
                                 // Strip bearer identifier from the token it is added by signalr.
-                                token = token.Substring(7);
+                                token = token[7..];
                             }
                             return token;
                         };

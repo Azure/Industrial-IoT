@@ -1,0 +1,97 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "MessagingMode": "RawDataSets",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp",
+                "Topic": "{RootTopic}/StepUp"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean",
+                "Topic": "{RootTopic}/AlternatingBoolean"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32",
+                "Topic": "{RootTopic}/Random/Int/Scalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32",
+                "Topic": "{RootTopic}/Random/UInt/Scalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData",
+                "Topic": "{RootTopic}/DipData"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar1/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar2/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3",
+                "Topic": "{RootTopic}/Fast/UInt/Scalar3/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData",
+                "Topic": "{RootTopic}/TrendData/Negative"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData",
+                "Topic": "{RootTopic}/TrendData/Positive"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar1/Bad"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar1/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar2/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar3/Random"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1",
+                "Topic": "{RootTopic}/Slow/UInt/Scalar1/Random/Bad"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData",
+                "Topic": "{RootTopic}/SpikeData"
+            }
+        ]
+    }
+]

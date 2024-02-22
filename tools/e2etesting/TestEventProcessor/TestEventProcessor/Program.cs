@@ -21,9 +21,9 @@ namespace TestEventProcessor
         {
             string ioTHubEventHubEndpointConnectionString = null;
             string storageConnectionString = null;
-            string blobContainerName = "checkpoint";
-            string eventHubConsumerGroup = "$Default";
-            bool showHelp = false;
+            var blobContainerName = "checkpoint";
+            var eventHubConsumerGroup = "$Default";
+            var showHelp = false;
             uint expectedValueChangesPerTimestamp = 0;
             uint expectedIntervalOfValueChanges = 0;
             uint expectedMaximalTotalDuration = 0;

@@ -2566,10 +2566,7 @@ namespace Opc.Ua.Sample
         {
             _sampledItems.Add(monitoredItem);
 
-            if (_samplingTimer == null)
-            {
-                _samplingTimer = new Timer(DoSample, null, (int)_minimumSamplingInterval, (int)_minimumSamplingInterval);
-            }
+            _samplingTimer ??= new Timer(DoSample, null, (int)_minimumSamplingInterval, (int)_minimumSamplingInterval);
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string? NodeId { get; set; }
 
         /// <summary>
-        /// Writer group id
+        /// Writer group name (dont change then name for backcompat)
         /// </summary>
         public string? WriterGroupId { get; set; }
 
@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is MonitoredItemMessage wrapper))
+            if (obj is not MonitoredItemMessage wrapper)
             {
                 return false;
             }
@@ -203,8 +203,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (ExtensionFields != null)
                 {
                     extensionFields = extensionFields.Concat(ExtensionFields
-                        .Where(e => e.Key != nameof(DataSetWriterId) &&
-                                    e.Key != nameof(JsonNetworkMessage.PublisherId))
+                        .Where(e => e.Key is not (nameof(DataSetWriterId)) and
+                                    not (nameof(JsonNetworkMessage.PublisherId)))
                         .Select(e => new KeyValuePair<string, string?>(e.Key, e.Value.Value?.ToString())));
                 }
                 encoder.WriteStringDictionary(nameof(ExtensionFields), extensionFields);

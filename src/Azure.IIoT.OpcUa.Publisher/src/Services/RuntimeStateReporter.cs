@@ -426,10 +426,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var (writerGroupId, info) in diagnostics)
             {
                 var diagnosticsTopic = _topicCache.GetOrAdd(writerGroupId,
-                    id => new TopicBuilder(_options, new Dictionary<string, string>
+                    id => new TopicBuilder(_options, variables: new Dictionary<string, string>
                     {
                         [PublisherConfig.DataSetWriterGroupVariableName] =
-                            id ?? Constants.DefaultWriterGroupId
+                            id ?? Constants.DefaultWriterGroupName,
+                        [PublisherConfig.WriterGroupVariableName] =
+                            id ?? Constants.DefaultWriterGroupName
                         // ...
                     }).DiagnosticsTopic);
 
@@ -481,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Console.Out.WriteLine(builder.ToString());
             }
 
-            StringBuilder Append(StringBuilder builder, string writerGroupId,
+            static StringBuilder Append(StringBuilder builder, string writerGroupId,
                 WriterGroupDiagnosticModel info)
             {
                 var s = info.IngestionDuration.TotalSeconds == 0 ? 1 : info.IngestionDuration.TotalSeconds;
@@ -508,6 +510,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Format(info.IngressHeartbeats, info.IngressHeartbeatsInLastMinute, s);
                 var cyclicReadsPerSecFormatted =
                     Format(info.IngressCyclicReads, info.IngressCyclicReadsInLastMinute, s);
+                var sampledValuesPerSecFormatted =
+                    Format(info.IngressSampledValues, info.IngressSampledValuesInLastMinute, s);
                 var modelChangesPerSecFormatted =
                     Format(info.IngressModelChanges, info.IngressModelChangesInLastMinute, s);
                 var serverQueueOverflowsPerSecFormatted =
@@ -546,8 +550,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
                         .AppendLine()
                     .Append("  # Good/Bad Monitored Items count     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.MonitoredOpcNodesSucceededCount).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.MonitoredOpcNodesFailedCount)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.MonitoredOpcNodesSucceededCount).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
                     .Append("  # Queued/Minimum request count       : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
@@ -560,6 +564,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Ingress value changes              : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
                         .AppendLine(valueChangesPerSecFormatted)
+                    .Append("  # Ingress sampled values             : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressSampledValues).Append(' ')
+                        .AppendLine(sampledValuesPerSecFormatted)
                     .Append("  # Ingress events                     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents).Append(' ')
                         .AppendLine(eventsPerSecFormatted)
@@ -578,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Received Keep Alive Notifications  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressKeepAliveNotifications).Append(' ')
                         .AppendLine(keepAliveChangesPerSecFormatted)
-                    .Append("  # Generated Cyclic read Notifications: ")
+                    .Append("  # Received Cyclic read Notifications : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressCyclicReads).Append(' ')
                         .AppendLine(cyclicReadsPerSecFormatted)
                     .Append("  # Generated Heartbeat Notifications  : ")
@@ -588,21 +595,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressModelChanges).Append(' ')
                         .AppendLine(modelChangesPerSecFormatted)
                     .Append("  # Notification batch buffer size     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.IngressBatchBlockBufferSize)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressBatchBlockBufferSize)
                         .AppendLine()
                     .Append("  # Encoder input/output buffer size   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncodingBlockInputSize).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncodingBlockOutputSize)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncodingBlockInputSize).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.EncodingBlockOutputSize)
                         .AppendLine()
                     .Append("  # Encoder Notif. processed/dropped   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.EncoderNotificationsDropped)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.EncoderNotificationsDropped)
                         .AppendLine()
                     .Append("  # Encoder Network Messages produced  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderIoTMessagesProcessed)
                         .AppendLine()
                     .Append("  # Encoder avg Notifications/Message  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.EncoderAvgNotificationsMessage)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgNotificationsMessage)
                         .AppendLine()
                     .Append("  # Encoder worst Message split ratio  : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.EncoderMaxMessageSplitRatio)
@@ -618,7 +625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine()
                     .Append("  # Egress Messages queued/dropped     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.OutgressInputBufferDropped)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.OutgressInputBufferDropped)
                         .AppendLine()
                     .Append("  # Egress Message send failures       : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressIoTMessageFailedCount)

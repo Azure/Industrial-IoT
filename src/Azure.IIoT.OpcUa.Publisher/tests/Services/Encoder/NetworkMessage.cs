@@ -105,6 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string publisherId = "Publisher";
             var writer = new DataSetWriterModel
             {
+                Id = string.Empty,
                 DataSet = new PublishedDataSetModel
                 {
                     DataSetSource = new PublishedDataSetSourceModel
@@ -123,6 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var writerGroup = new WriterGroupModel
             {
+                Id = string.Empty,
                 MessageSettings = new WriterGroupMessageSettingsModel
                 {
                     NetworkMessageContentMask =
@@ -142,17 +144,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var seq = 1u;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var dataItem = new OpcUaMonitoredItem.DataItem(new DataMonitoredItemModel
+            var dataItem = new OpcUaMonitoredItem.DataChange(new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
-            }, Log.Console<OpcUaMonitoredItem.DataItem>());
+            }, Log.Console<OpcUaMonitoredItem.DataChange>());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var eventItem = new OpcUaMonitoredItem.EventItem(new EventMonitoredItemModel
+            var eventItem = new OpcUaMonitoredItem.Event(new EventMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
-            }, Log.Console<OpcUaMonitoredItem.EventItem>());
+            }, Log.Console<OpcUaMonitoredItem.Event>());
 #pragma warning restore CA2000 // Dispose objects before losing scope
             eventItem.Fields.Add(("1", default));
             eventItem.Fields.Add(("2", default));
@@ -228,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     Context = new WriterGroupMessageContext
                     {
                         NextWriterSequenceNumber = () => i,
-                        MetaDataTopic = string.Empty,
+                        Qos = null,
                         Topic = string.Empty,
                         PublisherId = publisherId,
                         Writer = writer,
