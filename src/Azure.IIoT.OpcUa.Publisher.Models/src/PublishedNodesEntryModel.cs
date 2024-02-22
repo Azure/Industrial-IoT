@@ -332,12 +332,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "NodeId", Order = 40,
             EmitDefaultValue = false)]
         public NodeIdModel? NodeId { get; set; }
-
-        /// <summary>
-        /// Override the default TelemetryTopicTemplate if set
-        /// </summary>
-        [DataMember(Name = "TelemetryTopicTemplate", Order = 35,
-            EmitDefaultValue = false)]
-        public string? TelemetryTopicTemplate { get; set; }
     }
 }
