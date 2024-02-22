@@ -65,14 +65,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="encoding"></param>
         /// <param name="templates"></param>
         /// <param name="variables"></param>
-        /// <param name="dataSetWriterModel"></param>
         public TopicBuilder(IOptions<PublisherOptions> options,
             MessageEncoding? encoding = null, TopicTemplatesOptions? templates = null,
             IReadOnlyDictionary<string, string>? variables = null)
         {
             _options = options;
             _templates = templates ?? options.Value.TopicTemplates;
-
             _variables = new Dictionary<string, Func<Formatter, string>>
             {
                 { nameof(TelemetryTopic),
