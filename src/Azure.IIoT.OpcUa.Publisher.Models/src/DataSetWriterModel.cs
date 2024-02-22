@@ -61,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; set; }
 
+        /// <summary>
         /// Metadata queue settings the writer should use to publish
         /// metadata messages to.
         /// </summary>
