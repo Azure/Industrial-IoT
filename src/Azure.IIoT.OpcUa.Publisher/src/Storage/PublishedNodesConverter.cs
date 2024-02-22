@@ -151,8 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
-                            EncryptedAuthUsername = null,
-                            TelemetryTopicTemplate = item.Writer.TelemetryTopicTemplate
+                            EncryptedAuthUsername = null
                         }));
 
                 // Coalesce into unique nodes entry data set groups
