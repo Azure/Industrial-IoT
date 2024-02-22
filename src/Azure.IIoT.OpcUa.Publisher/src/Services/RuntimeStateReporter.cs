@@ -492,10 +492,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var eventsPerSec = info.IngressEvents / s;
                 var eventNotificationsPerSec = info.IngressEventNotifications / s;
 
-                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 ? $"({info.SentMessagesPerSec:0.##}/s)"
+                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 ? $"({info.SentMessagesPerSec:n2}/s)"
                     : string.Empty;
                 var keepAliveChangesPerSecFormatted = info.IngressKeepAliveNotifications > 0 ?
-                        $"(All time ~{info.IngressKeepAliveNotifications / min:0.##}/min)"
+                        $"(All time ~{info.IngressKeepAliveNotifications / min:n2}/min)"
                     : string.Empty;
 
                 var dataChangesPerSecFormatted =
@@ -521,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var dataChangesPerSecLastMin = lastMinute / Math.Min(s, 60d);
                     return changes > 0 ?
-                        $"(All time ~{changes / s:0.##}/s; {lastMinute} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
+                        $"(All time ~{changes / s:n2}/s; {lastMinute} in last 60s ~{dataChangesPerSecLastMin:n2}/s)"
                             : string.Empty;
                 }
 
@@ -554,12 +554,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
                     .Append("  # Queued/Minimum request count       : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.MinPublishRequestsRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.PublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n2}", info.MinPublishRequestsRatio)
                         .AppendLine()
                     .Append("  # Good/Bad Publish request count     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.GoodPublishRequestsRatio).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.BadPublishRequestsRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.GoodPublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n2}", info.BadPublishRequestsRatio)
                         .AppendLine()
                     .Append("  # Ingress value changes              : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
@@ -594,8 +594,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Generated Model Changes            : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressModelChanges).Append(' ')
                         .AppendLine(modelChangesPerSecFormatted)
-                    .Append("  # Notification batch buffer size     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressBatchBlockBufferSize)
+                    .Append("  # Notifications buffered/dropped     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressBatchBlockBufferSize).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.IngressNotificationsDropped)
                         .AppendLine()
                     .Append("  # Encoder input/output buffer size   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncodingBlockInputSize).Append(" | ")
@@ -612,13 +613,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgNotificationsMessage)
                         .AppendLine()
                     .Append("  # Encoder worst Message split ratio  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.EncoderMaxMessageSplitRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.EncoderMaxMessageSplitRatio)
                         .AppendLine()
                     .Append("  # Encoder avg Message body size      : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgIoTMessageBodySize)
                         .AppendLine()
                     .Append("  # Encoder avg Chunk (4 KB) usage     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}", info.EncoderAvgIoTChunkUsage)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n1}", info.EncoderAvgIoTChunkUsage)
                         .AppendLine()
                     .Append("  # Estimated Chunks (4 KB) per day    : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EstimatedIoTChunksPerDay)

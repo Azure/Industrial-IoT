@@ -371,5 +371,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "IngressSampledValuesInLastMinute", Order = 49,
             EmitDefaultValue = true)]
         public long IngressSampledValuesInLastMinute { get; set; }
+
+        /// <summary>
+        /// Notifications dropped before pushing to publish queue
+        /// </summary>
+        [DataMember(Name = "IngressNotificationsDropped", Order = 50,
+            EmitDefaultValue = true)]
+        public long IngressNotificationsDropped { get; set; }
     }
 }

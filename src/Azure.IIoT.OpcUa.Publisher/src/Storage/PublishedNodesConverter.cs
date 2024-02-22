@@ -114,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
                             WriterGroupQualityOfService = item.WriterGroup.Publishing?.RequestedDeliveryGuarantee,
+                            WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
@@ -355,6 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
                         Name = group.Header.DataSetWriterGroup,
                         NotificationPublishThreshold = group.Header.BatchSize,
+                        PublishQueuePartitions = group.Header.WriterGroupPartitions,
                         PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
                         DataSetWriters = group.Writers
                             .Select(w => (

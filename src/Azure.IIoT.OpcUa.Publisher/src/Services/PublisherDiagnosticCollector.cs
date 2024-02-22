@@ -301,6 +301,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.OutgressInputBufferCount = (long)i,
                 ["iiot_edge_publisher_send_queue_dropped_count"] =
                     (d, i) => d.OutgressInputBufferDropped = (long)i,
+                ["iiot_edge_publisher_publish_queue_dropped_count"] =
+                    (d, i) => d.IngressNotificationsDropped = (long)i,
 
                 ["iiot_edge_publisher_encoding_input_queue_size"] =
                     (d, i) => d.EncodingBlockInputSize = (long)i,
