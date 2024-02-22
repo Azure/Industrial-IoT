@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
         /// <summary>
         /// Configuration
         /// </summary>
-        public static LoggingConfig Config => new LoggingConfig
+        public static LoggingConfig Config => new()
         {
             LogLevel = Level,
             IgnoreTestBoundaryException = true // Due to current way logging is implemented in ua stack

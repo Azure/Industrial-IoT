@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new Plc.PlcServer(timeservice,
-                (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>());
+                (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>(), 0);
         }
 
         /// <inheritdoc/>

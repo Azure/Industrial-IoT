@@ -296,7 +296,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.Id,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
-                    NodeId = NodeId,
+                    Context = Template.Context,
+                    NodeId = TheResolvedNodeId,
+                    PathFromRoot = TheResolvedRelativePath,
                     Value = lastValue,
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0

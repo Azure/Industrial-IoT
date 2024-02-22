@@ -286,10 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 _connection.Close();
                 _handler1?.Dispose();
-                if (_handler2 != null)
-                {
-                    _handler2.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                }
+                _handler2?.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 if (Directory.Exists(ServerPkiRootPath))
                 {
                     Try.Op(() => Directory.Delete(ServerPkiRootPath, true));

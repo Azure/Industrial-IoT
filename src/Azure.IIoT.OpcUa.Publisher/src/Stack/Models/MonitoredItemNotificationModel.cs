@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Opc.Ua;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Monitored item notification
@@ -38,6 +39,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? NodeId { get; internal set; }
 
         /// <summary>
+        /// Browse path from root folder
+        /// </summary>
+        public RelativePath? PathFromRoot { get; internal set; }
+
+        /// <summary>
         /// Sequence number
         /// </summary>
         public uint? SequenceNumber { get; set; }
@@ -56,5 +62,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Source flags
         /// </summary>
         public MonitoredItemSourceFlags Flags { get; set; }
+
+        /// <summary>
+        /// Opaque context
+        /// </summary>
+        public required object? Context { get; set; }
     }
 }

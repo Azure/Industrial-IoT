@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static EventFilter? Decode(this IVariantEncoder encoder, EventFilterModel? model,
             bool noDefaultFilter = false)
         {
-            if (model == null)
+            if (model is null)
             {
                 return noDefaultFilter ? null : GetDefaultEventFilter();
             }
@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static EventFilterModel? Encode(this IVariantEncoder encoder,
             EventFilter? model, NamespaceFormat namespaceFormat)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static ContentFilter Decode(this IVariantEncoder encoder, ContentFilterModel? model,
             bool onlySimpleAttributeOperands = false)
         {
-            if (model == null)
+            if (model is null)
             {
                 return new ContentFilter();
             }
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static ContentFilterModel? Encode(this IVariantEncoder encoder,
             ContentFilter? model, NamespaceFormat namespaceFormat)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static ContentFilterElement? Decode(this IVariantEncoder encoder,
             ContentFilterElementModel? model, bool onlySimpleAttributeOperands = false)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static ContentFilterElementModel? Encode(this IVariantEncoder encoder,
             ContentFilterElement? model, NamespaceFormat namespaceFormat)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static FilterOperand? Decode(this IVariantEncoder encoder,
             FilterOperandModel? model, bool onlySimpleAttributeOperands = false)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }
@@ -264,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static FilterOperandModel? Encode(this IVariantEncoder encoder,
             FilterOperand? model, NamespaceFormat namespaceFormat)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }

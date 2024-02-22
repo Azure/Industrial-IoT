@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             yield return new Alarms.AlarmConditionServer(timeservice);
             yield return new SimpleEvents.SimpleEventsServer();
             yield return new Plc.PlcServer(timeservice,
-                (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>());
+                (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>(), 0);
         }
 
         /// <inheritdoc/>

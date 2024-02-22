@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is BaseDataSetMessage wrapper))
+            if (obj is not BaseDataSetMessage wrapper)
             {
                 return false;
             }

@@ -629,10 +629,7 @@ namespace DeterministicAlarms
         /// </remarks>
         protected override void AddRootNotifier(NodeState notifier)
         {
-            if (_rootNotifiers == null)
-            {
-                _rootNotifiers = new List<NodeState>();
-            }
+            _rootNotifiers ??= new List<NodeState>();
 
             for (var ii = 0; ii < _rootNotifiers.Count; ii++)
             {

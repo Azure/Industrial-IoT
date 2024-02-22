@@ -77,7 +77,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// Full set of servers
         /// </summary>
         /// <param name="logger"></param>
-        public ServerFactory(ILogger<ServerFactory> logger) :
+        /// <param name="scaleunits"></param>
+        public ServerFactory(ILogger<ServerFactory> logger, uint scaleunits = 0) :
             this(logger, new List<INodeManagerFactory> {
                 new TestData.TestDataServer(),
                 new MemoryBuffer.MemoryBufferServer(),
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger)
+                new Plc.PlcServer(new TimeService(), logger, scaleunits)
                 // new PerfTest.PerfTestServer(),
             })
         {
@@ -106,8 +107,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
 
         /// <inheritdoc/>
-        private sealed class Server : ReverseConnectServer
+        private sealed class Server : ReverseConnectServer, ITestServer
         {
+            /// <inheritdoc/>
+            public string PublishedNodesJson => _plc.GetPnJson();
+
             /// <summary>
             /// Create server
             /// </summary>
@@ -316,9 +320,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 _logger.LogInformation("Creating the Node Managers.");
                 var nodeManagers = _nodes
-                    .Select(n => n.Create(server, configuration));
-                return new MasterNodeManager(server, configuration, null,
-                    nodeManagers.ToArray());
+                    .Select(n => n.Create(server, configuration))
+                    .ToArray();
+
+                _plc = nodeManagers.OfType<Plc.PlcNodeManager>().FirstOrDefault();
+                return new MasterNodeManager(server, configuration, null, nodeManagers);
             }
 
             /// <inheritdoc/>
@@ -670,7 +676,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
             private ICertificateValidator _certificateValidator;
-
+#pragma warning disable CA2213 // Disposable fields should be disposed
+            private Plc.PlcNodeManager _plc;
+#pragma warning restore CA2213 // Disposable fields should be disposed
             private const string kServerNamespaceUri = "http://opcfoundation.org/UA/Sample/";
         }
 

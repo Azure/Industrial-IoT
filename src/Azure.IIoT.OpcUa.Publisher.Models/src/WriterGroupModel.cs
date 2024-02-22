@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -17,10 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class WriterGroupModel
     {
         /// <summary>
-        /// Dataset writer group identifier
+        /// Writer group identifier
         /// </summary>
-        [DataMember(Name = "writerGroupId", Order = 0)]
-        public string? WriterGroupId { get; set; }
+        [DataMember(Name = "id", Order = 0,
+            EmitDefaultValue = false)]
+        public required string Id { get; set; }
 
         /// <summary>
         /// Network message types to generate
@@ -147,11 +147,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public WriterGroupTransport? Transport { get; set; }
 
         /// <summary>
-        /// Desired Quality of service to use (Publisher
-        /// extension).
+        /// Queue settings to use for messages in the writer group.
+        /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "qos", Order = 17,
+        [DataMember(Name = "publishing", Order = 17,
             EmitDefaultValue = false)]
-        public QoS? QoS { get; set; }
+        public PublishingQueueSettingsModel? Publishing { get; set; }
     }
 }

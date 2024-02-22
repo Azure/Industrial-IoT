@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            var str = endpointId.Substring(3);
+            var str = endpointId[3..];
             if (str.Length % 2 != 0)
             {
                 return false;
@@ -82,11 +82,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this IReadOnlyList<EndpointInfoModel> model,
             IReadOnlyList<EndpointInfoModel> that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }
@@ -106,11 +106,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this EndpointInfoModel model,
             EndpointInfoModel that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }

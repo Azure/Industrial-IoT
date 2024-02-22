@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -138,6 +139,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? IndexRange { get; set; }
 
         /// <summary>
+        /// Topic to publish to - splits network messages
+        /// along the lines of topic name and overrides
+        /// the queue name of the writer and writer group.
+        /// </summary>
+        [DataMember(Name = "Topic", Order = 17,
+            EmitDefaultValue = false)]
+        public string? Topic { get; set; }
+
+        /// <summary>
+        /// Quality of service to use for the node. Overrides
+        /// the writer and Writer group quality of service
+        /// and together with queue name causes network
+        /// messages to be split.
+        /// </summary>
+        [DataMember(Name = "QualityOfService", Order = 18,
+            EmitDefaultValue = false)]
+        public QoS? QualityOfService { get; set; }
+
+        /// <summary>
         /// Heartbeat behavior
         /// </summary>
         [DataMember(Name = "HeartbeatBehavior", Order = 19,
@@ -207,6 +227,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ModelChangeHandling", Order = 28,
             EmitDefaultValue = false)]
         public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; set; }
+
+        /// <summary>
+        /// Nodes that are triggered by the parent node.
+        /// Nodes cannot themselves trigger other nodes, any
+        /// such setting is silently discarded. Triggered nodes
+        /// can only be updated as an atomic unit using API.
+        /// </summary>
+        [DataMember(Name = "TriggeredNodes", Order = 29,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<OpcNodeModel>? TriggeredNodes { get; set; }
 
         /// <summary>
         /// Expanded Node identifier (same as <see cref="Id"/>)

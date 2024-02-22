@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var writerGroup in changes)
             {
                 ct.ThrowIfCancellationRequested();
-                var jobId = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                var jobId = writerGroup.Id;
                 if (writerGroup.DataSetWriters?.Count > 0)
                 {
                     try
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 _outer = outer;
                 Version = version;
-                WriterGroup = writerGroup with { WriterGroupId = id };
+                WriterGroup = writerGroup with { Id = id };
                 Id = id;
                 _scope = _outer._factory.Create(WriterGroup);
                 Source = _scope.WriterGroup.Source;
@@ -354,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    var newWriterGroup = writerGroup with { WriterGroupId = Id };
+                    var newWriterGroup = writerGroup with { Id = Id };
 
                     await Source.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
 

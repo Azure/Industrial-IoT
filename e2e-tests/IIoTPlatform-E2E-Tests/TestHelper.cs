@@ -153,7 +153,7 @@ namespace IIoTPlatformE2ETests
 
                             // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
 #pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                            string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+                            var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
 #pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                             entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
 
@@ -679,8 +679,10 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="url1">URL to compare</param>
         /// <param name="url2">URL to compare to</param>
-        public static bool IsUrlStringsEqual(string url1, string url2) =>
-            string.Equals(url1?.TrimEnd('/'), url2?.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+        public static bool IsUrlStringsEqual(string url1, string url2)
+        {
+            return string.Equals(url1?.TrimEnd('/'), url2?.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// Determines if an ExpandoObject has a property
@@ -690,7 +692,7 @@ namespace IIoTPlatformE2ETests
         /// <exception cref="InvalidOperationException"></exception>
         public static bool HasProperty(object expandoObject, string propertyName)
         {
-            if (!(expandoObject is IDictionary<string, object> dictionary))
+            if (expandoObject is not IDictionary<string, object> dictionary)
             {
                 throw new InvalidOperationException("Object is not an ExpandoObject");
             }
@@ -728,7 +730,7 @@ namespace IIoTPlatformE2ETests
                     EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
                     UseSecurity = true,
                     OpcNodes = new List<OpcNodeModel> {
-                        new OpcNodeModel {
+                        new() {
                             Id = "ns=2;s=SlowUInt1",
                             OpcPublishingInterval = 10000
                         }
@@ -809,7 +811,7 @@ namespace IIoTPlatformE2ETests
                 };
 
                 var nodes = new List<OpcNodeModel>();
-                for (int i = 0; i < numberOfNodes; i++)
+                for (var i = 0; i < numberOfNodes; i++)
                 {
                     nodes.Add(new OpcNodeModel
                     {

@@ -25,12 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         public static T DeserializeResponse<T>(this ISerializer serializer,
             ReadOnlyMemory<byte> buffer)
         {
-            var response = serializer.Deserialize<T>(buffer);
-            if (response is null)
-            {
-                throw new MethodCallException("Bad response");
-            }
-            return response;
+            return serializer.Deserialize<T>(buffer) ?? throw new MethodCallException("Bad response");
         }
     }
 }

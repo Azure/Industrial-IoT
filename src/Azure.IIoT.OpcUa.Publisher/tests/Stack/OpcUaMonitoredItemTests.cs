@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "i=2041",
                             BrowsePath = new []{ "EventId" }
                         }
@@ -163,10 +163,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }
@@ -232,11 +232,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
@@ -244,10 +244,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }
@@ -282,11 +282,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new SimpleAttributeOperandModel {
+                        new() {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
@@ -294,10 +294,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     WhereClause = new ContentFilterModel
                     {
                         Elements = new List<ContentFilterElementModel> {
-                            new ContentFilterElementModel {
+                            new() {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
-                                    new FilterOperandModel {
+                                    new() {
                                         Value = "ns=2;i=235"
                                     }
                                 }

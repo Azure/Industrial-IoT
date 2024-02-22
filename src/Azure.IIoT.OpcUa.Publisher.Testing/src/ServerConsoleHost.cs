@@ -30,6 +30,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool AutoAccept { get; set; }
 
         /// <summary>
+        /// Get access to the server
+        /// </summary>
+        public ITestServer TestServer => _server as ITestServer;
+
+        /// <summary>
         /// Create server console host
         /// </summary>
         /// <param name="factory"></param>

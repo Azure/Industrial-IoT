@@ -38,13 +38,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Create browser
             /// </summary>
             /// <param name="client"></param>
-            /// <param name="startNodeId"></param>
+            /// <param name="subscriptionId"></param>
             /// <param name="browseDelay"></param>
-            private Browser(OpcUaClient client, NodeId startNodeId, TimeSpan browseDelay)
+            private Browser(OpcUaClient client, string subscriptionId, TimeSpan browseDelay)
             {
                 _client = client;
                 _logger = client._logger;
-                _startNodeId = NodeId.IsNull(startNodeId) ? ObjectIds.RootFolder : startNodeId;
+                _subscriptionId = subscriptionId;
                 _browseDelay = browseDelay == TimeSpan.Zero ? Timeout.InfiniteTimeSpan : browseDelay;
                 _channel = Channel.CreateUnbounded<bool>();
 
@@ -189,32 +189,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private async Task BrowseAddressSpaceAsync(OpcUaSession session, CancellationToken ct)
             {
-                var browseTemplate = new BrowseDescription
-                {
-                    NodeId = _startNodeId,
-                    BrowseDirection = Opc.Ua.BrowseDirection.Forward,
-                    ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
-                    IncludeSubtypes = true,
-                    NodeClassMask = 0,
-                    ResultMask = (uint)BrowseResultMask.All
-                };
-                var browseDescriptionCollection = CreateBrowseDescriptionCollectionFromNodeId(
-                    new NodeIdCollection(new[] { _startNodeId }), browseTemplate);
+                var browseDescriptionCollection = CreateBrowseDescriptionCollection(
+                    (ObjectIds.RootFolder, new RelativePath()).YieldReturn());
 
                 // Browse
-                var foundReferences = new Dictionary<ReferenceDescription, NodeId>(
+                var foundReferences = new Dictionary<ReferenceDescription, (NodeId, RelativePath)>(
                     Compare.Using<ReferenceDescription>(Utils.IsEqual));
-                var foundNodes = new Dictionary<NodeId, Node>();
+                var foundNodes = new Dictionary<NodeId, (RelativePath, Node)>();
                 try
                 {
-                    int searchDepth = 0;
-                    uint maxNodesPerBrowse = session.OperationLimits.MaxNodesPerBrowse;
+                    var searchDepth = 0;
+                    var maxNodesPerBrowse = session.OperationLimits.MaxNodesPerBrowse;
                     while (browseDescriptionCollection.Count != 0 && searchDepth < kMaxSearchDepth)
                     {
                         searchDepth++;
 
                         bool repeatBrowse;
-                        var allBrowseResults = new List<(NodeId, BrowseResult)>();
+                        var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
                         var unprocessedOperations = new BrowseDescriptionCollection();
 
                         BrowseResultCollection? browseResultCollection = null;
@@ -237,8 +228,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 for (var index = 0; index < browseResultCollection.Count; index++)
                                 {
                                     var browseResult = browseResultCollection[index];
+
                                     // check for error.
-                                    StatusCode statusCode = browseResult.StatusCode;
+                                    var statusCode = browseResult.StatusCode;
                                     if (StatusCode.IsBad(statusCode))
                                     {
                                         //
@@ -254,7 +246,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         }
                                     }
                                     // save results.
-                                    allBrowseResults.Add((browseCollection[index].NodeId, browseResult));
+                                    allBrowseResults.Add((browseCollection[index].NodeId,
+                                        (RelativePath)browseCollection[index].Handle, browseResult));
                                 }
                             }
                             catch (ServiceResultException sre) when
@@ -285,7 +278,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 browseNextResult.DiagnosticInfos, continuationPoints);
 
                             allBrowseResults.AddRange(browseNextResultCollection
-                                .Select((r, i) => (browseDescriptionCollection[i].NodeId, r)));
+                                .Select((r, i) => (browseDescriptionCollection[i].NodeId,
+                                    (RelativePath)browseDescriptionCollection[i].Handle, r)));
                             (nodeIds, continuationPoints) = PrepareBrowseNext(nodeIds, browseNextResultCollection);
                         }
 
@@ -318,47 +312,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         // Build browse request for next level
-                        var browseTable = new NodeIdCollection();
-                        foreach (var (source, browseResult) in allBrowseResults)
+                        var browseTable = new List<(NodeId, RelativePath)>();
+                        foreach (var (source, path, browseResult) in allBrowseResults)
                         {
                             var nodesToRead = new List<NodeId>();
                             foreach (var reference in browseResult.References)
                             {
-                                if (foundReferences.TryAdd(reference, source))
+                                if (foundReferences.TryAdd(reference, (source, path)))
                                 {
                                     if (!_knownReferences.Remove(reference))
                                     {
                                         // Send new reference
                                         _referencesAdded++;
-                                        OnReferenceChange?.Invoke(session,
-                                            CreateChange(source, null, reference));
+                                        OnReferenceChange?.Invoke(session, CreateChange(source, path, null,
+                                            reference));
                                     }
-
                                     var targetNodeId = ExpandedNodeId.ToNodeId(reference.NodeId, session.NamespaceUris);
-                                    browseTable.Add(targetNodeId);
-                                    await ReadNodeAsync(session, targetNodeId, foundNodes, ct).ConfigureAwait(false);
+                                    var targetPath = new RelativePath
+                                    {
+                                        Elements = new RelativePathElementCollection(path.Elements
+                                            .Append(new RelativePathElement
+                                            {
+                                                TargetName = reference.BrowseName,
+                                                IsInverse = false,
+                                                IncludeSubtypes = false,
+                                                ReferenceTypeId = reference.ReferenceTypeId
+                                            }))
+                                    };
+                                    browseTable.Add((targetNodeId, targetPath));
+                                    await ReadNodeAsync(session, targetNodeId, targetPath,
+                                        foundNodes, ct).ConfigureAwait(false);
                                 }
                             }
                         }
-                        browseDescriptionCollection.AddRange(CreateBrowseDescriptionCollectionFromNodeId(
-                            browseTable, browseTemplate));
+                        browseDescriptionCollection.AddRange(CreateBrowseDescriptionCollection(browseTable));
                         // add unprocessed nodes if any
                         browseDescriptionCollection.AddRange(unprocessedOperations);
                     }
 
                     _referencesRemoved += _knownReferences.Count;
-                    foreach (var removedReference in _knownReferences)
+                    foreach (var (removedReference, (nodeId, path)) in _knownReferences)
                     {
-                        OnReferenceChange?.Invoke(session, CreateChange(
-                            removedReference.Value, removedReference.Key, null));
+                        OnReferenceChange?.Invoke(session, CreateChange(nodeId, path, removedReference,
+                            null));
                     }
                     _knownReferences.Clear();
 
                     _nodesRemoved += _knownNodes.Count;
-                    foreach (var removedNode in _knownNodes)
+                    foreach (var (removedNodeId, (path, removedNode)) in _knownNodes)
                     {
-                        OnNodeChange?.Invoke(session, CreateChange(
-                            removedNode.Key, removedNode.Value, null));
+                        OnNodeChange?.Invoke(session, CreateChange(removedNodeId, path, removedNode,
+                            null));
                     }
                     _knownNodes.Clear();
                 }
@@ -373,21 +377,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _knownNodes = foundNodes;
                 }
 
-                static BrowseDescriptionCollection CreateBrowseDescriptionCollectionFromNodeId(
-                    NodeIdCollection nodeIdCollection, BrowseDescription template)
+                static BrowseDescriptionCollection CreateBrowseDescriptionCollection(
+                    IEnumerable<(NodeId NodeId, RelativePath Position)> items)
                 {
-                    var browseDescriptionCollection = new BrowseDescriptionCollection();
-                    foreach (var nodeId in nodeIdCollection)
-                    {
-                        var browseDescription = (BrowseDescription)template.MemberwiseClone();
-                        browseDescription.NodeId = nodeId;
-                        browseDescriptionCollection.Add(browseDescription);
-                    }
-                    return browseDescriptionCollection;
+                    return new BrowseDescriptionCollection(items.Select(
+                        item => new BrowseDescription
+                        {
+                            Handle = item.Position,
+                            BrowseDirection = Opc.Ua.BrowseDirection.Forward,
+                            ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                            IncludeSubtypes = true,
+                            NodeId = item.NodeId,
+                            NodeClassMask = 0,
+                            ResultMask = (uint)BrowseResultMask.All
+                        }));
                 }
 
-                void HandleException(Dictionary<ReferenceDescription, NodeId> foundReferences,
-                    Dictionary<NodeId, Node> foundNodes, Exception ex)
+                void HandleException(Dictionary<ReferenceDescription, (NodeId, RelativePath)> foundReferences,
+                    Dictionary<NodeId, (RelativePath, Node)> foundNodes, Exception ex)
                 {
                     _logger.LogDebug(ex, "Stopping browse due to error.");
 
@@ -421,33 +428,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="session"></param>
             /// <param name="targetNodeId"></param>
+            /// <param name="targetPath"></param>
             /// <param name="foundNodes"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
-                Dictionary<NodeId, Node> foundNodes, CancellationToken ct)
+            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId, RelativePath targetPath,
+                Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes, CancellationToken ct)
             {
                 try
                 {
-                    var node = await session.ReadNodeAsync(targetNodeId,
-                        ct).ConfigureAwait(false);
+                    var node = await session.ReadNodeAsync(targetNodeId, ct).ConfigureAwait(false);
                     if (NodeId.IsNull(node.NodeId))
                     {
                         return;
                     }
-                    if (_knownNodes.Remove(node.NodeId, out var existingNode) &&
-                        !Utils.IsEqual(existingNode, node))
+                    if (_knownNodes.Remove(node.NodeId, out var existing) &&
+                        !Utils.IsEqual(existing.Item2, node))
                     {
                         // send updated node
                         _nodesChanged++;
-                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, existingNode, node));
+                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, existing.Item1,
+                            existing.Item2, node));
                     }
 
-                    if (foundNodes.TryAdd(node.NodeId, node) && existingNode == null)
+                    if (foundNodes.TryAdd(node.NodeId, (targetPath, node)) && existing.Item1 == null)
                     {
                         // Send added node
                         _nodesAdded++;
-                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, null, node));
+                        OnNodeChange?.Invoke(session, CreateChange(targetNodeId, targetPath,
+                            null, node));
                     }
                 }
                 catch (Exception) when (session.Connected)
@@ -462,28 +471,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <param name="source"></param>
+            /// <param name="path"></param>
             /// <param name="existing"></param>
             /// <param name="New"></param>
             /// <returns></returns>
-            private Change<T> CreateChange<T>(NodeId source, T? existing, T? New) where T : class
-                => new Change<T>(source, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    DateTime.UtcNow);
+            private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New) where T : class
+            {
+                return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber), DateTime.UtcNow);
+            }
 
             /// <summary>
             /// Register
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="rebrowsePeriod"></param>
-            /// <param name="startNode"></param>
+            /// <param name="subscriptionId"></param>
             /// <returns></returns>
-            public static Browser Register(OpcUaClient outer, TimeSpan rebrowsePeriod, NodeId startNode)
+            public static Browser Register(OpcUaClient outer, TimeSpan rebrowsePeriod, string subscriptionId)
             {
                 lock (outer._browsers)
                 {
-                    if (!outer._browsers.TryGetValue((startNode, rebrowsePeriod), out var browser))
+                    if (!outer._browsers.TryGetValue((subscriptionId, rebrowsePeriod), out var browser))
                     {
-                        browser = new Browser(outer, startNode, rebrowsePeriod);
-                        outer._browsers.Add((startNode, rebrowsePeriod), browser);
+                        browser = new Browser(outer, subscriptionId, rebrowsePeriod);
+                        outer._browsers.Add((subscriptionId, rebrowsePeriod), browser);
                     }
                     browser.AddRef();
                     return browser;
@@ -505,10 +516,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private bool Release()
             {
-                bool cleanup = false;
+                var cleanup = false;
                 lock (_client._browsers)
                 {
-                    if (--_refCount == 0 && _client._browsers.Remove((_startNodeId, _browseDelay)))
+                    if (--_refCount == 0 && _client._browsers.Remove((_subscriptionId, _browseDelay)))
                     {
                         cleanup = true;
                     }
@@ -528,10 +539,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _nodesChanged;
             private int _nodesRemoved;
             private int _errors;
-            private Dictionary<NodeId, Node> _knownNodes = new();
-            private Dictionary<ReferenceDescription, NodeId> _knownReferences =
+            private Dictionary<NodeId, (RelativePath, Node)> _knownNodes = new();
+            private Dictionary<ReferenceDescription, (NodeId, RelativePath)> _knownReferences =
                 new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
-            private readonly NodeId _startNodeId;
+            private readonly string _subscriptionId;
             private readonly Task _browser;
             private readonly OpcUaClient _client;
             private readonly ILogger _logger;

@@ -13,11 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -35,16 +33,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
         public PublishedNodesConverter(ILogger<PublishedNodesConverter> logger,
-            IJsonSerializer serializer, IOptions<PublisherOptions>? options = null,
+            IJsonSerializer serializer, IOptions<PublisherOptions> options,
             IIoTEdgeWorkloadApi? cryptoProvider = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
+
             _cryptoProvider = cryptoProvider;
             _forceCredentialEncryption =
-                options?.Value.ForceCredentialEncryption ?? false;
+                options.Value.ForceCredentialEncryption ?? false;
+            _scaleTestCount =
+                Math.Max(1, options.Value.ScaleTestCount ?? 0);
+            _maxNodesPerDataSet = options.Value.MaxNodesPerDataSet <= 0
+                ? int.MaxValue : options.Value.MaxNodesPerDataSet;
         }
 
         /// <summary>
@@ -59,16 +62,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _logger.LogDebug("Reading and validating published nodes file...");
             try
             {
-                var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
-                    publishedNodesContent);
+                var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
+                    ?? throw new SerializerException("Published nodes files, malformed.");
 
-                if (items == null)
-                {
-                    throw new SerializerException("Published nodes files, malformed.");
-                }
-
-                _logger.LogInformation(
-                    "Read {Count} entry models from published nodes file in {Elapsed}",
+                _logger.LogInformation("Read {Count} entry models from published nodes file in {Elapsed}",
                     items.Count, sw.Elapsed);
                 return items;
             }
@@ -106,8 +103,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .Select(item => AddConnectionModel(item.Writer.DataSet?.DataSetSource?.Connection,
                         new PublishedNodesEntryModel
                         {
+                            NodeId = null,
                             Version = version,
-                            LastChangeTimespan = lastChanged,
+                            LastChangeDateTime = lastChanged,
                             DataSetClassId = item.Writer.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty,
                             DataSetDescription = item.Writer.DataSet?.DataSetMetaData?.Description,
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
@@ -115,10 +113,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
-                            WriterGroupQualityOfService = item.WriterGroup.QoS,
+                            WriterGroupQualityOfService = item.WriterGroup.Publishing?.RequestedDeliveryGuarantee,
+                            WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
+                            QueueName = item.Writer.Publishing?.QueueName,
+                            QualityOfService = item.Writer.Publishing?.RequestedDeliveryGuarantee,
+                            MetaDataQueueName = item.Writer.MetaData?.QueueName,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
                             BatchTriggerInterval = null,
@@ -127,94 +129,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
-                                item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
-                                    null : item.WriterGroup.WriterGroupId,
-                            DataSetWriterId =
-                                RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
+                                item.WriterGroup.Name == Constants.DefaultWriterGroupName ?
+                                    null : item.WriterGroup.Name,
+                            DataSetWriterId = item.Writer.DataSetWriterName,
+                            DataSetRouting = item.Writer.DataSet?.Routing,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
-                            OpcNodes = (item.Writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData ??
-                                    Enumerable.Empty<PublishedDataSetVariableModel>())
-                                .Select(variable => new OpcNodeModel
-                                {
-                                    DeadbandType = variable.DeadbandType,
-                                    DeadbandValue = variable.DeadbandValue,
-                                    DataSetClassFieldId = variable.DataSetClassFieldId,
-                                    Id = variable.PublishedVariableNodeId,
-                                    DisplayName = variable.PublishedVariableDisplayName,
-                                    DataSetFieldId = variable.Id,
-                                    AttributeId = variable.Attribute,
-                                    IndexRange = variable.IndexRange,
-                                    RegisterNode = variable.RegisterNodeForSampling,
-                                    FetchDisplayName = variable.ReadDisplayNameFromNode,
-                                    BrowsePath = variable.BrowsePath,
-                                    UseCyclicRead = variable.SamplingUsingCyclicRead,
-                                    DiscardNew = variable.DiscardNew,
-                                    QueueSize = variable.QueueSize,
-                                    DataChangeTrigger = variable.DataChangeTrigger,
-                                    HeartbeatBehavior = variable.HeartbeatBehavior,
-                                    HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
-                                    HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
-                                    OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
-                                    OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingIntervalHint,
-                                    OpcPublishingInterval = preferTimeSpan ? null : (int?)
-                                        item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval?.TotalMilliseconds,
-                                    OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
-                                        item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval,
-                                    SkipFirst = variable.SkipFirst,
-
-                                    // MonitoringMode = variable.MonitoringMode,
-                                    // ...
-
-                                    ExpandedNodeId = null,
-                                    ConditionHandling = null,
-                                    ModelChangeHandling = null,
-                                    EventFilter = null
-                                })
-                                .Concat((item.Writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData ??
-                                    Enumerable.Empty<PublishedDataSetEventModel>())
-                                .Select(evt => new OpcNodeModel
-                                {
-                                    Id = evt.EventNotifier,
-                                    EventFilter = new EventFilterModel
-                                    {
-                                        TypeDefinitionId = evt.TypeDefinitionId,
-                                        SelectClauses = evt.SelectedFields?.Select(s => s.Clone()).ToList(),
-                                        WhereClause = evt.Filter.Clone()
-                                    },
-                                    ConditionHandling = evt.ConditionHandling.Clone(),
-                                    ModelChangeHandling = evt.ModelChangeHandling.Clone(),
-                                    DataSetFieldId = evt.Id,
-                                    DisplayName = evt.PublishedEventName,
-                                    FetchDisplayName = evt.ReadEventNameFromNode,
-                                    BrowsePath = evt.BrowsePath,
-                                    DiscardNew = evt.DiscardNew,
-                                    QueueSize = evt.QueueSize,
-
-                                    // MonitoringMode = evt.MonitoringMode,
-                                    // ...
-                                    DeadbandType = null,
-                                    DataChangeTrigger = null,
-                                    DataSetClassFieldId = Guid.Empty,
-                                    DeadbandValue = null,
-                                    ExpandedNodeId = null,
-                                    HeartbeatInterval = null,
-                                    HeartbeatBehavior = null,
-                                    HeartbeatIntervalTimespan = null,
-                                    OpcSamplingInterval = null,
-                                    OpcSamplingIntervalTimespan = null,
-                                    AttributeId = null,
-                                    RegisterNode = null,
-                                    UseCyclicRead = null,
-                                    IndexRange = null,
-                                    OpcPublishingInterval = preferTimeSpan ? null : (int?)
-                                        item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval?.TotalMilliseconds,
-                                    OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
-                                        item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.PublishingInterval,
-                                    SkipFirst = null
-                                }))
-                                .ToList(),
-                            NodeId = null,
+                            OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
+                                    item.Writer.DataSet?.DataSetSource?.PublishedVariables,
+                                    item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
+                                .ToList() ?? new List<OpcNodeModel>(),
                             // ...
 
                             // Added by Add connection information
@@ -248,6 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             catch (Exception ex)
             {
                 _logger.LogError(ex, "failed to convert the published nodes.");
+                return Enumerable.Empty<PublishedNodesEntryModel>();
             }
             finally
             {
@@ -255,237 +180,273 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     sw.Elapsed);
                 sw.Stop();
             }
-            return Enumerable.Empty<PublishedNodesEntryModel>();
+
+            static IEnumerable<OpcNodeModel>? ToOpcNodes(PublishedDataSetSettingsModel? subscriptionSettings,
+                PublishedDataItemsModel? publishedVariables, PublishedEventItemsModel? publishedEvents, bool preferTimeSpan,
+                bool skipTriggeringNodes)
+            {
+                if (publishedVariables == null && publishedEvents == null)
+                {
+                    return null;
+                }
+                return (publishedVariables?.PublishedData ?? Enumerable.Empty<PublishedDataSetVariableModel>())
+                    .Select(variable => new OpcNodeModel
+                    {
+                        DeadbandType = variable.DeadbandType,
+                        DeadbandValue = variable.DeadbandValue,
+                        DataSetClassFieldId = variable.DataSetClassFieldId,
+                        Id = variable.PublishedVariableNodeId,
+                        DisplayName = variable.PublishedVariableDisplayName,
+                        DataSetFieldId = variable.Id,
+                        AttributeId = variable.Attribute,
+                        IndexRange = variable.IndexRange,
+                        RegisterNode = variable.RegisterNodeForSampling,
+                        FetchDisplayName = variable.ReadDisplayNameFromNode,
+                        BrowsePath = variable.BrowsePath,
+                        UseCyclicRead = variable.SamplingUsingCyclicRead,
+                        DiscardNew = variable.DiscardNew,
+                        QueueSize = variable.ServerQueueSize,
+                        DataChangeTrigger = variable.DataChangeTrigger,
+                        HeartbeatBehavior = variable.HeartbeatBehavior,
+                        HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
+                        HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
+                        OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
+                        OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingIntervalHint,
+                        OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                            subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
+                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                            subscriptionSettings?.PublishingInterval,
+                        SkipFirst = variable.SkipFirst,
+                        TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
+                            variable.Triggering?.PublishedVariables,
+                            variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                        Topic = variable.Publishing?.QueueName,
+                        QualityOfService = variable.Publishing?.RequestedDeliveryGuarantee,
+
+                        // MonitoringMode = variable.MonitoringMode,
+                        // ...
+
+                        ExpandedNodeId = null,
+                        ConditionHandling = null,
+                        ModelChangeHandling = null,
+                        EventFilter = null
+                    })
+                    .Concat((publishedEvents?.PublishedData ?? Enumerable.Empty<PublishedDataSetEventModel>())
+                    .Select(evt => new OpcNodeModel
+                    {
+                        Id = evt.EventNotifier,
+                        EventFilter = new EventFilterModel
+                        {
+                            TypeDefinitionId = evt.TypeDefinitionId,
+                            SelectClauses = evt.SelectedFields?.Select(s => s.Clone()).ToList(),
+                            WhereClause = evt.Filter.Clone()
+                        },
+                        ConditionHandling = evt.ConditionHandling.Clone(),
+                        ModelChangeHandling = evt.ModelChangeHandling.Clone(),
+                        DataSetFieldId = evt.Id,
+                        DisplayName = evt.PublishedEventName,
+                        FetchDisplayName = evt.ReadEventNameFromNode,
+                        BrowsePath = evt.BrowsePath,
+                        DiscardNew = evt.DiscardNew,
+                        QueueSize = evt.QueueSize,
+                        TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
+                            evt.Triggering?.PublishedVariables,
+                            evt.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                        Topic = evt.Publishing?.QueueName,
+                        QualityOfService = evt.Publishing?.RequestedDeliveryGuarantee,
+
+                        // MonitoringMode = evt.MonitoringMode,
+                        // ...
+                        DeadbandType = null,
+                        DataChangeTrigger = null,
+                        DataSetClassFieldId = Guid.Empty,
+                        DeadbandValue = null,
+                        ExpandedNodeId = null,
+                        HeartbeatInterval = null,
+                        HeartbeatBehavior = null,
+                        HeartbeatIntervalTimespan = null,
+                        OpcSamplingInterval = null,
+                        OpcSamplingIntervalTimespan = null,
+                        AttributeId = null,
+                        RegisterNode = null,
+                        UseCyclicRead = null,
+                        IndexRange = null,
+                        OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                            subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
+                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                            subscriptionSettings?.PublishingInterval,
+                        SkipFirst = null
+                    }));
+            }
         }
 
         /// <summary>
         /// Convert published nodes configuration to Writer group jobs
         /// </summary>
-        /// <param name="items"></param>
-        /// <param name="configuration">Publisher configuration</param>
-        public IEnumerable<WriterGroupModel> ToWriterGroups(
-            IEnumerable<PublishedNodesEntryModel> items, PublisherOptions configuration)
+        /// <param name="entries"></param>
+        /// <returns></returns>
+        public IEnumerable<WriterGroupModel> ToWriterGroups(IEnumerable<PublishedNodesEntryModel> entries)
         {
-            if (items == null)
+            if (entries == null)
             {
                 return Enumerable.Empty<WriterGroupModel>();
             }
             var sw = Stopwatch.StartNew();
             try
             {
-                // note: do not remove 'unnecessary' .ToList(),
-                // the grouping of operations improves perf by 30%
-
-                // Group by endpoints
-                var endpoints = items.GroupBy(
-                    ToConnectionModel,
-                    // Select and batch nodes into published data set sources
-                    item => GetNodeModels(item, configuration.ScaleTestCount ?? 1),
-                    // Comparer for connection information
-                    new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y))
-                ).ToList();
-
-                // Transforms a published nodes model connection header to a Connection Model object
-                ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
-                {
-                    return new ConnectionModel
-                    {
-                        //
-                        // Insert the group here to not loose group from context
-                        // so during linq enumeration we can have access to it.
-                        // The connection model that is finally emitted does not
-                        // set a group though. This is set later when a writer
-                        // group is started and depends on the session/subscription
-                        // configuration.
-                        //
-                        Group = model.DataSetWriterGroup,
-                        IsReverse = model.UseReverseConnect,
-                        Endpoint = new EndpointModel
+                return entries
+                    //
+                    // Split all entries by the publishing interval int the nodes using the entry publising
+                    // interval as default
+                    //
+                    .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
+                        .GroupBy(n => n.GetNormalizedPublishingInterval(
+                                      entry.GetNormalizedDataSetPublishingInterval()))
+                        .Select(g => entry with
                         {
-                            Url = model.EndpointUrl,
-                            SecurityPolicy = model.EndpointSecurityPolicy,
-                            SecurityMode = model.EndpointSecurityMode ?? (model.UseSecurity
-                                //
-                                // This is a break in backwards compatibility. Previously we would allow
-                                // also no security because SecurityMode.Best was used for UseSecurity.
-                                // However, the expectation is that highest security is going to be used
-                                // or to fail.
-                                //
-                                ? SecurityMode.SignAndEncrypt
-                                : SecurityMode.None)
+                            // Set the publishing interval for this entry at the top
+                            DataSetPublishingIntervalTimespan = g.Key,
+                            DataSetPublishingInterval = null,
+                            OpcNodes = g
+                                .Select(n => n with
+                                {
+                                    // Unset all node specific settings.
+                                    OpcPublishingIntervalTimespan = null,
+                                    OpcPublishingInterval = null
+                                })
+                                .ToList()
+                        }))
+                    //
+                    // Now we have entries with nodes that have no publishing interval, group all entries
+                    // by group identifier
+                    //
+                    .Select(entry => (
+                        Entry: entry,
+                        UniqueGroupId: entry.GetUniqueWriterGroupId()
+                     ))
+                    .GroupBy(entry => entry.UniqueGroupId)
+                    .Select(g => (g.Key, Entries: g.ToList()))
+                    //
+                    // In each group select the writers using the unique data set writer id which uses the
+                    // publishing interval.
+                    //
+                    .Select(group => (
+                        Id: group.Key,
+                        Header: group.Entries[0].Entry,
+                        Writers: group.Entries
+                            .Select(entry => (
+                                entry.Entry,
+                                UniqueWriterId: entry.Entry.GetUniqueDataSetWriterId()
+                             ))
+                            .GroupBy(e => e.UniqueWriterId)
+                            .Select(w => (w.Key, Writers: w.Select(e => e.Entry).ToList()))
+                            .ToList()
+                    ))
+                    // Now bring it all together into a group with writers and settings
+                    .Select(group => new WriterGroupModel
+                    {
+                        Id = group.Id,
+                        MessageType = group.Header.MessageEncoding,
+                        Transport = group.Header.WriterGroupTransport,
+                        Publishing = new PublishingQueueSettingsModel
+                        {
+                            RequestedDeliveryGuarantee = group.Header.WriterGroupQualityOfService,
+                            QueueName = group.Header.WriterGroupQueueName
                         },
-                        User =
-                            model.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
-                            model.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
-                                ToCredentialAsync(model).GetAwaiter().GetResult() : null
-                    };
-                }
-
-                var opcNodeModelComparer = new OpcNodeModelComparer();
-                var flattenedEndpoints = endpoints.ConvertAll(
-                    group => group
-                    // Flatten all nodes for the same connection and group by publishing interval
-                    // then batch in chunks for max 1000 nodes and create data sets from those.
-                    .Flatten()
-                    .GroupBy(n => (n.Header.DataSetWriterId, n.Node.OpcPublishingIntervalTimespan))
-                    .SelectMany(
-                        n => n
-                        .Distinct(opcNodeModelComparer)
-                        .Batch(configuration.MaxNodesPerDataSet))
-                    .ToList()
-                    .ConvertAll(
-                        opcNodes => (opcNodes.First().Header, WriterGroup: group.Key.Group,
-                            Source: new PublishedDataSetSourceModel
-                            {
-                                Connection = new ConnectionModel
+                        HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
+                        Name = group.Header.DataSetWriterGroup,
+                        NotificationPublishThreshold = group.Header.BatchSize,
+                        PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
+                        DataSetWriters = group.Writers
+                            .Select(w => (
+                                WriterId: w.Key,
+                                Header: w.Writers[0],
+                                WriterBatches: w.Writers
+                                    .SelectMany(w => w.OpcNodes!)
+                                    .Distinct(OpcNodeModelEx.Comparer)
+                                    .Batch(_maxNodesPerDataSet)
+                                    // Future: batch in service so it is centralized
+                            ))
+                            .SelectMany(b => b.WriterBatches // Do we need to materialize here?
+                                .Select(n => n.ToList())
+                                .Select((nodes, index) => new DataSetWriterModel
                                 {
-                                    Endpoint = group.Key.Endpoint.Clone(),
-                                    User = group.Key.User.Clone(),
-                                    Diagnostics = group.Key.Diagnostics.Clone(),
-                                    IsReverse = group.Key.IsReverse
-                                },
-                                SubscriptionSettings = new PublishedDataSetSettingsModel
-                                {
-                                    MaxKeepAliveCount = opcNodes.First().Header.MaxKeepAliveCount,
-                                    Priority = opcNodes.First().Header.Priority,
-                                    PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node))
-                                    // ...
-                                },
-                                PublishedVariables = new PublishedDataItemsModel
-                                {
-                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter == null && node.Node.ModelChangeHandling == null)
-                                    .Select(node => new PublishedDataSetVariableModel
+                                    Id = b.WriterId + "_" + index,
+                                    DataSetWriterName = b.Header.DataSetWriterId,
+                                    MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),
+                                    KeyFrameCount = b.Header.DataSetKeyFrameCount,
+                                    Publishing = new PublishingQueueSettingsModel
                                     {
-                                        Id = node.Node.DataSetFieldId,
-                                        PublishedVariableNodeId = node.Node.Id,
-                                        DataSetClassFieldId = node.Node.DataSetClassFieldId,
-
-                                        // At this point in time the next values are ensured to be filled in with
-                                        // the appropriate value: configured or default
-                                        PublishedVariableDisplayName = node.Node.DisplayName,
-                                        SamplingIntervalHint = node.Node.OpcSamplingIntervalTimespan,
-                                        HeartbeatInterval = node.Node.HeartbeatIntervalTimespan,
-                                        HeartbeatBehavior = node.Node.HeartbeatBehavior,
-                                        QueueSize = node.Node.QueueSize,
-                                        DiscardNew = node.Node.DiscardNew,
-                                        SamplingUsingCyclicRead = node.Node.UseCyclicRead,
-                                        Attribute = node.Node.AttributeId,
-                                        IndexRange = node.Node.IndexRange,
-                                        RegisterNodeForSampling = node.Node.RegisterNode,
-                                        BrowsePath = node.Node.BrowsePath,
-                                        ReadDisplayNameFromNode = node.Node.FetchDisplayName,
-                                        MonitoringMode = null,
-                                        SubstituteValue = null,
-                                        MetaDataProperties = null,
-                                        SkipFirst = node.Node.SkipFirst,
-                                        DataChangeTrigger = node.Node.DataChangeTrigger,
-                                        DeadbandValue = node.Node.DeadbandValue,
-                                        DeadbandType = node.Node.DeadbandType
-                                    }).ToList()
-                                },
-                                PublishedEvents = new PublishedEventItemsModel
-                                {
-                                    PublishedData = opcNodes.Where(node => node.Node.EventFilter != null || node.Node.ModelChangeHandling != null)
-                                    .Select(node => new PublishedDataSetEventModel
-                                    {
-                                        Id = node.Node.DataSetFieldId,
-                                        EventNotifier = node.Node.Id,
-                                        QueueSize = node.Node.QueueSize,
-                                        DiscardNew = node.Node.DiscardNew,
-                                        PublishedEventName = node.Node.DisplayName,
-                                        ReadEventNameFromNode = node.Node.FetchDisplayName,
-                                        BrowsePath = node.Node.BrowsePath,
-                                        MonitoringMode = null,
-                                        TypeDefinitionId = node.Node.EventFilter?.TypeDefinitionId,
-                                        SelectedFields = node.Node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
-                                        Filter = node.Node.EventFilter?.WhereClause.Clone(),
-                                        ConditionHandling = node.Node.ConditionHandling.Clone(),
-                                        ModelChangeHandling = node.Node.ModelChangeHandling.Clone()
-                                    }).ToList()
-                                }
-                            })
-                    ));
-
-                if (flattenedEndpoints.Count == 0)
-                {
-                    _logger.LogInformation("No OpcNodes after job conversion.");
-                    return Enumerable.Empty<WriterGroupModel>();
-                }
-
-                var result = flattenedEndpoints
-                    .Where(dataSetBatches => dataSetBatches.Count > 0)
-                    .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
-                    .Select(dataSetBatches => new WriterGroupModel
-                    {
-                        MessageType = dataSetBatches.First.Header.MessageEncoding,
-                        Transport = dataSetBatches.First.Header.WriterGroupTransport,
-                        QoS = dataSetBatches.First.Header.WriterGroupQualityOfService,
-                        HeaderLayoutUri = dataSetBatches.First.Header.MessagingMode?.ToString(),
-                        WriterGroupId = dataSetBatches.First.WriterGroup,
-                        NotificationPublishThreshold = dataSetBatches.First.Header.BatchSize,
-                        PublishingInterval = dataSetBatches.First.Header.GetNormalizedBatchTriggerInterval(),
-                        DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel
-                        {
-                            DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
-                                dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
-                            MetaDataUpdateTime =
-                                dataSet.Header.GetNormalizedMetaDataUpdateTime(),
-                            KeyFrameCount =
-                                dataSet.Header.DataSetKeyFrameCount,
-                            TelemetryTopicTemplate =
-                                dataSet.Header.TelemetryTopicTemplate,
-
-                            DataSet = new PublishedDataSetModel
-                            {
-                                Name = dataSet.Header.DataSetName,
-                                DataSetMetaData =
-                                    new DataSetMetaDataModel
-                                    {
-                                        DataSetClassId = dataSet.Header.DataSetClassId,
-                                        Description = dataSet.Header.DataSetDescription,
-                                        Name = dataSet.Header.DataSetName
+                                        QueueName = b.Header.QueueName,
+                                        RequestedDeliveryGuarantee = b.Header.QualityOfService
                                     },
-                                ExtensionFields = dataSet.Header.DataSetExtensionFields,
-                                SendKeepAlive = dataSet.Header.SendKeepAliveDataSetMessages,
-                                DataSetSource = new PublishedDataSetSourceModel
-                                {
-                                    Connection = new ConnectionModel
+                                    MetaData = new PublishingQueueSettingsModel
                                     {
-                                        Endpoint = dataSet.Source.Connection?.Endpoint.Clone(),
-                                        User = dataSet.Source.Connection?.User.Clone(),
-                                        Diagnostics = dataSet.Source.Connection?.Diagnostics.Clone(),
-                                        IsReverse = dataSet.Source.Connection?.IsReverse
+                                        QueueName = b.Header.MetaDataQueueName,
+                                        RequestedDeliveryGuarantee = null
                                     },
-                                    PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
-                                    PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
-                                    SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
-                                }
-                            }
+                                    DataSet = new PublishedDataSetModel
+                                    {
+                                        Name = b.Header.DataSetName,
+                                        DataSetMetaData = new DataSetMetaDataModel
+                                        {
+                                            DataSetClassId = b.Header.DataSetClassId,
+                                            Description = b.Header.DataSetDescription,
+                                            Name = b.Header.DataSetName
+                                        },
+                                        ExtensionFields = b.Header.DataSetExtensionFields,
+                                        SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
+                                        Routing = b.Header.DataSetRouting,
+                                        DataSetSource = new PublishedDataSetSourceModel
+                                        {
+                                            Connection = new ConnectionModel
+                                            {
+                                                IsReverse = b.Header.UseReverseConnect,
+                                                Endpoint = new EndpointModel
+                                                {
+                                                    Url = b.Header.EndpointUrl,
+                                                    SecurityPolicy = b.Header.EndpointSecurityPolicy,
+                                                    SecurityMode = b.Header.EndpointSecurityMode ?? (b.Header.UseSecurity
+                                                    //
+                                                    // This is a break in backwards compatibility. Previously we would allow
+                                                    // also no security because SecurityMode.Best was used for UseSecurity.
+                                                    // However, the expectation is that highest security is going to be used
+                                                    // or to fail.
+                                                    //
+                                                    ? SecurityMode.SignAndEncrypt
+                                                    : SecurityMode.None)
+                                                },
+                                                User =
+                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
+                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                                                        ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
+                                            },
+                                            SubscriptionSettings = new PublishedDataSetSettingsModel
+                                            {
+                                                MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
+                                                Priority = b.Header.Priority,
+                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
+                                                // ...
+                                            },
+                                            PublishedVariables = ToPublishedDataItems(nodes, false),
+                                            PublishedEvents = ToPublishedEventItems(nodes, false)
+                                        }
+                                    },
+                                    MessageSettings = null,
+                                    DataSetFieldContentMask = null
+                                }))
+                                .ToList(),
+                            KeepAliveTime = null,
+                            MaxNetworkMessageSize = null,
+                            MessageSettings = null,
+                            Priority = null,
+                            PublishQueueSize = null,
+                            SecurityGroupId = null,
+                            SecurityKeyServices = null,
+                            SecurityMode = null,
+                            LocaleIds = null
                         })
-                    });
-
-                // Coalesce into writer group
-                // TODO: We should start with the grouping by writer group
-                return result
-                    .GroupBy(item => item,
-                        new FuncCompare<WriterGroupModel>((x, y) => x.IsSameAs(y)))
-                    .Select(group =>
-                    {
-                        var writers = group
-                            .Where(g => g.DataSetWriters != null)
-                            .SelectMany(g => g.DataSetWriters!)
-                            .ToList();
-                        foreach (var dataSetWriter in writers)
-                        {
-                            var count = dataSetWriter.DataSet?.DataSetSource?
-                                .PublishedVariables?.PublishedData?.Count ?? 0;
-                            _logger.LogDebug("writerId: {Writer} nodes: {Count}",
-                                dataSetWriter.DataSetWriterName, count);
-                        }
-                        var top = group.First();
-                        top.DataSetWriters = writers;
-                        return top;
-                    });
+                    .ToList(); // Convert here or else we dont print conversion correctly
             }
             catch (Exception ex)
             {
@@ -497,6 +458,188 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
                     sw.Elapsed);
                 sw.Stop();
+            }
+
+            static IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item, int scaleTestCount)
+            {
+                if (item.OpcNodes != null)
+                {
+                    foreach (var node in item.OpcNodes)
+                    {
+                        if (scaleTestCount <= 1)
+                        {
+                            yield return new OpcNodeModel
+                            {
+                                Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
+                                DisplayName = node.DisplayName,
+                                DataSetClassFieldId = node.DataSetClassFieldId,
+                                DataSetFieldId = node.DataSetFieldId,
+                                ExpandedNodeId = node.ExpandedNodeId,
+                                HeartbeatIntervalTimespan = node
+                                    .GetNormalizedHeartbeatInterval(),
+                                // The publishing interval item wins over dataset over global default
+                                OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                    ?? item.GetNormalizedDataSetPublishingInterval(),
+                                OpcSamplingIntervalTimespan = node
+                                    .GetNormalizedSamplingInterval(),
+                                QueueSize = node.QueueSize,
+                                DiscardNew = node.DiscardNew,
+                                BrowsePath = node.BrowsePath,
+                                AttributeId = node.AttributeId,
+                                FetchDisplayName = node.FetchDisplayName,
+                                IndexRange = node.IndexRange,
+                                RegisterNode = node.RegisterNode,
+                                UseCyclicRead = node.UseCyclicRead,
+                                SkipFirst = node.SkipFirst,
+                                DataChangeTrigger = node.DataChangeTrigger,
+                                DeadbandType = node.DeadbandType,
+                                DeadbandValue = node.DeadbandValue,
+                                EventFilter = node.EventFilter,
+                                HeartbeatBehavior = node.HeartbeatBehavior,
+                                ConditionHandling = node.ConditionHandling,
+                                TriggeredNodes = node.TriggeredNodes,
+                                QualityOfService = node.QualityOfService,
+                                Topic = node.Topic,
+                                ModelChangeHandling = node.ModelChangeHandling
+                            };
+                        }
+                        else
+                        {
+                            for (var i = 0; i < scaleTestCount; i++)
+                            {
+                                yield return new OpcNodeModel
+                                {
+                                    Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
+                                    DisplayName = !string.IsNullOrEmpty(node.DisplayName) ?
+                                        $"{node.DisplayName}_{i}" : null,
+                                    DataSetFieldId = node.DataSetFieldId,
+                                    DataSetClassFieldId = node.DataSetClassFieldId,
+                                    ExpandedNodeId = node.ExpandedNodeId,
+                                    HeartbeatIntervalTimespan = node
+                                        .GetNormalizedHeartbeatInterval(),
+                                    // The publishing interval item wins over dataset over global default
+                                    OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                        ?? item.GetNormalizedDataSetPublishingInterval(),
+                                    OpcSamplingIntervalTimespan = node
+                                        .GetNormalizedSamplingInterval(),
+                                    QueueSize = node.QueueSize,
+                                    SkipFirst = node.SkipFirst,
+                                    DataChangeTrigger = node.DataChangeTrigger,
+                                    BrowsePath = node.BrowsePath,
+                                    AttributeId = node.AttributeId,
+                                    FetchDisplayName = node.FetchDisplayName,
+                                    IndexRange = node.IndexRange,
+                                    RegisterNode = node.RegisterNode,
+                                    UseCyclicRead = node.UseCyclicRead,
+                                    DeadbandType = node.DeadbandType,
+                                    DeadbandValue = node.DeadbandValue,
+                                    DiscardNew = node.DiscardNew,
+                                    HeartbeatBehavior = node.HeartbeatBehavior,
+                                    EventFilter = node.EventFilter,
+                                    TriggeredNodes = null,
+                                    ConditionHandling = node.ConditionHandling,
+                                    QualityOfService = node.QualityOfService,
+                                    Topic = node.Topic,
+                                    ModelChangeHandling = node.ModelChangeHandling
+                                };
+                            }
+                        }
+                    }
+                }
+
+                if (item.NodeId?.Identifier != null)
+                {
+                    yield return new OpcNodeModel
+                    {
+                        Id = item.NodeId.Identifier,
+                        OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
+                    };
+                }
+            }
+
+            static PublishedDataItemsModel ToPublishedDataItems(IEnumerable<OpcNodeModel> opcNodes, bool skipTriggering)
+            {
+                return new PublishedDataItemsModel
+                {
+                    PublishedData = opcNodes.Where(node => node.EventFilter == null && node.ModelChangeHandling == null)
+                    .Select(node => new PublishedDataSetVariableModel
+                    {
+                        Id = node.DataSetFieldId,
+                        PublishedVariableNodeId = node.Id,
+                        DataSetClassFieldId = node.DataSetClassFieldId,
+
+                        // At this point in time the next values are ensured to be filled in with
+                        // the appropriate value: configured or default
+                        PublishedVariableDisplayName = node.DisplayName,
+                        SamplingIntervalHint = node.OpcSamplingIntervalTimespan,
+                        HeartbeatInterval = node.HeartbeatIntervalTimespan,
+                        HeartbeatBehavior = node.HeartbeatBehavior,
+                        ServerQueueSize = node.QueueSize,
+                        DiscardNew = node.DiscardNew,
+                        SamplingUsingCyclicRead = node.UseCyclicRead,
+                        Attribute = node.AttributeId,
+                        IndexRange = node.IndexRange,
+                        RegisterNodeForSampling = node.RegisterNode,
+                        BrowsePath = node.BrowsePath,
+                        ReadDisplayNameFromNode = node.FetchDisplayName,
+                        MonitoringMode = null,
+                        SubstituteValue = null,
+                        MetaDataProperties = null,
+                        SkipFirst = node.SkipFirst,
+                        DataChangeTrigger = node.DataChangeTrigger,
+                        DeadbandValue = node.DeadbandValue,
+                        DeadbandType = node.DeadbandType,
+                        Publishing = node.Topic == null && node.QualityOfService == null
+                            ? null : new PublishingQueueSettingsModel
+                            {
+                                QueueName = node.Topic,
+                                RequestedDeliveryGuarantee = node.QualityOfService
+                            },
+                        Triggering = skipTriggering || node.TriggeredNodes == null
+                            ? null : new PublishedDataSetTriggerModel
+                            {
+                                PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
+                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
+                            }
+                    })
+                    .ToList()
+                };
+            }
+
+            static PublishedEventItemsModel ToPublishedEventItems(IEnumerable<OpcNodeModel> opcNodes, bool skipTriggering)
+            {
+                return new PublishedEventItemsModel
+                {
+                    PublishedData = opcNodes.Where(node => node.EventFilter != null || node.ModelChangeHandling != null)
+                    .Select(node => new PublishedDataSetEventModel
+                    {
+                        Id = node.DataSetFieldId,
+                        EventNotifier = node.Id,
+                        QueueSize = node.QueueSize,
+                        DiscardNew = node.DiscardNew,
+                        PublishedEventName = node.DisplayName,
+                        ReadEventNameFromNode = node.FetchDisplayName,
+                        BrowsePath = node.BrowsePath,
+                        MonitoringMode = null,
+                        TypeDefinitionId = node.EventFilter?.TypeDefinitionId,
+                        SelectedFields = node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
+                        Filter = node.EventFilter?.WhereClause.Clone(),
+                        ConditionHandling = node.ConditionHandling.Clone(),
+                        ModelChangeHandling = node.ModelChangeHandling.Clone(),
+                        Publishing = node.Topic == null && node.QualityOfService == null
+                            ? null : new PublishingQueueSettingsModel
+                            {
+                                QueueName = node.Topic,
+                                RequestedDeliveryGuarantee = node.QualityOfService
+                            },
+                        Triggering = skipTriggering || node.TriggeredNodes == null
+                            ? null : new PublishedDataSetTriggerModel
+                            {
+                                PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
+                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
+                            }
+                    }).ToList()
+                };
             }
         }
 
@@ -597,201 +740,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         /// <summary>
-        /// Remove the appendix and restore the original identifier
-        /// </summary>
-        /// <param name="uniqueDataSetWriter"></param>
-        /// <returns></returns>
-        private static string? RecoverOriginalDataSetWriterId(string? uniqueDataSetWriter)
-        {
-            if (uniqueDataSetWriter == null)
-            {
-                return null;
-            }
-            var components = uniqueDataSetWriter.Split("_($");
-            if (components.Length == 1 ||
-                (components.Length == 2 && components[1].EndsWith(')')))
-            {
-                return components[0] == Constants.DefaultDataSetWriterName ? null : components[0];
-            }
-            return uniqueDataSetWriter;
-        }
-
-        /// <summary>
-        /// Returns an uniquie identifier for the DataSetWriterId from a set of writers belonging to a group
-        /// </summary>
-        /// <param name="dataSetWriterId"></param>
-        /// <param name="source"></param>
-        /// <param name="set"></param>
-        private static string GetUniqueWriterNameInSet(string? dataSetWriterId, PublishedDataSetSourceModel source,
-            IEnumerable<(string? DataSetWriterId, PublishedDataSetSourceModel Source)> set)
-        {
-            Debug.Assert(source.SubscriptionSettings != null);
-            var writerId = dataSetWriterId ?? string.Empty;
-            var subset = set.Where(x => x.DataSetWriterId == dataSetWriterId).ToList();
-            var result = source.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds
-                .ToString(CultureInfo.InvariantCulture);
-            if (subset.Count > 1)
-            {
-                if (subset.Count(x =>
-                    x.Source.SubscriptionSettings?.PublishingInterval
-                        == source.SubscriptionSettings.PublishingInterval) > 1)
-                {
-                    if (!string.IsNullOrEmpty(source.PublishedVariables?.PublishedData?[0]?.PublishedVariableNodeId))
-                    {
-                        result += $"_{source.PublishedVariables.PublishedData[0].PublishedVariableNodeId}";
-                    }
-                    else if (!string.IsNullOrEmpty(source.PublishedEvents?.PublishedData?[0]?.EventNotifier))
-                    {
-                        result += $"_{source.PublishedEvents.PublishedData[0].EventNotifier}";
-                    }
-                    else
-                    {
-                        result += $"_{Guid.NewGuid()}";
-                    }
-                }
-                if (string.IsNullOrEmpty(writerId))
-                {
-                    return $"{Constants.DefaultDataSetWriterName}_(${result.ToSha1Hash()})";
-                }
-                return $"{writerId}_(${result.ToSha1Hash()})";
-            }
-            if (string.IsNullOrEmpty(writerId))
-            {
-                return $"{Constants.DefaultDataSetWriterName}_(${result.ToSha1Hash()})";
-            }
-            return writerId;
-        }
-
-        /// <summary>
-        /// Equality Comparer to eliminate duplicates in job converter.
-        /// </summary>
-        private class OpcNodeModelComparer :
-            IEqualityComparer<(PublishedNodesEntryModel Header, OpcNodeModel Node)>
-        {
-            /// <inheritdoc/>
-            public bool Equals((PublishedNodesEntryModel Header, OpcNodeModel Node) objA,
-                (PublishedNodesEntryModel Header, OpcNodeModel Node) objB)
-            {
-                return objA.Header.DataSetWriterId == objB.Header.DataSetWriterId && objA.Node.IsSame(objB.Node);
-            }
-
-            /// <inheritdoc/>
-            public int GetHashCode((PublishedNodesEntryModel Header, OpcNodeModel Node) obj)
-            {
-                return HashCode.Combine(obj.Header.DataSetWriterId, obj.Node);
-            }
-        }
-
-        /// <summary>
-        /// Get the node models from entry
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="scaleTestCount"></param>
-        private static IEnumerable<(PublishedNodesEntryModel Header, OpcNodeModel Node)> GetNodeModels(
-            PublishedNodesEntryModel item, int scaleTestCount)
-        {
-            if (item.OpcNodes != null)
-            {
-                foreach (var node in item.OpcNodes)
-                {
-                    if (scaleTestCount <= 1)
-                    {
-                        yield return (item, new OpcNodeModel
-                        {
-                            Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
-                            DisplayName = node.DisplayName,
-                            DataSetClassFieldId = node.DataSetClassFieldId,
-                            DataSetFieldId = node.DataSetFieldId,
-                            ExpandedNodeId = node.ExpandedNodeId,
-                            HeartbeatIntervalTimespan = node
-                                .GetNormalizedHeartbeatInterval(),
-                            // The publishing interval item wins over dataset over global default
-                            OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
-                                ?? item.GetNormalizedDataSetPublishingInterval(),
-                            OpcSamplingIntervalTimespan = node
-                                .GetNormalizedSamplingInterval(),
-                            QueueSize = node.QueueSize,
-                            DiscardNew = node.DiscardNew,
-                            BrowsePath = node.BrowsePath,
-                            AttributeId = node.AttributeId,
-                            FetchDisplayName = node.FetchDisplayName,
-                            IndexRange = node.IndexRange,
-                            RegisterNode = node.RegisterNode,
-                            UseCyclicRead = node.UseCyclicRead,
-                            SkipFirst = node.SkipFirst,
-                            DataChangeTrigger = node.DataChangeTrigger,
-                            DeadbandType = node.DeadbandType,
-                            DeadbandValue = node.DeadbandValue,
-                            EventFilter = node.EventFilter,
-                            HeartbeatBehavior = node.HeartbeatBehavior,
-                            ConditionHandling = node.ConditionHandling,
-                            ModelChangeHandling = node.ModelChangeHandling
-                        });
-                    }
-                    else
-                    {
-                        for (var i = 0; i < scaleTestCount; i++)
-                        {
-                            yield return (item, new OpcNodeModel
-                            {
-                                Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
-                                DisplayName = !string.IsNullOrEmpty(node.DisplayName) ?
-                                    $"{node.DisplayName}_{i}" : null,
-                                DataSetFieldId = node.DataSetFieldId,
-                                DataSetClassFieldId = node.DataSetClassFieldId,
-                                ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatIntervalTimespan = node
-                                    .GetNormalizedHeartbeatInterval(),
-                                // The publishing interval item wins over dataset over global default
-                                OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
-                                    ?? item.GetNormalizedDataSetPublishingInterval(),
-                                OpcSamplingIntervalTimespan = node
-                                    .GetNormalizedSamplingInterval(),
-                                QueueSize = node.QueueSize,
-                                SkipFirst = node.SkipFirst,
-                                DataChangeTrigger = node.DataChangeTrigger,
-                                BrowsePath = node.BrowsePath,
-                                AttributeId = node.AttributeId,
-                                FetchDisplayName = node.FetchDisplayName,
-                                IndexRange = node.IndexRange,
-                                RegisterNode = node.RegisterNode,
-                                UseCyclicRead = node.UseCyclicRead,
-                                DeadbandType = node.DeadbandType,
-                                DeadbandValue = node.DeadbandValue,
-                                DiscardNew = node.DiscardNew,
-                                HeartbeatBehavior = node.HeartbeatBehavior,
-                                EventFilter = node.EventFilter,
-                                ConditionHandling = node.ConditionHandling,
-                                ModelChangeHandling = node.ModelChangeHandling
-                            });
-                        }
-                    }
-                }
-            }
-
-            if (item.NodeId?.Identifier != null)
-            {
-                yield return (item, new OpcNodeModel
-                {
-                    Id = item.NodeId.Identifier,
-                    OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
-                });
-            }
-        }
-
-        /// <summary>
-        /// Extract publishing interval from nodes. Ath this point in time, the OpcPublishingIntervalTimespan
-        /// must be filled in with the appropriate version
-        /// </summary>
-        /// <param name="opcNodes"></param>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes)
-        {
-            return opcNodes
-                .FirstOrDefault(x => x.OpcPublishingIntervalTimespan.HasValue)?
-                .OpcPublishingIntervalTimespan;
-        }
-
-        /// <summary>
         /// Convert to credential model
         /// </summary>
         /// <param name="entry"></param>
@@ -875,6 +823,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         private readonly bool _forceCredentialEncryption;
+        private readonly int _scaleTestCount;
+        private readonly int _maxNodesPerDataSet;
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

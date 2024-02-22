@@ -49,5 +49,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "sendKeepAlive", Order = 4,
             EmitDefaultValue = false)]
         public bool? SendKeepAlive { get; set; }
+
+        /// <summary>
+        /// The data set routing option
+        /// </summary>
+        [DataMember(Name = "Routing", Order = 5,
+            EmitDefaultValue = false)]
+        public DataSetRoutingMode? Routing { get; set; }
     }
 }

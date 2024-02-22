@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer, _options);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Resources/empty_pn.json", _tempFile);
@@ -136,9 +136,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                         ExpandedNodeId = initialNode.ExpandedNodeId,
                         HeartbeatIntervalTimespan = initialNode.HeartbeatIntervalTimespan,
                         OpcPublishingInterval = initialNode.OpcPublishingInterval,
+                        OpcPublishingIntervalTimespan = initialNode.OpcPublishingIntervalTimespan,
                         OpcSamplingInterval = initialNode.OpcSamplingInterval,
                         QueueSize = initialNode.QueueSize,
-                        // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
                         DataChangeTrigger = initialNode.DataChangeTrigger,
                         DeadbandType = initialNode.DeadbandType,
@@ -150,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController.PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-;
+                    ;
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .UnpublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-;
+                    ;
             }
 
             Assert.Empty(_publisher.WriterGroups);
@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .PublishNodesAsync(request))
                     .Should()
                     .NotThrowAsync()
-;
+                    ;
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -266,6 +266,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 writerGroup.DataSetWriters
                 .Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value)
                 .ToHashSet());
+            Assert.Equal(9,
+                writerGroup.DataSetWriters.Sum(w => w.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
         [Theory]

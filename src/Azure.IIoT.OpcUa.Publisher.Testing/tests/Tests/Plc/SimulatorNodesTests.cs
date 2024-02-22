@@ -48,10 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     NodeId = Plc.Namespaces.PlcApplications + "#s=StepUp"
                 }, ct).ConfigureAwait(false);
-                if (firstValue == null)
-                {
-                    firstValue = (uint?)value?.Value;
-                }
+                firstValue ??= (uint?)value?.Value;
                 measurements.Add((uint?)value?.Value);
             }
 

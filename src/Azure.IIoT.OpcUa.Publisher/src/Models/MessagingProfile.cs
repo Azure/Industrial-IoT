@@ -297,10 +297,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     NetworkMessageContentMask.DataSetMessageHeader,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, false),
+                    NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, true),
+                    NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Raw key value pair datasets, non-reversible
             AddProfile(MessagingMode.RawDataSets, 0,
                     0,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.SingleRawDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
 
@@ -317,8 +329,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     NetworkMessageContentMask.DataSetMessageHeader,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Uadp);
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, true),
+                    NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Uadp);
             AddProfile(MessagingMode.RawDataSets, 0,
                     0,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.Uadp);
+            AddProfile(MessagingMode.SingleRawDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Uadp);
         }

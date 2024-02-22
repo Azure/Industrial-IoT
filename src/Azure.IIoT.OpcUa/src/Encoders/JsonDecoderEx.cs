@@ -1120,9 +1120,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 number = ReadVariantFromToken(token, false);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if (builtInType is >= BuiltInType.SByte and
-                 <= BuiltInType.UInt64 or
-                BuiltInType.Integer)
+            if (builtInType is (>= BuiltInType.SByte and <= BuiltInType.UInt64)
+                or BuiltInType.Integer)
             {
                 return number;
             }
@@ -1161,9 +1160,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 number = ReadVariantFromToken(token, true);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if (builtInType is >= BuiltInType.Byte and
-                 <= BuiltInType.UInt64 or
-                 BuiltInType.UInteger)
+            if (builtInType is (>= BuiltInType.Byte and <= BuiltInType.UInt64)
+                or BuiltInType.UInteger)
             {
                 return number;
             }

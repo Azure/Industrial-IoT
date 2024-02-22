@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer, _options);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
@@ -132,8 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
                 endpoint.OpcNodes = new List<OpcNodeModel>
                 {
-                    new OpcNodeModel
-                    {
+                    new() {
                         Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                     }
                 };
@@ -424,8 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // The call should throw an exception.
             await FluentActions
                 .Invoking(async () => await configService
-                    .AddOrUpdateEndpointsAsync(endpoints)
-)
+                    .AddOrUpdateEndpointsAsync(endpoints))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
@@ -461,8 +459,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // The call should throw an exception.
             await FluentActions
                 .Invoking(async () => await configService
-                    .AddOrUpdateEndpointsAsync(endpoints)
-)
+                    .AddOrUpdateEndpointsAsync(endpoints))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
@@ -731,8 +728,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
                 endpoints[0].OpcNodes = new List<OpcNodeModel>
                 {
-                    new OpcNodeModel
-                    {
+                    new() {
                         Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                     }
                 };
@@ -914,10 +910,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             {
                 var model = new PublishedNodesEntryModel
                 {
-                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580"
+                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
+                    OpcNodes = new List<OpcNodeModel>()
                 };
-
-                model.OpcNodes = new List<OpcNodeModel>();
                 for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex)
                 {
                     model.OpcNodes.Add(new OpcNodeModel
@@ -963,7 +958,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                     OpcNodes = new List<OpcNodeModel> {
-                        new OpcNodeModel {
+                        new() {
                             Id = $"ns=2;s=Node-Server-{numberOfNodes}"
                         }
                     }

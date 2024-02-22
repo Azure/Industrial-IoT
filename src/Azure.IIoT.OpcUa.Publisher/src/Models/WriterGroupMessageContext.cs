@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Messaging;
     using System;
 
     /// <summary>
@@ -18,9 +19,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public required string Topic { get; init; }
 
         /// <summary>
-        /// Metadata topic for metadata messages
+        /// Requested qos
         /// </summary>
-        public required string MetaDataTopic { get; init; }
+        public required QoS? Qos { get; init; }
 
         /// <summary>
         /// Publisher id

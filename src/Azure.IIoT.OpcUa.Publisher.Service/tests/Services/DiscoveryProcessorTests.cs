@@ -42,19 +42,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             var Discoverer = new DiscovererModel
             {
                 Id = discoverer
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
             module = fix.Create<string>();
             var supervisor = HubResource.Format(null, gateway, module);
             var Supervisor = new SupervisorModel
             {
                 Id = supervisor
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
             module = fix.Create<string>();
             var publisher = HubResource.Format(null, gateway, module);
             var Publisher = new PublisherModel
             {
                 Id = publisher
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
 
             using var registry = IoTHubMock.Create(Gateway.YieldReturn() // Single device
                 .Append(Discoverer)
@@ -485,21 +485,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             {
                 SiteId = site,
                 Id = discovererx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
             module = fixture.Create<string>();
             var supervisorx = supervisor = HubResource.Format(null, gateway, module);
             var Supervisor = new SupervisorModel
             {
                 SiteId = site,
                 Id = supervisorx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
             module = fixture.Create<string>();
             var publisherx = publisher = HubResource.Format(null, gateway, module);
             var Publisher = new PublisherModel
             {
                 SiteId = site,
                 Id = publisherx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
+            }.ToPublisherRegistration().ToDeviceTwin();
 
             var template = fixture
                 .Build<ApplicationRegistrationModel>()

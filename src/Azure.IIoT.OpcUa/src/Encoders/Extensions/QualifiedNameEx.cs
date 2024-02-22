@@ -30,14 +30,13 @@ namespace Opc.Ua.Extensions
             }
 
             var qnName = qn.Name ?? string.Empty;
-
             var buffer = new StringBuilder();
             if (qn.NamespaceIndex != 0 || qnName.Contains(':', StringComparison.Ordinal))
             {
-                var nsUri = context.NamespaceUris.GetString(qn.NamespaceIndex);
                 switch (namespaceFormat)
                 {
                     default:
+                        var nsUri = context.NamespaceUris.GetString(qn.NamespaceIndex);
                         if (!string.IsNullOrEmpty(nsUri))
                         {
                             buffer.Append(nsUri);
@@ -49,9 +48,10 @@ namespace Opc.Ua.Extensions
                         }
                         break;
                     case NamespaceFormat.Expanded:
-                        if (!string.IsNullOrEmpty(nsUri))
+                        var nsUri2 = context.NamespaceUris.GetString(qn.NamespaceIndex);
+                        if (!string.IsNullOrEmpty(nsUri2))
                         {
-                            buffer.Append("nsu=").Append(nsUri).Append(';');
+                            buffer.Append("nsu=").Append(nsUri2).Append(';');
                         }
                         break;
                     case NamespaceFormat.Index:
@@ -81,7 +81,7 @@ namespace Opc.Ua.Extensions
             var parts = value.Split(':');
             if (ushort.TryParse(parts[0], out var nsIndex))
             {
-                value = value.Substring(parts[0].Length + 1);
+                value = value[(parts[0].Length + 1)..];
                 return new QualifiedName(
                     string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
                     nsIndex);
@@ -91,10 +91,10 @@ namespace Opc.Ua.Extensions
             if (value.StartsWith("nsu=", StringComparison.Ordinal))
             {
                 parts = value.Split(';');
-                value = value.Substring(parts[0].Length + 1);
+                value = value[(parts[0].Length + 1)..];
                 return new QualifiedName(
                     string.IsNullOrEmpty(value) ? null : value.UrlDecode(),
-                    context.NamespaceUris.GetIndexOrAppend(parts[0].Substring(4)));
+                    context.NamespaceUris.GetIndexOrAppend(parts[0][4..]));
             }
 
             // Try to parse as uri with fragment

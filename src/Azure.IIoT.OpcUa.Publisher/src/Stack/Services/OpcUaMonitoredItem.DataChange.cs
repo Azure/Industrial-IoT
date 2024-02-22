@@ -51,6 +51,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     !string.IsNullOrEmpty(NodeId) ?
                     (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
 
+            /// <inheritdoc/>
+            public override (string NodeId, UpdateRelativePath Update)? GetPath
+                => TheResolvedRelativePath == null &&
+                !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (path, context) =>
+                {
+                    if (path == null)
+                    {
+                        NodeId = string.Empty;
+                    }
+                    TheResolvedRelativePath = path;
+                }
+            ) : null;
+
             /// <summary>
             /// Monitored item as data
             /// </summary>
@@ -60,6 +73,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Resolved node id
             /// </summary>
             protected string TheResolvedNodeId { get; private set; }
+
+            /// <summary>
+            /// Relative path
+            /// </summary>
+            protected RelativePath? TheResolvedRelativePath { get; private set; }
 
             /// <summary>
             /// Field identifier either configured or randomly assigned
@@ -97,6 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 TheResolvedNodeId = item.TheResolvedNodeId;
+                TheResolvedRelativePath = item.TheResolvedRelativePath;
                 Template = item.Template;
                 _fieldId = item._fieldId;
                 _skipDataChangeNotification = item._skipDataChangeNotification;
@@ -196,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.LogInformation("{Item}: Failed to get meta data for field {Field} " +
+                    _logger.LogDebug("{Item}: Failed to get meta data for field {Field} " +
                         "with node {NodeId} with message {Message}.", this, Template.DisplayName,
                         nodeId, ex.Message);
                 }
@@ -335,6 +354,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, IOpcUaClient? client = null)
+            {
+                if (Template.TriggeredItems != null)
+                {
+                    return Create(Template.TriggeredItems, factory, client);
+                }
+                return Enumerable.Empty<OpcUaMonitoredItem>();
+            }
+
+            /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
                 uint sequenceNumber, StatusCode statusCode,
                 IList<MonitoredItemNotificationModel> notifications)
@@ -383,8 +413,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.DataSetFieldId ?? string.Empty,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
+                    Context = Template.Context,
                     NodeId = NodeId,
+                    PathFromRoot = TheResolvedRelativePath,
                     Value = dataValue,
+                    Flags = 0,
                     Overflow = overflow ?? (dataValue.StatusCode.Overflow ? 1 : 0),
                     SequenceNumber = sequenceNumber
                 };

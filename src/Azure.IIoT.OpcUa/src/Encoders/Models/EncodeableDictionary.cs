@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             var dictionary = this
                 .Where(x => !string.IsNullOrEmpty(x.Key) &&
                     x.Value?.Value != null &&
-                    (!(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null))
+                    (x.Value.Value is not LocalizedText lt || lt.Locale != null || lt.Text != null))
                 .ToDictionary(x => x.Key, x => x.Value);
 
             foreach (var keyValuePair in dictionary)
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public virtual void Decode(IDecoder decoder)
         {
             // Only JSON decoder that can decode a dictionary is supported.
-            if (!(decoder is JsonDecoderEx jsonDecoder))
+            if (decoder is not JsonDecoderEx jsonDecoder)
             {
                 throw new FormatException($"Cannot decode using the decoder: {decoder.GetType()}.");
             }
@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 return true;
             }
-            if (!(encodeable is EncodeableDictionary encodableDictionary))
+            if (encodeable is not EncodeableDictionary encodableDictionary)
             {
                 return false;
             }

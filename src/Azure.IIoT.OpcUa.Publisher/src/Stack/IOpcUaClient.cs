@@ -31,9 +31,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the differences from last browsing operation.
         /// </summary>
         /// <param name="rebrowsePeriod"></param>
-        /// <param name="startNodeId"></param>
+        /// <param name="subscriptionName"></param>
         /// <returns></returns>
-        IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNodeId);
+        IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName);
 
         /// <summary>
         /// Trigger the client to manage the subscription. This is a

@@ -5,14 +5,12 @@
 
 using System.Globalization;
 using System.Text.Json;
-using System.Transactions;
 using CommandLine;
 using InvokeDeviceMethod;
 using Microsoft.Azure.Devices;
-using static System.Formats.Asn1.AsnWriter;
 
 Parameters? parameters = null;
-ParserResult<Parameters> result = Parser.Default.ParseArguments<Parameters>(args)
+var result = Parser.Default.ParseArguments<Parameters>(args)
     .WithParsed(parsedParams => parameters = parsedParams)
     .WithNotParsed(errors => Environment.Exit(1));
 
@@ -34,8 +32,8 @@ var certificates = JsonSerializer.Deserialize<JsonElement>(response.GetPayloadAs
     .ToList();
 for (var i = 0; i < certificates.Count; i++)
 {
-    var certificate = certificates[i];
-    Console.WriteLine($"[{i}] {certificate.Subject} [{certificate.Thumbprint}]");
+    var (Thumbprint, Subject) = certificates[i];
+    Console.WriteLine($"[{i}] {Subject} [{Thumbprint}]");
 }
 Console.WriteLine("Select index of rejected certificate to approve:");
 var selected = certificates[int.Parse(Console.ReadLine()!, CultureInfo.CurrentCulture)];

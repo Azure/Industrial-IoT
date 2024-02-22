@@ -137,5 +137,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// create a seperate session.
         /// </summary>
         public bool? DisableSessionPerWriterGroup { get; set; }
+
+        /// <summary>
+        /// Retrieve paths from root folder to enable automatic
+        /// unified namespace publishing
+        /// </summary>
+        public bool? FetchOpcBrowsePathFromRoot { get; set; }
     }
 }

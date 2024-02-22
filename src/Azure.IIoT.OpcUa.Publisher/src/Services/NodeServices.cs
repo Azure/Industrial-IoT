@@ -1870,10 +1870,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _typeId = ReferenceTypeIds.HierarchicalReferences;
                     }
                 }
-                if (_view == null)
-                {
-                    _view = _request.View.ToStackModel(context.Session.MessageContext);
-                }
+                _view ??= _request.View.ToStackModel(context.Session.MessageContext);
                 var browseDescriptions = new BrowseDescriptionCollection {
                     new BrowseDescription {
                         BrowseDirection = (_request.Direction ?? BrowseDirection.Both)

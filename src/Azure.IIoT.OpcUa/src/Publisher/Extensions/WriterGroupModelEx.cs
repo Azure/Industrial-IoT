@@ -20,11 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this WriterGroupModel? model,
             WriterGroupModel? other)
         {
-            if (model == null && other == null)
+            if (ReferenceEquals(model, other))
             {
                 return true;
             }
-            if (model == null || other == null)
+            if (model is null || other is null)
             {
                 return false;
             }
@@ -32,7 +32,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.WriterGroupId != other.WriterGroupId)
+            if (model.Name != other.Name)
+            {
+                return false;
+            }
+            if (model.Id != other.Id)
             {
                 return false;
             }
@@ -64,10 +68,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Name != other.Name)
-            {
-                return false;
-            }
             if (model.MaxNetworkMessageSize != other.MaxNetworkMessageSize)
             {
                 return false;
@@ -76,15 +76,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.QoS != other.QoS)
-            {
-                return false;
-            }
             if (model.PublishQueueSize != other.PublishQueueSize)
             {
                 return false;
             }
             if (model.NotificationPublishThreshold != other.NotificationPublishThreshold)
+            {
+                return false;
+            }
+            if (!model.Publishing.IsSameAs(other.Publishing))
             {
                 return false;
             }

@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = false,
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = true,
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }
@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword,
                 OpcNodes = new List<OpcNodeModel> {
-                    new OpcNodeModel {
+                    new() {
                         Id = "i=2258"
                     }
                 }

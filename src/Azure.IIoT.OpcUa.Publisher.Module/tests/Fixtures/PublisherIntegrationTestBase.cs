@@ -286,7 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         private static readonly JsonSerializerOptions kIndented =
-            new JsonSerializerOptions { WriteIndented = true };
+            new()
+            { WriteIndented = true };
 
         /// <summary>
         /// Start publisher

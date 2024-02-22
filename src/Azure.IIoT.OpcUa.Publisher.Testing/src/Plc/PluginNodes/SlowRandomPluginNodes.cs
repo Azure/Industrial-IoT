@@ -20,8 +20,8 @@ namespace Plc.PluginNodes
         public IReadOnlyCollection<NodeWithIntervals> Nodes { get; private set; } = new List<NodeWithIntervals>();
         public TimeService TimeService { get; set; }
         public ILogger Logger { get; set; }
-
-        private uint NodeCount { get; } = 3;
+        public uint ScaleUnits { get; set; }
+        private uint NodeCount => ScaleUnits == 0 ? 3u : ScaleUnits * 1000;
         /// <summary>
         /// ms.
         /// </summary>

@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (!(obj is UadpDiscoveryMessage wrapper))
+            if (obj is not UadpDiscoveryMessage wrapper)
             {
                 return false;
             }

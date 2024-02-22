@@ -6,8 +6,12 @@ services:
   publisher:
     environment:
       MqttClientConnectionString: "HostName=mosquitto;Port=1883;UseTls=false;Protocol=v5"
-      TelemetryTopicTemplate: "{RootTopic}/{Site}/{DataSetWriterGroup}"
-      DataSetMetaDataTopicTemplate: "{TelemetryTopic}/{DataSetWriterName}/metadata"
+      TelemetryTopicTemplate: "opcua/{Encoding}/data/{PublisherId}/{WriterGroup}/{DataSetWriter}"
+      DataSetMetaDataTopicTemplate: "opcua/{Encoding}/metadata/{PublisherId}/{WriterGroup}/{DataSetWriter}"
+      DiagnosticsTopicTemplate: "opcua/{Encoding}/data/{PublisherId}/{WriterGroup}/diagnostic"
+      EventsTopicTemplate: "opcua/{Encoding}/status/{PublisherId}"
+      DefaultDataSetRouting: "UseBrowseNames"
+      MessagingMode: "SingleRawDataSet"
       PublisherId: Microsoft
       SiteId: Munich
     depends_on:

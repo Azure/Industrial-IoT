@@ -31,11 +31,17 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Metrics
         /// </summary>
-        public static Meter NewMeter() => new(Namespace, Version);
+        public static Meter NewMeter()
+        {
+            return new(Namespace, Version);
+        }
 
         /// <summary>
         /// Tracing
         /// </summary>
-        public static ActivitySource NewActivitySource() => new(Namespace, Version);
+        public static ActivitySource NewActivitySource()
+        {
+            return new(Namespace, Version);
+        }
     }
 }

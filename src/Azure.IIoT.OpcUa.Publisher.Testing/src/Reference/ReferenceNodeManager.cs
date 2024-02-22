@@ -545,8 +545,8 @@ namespace Reference
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Int64", "Int64", BuiltInType.Int64, ValueRanks.OneDimension, new long[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Integer", "Integer", BuiltInType.Integer, ValueRanks.OneDimension, new long[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "LocaleId", "LocaleId", DataTypeIds.LocaleId, ValueRanks.OneDimension, new string[] { "en", "fr", "de", "en", "fr", "de", "en", "fr", "de", "en" }, null);
-                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "LocalizedText", "LocalizedText", BuiltInType.LocalizedText, ValueRanks.OneDimension, new LocalizedText[] { new LocalizedText("en", "Hello World1"), new LocalizedText("en", "Hello World2"), new LocalizedText("en", "Hello World3"), new LocalizedText("en", "Hello World4"), new LocalizedText("en", "Hello World5"), new LocalizedText("en", "Hello World6"), new LocalizedText("en", "Hello World7"), new LocalizedText("en", "Hello World8"), new LocalizedText("en", "Hello World9"), new LocalizedText("en", "Hello World10") });
-                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "NodeId", "NodeId", BuiltInType.NodeId, ValueRanks.OneDimension, new NodeId[] { new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()), new NodeId(Guid.NewGuid()) });
+                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "LocalizedText", "LocalizedText", BuiltInType.LocalizedText, ValueRanks.OneDimension, new LocalizedText[] { new("en", "Hello World1"), new("en", "Hello World2"), new("en", "Hello World3"), new("en", "Hello World4"), new("en", "Hello World5"), new("en", "Hello World6"), new("en", "Hello World7"), new("en", "Hello World8"), new("en", "Hello World9"), new("en", "Hello World10") });
+                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "NodeId", "NodeId", BuiltInType.NodeId, ValueRanks.OneDimension, new NodeId[] { new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()), new(Guid.NewGuid()) });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Number", "Number", BuiltInType.Number, ValueRanks.OneDimension, new short[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "QualifiedName", "QualifiedName", BuiltInType.QualifiedName, ValueRanks.OneDimension, new short[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "SByte", "SByte", BuiltInType.SByte, ValueRanks.OneDimension, new sbyte[] { 10, 20, 30, 40, 50, 60, 70, 80, 90 });
@@ -855,8 +855,8 @@ namespace Reference
 
                     addMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Float value", Description = "Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
-                        new Argument { Name = "UInt32 value", Description = "UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Float value", Description = "Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt32 value", Description = "UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -873,7 +873,7 @@ namespace Reference
 
                     addMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Add Result", Description = "Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Add Result", Description = "Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     };
 
                     addMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnAddCall);
@@ -894,8 +894,8 @@ namespace Reference
 
                     multiplyMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new Argument { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -912,7 +912,7 @@ namespace Reference
 
                     multiplyMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Multiply Result", Description = "Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Multiply Result", Description = "Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
                     };
 
                     multiplyMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnMultiplyCall);
@@ -933,8 +933,8 @@ namespace Reference
 
                     divideMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Int32 value", Description = "Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
-                        new Argument { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int32 value", Description = "Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -951,7 +951,7 @@ namespace Reference
 
                     divideMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Divide Result", Description = "Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Divide Result", Description = "Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     };
 
                     divideMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnDivideCall);
@@ -972,8 +972,8 @@ namespace Reference
 
                     substractMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new Argument { Name = "Byte value", Description = "Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "Byte value", Description = "Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -990,7 +990,7 @@ namespace Reference
 
                     substractMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Substract Result", Description = "Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Substract Result", Description = "Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
                     };
 
                     substractMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnSubstractCall);
@@ -1011,7 +1011,7 @@ namespace Reference
 
                     helloMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     // set output arguments
@@ -1028,7 +1028,7 @@ namespace Reference
 
                     helloMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Hello Result", Description = "Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Hello Result", Description = "Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     helloMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnHelloCall);
@@ -1049,7 +1049,7 @@ namespace Reference
 
                     inputMethod.InputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     inputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnInputCall);
@@ -1071,7 +1071,7 @@ namespace Reference
 
                     outputMethod.OutputArguments.Value = new Argument[]
                     {
-                        new Argument { Name = "Output Result", Description = "Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Output Result", Description = "Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     };
 
                     outputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnOutputCall);

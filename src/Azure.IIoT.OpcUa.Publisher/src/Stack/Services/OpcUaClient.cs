@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -297,9 +296,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, NodeId startNode)
+        public IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName)
         {
-            return Browser.Register(this, rebrowsePeriod, startNode);
+            return Browser.Register(this, rebrowsePeriod, subscriptionName);
         }
 
         /// <inheritdoc/>
@@ -815,10 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             // 3) newSession != previous Session
                                             //  => everything reconnected and new session was activated.
                                             //
-                                            if (reconnected == null)
-                                            {
-                                                reconnected = _reconnectingSession;
-                                            }
+                                            reconnected ??= _reconnectingSession;
 
                                             Debug.Assert(reconnected != null, "reconnected should never be null");
                                             Debug.Assert(reconnected.Connected, "reconnected should always be connected");
@@ -881,10 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     currentSubscriptions = Array.Empty<IOpcUaSubscription>();
 
                                     // if not already disconnected, aquire writer lock
-                                    if (_disconnectLock == null)
-                                    {
-                                        _disconnectLock = await _lock.WriterLockAsync(ct);
-                                    }
+                                    _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
                                     _numberOfConnectRetries = 0;
 
@@ -1173,7 +1166,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
+#pragma warning disable IDE0060 // Remove unused parameter
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             switch (e.Status.Code)
             {
@@ -1484,7 +1479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            using (DiscoveryClient client = connection != null ?
+            using (var client = connection != null ?
                 DiscoveryClient.Create(_configuration, connection, endpointConfiguration) :
                 DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
             {
@@ -1768,7 +1763,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
-        private readonly Dictionary<(NodeId, TimeSpan), Browser> _browsers = new();
+        private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
     }

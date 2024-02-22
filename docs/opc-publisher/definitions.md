@@ -390,6 +390,13 @@ Indicate the data location
 *Type* : enum (Raw, Calculated, Interpolated)
 
 
+<a name="datasetroutingmode"></a>
+### DataSetRoutingMode
+Data set routing
+
+*Type* : enum (None, UseBrowseNames, UseBrowseNamesWithNamespaceIndex)
+
+
 <a name="datatypemetadatamodel"></a>
 ### DataTypeMetadataModel
 Data type metadata model
@@ -929,7 +936,7 @@ Message encoding
 ### MessagingMode
 Message modes
 
-*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, RawDataSets)
+*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, SingleDataSetMessage, RawDataSets, SingleRawDataSet)
 
 
 <a name="methodcallargumentmodel"></a>
@@ -1285,9 +1292,12 @@ Describing an entry in the node list
 |**OpcPublishingIntervalTimespan**  <br>*optional*|OpcPublishingInterval as TimeSpan.|string (date-span)|
 |**OpcSamplingInterval**  <br>*optional*|Sampling interval in milliseconds|integer (int32)|
 |**OpcSamplingIntervalTimespan**  <br>*optional*|OpcSamplingInterval as TimeSpan.|string (date-span)|
+|**QualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**QueueSize**  <br>*optional*|Queue Size for the monitored item on the server.<br>Specifies how many values are queued on the server<br>before undelivered ones are discarded.|integer (int64)|
 |**RegisterNode**  <br>*optional*|Register node for reading before sampling.|boolean|
 |**SkipFirst**  <br>*optional*|Do not send the first value that is always provided<br>by the server when the monitored item is created.|boolean|
+|**Topic**  <br>*optional*|Topic to publish to - splits network messages<br>along the lines of topic name and overrides<br>the queue name of the writer and writer group.|string|
+|**TriggeredNodes**  <br>*optional*|Nodes that are triggered by the parent node.<br>Nodes cannot themselves trigger other nodes, any<br>such setting is silently discarded. Triggered nodes<br>can only be updated as an atomic unit using API.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**UseCyclicRead**  <br>*optional*|Use cyclic read to sample.|boolean|
 
 
@@ -1538,6 +1548,7 @@ Contains the nodes which should be published
 |**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
 |**DataSetPublishingIntervalTimespan**  <br>*optional*|The Publishing interval for a dataset writer<br>in timespan format. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetPublishingInterval if defined.|string (date-span)|
+|**DataSetRouting**  <br>*optional*||[DataSetRoutingMode](definitions.md#datasetroutingmode)|
 |**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
@@ -1545,10 +1556,11 @@ Contains the nodes which should be published
 |**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**EndpointSecurityPolicy**  <br>*optional*|The specific security policy to use for the specified<br>endpoint. Overrides Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.UseSecurity setting.<br>If the security policy is not available with the<br>specified security mode connectivity will fail.|string|
 |**EndpointUrl**  <br>*required*|The endpoint URL of the OPC UA server.  <br>**Minimum length** : `1`|string|
-|**LastChangeTimespan**  <br>*optional*|Last change to the entry|string (date-time)|
+|**LastChangeDateTime**  <br>*optional*|Last change to the entry|string (date-time)|
 |**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
 |**MessageEncoding**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
 |**MessagingMode**  <br>*optional*||[MessagingMode](definitions.md#messagingmode)|
+|**MetaDataQueueName**  <br>*optional*|Meta data queue name to use for the writer. Overrides<br>the default metadata topic template.|string|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
 |**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
 |**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
@@ -1557,11 +1569,14 @@ Contains the nodes which should be published
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
+|**QualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
+|**QueueName**  <br>*optional*|Writer queue overrides the writer group queue name.<br>Network messages are then split across queues with<br>Qos also accounted for.|string|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
+|**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
 
 

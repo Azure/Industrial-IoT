@@ -164,12 +164,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
+        ///
         /// <returns></returns>
         public static async Task<IEnumerable<DiscovererModel>> QueryAllDiscoverersAsync(
-            this IRegistryServiceApi service, DiscovererQueryModel query, bool? onlyServerState = null,
-            CancellationToken ct = default)
+            this IRegistryServiceApi service, DiscovererQueryModel query, CancellationToken ct = default)
         {
             var registrations = new List<DiscovererModel>();
             var result = await service.QueryDiscoverersAsync(query, null, ct).ConfigureAwait(false);

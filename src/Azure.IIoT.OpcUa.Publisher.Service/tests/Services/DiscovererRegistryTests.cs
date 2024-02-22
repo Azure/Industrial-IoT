@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         /// <param name="discoverers"></param>
         /// <param name="modules"></param>
         /// <param name="noSite"></param>
-        private void CreateDiscovererFixtures(out string site,
+        private static void CreateDiscovererFixtures(out string site,
             out List<DiscovererModel> discoverers, out List<DeviceTwinModel> modules,
             bool noSite = false)
         {
@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             modules = discoverers
                 .Select(a => a.ToPublisherRegistration())
-                .Select(a => a.ToDeviceTwin(_serializer))
+                .Select(a => a.ToDeviceTwin())
                 .Select(t =>
                 {
                     t.Reported = new Dictionary<string, VariantValue>

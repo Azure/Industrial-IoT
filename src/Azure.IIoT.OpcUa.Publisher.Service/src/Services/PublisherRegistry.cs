@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
@@ -27,15 +26,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
-        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
-        public PublisherRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<PublisherRegistry> logger, IPublisherRegistryListener? events = null)
+        public PublisherRegistry(IIoTHubTwinServices iothub, ILogger<PublisherRegistry> logger,
+            IPublisherRegistryListener? events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events;
         }
 
@@ -52,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentException(error, nameof(publisherId));
             }
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
-            if (!(device.ToEntityRegistration(onlyServerState) is PublisherRegistration registration))
+            if (device.ToEntityRegistration(onlyServerState) is not PublisherRegistration registration)
             {
                 throw new ResourceNotFoundException($"{publisherId} is not a publisher registration.");
             }
@@ -88,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             nameof(publisherId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
+                    if (twin.ToEntityRegistration(true) is not PublisherRegistration registration)
                     {
                         throw new ResourceNotFoundException(
                             $"{publisherId} is not a publisher registration.");
@@ -113,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
+                        patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
 
                     if (_events != null)
                     {
@@ -191,7 +188,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         }
 
         private readonly IIoTHubTwinServices _iothub;
-        private readonly IJsonSerializer _serializer;
         private readonly IPublisherRegistryListener? _events;
         private readonly ILogger _logger;
     }

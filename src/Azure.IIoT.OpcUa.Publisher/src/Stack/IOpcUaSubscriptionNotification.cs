@@ -93,6 +93,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <returns></returns>
         bool TryUpgradeToKeyFrame();
 
+        /// <summary>
+        /// Split into notifications per context
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        IEnumerable<IOpcUaSubscriptionNotification> Split(
+            Func<MonitoredItemNotificationModel, object?> selector);
+
 #if DEBUG
         /// <summary>
         /// Mark as processed

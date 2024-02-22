@@ -21,11 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this WriterGroupMessageSettingsModel? model,
             WriterGroupMessageSettingsModel? other)
         {
-            if (model == null && other == null)
+            if (ReferenceEquals(model, other))
             {
                 return true;
             }
-            if (model == null || other == null)
+            if (model is null || other is null)
             {
                 return false;
             }

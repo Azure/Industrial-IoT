@@ -26,14 +26,14 @@ namespace MqttValidation
         [SetUp]
         public void Setup()
         {
-            string? endpoint = Environment.GetEnvironmentVariable(EndpointKey);
+            var endpoint = Environment.GetEnvironmentVariable(EndpointKey);
             if (string.IsNullOrWhiteSpace(endpoint))
             {
                 Assert.Ignore($"Environment variable '{EndpointKey}' not specified!");
 
             }
 
-            HttpClient httpClient = new HttpClient();
+            var httpClient = new HttpClient();
             _swaggerClient = new swaggerClient(endpoint, httpClient);
 
         }
@@ -43,9 +43,9 @@ namespace MqttValidation
         {
             ArgumentNullException.ThrowIfNull(_swaggerClient);
 
-            void SetFromEnv(Action<string> setter, string key)
+            static void SetFromEnv(Action<string> setter, string key)
             {
-                string? value = Environment.GetEnvironmentVariable(key);
+                var value = Environment.GetEnvironmentVariable(key);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     setter(value);
@@ -59,7 +59,7 @@ namespace MqttValidation
             SetFromEnv(v => request.MqttTopic = v, TopicKey);
             SetFromEnv(v => request.TimeToObserve = int.Parse(v, CultureInfo.InvariantCulture), TimeToObserveKey);
 
-            MqttVerificationResponse verificationTask = await _swaggerClient.StartVerificationAsync(request).ConfigureAwait(false);
+            var verificationTask = await _swaggerClient.StartVerificationAsync(request).ConfigureAwait(false);
 
 
             MqttVerificationDetailedResponse result;

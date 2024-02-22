@@ -410,10 +410,7 @@ namespace Opc.Ua.Test
                     {
                         obj = GetBoundaryValue(typeof(T));
                     }
-                    if (obj == null)
-                    {
-                        obj = GetRandom(typeof(T));
-                    }
+                    obj ??= GetRandom(typeof(T));
                 }
                 while (obj == null);
                 array[i] = (T)obj;

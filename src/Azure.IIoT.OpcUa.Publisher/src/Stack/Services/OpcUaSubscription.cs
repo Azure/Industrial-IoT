@@ -25,8 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Amqp;
-    using static System.Collections.Specialized.BitVector32;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
 
     /// <summary>
     /// Subscription implementation
@@ -297,6 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Does not throw
             await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+            Debug.Assert(Session == null);
 
             lock (_lock)
             {
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Failed to apply state to Subscription {Subscription} in session {Session}...",
                     this, session);
 
-                // Retry in 2 seconds
+                // Retry in 1 minute if not automatically retried
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.SubscriptionErrorRetryDelay, kDefaultErrorRetryDelay);
             }
@@ -504,6 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Session != null)
                 {
                     await Session.RemoveSubscriptionAsync(this).ConfigureAwait(false);
+                    Debug.Assert(Session == null);
                 }
 
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);
@@ -522,8 +523,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task<bool> SynchronizeMonitoredItemsAsync(
             IEnumerable<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
         {
-            var session = Session as OpcUaSession;
-            Debug.Assert(session != null);
+            Debug.Assert(Session != null);
+            if (Session is not OpcUaSession session)
+            {
+                return false;
+            }
 
             TriggerSubscriptionManagementCallbackIn(Timeout.InfiniteTimeSpan);
 
@@ -553,50 +557,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             var allResolvers = add
                 .Select(a => a.Resolve)
-                .Where(a => a != null)
-                .ToList();
-            if (allResolvers.Count > 0)
+                .Where(a => a != null);
+            foreach (var resolvers in allResolvers.Batch(
+                operationLimits.GetMaxNodesPerTranslatePathsToNodeIds()))
             {
-                foreach (var resolvers in allResolvers.Batch(
-                    (int?)operationLimits.MaxNodesPerTranslatePathsToNodeIds ?? 1))
-                {
-                    var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
-                        new RequestHeader(), new BrowsePathCollection(resolvers
-                            .Select(a => new BrowsePath
-                            {
-                                StartingNode = a!.Value.NodeId.ToNodeId(
-                                    session.MessageContext),
-                                RelativePath = a.Value.Path.ToRelativePath(
-                                    session.MessageContext)
-                            })), ct).ConfigureAwait(false);
+                var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
+                    new RequestHeader(), new BrowsePathCollection(resolvers
+                        .Select(a => new BrowsePath
+                        {
+                            StartingNode = a!.Value.NodeId.ToNodeId(
+                                session.MessageContext),
+                            RelativePath = a.Value.Path.ToRelativePath(
+                                session.MessageContext)
+                        })), ct).ConfigureAwait(false);
 
-                    var results = response.Validate(response.Results, s => s.StatusCode,
-                        response.DiagnosticInfos, resolvers);
-                    if (results.ErrorInfo != null)
+                var results = response.Validate(response.Results, s => s.StatusCode,
+                    response.DiagnosticInfos, resolvers);
+                if (results.ErrorInfo != null)
+                {
+                    // Could not do anything...
+                    _logger.LogWarning(
+                        "Failed to resolve browse path in {Subscription} due to {ErrorInfo}...",
+                        this, results.ErrorInfo);
+                    return false;
+                }
+
+                foreach (var result in results)
+                {
+                    var resolvedId = NodeId.Null;
+                    if (result.ErrorInfo == null && result.Result.Targets.Count == 1)
                     {
-                        // Could not do anything...
-                        _logger.LogWarning(
-                            "Failed to resolve browse path in {Subscription} due to {ErrorInfo}...",
-                            this, results.ErrorInfo);
-                        return false;
+                        resolvedId = result.Result.Targets[0].TargetId.ToNodeId(
+                            session.MessageContext.NamespaceUris);
                     }
-                    foreach (var result in results)
+                    else
                     {
-                        var resolvedId = NodeId.Null;
-                        if (result.ErrorInfo == null && result.Result.Targets.Count == 1)
+                        _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
+                            "in {Subscription} due to '{ServiceResult}'",
+                            result.Request!.Value.NodeId, this, result.ErrorInfo);
+                    }
+                    result.Request!.Value.Update(resolvedId, session.MessageContext);
+                }
+            }
+
+            //
+            // If retrieving paths for all the items from the root folder was configured do so
+            // now. All items that fail here should be retried later.
+            //
+            if (_template.Configuration?.ResolveBrowsePathFromRoot == true)
+            {
+                var allGetPaths = add
+                    .Select(a => a.GetPath)
+                    .Where(a => a != null);
+                foreach (var getPathsBatch in allGetPaths.Batch(10000))
+                {
+                    var getPath = getPathsBatch.ToList();
+                    var paths = await session.GetBrowsePathsFromRootAsync(new RequestHeader(),
+                        getPath.Select(n => n!.Value.NodeId.ToNodeId(session.MessageContext)),
+                        ct).ConfigureAwait(false);
+                    for (var index = 0; index < paths.Count; index++)
+                    {
+                        getPath[index]!.Value.Update(paths[index].Path, session.MessageContext);
+                        if (paths[index].ErrorInfo != null)
                         {
-                            resolvedId = result.Result.Targets[0].TargetId.ToNodeId(
-                                session.MessageContext.NamespaceUris);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
+                            _logger.LogWarning("Failed to get root path for {NodeId} " +
                                 "in {Subscription} due to '{ServiceResult}'",
-                                result.Request!.Value.NodeId, this, result.ErrorInfo);
+                                getPath[index]!.Value.NodeId, this, paths[index].ErrorInfo);
                         }
-                        result.Request!.Value.Update(resolvedId, session.MessageContext);
                     }
                 }
+                _logger.LogInformation(
+                    "Retrieved paths of items to add to Subscription {Subscription} in session {Session}.",
+                    this, session);
             }
 
             //
@@ -608,24 +640,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             var allRegistrations = add.Concat(same)
                 .Select(a => a.Register)
-                .Where(a => a != null)
-                .ToList();
-            if (allRegistrations.Count > 0)
+                .Where(a => a != null);
+            foreach (var registrations in allRegistrations.Batch(
+                operationLimits.GetMaxNodesPerRegisterNodes()))
             {
-                foreach (var registrations in allRegistrations.Batch(
-                    (int?)operationLimits.MaxNodesPerRegisterNodes ?? 1))
+                var response = await session.Services.RegisterNodesAsync(
+                    new RequestHeader(), new NodeIdCollection(registrations
+                        .Select(a => a!.Value.NodeId.ToNodeId(session.MessageContext))),
+                    ct).ConfigureAwait(false);
+                foreach (var (First, Second) in response.RegisteredNodeIds.Zip(registrations))
                 {
-                    var response = await session.Services.RegisterNodesAsync(
-                        new RequestHeader(), new NodeIdCollection(registrations
-                            .Select(a => a!.Value.NodeId.ToNodeId(session.MessageContext))),
-                        ct).ConfigureAwait(false);
-                    foreach (var result in response.RegisteredNodeIds.Zip(registrations))
+                    Debug.Assert(Second != null);
+                    if (!NodeId.IsNull(First))
                     {
-                        Debug.Assert(result.Second != null);
-                        if (!NodeId.IsNull(result.First))
-                        {
-                            result.Second.Value.Update(result.First, session.MessageContext);
-                        }
+                        Second.Value.Update(First, session.MessageContext);
                     }
                 }
             }
@@ -781,7 +809,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (allDisplayNameUpdates.Count > 0)
             {
                 foreach (var displayNameUpdates in allDisplayNameUpdates.Batch(
-                    (int?)operationLimits.MaxNodesPerRead ?? 1))
+                    operationLimits.GetMaxNodesPerRead()))
                 {
                     var response = await session.Services.ReadAsync(new RequestHeader(),
                         0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
@@ -907,7 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 foreach (var itemsBatch in change.Batch(
-                    (int?)operationLimits.MaxMonitoredItemsPerCall ?? 1))
+                    operationLimits.GetMaxMonitoredItemsPerCall()))
                 {
                     var itemsToChange = itemsBatch.Cast<MonitoredItem>().ToList();
                     _logger.LogInformation(
@@ -999,19 +1027,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // There were items that could not be added to subscription
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.InvalidMonitoredItemRetryDelay, TimeSpan.FromMinutes(5));
+                    _options.Value.InvalidMonitoredItemRetryDelayDuration, TimeSpan.FromMinutes(5));
             }
             else if (desiredMonitoredItems.Count != set.Count)
             {
                 // There were items !Valid but desired.
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.BadMonitoredItemRetryDelay, TimeSpan.FromMinutes(30));
+                    _options.Value.BadMonitoredItemRetryDelayDuration, TimeSpan.FromMinutes(30));
             }
             else
             {
                 // Nothing to do
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.SubscriptionManagementInterval, Timeout.InfiniteTimeSpan);
+                    _options.Value.SubscriptionManagementIntervalDuration, Timeout.InfiniteTimeSpan);
             }
 
             return noErrorFound;
@@ -1023,10 +1051,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void ReapplySessionOperationTimeout()
         {
-            if (Session == null)
-            {
-                return;
-            }
+            Debug.Assert(Session != null);
 
             var currentOperationTimeout = _options.Value.Quotas.OperationTimeout;
             var localMaxOperationTimeout =
@@ -1077,6 +1102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Closing subscription {Subscription} and then re-creating...", this);
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+                Debug.Assert(Session == null);
             }
 
             // Synchronize subscription through the session.
@@ -1155,12 +1181,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     PublishingEnabled ? "enabled" : "disabled", this, session);
 
                 Debug.Assert(enablePublishing == PublishingEnabled);
+                Debug.Assert(Session != null);
                 await CreateAsync(ct).ConfigureAwait(false);
-
                 if (!Created)
                 {
                     Handle = null;
                     await session.RemoveSubscriptionAsync(this, ct).ConfigureAwait(false);
+                    Debug.Assert(Session == null);
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
                         $"Failed to create subscription {this} in session {session}");
                 }
@@ -1294,8 +1321,8 @@ Actual (revised) state/desired state:
             }
             if (delay != Timeout.InfiniteTimeSpan)
             {
-                _logger.LogDebug(
-                    "Setting up trigger to reapply state to {Subscription} in {Timeout}",
+                _logger.LogInformation(
+                    "Setting up trigger to reapply state to {Subscription} in {Timeout}...",
                     this, delay);
             }
             _timer.Change(delay.Value, Timeout.InfiniteTimeSpan);
@@ -2012,13 +2039,13 @@ Actual (revised) state/desired state:
             public DateTime? PublishTimestamp { get; internal set; }
 
             /// <inheritdoc/>
-            public uint? PublishSequenceNumber { get; }
+            public uint? PublishSequenceNumber { get; private set; }
 
             /// <inheritdoc/>
-            public IServiceMessageContext ServiceMessageContext { get; }
+            public IServiceMessageContext ServiceMessageContext { get; private set; }
 
             /// <inheritdoc/>
-            public IList<MonitoredItemNotificationModel> Notifications { get; }
+            public IList<MonitoredItemNotificationModel> Notifications { get; private set; }
 
             /// <inheritdoc/>
             public DateTime CreatedTimestamp { get; }
@@ -2031,8 +2058,8 @@ Actual (revised) state/desired state:
             /// <param name="messageContext"></param>
             /// <param name="notifications"></param>
             /// <param name="sequenceNumber"></param>
-            public Notification(OpcUaSubscription outer, uint subscriptionId,
-                IServiceMessageContext messageContext,
+            public Notification(OpcUaSubscription outer,
+                uint subscriptionId, IServiceMessageContext messageContext,
                 IEnumerable<MonitoredItemNotificationModel>? notifications = null,
                 uint? sequenceNumber = null)
             {
@@ -2045,6 +2072,33 @@ Actual (revised) state/desired state:
                 MetaData = _outer.CurrentMetaData;
                 Notifications = notifications?.ToList() ??
                     new List<MonitoredItemNotificationModel>();
+            }
+
+            /// <inheritdoc/>
+            public IEnumerable<IOpcUaSubscriptionNotification> Split(
+                Func<MonitoredItemNotificationModel, object?> selector)
+            {
+                if (Notifications.Count > 1)
+                {
+                    var original = PublishSequenceNumber;
+                    PublishSequenceNumber = null;
+
+                    var splitted = Notifications
+                        .GroupBy(selector)
+                        .Select(g => this with
+                        {
+                            Context = g.Key,
+                            Notifications = g.ToList()
+                        })
+                        .ToList();
+
+                    splitted.Last().PublishSequenceNumber = original;
+#if DEBUG
+                    MarkProcessed();
+#endif
+                    return splitted;
+                }
+                return this.YieldReturn();
             }
 
             /// <inheritdoc/>
@@ -2096,7 +2150,8 @@ Actual (revised) state/desired state:
                 overflow = 0;
                 foreach (var n in Notifications)
                 {
-                    /**/ if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
+                    /**/
+                    if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
                     {
                         modelChanges++;
                     }
@@ -2314,7 +2369,7 @@ Actual (revised) state/desired state:
             static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
 
-        private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
         private SubscriptionModel _template;
         private IOpcUaClient? _client;

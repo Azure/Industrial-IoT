@@ -44,7 +44,7 @@ namespace DeterministicAlarms.Configuration
                 json, kSerializerOptions);
         }
 
-        private static readonly JsonSerializerOptions kSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions kSerializerOptions = new()
         {
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

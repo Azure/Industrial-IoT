@@ -33,8 +33,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _meterListener = new MeterListener();
-            _meterListener.InstrumentPublished = OnInstrumentPublished;
+            _meterListener = new MeterListener
+            {
+                InstrumentPublished = OnInstrumentPublished
+            };
             _meterListener.SetMeasurementEventCallback<long>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<int>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<double>(OnMeasurementRecorded);
@@ -329,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                // ... Add here more items if needed
+                    // ... Add here more items if needed
             };
     }
 }

@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
-                new Variant(-123.123), new Variant(124.124), new Variant(0.0)
+                new(-123.123), new(124.124), new(0.0)
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);

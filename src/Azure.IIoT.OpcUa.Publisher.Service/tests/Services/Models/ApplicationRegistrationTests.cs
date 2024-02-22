@@ -86,9 +86,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
-            var newTags = new Dictionary<string, VariantValue>(m.Tags);
-            newTags["DiscoveryProfileUri"] = null;
-            m.Tags = newTags;
+            m.Tags = new Dictionary<string, VariantValue>(m.Tags)
+            {
+                ["DiscoveryProfileUri"] = null
+            };
             var r2 = m.ToEntityRegistration();
 
             Assert.NotEqual(r1, r2);

@@ -15,10 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from
@@ -225,17 +223,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The topic at which OPC Publisher's method handler is mounted.\nIf not specified, the `{{RootTopic}}/methods` template will be used as root topic with the method names as sub topic.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/methods`.\n",
                     t => this[PublisherConfig.MethodTopicTemplateKey] = t },
                 { $"ttt|telemetrytopictemplate:|{PublisherConfig.TelemetryTopicTemplateKey}:",
-                    "The default topic that all messages are sent to.\nIf not specified, the `{{RootTopic}}/messages/{{DataSetWriterGroup}}` template will be used as root topic for all events sent by OPC Publisher.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DataSetWriterGroup}}`\n can be used as dynamic parts in the template. If a template variable does not exist the name of the variable is emitted.\nDefault: `{{RootTopic}}/messages/{{DataSetWriterGroup}}`.\n",
+                    "The default topic that all messages are sent to.\nIf not specified, the `{{RootTopic}}/messages/{{WriterGroup}}` template will be used as root topic for all events sent by OPC Publisher.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{Encoding}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriter}}` and\n    `{{WriterGroup}}`\n can be used as dynamic parts in the template. If a template variable does not exist the name of the variable is emitted.\nDefault: `{{RootTopic}}/messages/{{WriterGroup}}`.\n",
                     t => this[PublisherConfig.TelemetryTopicTemplateKey] = t },
                 { $"ett|eventstopictemplate=|{PublisherConfig.EventsTopicTemplateKey}=",
-                    "The topic into which OPC Publisher publishes any events that are not telemetry messages such as discovery or runtime events.\nIf not specified, the `{{RootTopic}}/events` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/events`.\n",
+                    "The topic into which OPC Publisher publishes any events that are not telemetry messages such as discovery or runtime events.\nIf not specified, the `{{RootTopic}}/events` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{Encoding}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/events`.\n",
                     t => this[PublisherConfig.EventsTopicTemplateKey] = t },
                 { $"dtt|diagnosticstopictemplate=|{PublisherConfig.DiagnosticsTopicTemplateKey}=",
-                    "The topic into which OPC Publisher publishes writer group diagnostics events.\nIf not specified, the `{{RootTopic}}/diagnostics/{{DataSetWriterGroup}}` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}` and\n    `{{DataSetWriterGroup}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/diagnostics/{{DataSetWriterGroup}}`.\n",
+                    "The topic into which OPC Publisher publishes writer group diagnostics events.\nIf not specified, the `{{RootTopic}}/diagnostics/{{WriterGroup}}` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{Encoding}}`\n    `{{PublisherId}}` and\n    `{{WriterGroup}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/diagnostics/{{WriterGroup}}`\n",
                     t => this[PublisherConfig.DiagnosticsTopicTemplateKey] = t },
                 { $"mdt|metadatatopictemplate:|{PublisherConfig.DataSetMetaDataTopicTemplateKey}:",
-                    "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DatasetWriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/$metadata`.\n",
-                    s => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : "{TelemetryTopic}/$metadata" },
+                    "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{Encoding}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriter}}` and\n    `{{WriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/metadata`.\n",
+                    s => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : "{TelemetryTopic}/metadata" },
+                { $"uns|datasetrouting=|{PublisherConfig.DefaultDataSetRoutingKey}=",
+                    $"Configures whether messages should automatically be routed using the browse path of the monitored item inside the address space starting from the RootFolder.\nThe browse path is appended as topic structure to the telemetry topic root which can be configured using `--ttt`. Reserved characters in browse names are escaped with their hex ASCII code.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(DataSetRoutingMode)))}`\nDefault: `{nameof(DataSetRoutingMode.None)}` (Topics must be configured).\n",
+                    (DataSetRoutingMode m) => this[PublisherConfig.DefaultDataSetRoutingKey] = m.ToString() },
                 { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
                     $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
                     (bool? b) => this[PublisherConfig.EnableDataSetRoutingInfoKey] = b?.ToString() ?? "True" },
@@ -266,6 +267,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"fd|fetchdisplayname:|{OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey}:",
                     "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey] = b?.ToString() ?? "True" },
+                { $"fp|fetchpathfromroot:|{OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey}:",
+                    "(Experimental) Explicitly disable or enable retrieving relative paths from root for monitored items.\nDefault: `false` (disabled).\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey] = b?.ToString() ?? "True" },
                 { $"qs|queuesize=|{OpcUaSubscriptionConfig.DefaultQueueSize}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
                     (uint u) => this[OpcUaSubscriptionConfig.DefaultQueueSize] = u.ToString(CultureInfo.CurrentCulture) },
@@ -354,18 +358,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Percentage ratio of publish requests per subscriptions in the session in percent.\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
                     (int u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.CurrentCulture) },
 
-                { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalKey}=",
-                    "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `never` (only on configuration change).\n",
-                    (int i) => this[OpcUaClientConfig.SubscriptionManagementIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
-                { $"bnr|badnoderetrydelay=|{OpcUaClientConfig.BadMonitoredItemRetryDelayKey}=",
+                { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalSecondsKey}=",
+                    "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `0` (only on configuration change).\n",
+                    (uint u) => this[OpcUaClientConfig.SubscriptionManagementIntervalSecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"bnr|badnoderetrydelay=|{OpcUaClientConfig.BadMonitoredItemRetryDelaySecondsKey}=",
                     $"The delay in seconds after which nodes that were rejected by the server while added or updating a subscription or while publishing, are re-applied to a subscription.\nSet to 0 to disable retrying.\nDefault: `{OpcUaClientConfig.BadMonitoredItemRetryDelayDefaultSec}` seconds.\n",
-                    (int i) => this[OpcUaClientConfig.BadMonitoredItemRetryDelayKey] = TimeSpan.FromSeconds(i).ToString() },
+                    (uint u) => this[OpcUaClientConfig.BadMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
                 { $"inr|invalidnoderetrydelay=|{OpcUaClientConfig.InvalidMonitoredItemRetryDelaySecondsKey}=",
                     $"The delay in seconds after which the publisher attempts to re-apply nodes that were incorrectly configured to a subscription.\nSet to 0 to disable retrying.\nDefault: `{OpcUaClientConfig.InvalidMonitoredItemRetryDelayDefaultSec}` seconds.\n",
-                    (int i) => this[OpcUaClientConfig.InvalidMonitoredItemRetryDelaySecondsKey] = TimeSpan.FromSeconds(i).ToString() },
+                    (uint u) => this[OpcUaClientConfig.InvalidMonitoredItemRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture)  },
                 { $"ser|subscriptionerrorretrydelay=|{OpcUaClientConfig.SubscriptionErrorRetryDelaySecondsKey}=",
                     $"The delay in seconds between attempts to create a subscription in a session.\nSet to 0 to disable retrying.\nDefault: `{OpcUaClientConfig.SubscriptionErrorRetryDelayDefaultSec}` seconds.\n",
-                    (int i) => this[OpcUaClientConfig.SubscriptionErrorRetryDelaySecondsKey] = TimeSpan.FromSeconds(i).ToString() },
+                    (uint u) => this[OpcUaClientConfig.SubscriptionErrorRetryDelaySecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"dcp|disablecomplextypepreloading:|{OpcUaClientConfig.DisableComplexTypePreloadingKey}:",
                     "Complex types (structures, enumerations) a server exposes are preloaded from the server after the session is connected. In some cases this can cause problems either on the client or server itself. Use this setting to disable pre-loading support.\nNote that since the complex type system is used for meta data messages it will still be loaded at the time the subscription is created, therefore also disable meta data support if you want to ensure the complex types are never loaded for an endpoint.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaClientConfig.DisableComplexTypePreloadingKey] = b?.ToString() ?? "True" },

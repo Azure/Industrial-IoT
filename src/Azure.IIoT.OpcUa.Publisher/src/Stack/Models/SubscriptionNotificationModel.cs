@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Subscription notification model
@@ -64,6 +65,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         {
             // Not supported
             return false;
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<IOpcUaSubscriptionNotification> Split(
+            Func<MonitoredItemNotificationModel, object?> selector)
+        {
+            return this.YieldReturn();
         }
 
         /// <inheritdoc/>

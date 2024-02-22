@@ -22,34 +22,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSetSource"></param>
         /// <param name="dataSetMetaData"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
+        /// <param name="fetchBrowsePathFromRootOverride"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="dataSetSource"/> is <c>null</c>.</exception>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel? dataSetMetaData,
-            OpcUaSubscriptionOptions configuration)
+            OpcUaSubscriptionOptions options, bool? fetchBrowsePathFromRootOverride)
         {
             return new SubscriptionConfigurationModel
             {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
                 MaxNotificationsPerPublish = dataSetSource.SubscriptionSettings?.MaxNotificationsPerPublish,
                 LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount
-                    ?? configuration?.DefaultLifeTimeCount,
+                    ?? options.DefaultLifeTimeCount,
                 KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount
-                    ?? configuration?.DefaultKeepAliveCount,
+                    ?? options.DefaultKeepAliveCount,
                 PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval
-                    ?? configuration?.DefaultPublishingInterval,
+                    ?? options.DefaultPublishingInterval,
                 ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
-                    ?? configuration?.ResolveDisplayName,
+                    ?? options.ResolveDisplayName,
                 UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
-                    ?? configuration?.UseDeferredAcknoledgements,
+                    ?? options.UseDeferredAcknoledgements,
                 AsyncMetaDataLoadThreshold = dataSetSource.SubscriptionSettings?.AsyncMetaDataLoadThreshold
-                    ?? configuration?.AsyncMetaDataLoadThreshold,
+                    ?? options.AsyncMetaDataLoadThreshold,
                 EnableImmediatePublishing = dataSetSource.SubscriptionSettings?.EnableImmediatePublishing
-                    ?? configuration?.EnableImmediatePublishing ?? false,
+                    ?? options.EnableImmediatePublishing ?? false,
                 EnableSequentialPublishing = dataSetSource.SubscriptionSettings?.EnableSequentialPublishing
-                    ?? configuration?.EnableSequentialPublishing ?? true,
-                MetaData = configuration?.DisableDataSetMetaData == true
+                    ?? options.EnableSequentialPublishing ?? true,
+                ResolveBrowsePathFromRoot = fetchBrowsePathFromRootOverride
+                    ?? options.FetchOpcBrowsePathFromRoot ?? false,
+                MetaData = options.DisableDataSetMetaData == true
                     ? null : dataSetMetaData
             };
         }
@@ -59,21 +61,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSetSource"></param>
         /// <param name="options"></param>
+        /// <param name="configure"></param>
         /// <param name="extensionFields"></param>
         /// <returns></returns>
         public static IList<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
-            OpcUaSubscriptionOptions options, IDictionary<string, VariantValue>? extensionFields = null)
+            OpcUaSubscriptionOptions options, Func<PublishingQueueSettingsModel?, object?> configure,
+            IDictionary<string, VariantValue>? extensionFields = null)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(options));
+                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(options, configure));
             }
             if (dataSetSource.PublishedEvents?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(options));
+                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(options, configure));
             }
             if (extensionFields != null)
             {
@@ -88,15 +92,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataItems"></param>
         /// <param name="options"></param>
+        /// <param name="configure"></param>
+        /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataItemsModel dataItems, OpcUaSubscriptionOptions options)
+            this PublishedDataItemsModel dataItems, OpcUaSubscriptionOptions options,
+            Func<PublishingQueueSettingsModel?, object?> configure, bool includeTriggering = true)
         {
             if (dataItems?.PublishedData != null)
             {
                 foreach (var publishedData in dataItems.PublishedData)
                 {
-                    var item = publishedData?.ToMonitoredItemTemplate(options);
+                    var item = publishedData?.ToMonitoredItemTemplate(options, configure, includeTriggering);
                     if (item != null)
                     {
                         yield return item;
@@ -128,15 +135,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="eventItems"></param>
         /// <param name="options"></param>
+        /// <param name="configure"></param>
+        /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedEventItemsModel eventItems, OpcUaSubscriptionOptions options)
+            this PublishedEventItemsModel eventItems, OpcUaSubscriptionOptions options,
+            Func<PublishingQueueSettingsModel?, object?> configure, bool includeTriggering = true)
         {
             if (eventItems?.PublishedData != null)
             {
                 foreach (var publishedData in eventItems.PublishedData)
                 {
-                    var monitoredItem = publishedData?.ToMonitoredItemTemplate(options);
+                    var monitoredItem = publishedData?.ToMonitoredItemTemplate(options, configure, includeTriggering);
                     if (monitoredItem == null)
                     {
                         continue;
@@ -151,10 +161,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="publishedEvent"></param>
         /// <param name="options"></param>
+        /// <param name="configure"></param>
+        /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static BaseMonitoredItemModel? ToMonitoredItemTemplate(
-            this PublishedDataSetEventModel publishedEvent,
-            OpcUaSubscriptionOptions options)
+            this PublishedDataSetEventModel publishedEvent, OpcUaSubscriptionOptions options,
+            Func<PublishingQueueSettingsModel?, object?> configure, bool includeTriggering = true)
         {
             if (publishedEvent == null)
             {
@@ -174,13 +186,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     // 0 the Server returns the default queue size for Event Notifications
                     // as revisedQueueSize for event monitored items.
                     //
-                    QueueSize = options?.DefaultQueueSize ?? 0,
+                    QueueSize = options.DefaultQueueSize ?? 0,
                     RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan
-                        ?? options?.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
+                        ?? options.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
+                    TriggeredItems = includeTriggering ? null
+                        : ToMonitoredItems(publishedEvent.Triggering, options, configure),
                     AttributeId = null,
                     DiscardNew = false,
                     MonitoringMode = publishedEvent.MonitoringMode ?? MonitoringMode.Reporting,
                     StartNodeId = eventNotifier,
+                    Context = configure(publishedEvent.Publishing),
                     RootNodeId = Opc.Ua.ObjectIds.RootFolder.ToString()
                 };
             }
@@ -198,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     WhereClause = publishedEvent.Filter?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
-                DiscardNew = publishedEvent.DiscardNew ?? options?.DefaultDiscardNew,
+                DiscardNew = publishedEvent.DiscardNew ?? options.DefaultDiscardNew,
 
                 //
                 // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
@@ -206,13 +221,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // as revisedQueueSize for event monitored items.
                 //
                 QueueSize = publishedEvent.QueueSize
-                    ?? options?.DefaultQueueSize ?? 0,
+                    ?? options.DefaultQueueSize ?? 0,
                 AttributeId = null,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
                 FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
-                    ?? options?.ResolveDisplayName,
+                    ?? options.ResolveDisplayName,
+                TriggeredItems = includeTriggering ? null
+                    : ToMonitoredItems(publishedEvent.Triggering, options, configure),
+                Context = configure(publishedEvent.Publishing),
                 ConditionHandling = publishedEvent.ConditionHandling.Clone()
             };
         }
@@ -242,10 +260,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="publishedVariable"></param>
         /// <param name="options"></param>
+        /// <param name="configure"></param>
+        /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static DataMonitoredItemModel? ToMonitoredItemTemplate(
-            this PublishedDataSetVariableModel publishedVariable,
-            OpcUaSubscriptionOptions options)
+            this PublishedDataSetVariableModel publishedVariable, OpcUaSubscriptionOptions options,
+            Func<PublishingQueueSettingsModel?, object?> configure, bool includeTriggering = true)
         {
             if (string.IsNullOrEmpty(publishedVariable.PublishedVariableNodeId))
             {
@@ -259,11 +279,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? string.Empty,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable, options),
                 SamplingUsingCyclicRead = publishedVariable.SamplingUsingCyclicRead
-                    ?? options?.DefaultSamplingUsingCyclicRead ?? false,
+                    ?? options.DefaultSamplingUsingCyclicRead ?? false,
                 SkipFirst = publishedVariable.SkipFirst
-                    ?? options?.DefaultSkipFirst ?? false,
+                    ?? options.DefaultSkipFirst ?? false,
                 DiscardNew = publishedVariable.DiscardNew
-                    ?? options?.DefaultDiscardNew,
+                    ?? options.DefaultDiscardNew,
                 RegisterRead = publishedVariable.RegisterNodeForSampling
                     ?? false,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
@@ -275,22 +295,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // entry, effectively disabling queuing. This is the default behavior
                 // since beginning of publisher time.
                 //
-                QueueSize = publishedVariable.QueueSize
-                    ?? options?.DefaultQueueSize ?? 1,
+                QueueSize = publishedVariable.ServerQueueSize
+                    ?? options.DefaultQueueSize ?? 1,
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 MonitoringMode = publishedVariable.MonitoringMode,
+                TriggeredItems = includeTriggering ? null
+                    : ToMonitoredItems(publishedVariable.Triggering, options, configure),
+                Context = configure(publishedVariable.Publishing),
                 FetchDataSetFieldName = publishedVariable.ReadDisplayNameFromNode
-                    ?? options?.ResolveDisplayName,
+                    ?? options.ResolveDisplayName,
                 SamplingInterval = publishedVariable.SamplingIntervalHint
-                    ?? options?.DefaultSamplingInterval,
+                    ?? options.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
-                    ?? options?.DefaultHeartbeatInterval,
+                    ?? options.DefaultHeartbeatInterval,
                 HeartbeatBehavior = publishedVariable.HeartbeatBehavior
-                    ?? options?.DefaultHeartbeatBehavior,
+                    ?? options.DefaultHeartbeatBehavior,
                 AggregateFilter = null
             };
+        }
+
+        /// <summary>
+        /// Convert triggering to monitored items
+        /// </summary>
+        /// <param name="triggering"></param>
+        /// <param name="options"></param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        private static List<BaseMonitoredItemModel>? ToMonitoredItems(
+            this PublishedDataSetTriggerModel? triggering, OpcUaSubscriptionOptions options,
+            Func<PublishingQueueSettingsModel?, object?> configure)
+        {
+            if (triggering?.PublishedVariables == null && triggering?.PublishedEvents == null)
+            {
+                return null;
+            }
+            var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
+            if (triggering.PublishedVariables?.PublishedData != null)
+            {
+                monitoredItems = monitoredItems
+                    .Concat(triggering.PublishedVariables.ToMonitoredItems(options, configure, false));
+            }
+            if (triggering.PublishedEvents?.PublishedData != null)
+            {
+                monitoredItems = monitoredItems
+                    .Concat(triggering.PublishedEvents.ToMonitoredItems(options, configure, false));
+            }
+            return monitoredItems.ToList();
         }
 
         /// <summary>

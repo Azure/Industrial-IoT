@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
 
@@ -25,13 +26,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        public static bool IsSame(this OpcNodeModel? model, OpcNodeModel? that)
+        /// <param name="includeTriggerNodes"></param>
+        public static bool IsSame(this OpcNodeModel? model, OpcNodeModel? that,
+            bool includeTriggerNodes = true)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }
@@ -44,6 +47,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 
             if (!string.Equals(model.DisplayName ?? string.Empty,
                 that.DisplayName ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(model.Topic ?? string.Empty,
+                that.Topic ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if ((model.QualityOfService ?? QoS.AtLeastOnce) !=
+                (that.QualityOfService ?? QoS.AtLeastOnce))
             {
                 return false;
             }
@@ -122,8 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
 
-            if (!(model.EventFilter ?? new EventFilterModel()).IsSameAs(
-                that.EventFilter ?? new EventFilterModel()))
+            if (!model.EventFilter.IsSameAs(that.EventFilter))
             {
                 return false;
             }
@@ -132,15 +146,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+
             if (!model.ConditionHandling.IsSameAs(that.ConditionHandling))
             {
                 return false;
             }
+
             if ((model.UseCyclicRead ?? false) != (that.UseCyclicRead ?? false))
             {
                 return false;
             }
             if ((model.RegisterNode ?? false) != (that.RegisterNode ?? false))
+            {
+                return false;
+            }
+            if (includeTriggerNodes &&
+                model.TriggeredNodes?.SetEqualsSafe(that.TriggeredNodes,
+                    (a, b) => a.IsSame(b, false)) == false)
             {
                 return false;
             }
@@ -151,7 +173,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// Returns the hashcode for a node
         /// </summary>
         /// <param name="model"></param>
-        public static int GetHashCode(this OpcNodeModel model)
+        /// <param name="includeTriggerNodes"></param>
+        public static int GetHashCode(this OpcNodeModel model, bool includeTriggerNodes = true)
         {
             var hash = new HashCode();
             hash.Add(model.Id);
@@ -159,6 +182,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.DataSetFieldId);
             hash.Add(model.DataSetClassFieldId);
             hash.Add(model.ExpandedNodeId);
+            hash.Add(model.QualityOfService);
+            hash.Add(model.Topic);
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
@@ -195,6 +220,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.ConditionHandling?.SnapshotInterval);
             hash.Add(model.UseCyclicRead);
             hash.Add(model.RegisterNode);
+
+            if (includeTriggerNodes)
+            {
+                model.TriggeredNodes?.ForEach(n => hash.Add(GetHashCode(n, false)));
+            }
 
             return hash.ToHashCode();
         }

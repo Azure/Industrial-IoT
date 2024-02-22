@@ -16,6 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string ConnectionGroupTag = "connectionGroupId";
 
         /// <summary>
+        /// Dataset Writer name tag
+        /// </summary>
+        public const string DataSetWriterNameTag = "dataSetWriterName";
+
+        /// <summary>
         /// Dataset Writer identifier tag
         /// </summary>
         public const string DataSetWriterIdTag = "dataSetWriterId";
@@ -28,12 +33,17 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Writer group identifier tag
         /// </summary>
+        public const string WriterGroupNameTag = "writerGroupName";
+
+        /// <summary>
+        /// Writer group identifier tag
+        /// </summary>
         public const string WriterGroupIdTag = "writerGroupId";
 
         /// <summary>
         /// Default writer group id
         /// </summary>
-        public const string DefaultWriterGroupId = "<<UnknownWriterGroup>>";
+        public const string DefaultWriterGroupName = "<<UnknownWriterGroup>>";
 
         /// <summary>
         /// Publisher identifier tag

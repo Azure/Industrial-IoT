@@ -43,7 +43,7 @@ namespace IIoTPlatformE2ETests
                     dynamic json;
                     var foundEndpoints = new HashSet<string>();
                     int numberOfItems;
-                    bool shouldExit = false;
+                    var shouldExit = false;
                     do
                     {
                         const string route = TestConstants.APIRoutes.RegistryApplications;
@@ -59,7 +59,7 @@ namespace IIoTPlatformE2ETests
                         }
                         else
                         {
-                            for (int i = 0; i < numberOfItems; i++)
+                            for (var i = 0; i < numberOfItems; i++)
                             {
                                 var endpoint = "opc.tcp://" + ((string)json.items[i].hostAddresses[0]).TrimEnd('/');
 
@@ -123,7 +123,7 @@ namespace IIoTPlatformE2ETests
                     var foundEndpoints = new HashSet<string>();
                     var totalEndpoints = new HashSet<string>();
                     int numberOfItems;
-                    bool shouldExit = false;
+                    var shouldExit = false;
                     do
                     {
                         json = await GetEndpointsInternalAsync(context, ct).ConfigureAwait(false);
@@ -136,7 +136,7 @@ namespace IIoTPlatformE2ETests
                         }
                         else
                         {
-                            for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++)
+                            for (var indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++)
                             {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
                                 if (!totalEndpoints.Contains(endpoint))

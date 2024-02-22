@@ -21,6 +21,7 @@ namespace Plc.PluginNodes
         public IReadOnlyCollection<NodeWithIntervals> Nodes { get; private set; } = new List<NodeWithIntervals>();
         public TimeService TimeService { get; set; }
         public ILogger Logger { get; set; }
+        public uint ScaleUnits { get; set; }
 
         private PlcNodeManager _plcNodeManager;
         private SimulatedVariableNode<string> _longStringIdNode10;
@@ -126,23 +127,19 @@ namespace Plc.PluginNodes
 
             Nodes = new List<NodeWithIntervals>
             {
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "LongString10kB",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "LongString50kB",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "LongString100kB",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "LongString200kB",
                     Namespace = Plc.Namespaces.PlcApplications
                 }

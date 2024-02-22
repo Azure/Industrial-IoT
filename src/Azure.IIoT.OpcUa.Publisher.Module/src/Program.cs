@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Configuration;
 
     /// <summary>
     /// Module
@@ -35,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-{PublisherConfig.Version.PadLeft(97)}
+{PublisherConfig.Version,97}
 ");
         }
 

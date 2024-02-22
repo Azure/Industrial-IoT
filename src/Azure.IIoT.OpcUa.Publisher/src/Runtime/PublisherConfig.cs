@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
+        public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -73,22 +74,27 @@ namespace Azure.IIoT.OpcUa.Publisher
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string RootTopicVariableName = "RootTopic";
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
+        public const string WriterGroupVariableName = "WriterGroup";
+        public const string WriterGroupIdVariableName = "WriterGroupId";
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
+        public const string DataSetWriterVariableName = "DataSetWriter";
+        public const string DataSetWriterIdVariableName = "DataSetWriterId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
+        public const string EncodingVariableName = "Encoding";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Default values
         /// </summary>
         public const string TelemetryTopicTemplateDefault =
-            $"{{{RootTopicVariableName}}}/messages/{{{DataSetWriterGroupVariableName}}}";
+            $"{{{RootTopicVariableName}}}/messages/{{{WriterGroupVariableName}}}";
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string MethodTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/methods";
         public const string EventsTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/events";
         public const string DiagnosticsTopicTemplateDefault =
-            $"{{{RootTopicVariableName}}}/diagnostics/{{{DataSetWriterGroupVariableName}}}";
+            $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
         public const string PublishedNodesFileDefault = "publishednodes.json";
@@ -108,21 +114,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <inheritdoc/>
         public override void PostConfigure(string? name, PublisherOptions options)
         {
-            if (options.PublisherId == null)
-            {
-                options.PublisherId = GetStringOrDefault(PublisherIdKey,
+            options.PublisherId ??= GetStringOrDefault(PublisherIdKey,
                     _identity?.Id ?? Dns.GetHostName());
-            }
 
-            if (options.SiteId == null)
-            {
-                options.SiteId = GetStringOrDefault(SiteIdKey);
-            }
+            options.SiteId ??= GetStringOrDefault(SiteIdKey);
 
-            if (options.PublishedNodesFile == null)
-            {
-                options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey);
-            }
+            options.PublishedNodesFile ??= GetStringOrDefault(PublishedNodesFileKey);
 
             if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
                 GetStringOrDefault(DefaultTransportKey), out var transport))
@@ -130,11 +127,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultTransport = transport;
             }
 
-            if (options.UseStandardsCompliantEncoding == null)
-            {
-                options.UseStandardsCompliantEncoding = GetBoolOrDefault(
+            options.UseStandardsCompliantEncoding ??= GetBoolOrDefault(
                     UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
-            }
 
             if (options.MessagingProfile == null)
             {
@@ -175,17 +169,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.MessagingProfile = MessagingProfile.Get(messagingMode, messageEncoding);
             }
 
-            if (options.CreatePublishFileIfNotExist == null)
-            {
-                options.CreatePublishFileIfNotExist = GetBoolOrNull(
+            options.CreatePublishFileIfNotExist ??= GetBoolOrNull(
                     CreatePublishFileIfNotExistKey);
-            }
 
-            if (options.RenewTlsCertificateOnStartup == null)
-            {
-                options.RenewTlsCertificateOnStartup = GetBoolOrNull(
+            options.RenewTlsCertificateOnStartup ??= GetBoolOrNull(
                     RenewTlsCertificateOnStartupKey);
-            }
 
             if (options.MaxNodesPerDataSet == 0)
             {
@@ -193,16 +181,13 @@ namespace Azure.IIoT.OpcUa.Publisher
                     MaxNodesPerDataSetDefault);
             }
 
-            if (options.BatchSize == null)
-            {
-                //
-                // Default to batch size of 50 if not using strict encoding and a
-                // transport was not specified to support backcompat with 2.8
-                //
-                options.BatchSize = GetIntOrDefault(BatchSizeKey,
-                        options.UseStandardsCompliantEncoding == true ||
-                        options.DefaultTransport != null ? 0 : BatchSizeLegacyDefault);
-            }
+            //
+            // Default to batch size of 50 if not using strict encoding and a
+            // transport was not specified to support backcompat with 2.8
+            //
+            options.BatchSize ??= GetIntOrDefault(BatchSizeKey,
+                    options.UseStandardsCompliantEncoding == true ||
+                    options.DefaultTransport != null ? 0 : BatchSizeLegacyDefault);
 
             if (options.BatchTriggerInterval == null)
             {
@@ -216,87 +201,63 @@ namespace Azure.IIoT.OpcUa.Publisher
                         options.DefaultTransport != null ? 0 : BatchTriggerIntervalLLegacyDefaultMillis));
             }
 
-            if (options.RemoveDuplicatesFromBatch == null)
-            {
-                options.RemoveDuplicatesFromBatch = GetBoolOrNull(RemoveDuplicatesFromBatchKey);
-            }
+            options.RemoveDuplicatesFromBatch ??= GetBoolOrNull(RemoveDuplicatesFromBatchKey);
 
-            if (options.MaxNetworkMessageSendQueueSize == null)
-            {
-                options.MaxNetworkMessageSendQueueSize = GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
+            options.MaxNetworkMessageSendQueueSize ??= GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
                     MaxNetworkMessageSendQueueSizeDefault);
-            }
 
-            if (options.RootTopicTemplate == null)
+            if (options.TopicTemplates.Root == null)
             {
-                options.RootTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.Root = GetStringOrDefault(
                     RootTopicTemplateKey, RootTopicTemplateDefault);
             }
 
-            if (options.MethodTopicTemplate == null)
+            if (options.TopicTemplates.Method == null)
             {
-                options.MethodTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.Method = GetStringOrDefault(
                     MethodTopicTemplateKey, MethodTopicTemplateDefault);
             }
 
-            if (options.EventsTopicTemplate == null)
+            if (options.TopicTemplates.Events == null)
             {
-                options.EventsTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.Events = GetStringOrDefault(
                     EventsTopicTemplateKey, EventsTopicTemplateDefault);
             }
 
-            if (options.DiagnosticsTopicTemplate == null)
+            if (options.TopicTemplates.Diagnostics == null)
             {
-                options.DiagnosticsTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.Diagnostics = GetStringOrDefault(
                     DiagnosticsTopicTemplateKey, DiagnosticsTopicTemplateDefault);
             }
 
-            if (options.TelemetryTopicTemplate == null)
+            if (options.TopicTemplates.Telemetry == null)
             {
-                options.TelemetryTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.Telemetry = GetStringOrDefault(
                     TelemetryTopicTemplateKey,
                         TelemetryTopicTemplateDefault);
             }
 
-            if (options.DataSetMetaDataTopicTemplate == null)
+            if (options.TopicTemplates.DataSetMetaData == null)
             {
-                options.DataSetMetaDataTopicTemplate = GetStringOrDefault(
+                options.TopicTemplates.DataSetMetaData = GetStringOrDefault(
                     DataSetMetaDataTopicTemplateKey);
             }
 
-            if (options.DisableOpenApiEndpoint == null)
-            {
-                options.DisableOpenApiEndpoint = GetBoolOrNull(DisableOpenApiEndpointKey);
-            }
+            options.DisableOpenApiEndpoint ??= GetBoolOrNull(DisableOpenApiEndpointKey);
 
-            if (options.EnableRuntimeStateReporting == null)
-            {
-                options.EnableRuntimeStateReporting = GetBoolOrDefault(
+            options.EnableRuntimeStateReporting ??= GetBoolOrDefault(
                     EnableRuntimeStateReportingKey, EnableRuntimeStateReportingDefault);
-            }
 
-            if (options.RuntimeStateRoutingInfo == null)
-            {
-                options.RuntimeStateRoutingInfo = GetStringOrDefault(
+            options.RuntimeStateRoutingInfo ??= GetStringOrDefault(
                     RuntimeStateRoutingInfoKey, RuntimeStateRoutingInfoDefault);
-            }
 
-            if (options.ScaleTestCount == null)
-            {
-                options.ScaleTestCount = GetIntOrDefault(ScaleTestCountKey,
+            options.ScaleTestCount ??= GetIntOrDefault(ScaleTestCountKey,
                     ScaleTestCountDefault);
-            }
 
-            if (options.DebugLogNotificationsFilter == null)
-            {
-                options.DebugLogNotificationsFilter =
+            options.DebugLogNotificationsFilter ??=
                     GetStringOrDefault(DebugLogNotificationsFilterKey);
-            }
 
-            if (options.DebugLogNotifications == null)
-            {
-                options.DebugLogNotifications = GetBoolOrDefault(DebugLogNotificationsKey);
-            }
+            options.DebugLogNotifications ??= GetBoolOrDefault(DebugLogNotificationsKey);
 
             if (options.DiagnosticsInterval == null)
             {
@@ -315,28 +276,16 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DiagnosticsTarget = target;
             }
 
-            if (options.EnableDataSetRoutingInfo == null)
-            {
-                options.EnableDataSetRoutingInfo = GetBoolOrDefault(
+            options.EnableDataSetRoutingInfo ??= GetBoolOrDefault(
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
-            }
 
-            if (options.ForceCredentialEncryption == null)
-            {
-                options.ForceCredentialEncryption = GetBoolOrDefault(
+            options.ForceCredentialEncryption ??= GetBoolOrDefault(
                     ForceCredentialEncryptionKey);
-            }
 
-            if (options.MaxNetworkMessageSize == null) // Max encoder message size
-            {
-                options.MaxNetworkMessageSize = GetIntOrNull(IoTHubMaxMessageSizeKey);
-            }
+            options.MaxNetworkMessageSize ??= GetIntOrNull(IoTHubMaxMessageSizeKey);
 
-            if (options.DefaultMaxDataSetMessagesPerPublish == null)
-            {
-                options.DefaultMaxDataSetMessagesPerPublish = (uint?)GetIntOrNull(
+            options.DefaultMaxDataSetMessagesPerPublish ??= (uint?)GetIntOrNull(
                     DefaultMaxMessagesPerPublishKey);
-            }
 
             if (options.DefaultQualityOfService == null)
             {
@@ -369,9 +318,13 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultNamespaceFormat = namespaceFormat;
             }
 
-            if (options.ApiKeyOverride == null)
+            options.ApiKeyOverride ??= GetStringOrDefault(ApiKeyOverrideKey);
+
+            if (options.DefaultDataSetRouting == null &&
+                Enum.TryParse<DataSetRoutingMode>(GetStringOrDefault(DefaultDataSetRoutingKey),
+                    out var routingMode))
             {
-                options.ApiKeyOverride = GetStringOrDefault(ApiKeyOverrideKey);
+                options.DefaultDataSetRouting = routingMode;
             }
         }
 

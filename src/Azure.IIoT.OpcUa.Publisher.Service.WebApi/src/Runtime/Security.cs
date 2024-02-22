@@ -59,20 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             /// <inheritdoc/>
             public override void Configure(string? name, MicrosoftIdentityOptions options)
             {
-                if (options.ClientId == null)
-                {
-                    options.ClientId = GetStringOrDefault(kAuth_ClientIdKey,
+                options.ClientId ??= GetStringOrDefault(kAuth_ClientIdKey,
                         GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID, string.Empty));
-                }
-                if (options.ClientSecret == null)
-                {
-                    options.ClientSecret = GetStringOrDefault(kAuth_ClientSecretKey,
+                options.ClientSecret ??= GetStringOrDefault(kAuth_ClientSecretKey,
                         GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET, string.Empty));
-                }
-                if (options.Domain == null)
-                {
-                    options.Domain = GetStringOrDefault(kAuth_DomainKey);
-                }
+                options.Domain ??= GetStringOrDefault(kAuth_DomainKey);
                 if (options.Domain == null &&
                     Uri.TryCreate(GetStringOrDefault(EnvVars.PCS_AAD_AUDIENCE),
                         UriKind.Absolute, out var uri))
@@ -80,17 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     options.Domain = $"{uri.Host.Split('.')[0]}.onmicrosoft.com";
                 }
 
-                if (options.Instance == null)
-                {
-                    options.Instance = GetStringOrDefault(kAuth_InstanceUrlKey,
+                options.Instance ??= GetStringOrDefault(kAuth_InstanceUrlKey,
                         GetStringOrDefault(EnvVars.PCS_AAD_INSTANCE,
                             "https://login.microsoftonline.com")).Trim();
-                }
-                if (options.TenantId == null)
-                {
-                    options.TenantId = GetStringOrDefault(kAuth_TenantIdKey,
+                options.TenantId ??= GetStringOrDefault(kAuth_TenantIdKey,
                         GetStringOrDefault(EnvVars.PCS_AUTH_TENANT, string.Empty));
-                }
             }
 
             /// <summary>

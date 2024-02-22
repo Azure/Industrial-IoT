@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         /// <param name="supervisors"></param>
         /// <param name="modules"></param>
         /// <param name="noSite"></param>
-        private void CreateSupervisorFixtures(out string site,
+        private static void CreateSupervisorFixtures(out string site,
             out List<SupervisorModel> supervisors, out List<DeviceTwinModel> modules,
             bool noSite = false)
         {
@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             modules = supervisors
                 .Select(a => a.ToPublisherRegistration())
-                .Select(a => a.ToDeviceTwin(_serializer))
+                .Select(a => a.ToDeviceTwin())
                 .Select(t =>
                 {
                     t.Reported = new Dictionary<string, VariantValue>

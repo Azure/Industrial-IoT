@@ -15,10 +15,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class DataSetWriterModel
     {
         /// <summary>
-        /// Dataset writer name.
+        /// Dataset writer identifier.
         /// </summary>
-        [DataMember(Name = "dataSetWriterName", Order = 0)]
-        public string? DataSetWriterName { get; set; }
+        [DataMember(Name = "id", Order = 0)]
+        public required string Id { get; set; }
 
         /// <summary>
         /// Published dataset inline definition
@@ -49,16 +49,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
+        /// Dataset writer name.
+        /// </summary>
+        [DataMember(Name = "dataSetWriterName", Order = 5)]
+        public string? DataSetWriterName { get; set; }
+
+        /// <summary>
         /// Metadata message sending interval
         /// </summary>
         [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; set; }
 
-        /// <summary>
-        /// Override the default TelemetryTopicTemplate if set
+        /// Metadata queue settings the writer should use to publish
+        /// metadata messages to.
         /// </summary>
-        [DataMember(Name = "TelemetryTopicTemplate", Order = 7)]
-        public string? TelemetryTopicTemplate { get; set; }
+        [DataMember(Name = "metaData", Order = 7,
+            EmitDefaultValue = false)]
+        public PublishingQueueSettingsModel? MetaData { get; set; }
+
+        /// <summary>
+        /// Queue settings writer should use to publish messages
+        /// to. Overrides the writer group queue settings.
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "publishing", Order = 8,
+            EmitDefaultValue = false)]
+        public PublishingQueueSettingsModel? Publishing { get; set; }
     }
 }
