@@ -44,9 +44,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         DataSetMessages,
 
         /// <summary>
+        /// Single Message without network message header.
+        /// </summary>
+        [EnumMember(Value = "SingleDataSetMessage")]
+        SingleDataSetMessage,
+
+        /// <summary>
         /// Datasets are pure key value pairs without headers
         /// </summary>
         [EnumMember(Value = "RawDataSets")]
-        RawDataSets
+        RawDataSets,
+
+        /// <summary>
+        /// Single data set without headers
+        /// </summary>
+        [EnumMember(Value = "SingleRawDataSet")]
+        SingleRawDataSet
     }
 }

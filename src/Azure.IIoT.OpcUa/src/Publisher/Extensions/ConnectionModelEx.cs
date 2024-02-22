@@ -23,11 +23,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static bool IsSameAs(this ConnectionModel? model, ConnectionModel? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }

@@ -678,6 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
                 Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
@@ -729,6 +730,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Validate32(value[8].GetValueOrDefault<uint?>()),
                 MaxNodesPerWrite =
                     Validate32(value[9].GetValueOrDefault<uint?>()),
+                MaxNodesPerRead =
+                    Validate32(value[9].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerRead),
                 MaxNodesPerHistoryUpdateData =
                     Validate32(value[10].GetValueOrDefault<uint?>()),
                 MaxNodesPerHistoryUpdateEvents =
@@ -736,7 +739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNodesPerMethodCall =
                     Validate32(value[12].GetValueOrDefault<uint?>()),
                 MaxNodesPerBrowse =
-                    Validate32(value[13].GetValueOrDefault<uint?>()),
+                    Validate32(value[13].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerBrowse),
                 MaxNodesPerRegisterNodes =
                     Validate32(value[14].GetValueOrDefault<uint?>()),
                 MaxNodesPerTranslatePathsToNodeIds =
@@ -744,14 +747,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNodesPerNodeManagement =
                     Validate32(value[16].GetValueOrDefault<uint?>()),
                 MaxMonitoredItemsPerCall =
-                    Validate32(value[17].GetValueOrDefault<uint?>()),
-                MaxNodesPerRead = maxNodesPerRead
+                    Validate32(value[17].GetValueOrDefault<uint?>())
             };
 
-            static uint? Validate32(uint? v) => v == null ? null :
-                v is > 0 and < int.MaxValue ? v : int.MaxValue;
-            static ushort? Validate16(ushort? v) => v == null ? null :
-                v > 0 ? v : ushort.MaxValue;
+            static uint? Validate32(uint? v, uint max = 0) => v == null ? null :
+                Math.Min(max == 0 ? int.MaxValue : max, v is > 0 and < int.MaxValue ? v.Value : int.MaxValue);
+            static ushort? Validate16(ushort? v, ushort max = 0) => v == null ? null :
+                Math.Min(max == 0 ? ushort.MaxValue : max, v > 0 ? v.Value : ushort.MaxValue);
         }
 
         /// <summary>
@@ -1038,14 +1040,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _activity?.Dispose();
 
-                if (_logScope != null)
-                {
-                    _logScope.logger.LogDebug(
-                        "Session activity {Activity} completed in {Elapsed} with {Status}.",
-                        _logScope.name, _logScope.sw.Elapsed,
-                            Error?.ResponseHeader?.ServiceResult == null ? "Good" :
-                     StatusCodes.GetBrowseName(Error.ResponseHeader.ServiceResult.CodeBits));
-                }
+                _logScope?.logger.LogDebug(
+                    "Session activity {Activity} completed in {Elapsed} with {Status}.",
+                    _logScope.name, _logScope.sw.Elapsed,
+                        Error?.ResponseHeader?.ServiceResult == null ? "Good" :
+                    StatusCodes.GetBrowseName(Error.ResponseHeader.ServiceResult.CodeBits));
             }
 
             /// <summary>

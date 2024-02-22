@@ -90,10 +90,7 @@ namespace PerfTest
         {
             lock (_lock)
             {
-                if (_timer == null)
-                {
-                    _timer = new Timer(OnUpdate, null, 45, 45);
-                }
+                _timer ??= new Timer(OnUpdate, null, 45, 45);
 
                 if (index >= 0 && index < _values.Length)
                 {

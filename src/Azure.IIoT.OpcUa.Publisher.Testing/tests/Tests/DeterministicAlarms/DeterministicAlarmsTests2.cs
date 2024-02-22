@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using DeterministicAlarms;
@@ -16,8 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
     public class DeterministicAlarmsTests2<T>
     {
-        public DeterministicAlarmsTests2(Func<INodeServices<T>> services, T connection,
-            DeterministicAlarmsServer2 server)
+        public DeterministicAlarmsTests2(Func<INodeServices<T>> services, T connection)
         {
             _services = services;
             _connection = connection;

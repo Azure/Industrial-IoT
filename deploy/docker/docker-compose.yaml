@@ -16,8 +16,8 @@ services:
       "--ses=True",
       "--ei=${EVENT_NODES:-100}",
       "--gn=${GUID_NODES:-100}",
-      "--fn=${FAST_NODES:-99900}",
-      "--sn=${SLOW_NODES:-99900}",
+      "--fn=${FAST_NODES:-4900}",
+      "--sn=${SLOW_NODES:-4900}",
       "--aa=True"
       ]
     volumes:
@@ -44,7 +44,7 @@ services:
       "--lfm=syslog",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
-      "--npd=${NODES_PER_DATASET:-10000}"
+      "--npd=${NODES_PER_DATASET:-5000}"
       ]
     environment:
       ADDITIONAL_CONFIGURATION: /run/secrets/publisher-secrets

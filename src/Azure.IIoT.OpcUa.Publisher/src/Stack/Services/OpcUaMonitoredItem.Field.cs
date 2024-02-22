@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
@@ -170,6 +171,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, IOpcUaClient? client = null)
+            {
+                return Enumerable.Empty<OpcUaMonitoredItem>();
+            }
+
+            /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
                 uint sequenceNumber, StatusCode statusCode,
                 IList<MonitoredItemNotificationModel> notifications)
@@ -192,9 +200,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Id = Template.Id,
                     DataSetFieldName = Template.DisplayName,
+                    Context = Template.Context,
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
+                    PathFromRoot = null,
                     Value = _value,
+                    Flags = 0,
                     SequenceNumber = sequenceNumber
                 };
             }

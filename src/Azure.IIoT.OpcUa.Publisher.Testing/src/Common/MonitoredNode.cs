@@ -198,10 +198,7 @@ namespace Opc.Ua.Sample
         /// <param name="eventSubscription"></param>
         public void SubscribeToEvents(ISystemContext context, IEventMonitoredItem eventSubscription)
         {
-            if (_eventSubscriptions == null)
-            {
-                _eventSubscriptions = new List<IEventMonitoredItem>();
-            }
+            _eventSubscriptions ??= new List<IEventMonitoredItem>();
 
             if (_eventSubscriptions.Count == 0)
             {

@@ -21,7 +21,7 @@ namespace Plc
 
         public PlcNodeManager(IServerInternal server,
             ApplicationConfiguration configuration,
-            TimeService timeService, ILogger logger)
+            TimeService timeService, ILogger logger, uint scaleunits)
             : base(server, configuration, new string[]
             {
                 Namespaces.PlcApplications,
@@ -55,6 +55,7 @@ namespace Plc
             {
                 plugin.Logger = logger;
                 plugin.TimeService = timeService;
+                plugin.ScaleUnits = scaleunits;
             }
 
             _simulation = new PlcSimulation(this, timeService);
@@ -64,6 +65,11 @@ namespace Plc
         {
             _simulation.Stop();
             base.Dispose(disposing);
+        }
+
+        public string GetPnJson()
+        {
+            return _simulation.GetPublisherConfigJson();
         }
 
         /// <summary>

@@ -1,0 +1,17 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "MessagingMode": "RawDataSets",
+        "DataSetRouting": "UseBrowseNames",
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259"
+            },
+            {
+                "Id": "i=2258"
+            }
+        ]
+    }
+]

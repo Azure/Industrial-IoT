@@ -93,17 +93,11 @@ namespace TestData
                     record.RawData.Add(entry);
                 }
 
-                if (_records == null)
-                {
-                    _records = new Dictionary<NodeId, HistoryRecord>();
-                }
+                _records ??= new Dictionary<NodeId, HistoryRecord>();
 
                 _records[nodeId] = record;
 
-                if (_updateTimer == null)
-                {
-                    _updateTimer = new Timer(OnUpdate, null, 10000, 10000);
-                }
+                _updateTimer ??= new Timer(OnUpdate, null, 10000, 10000);
             }
         }
 

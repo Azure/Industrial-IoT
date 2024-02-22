@@ -476,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var hostname = !string.IsNullOrWhiteSpace(_identity) ?
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
                     new IPAddress(SHA1.HashData(Encoding.UTF8.GetBytes(_identity))
-                        .AsSpan().Slice(0, 16), 0).ToString() :
+                        .AsSpan()[..16], 0).ToString() :
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
                     Utils.GetHostName();
                 var applicationUri = _options.Value.ApplicationUri;
@@ -805,7 +805,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override ICertificateStore OpenStore()
             {
-                ICertificateStore store = CreateStore(StoreType);
+                var store = CreateStore(StoreType);
                 store.Open(StorePath, false); // Allow private keys
                 return store;
             }

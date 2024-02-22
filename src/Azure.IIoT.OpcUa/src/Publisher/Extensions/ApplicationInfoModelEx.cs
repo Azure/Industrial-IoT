@@ -68,11 +68,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this IReadOnlyList<ApplicationInfoModel>? model,
             IReadOnlyList<ApplicationInfoModel>? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }
@@ -99,11 +99,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static bool IsSameAs(this ApplicationInfoModel? model,
             ApplicationInfoModel? that)
         {
-            if (model == that)
+            if (ReferenceEquals(model, that))
             {
                 return true;
             }
-            if (model == null || that == null)
+            if (model is null || that is null)
             {
                 return false;
             }

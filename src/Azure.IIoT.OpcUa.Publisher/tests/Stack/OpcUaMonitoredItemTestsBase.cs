@@ -39,8 +39,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var session = mock.Mock<IOpcUaSession>();
-            var messageContext = new ServiceMessageContext();
-            messageContext.NamespaceUris = namespaceTable;
+            var messageContext = new ServiceMessageContext
+            {
+                NamespaceUris = namespaceTable
+            };
             var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
             session.SetupGet(x => x.Codec).Returns(codec);
             session.SetupGet(x => x.TypeTree).Returns(typeTable);

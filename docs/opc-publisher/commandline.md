@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.5 (.NET 8.0.1/win-x64/OPC Stack 1.5.373.121)
+                                                 2.9.5 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
 General
 -------
 
@@ -108,7 +108,9 @@ Messaging configuration
                                    `FullNetworkMessages`
                                    `FullSamples`
                                    `DataSetMessages`
+                                   `SingleDataSetMessage`
                                    `RawDataSets`
+                                   `SingleRawDataSet`
                                Default: `PubSub` if `-c` is specified,
                                otherwise `Samples` for backwards compatibility.
       --me, --messageencoding, --MessageEncoding=VALUE
@@ -380,20 +382,20 @@ Routing configuration
       --ttt, --telemetrytopictemplate, --TelemetryTopicTemplate[=VALUE]
                              The default topic that all messages are sent to.
                                If not specified, the `{RootTopic}/messages/{
-                               DataSetWriterGroup}` template will be used as
-                               root topic for all events sent by OPC Publisher.
+                               WriterGroup}` template will be used as root
+                               topic for all events sent by OPC Publisher.
                                The template variables
                                    `{RootTopic}`
                                    `{SiteId}`
+                                   `{Encoding}`
                                    `{PublisherId}`
                                    `{DataSetClassId}`
-                                   `{DataSetWriterName}` and
-                                   `{DataSetWriterGroup}`
+                                   `{DataSetWriter}` and
+                                   `{WriterGroup}`
                                 can be used as dynamic parts in the template.
                                If a template variable does not exist the name
                                of the variable is emitted.
-                               Default: `{RootTopic}/messages/{
-                               DataSetWriterGroup}`.
+                               Default: `{RootTopic}/messages/{WriterGroup}`.
       --ett, --eventstopictemplate, --EventsTopicTemplate=VALUE
                              The topic into which OPC Publisher publishes any
                                events that are not telemetry messages such as
@@ -402,7 +404,8 @@ Routing configuration
                                template will be used.
                                Only
                                    `{RootTopic}`
-                                   `{SiteId}` and
+                                   `{SiteId}`
+                                   `{Encoding}` and
                                    `{PublisherId}`
                                can currently be used as replacement variables
                                in the template.
@@ -411,16 +414,16 @@ Routing configuration
                              The topic into which OPC Publisher publishes
                                writer group diagnostics events.
                                If not specified, the `{RootTopic}/diagnostics/{
-                               DataSetWriterGroup}` template will be used.
+                               WriterGroup}` template will be used.
                                Only
                                    `{RootTopic}`
                                    `{SiteId}`
+                                   `{Encoding}`
                                    `{PublisherId}` and
-                                   `{DataSetWriterGroup}`
+                                   `{WriterGroup}`
                                can currently be used as replacement variables
                                in the template.
-                               Default: `{RootTopic}/diagnostics/{
-                               DataSetWriterGroup}`.
+                               Default: `{RootTopic}/diagnostics/{WriterGroup}`
       --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=VALUE]
                              The topic that metadata should be sent to.
                                In case of MQTT the message will be sent as
@@ -433,15 +436,31 @@ Routing configuration
                                    `{RootTopic}`
                                    `{SiteId}`
                                    `{TelemetryTopic}`
+                                   `{Encoding}`
                                    `{PublisherId}`
                                    `{DataSetClassId}`
-                                   `{DataSetWriterName}` and
-                                   `{DatasetWriterGroup}`
+                                   `{DataSetWriter}` and
+                                   `{WriterGroup}`
                                can be used as dynamic parts in the template.
                                Default: `{TelemetryTopic}` which means metadata
                                is sent to the same output as regular messages.
                                If specified without value, the default output
-                               is `{TelemetryTopic}/$metadata`.
+                               is `{TelemetryTopic}/metadata`.
+      --uns, --datasetrouting, --DefaultDataSetRouting=VALUE
+                             Configures whether messages should automatically
+                               be routed using the browse path of the monitored
+                               item inside the address space starting from the
+                               RootFolder.
+                               The browse path is appended as topic structure
+                               to the telemetry topic root which can be
+                               configured using `--ttt`. Reserved characters in
+                               browse names are escaped with their hex ASCII
+                               code.
+                               Allowed values:
+                                   `None`
+                                   `UseBrowseNames`
+                                   `UseBrowseNamesWithNamespaceIndex`
+                               Default: `None` (Topics must be configured).
       --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
                              Add routing information to messages. The name of
                                the property is `$$RoutingInfo` and the value is
@@ -488,6 +507,11 @@ Subscription settings
                                Note: This has high impact on OPC Publisher
                                startup performance.
                                Default: `False` (disabled).
+      --fp, --fetchpathfromroot, --FetchOpcBrowsePathFromRoot[=VALUE]
+                             (Experimental) Explicitly disable or enable
+                               retrieving relative paths from root for
+                               monitored items.
+                               Default: `false` (disabled).
       --qs, --queuesize, --DefaultQueueSize=VALUE
                              Default queue size for all monitored items if
                                queue size was not specified in the
@@ -641,12 +665,12 @@ OPC UA Client configuration
                              Percentage ratio of publish requests per
                                subscriptions in the session in percent.
                                Default: `100`% (1 request per subscription).
-      --smi, --subscriptionmanagementinterval, --SubscriptionManagementInterval=VALUE
+      --smi, --subscriptionmanagementinterval, --SubscriptionManagementIntervalSeconds=VALUE
                              The interval in seconds after which the publisher
                                re-applies the desired state of the subscription
                                to a session.
-                               Default: `never` (only on configuration change).
-      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelay=VALUE
+                               Default: `0` (only on configuration change).
+      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelaySeconds=VALUE
                              The delay in seconds after which nodes that were
                                rejected by the server while added or updating a
                                subscription or while publishing, are re-applied

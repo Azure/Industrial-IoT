@@ -59,13 +59,10 @@ namespace HistoricalAccess
             _configuration = configuration.ParseExtension<HistoricalAccessServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null)
+            _configuration ??= new HistoricalAccessServerConfiguration
             {
-                _configuration = new HistoricalAccessServerConfiguration
-                {
-                    ArchiveRoot = "Historian"
-                };
-            }
+                ArchiveRoot = "Historian"
+            };
 
             _timeService = timeService;
             SystemContext.SystemHandle = _system = new UnderlyingSystem(_configuration, NamespaceIndex, timeService);
@@ -458,18 +455,12 @@ namespace HistoricalAccess
 
                 if (root != null && root is ArchiveItemState item)
                 {
-                    if (_monitoredItems == null)
-                    {
-                        _monitoredItems = new Dictionary<string, ArchiveItemState>();
-                    }
+                    _monitoredItems ??= new Dictionary<string, ArchiveItemState>();
 
                     _monitoredItems.TryAdd(item.ArchiveItem.UniquePath, item);
                     item.SubscribeCount++;
 
-                    if (_simulationTimer == null)
-                    {
-                        _simulationTimer = new Timer(DoSimulation, null, 500, 500);
-                    }
+                    _simulationTimer ??= new Timer(DoSimulation, null, 500, 500);
                 }
             }
         }

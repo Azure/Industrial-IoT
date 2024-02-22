@@ -112,9 +112,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Queue size (Publisher extension)
         /// </summary>
-        [DataMember(Name = "queueSize", Order = 13,
+        [DataMember(Name = "serverQueueSize", Order = 13,
             EmitDefaultValue = false)]
-        public uint? QueueSize { get; set; }
+        public uint? ServerQueueSize { get; set; }
 
         /// <summary>
         /// Discard new values if queue is full (Publisher extension)
@@ -172,9 +172,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
         /// <summary>
         /// Read the display name from the node
+        /// (Publisher extension)
         /// </summary>
         [DataMember(Name = "readDisplayNameFromNode", Order = 21,
             EmitDefaultValue = false)]
         public bool? ReadDisplayNameFromNode { get; set; }
+
+        /// <summary>
+        /// Triggering configuration
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "triggering", Order = 22,
+            EmitDefaultValue = false)]
+        public PublishedDataSetTriggerModel? Triggering { get; set; }
+
+        /// <summary>
+        /// Queue settings writer should use to publish messages
+        /// to. Overrides the writer and writer group queue settings.
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "publishing", Order = 23,
+            EmitDefaultValue = false)]
+        public PublishingQueueSettingsModel? Publishing { get; set; }
     }
 }

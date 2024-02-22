@@ -25,6 +25,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Text.Json;
+    using Microsoft.AspNetCore.Hosting.Server;
 
     /// <summary>
     /// Publisher module host process
@@ -40,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             var checkTrust = false;
             var withServer = false;
-            string deviceId = null, moduleId = null;
+            string? deviceId = null, moduleId = null;
             int? reverseConnectPort = null;
 
             var loggerFactory = Log.ConsoleFactory();
@@ -48,10 +52,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
             logger.LogInformation("Publisher module command line interface.");
             var instances = 1;
-            string connectionString = null;
-            string publishProfile = null;
-            string publishedNodesFilePath = null;
+            string? connectionString = null;
+            string? publishProfile = null;
+            string? publishedNodesFilePath = null;
             var useNullTransport = false;
+            var scaleunits = 0u;
             var unknownArgs = new List<string>();
             try
             {
@@ -80,8 +85,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             {
                                 break;
                             }
-                            throw new ArgumentException(
-                                "Missing argument for --instances");
+                            throw new ArgumentException("Missing argument for --instances");
+                        case "-U":
+                        case "--scale":
+                            i++;
+                            if (i < args.Length && uint.TryParse(args[i], out scaleunits))
+                            {
+                                withServer = true;
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --scale");
                         case "--reverse-connect":
                             reverseConnectPort = 4840;
                             break;
@@ -114,8 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 withServer = true;
                                 break;
                             }
-                            throw new ArgumentException(
-                                "Missing argument for --publish-profile");
+                            throw new ArgumentException("Missing argument for --publish-profile");
                         case "--pnjson":
                             i++;
                             if (i < args.Length)
@@ -123,8 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 publishedNodesFilePath = args[i];
                                 break;
                             }
-                            throw new ArgumentException(
-                                "Missing argument for --pnjson");
+                            throw new ArgumentException("Missing argument for --pnjson");
                         case "--":
                             break;
                         default:
@@ -142,10 +153,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             .AddEnvironmentVariables()
                             .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
                             .Build();
-                        connectionString = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
+                        connectionString = configuration.GetValue("PCS_IOTHUB_CONNSTRING", string.Empty);
                         if (string.IsNullOrEmpty(connectionString))
                         {
-                            connectionString = configuration.GetValue<string>("_HUB_CS", null);
+                            connectionString = configuration.GetValue("_HUB_CS", string.Empty);
                         }
                         if (!string.IsNullOrEmpty(connectionString) &&
                             !ConnectionString.TryParse(connectionString, out _))
@@ -204,7 +215,7 @@ Options:
                 else
                 {
                     hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId, moduleId, args,
-                        publishProfile, !checkTrust, reverseConnectPort, cts.Token);
+                        publishProfile, scaleunits, !checkTrust, reverseConnectPort, cts.Token);
                 }
 
                 while (!cts.Token.IsCancellationRequested)
@@ -254,15 +265,15 @@ Options:
         /// <param name="acceptAll"></param>
         /// <param name="publishedNodesFilePath"></param>
         /// <param name="ct"></param>
-        private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
+        private static async Task HostAsync(string? connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
-            bool acceptAll, string publishedNodesFilePath = null, CancellationToken ct = default)
+            bool acceptAll, string? publishedNodesFilePath = null, CancellationToken ct = default)
         {
             var logger = loggerFactory.CreateLogger<PublisherModule>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
-            ConnectionString cs = null;
+            ConnectionString? cs = null;
             if (connectionString != null)
             {
                 while (true)
@@ -302,7 +313,7 @@ Options:
             }
 
             static async Task RunAsync(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool acceptAll, ConnectionString cs, int? reverseConnectPort, string publishedNodesFilePath,
+                bool acceptAll, ConnectionString? cs, int? reverseConnectPort, string? publishedNodesFilePath,
                 CancellationToken ct)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
@@ -348,19 +359,20 @@ Options:
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="publishProfile"></param>
+        /// <param name="scaleunits"></param>
         /// <param name="acceptAll"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="ct"></param>
-        private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, string publishProfile, bool acceptAll,
+        private static async Task WithServerAsync(string? connectionString, ILoggerFactory loggerFactory,
+            string deviceId, string moduleId, string[] args, string? publishProfile, uint scaleunits, bool acceptAll,
             int? reverseConnectPort, CancellationToken ct)
         {
             try
             {
                 // Start test server
-                using (var server = new ServerWrapper(loggerFactory, reverseConnectPort))
+                using (var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort))
                 {
-                    var publishedNodesFilePath = await LoadPnJson(publishProfile,
+                    var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
                         $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
 
                     // Start publisher module
@@ -371,23 +383,32 @@ Options:
             catch (OperationCanceledException) { }
         }
 
-        private static async Task<string> LoadPnJson(string publishProfile,
+        private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,
             string endpointUrl, CancellationToken ct)
         {
-            string publishedNodesFile = null;
-            if (publishProfile != null)
+            const string publishedNodesFilePath = "profile.json";
+            if (!string.IsNullOrEmpty(publishProfile))
             {
-                publishedNodesFile = $"./Profiles/{publishProfile}.json";
+                var publishedNodesFile = $"./Profiles/{publishProfile}.json";
+                if (File.Exists(publishedNodesFile))
+                {
+                    await File.WriteAllTextAsync(publishedNodesFilePath,
+                        (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                        .Replace("{{EndpointUrl}}", endpointUrl,
+                            StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                    return publishedNodesFilePath;
+                }
             }
-            if (publishedNodesFile != null && File.Exists(publishedNodesFile))
+
+            var testServer = await server.Server.Task.ConfigureAwait(false);
+            if (testServer?.PublishedNodesJson != null)
             {
-                const string publishedNodesFilePath = "profile.json";
+                var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}", endpointUrl, StringComparison.Ordinal);
 
-                await File.WriteAllTextAsync(publishedNodesFilePath,
-                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                    .Replace("{{EndpointUrl}}", endpointUrl,
-                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+                // var entries = JsonSerializer.Deserialize<PublishedNodesEntryModel[]>(server.PublishedNodesJson);
 
+                await File.WriteAllTextAsync(publishedNodesFilePath, json, ct).ConfigureAwait(false);
                 return publishedNodesFilePath;
             }
             return null;
@@ -447,7 +468,7 @@ Options:
                 }
                 var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
                 return ConnectionString.CreateModuleConnectionString(registry.HostName,
-                    deviceId, moduleId, module.PrimaryKey);
+                    deviceId, moduleId, module.PrimaryKey!);
             }
         }
 
@@ -458,15 +479,18 @@ Options:
         {
             public int Port { get; } = 61457;
 
+            public TaskCompletionSource<ITestServer?> Server { get; private set; } = new();
+
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="scaleunits"></param>
             /// <param name="logger"></param>
             /// <param name="reverseConnectPort"></param>
-            public ServerWrapper(ILoggerFactory logger, int? reverseConnectPort)
+            public ServerWrapper(uint scaleunits, ILoggerFactory logger, int? reverseConnectPort)
             {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(logger, Port, reverseConnectPort, _cts.Token);
+                _server = RunSampleServerAsync(scaleunits, logger, Port, reverseConnectPort, _cts.Token);
             }
 
             /// <inheritdoc/>
@@ -480,12 +504,13 @@ Options:
             /// <summary>
             /// Run server until cancelled
             /// </summary>
+            /// <param name="scaleunits"></param>
             /// <param name="loggerFactory"></param>
             /// <param name="port"></param>
             /// <param name="reverseConnectPort"></param>
             /// <param name="ct"></param>
-            private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory,
-                int port, int? reverseConnectPort, CancellationToken ct)
+            private async Task RunSampleServerAsync(uint scaleunits,
+                ILoggerFactory loggerFactory, int port, int? reverseConnectPort, CancellationToken ct)
             {
                 var logger = loggerFactory.CreateLogger<ServerWrapper>();
                 while (!ct.IsCancellationRequested)
@@ -493,7 +518,7 @@ Options:
                     try
                     {
                         using (var server = new ServerConsoleHost(
-                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>())
+                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(), scaleunits)
                             {
                                 LogStatus = false
                             }, loggerFactory.CreateLogger<ServerConsoleHost>())
@@ -504,6 +529,7 @@ Options:
                         {
                             logger.LogInformation("(Re-)Starting server...");
                             await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
+                            Server.SetResult(server.TestServer);
                             logger.LogInformation("Server (re-)started (Press S to kill).");
                             if (reverseConnectPort != null)
                             {
@@ -514,6 +540,7 @@ Options:
                             }
                             await _restartServer.WaitAsync(ct).ConfigureAwait(false);
                             logger.LogInformation("Stopping server...");
+                            Server = new TaskCompletionSource<ITestServer?>();
                         }
 
                         logger.LogInformation("Server stopped.");

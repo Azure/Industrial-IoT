@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray((byte)123, (byte)124, (byte)125);
             var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(str, encoded);
@@ -40,9 +40,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void DecodeEncodeByteArrayTypeByteStringFromJArray()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new byte[] { 123, 124, 125 });
+            var str = _serializer.FromObject("{|}"u8.ToArray());
             var variant = codec.Decode(str, BuiltInType.ByteString);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(str, encoded);
@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "123, 124, 125";
             var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.Integer);
             var expected = new Variant(new Variant[] {
-                new Variant(123L), new Variant(124L), new Variant(125L)
+                new(123L), new(124L), new(125L)
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
-                new Variant(123L), new Variant(124L), new Variant(125L)
+                new(123L), new(124L), new(125L)
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
@@ -272,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"123\",'124',\"125\"";
             var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -284,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = " [\"123\",'124',\"125\"] ";
             var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -313,10 +313,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.FromObject(new
             {
                 Type = "Byte",
-                Body = new byte[] { 123, 124, 125 }
+                Body = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -345,13 +345,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.FromObject(new
             {
                 Type = "ByteString",
-                Body = new byte[] { 123, 124, 125 }
+                Body = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(new byte[] { 123, 124, 125 }), encoded);
+            Assert.Equal(_serializer.FromObject("{|}"u8.ToArray()), encoded);
         }
 
         [Fact]
@@ -377,10 +377,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.SerializeToString(new
             {
                 Type = "Byte",
-                Body = new byte[] { 123, 124, 125 }
+                Body = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -393,13 +393,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.SerializeToString(new
             {
                 Type = "ByteString",
-                Body = new byte[] { 123, 124, 125 }
+                Body = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(new byte[] { 123, 124, 125 }), encoded);
+            Assert.Equal(_serializer.FromObject("{|}"u8.ToArray()), encoded);
         }
 
         [Fact]
@@ -425,10 +425,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.FromObject(new
             {
                 TYPE = "BYTE",
-                BODY = new byte[] { 123, 124, 125 }
+                BODY = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -473,10 +473,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.SerializeToString(new
             {
                 type = "Byte",
-                body = new byte[] { 123, 124, 125 }
+                body = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);
@@ -521,10 +521,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var str = _serializer.FromObject(new
             {
                 dataType = "Byte",
-                value = new byte[] { 123, 124, 125 }
+                value = "{|}"u8.ToArray()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new byte[] { 123, 124, 125 });
+            var expected = new Variant("{|}"u8.ToArray());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray((byte)123, (byte)124, (byte)125), encoded);

@@ -198,8 +198,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
-                    new PublishedNodesEntryModel {
+                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
+                {
+                    new() {
                         OpcNodes = nodes.OpcNodes.ToList(),
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,

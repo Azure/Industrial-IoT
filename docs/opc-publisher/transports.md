@@ -123,7 +123,7 @@ The HTTP transports is split into two parts: The [built in HTTP server](#built-i
 
 > This transport is in preview
 
-The built in HTTP server eposes the OPC Publisher [API](./api.md). The API is secured by an API Key. The API key is generated at startup if it is not found inside the state store. The default state store is the IoT Hub device twin. Therefore the API key can be read from the device registry in IoT Hub. The API key must be provided in every request in the HTTP `Authorization` header using the `Bearer <ApiKey` scheme.
+The built in HTTP server eposes the OPC Publisher [API](./api.md). The API is secured by an API Key. The API key is generated at startup if it is not found inside the state store. The default state store is the IoT Hub device twin. Therefore the API key can be read from the device registry in IoT Hub. The API key must be provided in every request in the HTTP `Authorization` header using the `ApiKey <ApiKey>` scheme.
 
 The HTTP server is exposed at port 80 (no encryption) and 443 (with encryption). The SSL channel is secured using a IoT Edge generated server certificate, just like Edge Hub's endpoints. The API can be further secured using a [Dapr](#dapr) side car providing mtls based security on top of the generic API surface.
 

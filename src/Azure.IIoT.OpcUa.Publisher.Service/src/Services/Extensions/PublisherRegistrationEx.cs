@@ -21,12 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Create device twin
         /// </summary>
         /// <param name="registration"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(
-            this PublisherRegistration registration, IJsonSerializer serializer)
+        public static DeviceTwinModel ToDeviceTwin(this PublisherRegistration registration)
         {
-            return Patch(null, registration, serializer);
+            return Patch(null, registration);
         }
 
         /// <summary>
@@ -34,9 +32,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
-        /// <param name="serializer"></param>
+        ///
         public static DeviceTwinModel Patch(this PublisherRegistration? existing,
-            PublisherRegistration update, IJsonSerializer serializer)
+            PublisherRegistration update)
         {
             var tags = new Dictionary<string, VariantValue>();
             var desired = new Dictionary<string, VariantValue>();

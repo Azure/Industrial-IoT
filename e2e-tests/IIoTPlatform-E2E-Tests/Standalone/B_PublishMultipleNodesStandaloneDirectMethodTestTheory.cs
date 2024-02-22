@@ -171,10 +171,11 @@ namespace IIoTPlatformE2ETests.Standalone
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
 
             // Create request for GetConfiguredNodesOnEndpoint method call
-            var nodesOnEndpoint = new PublishedNodesEntryModel();
-            nodesOnEndpoint.EndpointUrl = request.EndpointUrl;
-            nodesOnEndpoint.UseSecurity = request.UseSecurity;
-            var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint;
+            var requestGetConfiguredNodesOnEndpoint = new PublishedNodesEntryModel
+            {
+                EndpointUrl = request.EndpointUrl,
+                UseSecurity = request.UseSecurity
+            };
 
             // Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(

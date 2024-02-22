@@ -882,7 +882,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         WriteString("Encoding", nameof(ExtensionObjectEncoding.Xml));
                     }
-                    else if (body is not byte[] && body is not null)
+                    else if (body is not byte[] and not null)
                     {
                         WriteString("Encoding", nameof(ExtensionObjectEncoding.Json));
                     }
@@ -1288,7 +1288,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             BuiltInType builtInType)
         {
             // Handle special value ranks
-            if (valueRank <= -2 || valueRank == 0)
+            if (valueRank is <= (-2) or 0)
             {
                 if (valueRank < -3)
                 {
@@ -1605,8 +1605,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     result[index] = defaultValue;
                     continue;
                 }
-                if (item is not byte[] &&
-                    item is Array itemArray)
+                if (item is not byte[] and
+                    Array itemArray)
                 {
                     return ToTypedArray(itemArray, defaultValue,
                         ex => GetException(value, arr, item, ex));

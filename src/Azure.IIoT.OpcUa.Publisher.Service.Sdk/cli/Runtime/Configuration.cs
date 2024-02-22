@@ -37,10 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 options.UseMessagePackProtocol = useMsgPack.Value;
             }
 
-            if (options.TokenProvider == null)
-            {
-                options.TokenProvider = BuildTokenProvider();
-            }
+            options.TokenProvider ??= BuildTokenProvider();
         }
 
         /// <inheritdoc/>

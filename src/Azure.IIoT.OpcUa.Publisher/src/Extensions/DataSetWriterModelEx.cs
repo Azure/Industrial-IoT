@@ -19,12 +19,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="configuration"></param>
-        /// <param name="writerGroupId"></param>
+        /// <param name="configure"></param>
+        /// <param name="writerGroupName"></param>
+        /// <param name="fetchBrowsePathFromRootOverride"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionModel ToSubscriptionModel(
             this DataSetWriterModel dataSetWriter, OpcUaSubscriptionOptions configuration,
-            string? writerGroupId = null)
+            Func<PublishingQueueSettingsModel?, object?> configure, string? writerGroupName = null,
+            bool? fetchBrowsePathFromRootOverride = null)
         {
             if (dataSetWriter.DataSet == null)
             {
@@ -35,17 +38,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 throw new ArgumentException("DataSet source missing,", nameof(dataSetWriter));
             }
             var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(
-                configuration, dataSetWriter.DataSet.ExtensionFields);
+                configuration, configure, dataSetWriter.DataSet.ExtensionFields);
             if (monitoredItems.Count == 0)
             {
                 throw new ArgumentException("DataSet source empty.", nameof(dataSetWriter));
             }
             return new SubscriptionModel
             {
-                Id = ToSubscriptionId(dataSetWriter, writerGroupId, configuration),
+                Id = ToSubscriptionId(dataSetWriter, writerGroupName, configuration),
                 MonitoredItems = monitoredItems,
                 Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
-                    dataSetWriter.DataSet.DataSetMetaData, configuration)
+                    dataSetWriter.DataSet.DataSetMetaData, configuration, fetchBrowsePathFromRootOverride)
             };
         }
 
@@ -53,17 +56,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Create subscription id.
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="writerGroupId"></param>
+        /// <param name="writerGroupName"></param>
         /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string? writerGroupId, OpcUaSubscriptionOptions options)
+            string? writerGroupName, OpcUaSubscriptionOptions options)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriter);
-            if (dataSetWriter.DataSetWriterName == null)
+            if (dataSetWriter.Id == null)
             {
-                throw new ArgumentException("DataSetWriterName missing.", nameof(dataSetWriter));
+                throw new ArgumentException("DataSetWriter Id missing.", nameof(dataSetWriter));
             }
             if (dataSetWriter.DataSet?.DataSetSource?.Connection == null)
             {
@@ -76,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 connection = connection with
                 {
-                    Group = writerGroupId
+                    Group = writerGroupName
                 };
             }
 
@@ -87,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     IsReverse = options.DefaultUseReverseConnect
                 };
             }
-            return new SubscriptionIdentifier(connection, dataSetWriter.DataSetWriterName);
+            return new SubscriptionIdentifier(connection, dataSetWriter.Id);
         }
     }
 }

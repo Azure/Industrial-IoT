@@ -500,7 +500,7 @@ namespace IIoTPlatformE2ETests.Standalone
             Assert.True(endpointsCount > 0, "no endpoints found to generate requests");
 
             var fullNodes = new List<PublishedNodesEntryModel>();
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 var node = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, index, 250);
                 node.OpcNodes = node.OpcNodes
@@ -513,16 +513,16 @@ namespace IIoTPlatformE2ETests.Standalone
             }
 
             var currentNodes = new List<PublishedNodesEntryModel>();
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 var node = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, index, 0);
                 currentNodes.Add(node);
             }
 
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 var request = new List<PublishedNodesEntryModel>();
-                for (int i = 0; i <= index; ++i)
+                for (var i = 0; i <= index; ++i)
                 {
                     currentNodes[i].OpcNodes = fullNodes[i].OpcNodes.Take(index + 1).ToList();
                     request.Add(currentNodes[i]);
@@ -558,14 +558,14 @@ namespace IIoTPlatformE2ETests.Standalone
             Assert.Equal(endpointsCount, configuredEndpointsResponse.Endpoints.Count);
 
             // Check that all endpoints are present.
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 var receivedEndpointUrl = configuredEndpointsResponse.Endpoints[index].EndpointUrl;
                 Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.Equals(receivedEndpointUrl, StringComparison.Ordinal)));
             }
 
             // Check that all expected nodes on endpoints are present.
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 currentNodes[index].OpcNodes = new List<OpcNodeModel>();
 
@@ -652,13 +652,13 @@ namespace IIoTPlatformE2ETests.Standalone
             }
 
             // This will keep track of currently published nodes.
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 currentNodes[index].OpcNodes = fullNodes[index].OpcNodes;
             }
 
             // Now let's unpublish nodes on all endpoints.
-            for (int index = 0; index < endpointsCount; ++index)
+            for (var index = 0; index < endpointsCount; ++index)
             {
                 switch (index % 3)
                 {
@@ -701,7 +701,7 @@ namespace IIoTPlatformE2ETests.Standalone
                         currentNodes[index].OpcNodes = new List<OpcNodeModel>();
                         request.Add(currentNodes[index]);
 
-                        for (int i = index + 1; i < endpointsCount; ++i)
+                        for (var i = index + 1; i < endpointsCount; ++i)
                         {
                             currentNodes[i].OpcNodes = fullNodes[i].OpcNodes.Take(endpointsCount - index - 1).ToList();
                             request.Add(currentNodes[i]);

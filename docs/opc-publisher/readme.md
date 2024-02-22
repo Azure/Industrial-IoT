@@ -35,6 +35,7 @@ Here you find information about
     - [Simple event filter](#simple-event-filter)
     - [Advanced event filter configuration](#advanced-event-filter-configuration)
     - [Condition handling options](#condition-handling-options)
+- [Publish to a Unified Namespace](#publish-to-a-unified-namespace)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
 - [Programming against OPC Publisher using the OPC Publisher API](#programming-against-opc-publisher-using-the-opc-publisher-api)
   - [Using IoT Edge Simulation environment](#using-iot-edge-simulation-environment)
@@ -551,7 +552,15 @@ The following overview diagram courtesy of the OPC Foundation shows how the serv
 
 A subscription is created for each unique `DataSetWriter`. The publishing interval (configured using the `DataSetPublishingInterval` or `OpcPublishingInterval` values) is an attribute of the subscription (hence multiple writers are instantiated if there are multiple different publishing intervals). It defines the cyclic rate at which it collects values from the monitored item queues. Each time it attempts to send a Notification Message to OPC Publisher containing new values or events of its monitored items.
 
+The diagnostics output and metrics contain a `Server queue overflows` instrument which captures the number of data values with overflow bit set and indicates data changes were lost. Increase the `QueueSize` of frequently sampled items until the instrument stays 0.
+
 Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
+
+The OPC UA server always sends the first data value to OPC Publisher when the subscription is created. To prevent publishing all of these values during startup, the `SkipFirst` value can be specified in the data item's configuration:
+
+``` json
+  "SkipFirst": true,
+```
 
 #### Key frames, delta frames and extension fields
 
@@ -619,7 +628,7 @@ The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavio
 
 Option of the node entry. The behavior can be set to watch dog behavior with Last Known Value (`WatchdogLKV`, which is the default) or Last Known Good (`WatchdogLKG`) semantics. A last known good value has either a status code of `Good` or a valid value (!= Null) and not a bad status code (which covers other Good or Uncertain status codes). Bad values are not causing heartbeat messages in LKG mode. A continuous periodic sending of the last known value (`PeriodicLKV`) or last good value (`PeriodicLKG`) can also be selected.
 
-The hearbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to log heartbeat in the diagnostics output without sending heartbeats as part of the outgoing messages.  
+The heartbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to log heartbeat in the diagnostics output without sending heartbeats as part of the outgoing messages.
 
 ##### Timestamps
 
@@ -649,11 +658,9 @@ Similar use cases require cyclic read based sampling using read service calls on
   "UseCyclicRead": true,
 ```
 
-The OPC UA server always sends the first data value to OPC Publisher when the subscription is created. To prevent publishing all of these values during startup, the `SkipFirst` value can be specified in the data item's configuration:
+The diagnostics output and metrics contain a `Server queue overflows` instrument. In the case of cyclic reads these are the number of skipped value reads because a cycle was missed due to delays reading from the server.  For example when configuring a 1 second sampling interval and the read operation takes 2.5 seconds, then 1 cycle will be missed and 1 overflow per value will be reported. Either set a less aggressive sampling interval (e.g., 3 seconds in the above case) or configure less items in the data set writer (if latency is due to the # of read operations in a single read request or the operation limits of the server).
 
-``` json
-  "SkipFirst": true,
-```
+The OPC UA subscription/monitored items service due to its async model (server side sampling, queuing and publishing) is by far way more efficient than cyclically reading nodes from the server. Limits are reached relatively quickly compared to regular operation and heavily depend on the OPC UA server implementation and vendor.
 
 ### Configuring Security
 
@@ -854,6 +861,18 @@ One or both of these must be set for condition handling to be in effect. You can
 
 Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages.
 
+## Publish to a Unified Namespace
+
+> This feature is in preview
+
+OPC Publisher allows you to map values and events obtained from the OPC UA address space to MQTT topics up to the granularity of the subscribed node id (monitored item).
+
+Specify topic templates at the level of `WriterGroup`, `DataSetWriter` or `Node` as part of the [configuration](#configuration-schema) to configure routing that meets your needs. Topic templates can apply not just to MQTT but to any transport supporting topic or queue name based routing, however, the default templates that apply use the MQTT topic format with `/` path delimiter and escape only MQTT topic reserved characters (using `\x<ascii-code>`).
+
+For extra convenience use the automatic routing feature which leverages the OPC UA browse paths inside the address space to automatically create the topic structure. The browse path from the root folder (`i=84`) is used as it maps well with how clients visualize the address space. To use this feature, configure the `DataSetRouting` option in the configuration or set a default on the [command line](./commandline.md). For example when configuring the `UseBrowseNames` option all Events and data changes are routed to topics that match the browse path of the source node effectively mapping the address space into the MQTT topic structure with limited configuration overhead.
+
+When publishing value changes to topics best choose a [Message format](./messageformats.md) that has limited overhead, e.g., `SingleRawDataSet` or `SingleDataSetMessage`.
+
 ## OPC Publisher Telemetry Formats
 
 OPC Publisher version 2.6 and above supports standardized OPC UA PubSub network messages in JSON format as specified in [part 14 of the OPC UA specification](https://opcfoundation.org/developer-tools/specifications-unified-architecture/part-14-pubsub/).
@@ -941,7 +960,7 @@ OPC Publisher supports remote configuration through Azure IoT Hub [direct method
 
 - The API can be invoked through Azure [**IoT Hub direct methods**](#calling-the-direct-methods-api) from the cloud or from another IoT Edge module running alongside of OPC Publisher or inside a higher layer of a Purdue network setup. The method name is the operation name and request payload as documented in the API documentation.
 
-- The same API is exposed as [REST API](#calling-the-api-over-http) via the Http**HTTP Server** [built into OPC Publisher](./transports.md#built-in-http-api-server) (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a bearer token in the Authorization header (`Bearer <api-key>`). The API key is generated at start up and [can be read from the OPC Publisher module's module twin](#using-iot-edge-simulation-environment) (`__apikey__` property).
+- The same API is exposed as [REST API](#calling-the-api-over-http) via the Http**HTTP Server** [built into OPC Publisher](./transports.md#built-in-http-api-server) (Preview). The API supports browse and historian access streaming, which the other transports do not provide. All calls must be authenticated through an API Key which must be provided as a Api Key token in the Authorization header (`ApiKey <api-key>`). The API key is generated at start up and [can be read from the OPC Publisher module's module twin](#using-iot-edge-simulation-environment) (`__apikey__` property).
 
 - The API can also be invoked through **MQTT v5 RPC calls** (Preview). The API is mounted on top of the method template (configured using the `--mtt` [command line argument](./commandline.md)). The method name follows the topic. The caller provides the topic that receives the response in the topic specified in the corresponding MQTTv5 PUBLISH packet property.
 
@@ -1011,10 +1030,10 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
       ...
 ```
 
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
+You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
 
 ```bash
-curl -H "Authorization: Bearer 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://localhost:8081/v2/configuration
+curl -H "Authorization: ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://localhost:8081/v2/configuration
 {"endpoints":[]}
 ```
 

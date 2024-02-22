@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.DeterministicAlarm
             var registry = _factory.Resolve<IEndpointManager>();
             var endpointId = registry.RegisterEndpointAsync(_server.GetConnection().Endpoint).Result;
             return new DeterministicAlarmsTests1<string>(() => // Create an adapter over the api
-                new TwinWebApiAdapter(_client.Resolve<ITwinServiceApi>()), endpointId, _server);
+                new TwinWebApiAdapter(_client.Resolve<ITwinServiceApi>()), endpointId);
         }
 
         private readonly WebAppFixture _factory;

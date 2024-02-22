@@ -33,6 +33,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IServiceMessageContext messageContext);
 
     /// <summary>
+    /// Update relative path
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="messageContext"></param>
+    public delegate void UpdateRelativePath(RelativePath path,
+        IServiceMessageContext messageContext);
+
+    /// <summary>
     /// Callback
     /// </summary>
     /// <param name="messageType"></param>
@@ -81,6 +89,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// the node does not need to be registered.
         /// </summary>
         public virtual (string NodeId, UpdateNodeId Update)? Register
+            => null;
+
+        /// <summary>
+        /// Get the relative path from root for the node. This is called
+        /// after the node is resolved but not yet registered
+        /// </summary>
+        public virtual (string NodeId, UpdateRelativePath Update)? GetPath
             => null;
 
         /// <summary>
@@ -446,6 +461,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             return TryGetMonitoredItemNotifications(sequenceNumber, DateTime.UtcNow,
                 lastValue, notifications);
         }
+
+        /// <summary>
+        /// Create triggered items
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected abstract IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+            ILoggerFactory factory, IOpcUaClient? client = null);
 
         /// <summary>
         /// Add error to notification list

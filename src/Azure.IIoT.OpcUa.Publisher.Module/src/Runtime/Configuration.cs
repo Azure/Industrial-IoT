@@ -620,10 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void PostConfigure(string? name, RouterOptions options)
             {
-                if (options.MountPoint == null)
-                {
-                    options.MountPoint = new TopicBuilder(_options).MethodTopic;
-                }
+                options.MountPoint ??= new TopicBuilder(_options).MethodTopic;
             }
 
             private readonly IOptions<PublisherOptions> _options;
@@ -687,10 +684,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
 
                 // The api token should be part of the environment if dapr is supported
-                if (options.ApiToken == null)
-                {
-                    options.ApiToken = GetStringOrDefault(EnvironmentVariable.DAPRAPITOKEN);
-                }
+                options.ApiToken ??= GetStringOrDefault(EnvironmentVariable.DAPRAPITOKEN);
             }
 
             /// <summary>
@@ -808,10 +802,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, FileSystemOptions options)
             {
-                if (options.OutputFolder == null)
-                {
-                    options.OutputFolder = GetStringOrDefault(OutputRootKey);
-                }
+                options.OutputFolder ??= GetStringOrDefault(OutputRootKey);
             }
 
             /// <summary>
@@ -902,23 +893,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         options.Password = GetStringOrDefault(PasswordKey);
                     }
-                    if (options.Port == null)
-                    {
-                        options.Port = GetIntOrNull(HostPortKey);
-                    }
+                    options.Port ??= GetIntOrNull(HostPortKey);
                     if (Enum.TryParse<MqttVersion>(GetStringOrDefault(ProtocolKey),
                         true, out var version))
                     {
                         options.Protocol = version;
                     }
-                    if (options.UseTls == null)
-                    {
-                        options.UseTls = GetBoolOrNull(UseTlsKey);
-                    }
-                    if (options.NumberOfClientPartitions == null)
-                    {
-                        options.NumberOfClientPartitions = GetIntOrNull(ClientPartitionsKey);
-                    }
+                    options.UseTls ??= GetBoolOrNull(UseTlsKey);
+                    options.NumberOfClientPartitions ??= GetIntOrNull(ClientPartitionsKey);
                     if (options.KeepAlivePeriod == null)
                     {
                         options.KeepAlivePeriod = GetDurationOrNull(KeepAlivePeriodKey);

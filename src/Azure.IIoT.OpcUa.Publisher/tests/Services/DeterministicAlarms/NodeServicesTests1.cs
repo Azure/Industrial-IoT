@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.DeterministicAlarms
                 () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
                     new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
-                _server.GetConnection(), _server);
+                _server.GetConnection());
         }
 
         private readonly ITestOutputHelper _output;

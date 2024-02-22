@@ -250,6 +250,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
                 NetworkMessageContentMask = (uint)contentMask
             };
         }
+
         /// <summary>
         /// Create dataset message
         /// </summary>
@@ -267,6 +268,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
                 ApplicationUri = "ApplicationUrl",
                 NodeId = "NodeId",
                 SequenceNumber = (ushort)sequenceNumber,
+                UseCompatibilityMode = useCompatibilityMode,
                 Status = StatusCodes.Bad,
                 Timestamp = DateTime.UtcNow,
                 Payload = CreateDataSet(dataSetFieldContentMask),

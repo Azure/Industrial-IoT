@@ -20,6 +20,7 @@ namespace Plc.PluginNodes
         public IReadOnlyCollection<NodeWithIntervals> Nodes { get; private set; } = new List<NodeWithIntervals>();
         public TimeService TimeService { get; set; }
         public ILogger Logger { get; set; }
+        public uint ScaleUnits { get; set; }
 
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
@@ -105,23 +106,19 @@ namespace Plc.PluginNodes
 
             Nodes = new List<NodeWithIntervals>
             {
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "StepUp",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "AlternatingBoolean",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "RandomSignedInt32",
                     Namespace = Plc.Namespaces.PlcApplications
                 },
-                new NodeWithIntervals
-                {
+                new() {
                     NodeId = "RandomUnsignedInt32",
                     Namespace = Plc.Namespaces.PlcApplications
                 }

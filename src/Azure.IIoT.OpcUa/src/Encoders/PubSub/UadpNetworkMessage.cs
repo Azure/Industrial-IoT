@@ -146,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DiscoveryAnnouncement = 8,
             DiscoveryTypeBit3 = 16,
             DiscoveryTypeBits = DiscoveryProbe | DiscoveryAnnouncement | DiscoveryTypeBit3,
+            ActionHeaderEnabled = 32
         }
 
         /// <summary>
@@ -515,7 +516,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         //
                         if (writeSpan.Length > byte.MaxValue)
                         {
-                            writeSpan = writeSpan.Slice(0, byte.MaxValue);
+                            writeSpan = writeSpan[..byte.MaxValue];
                         }
 #if DEBUG
                         var remaining = remainingChunks.Length;
@@ -1011,10 +1012,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 var totalSize = decoder.ReadUInt32(null);
                 var buffer = decoder.ReadByteString(null);
 
-                var chunk = new Message(buffer, Messages.Count > 0 ? Messages[0].DataSetWriterId : (ushort)0);
-                chunk.ChunkOffset = chunkOffset;
-                chunk.TotalSize = totalSize;
-                chunk.MessageSequenceNumber = messageSequenceNumber;
+                var chunk = new Message(buffer, Messages.Count > 0 ? Messages[0].DataSetWriterId : (ushort)0)
+                {
+                    ChunkOffset = chunkOffset,
+                    TotalSize = totalSize,
+                    MessageSequenceNumber = messageSequenceNumber
+                };
                 chunks.Add(chunk);
 
                 var messageBuffer = Message.GetMessageBufferFromChunks(chunks);
@@ -1090,7 +1093,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
 
                 // Try to limit the number of messages by half
-                writeSpan = writeSpan.Slice(0, writeSpan.Length / 2);
+                writeSpan = writeSpan[..(writeSpan.Length / 2)];
                 return false;
             }
 
@@ -1115,7 +1118,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (!isChunkMessage)
                 {
                     isChunkMessage = true;
-                    writeSpan = writeSpan.Slice(0, 1);
+                    writeSpan = writeSpan[..1];
                     // Restart writing the complete buffer now in chunk message mode
                     return false;
                 }
@@ -1136,7 +1139,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (chunk.Remaining == 0)
                 {
                     // Completed
-                    writeSpan = remainingChunks = remainingChunks.Slice(1);
+                    writeSpan = remainingChunks = remainingChunks[1..];
                     isChunkMessage = false;
                 }
                 else
@@ -1161,7 +1164,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (writeSpan.Length != writeCount)
                 {
                     // Restart by limiting the number of chunks we will write to this message to what fits
-                    writeSpan = remainingChunks.Slice(0, writeCount);
+                    writeSpan = remainingChunks[..writeCount];
                     return false;
                 }
 
@@ -1178,7 +1181,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     encoder.WriteRawBytes(buffer.ChunkData.ToArray(), 0, buffer.ChunkData.Length);
                 }
-                remainingChunks = remainingChunks.Slice(writeCount);
+                remainingChunks = remainingChunks[writeCount..];
                 writeSpan = default;
             }
             // Write security header after and finish message

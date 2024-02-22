@@ -51,7 +51,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
+            public override (string NodeId, UpdateRelativePath Update)? GetPath
+                => TheResolvedRelativePath == null &&
+                !string.IsNullOrEmpty(NodeId) ? (NodeId, (path, context) =>
+                {
+                    if (path == null)
+                    {
+                        NodeId = string.Empty;
+                    }
+                    TheResolvedRelativePath = path;
+                }
+            ) : null;
+
+            /// <inheritdoc/>
             public override string? DataSetName => Template.DisplayName;
+
+            /// <summary>
+            /// Relative path
+            /// </summary>
+            protected RelativePath? TheResolvedRelativePath { get; private set; }
 
             /// <summary>
             /// Monitored item as event
@@ -85,6 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 Fields = item.Fields;
+                RelativePath = item.RelativePath;
                 Template = item.Template;
             }
 
@@ -277,13 +296,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, IOpcUaClient? client = null)
+            {
+                if (Template.TriggeredItems != null)
+                {
+                    return Create(Template.TriggeredItems, factory, client);
+                }
+                return Enumerable.Empty<OpcUaMonitoredItem>();
+            }
+
+            /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
                 uint sequenceNumber, StatusCode statusCode,
                 IList<MonitoredItemNotificationModel> notifications)
             {
-                foreach (var field in Fields)
+                foreach (var (Name, _) in Fields)
                 {
-                    if (field.Name == null)
+                    if (Name == null)
                     {
                         continue;
                     }
@@ -291,8 +321,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
-                        DataSetFieldName = field.Name,
+                        Context = Template.Context,
+                        DataSetFieldName = Name,
                         NodeId = Template.StartNodeId,
+                        PathFromRoot = TheResolvedRelativePath,
                         Value = new DataValue(statusCode),
                         Flags = MonitoredItemSourceFlags.Error,
                         SequenceNumber = sequenceNumber
@@ -340,9 +372,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         yield return new MonitoredItemNotificationModel
                         {
                             Id = Template.Id ?? string.Empty,
+                            Context = Template.Context,
                             DataSetName = Template.DisplayName,
                             DataSetFieldName = Fields[i].Name,
                             NodeId = Template.StartNodeId,
+                            PathFromRoot = TheResolvedRelativePath,
+                            Flags = 0,
                             Value = new DataValue(eventFields.EventFields[i]),
                             SequenceNumber = sequenceNumber
                         };

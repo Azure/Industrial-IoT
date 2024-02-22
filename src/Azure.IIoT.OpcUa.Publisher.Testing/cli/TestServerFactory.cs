@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new PerfTest.PerfTestServer(),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger)
+                new Plc.PlcServer(new TimeService(), logger, 1)
             })
         {
         }

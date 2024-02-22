@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
             // Explicitely enabled metadata despite messaging profile
             Assert.NotNull(metadata);
-            Assert.EndsWith("/$metadata", metadata.Value.Topic, StringComparison.Ordinal);
+            Assert.EndsWith("/metadata", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
         [Theory]

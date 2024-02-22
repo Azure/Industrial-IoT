@@ -33,8 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     {
                         break;
                     }
-                    rawCertificates = rawCertificates.AsSpan()
-                        .Slice(cur.RawData.Length)
+                    rawCertificates = rawCertificates.AsSpan()[cur.RawData.Length..]
                         .ToArray();
                 }
                 return new X509CertificateChainModel

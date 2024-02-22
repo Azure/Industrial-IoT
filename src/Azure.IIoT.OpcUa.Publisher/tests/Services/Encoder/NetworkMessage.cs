@@ -105,6 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string publisherId = "Publisher";
             var writer = new DataSetWriterModel
             {
+                Id = string.Empty,
                 DataSet = new PublishedDataSetModel
                 {
                     DataSetSource = new PublishedDataSetSourceModel
@@ -123,6 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var writerGroup = new WriterGroupModel
             {
+                Id = string.Empty,
                 MessageSettings = new WriterGroupMessageSettingsModel
                 {
                     NetworkMessageContentMask =
@@ -228,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     Context = new WriterGroupMessageContext
                     {
                         NextWriterSequenceNumber = () => i,
-                        MetaDataTopic = string.Empty,
+                        Qos = null,
                         Topic = string.Empty,
                         PublisherId = publisherId,
                         Writer = writer,

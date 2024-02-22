@@ -27,20 +27,22 @@ namespace Plc
         }
 
         /// <inheritdoc/>
-        public PlcServer(TimeService timeservice, ILogger logger)
+        public PlcServer(TimeService timeservice, ILogger logger, uint scaleunits)
         {
             _timeservice = timeservice;
             _logger = logger;
+            _scaleunits = scaleunits;
         }
 
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration)
         {
-            return new PlcNodeManager(server, configuration, _timeservice, _logger);
+            return new PlcNodeManager(server, configuration, _timeservice, _logger, _scaleunits);
         }
 
         private readonly TimeService _timeservice;
         private readonly ILogger _logger;
+        private readonly uint _scaleunits;
     }
 }

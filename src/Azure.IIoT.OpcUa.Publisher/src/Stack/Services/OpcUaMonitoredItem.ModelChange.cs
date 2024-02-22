@@ -34,11 +34,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public MonitoredAddressSpaceModel Template { get; protected internal set; }
 
             /// <summary>
-            /// Root id
-            /// </summary>
-            public NodeId? RootNodeId { get; private set; }
-
-            /// <summary>
             /// Create model change item
             /// </summary>
             /// <param name="template"></param>
@@ -66,7 +61,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _client = item._client;
                 _callback = item._callback;
                 _fields = item._fields;
-                RootNodeId = item.RootNodeId;
 
                 _browser = item.CloneBrowser();
                 if (_browser != null)
@@ -88,10 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Cleanup
                 var browser = CloneBrowser();
-                if (browser != null)
-                {
-                    browser.CloseAsync().AsTask().GetAwaiter().GetResult();
-                }
+                browser?.CloseAsync().AsTask().GetAwaiter().GetResult();
                 base.Dispose(disposing);
             }
 
@@ -112,14 +103,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                if (Template.StartNodeId != modelChange.Template.StartNodeId)
-                {
-                    return false;
-                }
-                if (Template.RootNodeId != modelChange.Template.RootNodeId)
-                {
-                    return false;
-                }
                 if (_client != modelChange._client)
                 {
                     return false;
@@ -137,12 +120,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.DataSetFieldId ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.StartNodeId);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.RootNodeId ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
                     _client.GetHashCode();
                 return hashCode;
@@ -215,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_browser == null)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
-                            TimeSpan.FromHours(12), RootNodeId ?? ObjectIds.RootFolder);
+                            TimeSpan.FromHours(12), Subscription.DisplayName);
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
@@ -235,15 +212,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
 
-                RootNodeId = Template.RootNodeId.ToNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(RootNodeId))
-                {
-                    RootNodeId = ObjectIds.RootFolder;
-                }
-
                 DisplayName = Template.DisplayName;
                 AttributeId = Attributes.EventNotifier;
-                MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
+                MonitoringMode = MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
@@ -320,6 +291,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 return true;
+            }
+
+            /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, IOpcUaClient? client = null)
+            {
+                if (Template.TriggeredItems != null)
+                {
+                    return Create(Template.TriggeredItems, factory, client);
+                }
+                return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <summary>
@@ -401,7 +383,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
+                        Context = Template.Context,
                         DataSetFieldName = field.Name,
+                        PathFromRoot = changeFeedNotification.PathFromRoot,
                         NodeId = Template.StartNodeId,
                         Value = new DataValue(value.Value),
                         Flags = MonitoredItemSourceFlags.ModelChanges,

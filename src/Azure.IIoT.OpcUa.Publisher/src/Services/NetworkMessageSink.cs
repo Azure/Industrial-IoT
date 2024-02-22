@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
                 "{Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and " +
                 "{MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...",
-                writerGroup.Name ?? Constants.DefaultWriterGroupId,
+                writerGroup.Name ?? Constants.DefaultWriterGroupName,
                 _batchTriggerInterval == TimeSpan.Zero ?
                     "as soon as they arrive" : $"every {_batchTriggerInterval} (hh:mm:ss)",
                 _maxNotificationsPerMessage == 1 ?

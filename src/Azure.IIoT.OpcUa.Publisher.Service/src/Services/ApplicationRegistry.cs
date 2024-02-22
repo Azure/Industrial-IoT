@@ -1358,8 +1358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid)
         {
             // Convert to twin registration
-            var registration = twin.ToEntityRegistration(onlyServerState) as EndpointRegistration;
-            if (registration is null)
+            if (twin.ToEntityRegistration(onlyServerState) is not EndpointRegistration registration)
             {
                 if (skipInvalid)
                 {

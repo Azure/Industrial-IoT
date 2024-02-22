@@ -77,10 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Cleanup
                 var sampler = CloneSampler();
-                if (sampler != null)
-                {
-                    sampler.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                }
+                sampler?.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 base.Dispose(disposing);
             }
 

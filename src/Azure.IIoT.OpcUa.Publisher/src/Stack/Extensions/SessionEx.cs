@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     /// <summary>
     /// Session Handle extensions
     /// </summary>
-    public static class SessionHandleEx
+    public static class SessionEx
     {
         /// <summary>
         /// Read attribute
@@ -58,19 +58,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             this IOpcUaSession session, RequestHeader header, IEnumerable<NodeId> nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
-            if (!nodeIds.Any())
+            var itemsToRead = new ReadValueIdCollection(nodeIds.Select(nodeId => new ReadValueId
+            {
+                NodeId = nodeId,
+                AttributeId = attributeId
+            }));
+            if (itemsToRead.Count == 0)
             {
                 return Enumerable.Empty<(T?, ServiceResultModel?)>();
             }
-            var itemsToRead = new ReadValueIdCollection(nodeIds
-                .Select(nodeId => new ReadValueId
-                {
-                    NodeId = nodeId,
-                    AttributeId = attributeId
-                }));
             var response = await session.Services.ReadAsync(header,
-                0, Opc.Ua.TimestampsToReturn.Neither, itemsToRead,
-                ct).ConfigureAwait(false);
+                0, Opc.Ua.TimestampsToReturn.Neither, itemsToRead, ct).ConfigureAwait(false);
             var results = response.Validate(response.Results,
                 s => s.StatusCode, response.DiagnosticInfos, itemsToRead);
 
@@ -111,6 +109,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             NodeId = nodeId,
                             AttributeId = attributeId
                         })));
+            if (itemsToRead.Count == 0)
+            {
+                return null;
+            }
             var response = await session.Services.ReadAsync(header,
                 0, Opc.Ua.TimestampsToReturn.Neither, itemsToRead,
                 ct).ConfigureAwait(false);
@@ -156,6 +158,199 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             var errorInfo = results.ErrorInfo ?? results[0].ErrorInfo;
             var value = results.ErrorInfo != null ? null : results[0].Result;
             return (value, errorInfo);
+        }
+
+        /// <summary>
+        /// Path result returned by browse path resolver.
+        /// </summary>
+        /// <param name="Path"></param>
+        /// <param name="ErrorInfo"></param>
+        internal record class PathResult(RelativePath Path, ServiceResultModel? ErrorInfo);
+
+        /// <summary>
+        /// Get all browse paths for the nodes provided from the root folder object that
+        /// organizes the address space.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodes"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal static async Task<IReadOnlyList<PathResult>> GetBrowsePathsFromRootAsync(
+            this IOpcUaSession session, RequestHeader requestHeader, IEnumerable<NodeId> nodes,
+            CancellationToken ct = default)
+        {
+            //
+            // The semantic of HierarchicalReferences is to denote that References of
+            // HierarchicalReferences span a hierarchy. It means that it may be useful
+            // to present Nodes related with References of this type in a hierarchical-like
+            // way. HierarchicalReferences does not forbid loops. For example, starting
+            // from Node A and following HierarchicalReferences it may be possible to
+            // browse to Node A, again. Technically we only care about HasChild references
+            // as well as Organizes, but we try and follow all paths to the root path
+            // and backtrack if we do not get to it.
+            //
+            var browse = nodes.Select(nodeId => new BrowseDescription
+            {
+                BrowseDirection = Opc.Ua.BrowseDirection.Inverse,
+                ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                IncludeSubtypes = true,
+                NodeId = nodeId,
+                Handle = new PathResult(new RelativePath(), null),
+                NodeClassMask = 0u,
+                ResultMask =
+                      (uint)BrowseResultMask.BrowseName
+                    | (uint)BrowseResultMask.ReferenceTypeId
+            }).ToList();
+
+            if (browse.Count == 0)
+            {
+                return Array.Empty<PathResult>();
+            }
+
+            // Here we keep track of the paths we are exploring to allow us to backtrack
+            var searchContext = browse.ToDictionary(b => b,
+                _ => new Stack<(Queue<ReferenceDescription> Next, HashSet<ExpandedNodeId> Seen)>());
+
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            foreach (var batch in searchContext.Keys.Batch(limits.GetMaxNodesPerRead()))
+            {
+                var response = await session.Services.ReadAsync(requestHeader,
+                    0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
+                        batch.Select(b => new ReadValueId
+                        {
+                            NodeId = b.NodeId,
+                            AttributeId = (uint)NodeAttribute.BrowseName
+                        })), ct).ConfigureAwait(false);
+                var readResults = response.Validate(response.Results,
+                    s => s.StatusCode, response.DiagnosticInfos, batch);
+
+                // Fail all
+                if (readResults.ErrorInfo != null)
+                {
+                    return searchContext.Keys.Select(b => ((PathResult)b.Handle) with
+                    {
+                        ErrorInfo = readResults.ErrorInfo
+                    }).ToList();
+                }
+                foreach (var result in readResults)
+                {
+                    var path = (PathResult)result.Request.Handle;
+                    path.Path.Elements.Add(new RelativePathElement
+                    {
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = result.Result.Value as QualifiedName
+                    });
+                }
+            }
+
+            while (searchContext.Count != 0)
+            {
+                var results = session.BrowseAsync(requestHeader, null,
+                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false);
+                await foreach (var result in results)
+                {
+                    if (result.Description == null)
+                    {
+                        // Fail all
+                        return browse.ConvertAll(b => ((PathResult)b.Handle) with
+                        {
+                            ErrorInfo = result.ErrorInfo ?? new ServiceResultModel
+                            {
+                                StatusCode = StatusCodes.BadNotFound
+                            }
+                        });
+                    }
+
+                    var pathsFromNode = searchContext[result.Description];
+                    var path = (PathResult)result.Description.Handle;
+
+                    ReferenceDescription? reference = null;
+                    if (result.References != null)
+                    {
+                        if (result.References.Any(r => r.NodeId == ObjectIds.RootFolder))
+                        {
+                            //
+                            // we reached the root folder and are now done. There could be
+                            // alternative paths to the root but we do not care about those.
+                            //
+                            searchContext.Remove(result.Description);
+                            continue;
+                        }
+
+                        //
+                        // Filter any nodes we have already seen on our journey and then
+                        // filter any nodes that are external. Then we do some weighing,
+                        // e.g., prefer Organizes to HasChild (HasProperty, HasComponent)
+                        // to HasEventSource (HasNotifier)
+                        //
+                        var references = result.References
+                            .Where(r => r.NodeId.ServerIndex == 0 &&
+                                !pathsFromNode.Any(p => p.Seen.Contains(r.NodeId)))
+                            .OrderBy(r => r.ReferenceTypeId)
+                            ;
+
+                        var queue = new Queue<ReferenceDescription>(references);
+                        if (queue.Count > 0)
+                        {
+                            pathsFromNode.Push((queue, new HashSet<ExpandedNodeId>()));
+
+                            reference = pathsFromNode.Peek().Next.Dequeue();
+                            pathsFromNode.Peek().Seen.Add(reference.NodeId);
+                        }
+                    }
+
+                    if (reference == null)
+                    {
+                        //
+                        // Wrong path taken see if there are alternatives to get to root
+                        // Backtrack the path elements and try to find a new route
+                        //
+                        path.Path.Elements.RemoveAt(0);
+                        while (pathsFromNode.Count > 0)
+                        {
+                            var alternativeReferences = pathsFromNode.Peek().Next;
+                            if (alternativeReferences.Count != 0)
+                            {
+                                reference = alternativeReferences.Dequeue();
+                                pathsFromNode.Peek().Seen.Add(reference.NodeId);
+                                break;
+                            }
+
+                            // All paths at this level exhausted - backtrack a level.
+                            path.Path.Elements.RemoveAt(0);
+                            path.Path.Elements[0].ReferenceTypeId = null;
+                            pathsFromNode.Pop();
+                        }
+
+                        if (reference == null)
+                        {
+                            // No way to get to root.  This should not happen.
+                            searchContext.Remove(result.Description);
+                            result.Description.Handle = path with
+                            {
+                                ErrorInfo = result.ErrorInfo ?? new ServiceResultModel
+                                {
+                                    StatusCode = StatusCodes.BadNotFound
+                                }
+                            };
+                            continue;
+                        }
+                    }
+
+                    path.Path.Elements[0].ReferenceTypeId = reference.ReferenceTypeId;
+                    path.Path.Elements.Insert(0, new RelativePathElement
+                    {
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = reference.BrowseName
+                    });
+                    result.Description.NodeId = reference.NodeId.ToNodeId(
+                        session.MessageContext.NamespaceUris);
+                }
+            }
+            return browse.ConvertAll(b => (PathResult)b.Handle);
         }
 
         /// <summary>
@@ -255,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             }
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
             var resolveBrowsePathsBatches = resolveBrowsePaths
-                .Batch(Math.Max(1, (int)(limits.MaxNodesPerTranslatePathsToNodeIds ?? 0)));
+                .Batch(limits.GetMaxNodesPerTranslatePathsToNodeIds());
             foreach (var batch in resolveBrowsePathsBatches)
             {
                 // translate browse paths.
@@ -338,9 +533,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
             if (objectsToBrowse.Count > 0)
             {
-                var objectsToBrowseBatches = objectsToBrowse
-                    .Batch(Math.Max(1, (int)(limits.MaxNodesPerBrowse ?? 0)));
-                foreach (var batch in objectsToBrowseBatches)
+                foreach (var batch in objectsToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
                 {
                     // Browse folders with objects and variables in it
                     var browseResults = session.BrowseAsync(requestHeader, null,
@@ -396,9 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
             if (valuesToRead.Count > 0)
             {
-                var valuesToReadBatches = valuesToRead
-                    .Batch(Math.Max(1, (int)(limits.MaxNodesPerRead ?? 0)));
-                foreach (var batch in valuesToReadBatches)
+                foreach (var batch in valuesToRead.Batch(limits.GetMaxNodesPerRead()))
                 {
                     // read the values.
                     var readResponse = await session.Services.ReadAsync(
@@ -1112,55 +1303,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
-            var firstResponse = await session.Services.BrowseAsync(requestHeader, view,
-                0, nodesToBrowse, ct).ConfigureAwait(false);
-            var firstResults = firstResponse.Validate(firstResponse.Results,
-                s => s.StatusCode, firstResponse.DiagnosticInfos, nodesToBrowse);
-            if (firstResults.ErrorInfo != null)
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            var maxContinuationPoints = limits.GetMaxBrowseContinuationPoints();
+            foreach (var nodesToBrowseBatch in nodesToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
             {
-                yield return new BrowseResult(null, null, firstResults.ErrorInfo);
-            }
-            var continuationPoints = firstResults
-                .Where(r =>
-                    r.Result.ContinuationPoint?.Length > 0)
-                .ToDictionary(r => r.Request, r => r.Result.ContinuationPoint);
-            try
-            {
-                foreach (var result in firstResults)
+                var browseDescriptions = new BrowseDescriptionCollection(nodesToBrowseBatch);
+                var firstResponse = await session.Services.BrowseAsync(requestHeader, view,
+                    0, browseDescriptions, ct).ConfigureAwait(false);
+                var firstResults = firstResponse.Validate(firstResponse.Results,
+                    s => s.StatusCode, firstResponse.DiagnosticInfos, browseDescriptions);
+                if (firstResults.ErrorInfo != null)
                 {
-                    yield return new BrowseResult(result.Request,
-                        result.Result.References, result.ErrorInfo);
+                    yield return new BrowseResult(null, null, firstResults.ErrorInfo);
                 }
-                while (continuationPoints.Count != 0)
+                var continuationPoints = firstResults
+                    .Where(r => r.Result.ContinuationPoint?.Length > 0)
+                    .Select(r => (r.Request, r.Result.ContinuationPoint));
+                try
                 {
-                    var nextResponse = await session.Services.BrowseNextAsync(requestHeader,
-                        false, new ByteStringCollection(continuationPoints.Values),
-                        ct).ConfigureAwait(false);
-                    var nextResults = firstResponse.Validate(nextResponse.Results,
-                        s => s.StatusCode, nextResponse.DiagnosticInfos,
-                        continuationPoints);
-                    if (nextResults.ErrorInfo != null)
+                    foreach (var result in firstResults)
                     {
-                        yield return new BrowseResult(null, null, nextResults.ErrorInfo);
+                        yield return new BrowseResult(result.Request,
+                            result.Result.References, result.ErrorInfo);
                     }
-                    foreach (var result in nextResults)
+                    while (true)
                     {
-                        yield return new BrowseResult(
-                            result.Request.Key, result.Result.References, result.ErrorInfo);
+                        var next = continuationPoints.Take(maxContinuationPoints).ToList();
+                        if (next.Count == 0)
+                        {
+                            break;
+                        }
+
+                        var nextResponse = await session.Services.BrowseNextAsync(requestHeader,
+                            false, new ByteStringCollection(next.Select(r => r.ContinuationPoint)),
+                            ct).ConfigureAwait(false);
+                        var nextResults = firstResponse.Validate(nextResponse.Results,
+                            s => s.StatusCode, nextResponse.DiagnosticInfos, next);
+
+                        if (nextResults.ErrorInfo != null)
+                        {
+                            yield return new BrowseResult(null, null, nextResults.ErrorInfo);
+                        }
+                        foreach (var result in nextResults)
+                        {
+                            yield return new BrowseResult(
+                                result.Request.Request, result.Result.References, result.ErrorInfo);
+                        }
+
+                        continuationPoints = continuationPoints.Concat(nextResults
+                            .Where(r => r.Result.ContinuationPoint?.Length > 0)
+                            .Select(r => (r.Request.Request, r.Result.ContinuationPoint)));
                     }
-                    continuationPoints = nextResults
-                        .Where(r =>
-                            r.Result.ContinuationPoint?.Length > 0)
-                        .ToDictionary(r => r.Request.Key, r => r.Result.ContinuationPoint);
                 }
-            }
-            finally
-            {
-                if (continuationPoints.Count != 0)
+                finally
                 {
-                    await session.Services.BrowseNextAsync(requestHeader,
-                        true, new ByteStringCollection(continuationPoints.Values),
-                        ct).ConfigureAwait(false);
+                    // Release any dangling continuation points
+                    foreach (var batch in continuationPoints
+                        .Select(r => r.ContinuationPoint)
+                        .Batch(maxContinuationPoints))
+                    {
+                        await session.Services.BrowseNextAsync(requestHeader,
+                            true, new ByteStringCollection(batch), ct).ConfigureAwait(false);
+                    }
                 }
             }
         }

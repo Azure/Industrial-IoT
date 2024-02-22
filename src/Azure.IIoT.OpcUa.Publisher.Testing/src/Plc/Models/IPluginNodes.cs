@@ -12,6 +12,7 @@ namespace Plc.PluginNodes.Models
 
     public interface IPluginNodes
     {
+        uint ScaleUnits { get; set; }
         ILogger Logger { get; set; }
         TimeService TimeService { get; set; }
         IReadOnlyCollection<NodeWithIntervals> Nodes { get; }

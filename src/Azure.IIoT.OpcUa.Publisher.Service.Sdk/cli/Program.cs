@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                             break;
                         case "status":
                             options = new CliOptions(args);
-                            await GetStatusAsync(options).ConfigureAwait(false);
+                            await GetStatusAsync().ConfigureAwait(false);
                             break;
                         case "monitor":
                             options = new CliOptions(args);
@@ -1402,8 +1402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             };
             if (options.IsSet("-A", "--all"))
             {
-                var result = await _client.Registry.QueryAllDiscoverersAsync(query,
-                    options.IsProvidedOrNull("-S", "--server")).ConfigureAwait(false);
+                var result = await _client.Registry.QueryAllDiscoverersAsync(query).ConfigureAwait(false);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
@@ -2167,8 +2166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <summary>
         /// Get status
         /// </summary>
-        /// <param name="options"></param>
-        private async Task GetStatusAsync(CliOptions options)
+        private async Task GetStatusAsync()
         {
             Console.WriteLine("Twin:      "
                 + await _client.Twin.GetServiceStatusAsync().ConfigureAwait(false));

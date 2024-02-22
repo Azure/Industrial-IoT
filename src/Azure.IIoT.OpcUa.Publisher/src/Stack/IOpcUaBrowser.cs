@@ -14,12 +14,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="Source"></param>
+    /// <param name="PathFromRoot"></param>
     /// <param name="PreviousItem"></param>
     /// <param name="ChangedItem"></param>
     /// <param name="SequenceNumber"></param>
     /// <param name="Timestamp"></param>
-    public record struct Change<T>(NodeId Source, T? PreviousItem, T? ChangedItem,
-        uint SequenceNumber, DateTime Timestamp) where T : class;
+    public record struct Change<T>(NodeId Source, RelativePath PathFromRoot,
+        T? PreviousItem, T? ChangedItem, uint SequenceNumber,
+        DateTime Timestamp) where T : class;
 
     /// <summary>
     /// This is an abstraction over a continous monitored address space

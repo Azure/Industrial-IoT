@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -28,13 +27,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
-        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="broker"></param>
-        public DiscovererRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<DiscovererRegistry> logger, IDiscovererRegistryListener? broker = null)
+        public DiscovererRegistry(IIoTHubTwinServices iothub, ILogger<DiscovererRegistry> logger,
+            IDiscovererRegistryListener? broker = null)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _events = broker;
@@ -60,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     $"{discovererId} is not a discoverer registration.");
             }
             var model = registration.ToDiscovererModel();
-            if (model == null)
+            if (model is null)
             {
                 throw new ResourceInvalidStateException(
                     $"{discovererId} is not a valid discoverer registration.");
@@ -94,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             nameof(discovererId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
+                    if (twin.ToEntityRegistration(true) is not PublisherRegistration registration)
                     {
                         throw new ResourceNotFoundException(
                             $"{discovererId} is not a publisher registration.");
@@ -127,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
+                        patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
                     if (_events != null)
@@ -216,7 +213,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         }
 
         private readonly IIoTHubTwinServices _iothub;
-        private readonly IJsonSerializer _serializer;
         private readonly IDiscovererRegistryListener? _events;
         private readonly ILogger _logger;
     }

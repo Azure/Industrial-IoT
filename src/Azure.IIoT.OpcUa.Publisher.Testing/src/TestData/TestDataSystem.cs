@@ -472,10 +472,7 @@ namespace TestData
         {
             lock (_lock)
             {
-                if (_monitoredNodes == null)
-                {
-                    _monitoredNodes = new Dictionary<uint, BaseVariableState>();
-                }
+                _monitoredNodes ??= new Dictionary<uint, BaseVariableState>();
                 _monitoredNodes[monitoredItemId] = variable;
                 SetSamplingInterval(samplingInterval);
             }

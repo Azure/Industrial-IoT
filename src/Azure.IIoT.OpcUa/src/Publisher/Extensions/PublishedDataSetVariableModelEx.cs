@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             return model == null ? null : (model with
             {
                 MetaDataProperties = model.MetaDataProperties?.ToList(),
+                Triggering = model.Triggering.Clone(),
                 SubstituteValue = model.SubstituteValue?.Copy()
             });
         }
