@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (that.IsReverse != model.IsReverse)
+            if (that.Options != model.Options)
             {
                 return false;
             }
@@ -61,7 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static bool IsReverseConnect(this ConnectionModel connection)
         {
-            return connection.IsReverse == true && connection.GetEndpointUrls().Any();
+            return connection.Options.HasFlag(ConnectionOptions.UseReverseConnect)
+                && connection.GetEndpointUrls().Any();
         }
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     .Where(u => !string.IsNullOrEmpty(u))
                     .Select(u => new Uri(u)));
             }
-            return endpoints.Where(u => connection.IsReverse != true ||
+            return endpoints.Where(u => !connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ||
                 string.Equals(u.Scheme, "opc.tcp", // Only allow tcp scheme
                     StringComparison.OrdinalIgnoreCase));
         }
@@ -122,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(model.Group ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<bool>.Default.GetHashCode(model.IsReverse ?? false);
+                EqualityComparer<ConnectionOptions>.Default.GetHashCode(model.Options);
             return hashCode;
         }
 

@@ -83,11 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 };
             }
 
-            if (connection.IsReverse == null && options.DefaultUseReverseConnect == true)
+            if (!connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) &&
+                options.DefaultUseReverseConnect == true)
             {
                 connection = connection with
                 {
-                    IsReverse = options.DefaultUseReverseConnect
+                    Options = connection.Options | ConnectionOptions.UseReverseConnect
                 };
             }
             return new SubscriptionIdentifier(connection, dataSetWriter.Id);

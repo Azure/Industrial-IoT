@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,
-                UseReverseConnect = model.IsReverse,
+                UseReverseConnect = model.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
                 OpcNodes = new List<OpcNodeModel>()

@@ -402,7 +402,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         {
                                             Connection = new ConnectionModel
                                             {
-                                                IsReverse = b.Header.UseReverseConnect,
+                                                Options =
+                                                    b.Header.UseReverseConnect == true ?
+                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
                                                 Endpoint = new EndpointModel
                                                 {
                                                     Url = b.Header.EndpointUrl,
@@ -700,7 +702,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         publishedNodesEntryModel.EndpointSecurityMode = null;
                     }
                 }
-                publishedNodesEntryModel.UseReverseConnect = connection.IsReverse;
+                publishedNodesEntryModel.UseReverseConnect =
+                    connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null;
             }
             return publishedNodesEntryModel;
 

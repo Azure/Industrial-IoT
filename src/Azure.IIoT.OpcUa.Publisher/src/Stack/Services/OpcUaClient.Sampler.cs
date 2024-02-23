@@ -115,10 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         // Ensure type system is loaded
-                        if (!session.IsTypeSystemLoaded && _outer.DisableComplexTypePreloading != true)
-                        {
-                            await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
-                        }
+                        await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
 
                         // Perform the read.
                         var timeout = _samplingRate.TotalMilliseconds / 2;

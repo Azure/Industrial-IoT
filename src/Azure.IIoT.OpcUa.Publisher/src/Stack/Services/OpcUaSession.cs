@@ -214,6 +214,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(CancellationToken ct)
         {
+            if (_client.DisableComplexTypeLoading)
+            {
+                return null;
+            }
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 try
@@ -611,12 +615,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void PreloadComplexTypeSystem()
         {
-            if (_complexTypeSystem != null || !Connected ||
-                _client.DisableComplexTypePreloading == true)
+            if (_complexTypeSystem == null &&
+                Connected &&
+                !_client.DisableComplexTypeLoading &&
+                !_client.DisableComplexTypePreloading)
             {
-                return;
+                _complexTypeSystem = LoadComplexTypeSystemAsync();
             }
-            _complexTypeSystem = LoadComplexTypeSystemAsync();
         }
 
         /// <summary>
@@ -949,6 +954,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private Task<ComplexTypeSystem> LoadComplexTypeSystemAsync()
         {
+            Debug.Assert(!_client.DisableComplexTypeLoading);
             return Task.Run(async () =>
             {
                 if (Connected)
