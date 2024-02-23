@@ -91,6 +91,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     Options = connection.Options | ConnectionOptions.UseReverseConnect
                 };
             }
+
+            if (!connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem) &&
+                options.DisableComplexTypeSystem == true)
+            {
+                connection = connection with
+                {
+                    Options = connection.Options | ConnectionOptions.NoComplexTypeSystem
+                };
+            }
             return new SubscriptionIdentifier(connection, dataSetWriter.Id);
         }
     }
