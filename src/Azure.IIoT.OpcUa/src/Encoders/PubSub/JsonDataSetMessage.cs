@@ -131,6 +131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 WritePayload(encoder, property);
             }
+
             void WritePayload(JsonEncoderEx jsonEncoder, string? propertyName = null)
             {
                 var useReversibleEncoding =

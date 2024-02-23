@@ -101,6 +101,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"mm|messagingmode=|{PublisherConfig.MessagingModeKey}=",
                     $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessagingMode)))}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
                     (MessagingMode m) => this[PublisherConfig.MessagingModeKey] = m.ToString() },
+                { $"ode|optimizeddatasetencoding:|{PublisherConfig.WriteValueWhenDataSetHasSingleEntryKey}:",
+                    "When a data set has a single entry the encoder will write only the value of a data set entry and omit the key.\nThis is not compliant with OPC UA Part 14.\nDefault: `False`.\n",
+                    (bool? b) => this[PublisherConfig.WriteValueWhenDataSetHasSingleEntryKey] = b?.ToString() ?? "True" },
 
                 // TODO: Add ability to specify networkmessage mask
                 // TODO: Add ability to specify dataset message mask

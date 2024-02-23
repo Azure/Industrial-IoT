@@ -378,5 +378,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "IngressNotificationsDropped", Order = 50,
             EmitDefaultValue = true)]
         public long IngressNotificationsDropped { get; set; }
+
+        /// <summary>
+        /// Total partitions
+        /// </summary>
+        [DataMember(Name = "TotalPublishQueuePartitions", Order = 51,
+            EmitDefaultValue = true)]
+        public int TotalPublishQueuePartitions { get; set; }
+
+        /// <summary>
+        /// Active partitions
+        /// </summary>
+        [DataMember(Name = "ActivePublishQueuePartitions", Order = 52,
+            EmitDefaultValue = true)]
+        public int ActivePublishQueuePartitions { get; set; }
     }
 }

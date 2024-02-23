@@ -198,7 +198,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (!_queue.TryPublish(args))
             {
-                Interlocked.Increment(ref _dataflowInputDroppedCount);
                 args.Dispose();
             }
         }
@@ -289,6 +288,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             int EncodingInput { get; }
             int EncodingOutput { get; }
             int SendInput { get; }
+            int PartitionCount { get; }
+            int ActiveCount { get; }
 
             /// <summary>
             /// Reset the queue
@@ -316,6 +317,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public int SendInput => _partitions.Sum(p => p.SendInput);
             /// <inheritdoc/>
             public int BufferOutput => _partitions.Sum(p => p.BufferOutput);
+            /// <inheritdoc/>
+            public int PartitionCount => _partitions.Length;
+            /// <inheritdoc/>
+            public int ActiveCount => _partitions.Sum(p => p.ActiveCount);
 
             /// <summary>
             /// Create publish queue partition
@@ -369,6 +374,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public int SendInput => _sendBlock.InputCount;
             /// <inheritdoc/>
             public int BufferOutput => _notificationBufferBlock.OutputCount;
+            /// <inheritdoc/>
+            public int PartitionCount => 1;
+            /// <inheritdoc/>
+            public int ActiveCount => _started ? 1 : 0;
 
             /// <summary>
             /// Create publish queue partition
@@ -470,17 +479,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         _outer.LogNotification(args, true);
                     }
-
-                    // Dispose arg
                     return false;
                 }
+
                 if (_outer._logNotifications)
                 {
                     _outer.LogNotification(args);
                 }
 
                 Interlocked.Increment(ref _outer._notificationBufferInputCount);
-                return _notificationBufferBlock.Post(args);
+                if (!_notificationBufferBlock.Post(args))
+                {
+                    Interlocked.Increment(ref _outer._dataflowInputDroppedCount);
+                    return false;
+                }
+
+                return true;
             }
 
             /// <summary>
@@ -623,6 +637,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_partitions_count",
+                () => new Measurement<int>(_queue.PartitionCount, _metrics.TagList),
+                description: "Partition count of the writer queue.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_partitions_active",
+                () => new Measurement<int>(_queue.ActiveCount, _metrics.TagList),
+                description: "Active partitions pushing data inside the writer queue.");
             _meter.CreateObservableCounter("iiot_edge_publisher_send_queue_dropped_count",
                 () => new Measurement<long>(_sendBlockInputDroppedCount, _metrics.TagList),
                 description: "Telemetry messages dropped due to overflow.");

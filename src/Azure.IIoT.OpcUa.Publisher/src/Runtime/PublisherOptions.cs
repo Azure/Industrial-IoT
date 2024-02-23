@@ -116,6 +116,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? UseStandardsCompliantEncoding { get; set; }
 
         /// <summary>
+        /// Instead of a dataset with a single entry, Write only the
+        /// value without key when possible.
+        /// </summary>
+        public bool? WriteValueWhenDataSetHasSingleEntry { get; set; }
+
+        /// <summary>
         /// The message timestamp to use
         /// </summary>
         public MessageTimestamp? MessageTimestamp { get; set; }

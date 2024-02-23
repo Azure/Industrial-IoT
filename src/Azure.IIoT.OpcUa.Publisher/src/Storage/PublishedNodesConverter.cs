@@ -407,15 +407,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 {
                                                     Url = b.Header.EndpointUrl,
                                                     SecurityPolicy = b.Header.EndpointSecurityPolicy,
-                                                    SecurityMode = b.Header.EndpointSecurityMode ?? (b.Header.UseSecurity
-                                                    //
-                                                    // This is a break in backwards compatibility. Previously we would allow
-                                                    // also no security because SecurityMode.Best was used for UseSecurity.
-                                                    // However, the expectation is that highest security is going to be used
-                                                    // or to fail.
-                                                    //
-                                                    ? SecurityMode.SignAndEncrypt
-                                                    : SecurityMode.None)
+                                                    SecurityMode = b.Header.EndpointSecurityMode ??
+                                                        (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
                                                 },
                                                 User =
                                                     b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
@@ -693,13 +686,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 if (connection.Endpoint != null)
                 {
                     publishedNodesEntryModel.EndpointUrl = connection.Endpoint.Url;
-                    publishedNodesEntryModel.UseSecurity = connection.Endpoint.SecurityMode != SecurityMode.None;
+                    publishedNodesEntryModel.UseSecurity =
+                        connection.Endpoint.SecurityMode != null &&
+                        connection.Endpoint.SecurityMode != SecurityMode.None;
                     publishedNodesEntryModel.EndpointSecurityMode = connection.Endpoint.SecurityMode;
                     publishedNodesEntryModel.EndpointSecurityPolicy = connection.Endpoint.SecurityPolicy;
                     if (connection.Endpoint.SecurityPolicy == null &&
-                        connection.Endpoint.SecurityMode != SecurityMode.Sign)
+                        connection.Endpoint.SecurityMode != SecurityMode.Sign &&
+                        connection.Endpoint.SecurityMode != SecurityMode.SignAndEncrypt)
                     {
                         // Fall back to let UseSecurity decide on security (legacy)
+                        // This is either Best == true or None == false
                         publishedNodesEntryModel.EndpointSecurityMode = null;
                     }
                 }

@@ -396,8 +396,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         case PublisherDiagnosticTargetType.Events:
                             await SendDiagnosticsAsync(diagnostics, ct).ConfigureAwait(false);
                             break;
-                        // TODO: case PublisherDiagnosticTargetType.PubSub:
-                        // TODO:     break;
+               // TODO: case PublisherDiagnosticTargetType.PubSub:
+               // TODO:     break;
                         default:
                             WriteDiagnosticsToConsole(diagnostics);
                             break;
@@ -521,12 +521,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var dataChangesPerSecLastMin = lastMinute / Math.Min(s, 60d);
                     return changes > 0 ?
-                        $"(All time ~{changes / s:n2}/s; {lastMinute} in last 60s ~{dataChangesPerSecLastMin:n2}/s)"
+                        $"(All time ~{changes / s:n2}/s; {lastMinute:n0} in last 60s ~{dataChangesPerSecLastMin:n2}/s)"
                             : string.Empty;
                 }
 
-                var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0
-                    ? "(Partially Connected)" : "(Connected)") : "(Disconnected)";
+                var chunkUsageFormatted = Math.Round(info.EncoderAvgIoTChunkUsage, 2) > 0 ?
+                    $"(Avg Chunk (4 KB) usage {info.EncoderAvgIoTChunkUsage:n2}; {info.EstimatedIoTChunksPerDay:n1}/day estimated)"
+                        : string.Empty;
+                var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0 ?
+                    "(Partially Connected)" : "(Connected)") : "(Disconnected)" ;
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
@@ -554,12 +557,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesFailedCount)
                         .AppendLine()
                     .Append("  # Queued/Minimum request count       : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.PublishRequestsRatio).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n2}", info.MinPublishRequestsRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.MinPublishRequestsRatio)
                         .AppendLine()
                     .Append("  # Good/Bad Publish request count     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.GoodPublishRequestsRatio).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n2}", info.BadPublishRequestsRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.GoodPublishRequestsRatio).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.BadPublishRequestsRatio)
                         .AppendLine()
                     .Append("  # Ingress value changes              : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
@@ -594,13 +597,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Generated Model Changes            : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressModelChanges).Append(' ')
                         .AppendLine(modelChangesPerSecFormatted)
+                    .Append("  # Publish queue partitions/active    : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.TotalPublishQueuePartitions).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.ActivePublishQueuePartitions)
+                        .AppendLine()
                     .Append("  # Notifications buffered/dropped     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressBatchBlockBufferSize).Append(" | ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.IngressNotificationsDropped)
                         .AppendLine()
-                    .Append("  # Encoder input/output buffer size   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncodingBlockInputSize).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.EncodingBlockOutputSize)
+                    .Append("  # Encoder input buffer size          : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncodingBlockInputSize)
                         .AppendLine()
                     .Append("  # Encoder Notif. processed/dropped   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed).Append(" | ")
@@ -613,16 +619,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgNotificationsMessage)
                         .AppendLine()
                     .Append("  # Encoder worst Message split ratio  : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.EncoderMaxMessageSplitRatio)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.EncoderMaxMessageSplitRatio)
                         .AppendLine()
                     .Append("  # Encoder avg Message body size      : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgIoTMessageBodySize)
-                        .AppendLine()
-                    .Append("  # Encoder avg Chunk (4 KB) usage     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n1}", info.EncoderAvgIoTChunkUsage)
-                        .AppendLine()
-                    .Append("  # Estimated Chunks (4 KB) per day    : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EstimatedIoTChunksPerDay)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.EncoderAvgIoTMessageBodySize).Append(' ')
+                        .AppendLine(chunkUsageFormatted)
+                    .Append("  # Encoder output buffer size         : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncodingBlockOutputSize)
                         .AppendLine()
                     .Append("  # Egress Messages queued/dropped     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount).Append(" | ")

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Opc.Ua;
     using System;
     using System.IO;
@@ -204,6 +205,71 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     var eof = decoder.ReadDataSet(null);
                     Assert.Null(eof);
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteDataSetWithSingleEntryTest()
+        {
+            // Create dummy
+            var expected = new DataSet
+            {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+            };
+
+            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new JsonEncoderEx(stream, context,
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    encoder.WriteDataSet(null, expected);
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    var result = decoder.ReadDataValue(null);
+                    Assert.Equal(expected["abcd"], result);
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteDataSetWithSingleValueRawTest()
+        {
+            // Create dummy
+            var expected = new DataSet
+            {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+            };
+
+            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
+            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMask.RawData;
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new JsonEncoderEx(stream, context,
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    encoder.WriteDataSet(null, expected);
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    var result = decoder.ReadInt32(null);
+                    Assert.Equal(expected["abcd"].Value, result);
                 }
             }
         }
