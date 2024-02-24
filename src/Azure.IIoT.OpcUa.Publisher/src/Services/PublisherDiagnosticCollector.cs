@@ -295,6 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_event_notifications_per_second_last_min"] =
                     (d, i) => d.IngressEventNotificationsInLastMinute = (long)i,
 
+                ["iiot_edge_publisher_publish_queue_dropped_count"] =
+                    (d, i) => d.IngressNotificationsDropped = (long)i,
                 ["iiot_edge_publisher_batch_input_queue_size"] =
                     (d, i) => d.IngressBatchBlockBufferSize = (long)i,
                 ["iiot_edge_publisher_send_queue_size"] =
@@ -322,6 +324,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_chunk_size_average"] =
                     (d, i) => d.EncoderAvgIoTChunkUsage = (double)i,
 
+                ["iiot_edge_publisher_partitions_count"] =
+                    (d, i) => d.TotalPublishQueuePartitions = (int)i,
+                ["iiot_edge_publisher_partitions_active"] =
+                    (d, i) => d.ActivePublishQueuePartitions = (int)i,
                 ["iiot_edge_publisher_estimated_message_chunks_per_day"] =
                     (d, i) => d.EstimatedIoTChunksPerDay = (double)i,
                 ["iiot_edge_publisher_messages_per_second"] =
@@ -331,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                    // ... Add here more items if needed
+                // ... Add here more items if needed
             };
     }
 }

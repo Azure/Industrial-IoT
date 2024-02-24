@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,
-                UseReverseConnect = model.IsReverse,
+                UseReverseConnect = model.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
                 OpcNodes = new List<OpcNodeModel>()
@@ -206,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 id.AppendLine();
             }
             var securityMode = model.EndpointSecurityMode ??
-                (model.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None);
+                (model.UseSecurity ? SecurityMode.Best : SecurityMode.None);
             if (securityMode != SecurityMode.None)
             {
                 id.Append(securityMode);
@@ -315,9 +315,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if ((model.EndpointSecurityMode ??
-                    (model.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None)) !=
+                    (model.UseSecurity ? SecurityMode.Best : SecurityMode.None)) !=
                 (that.EndpointSecurityMode ??
-                    (that.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None)))
+                    (that.UseSecurity ? SecurityMode.Best : SecurityMode.None)))
             {
                 return false;
             }

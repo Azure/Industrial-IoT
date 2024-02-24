@@ -121,26 +121,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? KeepAliveTime { get; set; }
 
         /// <summary>
-        /// Number of notifications to queue before
-        /// sending a batch (Publisher extension).
-        /// The default is set to the value of the
-        /// BatchSize option.
+        /// Number of notifications to queue before sending a batch
+        /// (Publisher extension).
+        /// The default is set to the value of the BatchSize option.
         /// </summary>
         [DataMember(Name = "notificationPublishThreshold", Order = 14,
             EmitDefaultValue = false)]
         public uint? NotificationPublishThreshold { get; set; }
 
         /// <summary>
-        /// Max publish queue size
+        /// Max publish queue size.
         /// </summary>
         [DataMember(Name = "publishQueueSize", Order = 15,
             EmitDefaultValue = false)]
         public uint? PublishQueueSize { get; set; }
 
         /// <summary>
-        /// Desired Transport to use. If transport is
-        /// not registered the default (first) registered
-        /// transport is used (Publisher extension).
+        /// Desired Transport to use. If transport is not registered
+        /// the default (first) registered transport is used.
+        /// (Publisher extension)
         /// </summary>
         [DataMember(Name = "transport", Order = 16,
             EmitDefaultValue = false)]
@@ -153,5 +152,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 17,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
+
+        /// <summary>
+        /// Number of partitions to create of the publish queue.
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "publishQueuePartitions", Order = 18,
+            EmitDefaultValue = false)]
+        public int? PublishQueuePartitions { get; set; }
     }
 }

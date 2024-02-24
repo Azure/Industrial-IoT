@@ -37,4 +37,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         public const JsonDataSetMessageContentMask DisplayName = (JsonDataSetMessageContentMask)0x80000000;
     }
+
+    /// <summary>
+    /// Extensions for fields
+    /// </summary>
+    public static class DataSetFieldContentMaskEx
+    {
+        /// <summary>
+        /// Degrade a single data set field to just value instead of writing key value dictionary object
+        /// </summary>
+        public const DataSetFieldContentMask SingleFieldDegradeToValue = (DataSetFieldContentMask)64;
+    }
 }

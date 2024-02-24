@@ -41,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EventsTopicTemplateKey = "EventsTopicTemplate";
         public const string DiagnosticsTopicTemplateKey = "DiagnosticsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
+        public const string DefaultWriterGroupPartitionCountKey = "DefaultWriterGroupPartitionCount";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
@@ -48,6 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string BatchSizeKey = "BatchSize";
         public const string BatchTriggerIntervalKey = "BatchTriggerInterval";
         public const string RemoveDuplicatesFromBatchKey = "RemoveDuplicatesFromBatch";
+        public const string WriteValueWhenDataSetHasSingleEntryKey = "WriteValueWhenDataSetHasSingleEntry";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
         public const string DebugLogNotificationsFilterKey = "DebugLogNotificationsFilter";
@@ -201,10 +203,14 @@ namespace Azure.IIoT.OpcUa.Publisher
                         options.DefaultTransport != null ? 0 : BatchTriggerIntervalLLegacyDefaultMillis));
             }
 
+            options.WriteValueWhenDataSetHasSingleEntry
+                ??= GetBoolOrNull(WriteValueWhenDataSetHasSingleEntryKey);
             options.RemoveDuplicatesFromBatch ??= GetBoolOrNull(RemoveDuplicatesFromBatchKey);
 
             options.MaxNetworkMessageSendQueueSize ??= GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
                     MaxNetworkMessageSendQueueSizeDefault);
+
+            options.DefaultWriterGroupPartitions ??= GetIntOrNull(DefaultWriterGroupPartitionCountKey);
 
             if (options.TopicTemplates.Root == null)
             {
