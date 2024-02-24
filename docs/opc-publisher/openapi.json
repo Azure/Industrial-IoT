@@ -3463,10 +3463,23 @@
                     "description": "Connection group allows splitting connections\r\nper purpose.",
                     "type": "string"
                 },
-                "isReverse": {
-                    "description": "Connection should be established in reverse to\r\ntransition through proxies.",
-                    "type": "boolean"
+                "options": {
+                    "$ref": "#/definitions/ConnectionOptions"
                 }
+            }
+        },
+        "ConnectionOptions": {
+            "format": "int32",
+            "description": "Options that can be applied to a connection",
+            "enum": [
+                "None",
+                "UseReverseConnect",
+                "NoComplexTypeSystem"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "ConnectionOptions",
+                "modelAsString": false
             }
         },
         "ContentFilterElementModel": {
@@ -6090,6 +6103,11 @@
                 },
                 "QualityOfService": {
                     "$ref": "#/definitions/QoS"
+                },
+                "WriterGroupPartitions": {
+                    "format": "int32",
+                    "description": "Number of partitions to split the writer group into\r\nwhen publishing to target topics.",
+                    "type": "integer"
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"

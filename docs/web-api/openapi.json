@@ -7286,6 +7286,11 @@
                 "QualityOfService": {
                     "$ref": "#/definitions/QoS"
                 },
+                "WriterGroupPartitions": {
+                    "format": "int32",
+                    "description": "Number of partitions to split the writer group into\r\nwhen publishing to target topics.",
+                    "type": "integer"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }

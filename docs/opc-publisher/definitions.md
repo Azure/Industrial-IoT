@@ -331,8 +331,15 @@ Connection model
 |**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
 |**endpoint**  <br>*optional*||[EndpointModel](definitions.md#endpointmodel)|
 |**group**  <br>*optional*|Connection group allows splitting connections<br>per purpose.|string|
-|**isReverse**  <br>*optional*|Connection should be established in reverse to<br>transition through proxies.|boolean|
+|**options**  <br>*optional*||[ConnectionOptions](definitions.md#connectionoptions)|
 |**user**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
+
+
+<a name="connectionoptions"></a>
+### ConnectionOptions
+Options that can be applied to a connection
+
+*Type* : enum (None, UseReverseConnect, NoComplexTypeSystem)
 
 
 <a name="contentfilterelementmodel"></a>
@@ -1575,6 +1582,7 @@ Contains the nodes which should be published
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+|**WriterGroupPartitions**  <br>*optional*|Number of partitions to split the writer group into<br>when publishing to target topics.|integer (int32)|
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|

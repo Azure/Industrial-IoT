@@ -20,6 +20,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
                                                  2.9.5 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
+
 General
 -------
 
@@ -113,6 +114,12 @@ Messaging configuration
                                    `SingleRawDataSet`
                                Default: `PubSub` if `-c` is specified,
                                otherwise `Samples` for backwards compatibility.
+      --ode, --optimizeddatasetencoding, --WriteValueWhenDataSetHasSingleEntry[=VALUE]
+                             When a data set has a single entry the encoder
+                               will write only the value of a data set entry
+                               and omit the key.
+                               This is not compliant with OPC UA Part 14.
+                               Default: `False`.
       --me, --messageencoding, --MessageEncoding=VALUE
                              The message encoding for messages
                                Allowed values:
@@ -225,10 +232,11 @@ Messaging configuration
                                also override the messaging profile's default
                                support for metadata sending.
                                It is recommended to disable sending metadata
-                               when more than 100 nodes are part of a data set.
+                               when too many nodes are part of a data set as
+                               this can slow down start up time.
                                Default: `False` if the messaging profile
                                selected supports sending metadata and `--strict`
-                                is set, `True` otherwise.
+                                is set but not '--dct', `True` otherwise.
       --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
                              The default threshold of monitored items in a
                                subscription under which meta data is loaded
@@ -249,6 +257,12 @@ Messaging configuration
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
                                Default: `4096`
+      --wgp, --writergrouppartitions, --DefaultWriterGroupPartitionCount=VALUE
+                             The number of partitions to split the writer group
+                               into. Each partition represents a data flow to
+                               the transport sink. The partition is selected by
+                               topic hash.
+                               Default: `0` (partitioning is disabled)
   -t, --dmt, --defaultmessagetransport, --DefaultTransport=VALUE
                              The desired transport to use to publish network
                                messages with.
@@ -588,6 +602,13 @@ Subscription settings
                              (Experimental) Use reverse connect for all
                                endpoints that are part of the subscription
                                configuration unless otherwise configured.
+                               Default: `false`.
+      --dct, --disablecomplextypesystem, --DisableComplexTypeSystem[=VALUE]
+                             Never load the complex type system for any
+                               connections that are required for subscriptions.
+                               This setting not just disables meta data
+                               messages but also prevents transcoding of
+                               unknown complex types in outgoing messages.
                                Default: `false`.
 
 OPC UA Client configuration
