@@ -104,6 +104,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? DefaultUseReverseConnect { get; set; }
 
         /// <summary>
+        /// Never load the complex type system from any session.
+        /// This disables metadata loading capability but also
+        /// the ability to encode complex types.
+        /// </summary>
+        public bool? DisableComplexTypeSystem { get; set; }
+
+        /// <summary>
         /// set the default queue size for monitored items. If not
         /// set the default queue size will be configured (1 for
         /// data monitored items, and 0 for event monitoring).

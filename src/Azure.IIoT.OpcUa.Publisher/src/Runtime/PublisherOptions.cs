@@ -99,15 +99,27 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? DebugLogNotificationsFilter { get; set; }
 
         /// <summary>
-        /// Define the maximum number of messages in egress buffer,
-        /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
+        /// Define the maximum number of network messages in the
+        /// send part of the publish queue of the writer group.
         /// </summary>
         public int? MaxNetworkMessageSendQueueSize { get; set; }
+
+        /// <summary>
+        /// Max number of publish queue partitions the writer group
+        /// should be split into.
+        /// </summary>
+        public int? DefaultWriterGroupPartitions { get; set; }
 
         /// <summary>
         /// Flag to use reversible encoding for messages
         /// </summary>
         public bool? UseStandardsCompliantEncoding { get; set; }
+
+        /// <summary>
+        /// Instead of a dataset with a single entry, Write only the
+        /// value without key when possible.
+        /// </summary>
+        public bool? WriteValueWhenDataSetHasSingleEntry { get; set; }
 
         /// <summary>
         /// The message timestamp to use

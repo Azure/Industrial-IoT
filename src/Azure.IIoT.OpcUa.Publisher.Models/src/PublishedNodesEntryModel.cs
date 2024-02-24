@@ -327,6 +327,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public QoS? QualityOfService { get; set; }
 
         /// <summary>
+        /// Number of partitions to split the writer group into
+        /// when publishing to target topics.
+        /// </summary>
+        [DataMember(Name = "WriterGroupPartitions", Order = 39,
+            EmitDefaultValue = false)]
+        public int? WriterGroupPartitions { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 40,

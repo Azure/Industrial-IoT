@@ -104,7 +104,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest),
                 "./Resources/DataItems.json",
-                arguments: new string[] { "--dm", "--mm=DataSetMessages" });
+                arguments: new string[] { "-c", "--dm", "--mm=DataSetMessages" });
+
+            // Assert
+            var message = Assert.Single(messages).Message;
+            var output = message.GetProperty("Payload").GetProperty("Output");
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+
+            Assert.Null(metadata);
+        }
+
+        [Fact]
+        public async Task CanSendDataItemButNotMetaDataWhenComplexTypeSystemIsDisabledTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest),
+                "./Resources/DataItems.json",
+                arguments: new string[] { "-c", "--dct", "--mm=DataSetMessages" });
 
             // Assert
             var message = Assert.Single(messages).Message;

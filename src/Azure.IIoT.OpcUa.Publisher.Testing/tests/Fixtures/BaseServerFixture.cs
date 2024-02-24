@@ -118,7 +118,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         .ToHashSet(),
                     Certificate = Certificate?.RawData?.ToThumbprint()
                 },
-                IsReverse = UseReverseConnect
+                Options = UseReverseConnect ?
+                    ConnectionOptions.UseReverseConnect : ConnectionOptions.None
             };
         }
 

@@ -52,6 +52,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         RawData = 0x20,
 
         /// <summary>
+        /// Write data set with one entry as value
+        /// </summary>
+        [EnumMember(Value = "SingleFieldDegradeToValue")]
+        SingleFieldDegradeToValue = 0x1000,
+
+        /// <summary>
         /// Node id included
         /// </summary>
         [EnumMember(Value = "NodeId")]

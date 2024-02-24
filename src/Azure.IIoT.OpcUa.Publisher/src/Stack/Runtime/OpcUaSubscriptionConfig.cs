@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
         public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
+        public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -105,11 +106,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,
                     DefaultLifetimeCountDefault);
             // Set a default from the strict setting
+
+            options.DisableComplexTypeSystem ??= GetBoolOrNull(DisableComplexTypeSystemKey);
+            options.DisableDataSetMetaData = options.DisableComplexTypeSystem;
             options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
                 !(_options.Value.UseStandardsCompliantEncoding ?? false));
             options.AsyncMetaDataLoadThreshold ??= GetIntOrDefault(
                     AsyncMetaDataLoadThresholdKey, AsyncMetaDataLoadThresholdDefault);
-            if (options.DefaultMetaDataUpdateTime == null)
+            if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)
             {
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
             }

@@ -80,12 +80,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Disable complex type preloading.
         /// </summary>
-        public bool? DisableComplexTypePreloading { get; set; }
+        public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
         internal OperationLimits? LimitOverrides { get; set; }
+
+        /// <summary>
+        /// No complex type loading ever
+        /// </summary>
+        public bool DisableComplexTypeLoading
+            => _connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem);
 
         /// <summary>
         /// Client is connected
@@ -445,9 +451,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
                     if (_session != null)
                     {
-                        // Ensure type system is loaded
-                        if (!_session.IsTypeSystemLoaded && DisableComplexTypePreloading != true)
+                        if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
                         {
+                            // Ensure type system is loaded
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
@@ -504,7 +510,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_session != null)
                     {
                         // Ensure type system is loaded
-                        if (!_session.IsTypeSystemLoaded && DisableComplexTypePreloading != true)
+                        if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
                         {
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }

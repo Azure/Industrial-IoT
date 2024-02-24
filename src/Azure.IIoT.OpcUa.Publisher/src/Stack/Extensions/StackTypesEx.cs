@@ -766,11 +766,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask)
         {
             mask ??=
-                    DataSetFieldContentMask.StatusCode |
-                    DataSetFieldContentMask.SourceTimestamp |
-                    DataSetFieldContentMask.SourcePicoSeconds |
-                    DataSetFieldContentMask.ServerPicoSeconds |
-                    DataSetFieldContentMask.ServerTimestamp;
+                DataSetFieldContentMask.StatusCode |
+                DataSetFieldContentMask.SourceTimestamp |
+                DataSetFieldContentMask.SourcePicoSeconds |
+                DataSetFieldContentMask.ServerPicoSeconds |
+                DataSetFieldContentMask.ServerTimestamp
+                ;
             var result = UaDataSetFieldContentMask.None;
             if ((mask & DataSetFieldContentMask.StatusCode) != 0)
             {
@@ -795,6 +796,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             if ((mask & DataSetFieldContentMask.RawData) != 0)
             {
                 result |= UaDataSetFieldContentMask.RawData;
+            }
+            if ((mask & DataSetFieldContentMask.SingleFieldDegradeToValue) != 0)
+            {
+                result |= DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
             }
             return result;
         }

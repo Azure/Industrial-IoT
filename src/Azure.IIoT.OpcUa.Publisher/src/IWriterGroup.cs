@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using System;
 
     /// <summary>
-    /// Writer group
+    /// Data flow processor
     /// </summary>
     public interface IWriterGroup : IDisposable
     {

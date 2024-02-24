@@ -42,11 +42,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? Group { get; set; }
 
         /// <summary>
-        /// Connection should be established in reverse to
-        /// transition through proxies.
+        /// Connection options to apply to the created
+        /// connection.
         /// </summary>
-        [DataMember(Name = "isReverse", Order = 4,
+        [DataMember(Name = "options", Order = 5,
              EmitDefaultValue = false)]
-        public bool? IsReverse { get; set; }
+        public ConnectionOptions Options { get; set; }
     }
 }

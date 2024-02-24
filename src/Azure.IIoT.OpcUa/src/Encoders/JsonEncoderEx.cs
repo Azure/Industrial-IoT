@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Newtonsoft.Json;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -1157,6 +1158,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             try
             {
                 var fieldContentMask = dataSet.DataSetFieldContentMask;
+                var writeSingleValue = (dataSet.Count == 1) &&
+                   ((fieldContentMask & (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue) != 0);
                 if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0)
                 {
                     //
@@ -1166,7 +1169,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = true;
                     UseReversibleEncoding = false;
-                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v?.WrappedValue ?? default));
+                    Write(property, dataSet,
+                        (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else if (fieldContentMask == 0)
                 {
@@ -1177,7 +1181,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = false;
                     UseReversibleEncoding = true;
-                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v?.WrappedValue ?? default));
+                    Write(property, dataSet,
+                        (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else
                 {
@@ -1186,7 +1191,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // the field value is a DataValue encoded using the non-reversible OPC UA
                     // JSON Data Encoding or reversible depending on encoder configuration.
                     //
-                    WriteDictionary(property, dataSet, (k, value) =>
+                    Write(property, dataSet, (k, value) =>
                     {
                         PushObject(k);
                         try
@@ -1220,7 +1225,20 @@ namespace Azure.IIoT.OpcUa.Encoders
                         {
                             PopObject();
                         }
-                    });
+                    }, writeSingleValue);
+                }
+
+                void Write<T>(string? property, IEnumerable<KeyValuePair<string, T>> values,
+                    Action<string?, T> writer, bool writeSingleValue)
+                {
+                    if (writeSingleValue)
+                    {
+                        writer(property, values.Single().Value);
+                    }
+                    else
+                    {
+                        WriteDictionary(property, values, writer);
+                    }
                 }
             }
             finally

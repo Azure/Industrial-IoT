@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using System.Text;
     using System.Buffers;
-    using static Furly.Azure.ConnectionString;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -242,6 +241,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 dataSetWriter.DataSetFieldContentMask ??=
                         defaultMessagingProfile.DataSetFieldContentMask;
+
+                if (_options.Value.WriteValueWhenDataSetHasSingleEntry == true)
+                {
+                    dataSetWriter.DataSetFieldContentMask
+                        |= Models.DataSetFieldContentMask.SingleFieldDegradeToValue;
+                }
             }
 
             return writerGroup;
