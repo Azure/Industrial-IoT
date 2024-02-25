@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Writer group scope
@@ -13,8 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IWriterGroupScope : IDisposable
     {
         /// <summary>
-        /// Resolve writer group
+        /// Resolve writer group objects for control callback
         /// </summary>
-        IWriterGroup WriterGroup { get; }
+        IReadOnlyList<IWriterGroup> WriterGroupControl { get; }
     }
 }

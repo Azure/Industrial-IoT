@@ -29,24 +29,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed class WriterGroupDataSource : IMessageSource
+    public sealed class WriterGroupDataSource : IWriterGroup
     {
-        /// <inheritdoc/>
-        public event EventHandler<IOpcUaSubscriptionNotification>? OnMessage;
-
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs>? OnCounterReset;
-
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
         /// <param name="writerGroup"></param>
+        /// <param name="sink"></param>
         /// <param name="options"></param>
         /// <param name="subscriptionManager"></param>
         /// <param name="subscriptionConfig"></param>
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
-        public WriterGroupDataSource(WriterGroupModel writerGroup,
+        public WriterGroupDataSource(WriterGroupModel writerGroup, INotificationSink sink,
             IOptions<PublisherOptions> options, IOpcUaSubscriptionManager subscriptionManager,
             IOptions<OpcUaSubscriptionOptions> subscriptionConfig,
             IMetricsContext? metrics, ILogger<WriterGroupDataSource> logger)
@@ -61,6 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(subscriptionManager));
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
+            _sink = sink ??
+                throw new ArgumentNullException(nameof(sink));
             _metrics = metrics ??
                 IMetricsContext.Empty;
 
@@ -486,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._dataChanges.Count = 0;
                             _outer._valueChanges.Count = 0;
                             _outer._heartbeats.Count = 0;
-                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                            _outer._sink.OnCounterReset();
                         }
 
                         _outer._valueChanges.Count += valueChanges;
@@ -518,7 +515,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Id, _outer._cyclicReads.Count, _outer._sampledValues.Count);
                         _outer._cyclicReads.Count = 0;
                         _outer._sampledValues.Count = 0;
-                        _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                        _outer._sink.OnCounterReset();
                     }
 
                     _outer._sampledValues.Count += valuesSampled;
@@ -556,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._eventNotification.Count = 0;
                             _outer._modelChanges.Count = 0;
 
-                            _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                            _outer._sink.OnCounterReset();
                         }
 
                         _outer._eventNotification.Count += events;
@@ -715,7 +712,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             () => Interlocked.Increment(ref _metadataSequenceNumber))
                                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                                    _outer.OnMessage?.Invoke(this, metadata);
+                                    _outer._sink.OnNotify(metadata);
                                     InitializeMetaDataTrigger();
                                 }
                             }
@@ -727,7 +724,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     () => Interlocked.Increment(ref _dataSetSequenceNumber), itemContext);
                                 _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                     notification.ToString());
-                                _outer.OnMessage?.Invoke(this, notification);
+                                _outer._sink.OnNotify(notification);
                             }
                         }
                     }
@@ -1105,6 +1102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly IOpcUaSubscriptionManager _subscriptionManager;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
+        private readonly INotificationSink _sink;
         private readonly IMetricsContext _metrics;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);

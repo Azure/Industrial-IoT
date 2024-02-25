@@ -31,30 +31,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// encoding and other egress concerns.  The queues can be partitioned
     /// to handle multiple topics.
     /// </summary>
-    public sealed class NetworkMessageSink : IWriterGroup
+    public sealed class NetworkMessageSink : INotificationSink, IDisposable,
+        IAsyncDisposable
     {
-        /// <inheritdoc/>
-        public IMessageSource Source { get; }
-
         /// <summary>
         /// Create engine
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="eventClients"></param>
-        /// <param name="source"></param>
         /// <param name="encoder"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         /// <param name="diagnostics"></param>
         public NetworkMessageSink(WriterGroupModel writerGroup,
-            IEnumerable<IEventClient> eventClients, IMessageSource source,
-            IMessageEncoder encoder, IOptions<PublisherOptions> options,
-            ILogger<NetworkMessageSink> logger, IMetricsContext metrics,
-            IWriterGroupDiagnostics? diagnostics = null)
+            IEnumerable<IEventClient> eventClients, IMessageEncoder encoder, 
+            IOptions<PublisherOptions> options, ILogger<NetworkMessageSink> logger, 
+            IMetricsContext metrics, IWriterGroupDiagnostics? diagnostics = null)
         {
-            Source = source;
-
             _metrics = metrics
                 ?? throw new ArgumentNullException(nameof(metrics));
             _options = options;
@@ -131,9 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ? new PublishQueue(this, maxPublishQueuePartitions)
                 : new PublishQueuePartition(this, 0, _logger);
 
-            Source.OnMessage += OnMessageReceived;
-            Source.OnCounterReset += MessageTriggerCounterResetReceived;
-
             InitializeMetrics();
 
             _logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
@@ -152,20 +143,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public void OnNotify(IOpcUaSubscriptionNotification notification)
+        {
+            if (_dataFlowStartTime == DateTime.MinValue)
+            {
+                _diagnostics?.ResetWriterGroupDiagnostics();
+                _dataFlowStartTime = DateTime.UtcNow;
+            }
+
+            if (!_queue.TryPublish(notification))
+            {
+                notification.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
+        public void OnCounterReset()
+        {
+            _dataFlowStartTime = DateTime.MinValue;
+            _queue.Reset();
+        }
+
+        /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
             await _cts.CancelAsync().ConfigureAwait(false);
             try
             {
-                Source.OnCounterReset -= MessageTriggerCounterResetReceived;
-                Source.OnMessage -= OnMessageReceived;
-
                 await _queue.DisposeAsync().ConfigureAwait(false);
             }
             finally
             {
                 _diagnostics?.Dispose();
-                Source.Dispose();
             }
         }
 
@@ -181,36 +190,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
                 _cts.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Message received handler
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
-        {
-            if (_dataFlowStartTime == DateTime.MinValue)
-            {
-                _diagnostics?.ResetWriterGroupDiagnostics();
-                _dataFlowStartTime = DateTime.UtcNow;
-            }
-
-            if (!_queue.TryPublish(args))
-            {
-                args.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Counter reset
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void MessageTriggerCounterResetReceived(object? sender, EventArgs e)
-        {
-            _dataFlowStartTime = DateTime.MinValue;
-            _queue.Reset();
         }
 
         /// <summary>

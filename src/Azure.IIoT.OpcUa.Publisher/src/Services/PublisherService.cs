@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Amqp.Transaction;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through
@@ -289,9 +290,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public WriterGroupModel WriterGroup { get; private set; }
 
             /// <summary>
-            /// Message source
+            /// Controllers
             /// </summary>
-            public IMessageSource Source { get; }
+            public IReadOnlyList<IWriterGroup> Controllers { get; }
 
             /// <summary>
             /// Current writer group job version
@@ -309,11 +310,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupModel writerGroup)
             {
                 _outer = outer;
+                Id = id;
                 Version = version;
                 WriterGroup = writerGroup with { Id = id };
-                Id = id;
                 _scope = _outer._factory.Create(WriterGroup);
-                Source = _scope.WriterGroup.Source;
+                Controllers = _scope.WriterGroupControl;
             }
 
             /// <summary>
@@ -331,7 +332,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var context = new WriterGroupJob(outer, version, id, writerGroup);
                 try
                 {
-                    await context.Source.StartAsync(ct).ConfigureAwait(false);
+                    foreach (var controller in context.Controllers)
+                    {
+                        await controller.StartAsync(ct).ConfigureAwait(false);
+                    }
                     return context;
                 }
                 catch (Exception ex)
@@ -356,7 +360,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var newWriterGroup = writerGroup with { Id = Id };
 
-                    await Source.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
+                    foreach (var controller in Controllers)
+                    {
+                        await controller.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
+                    }
 
                     // Update inner state if successful
                     WriterGroup = newWriterGroup;
@@ -377,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    Source.Dispose();
+                    Controllers.ForEach(c => c.Dispose());
                 }
                 catch (Exception ex)
                 {

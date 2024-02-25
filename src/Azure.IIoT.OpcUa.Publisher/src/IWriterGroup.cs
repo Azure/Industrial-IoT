@@ -5,16 +5,30 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Data flow processor
+    /// Writer group controller
     /// </summary>
     public interface IWriterGroup : IDisposable
     {
         /// <summary>
-        /// Resolve source
+        /// Start writer group
         /// </summary>
-        IMessageSource Source { get; }
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask StartAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Update writer group
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask UpdateAsync(WriterGroupModel writerGroup,
+            CancellationToken ct);
     }
 }

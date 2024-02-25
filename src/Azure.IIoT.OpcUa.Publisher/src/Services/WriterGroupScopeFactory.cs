@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -47,7 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IWriterGroupDiagnostics
         {
             /// <inheritdoc/>
-            public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
+            public IReadOnlyList<IWriterGroup> WriterGroupControl
+                => _scope.Resolve<IEnumerable<IWriterGroup>>().ToArray();
 
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -88,12 +90,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .As<IJsonSerializer>()
                         .ExternallyOwned();
 
-                    // Register data flow, source, encode
                     builder.RegisterType<NetworkMessageSink>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<WriterGroupDataSource>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<NetworkMessageEncoder>()
+                        .AsImplementedInterfaces();
+
+                    builder.RegisterType<NetworkMessageSource>()
+                        .AsImplementedInterfaces();
+                    builder.RegisterType<WriterGroupDataSink>()
                         .AsImplementedInterfaces();
                 });
 

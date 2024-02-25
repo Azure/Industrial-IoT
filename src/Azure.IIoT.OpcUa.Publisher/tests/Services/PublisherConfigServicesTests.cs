@@ -40,7 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
-        private readonly Mock<IMessageSource> _triggerMock;
         private readonly IPublisher _publisher;
 
         /// <summary>
@@ -67,12 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             _publishedNodesProvider = new PublishedNodesProvider(_options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
-            _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
             var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(_triggerMock.Object);
             var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
+            lifetime.SetupGet(l => l.WriterGroupControl).Returns(new[] { writerGroup.Object });
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
                 .Returns(lifetime.Object);
