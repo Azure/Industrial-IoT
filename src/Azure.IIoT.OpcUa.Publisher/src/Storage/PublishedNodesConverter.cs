@@ -59,11 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent)
         {
             var sw = Stopwatch.StartNew();
-            _logger.LogDebug("Reading and validating published nodes file...");
+            _logger.LogDebug("Reading published nodes file...");
             try
             {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
-                    ?? throw new SerializerException("Published nodes files, malformed.");
+                    ?? throw new SerializerException("Published nodes files does not contain correct JSON.");
 
                 _logger.LogInformation("Read {Count} entry models from published nodes file in {Elapsed}",
                     items.Count, sw.Elapsed);
@@ -90,7 +90,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 return Enumerable.Empty<PublishedNodesEntryModel>();
             }
-            var sw = Stopwatch.StartNew();
             try
             {
                 var publishedNodesEntries = items
@@ -173,12 +172,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 _logger.LogError(ex, "failed to convert the published nodes.");
                 return Enumerable.Empty<PublishedNodesEntryModel>();
-            }
-            finally
-            {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
-                sw.Stop();
             }
 
             static IEnumerable<OpcNodeModel>? ToOpcNodes(PublishedDataSetSettingsModel? subscriptionSettings,
@@ -291,170 +284,154 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 return Enumerable.Empty<WriterGroupModel>();
             }
-            var sw = Stopwatch.StartNew();
-            try
-            {
-                return entries
-                    //
-                    // Split all entries by the publishing interval int the nodes using the entry publising
-                    // interval as default
-                    //
-                    .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
-                        .GroupBy(n => n.GetNormalizedPublishingInterval(
-                                      entry.GetNormalizedDataSetPublishingInterval()))
-                        .Select(g => entry with
-                        {
-                            // Set the publishing interval for this entry at the top
-                            DataSetPublishingIntervalTimespan = g.Key,
-                            DataSetPublishingInterval = null,
-                            OpcNodes = g
-                                .Select(n => n with
-                                {
-                                    // Unset all node specific settings.
-                                    OpcPublishingIntervalTimespan = null,
-                                    OpcPublishingInterval = null
-                                })
-                                .ToList()
-                        }))
-                    //
-                    // Now we have entries with nodes that have no publishing interval, group all entries
-                    // by group identifier
-                    //
-                    .Select(entry => (
-                        Entry: entry,
-                        UniqueGroupId: entry.GetUniqueWriterGroupId()
-                     ))
-                    .GroupBy(entry => entry.UniqueGroupId)
-                    .Select(g => (g.Key, Entries: g.ToList()))
-                    //
-                    // In each group select the writers using the unique data set writer id which uses the
-                    // publishing interval.
-                    //
-                    .Select(group => (
-                        Id: group.Key,
-                        Header: group.Entries[0].Entry,
-                        Writers: group.Entries
-                            .Select(entry => (
-                                entry.Entry,
-                                UniqueWriterId: entry.Entry.GetUniqueDataSetWriterId()
-                             ))
-                            .GroupBy(e => e.UniqueWriterId)
-                            .Select(w => (w.Key, Writers: w.Select(e => e.Entry).ToList()))
-                            .ToList()
-                    ))
-                    // Now bring it all together into a group with writers and settings
-                    .Select(group => new WriterGroupModel
+            return entries
+                //
+                // Split all entries by the publishing interval int the nodes using the entry publising
+                // interval as default
+                //
+                .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
+                    .GroupBy(n => n.GetNormalizedPublishingInterval(
+                                  entry.GetNormalizedDataSetPublishingInterval()))
+                    .Select(g => entry with
                     {
-                        Id = group.Id,
-                        MessageType = group.Header.MessageEncoding,
-                        Transport = group.Header.WriterGroupTransport,
-                        Publishing = new PublishingQueueSettingsModel
-                        {
-                            RequestedDeliveryGuarantee = group.Header.WriterGroupQualityOfService,
-                            QueueName = group.Header.WriterGroupQueueName
-                        },
-                        HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
-                        Name = group.Header.DataSetWriterGroup,
-                        NotificationPublishThreshold = group.Header.BatchSize,
-                        PublishQueuePartitions = group.Header.WriterGroupPartitions,
-                        PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
-                        DataSetWriters = group.Writers
-                            .Select(w => (
-                                WriterId: w.Key,
-                                Header: w.Writers[0],
-                                WriterBatches: w.Writers
-                                    .SelectMany(w => w.OpcNodes!)
-                                    .Distinct(OpcNodeModelEx.Comparer)
-                                    .Batch(_maxNodesPerDataSet)
-                                    // Future: batch in service so it is centralized
-                            ))
-                            .SelectMany(b => b.WriterBatches // Do we need to materialize here?
-                                .Select(n => n.ToList())
-                                .Select((nodes, index) => new DataSetWriterModel
+                        // Set the publishing interval for this entry at the top
+                        DataSetPublishingIntervalTimespan = g.Key,
+                        DataSetPublishingInterval = null,
+                        OpcNodes = g
+                            .Select(n => n with
+                            {
+                                // Unset all node specific settings.
+                                OpcPublishingIntervalTimespan = null,
+                                OpcPublishingInterval = null
+                            })
+                            .ToList()
+                    }))
+                //
+                // Now we have entries with nodes that have no publishing interval, group all entries
+                // by group identifier
+                //
+                .Select(entry => (
+                    Entry: entry,
+                    UniqueGroupId: entry.GetUniqueWriterGroupId()
+                 ))
+                .GroupBy(entry => entry.UniqueGroupId)
+                .Select(g => (g.Key, Entries: g.ToList()))
+                //
+                // In each group select the writers using the unique data set writer id which uses the
+                // publishing interval.
+                //
+                .Select(group => (
+                    Id: group.Key,
+                    Header: group.Entries[0].Entry,
+                    Writers: group.Entries
+                        .Select(entry => (
+                            entry.Entry,
+                            UniqueWriterId: entry.Entry.GetUniqueDataSetWriterId()
+                         ))
+                        .GroupBy(e => e.UniqueWriterId)
+                        .Select(w => (w.Key, Writers: w.Select(e => e.Entry).ToList()))
+                        .ToList()
+                ))
+                // Now bring it all together into a group with writers and settings
+                .Select(group => new WriterGroupModel
+                {
+                    Id = group.Id,
+                    MessageType = group.Header.MessageEncoding,
+                    Transport = group.Header.WriterGroupTransport,
+                    Publishing = new PublishingQueueSettingsModel
+                    {
+                        RequestedDeliveryGuarantee = group.Header.WriterGroupQualityOfService,
+                        QueueName = group.Header.WriterGroupQueueName
+                    },
+                    HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
+                    Name = group.Header.DataSetWriterGroup,
+                    NotificationPublishThreshold = group.Header.BatchSize,
+                    PublishQueuePartitions = group.Header.WriterGroupPartitions,
+                    PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
+                    DataSetWriters = group.Writers
+                        .Select(w => (
+                            WriterId: w.Key,
+                            Header: w.Writers[0],
+                            WriterBatches: w.Writers
+                                .SelectMany(w => w.OpcNodes!)
+                                .Distinct(OpcNodeModelEx.Comparer)
+                                .Batch(_maxNodesPerDataSet)
+                        // Future: batch in service so it is centralized
+                        ))
+                        .SelectMany(b => b.WriterBatches // Do we need to materialize here?
+                            .Select(n => n.ToList())
+                            .Select((nodes, index) => new DataSetWriterModel
+                            {
+                                Id = b.WriterId + "_" + index,
+                                DataSetWriterName = b.Header.DataSetWriterId,
+                                MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),
+                                KeyFrameCount = b.Header.DataSetKeyFrameCount,
+                                Publishing = new PublishingQueueSettingsModel
                                 {
-                                    Id = b.WriterId + "_" + index,
-                                    DataSetWriterName = b.Header.DataSetWriterId,
-                                    MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),
-                                    KeyFrameCount = b.Header.DataSetKeyFrameCount,
-                                    Publishing = new PublishingQueueSettingsModel
+                                    QueueName = b.Header.QueueName,
+                                    RequestedDeliveryGuarantee = b.Header.QualityOfService
+                                },
+                                MetaData = new PublishingQueueSettingsModel
+                                {
+                                    QueueName = b.Header.MetaDataQueueName,
+                                    RequestedDeliveryGuarantee = null
+                                },
+                                DataSet = new PublishedDataSetModel
+                                {
+                                    Name = b.Header.DataSetName,
+                                    DataSetMetaData = new DataSetMetaDataModel
                                     {
-                                        QueueName = b.Header.QueueName,
-                                        RequestedDeliveryGuarantee = b.Header.QualityOfService
+                                        DataSetClassId = b.Header.DataSetClassId,
+                                        Description = b.Header.DataSetDescription,
+                                        Name = b.Header.DataSetName
                                     },
-                                    MetaData = new PublishingQueueSettingsModel
+                                    ExtensionFields = b.Header.DataSetExtensionFields,
+                                    SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
+                                    Routing = b.Header.DataSetRouting,
+                                    DataSetSource = new PublishedDataSetSourceModel
                                     {
-                                        QueueName = b.Header.MetaDataQueueName,
-                                        RequestedDeliveryGuarantee = null
-                                    },
-                                    DataSet = new PublishedDataSetModel
-                                    {
-                                        Name = b.Header.DataSetName,
-                                        DataSetMetaData = new DataSetMetaDataModel
+                                        Connection = new ConnectionModel
                                         {
-                                            DataSetClassId = b.Header.DataSetClassId,
-                                            Description = b.Header.DataSetDescription,
-                                            Name = b.Header.DataSetName
+                                            Options =
+                                                b.Header.UseReverseConnect == true ?
+                                                     ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
+                                            Endpoint = new EndpointModel
+                                            {
+                                                Url = b.Header.EndpointUrl,
+                                                SecurityPolicy = b.Header.EndpointSecurityPolicy,
+                                                SecurityMode = b.Header.EndpointSecurityMode ??
+                                                    (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
+                                            },
+                                            User =
+                                                b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
+                                                b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                                                    ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
                                         },
-                                        ExtensionFields = b.Header.DataSetExtensionFields,
-                                        SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
-                                        Routing = b.Header.DataSetRouting,
-                                        DataSetSource = new PublishedDataSetSourceModel
+                                        SubscriptionSettings = new PublishedDataSetSettingsModel
                                         {
-                                            Connection = new ConnectionModel
-                                            {
-                                                Options =
-                                                    b.Header.UseReverseConnect == true ?
-                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
-                                                Endpoint = new EndpointModel
-                                                {
-                                                    Url = b.Header.EndpointUrl,
-                                                    SecurityPolicy = b.Header.EndpointSecurityPolicy,
-                                                    SecurityMode = b.Header.EndpointSecurityMode ??
-                                                        (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
-                                                },
-                                                User =
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
-                                                        ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
-                                            },
-                                            SubscriptionSettings = new PublishedDataSetSettingsModel
-                                            {
-                                                MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
-                                                Priority = b.Header.Priority,
-                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
-                                                // ...
-                                            },
-                                            PublishedVariables = ToPublishedDataItems(nodes, false),
-                                            PublishedEvents = ToPublishedEventItems(nodes, false)
-                                        }
-                                    },
-                                    MessageSettings = null,
-                                    DataSetFieldContentMask = null
-                                }))
-                                .ToList(),
-                            KeepAliveTime = null,
-                            MaxNetworkMessageSize = null,
-                            MessageSettings = null,
-                            Priority = null,
-                            PublishQueueSize = null,
-                            SecurityGroupId = null,
-                            SecurityKeyServices = null,
-                            SecurityMode = null,
-                            LocaleIds = null
-                        })
-                    .ToList(); // Convert here or else we dont print conversion correctly
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "failed to convert the published nodes.");
-                return Enumerable.Empty<WriterGroupModel>();
-            }
-            finally
-            {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
-                sw.Stop();
-            }
+                                            MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
+                                            Priority = b.Header.Priority,
+                                            PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
+                                            // ...
+                                        },
+                                        PublishedVariables = ToPublishedDataItems(nodes, false),
+                                        PublishedEvents = ToPublishedEventItems(nodes, false)
+                                    }
+                                },
+                                MessageSettings = null,
+                                DataSetFieldContentMask = null
+                            }))
+                            .ToList(),
+                    KeepAliveTime = null,
+                    MaxNetworkMessageSize = null,
+                    MessageSettings = null,
+                    Priority = null,
+                    PublishQueueSize = null,
+                    SecurityGroupId = null,
+                    SecurityKeyServices = null,
+                    SecurityMode = null,
+                    LocaleIds = null
+                });
 
             static IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item, int scaleTestCount)
             {

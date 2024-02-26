@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
             _changeFeed
-                = Channel.CreateUnbounded<(TaskCompletionSource, List<WriterGroupModel>)>(
+                = Channel.CreateUnbounded<(TaskCompletionSource, IEnumerable<WriterGroupModel>)>(
                     new UnboundedChannelOptions
                     {
                         SingleReader = true,
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public bool TryUpdate(IEnumerable<WriterGroupModel> writerGroups)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            return _changeFeed.Writer.TryWrite((_completedTask, writerGroups.ToList()));
+            return _changeFeed.Writer.TryWrite((_completedTask, writerGroups));
         }
 
         /// <inheritdoc/>
@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             var tcs = new TaskCompletionSource(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-            if (_changeFeed.Writer.TryWrite((tcs, writerGroups.ToList())))
+            if (_changeFeed.Writer.TryWrite((tcs, writerGroups)))
             {
                 return tcs.Task;
             }
@@ -147,6 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
                 await foreach (var (task, changes) in _changeFeed.Reader.ReadAllAsync(default))
@@ -158,7 +159,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     try
                     {
+                        sw.Restart();
                         await ProcessChangesAsync(task, changes, ct).ConfigureAwait(false);
+                        _logger.LogInformation("Processed writer group changes in {Elapsed}",
+                            sw.Elapsed);
                     }
                     catch (OperationCanceledException)
                     {
@@ -200,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ProcessChangesAsync(TaskCompletionSource task,
-            List<WriterGroupModel> changes, CancellationToken ct)
+            IEnumerable<WriterGroupModel> changes, CancellationToken ct)
         {
             // Increment change number
             unchecked
@@ -292,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Controllers
             /// </summary>
-            public IReadOnlyList<IWriterGroup> Controllers { get; }
+            public IReadOnlyList<IWriterGroupControl> Controllers { get; }
 
             /// <summary>
             /// Current writer group job version
@@ -334,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var controller in context.Controllers)
                     {
-                        await controller.StartAsync(ct).ConfigureAwait(false);
+                        await controller.StartAsync(ct).ConfigureAwait(false); // TODO: Call UpdateAsync
                     }
                     return context;
                 }
@@ -407,6 +411,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Dictionary<string, WriterGroupJob> _currentJobs;
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
-        private readonly Channel<(TaskCompletionSource, List<WriterGroupModel>)> _changeFeed;
+        private readonly Channel<(TaskCompletionSource, IEnumerable<WriterGroupModel>)> _changeFeed;
     }
 }

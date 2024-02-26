@@ -16,6 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Resolve writer group objects for control callback
         /// </summary>
-        IReadOnlyList<IWriterGroup> WriterGroupControl { get; }
+        IReadOnlyList<IWriterGroupControl> WriterGroupControl { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed class WriterGroupDataSource : IWriterGroup
+    public sealed class WriterGroupDataSource : IWriterGroupControl
     {
         /// <summary>
         /// Create trigger from writer group
@@ -624,14 +624,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _metadataTimer.Interval = metaDataSendInterval;
                     }
                 }
-                else
+                else if (_metadataTimer != null)
                 {
-                    if (_metadataTimer != null)
-                    {
-                        _metadataTimer.Stop();
-                        _metadataTimer.Dispose();
-                        _metadataTimer = null;
-                    }
+                    _metadataTimer.Stop();
+                    _metadataTimer.Dispose();
+                    _metadataTimer = null;
                 }
             }
 

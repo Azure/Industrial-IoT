@@ -48,8 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IWriterGroupDiagnostics
         {
             /// <inheritdoc/>
-            public IReadOnlyList<IWriterGroup> WriterGroupControl
-                => _scope.Resolve<IEnumerable<IWriterGroup>>().ToArray();
+            public IReadOnlyList<IWriterGroupControl> WriterGroupControl
+                => _scope.Resolve<IEnumerable<IWriterGroupControl>>().ToArray();
 
             /// <inheritdoc/>
             public TagList TagList { get; }

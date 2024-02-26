@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// <summary>
     /// Events extensions
     /// </summary>
-    public static class PublishedDataSetEventsDataModelEx
+    public static class PublishedDataSetEventModelEx
     {
         /// <summary>
         /// Clone
@@ -30,6 +30,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     .ToList(),
                 ConditionHandling = model.ConditionHandling.Clone()
             });
+        }
+
+        /// <summary>
+        /// Returns the unique id of the item
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="indexInDataSet"></param>
+        /// <returns></returns>
+        public static string GetUniqueId(this PublishedDataSetEventModel model, int indexInDataSet)
+        {
+            return model.Id
+                ?? model.PublishedEventName
+                ?? model.TypeDefinitionId ?? model.EventNotifier
+                ?? indexInDataSet.ToString();
         }
     }
 }

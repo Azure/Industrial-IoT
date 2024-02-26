@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Writer group controller
     /// </summary>
-    public interface IWriterGroup : IDisposable
+    public interface IWriterGroupControl : IDisposable
     {
         /// <summary>
         /// Start writer group

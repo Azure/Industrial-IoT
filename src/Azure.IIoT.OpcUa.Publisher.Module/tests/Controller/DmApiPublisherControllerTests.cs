@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _publishedNodesProvider = new PublishedNodesProvider(_options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroup>();
+            var writerGroup = new Mock<IWriterGroupControl>();
             var lifetime = new Mock<IWriterGroupScope>();
             lifetime.SetupGet(l => l.WriterGroupControl).Returns(new[] { writerGroup.Object });
             factoryMock

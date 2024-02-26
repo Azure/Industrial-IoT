@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Extensions.Serializers;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
@@ -27,6 +29,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Triggering = model.Triggering.Clone(),
                 SubstituteValue = model.SubstituteValue?.Copy()
             });
+        }
+
+        /// <summary>
+        /// Returns the unique id of the item
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="indexInDataSet"></param>
+        /// <returns></returns>
+        public static string GetUniqueId(this PublishedDataSetVariableModel model, int indexInDataSet)
+        {
+            return model.Id
+                ?? model.PublishedVariableDisplayName
+                ?? model.PublishedVariableNodeId
+                ?? indexInDataSet.ToString();
         }
     }
 }
