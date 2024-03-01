@@ -24,9 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public MessageType MessageType { get; set; }
 
         /// <inheritdoc/>
-        public DataSetMetaDataType? MetaData { get; set; }
-
-        /// <inheritdoc/>
         public string? SubscriptionName { get; set; }
 
         /// <inheritdoc/>

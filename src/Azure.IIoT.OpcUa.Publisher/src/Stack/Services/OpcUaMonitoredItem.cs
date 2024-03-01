@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// The item is valid once added to the subscription. Contract:
         /// The item will be invalid until the subscription calls
-        /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
+        /// <see cref="AddTo(Subscription, IOpcUaSession)"/>
         /// to add it to the subscription. After removal the item
         /// is still Valid, but not Created. The item is
         /// again invalid after <see cref="IDisposable.Dispose"/> is
@@ -89,13 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// the node does not need to be registered.
         /// </summary>
         public virtual (string NodeId, UpdateNodeId Update)? Register
-            => null;
-
-        /// <summary>
-        /// Get the relative path from root for the node. This is called
-        /// after the node is resolved but not yet registered
-        /// </summary>
-        public virtual (string NodeId, UpdateRelativePath Update)? GetPath
             => null;
 
         /// <summary>
@@ -213,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 factory.CreateLogger<ModelChangeEventItem>());
                         }
                         break;
-                    case ExtensionFieldModel efm:
+                    case ExtensionFieldItemModel efm:
                         yield return new Field(efm,
                             factory.CreateLogger<Field>());
                         break;
@@ -230,18 +223,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-
-        /// <summary>
-        /// Try and get metadata for the item
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="typeSystem"></param>
-        /// <param name="fields"></param>
-        /// <param name="dataTypes"></param>
-        /// <param name="ct"></param>
-        public abstract ValueTask GetMetaDataAsync(IOpcUaSession session,
-            ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct);
 
         /// <summary>
         /// Dispose
@@ -266,10 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="session"></param>
-        /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        public virtual bool AddTo(Subscription subscription, IOpcUaSession session,
-            out bool metadataChanged)
+        public virtual bool AddTo(Subscription subscription, IOpcUaSession session)
         {
             if (Valid)
             {
@@ -277,10 +256,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                metadataChanged = true;
                 return true;
             }
-            metadataChanged = false;
             return false;
         }
 
@@ -294,10 +271,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="item"></param>
         /// <param name="session"></param>
-        /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        public abstract bool MergeWith(OpcUaMonitoredItem item,
-            IOpcUaSession session, out bool metadataChanged);
+        public abstract bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session);
 
         /// <summary>
         /// Finalize merge
@@ -308,10 +283,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Remove from subscription
         /// </summary>
         /// <param name="subscription"></param>
-        /// <param name="metadataChanged"></param>
+        ///
         /// <returns></returns>
-        public virtual bool RemoveFrom(Subscription subscription,
-            out bool metadataChanged)
+        public virtual bool RemoveFrom(Subscription subscription)
         {
             if (AttachedToSubscription)
             {
@@ -319,10 +293,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "Removed monitored item {Item} from subscription #{SubscriptionId}.",
                     this, subscription.Id);
-                metadataChanged = true;
                 return true;
             }
-            metadataChanged = false;
             return false;
         }
 
@@ -489,12 +461,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="template"></param>
         /// <param name="desired"></param>
         /// <param name="updated"></param>
-        /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        protected bool MergeWith<T>(T template, T desired, out T updated,
-            out bool metadataChanged) where T : BaseMonitoredItemModel
+        protected bool MergeWith<T>(T template, T desired, out T updated)
+            where T : BaseMonitoredItemModel
         {
-            metadataChanged = false;
             updated = template;
 
             if (!Valid)
@@ -553,7 +523,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 updated = updated with { DataSetFieldName = desired.DataSetFieldName };
                 DisplayName = updated.DisplayName;
-                metadataChanged = true;
                 itemChange = true;
             }
             return itemChange;

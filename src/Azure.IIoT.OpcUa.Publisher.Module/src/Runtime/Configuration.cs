@@ -620,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void PostConfigure(string? name, RouterOptions options)
             {
-                options.MountPoint ??= new TopicBuilder(_options).MethodTopic;
+                options.MountPoint ??= new TopicBuilder(_options.Value).MethodTopic;
             }
 
             private readonly IOptions<PublisherOptions> _options;

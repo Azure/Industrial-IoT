@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options).RootTopic.Should().Be(options.Value.PublisherId);
+            new TopicBuilder(options.Value).RootTopic.Should().Be(options.Value.PublisherId);
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options).MethodTopic.Should().Be($"{options.Value.PublisherId}/methods");
+            new TopicBuilder(options.Value).MethodTopic.Should().Be($"{options.Value.PublisherId}/methods");
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Method = null;
-            new TopicBuilder(options).MethodTopic.Should().BeEmpty();
+            new TopicBuilder(options.Value).MethodTopic.Should().BeEmpty();
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Method = null;
-            new TopicBuilder(options, null, new TopicTemplatesOptions
+            new TopicBuilder(options.Value, null, new TopicTemplatesOptions
             {
                 Method = "{RootTopic}/methods"
             }).MethodTopic.Should().Be($"{options.Value.PublisherId}/methods");
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options).EventsTopic.Should().Be($"{options.Value.PublisherId}/events");
+            new TopicBuilder(options.Value).EventsTopic.Should().Be($"{options.Value.PublisherId}/events");
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Telemetry = "{RootTopic}/{WriterGroup}/{DataSetWriter}";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Telemetry = "{RootTopic}/{Unknown}/{DataSetWriter}";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Telemetry = "{RootTopic}/{TelemetryTopic}/{DataSetWriter}";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Root = "{PublisherId}";
             options.Value.TopicTemplates.Telemetry = "{PublisherId}/{RootTopic}";
-            new TopicBuilder(options).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/PublisherId");
+            new TopicBuilder(options.Value).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/PublisherId");
         }
 
         [Fact]
@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Root = "{TelemetryTopic}";
             options.Value.TopicTemplates.Telemetry = "{RootTopic}";
-            new TopicBuilder(options).TelemetryTopic.Should().Be("TelemetryTopic");
+            new TopicBuilder(options.Value).TelemetryTopic.Should().Be("TelemetryTopic");
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.TopicTemplates.Telemetry = "{TelemetryTopic}";
-            new TopicBuilder(options).TelemetryTopic.Should().Be("TelemetryTopic");
+            new TopicBuilder(options.Value).TelemetryTopic.Should().Be("TelemetryTopic");
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.Telemetry =
                 "{RootTopic}/writer/{DataSetWriter}/group/{WriterGroup}/messages";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options, null, new TopicTemplatesOptions
+            new TopicBuilder(options.Value, null, new TopicTemplatesOptions
             {
                 Telemetry = "{RootTopic}/writer/{DataSetWriter}/group/{WriterGroup}/messages"
             }, new Dictionary<string, string>
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             options.Value.TopicTemplates.Telemetry =
                 "{RootTopic}/writer/{DataSetWriter}/group/{WriterGroup}/messages".ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.DataSetMetaData = "{TelemetryTopic}/metadata";
-            new TopicBuilder(options, variables: new Dictionary<string, string>
+            new TopicBuilder(options.Value, variables: new Dictionary<string, string>
             {
                 ["DataSetWriter"] = "Foo",
                 ["WriterGroup"] = "Bar"
@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.TopicTemplates.DataSetMetaData = "{TelemetryTopic}/$someothername";
-            new TopicBuilder(options, null, new TopicTemplatesOptions
+            new TopicBuilder(options.Value, null, new TopicTemplatesOptions
             {
                 DataSetMetaData = "{TelemetryTopic}/metadata"
             }, new Dictionary<string, string>

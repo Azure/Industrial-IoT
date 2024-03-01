@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Amqp.Transaction;
+    using static Furly.Azure.ConnectionString;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             = DateTime.UtcNow;
 
         /// <inheritdoc/>
-        public int Version { get; private set; }
+        public uint Version { get; private set; }
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -73,8 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             });
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
-            _changeFeed
-                = Channel.CreateUnbounded<(TaskCompletionSource, IEnumerable<WriterGroupModel>)>(
+            _changeFeed =
+                Channel.CreateUnbounded<(TaskCompletionSource, IEnumerable<WriterGroupModel>)>(
                     new UnboundedChannelOptions
                     {
                         SingleReader = true,
@@ -179,18 +179,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 // Disposing - stop all groups before exiting
-                foreach (var group in _currentJobs)
+                foreach (var job in _currentJobs)
                 {
                     try
                     {
-                        group.Value.Dispose();
+                        await job.Value.DisposeAsync().ConfigureAwait(false);
                         _logger.LogInformation("Writer group job {Job} stopped.",
-                            group.Key);
+                            job.Key);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         _logger.LogError(ex, "Failed to stop writer group job {Job}.",
-                            group.Key);
+                            job.Key);
                     }
                 }
             }
@@ -222,13 +222,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_currentJobs.TryGetValue(jobId, out var currentJob))
                         {
-                            await currentJob.UpdateAsync(Version, writerGroup, ct).ConfigureAwait(false);
+                            await currentJob.UpdateAsync(Version, writerGroup,
+                                ct).ConfigureAwait(false);
                         }
                         else
                         {
                             // Create new writer group job
-                            currentJob = await WriterGroupJob.CreateAsync(this, jobId, Version,
-                                writerGroup, ct).ConfigureAwait(false);
+                            currentJob = await WriterGroupJob.CreateAsync(this,
+                                jobId, Version, writerGroup, ct).ConfigureAwait(false);
                             _currentJobs.Add(currentJob.Id, currentJob);
                         }
                     }
@@ -245,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    delete.Dispose();
+                    await delete.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -281,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Job context
         /// </summary>
-        private sealed class WriterGroupJob : IDisposable
+        private sealed class WriterGroupJob : IAsyncDisposable
         {
             /// <summary>
             /// Immutable writer group identifier
@@ -294,31 +295,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public WriterGroupModel WriterGroup { get; private set; }
 
             /// <summary>
-            /// Controllers
+            /// Writer group controller
             /// </summary>
-            public IReadOnlyList<IWriterGroupControl> Controllers { get; }
+            public IWriterGroupController Controller { get; }
 
             /// <summary>
             /// Current writer group job version
             /// </summary>
-            public int Version { get; internal set; }
+            public uint Version { get; internal set; }
 
             /// <summary>
             /// Create context
             /// </summary>
             /// <param name="outer"></param>
+            /// <param name="writerGroup"></param>
             /// <param name="version"></param>
             /// <param name="id"></param>
-            /// <param name="writerGroup"></param>
-            private WriterGroupJob(PublisherService outer, int version, string id,
-                WriterGroupModel writerGroup)
+            private WriterGroupJob(PublisherService outer, WriterGroupModel writerGroup,
+                uint version, string id)
             {
                 _outer = outer;
                 Id = id;
                 Version = version;
                 WriterGroup = writerGroup with { Id = id };
-                _scope = _outer._factory.Create(WriterGroup);
-                Controllers = _scope.WriterGroupControl;
+
+                _scope = _outer._factory.Create(id);
+                Controller = _scope.WriterGroupController;
             }
 
             /// <summary>
@@ -331,21 +333,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="ct"></param>
             /// <returns></returns>
             public static async ValueTask<WriterGroupJob> CreateAsync(PublisherService outer,
-                string id, int version, WriterGroupModel writerGroup, CancellationToken ct)
+                string id, uint version, WriterGroupModel writerGroup, CancellationToken ct)
             {
-                var context = new WriterGroupJob(outer, version, id, writerGroup);
+                var context = new WriterGroupJob(outer, writerGroup, version, id);
                 try
                 {
-                    foreach (var controller in context.Controllers)
-                    {
-                        await controller.StartAsync(ct).ConfigureAwait(false); // TODO: Call UpdateAsync
-                    }
+                    var newWriterGroup = SetVersion(writerGroup, id, version);
+                    await context.Controller.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
                     return context;
                 }
                 catch (Exception ex)
                 {
-                    outer._logger.LogError(ex, "Failed to create writer group job {Name}", context.Id);
-                    context.Dispose();
+                    outer._logger.LogError(ex, "Failed to create writer group job {Name}",
+                        context.Id);
+                    await context.DisposeAsync().ConfigureAwait(false);
                     throw;
                 }
             }
@@ -357,18 +358,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writerGroup"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async ValueTask UpdateAsync(int version, WriterGroupModel writerGroup,
+            public async ValueTask UpdateAsync(uint version, WriterGroupModel writerGroup,
                 CancellationToken ct)
             {
                 try
                 {
-                    var newWriterGroup = writerGroup with { Id = Id };
-
-                    foreach (var controller in Controllers)
-                    {
-                        await controller.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
-                    }
-
+                    var newWriterGroup = SetVersion(writerGroup, Id, version);
+                    await Controller.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
                     // Update inner state if successful
                     WriterGroup = newWriterGroup;
                 }
@@ -384,11 +380,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void Dispose()
+            public async ValueTask DisposeAsync()
             {
                 try
                 {
-                    Controllers.ForEach(c => c.Dispose());
+                    await Controller.DeleteAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -398,6 +394,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     _scope.Dispose();
                 }
+            }
+
+            /// <summary>
+            /// Add id and version to group
+            /// </summary>
+            /// <param name="writerGroup"></param>
+            /// <param name="id"></param>
+            /// <param name="version"></param>
+            /// <returns></returns>
+            private static WriterGroupModel SetVersion(WriterGroupModel writerGroup,
+                string id, uint version)
+            {
+                return writerGroup with
+                {
+                    Id = id,
+                    MessageSettings = (writerGroup.MessageSettings
+                        ?? new WriterGroupMessageSettingsModel()) with
+                    {
+                        GroupVersion = version
+                    }
+                };
             }
 
             private readonly IWriterGroupScope _scope;

@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Current version number of the configuration
         /// </summary>
-        int Version { get; }
+        uint Version { get; }
 
         /// <summary>
         /// Last change time

@@ -21,13 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Create subscription
         /// </summary>
         /// <param name="dataSetSource"></param>
-        /// <param name="dataSetMetaData"></param>
         /// <param name="options"></param>
-        /// <param name="fetchBrowsePathFromRootOverride"></param>
         /// <returns></returns>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
-            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel? dataSetMetaData,
-            OpcUaSubscriptionOptions options, bool? fetchBrowsePathFromRootOverride)
+            this PublishedDataSetSourceModel dataSetSource, OpcUaSubscriptionOptions options)
         {
             return new SubscriptionConfigurationModel
             {
@@ -39,8 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options.DefaultKeepAliveCount,
                 PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval
                     ?? options.DefaultPublishingInterval,
-                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
-                    ?? options.ResolveDisplayName,
                 UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
                     ?? options.UseDeferredAcknoledgements,
                 AsyncMetaDataLoadThreshold = dataSetSource.SubscriptionSettings?.AsyncMetaDataLoadThreshold
@@ -48,12 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EnableImmediatePublishing = dataSetSource.SubscriptionSettings?.EnableImmediatePublishing
                     ?? options.EnableImmediatePublishing ?? false,
                 EnableSequentialPublishing = dataSetSource.SubscriptionSettings?.EnableSequentialPublishing
-                    ?? options.EnableSequentialPublishing ?? true,
-                ResolveBrowsePathFromRoot = fetchBrowsePathFromRootOverride
-                    ?? options.FetchOpcBrowsePathFromRoot ?? false,
-                MetaData = options.DisableDataSetMetaData == true
-                    ? null : dataSetMetaData
-            };
+                    ?? options.EnableSequentialPublishing ?? true
+             };
         }
 
         /// <summary>
@@ -66,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static IList<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
             OpcUaSubscriptionOptions options, Func<PublishingQueueSettingsModel?, object?> configure,
-            IDictionary<string, VariantValue>? extensionFields = null)
+            IReadOnlyList<ExtensionFieldModel>? extensionFields = null)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null)
@@ -118,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="extensionFields"></param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this IDictionary<string, VariantValue> extensionFields)
+            this IReadOnlyList<ExtensionFieldModel> extensionFields)
         {
             foreach (var extensionField in extensionFields)
             {
@@ -240,17 +231,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="extensionField"></param>
         /// <returns></returns>
-        internal static ExtensionFieldModel? ToMonitoredItemTemplate(
-            this KeyValuePair<string, VariantValue> extensionField)
+        internal static ExtensionFieldItemModel? ToMonitoredItemTemplate(
+            this ExtensionFieldModel extensionField)
         {
-            if (string.IsNullOrEmpty(extensionField.Key))
+            if (string.IsNullOrEmpty(extensionField.DataSetFieldName))
             {
                 return null;
             }
-            return new ExtensionFieldModel
+            return new ExtensionFieldItemModel
             {
-                DataSetFieldName = extensionField.Key,
+                DataSetFieldName = extensionField.DataSetFieldName,
                 Value = extensionField.Value,
+                // TODO
                 StartNodeId = string.Empty
             };
         }
@@ -273,9 +265,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             return new DataMonitoredItemModel
             {
-                DataSetFieldId = publishedVariable.Id ?? publishedVariable.PublishedVariableNodeId,
+                DataSetFieldId = publishedVariable.DataSetFieldName ?? publishedVariable.PublishedVariableNodeId,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
-                DataSetFieldName = publishedVariable.PublishedVariableDisplayName
+                DataSetFieldName = publishedVariable.DataSetFieldName
                     ?? string.Empty,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable, options),
                 SamplingUsingCyclicRead = publishedVariable.SamplingUsingCyclicRead

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 
     /// <summary>
@@ -37,23 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Max notification per publish
         /// </summary>
         public uint? MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
-        /// Resolves the display names for the monitored items
-        /// in the subscription.
-        /// </summary>
-        public bool? ResolveDisplayName { get; set; }
-
-        /// <summary>
-        /// Retrieve paths from root for all monitored items
-        /// in the subscription.
-        /// </summary>
-        public bool ResolveBrowsePathFromRoot { get; set; }
-
-        /// <summary>
-        /// The metadata header information or null if disabled.
-        /// </summary>
-        public DataSetMetaDataModel? MetaData { get; set; }
 
         /// <summary>
         /// Use deferred acknoledgements

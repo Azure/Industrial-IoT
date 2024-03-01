@@ -197,7 +197,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         eventItem.StartNodeId = new NodeId(nodeId, 0);
                         eventItem.Handle = eventItem;
                         eventItem.Valid = true;
-                        eventItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, eventFieldList, notifications);
+                        eventItem.TryGetMonitoredItemNotifications(seq,
+                            DateTime.UtcNow, eventFieldList, notifications);
                     }
                     else
                     {
@@ -221,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         dataItem.StartNodeId = new NodeId(nodeId, 0);
                         dataItem.Handle = dataItem;
                         dataItem.Valid = true;
-                        dataItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, monitoredItemNotification, notifications);
+                        dataItem.TryGetMonitoredItemNotifications(seq,
+                            DateTime.UtcNow, monitoredItemNotification, notifications);
                     }
                 }
 
@@ -237,8 +239,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         WriterGroup = writerGroup
                     },
                     PublishTimestamp = DateTime.UtcNow,
-                    MetaData = null,
-                    MessageType = eventList ? Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
+                    MessageType = eventList ?
+                        Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
                     ServiceMessageContext = new ServiceMessageContext(),
                     Notifications = notifications,
                     SubscriptionId = 22,

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Messaging;
+    using Opc.Ua;
     using System;
 
     /// <summary>
@@ -42,5 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Writer group model reference
         /// </summary>
         public required WriterGroupModel WriterGroup { get; init; }
+
+        /// <summary>
+        /// Metadata
+        /// </summary>
+        public DataSetMetaDataType? MetaData { get; internal set; }
     }
 }

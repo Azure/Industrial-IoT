@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Utils;
@@ -25,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
 
     /// <summary>
     /// Subscription implementation
@@ -51,12 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IOpcUaClientDiagnostics State
             => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
-
-        /// <summary>
-        /// Current metadata
-        /// </summary>
-        internal DataSetMetaDataType? CurrentMetaData =>
-            _metaDataLoader.IsValueCreated ? _metaDataLoader.Value.MetaData : null;
 
         /// <summary>
         /// Whether the subscription is online
@@ -98,7 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
             Initialize();
-            _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
 
@@ -140,7 +133,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _closed = subscription._closed;
 
             Initialize();
-            _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
 
@@ -601,37 +593,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             //
-            // If retrieving paths for all the items from the root folder was configured do so
-            // now. All items that fail here should be retried later.
-            //
-            if (_template.Configuration?.ResolveBrowsePathFromRoot == true)
-            {
-                var allGetPaths = add
-                    .Select(a => a.GetPath)
-                    .Where(a => a != null);
-                foreach (var getPathsBatch in allGetPaths.Batch(10000))
-                {
-                    var getPath = getPathsBatch.ToList();
-                    var paths = await session.GetBrowsePathsFromRootAsync(new RequestHeader(),
-                        getPath.Select(n => n!.Value.NodeId.ToNodeId(session.MessageContext)),
-                        ct).ConfigureAwait(false);
-                    for (var index = 0; index < paths.Count; index++)
-                    {
-                        getPath[index]!.Value.Update(paths[index].Path, session.MessageContext);
-                        if (paths[index].ErrorInfo != null)
-                        {
-                            _logger.LogWarning("Failed to get root path for {NodeId} " +
-                                "in {Subscription} due to '{ServiceResult}'",
-                                getPath[index]!.Value.NodeId, this, paths[index].ErrorInfo);
-                        }
-                    }
-                }
-                _logger.LogInformation(
-                    "Retrieved paths of items to add to Subscription {Subscription} in session {Session}.",
-                    this, session);
-            }
-
-            //
             // Register nodes for reading if needed. This is needed anytime the session
             // changes as the registration is only valid in the context of the session
             //
@@ -658,7 +619,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            var metadataChanged = false;
             var applyChanges = false;
             var updated = 0;
             var errors = 0;
@@ -674,21 +634,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(toUpdate.GetType() == theDesiredUpdate.GetType());
                 try
                 {
-                    if (toUpdate.MergeWith(theDesiredUpdate, session, out var metadata))
+                    if (toUpdate.MergeWith(theDesiredUpdate, session))
                     {
                         _logger.LogDebug(
                             "Trying to update monitored item '{Item}' in {Subscription}...",
                             toUpdate, this);
-                        if (toUpdate.FinalizeMergeWith != null && metadata)
+                        if (toUpdate.FinalizeMergeWith != null)
                         {
                             await toUpdate.FinalizeMergeWith(session, ct).ConfigureAwait(false);
                         }
                         updated++;
                         applyChanges = true;
-                    }
-                    if (metadata)
-                    {
-                        metadataChanged = true;
                     }
                 }
                 catch (Exception ex)
@@ -709,17 +665,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    if (toRemove.RemoveFrom(this, out var metadata))
+                    if (toRemove.RemoveFrom(this))
                     {
                         _logger.LogDebug(
                             "Trying to remove monitored item '{Item}' from {Subscription}...",
                             toRemove, this);
                         removed++;
                         applyChanges = true;
-                    }
-                    if (metadata)
-                    {
-                        metadataChanged = true;
                     }
                 }
                 catch (Exception ex)
@@ -737,22 +689,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 desired.Remove(toAdd);
                 try
                 {
-                    if (toAdd.AddTo(this, session, out var metadata))
+                    if (toAdd.AddTo(this, session))
                     {
                         _logger.LogDebug(
                             "Adding monitored item '{Item}' to {Subscription}...",
                             toAdd, this);
 
-                        if (toAdd.FinalizeAddTo != null && metadata)
+                        if (toAdd.FinalizeAddTo != null)
                         {
                             await toAdd.FinalizeAddTo(session, ct).ConfigureAwait(false);
                         }
                         added++;
                         applyChanges = true;
-                    }
-                    if (metadata)
-                    {
-                        metadataChanged = true;
                     }
                 }
                 catch (Exception ex)
@@ -839,7 +787,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 displayName =
                                     (result.Result.Value as LocalizedText)?.ToString();
-                                metadataChanged = true;
                             }
                             else
                             {
@@ -884,36 +831,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Apply any additional changes
                 await ApplyChangesAsync(ct).ConfigureAwait(false);
-            }
-
-            //
-            // Ensure metadata is already available when we enable publishing if this
-            // is a new subscription. This ensures that the meta data is part of the
-            // first notification if we want. We store the metadata in a task variable
-            // and materialize it first time we need it.
-            //
-            // TODO: We need a versioning scheme to align the metadata changes with the
-            // notifications we receive. Right now if not initial change it is possible
-            // that notifications arrive from previous state that already have the new
-            // metadata. Then we need a way to retain the previous metadata until
-            // switching over.
-            //
-            Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
-                "Client handles are not distinct or one of the items is null");
-            if (metadataChanged)
-            {
-                var threshold =
-                    _template.Configuration?.AsyncMetaDataLoadThreshold
-                        ?? 30; // Synchronous loading for 30 or less items
-                var tcs = (set.Count <= threshold) ? new TaskCompletionSource() : null;
-                var args = new MetaDataLoader.MetaDataLoaderArguments(tcs, session,
-                    session.NamespaceUris, set.OrderBy(m => m.ClientHandle));
-                _metaDataLoader.Value.Reload(args);
-                if (tcs != null)
-                {
-                    await tcs.Task.ConfigureAwait(false);
-                }
-                metadataChanged = false;
             }
 
             _logger.LogDebug(
@@ -1993,10 +1910,7 @@ Actual (revised) state/desired state:
             }
             return subscription with
             {
-                Configuration = subscription.Configuration with
-                {
-                    MetaData = subscription.Configuration.MetaData.Clone()
-                },
+                Configuration = subscription.Configuration with { },
                 Id = new SubscriptionIdentifier(subscription.Id.Connection,
                     subscriptionName ?? subscription.Id.Id),
                 MonitoredItems = subscription.MonitoredItems?.ToList()
@@ -2010,9 +1924,6 @@ Actual (revised) state/desired state:
         {
             /// <inheritdoc/>
             public object? Context { get; set; }
-
-            /// <inheritdoc/>
-            public DataSetMetaDataType? MetaData { get; private set; }
 
             /// <inheritdoc/>
             public uint SequenceNumber { get; internal set; }
@@ -2069,7 +1980,6 @@ Actual (revised) state/desired state:
                 ServiceMessageContext = messageContext;
                 _subscriptionId = subscriptionId;
 
-                MetaData = _outer.CurrentMetaData;
                 Notifications = notifications?.ToList() ??
                     new List<MonitoredItemNotificationModel>();
             }
@@ -2108,7 +2018,6 @@ Actual (revised) state/desired state:
                 {
                     return false;
                 }
-                MetaData = _outer.CurrentMetaData;
                 MessageType = MessageType.KeyFrame;
                 Notifications.Clear();
                 Notifications.AddRange(allNotifications);
@@ -2168,168 +2077,6 @@ Actual (revised) state/desired state:
             private readonly uint _subscriptionId;
         }
 
-        /// <summary>
-        /// Loader abstraction
-        /// </summary>
-        private sealed class MetaDataLoader : IAsyncDisposable
-        {
-            /// <summary>
-            /// Current meta data
-            /// </summary>
-            public DataSetMetaDataType? MetaData { get; private set; }
-
-            /// <summary>
-            /// Create loader
-            /// </summary>
-            /// <param name="subscription"></param>
-            public MetaDataLoader(OpcUaSubscription subscription)
-            {
-                _subscription = subscription;
-                _loader = StartAsync(_cts.Token);
-            }
-
-            /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
-            {
-                try
-                {
-                    await _cts.CancelAsync().ConfigureAwait(false);
-                    await _loader.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _cts.Dispose();
-                }
-            }
-
-            /// <summary>
-            /// Load meta data
-            /// </summary>
-            /// <param name="arguments"></param>
-            public void Reload(MetaDataLoaderArguments arguments)
-            {
-                Interlocked.Exchange(ref _arguments, arguments)?.tcs?.TrySetCanceled();
-                _trigger.Set();
-            }
-
-            /// <summary>
-            /// Meta data loader task
-            /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async Task StartAsync(CancellationToken ct)
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    await _trigger.WaitAsync(ct).ConfigureAwait(false);
-
-                    var args = Interlocked.Exchange(ref _arguments, null);
-                    if (args == null)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        await UpdateMetaDataAsync(args, ct).ConfigureAwait(false);
-                        args.tcs?.TrySetResult();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        args.tcs?.TrySetCanceled(ct);
-                    }
-                    catch (Exception ex)
-                    {
-                        _subscription._logger.LogError(
-                            "Failed to get metadata for {Subscription} with error {Error}",
-                            this, ex.Message);
-
-                        args.tcs?.TrySetException(ex);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Update metadata
-            /// </summary>
-            /// <param name="args"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            internal async Task UpdateMetaDataAsync(MetaDataLoaderArguments args,
-                CancellationToken ct = default)
-            {
-                if (_subscription._template.Configuration?.MetaData == null)
-                {
-                    // Metadata disabled
-                    MetaData = null;
-                    return;
-                }
-
-                //
-                // Use the date time to version across reboots. This could be done
-                // more elegantly by saving the last version to persistent storage
-                // such as twin, but this is ok for the sake of being able to have
-                // an incremental version number defining metadata changes.
-                //
-                var metaDataVersion = DateTime.UtcNow.ToBinary();
-                var major = (uint)(metaDataVersion >> 32);
-                var minor = (uint)metaDataVersion;
-
-                _subscription._logger.LogDebug(
-                    "Loading Metadata {Major}.{Minor} for {Subscription}...",
-                    major, minor, this);
-
-                var sw = Stopwatch.StartNew();
-                var typeSystem = await args.sessionHandle.GetComplexTypeSystemAsync(
-                    ct).ConfigureAwait(false);
-                var dataTypes = new NodeIdDictionary<DataTypeDescription>();
-                var fields = new FieldMetaDataCollection();
-                foreach (var monitoredItem in args.monitoredItemsInDataSet)
-                {
-                    await monitoredItem.GetMetaDataAsync(args.sessionHandle, typeSystem,
-                        fields, dataTypes, ct).ConfigureAwait(false);
-                }
-
-                _subscription._logger.LogInformation(
-                    "Loading Metadata {Major}.{Minor} for {Subscription} took {Duration}.",
-                    major, minor, this, sw.Elapsed);
-
-                MetaData = new DataSetMetaDataType
-                {
-                    Name =
-                        _subscription._template.Configuration.MetaData.Name,
-                    DataSetClassId =
-                        (Uuid)_subscription._template.Configuration.MetaData.DataSetClassId,
-                    Namespaces =
-                        args.namespaces.ToArray(),
-                    EnumDataTypes =
-                        dataTypes.Values.OfType<EnumDescription>().ToArray(),
-                    StructureDataTypes =
-                        dataTypes.Values.OfType<StructureDescription>().ToArray(),
-                    SimpleDataTypes =
-                        dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
-                    Fields =
-                        fields,
-                    Description =
-                        _subscription._template.Configuration.MetaData.Description,
-                    ConfigurationVersion = new ConfigurationVersionDataType
-                    {
-                        MajorVersion = major,
-                        MinorVersion = minor
-                    }
-                };
-            }
-
-            internal record MetaDataLoaderArguments(TaskCompletionSource? tcs,
-                IOpcUaSession sessionHandle, NamespaceTable namespaces,
-                IEnumerable<OpcUaMonitoredItem> monitoredItemsInDataSet);
-            private MetaDataLoaderArguments? _arguments;
-            private readonly Task _loader;
-            private readonly CancellationTokenSource _cts = new();
-            private readonly AsyncAutoResetEvent _trigger = new();
-            private readonly OpcUaSubscription _subscription;
-        }
-
         private long TotalMonitoredItems => _additionallyMonitored.Count + MonitoredItemCount;
 
         /// <summary>
@@ -2379,7 +2126,6 @@ Actual (revised) state/desired state:
         private bool _closed;
         private bool _forceRecreate;
         private readonly ISubscriptionCallbacks _callbacks;
-        private readonly Lazy<MetaDataLoader> _metaDataLoader;
         private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ILoggerFactory _loggerFactory;

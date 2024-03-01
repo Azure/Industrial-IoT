@@ -113,13 +113,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType
+            messages[10].Context = new WriterGroupMessageContext
             {
-                Name = "test",
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData {
-                        Name = "test",
-                        BuiltInType = (byte)BuiltInType.UInt16
+                NextWriterSequenceNumber = () => 3,
+                PublisherId = "abc",
+                Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
+                Topic = null,
+                Writer = new DataSetWriterModel { Id = "1" },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaData = new DataSetMetaDataType
+                {
+                    Name = "test",
+                    Fields = new FieldMetaDataCollection
+                    {
+                        new FieldMetaData
+                        {
+                            Name = "test",
+                            BuiltInType = (byte)BuiltInType.UInt16
+                        }
                     }
                 }
             };
@@ -141,15 +152,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
             messages[0].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[0].MetaData = new DataSetMetaDataType
+            messages[10].Context = new WriterGroupMessageContext
             {
-                Name = "test",
-                Fields = Enumerable.Range(0, 10000).Select(r =>
-                    new FieldMetaData
-                    {
-                        Name = "testfield" + r,
-                        BuiltInType = (byte)BuiltInType.UInt16
-                    }).ToArray()
+                NextWriterSequenceNumber = () => 3,
+                PublisherId = "abc",
+                Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
+                Topic = null,
+                Writer = new DataSetWriterModel { Id = "1" },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaData = new DataSetMetaDataType
+                {
+                    Name = "test",
+                    Fields = Enumerable.Range(0, 10000).Select(r =>
+                        new FieldMetaData
+                        {
+                            Name = "testfield" + r,
+                            BuiltInType = (byte)BuiltInType.UInt16
+                        }).ToArray()
+                }
             };
 
             using var encoder = GetEncoder();

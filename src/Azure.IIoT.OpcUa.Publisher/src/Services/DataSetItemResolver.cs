@@ -1,0 +1,1575 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Messaging;
+    using Microsoft.Extensions.Logging;
+    using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using Microsoft.Extensions.Options;
+
+    /// <summary>
+    /// Data set resolver resolves items in a data set against the
+    /// server and updates the internal information.
+    /// </summary>
+    internal class DataSetItemResolver
+    {
+        /// <summary>
+        /// Create resolver
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="options"></param>
+        public DataSetItemResolver(IOptions<PublisherOptions> options,
+            ILogger<DataSetItemResolver> logger)
+        {
+            _logger = logger;
+            _options = options;
+        }
+
+        /// <summary>
+        /// Update the configuration using session. This is only necessary if
+        /// <see cref="NeedsUpdate(IEnumerable{DataSetWriterModel})"/> returns
+        /// true.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask ResolveAsync(IOpcUaSession session,
+            IReadOnlyList<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            // 1. Resolve node
+            await ResolveBrowsePathAsync(session, writers, ct).ConfigureAwait(false);
+
+            // 2. Resolve display names
+            await ResolveFieldNamesAsync(session, writers, ct).ConfigureAwait(false);
+
+            // 3. Resolve queue names
+            await ResolveQueueNamesAsync(session, writers, ct).ConfigureAwait(false);
+
+            // 4. Special resolve anything else
+            await ResolveRemainingsAsync(session, writers, ct).ConfigureAwait(false);
+
+            // 5. Resolve metadata
+            await ResolveMetaDataAsync(session, writers, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Needs update
+        /// </summary>
+        /// <param name="writers"></param>
+        /// <returns></returns>
+        public bool NeedsUpdate(IEnumerable<DataSetWriterModel> writers)
+        {
+            return writers.SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Any(v => v.NeedsUpdate);
+        }
+
+        /// <summary>
+        /// Split writers
+        /// </summary>
+        /// <param name="writers"></param>
+        /// <returns></returns>
+        public IEnumerable<DataSetWriterModel> Split(IEnumerable<DataSetWriterModel> writers)
+        {
+            return PublishedDataSetItem.Split(this, writers, _options.Value.MaxNodesPerDataSet);
+        }
+
+        /// <summary>
+        /// Merge items from old writer into new writer
+        /// </summary>
+        /// <param name="existing"></param>
+        /// <param name="newWriter"></param>
+        public void Merge(DataSetWriterModel existing, DataSetWriterModel newWriter)
+        {
+            // Create lookup to reference the old state
+            var lookup = PublishedDataSetItem.Create(this, existing)
+                .Where(d => d.Id != null)
+                .DistinctBy(d => d.Id)
+                .ToDictionary(d => d.Id!, d => d);
+            foreach (var item in PublishedDataSetItem.Create(this, newWriter))
+            {
+                if (item.Id != null && lookup.TryGetValue(item.Id, out var existingItem))
+                {
+                    item.Merge(existingItem);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolve browse names
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveBrowsePathAsync(IOpcUaSession session,
+            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            foreach (var resolvers in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Where(v => v.BrowsePath?.Count > 0)
+                .Batch(limits.GetMaxNodesPerTranslatePathsToNodeIds()))
+            {
+                var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
+                    new RequestHeader(), new BrowsePathCollection(resolvers
+                        .Select(a => new BrowsePath
+                        {
+                            StartingNode = a!.NodeId.ToNodeId(
+                                session.MessageContext),
+                            RelativePath = a.BrowsePath.ToRelativePath(
+                                session.MessageContext)
+                        })), ct).ConfigureAwait(false);
+
+                var results = response.Validate(response.Results, s => s.StatusCode,
+                    response.DiagnosticInfos, resolvers);
+                if (results.ErrorInfo != null)
+                {
+                    // Could not do anything...
+                    _logger.LogDebug(
+                        "Failed to resolve browse path in due to {ErrorInfo}...",
+                        results.ErrorInfo);
+
+                    foreach (var item in resolvers)
+                    {
+                        item.ErrorInfo = results.ErrorInfo;
+                    }
+                    continue;
+                }
+                foreach (var result in results)
+                {
+                    if (result.ErrorInfo == null && result.Result.Targets.Count > 0)
+                    {
+                        if (result.Result.Targets.Count > 1)
+                        {
+                            _logger.LogInformation(
+                                "Ambiguous browse path for {NodeId} - using first.",
+                                result.Request!.NodeId);
+                        }
+
+                        result.Request.ErrorInfo = null;
+                        result.Request.BrowsePath = null;
+                        result.Request.NodeId = result.Result.Targets[0].TargetId.AsString(
+                            session.MessageContext, NamespaceFormat.Expanded);
+                    }
+                    else
+                    {
+                        result.Request.ErrorInfo = result.ErrorInfo;
+
+                        _logger.LogDebug(
+                            "Failed resolve browse path of {NodeId} due to '{ServiceResult}'",
+                            result.Request!.NodeId, result.ErrorInfo);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolve field names
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveFieldNamesAsync(IOpcUaSession session,
+            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            // Get limits to batch requests during resolve
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+
+            foreach (var displayNameUpdates in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Where(p => p.ResolvedName == null)
+                .Batch(limits.GetMaxNodesPerRead()))
+            {
+                var response = await session.Services.ReadAsync(new RequestHeader(),
+                    0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
+                    displayNameUpdates.Select(a => new ReadValueId
+                    {
+                        NodeId = a!.NodeId.ToNodeId(session.MessageContext),
+                        AttributeId = (uint)NodeAttribute.DisplayName
+                    })), ct).ConfigureAwait(false);
+                var results = response.Validate(response.Results,
+                    s => s.StatusCode, response.DiagnosticInfos, displayNameUpdates);
+
+                if (results.ErrorInfo != null)
+                {
+                    _logger.LogDebug(
+                        "Failed to resolve display namedue to {ErrorInfo}...",
+                        results.ErrorInfo);
+
+                    foreach (var item in displayNameUpdates)
+                    {
+                        item.ErrorInfo = results.ErrorInfo;
+                    }
+                    continue;
+                }
+                foreach (var result in results)
+                {
+                    if (result.Result.Value is not null)
+                    {
+                        result.Request!.ErrorInfo = null;
+                        result.Request!.ResolvedName =
+                            (result.Result.Value as LocalizedText)?.ToString();
+                        // metadataChanged = true;
+                    }
+                    else
+                    {
+                        result.Request.ErrorInfo = result.ErrorInfo;
+
+                        _logger.LogDebug("Failed to read display name for {NodeId} " +
+                            "due to '{ServiceResult}'",
+                            result.Request!.NodeId, result.ErrorInfo);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolve queue names
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveQueueNamesAsync(IOpcUaSession session,
+            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+
+            foreach (var getPathsBatch in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Where(i => i.Publishing?.QueueName == null)
+                .Batch(1000))
+            {
+                var getPath = getPathsBatch.ToList();
+                var paths = await session.GetBrowsePathsFromRootAsync(new RequestHeader(),
+                    getPath.Select(n => n.NodeId
+                        .ToNodeId(session.MessageContext)),
+                    ct).ConfigureAwait(false);
+
+                for (var index = 0; index < paths.Count; index++)
+                {
+                    if (paths[index].ErrorInfo != null)
+                    {
+                        getPath[index].ErrorInfo = paths[index].ErrorInfo;
+
+                        _logger.LogDebug(
+                            "Failed to get root path for {NodeId} due to '{ServiceResult}'",
+                            getPath[index]!.NodeId, paths[index].ErrorInfo);
+                    }
+                    else
+                    {
+                        getPath[index].ErrorInfo = null;
+                        getPath[index].Publishing ??= new PublishingQueueSettingsModel();
+                        getPath[index].Publishing!.QueueName =
+                            ToQueueName(getPath[index].DataSetWriter,
+                                paths[index].Path, true);
+                    }
+                }
+            }
+
+            static string ToQueueName(DataSetWriterModel dataSetWriter,
+                RelativePath subPath, bool includeNamespaceIndex)
+            {
+                Debug.Assert(dataSetWriter.Publishing != null);
+                var sb = new StringBuilder().Append(dataSetWriter.Publishing.QueueName);
+                foreach (var path in subPath.Elements)
+                {
+                    sb.Append('/');
+                    if (path.TargetName.NamespaceIndex != 0 && includeNamespaceIndex)
+                    {
+                        sb.Append(path.TargetName.NamespaceIndex).Append(':');
+                    }
+                    sb.Append(TopicFilter.Escape(path.TargetName.Name));
+                }
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Resolve metadata
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            var metaDataVersion = DateTime.UtcNow.ToBinary();
+            var major = (uint)(metaDataVersion >> 32);
+            var minor = (uint)metaDataVersion;
+
+            _logger.LogDebug("Loading Metadata {Major}.{Minor}...",
+                major, minor);
+
+            var sw = Stopwatch.StartNew();
+            var typeSystem = await session.GetComplexTypeSystemAsync(
+                ct).ConfigureAwait(false);
+
+            foreach (var item in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Where(i => i.MetaDataNeedsRefresh))
+            {
+                await item.ResolveMetaDataAsync(session,
+                    typeSystem, minor, ct).ConfigureAwait(false);
+            }
+            _logger.LogInformation(
+                "Loaded Metadata {Major}.{Minor} in {Duration}.",
+                major, minor, sw.Elapsed);
+        }
+
+        /// <summary>
+        /// Resolve all remmaining
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveRemainingsAsync(IOpcUaSession session,
+            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            foreach (var item in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .Where(i => i.ErrorInfo == null))
+            {
+                await item.ResolveAsync(session, ct).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Data set item adapts data set entries using a common interface
+        /// </summary>
+        internal abstract class PublishedDataSetItem
+        {
+            [Flags]
+            public enum ItemTypes
+            {
+                Variables = 1,
+                Events = 2,
+                ExtensionField = 4,
+                All = Variables | Events | ExtensionField
+            }
+
+            /// <summary>
+            /// Access the node id field
+            /// </summary>
+            public abstract string? NodeId { get; set; }
+
+            /// <summary>
+            /// Access the browse path
+            /// </summary>
+            public abstract IReadOnlyList<string>? BrowsePath { get; set; }
+
+            /// <summary>
+            /// Access the resolved field name
+            /// </summary>
+            public abstract string? ResolvedName { get; set; }
+
+            /// <summary>
+            /// Write resolver error
+            /// </summary>
+            public abstract ServiceResultModel? ErrorInfo { get; set; }
+
+            /// <summary>
+            /// Resolved queue name
+            /// </summary>
+            public abstract PublishingQueueSettingsModel? Publishing { get; set; }
+
+            /// <summary>
+            /// Writer
+            /// </summary>
+            public DataSetWriterModel DataSetWriter { get; }
+
+            /// <summary>
+            /// Reset meta data
+            /// </summary>
+            public abstract bool MetaDataNeedsRefresh { get; }
+
+            /// <summary>
+            /// Get unique identifier
+            /// </summary>
+            public abstract string? Id { get; }
+
+            /// <summary>
+            /// Whether the item needs updating
+            /// </summary>
+            public virtual bool NeedsUpdate =>
+                ErrorInfo != null ||
+                BrowsePath?.Count > 0 ||
+                ResolvedName == null ||
+                (Publishing?.QueueName == null && !NoPathResolving)
+                ;
+
+            protected bool NoMetaData
+                => _resolver._options.Value.DisableDataSetMetaData
+                ?? _resolver._options.Value.DisableComplexTypeSystem
+                ??  false;
+            protected bool NoPathResolving
+                => Routing == DataSetRoutingMode.None;
+            private DataSetRoutingMode Routing
+                => DataSetWriter.DataSet?.Routing
+                ?? _resolver._options.Value.DefaultDataSetRouting
+                ?? DataSetRoutingMode.None;
+
+            /// <summary>
+            /// Create data set item
+            /// </summary>
+            /// <param name="resolver"></param>
+            /// <param name="dataSetWriter"></param>
+            protected PublishedDataSetItem(DataSetItemResolver resolver,
+                DataSetWriterModel dataSetWriter)
+            {
+                _resolver = resolver;
+                DataSetWriter = dataSetWriter;
+            }
+
+            /// <summary>
+            /// Merge an existing item's state into this one
+            /// </summary>
+            /// <param name="existing"></param>
+            public virtual bool Merge(PublishedDataSetItem existing)
+            {
+                if (existing.Id != Id)
+                {
+                    // Cannot merge
+                    return false;
+                }
+
+                ErrorInfo = existing.ErrorInfo;
+
+                if (NodeId != existing.NodeId)
+                {
+                    NodeId = existing.NodeId;
+                }
+
+                if (BrowsePath != existing.BrowsePath)
+                {
+                    BrowsePath = existing.BrowsePath;
+                }
+
+                if (Publishing?.QueueName == null)
+                {
+                    Publishing = existing.Publishing;
+                }
+
+                if (string.IsNullOrEmpty(ResolvedName))
+                {
+                    ResolvedName ??= existing.ResolvedName;
+                }
+                return true;
+            }
+
+            /// <summary>
+            /// Split the data set to only contain the selected items
+            /// </summary>
+            /// <param name="items"></param>
+            /// <returns></returns>
+            public abstract IEnumerable<DataSetWriterModel> Split(
+                IEnumerable<PublishedDataSetItem> items);
+
+            /// <summary>
+            /// Create items over a writer
+            /// </summary>
+            /// <param name="resolver"></param>
+            /// <param name="writer"></param>
+            /// <param name="items"></param>
+            /// <returns></returns>
+            public static IEnumerable<PublishedDataSetItem> Create(DataSetItemResolver resolver,
+                DataSetWriterModel writer, ItemTypes items = ItemTypes.All)
+            {
+                if (items.HasFlag(ItemTypes.Variables))
+                {
+                    var publishedData =
+                    writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
+                    if (publishedData != null)
+                    {
+                        foreach (var item in publishedData)
+                        {
+                            yield return new VariableItem(resolver, writer, item);
+                        }
+                    }
+                }
+                if (items.HasFlag(ItemTypes.Events))
+                {
+                    var publishedEvents =
+                    writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
+                    if (publishedEvents != null)
+                    {
+                        foreach (var item in publishedEvents)
+                        {
+                            yield return new EventItem(resolver, writer, item);
+                        }
+                    }
+                }
+                if (items.HasFlag(ItemTypes.ExtensionField))
+                {
+                    var extgensionFields =
+                        writer.DataSet?.ExtensionFields;
+                    if (extgensionFields != null)
+                    {
+                        foreach (var item in extgensionFields)
+                        {
+                            yield return new ExtensionField(resolver, writer, item);
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Split the writers and their items
+            /// </summary>
+            /// <param name="resolver"></param>
+            /// <param name="writers"></param>
+            /// <param name="maxItemsPerWriter"></param>
+            /// <returns></returns>
+            public static IEnumerable<DataSetWriterModel> Split(DataSetItemResolver resolver,
+                IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter)
+            {
+                foreach (var writer in writers)
+                {
+                    var writerIndex = 0;
+                    var publishedData =
+                        writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
+                    if (publishedData != null)
+                    {
+                        foreach (var w in publishedData
+                            .Select(v => new VariableItem(resolver, writer, v))
+                            .Batch(maxItemsPerWriter)
+                            .Select(i => i.Where(w => !w.NeedsUpdate).ToList())
+                            .Where(i => i.Count > 0)
+                            .SelectMany(item => item[0].Split(item)))
+                        {
+                            yield return writerIndex++ == 0 ? w : w with
+                            {
+                                Id = w.Id + "_" + writerIndex
+                            };
+                        }
+                    }
+
+                    var publishedEvents =
+                        writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
+                    if (publishedEvents != null)
+                    {
+                        foreach (var w in publishedEvents
+                            .Select(v => new EventItem(resolver, writer, v))
+                            // We always only batch 1 event into a writer
+                            .Where(w => !w.NeedsUpdate)
+                            .SelectMany(item => item.Split(item.YieldReturn())))
+                        {
+                            yield return writerIndex++ == 0 ? w : w with
+                            {
+                                Id = w.Id + "_" + writerIndex
+                            };
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Resolve anything else
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public virtual ValueTask ResolveAsync(IOpcUaSession session,
+                CancellationToken ct)
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            /// <summary>
+            /// Get metadata
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="typeSystem"></param>
+            /// <param name="version"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public abstract ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+                ComplexTypeSystem? typeSystem, uint version, CancellationToken ct);
+
+            /// <summary>
+            /// Extension field
+            /// </summary>
+            private class ExtensionField : PublishedDataSetItem
+            {
+                /// <inheritdoc/>
+                public override string? NodeId { get; set; }
+
+                /// <inheritdoc/>
+                public override IReadOnlyList<string>? BrowsePath { get; set; }
+
+                /// <inheritdoc/>
+                public override string? ResolvedName { get; set; }
+
+                /// <inheritdoc/>
+                public override PublishingQueueSettingsModel? Publishing { get; set; }
+
+                /// <inheritdoc/>
+                public override ServiceResultModel? ErrorInfo { get; set; }
+
+                /// <inheritdoc/>
+                public override bool MetaDataNeedsRefresh
+                    => !NoMetaData
+                    && _extension.MetaData == null;
+
+                /// <inheritdoc/>
+                public override string? Id
+                    => _extension.Id;
+
+                /// <inheritdoc/>
+                public override bool NeedsUpdate => false;
+
+                /// <inheritdoc/>
+                public ExtensionField(DataSetItemResolver resolver, DataSetWriterModel writer,
+                    ExtensionFieldModel extension) : base(resolver, writer)
+                {
+                    _extension = extension;
+
+                    if (_extension.Id == null)
+                    {
+                        var sb = new StringBuilder()
+                            .Append(nameof(ExtensionField))
+                            .Append(_extension.DataSetFieldName)
+                            .Append(_extension.DataSetClassFieldId)
+                            // .Append(_extension.Triggering)
+                            ;
+                        _extension.Id = sb
+                            .ToString()
+                            .ToSha1Hash()
+                            ;
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override bool Merge(PublishedDataSetItem existing)
+                {
+                    if (!base.Merge(existing) || existing is not ExtensionField other)
+                    {
+                        return false;
+                    }
+
+                    _extension.MetaData = other._extension.MetaData;
+                    return true;
+                }
+
+                /// <inheritdoc/>
+                public override IEnumerable<DataSetWriterModel> Split(
+                    IEnumerable<PublishedDataSetItem> items)
+                {
+                    yield break;
+                }
+
+                /// <inheritdoc/>
+                public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                {
+                    if (_extension.MetaData != null)
+                    {
+                        return;
+                    }
+                    _extension.MetaData = await ResolveMetaDataAsync(session, typeSystem,
+                        new VariableNode
+                        {
+                            DataType = (int)BuiltInType.Variant
+                        }, version, ct).ConfigureAwait(false);
+                }
+
+                private readonly ExtensionFieldModel _extension;
+            }
+
+            /// <summary>
+            /// Variable item
+            /// </summary>
+            public sealed class VariableItem : PublishedDataSetItem
+            {
+                /// <inheritdoc/>
+                public override string? NodeId
+                {
+                    get => _variable.PublishedVariableNodeId;
+                    set
+                    {
+                        if (_variable.PublishedVariableNodeId != value)
+                        {
+                            _variable.MetaData = null;
+                            _variable.PublishedVariableNodeId = value;
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override IReadOnlyList<string>? BrowsePath
+                {
+                    get => _variable.BrowsePath;
+                    set => _variable.BrowsePath = value;
+                }
+
+                /// <inheritdoc/>
+                public override string? ResolvedName
+                {
+                    get => _variable.DataSetFieldName;
+                    set
+                    {
+                        if (_variable.DataSetFieldName != value)
+                        {
+                            _variable.MetaData = null;
+                            _variable.DataSetFieldName = value;
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override PublishingQueueSettingsModel? Publishing
+                {
+                    get => _variable.Publishing;
+                    set => _variable.Publishing = value;
+                }
+
+                /// <inheritdoc/>
+                public override ServiceResultModel? ErrorInfo
+                {
+                    get => _variable.State;
+                    set => _variable.State = ErrorInfo;
+                }
+                /// <inheritdoc/>
+                public override string? Id => _variable.Id;
+
+                /// <inheritdoc/>
+                public override bool MetaDataNeedsRefresh
+                    => !NoMetaData
+                    && _variable.MetaData == null;
+
+                /// <inheritdoc/>
+                public VariableItem(DataSetItemResolver logger,
+                    DataSetWriterModel writer, PublishedDataSetVariableModel variable)
+                    : base(logger, writer)
+                {
+                    _variable = variable;
+
+                    if (_variable.Id == null)
+                    {
+                        var sb = new StringBuilder()
+                            .Append(nameof(VariableItem))
+                            .Append(_variable.DataSetFieldName)
+                            .Append(_variable.PublishedVariableNodeId)
+                            .Append(_variable.ReadDisplayNameFromNode == true)
+                            .Append(_variable.DataSetClassFieldId)
+                            // .Append(_variable.Triggering)
+                            .Append(_variable.Publishing?.QueueName ?? string.Empty)
+                            ;
+                        _variable.BrowsePath?.ForEach(b => sb.Append(b));
+                        _variable.Id = sb
+                            .ToString()
+                            .ToSha1Hash()
+                            ;
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override bool Merge(PublishedDataSetItem existing)
+                {
+                    if (!base.Merge(existing) || existing is not VariableItem other)
+                    {
+                        return false;
+                    }
+
+                    // Merge state
+                    _variable.MetaData = other._variable.MetaData;
+                    return true;
+                }
+
+                /// <inheritdoc/>
+                public override IEnumerable<DataSetWriterModel> Split(
+                    IEnumerable<PublishedDataSetItem> items)
+                {
+                    var copy = CopyDataSetWriter();
+                    var variables = items
+                        .OfType<VariableItem>()
+                        // No need to clone more members
+                        .Select((item, i) => item._variable with { FieldIndex = i })
+                        .ToList();
+                    Debug.Assert(copy.DataSet?.DataSetSource != null);
+                    copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
+                    {
+                        PublishedData = variables
+                    };
+                    copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
+                        // No need to clone more members of the field
+                        .Select((f, i) => f with { FieldIndex = i + variables.Count })
+                        .ToList();
+                    yield return copy;
+                }
+
+                /// <inheritdoc/>
+                public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                {
+                    Debug.Assert(_variable.Id != null);
+                    var nodeId = _variable.PublishedVariableNodeId.ToNodeId(session.MessageContext);
+                    if (Opc.Ua.NodeId.IsNull(nodeId))
+                    {
+                        _variable.State = kItemInvalid;
+                        return;
+                    }
+                    try
+                    {
+                        var dataTypes = new NodeIdDictionary<DataTypeDescription>();
+                        var fields = new FieldMetaDataCollection();
+                        var node = await session.NodeCache.FetchNodeAsync(nodeId,
+                            ct).ConfigureAwait(false);
+                        if (node is VariableNode variable)
+                        {
+                            _variable.MetaData = await ResolveMetaDataAsync(session,
+                                typeSystem, variable, version, ct).ConfigureAwait(false);
+                        }
+                    }
+                    catch (ServiceResultException sre)
+                    {
+                        _variable.State = sre.ToServiceResultModel();
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogDebug("{Item}: Failed to get meta data for field {Field} " +
+                            "with node {NodeId} with message {Message}.", this, _variable.Id,
+                            nodeId, ex.Message);
+                    }
+                }
+                private readonly PublishedDataSetVariableModel _variable;
+            }
+
+            /// <summary>
+            /// Event item
+            /// </summary>
+            public sealed class EventItem : PublishedDataSetItem
+            {
+                /// <inheritdoc/>
+                public override string? NodeId
+                {
+                    get => _event.EventNotifier;
+                    set => _event.EventNotifier = value;
+                }
+
+                /// <inheritdoc/>
+                public override IReadOnlyList<string>? BrowsePath
+                {
+                    get => _event.BrowsePath;
+                    set => _event.BrowsePath = value;
+                }
+
+                /// <inheritdoc/>
+                public override string? ResolvedName
+                {
+                    get => _event.PublishedEventName;
+                    set => _event.PublishedEventName = value;
+                }
+
+                /// <inheritdoc/>
+                public override PublishingQueueSettingsModel? Publishing
+                {
+                    get => _event.Publishing;
+                    set => _event.Publishing = value;
+                }
+
+                /// <inheritdoc/>
+                public override ServiceResultModel? ErrorInfo
+                {
+                    get => _event.State;
+                    set => _event.State = ErrorInfo;
+                }
+
+                /// <inheritdoc/>
+                public override string? Id => _event.Id;
+
+                /// <inheritdoc/>
+                public override bool MetaDataNeedsRefresh
+                    => !NoMetaData
+                    && (_event.SelectedFields?.Any(f => f.MetaData == null) ?? false);
+
+                /// <inheritdoc/>
+                public override bool NeedsUpdate
+                    => base.NeedsUpdate || NeedsFilterUpdate();
+
+                /// <inheritdoc/>
+                public EventItem(DataSetItemResolver resolver,
+                    DataSetWriterModel writer, PublishedDataSetEventModel evt)
+                    : base(resolver, writer)
+                {
+                    _event = evt;
+
+                    if (_event.Id == null)
+                    {
+                        var sb = new StringBuilder()
+                            .Append(nameof(EventItem))
+                            .Append(_event.PublishedEventName)
+                            .Append(_event.EventNotifier)
+                            .Append(_event.ReadEventNameFromNode == true)
+                            .Append(_event.TypeDefinitionId)
+                            .Append(_event.ModelChangeHandling != null)
+                            // .Append(_variable.Triggering)
+                            .Append(_event.Publishing?.QueueName ?? string.Empty)
+                            ;
+                        _event.BrowsePath?.ForEach(b => sb.Append(b));
+                        _event.Id = sb
+                            .ToString()
+                            .ToSha1Hash()
+                            ;
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override bool Merge(PublishedDataSetItem existing)
+                {
+                    if (!base.Merge(existing) || existing is not EventItem other)
+                    {
+                        return false;
+                    }
+
+                    // Merge state
+                    _event.SelectedFields = other._event.SelectedFields;
+                    _event.Filter = other._event.Filter;
+                    return true;
+                }
+
+                /// <inheritdoc/>
+                public override IEnumerable<DataSetWriterModel> Split(IEnumerable<PublishedDataSetItem> items)
+                {
+                    foreach (var item in items.OfType<EventItem>())
+                    {
+                        var copy = CopyDataSetWriter();
+                        Debug.Assert(copy.DataSet?.DataSetSource != null);
+
+                        var evtSet = item._event with
+                        {
+                            // No need to clone more members
+                            SelectedFields = item._event.SelectedFields?
+                                .Select((item, i) => item with { FieldIndex = i })
+                                .ToList()
+                        };
+
+                        copy.DataSet.DataSetSource.PublishedEvents = new PublishedEventItemsModel
+                        {
+                            PublishedData = new[] { evtSet }
+                        };
+
+                        copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
+                        // No need to clone more members of the field
+                        .Select((f, i) => f with
+                        {
+                            FieldIndex = i + item._event.SelectedFields?.Count ?? 2
+                        })
+                        .ToList();
+                        yield return copy;
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override async ValueTask ResolveAsync(IOpcUaSession session,
+                    CancellationToken ct)
+                {
+                    if (_event.ModelChangeHandling != null)
+                    {
+                        _event.SelectedFields = GetModelChangeEventFields().ToList();
+                        _event.Filter = new ContentFilterModel();
+                    }
+                    else if (_event.SelectedFields == null && _event.Filter == null)
+                    {
+                        if (string.IsNullOrEmpty(_event.TypeDefinitionId))
+                        {
+                            _event.TypeDefinitionId = ObjectTypeIds.BaseEventType
+                                .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                        }
+
+                        // Resolve the simple event
+                        await ResolveFilterForEventTypeDefinitionId(session,
+                            _event, ct).ConfigureAwait(false);
+                    }
+
+                    Debug.Assert(_event.SelectedFields != null);
+                    Debug.Assert(_event.Filter != null);
+
+                    _event.TypeDefinitionId = null;
+                    foreach (var field in _event.SelectedFields)
+                    {
+                        if (field.DataSetClassFieldId == Guid.Empty)
+                        {
+                            field.DataSetClassFieldId = Guid.NewGuid();
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                {
+                    if (_event.ModelChangeHandling != null)
+                    {
+                        return;
+                    }
+                    try
+                    {
+                        Debug.Assert(_event.SelectedFields != null);
+
+                        var dataTypes = new NodeIdDictionary<DataTypeDescription>();
+                        var fields = new FieldMetaDataCollection();
+                        for (var i = 0; i < _event.SelectedFields.Count; i++)
+                        {
+                            var selectClause = _event.SelectedFields[i];
+                            var fieldName = selectClause.DisplayName;
+                            if (fieldName == null)
+                            {
+                                continue;
+                            }
+                            var dataSetClassFieldId = (Uuid)selectClause.DataSetClassFieldId;
+                            var targetNode = await FindNodeWithBrowsePathAsync(session,
+                                selectClause.BrowsePath, selectClause.TypeDefinitionId,
+                                ct).ConfigureAwait(false);
+                            if (targetNode is VariableNode variable)
+                            {
+                                selectClause.MetaData = await ResolveMetaDataAsync(session,
+                                    typeSystem, variable, version, ct).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                // Should this happen?
+                                selectClause.MetaData = await ResolveMetaDataAsync(session,
+                                    typeSystem, new VariableNode
+                                    {
+                                        DataType = (int)BuiltInType.Variant
+                                    }, version, ct).ConfigureAwait(false);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogDebug(e, "{Item}: Failed to get metadata for event.", this);
+                        throw;
+                    }
+                }
+
+                /// <summary>
+                /// Get model change event fields
+                /// </summary>
+                /// <returns></returns>
+                private static IEnumerable<SimpleAttributeOperandModel> GetModelChangeEventFields()
+                {
+                    yield return Create(BrowseNames.EventId, builtInType: BuiltInType.ByteString);
+                    yield return Create(BrowseNames.EventType, builtInType: BuiltInType.NodeId);
+                    yield return Create(BrowseNames.SourceNode, builtInType: BuiltInType.NodeId);
+                    yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
+                    yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
+
+                    static SimpleAttributeOperandModel Create(string fieldName, string? dataType = null,
+                        BuiltInType builtInType = BuiltInType.ExtensionObject)
+                    {
+                        return new SimpleAttributeOperandModel
+                        {
+                            DataSetClassFieldId = (Uuid)Guid.NewGuid(),
+                            DisplayName = fieldName,
+                            MetaData = new PublishedDataItemMetaDataModel
+                            {
+                                DataType = dataType ?? "i=" + builtInType,
+                                ValueRank = ValueRanks.Scalar,
+                                // ArrayDimensions =
+                                BuiltInType = (byte)builtInType
+                            }
+                        };
+                    }
+                }
+
+                /// <summary>
+                /// Checks whether the filter needs to be updated
+                /// </summary>
+                /// <returns></returns>
+                private bool NeedsFilterUpdate()
+                {
+                    if (_event.ModelChangeHandling != null)
+                    {
+                        return false;
+                    }
+                    return _event.SelectedFields == null && _event.Filter == null;
+                }
+
+                /// <summary>
+                /// Builds select clause and where clause by using OPC UA reflection
+                /// </summary>
+                /// <param name="session"></param>
+                /// <param name="dataSetEvent"></param>
+                /// <param name="ct"></param>
+                /// <returns></returns>
+                private static async ValueTask ResolveFilterForEventTypeDefinitionId(
+                    IOpcUaSession session, PublishedDataSetEventModel dataSetEvent,
+                    CancellationToken ct)
+                {
+                    Debug.Assert(dataSetEvent.TypeDefinitionId != null);
+                    var selectedFields = new List<SimpleAttributeOperandModel>();
+
+                    // Resolve select clauses
+                    var typeDefinitionId = dataSetEvent.TypeDefinitionId.ToNodeId(
+                        session.MessageContext);
+                    var nodes = new List<Node>();
+                    ExpandedNodeId? superType = null;
+                    var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(
+                        typeDefinitionId, ct).ConfigureAwait(false);
+                    nodes.Insert(0, typeDefinitionNode);
+                    do
+                    {
+                        superType = nodes[0].GetSuperType(session.TypeTree);
+                        if (superType != null)
+                        {
+                            typeDefinitionNode = await session.NodeCache.FetchNodeAsync(
+                                superType, ct).ConfigureAwait(false);
+                            nodes.Insert(0, typeDefinitionNode);
+                        }
+                    }
+                    while (superType != null);
+
+                    var fieldNames = new List<QualifiedName>();
+                    foreach (var node in nodes)
+                    {
+                        await ParseFieldsAsync(session, fieldNames, node, string.Empty,
+                            ct).ConfigureAwait(false);
+                    }
+
+                    fieldNames = fieldNames
+                        .Distinct()
+                        .OrderBy(x => x.Name).ToList();
+
+                    // We add ConditionId first if event is derived from ConditionType
+                    if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType))
+                    {
+                        selectedFields.Add(new SimpleAttributeOperandModel()
+                        {
+                            BrowsePath = Array.Empty<string>(),
+                            TypeDefinitionId = ObjectTypeIds.ConditionType.AsString(
+                                session.MessageContext, NamespaceFormat.Expanded),
+                            DataSetClassFieldId = Guid.NewGuid(), // Todo: Use constant here
+                            IndexRange = null,
+                            DisplayName = "ConditionId",
+                            AttributeId = NodeAttribute.NodeId
+                        });
+                    }
+
+                    foreach (var fieldName in fieldNames)
+                    {
+                        var selectClause = new SimpleAttributeOperandModel()
+                        {
+                            TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // IS this correct?
+                                session.MessageContext, NamespaceFormat.Expanded),
+                            DataSetClassFieldId = Guid.NewGuid(),
+                            DisplayName = fieldName.Name,
+                            IndexRange = null,
+                            AttributeId = NodeAttribute.Value,
+                            BrowsePath = fieldName.Name
+                                .Split('|')
+                                .Select(x => new QualifiedName(x, fieldName.NamespaceIndex)
+                                    .AsString(session.MessageContext, NamespaceFormat.Expanded))
+                                .ToArray()
+                        };
+                        selectedFields.Add(selectClause);
+                    }
+
+                    // Simple filter of type type definition
+                    dataSetEvent.Filter = new ContentFilterModel
+                    {
+                        Elements = new[]
+                        {
+                            new ContentFilterElementModel
+                            {
+                                FilterOperator = FilterOperatorType.OfType,
+                                FilterOperands = new []
+                                {
+                                    new FilterOperandModel
+                                    {
+                                        NodeId = dataSetEvent.TypeDefinitionId
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    dataSetEvent.SelectedFields = selectedFields;
+                    dataSetEvent.TypeDefinitionId = null;
+                }
+
+                /// <summary>
+                /// Get all the fields of a type definition node to build the
+                /// select clause.
+                /// </summary>
+                /// <param name="session"></param>
+                /// <param name="fieldNames"></param>
+                /// <param name="node"></param>
+                /// <param name="browsePathPrefix"></param>
+                /// <param name="ct"></param>
+                private static async ValueTask ParseFieldsAsync(IOpcUaSession session,
+                    List<QualifiedName> fieldNames, Node node, string browsePathPrefix,
+                    CancellationToken ct)
+                {
+                    foreach (var reference in node.ReferenceTable)
+                    {
+                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
+                            !reference.IsInverse)
+                        {
+                            var componentNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                                ct).ConfigureAwait(false);
+                            if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
+                            {
+                                var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
+                                fieldNames.Add(new QualifiedName(
+                                    fieldName, componentNode.BrowseName.NamespaceIndex));
+                                await ParseFieldsAsync(session, fieldNames, componentNode,
+                                    $"{fieldName}|", ct).ConfigureAwait(false);
+                            }
+                        }
+                        else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
+                        {
+                            var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                                ct).ConfigureAwait(false);
+                            var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
+                            fieldNames.Add(new QualifiedName(
+                                fieldName, propertyNode.BrowseName.NamespaceIndex));
+                        }
+                    }
+                }
+
+                /// <summary>
+                /// Find node by browse path
+                /// </summary>
+                /// <param name="session"></param>
+                /// <param name="browsePath"></param>
+                /// <param name="nodeId"></param>
+                /// <param name="ct"></param>
+                /// <returns></returns>
+                private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
+                    IReadOnlyList<string>? browsePath, ExpandedNodeId nodeId, CancellationToken ct)
+                {
+                    INode? found = null;
+                    browsePath ??= Array.Empty<string>();
+                    foreach (var browseName in browsePath.Select(b => b.ToQualifiedName(session.MessageContext)))
+                    {
+                        found = null;
+                        while (found == null)
+                        {
+                            found = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
+                            if (found is not Node node)
+                            {
+                                return null;
+                            }
+
+                            //
+                            // Get all hierarchical references of the node and
+                            // match browse name
+                            //
+                            foreach (var reference in node.ReferenceTable.Find(
+                                ReferenceTypeIds.HierarchicalReferences, false,
+                                    true, session.TypeTree))
+                            {
+                                var target = await session.NodeCache.FindAsync(reference.TargetId,
+                                    ct).ConfigureAwait(false);
+                                if (target?.BrowseName == browseName)
+                                {
+                                    nodeId = target.NodeId;
+                                    found = target;
+                                    break;
+                                }
+                            }
+
+                            if (found == null)
+                            {
+                                // Try super type
+                                nodeId = await session.TypeTree.FindSuperTypeAsync(nodeId,
+                                    ct).ConfigureAwait(false);
+                                if (Opc.Ua.NodeId.IsNull(nodeId))
+                                {
+                                    // Nothing can be found since there is no more super type
+                                    return null;
+                                }
+                            }
+                        }
+                        nodeId = found.NodeId;
+                    }
+                    return found;
+                }
+
+                private readonly PublishedDataSetEventModel _event;
+            }
+
+            /// <summary>
+            /// Copy the writer
+            /// </summary>
+            /// <returns></returns>
+            protected DataSetWriterModel CopyDataSetWriter()
+            {
+                return DataSetWriter with
+                {
+                    MessageSettings = DataSetWriter.MessageSettings == null
+                    ? null : DataSetWriter.MessageSettings with { },
+                    DataSet = (DataSetWriter.DataSet
+                        ?? new PublishedDataSetModel()) with
+                    {
+                        DataSetMetaData = DataSetWriter.DataSet?.DataSetMetaData == null
+                                ? null : DataSetWriter.DataSet.DataSetMetaData with { },
+                        ExtensionFields = DataSetWriter.DataSet?.ExtensionFields?
+                                .Select(e => e with { })
+                                .ToList(),
+                        DataSetSource = (DataSetWriter.DataSet?.DataSetSource
+                                ?? new PublishedDataSetSourceModel()) with
+                        {
+                            PublishedEvents = null,
+                            PublishedVariables = null,
+                        }
+                    }
+                };
+            }
+
+            /// <summary>
+            /// Add veriable field metadata
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="typeSystem"></param>
+            /// <param name="variable"></param>
+            /// <param name="version"></param>
+            /// <param name="ct"></param>
+            protected async ValueTask<PublishedDataItemMetaDataModel?> ResolveMetaDataAsync(
+                IOpcUaSession session, ComplexTypeSystem? typeSystem, VariableNode variable,
+                uint version, CancellationToken ct)
+            {
+                var builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
+                    session.TypeTree, ct).ConfigureAwait(false);
+                var field = new PublishedDataItemMetaDataModel
+                {
+                    Flags = 0, // Set to 1 << 1 for PromotedField fields.
+                    MinorVersion = version,
+                    DataType = variable.DataType.AsString(session.MessageContext,
+                        NamespaceFormat.Expanded),
+                    ArrayDimensions = variable.ArrayDimensions?.Count > 0
+                        ? variable.ArrayDimensions : null,
+                    Description = variable.Description?.Text,
+                    ValueRank = variable.ValueRank,
+                    MaxStringLength = 0,
+                    // If the Property is EngineeringUnits, the unit of the Field Value
+                    // shall match the unit of the FieldMetaData.
+                    Properties = null, // TODO: Add engineering units etc. to properties
+                    BuiltInType = builtInType
+                };
+                await AddTypeDefinitionsAsync(field, variable.DataType, session, typeSystem,
+                    ct).ConfigureAwait(false);
+                return field;
+            }
+
+            /// <summary>
+            /// Add data types to the metadata
+            /// </summary>
+            /// <param name="field"></param>
+            /// <param name="dataTypeId"></param>
+            /// <param name="session"></param>
+            /// <param name="typeSystem"></param>
+            /// <param name="ct"></param>
+            /// <exception cref="ServiceResultException"></exception>
+            private async ValueTask AddTypeDefinitionsAsync(PublishedDataItemMetaDataModel field,
+                NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
+                CancellationToken ct)
+            {
+                if (IsBuiltInType(dataTypeId))
+                {
+                    return;
+                }
+                var dataTypes = new NodeIdDictionary<object>(); // Need to use object here
+                                                                // we support 3 types
+                var baseType = dataTypeId;
+                while (!Opc.Ua.NodeId.IsNull(baseType))
+                {
+                    try
+                    {
+                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
+                            ct).ConfigureAwait(false);
+                        if (dataType == null)
+                        {
+                            _logger.LogWarning(
+                                "{Item}: Failed to find node for data type {BaseType}!",
+                                this, baseType);
+                            break;
+                        }
+
+                        dataTypeId = dataType.NodeId;
+                        Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
+                        if (IsBuiltInType(dataTypeId))
+                        {
+                            // Do not add builtin types
+                            break;
+                        }
+
+                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                            session.TypeTree, ct).ConfigureAwait(false);
+                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                            ct).ConfigureAwait(false);
+
+                        var browseName = dataType.BrowseName
+                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                        var typeName = dataType.NodeId
+                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                        if (typeName == null)
+                        {
+                            return;
+                        }
+
+                        switch (builtInType)
+                        {
+                            case BuiltInType.Enumeration:
+                            case BuiltInType.ExtensionObject:
+                                var types = typeSystem?.GetDataTypeDefinitionsForDataType(
+                                    dataType.NodeId);
+                                if (types == null || types.Count == 0)
+                                {
+                                    dataTypes.AddOrUpdate(dataType.NodeId,
+                                        GetDefault(session, dataType, builtInType));
+                                    break;
+                                }
+                                foreach (var type in types)
+                                {
+                                    if (!dataTypes.ContainsKey(type.Key))
+                                    {
+                                        var description = type.Value switch
+                                        {
+                                            StructureDefinition s =>
+                                                new StructureDescriptionModel
+                                                {
+                                                    DataTypeId = typeName,
+                                                    Name = browseName,
+                                                    BaseDataType = s.BaseDataType.AsString(
+                                                        session.MessageContext, NamespaceFormat.Expanded),
+                                                    DefaultEncodingId = s.DefaultEncodingId.AsString(
+                                                        session.MessageContext, NamespaceFormat.Expanded),
+                                                    StructureType = (Models.StructureType)s.StructureType,
+                                                    Fields = s.Fields
+                                                        .Select(f => new StructureFieldDescriptionModel
+                                                        {
+                                                            IsOptional = f.IsOptional,
+                                                            MaxStringLength = f.MaxStringLength,
+                                                            ValueRank = f.ValueRank,
+                                                            ArrayDimensions = f.ArrayDimensions,
+                                                            DataType = f.DataType.AsString(
+                                                                session.MessageContext,
+                                                                    NamespaceFormat.Expanded)
+                                                                ?? string.Empty,
+                                                            Name = f.Name,
+                                                            Description = f.Description?.Text
+                                                        })
+                                                        .ToList()
+                                                },
+                                            EnumDefinition e =>
+                                                new EnumDescriptionModel
+                                                {
+                                                    DataTypeId = typeName,
+                                                    Name = browseName,
+                                                    BuiltInType = null,
+                                                    Fields = e.Fields
+                                                        .Select(f => new EnumFieldDescriptionModel
+                                                        {
+                                                            Value = f.Value,
+                                                            DisplayName = f.DisplayName?.Text,
+                                                            Name = f.Name,
+                                                            Description = f.Description?.Text
+                                                        })
+                                                        .ToList()
+                                                },
+                                            _ => GetDefault(session, dataType, builtInType),
+                                        };
+                                        dataTypes.AddOrUpdate(type.Key, description);
+                                    }
+                                }
+                                break;
+                            default:
+                                var baseName = baseType
+                                    .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                                dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescriptionModel
+                                {
+                                    DataTypeId = typeName,
+                                    Name = browseName,
+                                    BaseDataType = baseName,
+                                    BuiltInType = (byte)builtInType
+                                });
+                                break;
+                        }
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogInformation("{Item}: Failed to get meta data for type " +
+                            "{DataType} (base: {BaseType}) with message: {Message}", this,
+                            dataTypeId, baseType, ex.Message);
+                        break;
+                    }
+                }
+
+                field.EnumDataTypes = dataTypes.Values
+                    .OfType<EnumDescriptionModel>()
+                    .ToArray();
+                field.StructureDataTypes = dataTypes.Values
+                    .OfType<StructureDescriptionModel>()
+                    .ToArray();
+                field.SimpleDataTypes = dataTypes.Values
+                    .OfType<SimpleTypeDescriptionModel>()
+                    .ToArray();
+
+                static bool IsBuiltInType(NodeId dataTypeId)
+                {
+                    if (dataTypeId.NamespaceIndex == 0 && dataTypeId.IdType == IdType.Numeric)
+                    {
+                        var id = (BuiltInType)(int)(uint)dataTypeId.Identifier;
+                        if (id >= BuiltInType.Null && id <= BuiltInType.Enumeration)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                static object GetDefault(IOpcUaSession session, Node dataType, BuiltInType builtInType)
+                {
+                    var name = dataType.BrowseName.AsString(session.MessageContext, NamespaceFormat.Expanded);
+                    var dataTypeId = dataType.NodeId.AsString(session.MessageContext, NamespaceFormat.Expanded);
+                    return dataTypeId == null
+                        ? throw new ServiceResultException(StatusCodes.BadConfigurationError)
+                        : builtInType == BuiltInType.Enumeration
+                        ? new EnumDescriptionModel
+                        {
+                            Fields = new List<EnumFieldDescriptionModel>(),
+                            DataTypeId = dataTypeId,
+                            Name = name
+                        }
+                        : new StructureDescriptionModel
+                        {
+                            Fields = new List<StructureFieldDescriptionModel>(),
+                            DataTypeId = dataTypeId,
+                            Name = name
+                        };
+                }
+            }
+
+            protected readonly static ServiceResultModel kItemInvalid = new()
+            {
+                ErrorMessage = "Configuration Invalid",
+                StatusCode = StatusCodes.BadConfigurationError
+            };
+            protected ILogger _logger => _resolver._logger;
+            protected readonly DataSetItemResolver _resolver;
+        }
+        private readonly ILogger _logger;
+        private readonly IOptions<PublisherOptions> _options;
+    }
+}

@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedEventItemsModel
     {
         /// <summary>
-        /// Published data variables
+        /// Published data
         /// </summary>
         [DataMember(Name = "publishedData", Order = 0)]
         public IReadOnlyList<PublishedDataSetEventModel>? PublishedData { get; set; }

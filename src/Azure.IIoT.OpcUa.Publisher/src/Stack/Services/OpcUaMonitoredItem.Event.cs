@@ -50,26 +50,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         (v, context) => NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
-            /// <inheritdoc/>
-            public override (string NodeId, UpdateRelativePath Update)? GetPath
-                => TheResolvedRelativePath == null &&
-                !string.IsNullOrEmpty(NodeId) ? (NodeId, (path, context) =>
-                {
-                    if (path == null)
-                    {
-                        NodeId = string.Empty;
-                    }
-                    TheResolvedRelativePath = path;
-                }
-            ) : null;
 
             /// <inheritdoc/>
             public override string? DataSetName => Template.DisplayName;
-
-            /// <summary>
-            /// Relative path
-            /// </summary>
-            protected RelativePath? TheResolvedRelativePath { get; private set; }
 
             /// <summary>
             /// Monitored item as event
@@ -175,63 +158,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     $"{(Status?.Created == true ? "" : "not ")}created";
             }
 
-            /// <inheritdoc/>
-            public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
-            {
-                if (Filter is not EventFilter eventFilter)
-                {
-                    return;
-                }
-                try
-                {
-                    Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
-                    for (var i = 0; i < eventFilter.SelectClauses.Count; i++)
-                    {
-                        var selectClause = eventFilter.SelectClauses[i];
-                        var fieldName = Fields[i].Name;
-                        if (fieldName == null)
-                        {
-                            continue;
-                        }
-                        var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                        var targetNode = await FindNodeWithBrowsePathAsync(session, selectClause.BrowsePath,
-                            selectClause.TypeDefinitionId, ct).ConfigureAwait(false);
-                        if (targetNode is VariableNode variable)
-                        {
-                            await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
-                                fieldName, dataSetClassFieldId, ct).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            fields.Add(new FieldMetaData
-                            {
-                                Name = fieldName,
-                                DataSetFieldId = dataSetClassFieldId
-                            });
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogDebug(e, "{Item}: Failed to get metadata for event.", this);
-                    throw;
-                }
-            }
-
             public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo
                 => async (session, ct)
                 => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+                IOpcUaSession session)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
                 DisplayName = Template.DisplayName;
@@ -245,21 +182,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.AddTo(subscription, session);
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
-                metadataChanged = false;
                 if (item is not Event model || !Valid)
                 {
                     return false;
                 }
 
-                var itemChange = MergeWith(Template, model.Template, out var updated,
-                    out metadataChanged);
+                var itemChange = MergeWith(Template, model.Template, out var updated);
                 if (itemChange)
                 {
                     Template = updated;
@@ -273,7 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         EventFilter = model.Template.EventFilter
                     };
                     _logger.LogDebug("{Item}: Changing event filter.", this);
-                    metadataChanged = true;
                     itemChange = true;
                 }
                 return itemChange;
@@ -324,7 +257,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Context = Template.Context,
                         DataSetFieldName = Name,
                         NodeId = Template.StartNodeId,
-                        PathFromRoot = TheResolvedRelativePath,
                         Value = new DataValue(statusCode),
                         Flags = MonitoredItemSourceFlags.Error,
                         SequenceNumber = sequenceNumber
@@ -376,7 +308,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             DataSetName = Template.DisplayName,
                             DataSetFieldName = Fields[i].Name,
                             NodeId = Template.StartNodeId,
-                            PathFromRoot = TheResolvedRelativePath,
                             Flags = 0,
                             Value = new DataValue(eventFields.EventFields[i]),
                             SequenceNumber = sequenceNumber

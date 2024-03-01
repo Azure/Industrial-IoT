@@ -190,13 +190,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType
+            messages[10].Context = new WriterGroupMessageContext
             {
-                Name = "test",
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData {
-                        Name = "test",
-                        BuiltInType = (byte)BuiltInType.UInt16
+                NextWriterSequenceNumber = () => 3,
+                PublisherId = "abc",
+                Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
+                Topic = null,
+                Writer = new DataSetWriterModel { Id = "1" },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaData = new DataSetMetaDataType
+                {
+                    Name = "test",
+                    Fields = new FieldMetaDataCollection {
+                        new FieldMetaData {
+                            Name = "test",
+                            BuiltInType = (byte)BuiltInType.UInt16
+                        }
                     }
                 }
             };

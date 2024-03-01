@@ -143,10 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
-                metadataChanged = false;
                 if (item is not Heartbeat model || !Valid)
                 {
                     return false;
@@ -172,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true; // TODO: Not really a change in the item
                 }
 
-                itemChange |= base.MergeWith(model, session, out metadataChanged);
+                itemChange |= base.MergeWith(model, session);
                 return itemChange;
             }
 
@@ -298,7 +296,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     DataSetName = Template.DisplayName,
                     Context = Template.Context,
                     NodeId = TheResolvedNodeId,
-                    PathFromRoot = TheResolvedRelativePath,
                     Value = lastValue,
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = 0

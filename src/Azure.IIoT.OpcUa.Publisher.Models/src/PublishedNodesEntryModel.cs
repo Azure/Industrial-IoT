@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "Version", Order = 0,
             EmitDefaultValue = false)]
-        public int? Version { get; set; }
+        public uint? Version { get; set; }
 
         /// <summary>
         /// Last change to the entry

@@ -3,18 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
 
     /// <summary>
-    /// Extension field template
+    /// Writer group configuration
     /// </summary>
-    public sealed record class ExtensionFieldModel : BaseMonitoredItemModel
+    public interface IWriterGroup
     {
         /// <summary>
-        /// Value of the extension field to inject
+        /// Identifier of the writer group
         /// </summary>
-        public required VariantValue Value { get; set; }
+        string Id { get; }
+
+        /// <summary>
+        /// Get the writer group configuration
+        /// </summary>
+        WriterGroupModel Configuration { get; }
     }
 }

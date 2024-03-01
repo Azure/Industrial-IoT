@@ -44,7 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Template = template;
                 _client = client;
-                _fields = GetEventFields().ToArray();
             }
 
             /// <summary>
@@ -60,7 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Template = item.Template;
                 _client = item._client;
                 _callback = item._callback;
-                _fields = item._fields;
 
                 _browser = item.CloneBrowser();
                 if (_browser != null)
@@ -134,24 +132,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
-                metadataChanged = false;
                 if (item is not ModelChangeEventItem || !Valid)
                 {
                     return false;
                 }
                 return true;
-            }
-
-            /// <inheritdoc/>
-            public override ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
-            {
-                fields.AddRange(_fields);
-                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
@@ -203,12 +190,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+                IOpcUaSession session)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
 
@@ -222,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.AddTo(subscription, session);
 
                 static MonitoringFilter GetEventFilter()
                 {
@@ -384,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
                         Context = Template.Context,
-                        DataSetFieldName = field.Name,
+                        DataSetFieldName = field,
                         PathFromRoot = changeFeedNotification.PathFromRoot,
                         NodeId = Template.StartNodeId,
                         Value = new DataValue(value.Value),
@@ -394,34 +380,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static IEnumerable<FieldMetaData> GetEventFields()
+            // TODO: Put somewhere central to align with resolver
+            private static readonly string[] _fields = new[]
             {
-                yield return Create(BrowseNames.EventId, builtInType: BuiltInType.ByteString);
-                yield return Create(BrowseNames.EventType, builtInType: BuiltInType.NodeId);
-                yield return Create(BrowseNames.SourceNode, builtInType: BuiltInType.NodeId);
-                yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
-                yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
-
-                static FieldMetaData Create(string fieldName, NodeId? dataType = null,
-                    BuiltInType builtInType = BuiltInType.ExtensionObject)
-                {
-                    return new FieldMetaData
-                    {
-                        DataSetFieldId = (Uuid)Guid.NewGuid(),
-                        DataType = dataType ?? new NodeId((uint)builtInType),
-                        Name = fieldName,
-                        ValueRank = ValueRanks.Scalar,
-                        // ArrayDimensions =
-                        BuiltInType = (byte)builtInType
-                    };
-                }
-            }
-
+                BrowseNames.EventId,
+                BrowseNames.EventType,
+                BrowseNames.SourceNode,
+                BrowseNames.Time,
+                "Change"
+            };
             private static readonly ExpandedNodeId _refChangeType
                 = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
             private static readonly ExpandedNodeId _nodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
-            private readonly FieldMetaData[] _fields;
+
             private readonly IOpcUaClient _client;
             private IOpcUaBrowser? _browser;
             private Callback? _callback;

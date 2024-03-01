@@ -15,13 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetEventModel
     {
         /// <summary>
-        /// Identifier of event in the dataset.
-        /// </summary>
-        [DataMember(Name = "id", Order = 0,
-            EmitDefaultValue = false)]
-        public string? Id { get; set; }
-
-        /// <summary>
         /// Event notifier to subscribe to (or start node)
         /// </summary>
         [DataMember(Name = "eventNotifier", Order = 1)]
@@ -118,5 +111,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 15,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
+
+        /// <summary>
+        /// Unique Identifier of event in the dataset.
+        /// </summary>
+        [DataMember(Name = "id", Order = 20,
+            EmitDefaultValue = false)]
+        public string? Id { get; set; }
+
+        /// <summary>
+        /// Sets the current error state
+        /// </summary>
+        [DataMember(Name = "state", Order = 21,
+            EmitDefaultValue = false)]
+        public ServiceResultModel? State { get; set; }
     }
 }

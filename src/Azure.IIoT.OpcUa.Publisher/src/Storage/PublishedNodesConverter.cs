@@ -46,8 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 options.Value.ForceCredentialEncryption ?? false;
             _scaleTestCount =
                 Math.Max(1, options.Value.ScaleTestCount ?? 0);
-            _maxNodesPerDataSet = options.Value.MaxNodesPerDataSet <= 0
-                ? int.MaxValue : options.Value.MaxNodesPerDataSet;
         }
 
         /// <summary>
@@ -83,8 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="items"></param>
         /// <param name="preferTimeSpan"></param>
         /// <returns></returns>
-        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(int version, DateTime lastChanged,
-            IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
+        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version,
+            DateTime lastChanged, IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
         {
             if (items == null)
             {
@@ -116,7 +114,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
-                            DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
+                            DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields?
+                                .ToDictionary(k => k.DataSetFieldName, v => v.Value),
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             QueueName = item.Writer.Publishing?.QueueName,
                             QualityOfService = item.Writer.Publishing?.RequestedDeliveryGuarantee,
@@ -189,8 +188,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         DeadbandValue = variable.DeadbandValue,
                         DataSetClassFieldId = variable.DataSetClassFieldId,
                         Id = variable.PublishedVariableNodeId,
-                        DisplayName = variable.PublishedVariableDisplayName,
-                        DataSetFieldId = variable.Id,
+                        DisplayName = variable.DataSetFieldName,
+                        DataSetFieldId = variable.DataSetFieldName,
                         AttributeId = variable.Attribute,
                         IndexRange = variable.IndexRange,
                         RegisterNode = variable.RegisterNodeForSampling,
@@ -352,75 +351,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         .Select(w => (
                             WriterId: w.Key,
                             Header: w.Writers[0],
-                            WriterBatches: w.Writers
+                            Nodes: w.Writers
                                 .SelectMany(w => w.OpcNodes!)
                                 .Distinct(OpcNodeModelEx.Comparer)
-                                .Batch(_maxNodesPerDataSet)
-                        // Future: batch in service so it is centralized
+                                .ToList()
                         ))
-                        .SelectMany(b => b.WriterBatches // Do we need to materialize here?
-                            .Select(n => n.ToList())
-                            .Select((nodes, index) => new DataSetWriterModel
+                        .Select(b => new DataSetWriterModel
+                        {
+                            Id = b.WriterId,
+                            DataSetWriterName = b.Header.DataSetWriterId,
+                            MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),
+                            KeyFrameCount = b.Header.DataSetKeyFrameCount,
+                            Publishing = new PublishingQueueSettingsModel
                             {
-                                Id = b.WriterId + "_" + index,
-                                DataSetWriterName = b.Header.DataSetWriterId,
-                                MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),
-                                KeyFrameCount = b.Header.DataSetKeyFrameCount,
-                                Publishing = new PublishingQueueSettingsModel
+                                QueueName = b.Header.QueueName,
+                                RequestedDeliveryGuarantee = b.Header.QualityOfService
+                            },
+                            MetaData = new PublishingQueueSettingsModel
+                            {
+                                QueueName = b.Header.MetaDataQueueName,
+                                RequestedDeliveryGuarantee = null
+                            },
+                            DataSet = new PublishedDataSetModel
+                            {
+                                Name = b.Header.DataSetName,
+                                DataSetMetaData = new DataSetMetaDataModel
                                 {
-                                    QueueName = b.Header.QueueName,
-                                    RequestedDeliveryGuarantee = b.Header.QualityOfService
+                                    DataSetClassId = b.Header.DataSetClassId,
+                                    Description = b.Header.DataSetDescription,
+                                    Name = b.Header.DataSetName
                                 },
-                                MetaData = new PublishingQueueSettingsModel
-                                {
-                                    QueueName = b.Header.MetaDataQueueName,
-                                    RequestedDeliveryGuarantee = null
-                                },
-                                DataSet = new PublishedDataSetModel
-                                {
-                                    Name = b.Header.DataSetName,
-                                    DataSetMetaData = new DataSetMetaDataModel
+                                ExtensionFields = b.Header.DataSetExtensionFields?
+                                    .Select(kv => new ExtensionFieldModel
                                     {
-                                        DataSetClassId = b.Header.DataSetClassId,
-                                        Description = b.Header.DataSetDescription,
-                                        Name = b.Header.DataSetName
-                                    },
-                                    ExtensionFields = b.Header.DataSetExtensionFields,
-                                    SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
-                                    Routing = b.Header.DataSetRouting,
-                                    DataSetSource = new PublishedDataSetSourceModel
+                                        DataSetFieldName = kv.Key,
+                                        Value = kv.Value
+                                    })
+                                    .ToList(),
+                                SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
+                                Routing = b.Header.DataSetRouting,
+                                DataSetSource = new PublishedDataSetSourceModel
+                                {
+                                    Connection = new ConnectionModel
                                     {
-                                        Connection = new ConnectionModel
-                                        {
-                                            Options =
+                                        Options =
                                                 b.Header.UseReverseConnect == true ?
                                                      ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
-                                            Endpoint = new EndpointModel
-                                            {
-                                                Url = b.Header.EndpointUrl,
-                                                SecurityPolicy = b.Header.EndpointSecurityPolicy,
-                                                SecurityMode = b.Header.EndpointSecurityMode ??
+                                        Endpoint = new EndpointModel
+                                        {
+                                            Url = b.Header.EndpointUrl,
+                                            SecurityPolicy = b.Header.EndpointSecurityPolicy,
+                                            SecurityMode = b.Header.EndpointSecurityMode ??
                                                     (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
-                                            },
-                                            User =
+                                        },
+                                        User =
                                                 b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
                                                 b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
                                                     ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
-                                        },
-                                        SubscriptionSettings = new PublishedDataSetSettingsModel
-                                        {
-                                            MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
-                                            Priority = b.Header.Priority,
-                                            PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
-                                            // ...
-                                        },
-                                        PublishedVariables = ToPublishedDataItems(nodes, false),
-                                        PublishedEvents = ToPublishedEventItems(nodes, false)
-                                    }
-                                },
-                                MessageSettings = null,
-                                DataSetFieldContentMask = null
-                            }))
+                                    },
+                                    SubscriptionSettings = new PublishedDataSetSettingsModel
+                                    {
+                                        MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
+                                        Priority = b.Header.Priority,
+                                        PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
+                                        // ...
+                                    },
+                                    PublishedVariables = ToPublishedDataItems(b.Nodes, false),
+                                    PublishedEvents = ToPublishedEventItems(b.Nodes, false)
+                                }
+                            },
+                            MessageSettings = null,
+                            DataSetFieldContentMask = null
+                        })
                             .ToList(),
                     KeepAliveTime = null,
                     MaxNetworkMessageSize = null,
@@ -535,15 +537,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 return new PublishedDataItemsModel
                 {
                     PublishedData = opcNodes.Where(node => node.EventFilter == null && node.ModelChangeHandling == null)
-                    .Select(node => new PublishedDataSetVariableModel
+                    .Select((node, i) => new PublishedDataSetVariableModel
                     {
+                        FieldIndex = i,
                         Id = node.DataSetFieldId,
+                        DataSetFieldName = node.DataSetFieldId ?? node.DisplayName,
                         PublishedVariableNodeId = node.Id,
                         DataSetClassFieldId = node.DataSetClassFieldId,
 
                         // At this point in time the next values are ensured to be filled in with
                         // the appropriate value: configured or default
-                        PublishedVariableDisplayName = node.DisplayName,
                         SamplingIntervalHint = node.OpcSamplingIntervalTimespan,
                         HeartbeatInterval = node.HeartbeatIntervalTimespan,
                         HeartbeatBehavior = node.HeartbeatBehavior,
@@ -557,7 +560,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         ReadDisplayNameFromNode = node.FetchDisplayName,
                         MonitoringMode = null,
                         SubstituteValue = null,
-                        MetaDataProperties = null,
                         SkipFirst = node.SkipFirst,
                         DataChangeTrigger = node.DataChangeTrigger,
                         DeadbandValue = node.DeadbandValue,
@@ -573,7 +575,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             {
                                 PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
                                 PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
-                            }
+                            },
+                        State = null
                     })
                     .ToList()
                 };
@@ -610,7 +613,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             {
                                 PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
                                 PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
-                            }
+                            },
+                        State = null
                     }).ToList()
                 };
             }
@@ -802,7 +806,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
         private readonly bool _forceCredentialEncryption;
         private readonly int _scaleTestCount;
-        private readonly int _maxNodesPerDataSet;
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

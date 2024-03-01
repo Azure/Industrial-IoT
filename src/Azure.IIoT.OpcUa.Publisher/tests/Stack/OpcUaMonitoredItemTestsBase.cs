@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(template.YieldReturn(),
                 Log.ConsoleFactory()).Single();
             using var subscription = new Subscription();
-            monitoredItemWrapper.AddTo(subscription, session, out _);
+            monitoredItemWrapper.AddTo(subscription, session);
             if (monitoredItemWrapper.FinalizeAddTo != null)
             {
                 await monitoredItemWrapper.FinalizeAddTo(session, default);

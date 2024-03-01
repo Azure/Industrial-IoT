@@ -51,19 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     !string.IsNullOrEmpty(NodeId) ?
                     (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
 
-            /// <inheritdoc/>
-            public override (string NodeId, UpdateRelativePath Update)? GetPath
-                => TheResolvedRelativePath == null &&
-                !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (path, context) =>
-                {
-                    if (path == null)
-                    {
-                        NodeId = string.Empty;
-                    }
-                    TheResolvedRelativePath = path;
-                }
-            ) : null;
-
             /// <summary>
             /// Monitored item as data
             /// </summary>
@@ -73,11 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Resolved node id
             /// </summary>
             protected string TheResolvedNodeId { get; private set; }
-
-            /// <summary>
-            /// Relative path
-            /// </summary>
-            protected RelativePath? TheResolvedRelativePath { get; private set; }
 
             /// <summary>
             /// Field identifier either configured or randomly assigned
@@ -115,7 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 TheResolvedNodeId = item.TheResolvedNodeId;
-                TheResolvedRelativePath = item.TheResolvedRelativePath;
                 Template = item.Template;
                 _fieldId = item._fieldId;
                 _skipDataChangeNotification = item._skipDataChangeNotification;
@@ -194,41 +175,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
-            {
-                var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(nodeId))
-                {
-                    // Failed.
-                    return;
-                }
-                try
-                {
-                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
-                    if (node is VariableNode variable)
-                    {
-                        await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
-                            Template.DisplayName, (Uuid)DataSetClassFieldId, ct).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogDebug("{Item}: Failed to get meta data for field {Field} " +
-                        "with node {NodeId} with message {Message}.", this, Template.DisplayName,
-                        nodeId, ex.Message);
-                }
-            }
-
-            /// <inheritdoc/>
-            public override bool AddTo(Subscription subscription, IOpcUaSession session,
-                out bool metadataChanged)
+            public override bool AddTo(Subscription subscription, IOpcUaSession session)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
 
@@ -252,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.AddTo(subscription, session);
             }
 
             /// <inheritdoc/>
@@ -268,17 +219,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
-                metadataChanged = false;
                 if (item is not DataChange model || !Valid)
                 {
                     return false;
                 }
 
-                var itemChange = MergeWith(Template, model.Template, out var updated,
-                    out metadataChanged);
+                var itemChange = MergeWith(Template, model.Template, out var updated);
                 if (itemChange)
                 {
                     Template = updated;
@@ -305,7 +253,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Template = Template with { DataSetClassFieldId = model.Template.DataSetClassFieldId };
                     _logger.LogDebug("{Item}: Changing dataset class field id from {Old} to {New}",
                         this, previous, DataSetClassFieldId);
-                    metadataChanged = true;
                 }
 
                 // Update change filter
@@ -415,7 +362,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     DataSetName = Template.DisplayName,
                     Context = Template.Context,
                     NodeId = NodeId,
-                    PathFromRoot = TheResolvedRelativePath,
                     Value = dataValue,
                     Flags = 0,
                     Overflow = overflow ?? (dataValue.StatusCode.Overflow ? 1 : 0),

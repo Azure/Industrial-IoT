@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? IndexRange { get; set; }
 
         /// <summary>
-        /// Optional display name
+        /// Optional display name (Publisher extension)
         /// </summary>
         [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
@@ -56,5 +56,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "dataSetClassFieldId", Order = 5,
             EmitDefaultValue = false)]
         public Guid DataSetClassFieldId { get; set; }
+
+        /// <summary>
+        /// Metadata for the event
+        /// </summary>
+        [DataMember(Name = "metaData", Order = 6,
+            EmitDefaultValue = false)]
+        public PublishedDataItemMetaDataModel? MetaData { get; set; }
+
+        /// <summary>
+        /// Field index in the dataset.
+        /// </summary>
+        [DataMember(Name = "fieldIndex", Order = 7,
+            EmitDefaultValue = false)]
+        public int FieldIndex { get; set; }
     }
 }

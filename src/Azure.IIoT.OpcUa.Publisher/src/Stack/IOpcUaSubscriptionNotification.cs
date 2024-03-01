@@ -72,11 +72,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         uint? PublishSequenceNumber { get; }
 
         /// <summary>
-        /// Meta data
-        /// </summary>
-        DataSetMetaDataType? MetaData { get; }
-
-        /// <summary>
         /// Message type
         /// </summary>
         MessageType MessageType { get; }

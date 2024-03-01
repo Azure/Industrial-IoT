@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
-                                        dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
+                                        dataSetMessage.MetaDataVersion = Context.MetaData?.ConfigurationVersion
                                             ?? kEmptyConfiguration;
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                         dataSetMessage.Timestamp = GetTimestamp(Notification);
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                             dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                             dataSetMessage.MessageType = Notification.MessageType;
-                                            dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
+                                            dataSetMessage.MetaDataVersion = Context.MetaData?.ConfigurationVersion
                                                 ?? kEmptyConfiguration;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                             dataSetMessage.Timestamp = GetTimestamp(Notification);
@@ -381,7 +381,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             DataSetMessageContentMask = dataSetMessageContentMask,
                                                             Timestamp = GetTimestamp(Notification),
                                                             SequenceNumber = Context.NextWriterSequenceNumber(),
-                                                            ExtensionFields = Context.Writer.DataSet?.ExtensionFields,
+                                                            ExtensionFields = Context.Writer.DataSet?.ExtensionFields?
+                                                                .ToDictionary(k => k.DataSetFieldName, v => v.Value),
                                                             Payload = new DataSet(notification.DataSetFieldName,
                                                                 notification.Value, (uint)dataSetFieldContentMask)
                                                         };
@@ -415,7 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         }
                                     }
                                 }
-                                else if (Notification.MetaData != null && !hasSamplesPayload)
+                                else if (Context.MetaData != null && !hasSamplesPayload)
                                 {
                                     if (currentMessage.Messages.Count > 0)
                                     {
@@ -435,13 +436,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             UseAdvancedEncoding = !standardsCompliant,
                                             UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Notification.MetaData,
+                                            MetaData = Context.MetaData,
                                             MessageId = Guid.NewGuid().ToString(),
                                             DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                         } : new UadpMetaDataMessage
                                         {
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Notification.MetaData
+                                            MetaData = Context.MetaData
                                         };
                                     metadataMessage.PublisherId = publisherId;
                                     metadataMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;

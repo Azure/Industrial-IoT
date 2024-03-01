@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var register = ClientContainer.Resolve<IEventSubscriber>();
                 var options = Resolve<IOptions<PublisherOptions>>();
 
-                var topicBuilder = new TopicBuilder(options);
+                var topicBuilder = new TopicBuilder(options.Value);
                 _handler2 = register.SubscribeAsync(topicBuilder.RootTopic + "/messages/#", _consumer)
                     .AsTask().GetAwaiter().GetResult();
                 Target = topicBuilder.MethodTopic;

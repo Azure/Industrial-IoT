@@ -13,22 +13,29 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Writer group controller
     /// </summary>
-    public interface IWriterGroupControl : IDisposable
+    public interface IWriterGroupController
     {
         /// <summary>
-        /// Start writer group
+        /// Try update writer group with new configuration.
         /// </summary>
-        /// <param name="ct"></param>
+        /// <param name="writerGroup"></param>
         /// <returns></returns>
-        ValueTask StartAsync(CancellationToken ct);
+        bool TryUpdate(WriterGroupModel writerGroup);
 
         /// <summary>
-        /// Update writer group
+        /// Update writer group and block
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask UpdateAsync(WriterGroupModel writerGroup,
-            CancellationToken ct);
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Deletes the writer group
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask DeleteAsync(CancellationToken ct = default);
     }
 }

@@ -67,11 +67,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _publishedNodesProvider = new PublishedNodesProvider(_options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroupControl>();
+            var writerGroup = new Mock<IWriterGroupController>();
             var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroupControl).Returns(new[] { writerGroup.Object });
+            lifetime.SetupGet(l => l.WriterGroupController).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
+                .Setup(factory => factory.Create(It.IsAny<string>()))
                 .Returns(lifetime.Object);
             _publisher = new PublisherService(factoryMock.Object, _options,
                 _loggerFactory.CreateLogger<PublisherService>());

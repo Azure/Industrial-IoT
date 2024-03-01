@@ -17,11 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetVariableModel
     {
         /// <summary>
-        /// Name of variable in the dataset.
+        /// Field index of this variable in the dataset.
         /// </summary>
-        [DataMember(Name = "id", Order = 0,
+        [DataMember(Name = "fieldIndex", Order = 0,
             EmitDefaultValue = false)]
-        public string? Id { get; set; }
+        public int FieldIndex { get; set; }
 
         /// <summary>
         /// Node id of the variable
@@ -31,11 +31,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? PublishedVariableNodeId { get; set; }
 
         /// <summary>
-        /// Display name of the published variable
+        /// Field name or display name of the published variable
         /// </summary>
-        [DataMember(Name = "publishedVariableDisplayName", Order = 2,
+        [DataMember(Name = "dataSetFieldName", Order = 2,
             EmitDefaultValue = false)]
-        public string? PublishedVariableDisplayName { get; set; }
+        public string? DataSetFieldName { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
@@ -94,13 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "substituteValue", Order = 10,
             EmitDefaultValue = false)]
         public VariantValue? SubstituteValue { get; set; }
-
-        /// <summary>
-        /// MetaData properties qualified names. (not supported yet)
-        /// </summary>
-        [DataMember(Name = "metaDataProperties", Order = 11,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<string>? MetaDataProperties { get; set; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)
@@ -194,5 +187,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 23,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
+
+        /// <summary>
+        /// Unique Identifier of variable in the dataset.
+        /// </summary>
+        [DataMember(Name = "id", Order = 30,
+            EmitDefaultValue = false)]
+        public string? Id { get; set; }
+
+        /// <summary>
+        /// Metadata for the field
+        /// </summary>
+        [DataMember(Name = "metaData", Order = 31,
+            EmitDefaultValue = false)]
+        public PublishedDataItemMetaDataModel? MetaData { get; set; }
+
+        /// <summary>
+        /// Sets the current error state
+        /// </summary>
+        [DataMember(Name = "state", Order = 32,
+            EmitDefaultValue = false)]
+        public ServiceResultModel? State { get; set; }
     }
 }

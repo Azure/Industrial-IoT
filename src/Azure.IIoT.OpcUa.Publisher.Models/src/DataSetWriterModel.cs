@@ -77,5 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 8,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
+
+        /// <summary>
+        /// Sets the current error state
+        /// </summary>
+        [DataMember(Name = "state", Order = 10,
+            EmitDefaultValue = false)]
+        public ServiceResultModel? State { get; set; }
     }
 }

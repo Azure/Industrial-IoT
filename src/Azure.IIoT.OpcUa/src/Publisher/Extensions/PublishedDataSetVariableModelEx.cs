@@ -6,9 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
     /// Events extensions
@@ -25,24 +27,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                MetaDataProperties = model.MetaDataProperties?.ToList(),
+               // TODO: MetaData = model.MetaData.Clone(),
                 Triggering = model.Triggering.Clone(),
                 SubstituteValue = model.SubstituteValue?.Copy()
             });
         }
 
-        /// <summary>
-        /// Returns the unique id of the item
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="indexInDataSet"></param>
-        /// <returns></returns>
-        public static string GetUniqueId(this PublishedDataSetVariableModel model, int indexInDataSet)
-        {
-            return model.Id
-                ?? model.PublishedVariableDisplayName
-                ?? model.PublishedVariableNodeId
-                ?? indexInDataSet.ToString();
-        }
     }
 }

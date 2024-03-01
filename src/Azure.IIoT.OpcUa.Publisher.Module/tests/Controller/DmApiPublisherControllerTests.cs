@@ -66,11 +66,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _publishedNodesProvider = new PublishedNodesProvider(_options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroupControl>();
+            var writerGroup = new Mock<IWriterGroupController>();
             var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroupControl).Returns(new[] { writerGroup.Object });
+            lifetime.SetupGet(l => l.WriterGroupController).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
+                .Setup(factory => factory.Create(It.IsAny<string>()))
                 .Returns(lifetime.Object);
             _publisher = new PublisherService(factoryMock.Object, _options,
                 _loggerFactory.CreateLogger<PublisherService>());
@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
-            Assert.Equal(8, _publisher.Version);
+            Assert.Equal(8u, _publisher.Version);
 
             foreach (var request in publishNodesRequest)
             {
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             }
 
             Assert.Empty(_publisher.WriterGroups);
-            Assert.Equal(15, _publisher.Version);
+            Assert.Equal(15u, _publisher.Version);
         }
 
         [Theory]

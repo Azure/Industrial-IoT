@@ -351,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await events.SendEventAsync(new TopicBuilder(_options).EventsTopic,
+                    await events.SendEventAsync(new TopicBuilder(_options.Value).EventsTopic,
                         _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var (writerGroupId, info) in diagnostics)
             {
                 var diagnosticsTopic = _topicCache.GetOrAdd(writerGroupId,
-                    id => new TopicBuilder(_options, variables: new Dictionary<string, string>
+                    id => new TopicBuilder(_options.Value, variables: new Dictionary<string, string>
                     {
                         [PublisherConfig.DataSetWriterGroupVariableName] =
                             id ?? Constants.DefaultWriterGroupName,

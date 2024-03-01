@@ -32,14 +32,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Item as extension field
             /// </summary>
-            public ExtensionFieldModel Template { get; protected internal set; }
+            public ExtensionFieldItemModel Template { get; protected internal set; }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Field(ExtensionFieldModel template,
+            public Field(ExtensionFieldItemModel template,
                 ILogger<Field> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;
@@ -105,38 +105,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
-            {
-                return AddVariableFieldAsync(fields, dataTypes, session, typeSystem, new VariableNode
-                {
-                    DataType = (int)BuiltInType.Variant
-                }, Template.DisplayName, (Uuid)_fieldId, ct);
-            }
-
-            /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+                IOpcUaSession session)
             {
-                metadataChanged = true;
                 _value = new DataValue(session.Codec.Decode(Template.Value, BuiltInType.Variant));
                 Valid = true;
                 return true;
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
-                metadataChanged = false;
                 return false;
             }
 
             /// <inheritdoc/>
-            public override bool RemoveFrom(Subscription subscription, out bool metadataChanged)
+            public override bool RemoveFrom(Subscription subscription)
             {
-                metadataChanged = true;
                 _value = new DataValue();
                 Valid = false;
                 return true;
@@ -203,7 +188,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Context = Template.Context,
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
-                    PathFromRoot = null,
                     Value = _value,
                     Flags = 0,
                     SequenceNumber = sequenceNumber

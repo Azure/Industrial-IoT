@@ -1132,7 +1132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ErrorInfo = errorInfo
                     };
                 }
-                var startTime = config.StartOfOnlineArchive.GetValueOrDefault() ?? config.StartOfArchive.GetValueOrDefault();
+                var startTime = config.StartOfOnlineArchive.GetValueOrDefault()
+                    ?? config.StartOfArchive.GetValueOrDefault();
                 if (startTime == null)
                 {
                     startTime = await HistoryReadTimestampAsync(

@@ -120,15 +120,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session)
             {
                 if (item is not CyclicRead)
                 {
-                    metadataChanged = false;
                     return false;
                 }
-                return base.MergeWith(item, session, out metadataChanged);
+                return base.MergeWith(item, session);
             }
 
             /// <inheritdoc/>
