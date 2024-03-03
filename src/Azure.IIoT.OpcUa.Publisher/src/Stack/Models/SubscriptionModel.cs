@@ -15,18 +15,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Id of the subscription
         /// </summary>
-        public required SubscriptionIdentifier Id { get; set; }
+        public required SubscriptionIdentifier Id { get; init; }
 
         /// <summary>
         /// Subscription configuration
         /// </summary>
-        public SubscriptionConfigurationModel? Configuration { get; set; }
+        public required SubscriptionConfigurationModel Configuration { get; init; }
 
         /// <summary>
-        /// Monitored item templates for the subscription
+        /// Item templates for the subscription
         /// </summary>
-#pragma warning disable CA2227 // Collection properties should be read only
-        public IList<BaseMonitoredItemModel>? MonitoredItems { get; set; }
-#pragma warning restore CA2227 // Collection properties should be read only
+        public required IReadOnlyList<BaseItemModel> MonitoredItems { get; init; }
     }
 }

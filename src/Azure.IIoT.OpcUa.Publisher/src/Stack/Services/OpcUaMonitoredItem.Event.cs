@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                DisplayName = Template.GetMonitoredItemName();
+                DisplayName = Template.GetFieldId();
                 AttributeId = (uint)(Template.AttributeId
                     ?? (NodeAttribute)Attributes.EventNotifier);
                 MonitoringMode = Template.MonitoringMode.ToStackType()

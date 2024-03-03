@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Order = Order,
                     MonitoredItemId = Template.GetMonitoredItemId(),
-                    FieldId = Template.GetMonitoredItemName(),
+                    FieldId = Template.GetFieldId(),
                     Context = Template.Context,
                     NodeId = null,
                     Value = _value,

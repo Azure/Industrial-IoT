@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session)
             {
-                DisplayName = Template.GetMonitoredItemName();
+                DisplayName = Template.GetFieldId();
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = MonitoringMode.Reporting;
                 StartNodeId = ObjectIds.RootFolder;

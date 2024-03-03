@@ -378,7 +378,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="messageType"></param>
         /// <param name="notifications"></param>
         /// <param name="session"></param>
-        /// <param name="dataSetName"></param>
         /// <param name="diagnosticsOnly"></param>
         internal void SendNotification(MessageType messageType,
             IEnumerable<MonitoredItemNotificationModel> notifications,
@@ -504,7 +503,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
         private async Task<bool> SynchronizeMonitoredItemsAsync(
-            IEnumerable<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
+            IReadOnlyList<BaseItemModel> monitoredItems, CancellationToken ct)
         {
             Debug.Assert(Session != null);
             if (Session is not OpcUaSession session)
@@ -1842,8 +1841,7 @@ Actual (revised) state/desired state:
             {
                 Configuration = subscription.Configuration with { },
                 Id = new SubscriptionIdentifier(subscription.Id.Connection,
-                    subscriptionName ?? subscription.Id.Id),
-                MonitoredItems = subscription.MonitoredItems?.ToList()
+                    subscriptionName ?? subscription.Id.Id)
             };
         }
 

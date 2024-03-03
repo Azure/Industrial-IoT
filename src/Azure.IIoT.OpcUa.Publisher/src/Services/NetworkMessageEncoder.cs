@@ -349,13 +349,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
                                                             "All notifications in the group should have the same sequence number.");
 
-                                                        var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
-                                                        eventNotification.Value = new DataValue
+                                                        var eventNotification = notificationsInGroup[0] with
                                                         {
-                                                            Value = new EncodeableDictionary(notificationsInGroup
+                                                            Value = new DataValue
+                                                            {
+                                                                Value = new EncodeableDictionary(notificationsInGroup
                                                                 .Select(n => new KeyDataValuePair(n.FieldId!, n.Value)))
+                                                            },
+                                                            FieldId = Context.Writer.DataSet?.Name
+                                                                ?? Context.Writer.DataSetWriterName
+                                                                ?? Constants.DefaultDataSetWriterName
                                                         };
-                                                     // TODO   eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
                                                         notificationsInGroup = new List<MonitoredItemNotificationModel>
                                                         {
                                                             eventNotification

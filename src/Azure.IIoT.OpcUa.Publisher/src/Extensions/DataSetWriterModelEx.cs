@@ -69,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetSource"></param>
         /// <param name="options"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"><paramref name="dataSetSource"/></exception>
         private static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel? dataSetSource, OpcUaSubscriptionOptions options)
         {
@@ -103,11 +104,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="configure"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private static List<BaseMonitoredItemModel> ToMonitoredItems(
+        private static List<BaseItemModel> ToMonitoredItems(
             this PublishedDataSetModel dataSet, OpcUaSubscriptionOptions options,
             Func<PublishingQueueSettingsModel?, object?> configure)
         {
-            var monitoredItems = new List<BaseMonitoredItemModel>();
+            var monitoredItems = new List<BaseItemModel>();
             var dataSetSource = dataSet.DataSetSource;
             if (dataSetSource == null)
             {
@@ -134,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         private static void ToMonitoredItems(
             this PublishedDataItemsModel dataItems, OpcUaSubscriptionOptions options,
-            List<BaseMonitoredItemModel> items,
+            List<BaseItemModel> items,
             Func<PublishingQueueSettingsModel?, object?> configure,
             bool includeTriggering = true)
         {
@@ -162,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         private static void ToMonitoredItems(
             this IReadOnlyList<ExtensionFieldModel> extensionFields,
-            List<BaseMonitoredItemModel> items)
+            List<BaseItemModel> items)
         {
             foreach (var extensionField in extensionFields
                 .OrderBy(b => b.FieldIndex))
@@ -186,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         private static void ToMonitoredItems(
             this PublishedEventItemsModel eventItems, OpcUaSubscriptionOptions options,
-            List<BaseMonitoredItemModel> items,
+            List<BaseItemModel> items,
             Func<PublishingQueueSettingsModel?, object?> configure,
             bool includeTriggering = true)
         {
@@ -215,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="order"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
-        private static BaseMonitoredItemModel? ToMonitoredItemTemplate(
+        private static BaseItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetEventModel publishedEvent, OpcUaSubscriptionOptions options,
             Func<PublishingQueueSettingsModel?, object?> configure, int order,
             bool includeTriggering = true)
@@ -245,6 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     TriggeredItems = includeTriggering ? null
                         : ToMonitoredItems(publishedEvent.Triggering, options, configure),
                     AttributeId = null,
+                    State = publishedEvent.State,
                     DiscardNew = false,
                     MonitoringMode = publishedEvent.MonitoringMode ?? MonitoringMode.Reporting,
                     StartNodeId = eventNotifier,
@@ -277,6 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 //
                 QueueSize = publishedEvent.QueueSize
                     ?? options.DefaultQueueSize ?? 0,
+                State = publishedEvent.State,
                 AttributeId = null,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
@@ -303,12 +306,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             return new ExtensionFieldItemModel
             {
-                Id = "34",
+                Id = extensionField.Id,
                 Order = order,
                 Name = extensionField.DataSetFieldName,
-                Value = extensionField.Value,
-                // TODO, remove start node from base
-                StartNodeId = string.Empty
+                Value = extensionField.Value
             };
         }
 
@@ -360,6 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 MonitoringMode = publishedVariable.MonitoringMode,
+                State = publishedVariable.State,
                 TriggeredItems = includeTriggering ? null
                     : ToMonitoredItems(publishedVariable.Triggering, options, configure),
                 Context = configure(publishedVariable.Publishing),
@@ -380,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="options"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
-        private static List<BaseMonitoredItemModel>? ToMonitoredItems(
+        private static List<BaseItemModel>? ToMonitoredItems(
             this PublishedDataSetTriggerModel? triggering, OpcUaSubscriptionOptions options,
             Func<PublishingQueueSettingsModel?, object?> configure)
         {
@@ -388,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return null;
             }
-            var monitoredItems = new List<BaseMonitoredItemModel>();
+            var monitoredItems = new List<BaseItemModel>();
             if (triggering.PublishedVariables?.PublishedData != null)
             {
                 triggering.PublishedVariables.ToMonitoredItems(options,
@@ -429,4 +431,3 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
     }
 }
-

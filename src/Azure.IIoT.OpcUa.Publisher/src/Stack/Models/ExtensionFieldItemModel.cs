@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Extension field template
     /// </summary>
-    public sealed record class ExtensionFieldItemModel : BaseMonitoredItemModel
+    public sealed record class ExtensionFieldItemModel : BaseItemModel
     {
         /// <summary>
         /// Value of the extension field to inject

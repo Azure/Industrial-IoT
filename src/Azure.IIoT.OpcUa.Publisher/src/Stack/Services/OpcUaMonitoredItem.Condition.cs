@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // issue a condition refresh to make sure we are in a correct state
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
-                            "a RefreshRequired event", this, Template.GetMonitoredItemName(),
+                            "a RefreshRequired event", this, Template.GetFieldId(),
                             Subscription.DisplayName);
                         try
                         {
@@ -175,14 +175,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.GetMonitoredItemName(), Subscription.DisplayName, e.Message);
+                                this, Template.GetFieldId(), Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.GetMonitoredItemName(), Subscription.DisplayName);
+                                Template.GetFieldId(), Subscription.DisplayName);
                         }
                         return true;
                     }

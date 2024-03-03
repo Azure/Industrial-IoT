@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
 
-                DisplayName = Template.GetMonitoredItemName();
+                DisplayName = Template.GetFieldId();
                 AttributeId = (uint)(Template.AttributeId ??
                     (NodeAttribute)Attributes.Value);
                 IndexRange = Template.IndexRange;
@@ -350,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Order = Order,
                     MonitoredItemId = Template.GetMonitoredItemId(),
-                    FieldId = Template.GetMonitoredItemName(),
+                    FieldId = Template.GetFieldId(),
                     Context = Template.Context,
                     NodeId = TheResolvedNodeId,
                     Value = dataValue,

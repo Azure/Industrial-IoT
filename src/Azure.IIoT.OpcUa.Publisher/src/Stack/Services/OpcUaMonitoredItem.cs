@@ -32,7 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <param name="messageType"></param>
     /// <param name="notifications"></param>
     /// <param name="session"></param>
-    /// <param name="dataSetName"></param>
     /// <param name="diagnosticsOnly"></param>
     public delegate void Callback(MessageType messageType,
         IEnumerable<MonitoredItemNotificationModel> notifications,
@@ -152,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="client"></param>
         /// <returns></returns>
         public static IEnumerable<OpcUaMonitoredItem> Create(
-            IEnumerable<BaseMonitoredItemModel> items, ILoggerFactory factory,
+            IEnumerable<BaseItemModel> items, ILoggerFactory factory,
             IOpcUaClient? client = null)
         {
             foreach (var item in items)

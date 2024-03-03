@@ -536,14 +536,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Split the data set to only contain the selected items
-            /// </summary>
-            /// <param name="items"></param>
-            /// <returns></returns>
-            public abstract IEnumerable<DataSetWriterModel> Split(
-                IEnumerable<PublishedDataSetItem> items);
-
-            /// <summary>
             /// Create items over a writer
             /// </summary>
             /// <param name="resolver"></param>
@@ -601,6 +593,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public static IEnumerable<DataSetWriterModel> Split(DataSetItemResolver resolver,
                 IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter)
             {
+                // We do not filter so we can report errors through stack subscription
                 foreach (var writer in writers)
                 {
                     var writerIndex = 0;
@@ -612,8 +605,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .Select(v => new VariableItem(resolver, writer, v))
                             .Batch(maxItemsPerWriter)
                             .Select(i => i.ToList())
-                            .Where(i => i.Count > 0) // We do not filter, report errors
-                            .SelectMany(item => item[0].Split(item)))
+                            .Where(i => i.Count > 0)
+                            .SelectMany(VariableItem.Split))
                         {
                             yield return writerIndex++ == 0 ? w : w with
                             {
@@ -626,11 +619,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
                     if (publishedEvents != null)
                     {
-                        foreach (var w in publishedEvents
-                            .Select(v => new EventItem(resolver, writer, v))
-                            // We always only batch 1 event into a writer
-                            .Where(w => !w.NeedsUpdate) // And filter incompletes
-                            .SelectMany(item => item.Split(item.YieldReturn())))
+                        foreach (var w in EventItem.Split(publishedEvents
+                            .Select(v => new EventItem(resolver, writer, v))))
                         {
                             yield return writerIndex++ == 0 ? w : w with
                             {
@@ -727,13 +717,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     _extension.MetaData = other._extension.MetaData;
                     return true;
-                }
-
-                /// <inheritdoc/>
-                public override IEnumerable<DataSetWriterModel> Split(
-                    IEnumerable<PublishedDataSetItem> items)
-                {
-                    yield break;
                 }
 
                 /// <inheritdoc/>
@@ -855,25 +838,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public override IEnumerable<DataSetWriterModel> Split(
+                public static IEnumerable<DataSetWriterModel> Split(
                     IEnumerable<PublishedDataSetItem> items)
                 {
-                    var copy = CopyDataSetWriter();
-                    var variables = items
-                        .OfType<VariableItem>()
-                        // No need to clone more members
-                        .Select((item, i) => item._variable with { FieldIndex = i })
-                        .ToList();
-                    Debug.Assert(copy.DataSet?.DataSetSource != null);
-                    copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
+                    foreach (var writers in items.GroupBy(w => w.DataSetWriter.Id))
                     {
-                        PublishedData = variables
-                    };
-                    copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
-                        // No need to clone more members of the field
-                        .Select((f, i) => f with { FieldIndex = i + variables.Count })
-                        .ToList();
-                    yield return copy;
+                        var variables = writers
+                            .OfType<VariableItem>()
+                            .ToList();
+                        if (variables.Count == 0)
+                        {
+                            continue;
+                        }
+                        var copy = variables[0].CopyDataSetWriter();
+                        Debug.Assert(copy.DataSet?.DataSetSource != null);
+                        copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
+                        {
+                            PublishedData = variables
+                            .Select((f, i) => f._variable with { FieldIndex = i })
+                            .ToList()
+                        };
+                        copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
+                            // No need to clone more members of the field
+                            .Select((f, i) => f with { FieldIndex = i + variables.Count })
+                            .ToList();
+                        yield return copy;
+                    }
                 }
 
                 /// <inheritdoc/>
@@ -1007,11 +997,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public override IEnumerable<DataSetWriterModel> Split(IEnumerable<PublishedDataSetItem> items)
+                public static IEnumerable<DataSetWriterModel> Split(IEnumerable<PublishedDataSetItem> items)
                 {
+                    // Each event data set generates a writer
                     foreach (var item in items.OfType<EventItem>())
                     {
-                        var copy = CopyDataSetWriter();
+                        var copy = item.CopyDataSetWriter();
                         Debug.Assert(copy.DataSet?.DataSetSource != null);
 
                         var evtSet = item._event with
@@ -1027,6 +1018,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             PublishedData = new[] { evtSet }
                         };
 
+                        copy.DataSet.Name = item._event.PublishedEventName;
                         copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
                         // No need to clone more members of the field
                         .Select((f, i) => f with

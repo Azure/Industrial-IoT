@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest), 
+            var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest),
                 "./Resources/Deadband.json",
                 TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
 
