@@ -11,10 +11,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Divergic.Logging.Xunit;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Threading;
 
     public sealed class RegistryServiceEventsTests : IDisposable
     {

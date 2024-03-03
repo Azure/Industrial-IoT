@@ -5,35 +5,52 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
-    using Opc.Ua.Client.ComplexTypes;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
-    using Microsoft.Extensions.Options;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
+    /// <para>
     /// Data set resolver resolves items in a data set against the
     /// server and updates the internal information.
+    /// </para>
+    /// <para>
+    /// We move the lookup of relative paths and display name here
+    /// to have it available for later matching of incomding
+    /// messages.
+    /// </para>
+    /// <para>
+    /// Good: We can also resolve nodes to subscribe to recursively
+    /// here as well.
+    /// Bad: if it fails?  In subscription (stack) we retry, I guess
+    /// we have to retry at the writer group level as well then?
+    /// We should not move this all to subscription or else we
+    /// cannot handle
+    /// writes until we have the subscription applied - that feels
+    /// too late.
+    /// </para>
     /// </summary>
     internal class DataSetItemResolver
     {
         /// <summary>
         /// Create resolver
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="options"></param>
+        /// <param name="logger"></param>
         public DataSetItemResolver(IOptions<PublisherOptions> options,
             ILogger<DataSetItemResolver> logger)
         {
@@ -109,6 +126,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     item.Merge(existingItem);
                 }
             }
+        }
+
+        /// <summary>
+        /// Create topic builder
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="dataSetWriter"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static TopicBuilder CreateTopicBuilder(WriterGroupModel writerGroup,
+            DataSetWriterModel dataSetWriter, PublisherOptions options)
+        {
+            // TODO: Decide how we resolve topic templates. Should this happen from
+            // top to bottom?  Which topic template is ultimately used?  Does it matter?
+
+            var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId
+                ?? Guid.Empty;
+            var escWriterName = TopicFilter.Escape(
+                dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
+            var escWriterGroup = TopicFilter.Escape(
+                writerGroup.Name ?? Constants.DefaultWriterGroupName);
+
+            var variables = new Dictionary<string, string>
+            {
+                [PublisherConfig.DataSetWriterIdVariableName] = dataSetWriter.Id,
+                [PublisherConfig.DataSetWriterVariableName] = escWriterName,
+                [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
+                [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
+                [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
+                [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
+                [PublisherConfig.WriterGroupVariableName] = escWriterGroup
+                // ...
+            };
+
+            return new TopicBuilder(options, writerGroup.MessageType,
+                new TopicTemplatesOptions
+                {
+                    Telemetry = dataSetWriter.Publishing?.QueueName
+                        ?? writerGroup.Publishing?.QueueName,
+                    DataSetMetaData = dataSetWriter.MetaData?.QueueName
+                }, variables);
         }
 
         /// <summary>
@@ -421,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             protected bool NoMetaData
                 => _resolver._options.Value.DisableDataSetMetaData
                 ?? _resolver._options.Value.DisableComplexTypeSystem
-                ??  false;
+                ?? DataSetWriter.DataSet?.DataSetMetaData == null;
             protected bool NoPathResolving
                 => Routing == DataSetRoutingMode.None;
             private DataSetRoutingMode Routing
@@ -553,8 +611,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         foreach (var w in publishedData
                             .Select(v => new VariableItem(resolver, writer, v))
                             .Batch(maxItemsPerWriter)
-                            .Select(i => i.Where(w => !w.NeedsUpdate).ToList())
-                            .Where(i => i.Count > 0)
+                            .Select(i => i.ToList())
+                            .Where(i => i.Count > 0) // We do not filter, report errors
                             .SelectMany(item => item[0].Split(item)))
                         {
                             yield return writerIndex++ == 0 ? w : w with
@@ -571,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         foreach (var w in publishedEvents
                             .Select(v => new EventItem(resolver, writer, v))
                             // We always only batch 1 event into a writer
-                            .Where(w => !w.NeedsUpdate)
+                            .Where(w => !w.NeedsUpdate) // And filter incompletes
                             .SelectMany(item => item.Split(item.YieldReturn())))
                         {
                             yield return writerIndex++ == 0 ? w : w with
@@ -1032,7 +1090,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         for (var i = 0; i < _event.SelectedFields.Count; i++)
                         {
                             var selectClause = _event.SelectedFields[i];
-                            var fieldName = selectClause.DisplayName;
+                            var fieldName = selectClause.DataSetFieldName;
                             if (fieldName == null)
                             {
                                 continue;
@@ -1082,7 +1140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return new SimpleAttributeOperandModel
                         {
                             DataSetClassFieldId = (Uuid)Guid.NewGuid(),
-                            DisplayName = fieldName,
+                            DataSetFieldName = fieldName,
                             MetaData = new PublishedDataItemMetaDataModel
                             {
                                 DataType = dataType ?? "i=" + builtInType,
@@ -1162,7 +1220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 session.MessageContext, NamespaceFormat.Expanded),
                             DataSetClassFieldId = Guid.NewGuid(), // Todo: Use constant here
                             IndexRange = null,
-                            DisplayName = "ConditionId",
+                            DataSetFieldName = "ConditionId",
                             AttributeId = NodeAttribute.NodeId
                         });
                     }
@@ -1174,7 +1232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // IS this correct?
                                 session.MessageContext, NamespaceFormat.Expanded),
                             DataSetClassFieldId = Guid.NewGuid(),
-                            DisplayName = fieldName.Name,
+                            DataSetFieldName = fieldName.Name,
                             IndexRange = null,
                             AttributeId = NodeAttribute.Value,
                             BrowsePath = fieldName.Name
@@ -1478,6 +1536,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 {
                                                     DataTypeId = typeName,
                                                     Name = browseName,
+                                                    IsOptionSet = e.IsOptionSet,
                                                     BuiltInType = null,
                                                     Fields = e.Fields
                                                         .Select(f => new EnumFieldDescriptionModel

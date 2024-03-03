@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -39,8 +38,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="template"></param>
             /// <param name="client"></param>
             /// <param name="logger"></param>
-            public ModelChangeEventItem(MonitoredAddressSpaceModel template, IOpcUaClient client,
-                ILogger<ModelChangeEventItem> logger) : base(logger, template.StartNodeId)
+            public ModelChangeEventItem(MonitoredAddressSpaceModel template,
+                IOpcUaClient client, ILogger<ModelChangeEventItem> logger)
+                : base(logger, template.Order)
             {
                 Template = template;
                 _client = client;
@@ -91,13 +91,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                if ((Template.DataSetFieldId ?? string.Empty) !=
-                    (modelChange.Template.DataSetFieldId ?? string.Empty))
+                if ((Template.Id ?? string.Empty) !=
+                    (modelChange.Template.Id ?? string.Empty))
                 {
                     return false;
                 }
-                if ((Template.DataSetFieldName ?? string.Empty) !=
-                    (modelChange.Template.DataSetFieldName ?? string.Empty))
+                if ((Template.Name ?? string.Empty) !=
+                    (modelChange.Template.Name ?? string.Empty))
                 {
                     return false;
                 }
@@ -105,22 +105,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return true;
+                return base.Equals(obj);
             }
 
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = 435243663;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.DataSetFieldName ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.DataSetFieldId ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    _client.GetHashCode();
-                return hashCode;
+                return HashCode.Combine(base.GetHashCode(),
+                    nameof(ModelChangeEventItem),
+                    Template.Name ?? string.Empty,
+                    Template.Id ?? string.Empty,
+                    _client);
             }
 
             /// <inheritdoc/>
@@ -192,16 +187,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(nodeId))
-                {
-                    return false;
-                }
-
-                DisplayName = Template.DisplayName;
+                DisplayName = Template.GetMonitoredItemName();
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = MonitoringMode.Reporting;
-                StartNodeId = nodeId;
+                StartNodeId = ObjectIds.RootFolder;
                 QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
                 Filter = GetEventFilter();
@@ -298,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnNodeChange(object? sender, Change<Node> e)
             {
                 _callback?.Invoke(MessageType.Event, CreateEvent(_nodeChangeType, e),
-                    sender as ISession, DataSetName);
+                    sender as ISession);
             }
 
             /// <summary>
@@ -309,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
                 _callback?.Invoke(MessageType.Event, CreateEvent(_refChangeType, e),
-                    sender as ISession, DataSetName);
+                    sender as ISession);
             }
 
             /// <summary>
@@ -341,7 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 for (var i = 0; i < _fields.Length; i++)
                 {
                     Variant? value = null;
-                    var field = _fields[i];
+                    var fieldName = _fields[i];
                     switch (i)
                     {
                         case 0:
@@ -367,10 +356,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     yield return new MonitoredItemNotificationModel
                     {
-                        Id = Template.Id ?? string.Empty,
-                        DataSetName = Template.DisplayName,
+                        Order = Order,
+                        MonitoredItemId = Template.GetMonitoredItemId(),
+                        FieldId = fieldName,
                         Context = Template.Context,
-                        DataSetFieldName = field,
                         PathFromRoot = changeFeedNotification.PathFromRoot,
                         NodeId = Template.StartNodeId,
                         Value = new DataValue(value.Value),

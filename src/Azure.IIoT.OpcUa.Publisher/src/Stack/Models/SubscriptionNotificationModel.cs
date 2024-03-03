@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -25,9 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 
         /// <inheritdoc/>
         public string? SubscriptionName { get; set; }
-
-        /// <inheritdoc/>
-        public string? DataSetName { get; set; }
 
         /// <inheritdoc/>
         public ushort SubscriptionId { get; set; }
@@ -51,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public object? Context { get; set; }
 
         /// <inheritdoc/>
-        public IServiceMessageContext ServiceMessageContext { get; set; } = null!;
+        public IVariantEncoder Codec { get; set; } = null!;
 
         /// <inheritdoc/>
         public IList<MonitoredItemNotificationModel> Notifications { get; set; }

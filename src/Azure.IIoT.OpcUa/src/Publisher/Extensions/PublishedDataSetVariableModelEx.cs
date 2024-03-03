@@ -5,12 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// Events extensions
@@ -27,11 +22,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-               // TODO: MetaData = model.MetaData.Clone(),
+                // TODO: MetaData = model.MetaData.Clone(),
                 Triggering = model.Triggering.Clone(),
                 SubstituteValue = model.SubstituteValue?.Copy()
             });
         }
-
     }
 }

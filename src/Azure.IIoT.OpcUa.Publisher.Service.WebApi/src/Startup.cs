@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Furly;
+    using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Logging;
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
@@ -26,11 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Nito.AsyncEx;
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.AspNetCore.OpenApi;
-    using System;
 
     /// <summary>
     /// Webservice startup

@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 DiscardNew = null
             };
@@ -41,6 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
@@ -62,6 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
@@ -81,6 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258"
             };
             var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
@@ -94,8 +102,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
-                DataSetFieldId = "i=2258",
-                DataSetFieldName = "DisplayName",
+                Order = 0,
+                Id = "i=2258",
+                Name = "DisplayName",
                 AttributeId = (NodeAttribute)Attributes.Value,
                 IndexRange = "5:20",
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
@@ -127,6 +136,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new DataMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 DataChangeFilter = new DataChangeFilterModel
                 {
@@ -151,6 +162,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
@@ -199,6 +212,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel(),
                 ConditionHandling = new ConditionHandlingOptionsModel
@@ -228,6 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
@@ -278,6 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {

@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -33,26 +32,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal class Event : OpcUaMonitoredItem
         {
             /// <inheritdoc/>
-            public override (string NodeId, UpdateString Update)? GetDisplayName
-                => Template.FetchDataSetFieldName == true &&
-                    !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId) &&
-                    Template.DataSetFieldName == null ?
-                    (Template.EventFilter.TypeDefinitionId!, v => Template = Template with
-                    {
-                        DataSetFieldName = v
-                    }) : null;
-
-            /// <inheritdoc/>
             public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
-                    (NodeId == Template.StartNodeId || string.IsNullOrEmpty(NodeId)) ?
+                    (TheResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(TheResolvedNodeId)) ?
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        (v, context) => NodeId
+                        (v, context) => TheResolvedNodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
-
-            /// <inheritdoc/>
-            public override string? DataSetName => Template.DisplayName;
+            /// <summary>
+            /// Resolved node id
+            /// </summary>
+            protected string TheResolvedNodeId { get; private set; }
 
             /// <summary>
             /// Monitored item as event
@@ -69,10 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Event(EventMonitoredItemModel template,
-                ILogger<Event> logger) : base(logger, template.StartNodeId)
+            public Event(EventMonitoredItemModel template, ILogger<Event> logger)
+                : base(logger, template.Order)
             {
                 Template = template;
+                TheResolvedNodeId = template.StartNodeId;
             }
 
             /// <summary>
@@ -87,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Fields = item.Fields;
                 RelativePath = item.RelativePath;
+                TheResolvedNodeId = item.TheResolvedNodeId;
                 Template = item.Template;
             }
 
@@ -104,13 +96,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                if ((Template.DataSetFieldId ?? string.Empty) !=
-                    (eventItem.Template.DataSetFieldId ?? string.Empty))
+                if ((Template.Id ?? string.Empty) !=
+                    (eventItem.Template.Id ?? string.Empty))
                 {
                     return false;
                 }
-                if ((Template.DataSetFieldName ?? string.Empty) !=
-                    (eventItem.Template.DataSetFieldName ?? string.Empty))
+                if ((Template.Name ?? string.Empty) !=
+                    (eventItem.Template.Name ?? string.Empty))
                 {
                     return false;
                 }
@@ -126,29 +118,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return true;
+                return base.Equals(obj);
             }
 
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = 423444443;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.DataSetFieldName ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.DataSetFieldId ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(
-                        Template.RelativePath ?? Array.Empty<string>());
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.StartNodeId);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<NodeAttribute>.Default.GetHashCode(
-                        Template.AttributeId ?? NodeAttribute.NodeId);
-                return hashCode;
+                return HashCode.Combine(base.GetHashCode(),
+                   nameof(Event),
+                   Template.Name ?? string.Empty,
+                   Template.Id ?? string.Empty,
+                   Template.RelativePath ?? Array.Empty<string>(),
+                   Template.StartNodeId,
+                   Template.AttributeId ?? NodeAttribute.NodeId);
             }
 
             /// <inheritdoc/>
@@ -166,12 +148,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                var nodeId = TheResolvedNodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     return false;
                 }
-                DisplayName = Template.DisplayName;
+                DisplayName = Template.GetMonitoredItemName();
                 AttributeId = (uint)(Template.AttributeId
                     ?? (NodeAttribute)Attributes.EventNotifier);
                 MonitoringMode = Template.MonitoringMode.ToStackType()
@@ -252,11 +234,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     notifications.Add(new MonitoredItemNotificationModel
                     {
-                        Id = Template.Id ?? string.Empty,
-                        DataSetName = Template.DisplayName,
+                        Order = Order,
+                        MonitoredItemId = Template.GetMonitoredItemId(),
+                        FieldId = Name,
                         Context = Template.Context,
-                        DataSetFieldName = Name,
-                        NodeId = Template.StartNodeId,
+                        NodeId = TheResolvedNodeId,
                         Value = new DataValue(statusCode),
                         Flags = MonitoredItemSourceFlags.Error,
                         SequenceNumber = sequenceNumber
@@ -278,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Send notifications as event
                 foreach (var n in ToMonitoredItemNotifications(sequenceNumber, eventFields)
-                    .Where(n => n.DataSetFieldName != null))
+                    .Where(n => n.FieldId != null))
                 {
                     notifications.Add(n);
                 }
@@ -303,11 +285,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         yield return new MonitoredItemNotificationModel
                         {
-                            Id = Template.Id ?? string.Empty,
+                            Order = Order,
+                            MonitoredItemId = Template.GetMonitoredItemId(),
                             Context = Template.Context,
-                            DataSetName = Template.DisplayName,
-                            DataSetFieldName = Fields[i].Name,
-                            NodeId = Template.StartNodeId,
+                            FieldId = Fields[i].Name ?? string.Empty,
+                            NodeId = TheResolvedNodeId,
                             Flags = 0,
                             Value = new DataValue(eventFields.EventFields[i]),
                             SequenceNumber = sequenceNumber
@@ -349,9 +331,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var fieldName = string.Empty;
                         var definedSelectClause = Template.EventFilter.SelectClauses?
                             .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
-                        if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
+                        if (!string.IsNullOrEmpty(definedSelectClause?.DataSetFieldName))
                         {
-                            fieldName = definedSelectClause.DisplayName;
+                            fieldName = definedSelectClause.DataSetFieldName;
                         }
                         else if (selectClause.BrowsePath != null && selectClause.BrowsePath.Count != 0)
                         {
@@ -477,64 +459,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
 
                 return eventFilter;
-            }
-
-            /// <summary>
-            /// Find node by browse path
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="browsePath"></param>
-            /// <param name="nodeId"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
-                QualifiedNameCollection browsePath, ExpandedNodeId nodeId, CancellationToken ct)
-            {
-                INode? found = null;
-                foreach (var browseName in browsePath)
-                {
-                    found = null;
-                    while (found == null)
-                    {
-                        found = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
-                        if (found is not Node node)
-                        {
-                            return null;
-                        }
-
-                        //
-                        // Get all hierarchical references of the node and
-                        // match browse name
-                        //
-                        foreach (var reference in node.ReferenceTable.Find(
-                            ReferenceTypeIds.HierarchicalReferences, false,
-                                true, session.TypeTree))
-                        {
-                            var target = await session.NodeCache.FindAsync(reference.TargetId,
-                                ct).ConfigureAwait(false);
-                            if (target?.BrowseName == browseName)
-                            {
-                                nodeId = target.NodeId;
-                                found = target;
-                                break;
-                            }
-                        }
-
-                        if (found == null)
-                        {
-                            // Try super type
-                            nodeId = await session.TypeTree.FindSuperTypeAsync(nodeId,
-                                ct).ConfigureAwait(false);
-                            if (Opc.Ua.NodeId.IsNull(nodeId))
-                            {
-                                // Nothing can be found since there is no more super type
-                                return null;
-                            }
-                        }
-                    }
-                    nodeId = found.NodeId;
-                }
-                return found;
             }
 
             /// <summary>

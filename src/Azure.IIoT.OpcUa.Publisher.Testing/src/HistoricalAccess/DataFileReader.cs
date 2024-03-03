@@ -394,9 +394,8 @@ namespace HistoricalAccess
                     continue;
                 }
 
-                StatusCode status;
                 // get status code.
-                if (!ExtractField(lineCount, ref line, out status))
+                if (!ExtractField(lineCount, ref line, out StatusCode status))
                 {
                     continue;
                 }

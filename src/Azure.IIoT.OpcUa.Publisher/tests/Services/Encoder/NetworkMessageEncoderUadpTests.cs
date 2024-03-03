@@ -119,20 +119,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 PublisherId = "abc",
                 Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
                 Topic = null,
-                Writer = new DataSetWriterModel { Id = "1" },
-                WriterGroup = new WriterGroupModel { Id = "3" },
-                MetaData = new DataSetMetaDataType
+                Writer = new DataSetWriterModel
                 {
-                    Name = "test",
-                    Fields = new FieldMetaDataCollection
+                    Id = "1",
+                    DataSet = new PublishedDataSetModel
                     {
-                        new FieldMetaData
+                        DataSetMetaData = new DataSetMetaDataModel
                         {
-                            Name = "test",
-                            BuiltInType = (byte)BuiltInType.UInt16
+                            DataSetClassId = Guid.NewGuid(),
+                            Name = "test"
+                        },
+                        DataSetSource = new PublishedDataSetSourceModel
+                        {
+                            PublishedVariables = new PublishedDataItemsModel
+                            {
+                                PublishedData = new[]
+                                {
+                                    new PublishedDataSetVariableModel
+                                    {
+                                        DataSetFieldName = "test",
+                                        MetaData = new PublishedDataItemMetaDataModel
+                                        {
+                                            BuiltInType = (byte)BuiltInType.UInt16
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                }
+                },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaDataVersion = new ConfigurationVersionDataType(),
+                SendMetaData = true
             };
 
             using var encoder = GetEncoder();
@@ -158,18 +176,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 PublisherId = "abc",
                 Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
                 Topic = null,
-                Writer = new DataSetWriterModel { Id = "1" },
-                WriterGroup = new WriterGroupModel { Id = "3" },
-                MetaData = new DataSetMetaDataType
+                Writer = new DataSetWriterModel
                 {
-                    Name = "test",
-                    Fields = Enumerable.Range(0, 10000).Select(r =>
-                        new FieldMetaData
+                    Id = "1",
+                    DataSet = new PublishedDataSetModel
+                    {
+                        DataSetMetaData = new DataSetMetaDataModel
                         {
-                            Name = "testfield" + r,
-                            BuiltInType = (byte)BuiltInType.UInt16
-                        }).ToArray()
-                }
+                            DataSetClassId = Guid.NewGuid(),
+                            Name = "test"
+                        },
+                        DataSetSource = new PublishedDataSetSourceModel
+                        {
+                            PublishedVariables = new PublishedDataItemsModel
+                            {
+                                PublishedData = Enumerable.Range(0, 10000).Select(i => new PublishedDataSetVariableModel
+                                {
+                                    DataSetFieldName = "test" + i,
+                                    MetaData = new PublishedDataItemMetaDataModel
+                                    {
+                                        BuiltInType = (byte)BuiltInType.UInt16
+                                    }
+                                }).ToList()
+                            }
+                        }
+                    }
+                },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaDataVersion = new ConfigurationVersionDataType(),
+                SendMetaData = true
             };
 
             using var encoder = GetEncoder();

@@ -235,10 +235,8 @@ namespace Views
                     return null;
                 }
 
-                NodeState node = null;
-
                 // check cache (the cache is used because the same node id can appear many times in a single request).
-                if (cache != null && cache.TryGetValue(nodeId, out node))
+                if (cache != null && cache.TryGetValue(nodeId, out var node))
                 {
                     return new NodeHandle(nodeId, node);
                 }

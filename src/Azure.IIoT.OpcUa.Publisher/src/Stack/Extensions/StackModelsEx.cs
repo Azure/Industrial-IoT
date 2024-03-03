@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Stack models extensions
@@ -69,23 +70,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 Timestamp = timestamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,
                 AdditionalHeader = null // TODO
-            };
-        }
-
-        /// <summary>
-        /// Convert to endpoint description
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="endpointUrl"></param>
-        /// <returns></returns>
-        public static EndpointDescription ToEndpointDescription(this EndpointModel endpoint,
-            string? endpointUrl = null)
-        {
-            return new EndpointDescription
-            {
-                EndpointUrl = endpointUrl ?? endpoint.Url,
-                SecurityPolicyUri = endpoint.SecurityPolicy,
-                SecurityMode = (endpoint.SecurityMode ?? SecurityMode.Best).ToStackType()
             };
         }
 
@@ -388,6 +372,242 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                         $"Credential type {credential!.Type} is not supported");
+            }
+        }
+
+        /// <summary>
+        /// Get metdata from data items
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DataSetMetaDataType? EncodeMetaData(this IVariantEncoder encoder,
+            DataSetWriterModel model)
+        {
+            var dataSet = model.DataSet;
+            if (dataSet?.DataSetSource == null || dataSet.DataSetMetaData == null)
+            {
+                return null;
+            }
+
+            var types = new Dictionary<string, DataTypeDescription>();
+            var fields = new List<FieldMetaData>();
+            var minorVersion = 0u;
+            if (dataSet.DataSetSource.PublishedVariables?.PublishedData != null)
+            {
+                foreach (var item in dataSet.DataSetSource.PublishedVariables.PublishedData)
+                {
+                    CollectFieldMetaData(encoder, item.DataSetFieldName,
+                        item.DataSetClassFieldId, item.MetaData, types, fields,
+                        ref minorVersion);
+                }
+            }
+
+            if (dataSet.DataSetSource.PublishedEvents?.PublishedData != null)
+            {
+                foreach (var evt in dataSet.DataSetSource.PublishedEvents.PublishedData)
+                {
+                    if (evt.SelectedFields != null)
+                    {
+                        foreach (var item in evt.SelectedFields)
+                        {
+                            CollectFieldMetaData(encoder, item.DataSetFieldName,
+                                item.DataSetClassFieldId, item.MetaData, types,
+                                fields, ref minorVersion);
+                        }
+                    }
+                }
+            }
+
+            if (dataSet.ExtensionFields != null)
+            {
+                foreach (var item in dataSet.ExtensionFields)
+                {
+                    CollectFieldMetaData(encoder, item.DataSetFieldName,
+                        item.DataSetClassFieldId, item.MetaData, types, fields,
+                        ref minorVersion);
+                }
+            }
+
+            return new DataSetMetaDataType
+            {
+                Name = dataSet.DataSetMetaData.Name,
+                DataSetClassId = (Uuid)dataSet.DataSetMetaData.DataSetClassId,
+                Description = dataSet.DataSetMetaData.Description,
+                ConfigurationVersion = new ConfigurationVersionDataType
+                {
+                    MajorVersion = dataSet.DataSetMetaData.MajorVersion,
+                    MinorVersion = minorVersion
+                },
+                Fields = fields.ToArray(),
+                Namespaces = encoder.Context.NamespaceUris.ToArray(),
+                EnumDataTypes = types.Values.OfType<EnumDescription>().ToArray(),
+                SimpleDataTypes = types.Values.OfType<SimpleTypeDescription>().ToArray(),
+                StructureDataTypes = types.Values.OfType<StructureDescription>().ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Get metdata from data items
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldGuid"></param>
+        /// <param name="fieldMetaData"></param>
+        /// <param name="majorVersion"></param>
+        /// <returns></returns>
+        public static DataSetMetaDataType? Encode(this IVariantEncoder encoder,
+            string? fieldName, Guid fieldGuid, PublishedDataItemMetaDataModel fieldMetaData,
+            uint majorVersion = 0)
+        {
+            var types = new Dictionary<string, DataTypeDescription>();
+            var fields = new List<FieldMetaData>();
+            var minorVersion = 0u;
+
+            CollectFieldMetaData(encoder, fieldName, fieldGuid, fieldMetaData, types,
+                fields, ref minorVersion);
+            return new DataSetMetaDataType
+            {
+                Name = fieldName,
+                DataSetClassId = (Uuid)fieldGuid,
+                ConfigurationVersion = new ConfigurationVersionDataType
+                {
+                    MajorVersion = majorVersion,
+                    MinorVersion = minorVersion
+                },
+                Fields = fields.ToArray(),
+                Namespaces = encoder.Context.NamespaceUris.ToArray(),
+                EnumDataTypes = types.Values.OfType<EnumDescription>().ToArray(),
+                SimpleDataTypes = types.Values.OfType<SimpleTypeDescription>().ToArray(),
+                StructureDataTypes = types.Values.OfType<StructureDescription>().ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Collect fields
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldGuid"></param>
+        /// <param name="fieldMetaData"></param>
+        /// <param name="types"></param>
+        /// <param name="fields"></param>
+        /// <param name="maxMinorVersion"></param>
+        private static void CollectFieldMetaData(IVariantEncoder encoder, string? fieldName,
+            Guid fieldGuid, PublishedDataItemMetaDataModel? fieldMetaData, Dictionary<string,
+                DataTypeDescription> types, List<FieldMetaData> fields, ref uint maxMinorVersion)
+        {
+            fields.Add(new FieldMetaData
+            {
+                DataSetFieldId = (Uuid)fieldGuid,
+                Name = fieldName,
+                DataType = fieldMetaData?.DataType.ToNodeId(encoder.Context),
+                BuiltInType = fieldMetaData?.BuiltInType ?? (int)BuiltInType.Variant,
+                Description = fieldMetaData?.Description,
+                FieldFlags = fieldMetaData?.Flags ?? 0,
+                MaxStringLength = fieldMetaData?.MaxStringLength ?? 0u,
+                Properties = fieldMetaData?.Properties?
+                    .Select(e => new Opc.Ua.KeyValuePair
+                    {
+                        Key = e.Id,
+                        Value = encoder.Decode(e.Value, BuiltInType.Variant)
+                    })
+                    .ToArray(),
+                ArrayDimensions = fieldMetaData?.ArrayDimensions?.ToArray(),
+                ValueRank = fieldMetaData?.ValueRank ?? ValueRanks.Scalar
+            });
+
+            if (fieldMetaData == null)
+            {
+                return;
+            }
+
+            if (fieldMetaData.MinorVersion > maxMinorVersion)
+            {
+                maxMinorVersion = fieldMetaData.MinorVersion;
+            }
+
+            if (fieldMetaData.SimpleDataTypes != null)
+            {
+                foreach (var simple in fieldMetaData.SimpleDataTypes)
+                {
+                    if (!types.ContainsKey(simple.DataTypeId))
+                    {
+                        continue;
+                    }
+                    types.Add(simple.DataTypeId, new SimpleTypeDescription
+                    {
+                        BaseDataType = simple.BaseDataType.ToNodeId(encoder.Context),
+                        BuiltInType = simple.BuiltInType ?? (int)BuiltInType.Variant,
+                        DataTypeId = simple.DataTypeId.ToNodeId(encoder.Context),
+                        Name = simple.Name.ToQualifiedName(encoder.Context)
+                    });
+                }
+            }
+
+            if (fieldMetaData.StructureDataTypes != null)
+            {
+                foreach (var structure in fieldMetaData.StructureDataTypes)
+                {
+                    if (!types.ContainsKey(structure.DataTypeId))
+                    {
+                        continue;
+                    }
+                    types.Add(structure.DataTypeId, new StructureDescription
+                    {
+                        DataTypeId = structure.DataTypeId.ToNodeId(encoder.Context),
+                        Name = structure.Name.ToQualifiedName(encoder.Context),
+                        StructureDefinition = new StructureDefinition
+                        {
+                            BaseDataType = structure.BaseDataType.ToNodeId(encoder.Context),
+                            DefaultEncodingId = structure.DefaultEncodingId
+                                .ToNodeId(encoder.Context),
+                            StructureType = (Opc.Ua.StructureType)(structure.StructureType
+                                ?? Publisher.Models.StructureType.Structure),
+                            Fields = structure.Fields
+                                .Select(f => new StructureField
+                                {
+                                    Name = f.Name,
+                                    DataType = f?.DataType.ToNodeId(encoder.Context),
+                                    Description = f?.Description,
+                                    MaxStringLength = f?.MaxStringLength ?? 0u,
+                                    ArrayDimensions = f?.ArrayDimensions?.ToArray(),
+                                    ValueRank = f?.ValueRank ?? ValueRanks.Scalar
+                                })
+                                .ToArray()
+                        }
+                    });
+                }
+            }
+
+            if (fieldMetaData.EnumDataTypes != null)
+            {
+                foreach (var enumType in fieldMetaData.EnumDataTypes)
+                {
+                    if (!types.ContainsKey(enumType.DataTypeId))
+                    {
+                        continue;
+                    }
+                    types.Add(enumType.DataTypeId, new EnumDescription
+                    {
+                        DataTypeId = enumType.DataTypeId.ToNodeId(encoder.Context),
+                        Name = enumType.Name.ToQualifiedName(encoder.Context),
+                        BuiltInType = enumType.BuiltInType ?? (int)BuiltInType.Variant,
+                        EnumDefinition = new EnumDefinition
+                        {
+                            IsOptionSet = enumType.IsOptionSet,
+                            Fields = enumType.Fields
+                                .Select(f => new EnumField
+                                {
+                                    Name = f.Name,
+                                    DisplayName = f.DisplayName,
+                                    Value = f.Value,
+                                    Description = f?.Description
+                                })
+                                .ToArray()
+                        }
+                    });
+                }
             }
         }
     }

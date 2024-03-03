@@ -6,13 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
@@ -26,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Subscription implementation
@@ -199,11 +198,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     var session = Session;
-                    if (session == null)
+                    if (session is not IOpcUaSession sessionContext)
                     {
                         return null;
                     }
-                    return new Notification(this, Id, session.MessageContext)
+                    return new Notification(this, Id, sessionContext.Codec)
                     {
                         ApplicationUri = session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = session.Endpoint.EndpointUrl,
@@ -383,32 +382,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="diagnosticsOnly"></param>
         internal void SendNotification(MessageType messageType,
             IEnumerable<MonitoredItemNotificationModel> notifications,
-            ISession? session, string? dataSetName, bool diagnosticsOnly)
+            ISession? session, bool diagnosticsOnly)
         {
             var curSession = session ?? Session;
-            var messageContext = curSession?.MessageContext;
 
-            if (messageContext == null)
+            if (curSession is not IOpcUaSession sessionContext)
             {
-                if (session == null)
-                {
-                    // Can only send with context
-                    _logger.LogWarning("Failed to send notification since no session exists " +
-                        "to use as context. Notification was dropped.");
-                    return;
-                }
-                _logger.LogWarning("A session was passed to send notification with but without " +
-                    "message context. Using thread context.");
-                messageContext = ServiceMessageContext.ThreadContext;
+                // Can only send with context
+                _logger.LogWarning("Failed to send notification since no session exists " +
+                    "to use as context. Notification was dropped.");
+                return;
             }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var message = new Notification(this, Id, messageContext, notifications)
+            var message = new Notification(this, Id, sessionContext.Codec, notifications)
             {
                 ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
                 EndpointUrl = curSession?.Endpoint?.EndpointUrl,
                 SubscriptionName = Name,
-                DataSetName = dataSetName,
                 SubscriptionId = LocalIndex,
                 SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                 MessageType = messageType
@@ -544,8 +535,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             // We shortcut this only through the added items since the identity (hash)
             // of the monitored item is dependent on the node and browse path, so any
-            // update of either results in a newly added monitored item and the old
-            // one removed.
+            // update of either results in a newly added monitored item and the old one
+            // removed.
+            //
+            // Now this will never hit as we have pre-resolved all nodes when we processed
+            // the configuration on startup. Leaving this here for completeness.
             //
             var allResolvers = add
                 .Select(a => a.Resolve)
@@ -735,70 +729,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var desiredMonitoredItems = same;
             desiredMonitoredItems.UnionWith(add);
-
-            //
-            // Resolve display names for all nodes that still require a name
-            // other than the node id string.
-            //
-            // Note that we use the desired set here and update the display
-            // name after AddTo/MergeWith as it only effects the messages
-            // and metadata emitted and not the item as it is set up in the
-            // subscription (like what we do when resolving nodes). This
-            // supports the scenario where the user sets a desired display
-            // name of null to force reading the display name from the node
-            // and updating the existing display name (previously set) and
-            // at the same time is quite effective to only update what is
-            // necessary.
-            //
-            var allDisplayNameUpdates = desiredMonitoredItems
-                .Select(a => a.GetDisplayName)
-                .Where(a => a != null)
-                .ToList();
-            if (allDisplayNameUpdates.Count > 0)
-            {
-                foreach (var displayNameUpdates in allDisplayNameUpdates.Batch(
-                    operationLimits.GetMaxNodesPerRead()))
-                {
-                    var response = await session.Services.ReadAsync(new RequestHeader(),
-                        0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
-                        displayNameUpdates.Select(a => new ReadValueId
-                        {
-                            NodeId = a!.Value.NodeId.ToNodeId(session.MessageContext),
-                            AttributeId = (uint)NodeAttribute.DisplayName
-                        })), ct).ConfigureAwait(false);
-                    var results = response.Validate(response.Results,
-                        s => s.StatusCode, response.DiagnosticInfos, displayNameUpdates);
-
-                    if (results.ErrorInfo != null)
-                    {
-                        _logger.LogWarning(
-                            "Failed to resolve display name in {Subscription} due to {ErrorInfo}...",
-                            this, results.ErrorInfo);
-
-                        // We will retry later.
-                        noErrorFound = false;
-                    }
-                    else
-                    {
-                        foreach (var result in results)
-                        {
-                            string? displayName = null;
-                            if (result.Result.Value is not null)
-                            {
-                                displayName =
-                                    (result.Result.Value as LocalizedText)?.ToString();
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Failed to read display name for {NodeId} " +
-                                    "in {Subscription} due to '{ServiceResult}'",
-                                    result.Request!.Value.NodeId, this, result.ErrorInfo);
-                            }
-                            result.Request!.Value.Update(displayName ?? string.Empty);
-                        }
-                    }
-                }
-            }
 
             _logger.LogDebug(
                 "Completing {Count} same/added and {Removed} removed items in subscription {Subscription}...",
@@ -1318,7 +1248,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "EventChange for subscription {Subscription} received without a session {Session}.",
@@ -1360,12 +1290,11 @@ Actual (revised) state/desired state:
                     if (TryGetMonitoredItemForNotification(eventFieldList.ClientHandle, out var monitoredItem))
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                        var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                        var message = new Notification(this, Id, sessionContext.Codec, sequenceNumber: sequenceNumber)
                         {
                             ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                             EndpointUrl = session.Endpoint?.EndpointUrl,
                             SubscriptionName = Name,
-                            DataSetName = monitoredItem.DataSetName,
                             SubscriptionId = LocalIndex,
                             SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                             MessageType = MessageType.Event,
@@ -1430,7 +1359,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "Keep alive event for subscription {Subscription} received without session {Session}.",
@@ -1450,7 +1379,7 @@ Actual (revised) state/desired state:
                     this, sequenceNumber, publishTime);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, session.MessageContext)
+                var message = new Notification(this, Id, sessionContext.Codec)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1492,7 +1421,7 @@ Actual (revised) state/desired state:
             Debug.Assert(ReferenceEquals(subscription, this));
             Debug.Assert(!_disposed);
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1504,7 +1433,7 @@ Actual (revised) state/desired state:
             try
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                var message = new Notification(this, Id, sessionContext.Codec, sequenceNumber: sequenceNumber)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1516,7 +1445,7 @@ Actual (revised) state/desired state:
                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-                foreach (var cyclicDataChange in values.OrderBy(m => m.Value?.SourceTimestamp))
+                foreach (var cyclicDataChange in values)
                 {
                     if (TryGetMonitoredItemForNotification(cyclicDataChange.ClientHandle, out var monitoredItem) &&
                         !monitoredItem.TryGetMonitoredItemNotifications(message.SequenceNumber,
@@ -1563,7 +1492,7 @@ Actual (revised) state/desired state:
             Debug.Assert(!_disposed);
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1580,7 +1509,8 @@ Actual (revised) state/desired state:
                 var publishTime = notification.PublishTime;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                var message = new Notification(this, Id, sessionContext.Codec,
+                    sequenceNumber: sequenceNumber)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1611,7 +1541,7 @@ Actual (revised) state/desired state:
                         dropped ? "dropped" : "already received", publishTime);
                 }
 
-                foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
+                foreach (var item in notification.MonitoredItems)
                 {
                     Debug.Assert(item != null);
                     if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
@@ -1691,8 +1621,8 @@ Actual (revised) state/desired state:
                     }
                     notifications = new List<MonitoredItemNotificationModel>();
 
-                    // Ensure we order by client handle exactly like the meta data is ordered
-                    foreach (var item in CurrentlyMonitored.OrderBy(m => m.ClientHandle))
+                    // Ensure we order by order fields exactly like the meta data is ordered
+                    foreach (var item in CurrentlyMonitored.OrderBy(m => m.Order))
                     {
                         item.TryGetLastMonitoredItemNotifications(sequenceNumber, notifications);
                     }
@@ -1935,9 +1865,6 @@ Actual (revised) state/desired state:
             public string? SubscriptionName { get; internal set; }
 
             /// <inheritdoc/>
-            public string? DataSetName { get; internal set; }
-
-            /// <inheritdoc/>
             public ushort SubscriptionId { get; internal set; }
 
             /// <inheritdoc/>
@@ -1953,7 +1880,7 @@ Actual (revised) state/desired state:
             public uint? PublishSequenceNumber { get; private set; }
 
             /// <inheritdoc/>
-            public IServiceMessageContext ServiceMessageContext { get; private set; }
+            public IVariantEncoder Codec { get; private set; }
 
             /// <inheritdoc/>
             public IList<MonitoredItemNotificationModel> Notifications { get; private set; }
@@ -1966,18 +1893,17 @@ Actual (revised) state/desired state:
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="subscriptionId"></param>
-            /// <param name="messageContext"></param>
+            /// <param name="codec"></param>
             /// <param name="notifications"></param>
             /// <param name="sequenceNumber"></param>
-            public Notification(OpcUaSubscription outer,
-                uint subscriptionId, IServiceMessageContext messageContext,
-                IEnumerable<MonitoredItemNotificationModel>? notifications = null,
+            public Notification(OpcUaSubscription outer, uint subscriptionId,
+                IVariantEncoder codec, IEnumerable<MonitoredItemNotificationModel>? notifications = null,
                 uint? sequenceNumber = null)
             {
                 _outer = outer;
                 PublishSequenceNumber = sequenceNumber;
                 CreatedTimestamp = DateTime.UtcNow;
-                ServiceMessageContext = messageContext;
+                Codec = codec;
                 _subscriptionId = subscriptionId;
 
                 Notifications = notifications?.ToList() ??

@@ -7,9 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Opc Ua subscription notification
@@ -22,9 +22,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         uint SequenceNumber { get; }
 
         /// <summary>
-        /// Service message context
+        /// Codec
         /// </summary>
-        IServiceMessageContext ServiceMessageContext { get; }
+        IVariantEncoder Codec { get; }
 
         /// <summary>
         /// Notification
@@ -40,11 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Subscription identifier
         /// </summary>
         ushort SubscriptionId { get; }
-
-        /// <summary>
-        /// Name of the data set
-        /// </summary>
-        string? DataSetName { get; }
 
         /// <summary>
         /// Endpoint url

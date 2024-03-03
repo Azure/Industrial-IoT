@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -23,30 +22,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
     /// <summary>
     /// <para>
-    /// The writer group is the central controller of all services running inside
-    /// the writer group scope. The writer group receives updates to the writer
-    /// group configuration and manages the live state. The writer group controller
-    /// manages the resolution and collation of data sets in the writers before
-    /// they are hitting the stack. This way we have central control over the
-    /// resolution of nodes, names, keys and relative paths at the pub sub layer.
-    /// This also includes metadata which we resolve per variable or select
-    /// statement so we have the right setup for the subscriptions when we
-    /// create them.
+    /// The writer group controller is the central to all services
+    /// running inside the pub sub layer. The group controller receives
+    /// updates to the writer group configuration and manages their
+    /// live state. The group controller also manages the resolution
+    /// and collation of data sets inside its writers before they are
+    /// hitting the stack. This way we have central control over the
+    /// resolution of nodes, names, keys and relative paths at the
+    /// pub sub layer. This also includes metadata which we resolve
+    /// per variable or selected fields vor events so we have the right
+    /// setup for the subscriptions when we create them.
     /// </para>
     /// <para>
-    /// We move the lookup of relative paths and display name here then. Then we
-    /// have it available for later matching of incomding messages.
-    /// Good: We can also resolve nodes to subscribe to recursively here as well.
-    /// Bad: if it fails?  In subscription (stack) we retry, I guess we have to
-    /// retry at the writer group level as well then?
-    /// We should not move this all to subscription or else we cannot handle
-    /// writes until we have the subscription applied - that feels too late.
-    /// </para>
-    /// <para>
-    /// This controller also supports lookup of writers by matching incoming data
-    /// sets to the a writer. If we do not have a writer name because the message
-    /// does not contain it we match the key/values to a writer, all of them
-    /// should be in one and we select the first one.
+    /// This controller also supports lookup of writers by matching
+    /// incoming data sets to the a writer. If we do not have a writer
+    /// name because the message does not contain it we match the
+    /// key/values to a writer, all of them should be in one and we
+    /// select the first one.
     /// </para>
     /// <para>
     /// Matching logic to find the publishedVariables:
@@ -56,13 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     ///  topic of writer should match passed in topic if available
     /// </para>
     /// <para>
-    /// We try and find the topic that matches a variable/event if we do not find
-    /// we find the writer object that matches the topic, if we do not find that
-    /// (because no topic at writer level) we use the group.
+    /// We try and find the topic that matches a variable/event if
+    /// we do not find we find the writer object that matches the
+    /// topic, if we do not find that (because no topic at writer
+    /// level) we use the group.
     /// </para>
     /// </summary>
-    public sealed class WriterGroup : IWriterGroupController, IWriterGroup,
-        IDisposable
+    public sealed class WriterGroupController : IWriterGroupController,
+        IWriterGroup, IDisposable
     {
         /// <inheritdoc/>
         public WriterGroupModel Configuration { get; private set; }
@@ -74,14 +67,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create writer group
         /// </summary>
         /// <param name="writerGroupId"></param>
-        /// <param name="options"></param>
-        /// <param name="client"></param>
-        /// <param name="loggerFactory"></param>
         /// <param name="listeners"></param>
+        /// <param name="client"></param>
+        /// <param name="options"></param>
         /// <param name="metrics"></param>
-        public WriterGroup(string writerGroupId, IOptions<PublisherOptions> options,
-            IOpcUaClientManager<ConnectionModel> client, IMetricsContext metrics,
-            ILoggerFactory loggerFactory, IEnumerable<IWriterGroupNotifications> listeners)
+        /// <param name="loggerFactory"></param>
+        public WriterGroupController(string writerGroupId,
+            IEnumerable<IWriterGroupNotifications> listeners,
+            IOpcUaClientManager<ConnectionModel> client,
+            IOptions<PublisherOptions> options, IMetricsContext metrics,
+            ILoggerFactory loggerFactory)
         {
             Id = writerGroupId;
 
@@ -96,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _listeners = listeners?.ToList()
                 ?? throw new ArgumentNullException(nameof(listeners));
 
-            _logger = _loggerFactory.CreateLogger<WriterGroup>();
+            _logger = _loggerFactory.CreateLogger<WriterGroupController>();
             Configuration = new WriterGroupModel { Id = Id };
 
             InitializeMetrics();
@@ -114,13 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 });
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
-        }
-
-        /// <inheritdoc/>
-        public bool TryUpdate(WriterGroupModel writerGroup)
-        {
-            ObjectDisposedException.ThrowIf(_isDisposed, this);
-            return _changeFeed.Writer.TryWrite(writerGroup);
         }
 
         /// <inheritdoc/>
@@ -244,6 +232,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     }
 
+                    // TODO: Parallelize these as they represent different servers/sessions
+
                     // Should not throw
                     await writerSource.UpdateAsync(source, ct).ConfigureAwait(false);
                     updatedSources.Add(source.Key, writerSource);
@@ -256,7 +246,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var listener in _listeners)
                     {
-                        await listener.OnRemovedAsync(Configuration).ConfigureAwait(false);
+                        await listener.OnRemovedAsync(
+                            Configuration).ConfigureAwait(false);
                     }
 
                     delete.Dispose();
@@ -275,7 +266,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 return;
             }
-            // Persist
+
+            // TODO: Persist
 
             // Update external state
             Configuration = copy;
@@ -313,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 defaultMessagingProfile = MessagingProfile.Get(
                     Enum.Parse<MessagingMode>(writerGroup.HeaderLayoutUri),
-                    writerGroup.MessageType ?? defaultMessagingProfile.MessageEncoding);
+                    writerGroup.MessageType
+                        ?? defaultMessagingProfile.MessageEncoding);
             }
 
             writerGroup.MessageType ??= defaultMessagingProfile.MessageEncoding;
@@ -354,7 +347,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (dataSetWriter.MessageSettings?.DataSetMessageContentMask == null)
             {
-                dataSetWriter.MessageSettings ??= new DataSetWriterMessageSettingsModel();
+                dataSetWriter.MessageSettings
+                    ??= new DataSetWriterMessageSettingsModel();
                 dataSetWriter.MessageSettings.DataSetMessageContentMask =
                     defaultMessagingProfile.DataSetMessageContentMask;
             }
@@ -368,20 +362,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var dataSet = dataSetWriter.DataSet;
-            dataSet.Routing ??= options.DefaultDataSetRouting;
-
-            if (dataSet.DataSetMetaData != null)
-            {
-                if (options.DisableDataSetMetaData == true)
-                {
-                    dataSetWriter.DataSet.DataSetMetaData = null;
-                }
-                else
-                {
-                    dataSet.DataSetMetaData.AsyncMetaDataLoadThreshold
-                        ??= options.AsyncMetaDataLoadThreshold;
-                }
-            }
+            dataSet.Routing ??=
+                options.DefaultDataSetRouting ?? DataSetRoutingMode.None;
 
             var source = dataSet.DataSetSource;
             // Subscription settings are updated by the stack
@@ -400,7 +382,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 connection = connection with
                 {
-                    Options = connection.Options | ConnectionOptions.UseReverseConnect
+                    Options = connection.Options
+                        | ConnectionOptions.UseReverseConnect
                 };
             }
 
@@ -409,37 +392,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 connection = connection with
                 {
-                    Options = connection.Options | ConnectionOptions.NoComplexTypeSystem
+                    Options = connection.Options
+                        | ConnectionOptions.NoComplexTypeSystem
                 };
             }
             source.Connection = connection;
 
-            var dataSetClassId = dataSet.DataSetMetaData?.DataSetClassId
-                ?? Guid.Empty;
-            var escWriterName = TopicFilter.Escape(
-                dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
-            var escWriterGroup = TopicFilter.Escape(
-                writerGroup.Name ?? Constants.DefaultWriterGroupName);
-
-            var variables = new Dictionary<string, string>
-            {
-                [PublisherConfig.DataSetWriterIdVariableName] = dataSetWriter.Id,
-                [PublisherConfig.DataSetWriterVariableName] = escWriterName,
-                [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
-                [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
-                [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
-                [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
-                [PublisherConfig.WriterGroupVariableName] = escWriterGroup
-                // ...
-            };
-
-            var builder = new TopicBuilder(options, writerGroup.MessageType,
-                new TopicTemplatesOptions
-                {
-                    Telemetry = dataSetWriter.Publishing?.QueueName
-                        ?? writerGroup.Publishing?.QueueName,
-                    DataSetMetaData = dataSetWriter.MetaData?.QueueName
-                }, variables);
+            var builder = DataSetItemResolver.CreateTopicBuilder(writerGroup,
+                dataSetWriter, options);
 
             // Update publishing configuration with the resolved information
             dataSetWriter.Publishing = new PublishingQueueSettingsModel
@@ -449,6 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     dataSetWriter.Publishing?.RequestedDeliveryGuarantee
                         ?? writerGroup.Publishing?.RequestedDeliveryGuarantee
             };
+
             dataSetWriter.MetaData = new PublishingQueueSettingsModel
             {
                 QueueName = builder.DataSetMetaDataTopic,
@@ -481,7 +442,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="client"></param>
             /// <param name="resolver"></param>
             public DataSetWriterSource(ConnectionIdentifier connection,
-                IOpcUaClientManager<ConnectionModel> client, DataSetItemResolver resolver)
+                IOpcUaClientManager<ConnectionModel> client,
+                DataSetItemResolver resolver)
             {
                 Id = connection;
                 _writers = ImmutableDictionary<string, DataSetWriterModel>.Empty;
@@ -545,6 +507,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
+            // TODO Metrics
+
             _meter.CreateObservableCounter("iiot_edge_publisher_message_receive_failures1",
                 () => new Measurement<long>(1, _metrics.TagList),
                 description: "Number of failures receiving a network message.");

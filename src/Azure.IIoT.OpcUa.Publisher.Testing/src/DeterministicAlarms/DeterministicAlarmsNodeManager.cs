@@ -521,9 +521,7 @@ namespace DeterministicAlarms
         {
             lock (Lock)
             {
-                IList<IReference> references = null;
-
-                if (!externalReferences.TryGetValue(ObjectIds.Server, out references))
+                if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
                 {
                     externalReferences[ObjectIds.Server] = references = new List<IReference>();
                 }

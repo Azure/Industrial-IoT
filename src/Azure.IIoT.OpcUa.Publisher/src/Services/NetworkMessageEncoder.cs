@@ -50,8 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public NetworkMessageEncoder(IOptions<PublisherOptions> options, IMetricsContext metrics,
-            ILogger<NetworkMessageEncoder> logger)
+        public NetworkMessageEncoder(IOptions<PublisherOptions> options,
+            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             _logger = logger;
@@ -260,14 +260,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             ? new JsonDataSetMessage
                                             {
                                                 UseCompatibilityMode = !standardsCompliant,
-                                                DataSetWriterName = GetDataSetWriterName(Notification, Context)
+                                                DataSetWriterName = Context.Writer.DataSetWriterName
+                                                    ?? Constants.DefaultDataSetWriterName
                                             }
                                             : new UadpDataSetMessage();
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
-                                        dataSetMessage.MetaDataVersion = Context.MetaData?.ConfigurationVersion
-                                            ?? kEmptyConfiguration;
+                                        dataSetMessage.MetaDataVersion = Context.MetaDataVersion;
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                         dataSetMessage.Timestamp = GetTimestamp(Notification);
                                         dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
@@ -278,8 +278,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     }
 
                                     var notificationQueues = Notification.Notifications
-                                        .GroupBy(m => m.DataSetFieldName)
-                                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                                        .GroupBy(m => m.FieldId)
+                                        .Select(c => new Queue<MonitoredItemNotificationModel>(
+                                            c
+                                            .OrderBy(m => m.Value?.SourceTimestamp)
+                                            .ToArray()))
                                         .ToArray();
                                     var notComplete = notificationQueues.Any(q => q.Count > 0);
                                     if (!notComplete)
@@ -292,7 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     {
                                         var orderedNotifications = notificationQueues
                                             .Select(q => q.Count > 0 ? q.Dequeue() : null!)
-                                            .Where(s => s?.DataSetFieldName != null)
+                                            .Where(s => s?.FieldId != null)
+                                            .OrderBy(m => m.Order)
                                             .ToList()
                                             ;
                                         notComplete = notificationQueues.Any(q => q.Count > 0);
@@ -304,26 +308,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 ? new JsonDataSetMessage
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
-                                                    DataSetWriterName = GetDataSetWriterName(Notification, Context)
+                                                    DataSetWriterName = Context.Writer.DataSetWriterName
+                                                        ?? Constants.DefaultDataSetWriterName
                                                 }
                                                 : new UadpDataSetMessage();
 
                                             dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                             dataSetMessage.MessageType = Notification.MessageType;
-                                            dataSetMessage.MetaDataVersion = Context.MetaData?.ConfigurationVersion
-                                                ?? kEmptyConfiguration;
+                                            dataSetMessage.MetaDataVersion = Context.MetaDataVersion;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                             dataSetMessage.Timestamp = GetTimestamp(Notification);
                                             dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
-                                                s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
+                                                s => s.FieldId!, s => s.Value), (uint)dataSetFieldContentMask);
 
                                             AddMessage(dataSetMessage);
                                         }
                                         else
                                         {
                                             // Add monitored item message payload to network message to handle backcompat
-                                            foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId))
+                                            foreach (var itemNotifications in orderedNotifications
+                                                .GroupBy(f => f.MonitoredItemId + f.MessageId))
                                             {
                                                 var notificationsInGroup = itemNotifications.ToList();
                                                 Debug.Assert(notificationsInGroup.Count != 0);
@@ -338,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         Notification.MessageType == MessageType.Condition)
                                                     {
                                                         Debug.Assert(notificationsInGroup
-                                                            .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
+                                                            .Select(n => n.FieldId).Distinct().Count() == notificationsInGroup.Count,
                                                             "There should not be duplicates in fields in a group.");
                                                         Debug.Assert(notificationsInGroup
                                                             .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
@@ -348,9 +353,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         eventNotification.Value = new DataValue
                                                         {
                                                             Value = new EncodeableDictionary(notificationsInGroup
-                                                                .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
+                                                                .Select(n => new KeyDataValuePair(n.FieldId!, n.Value)))
                                                         };
-                                                        eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
+                                                     // TODO   eventNotification.DataSetFieldName = notificationsInGroup[0].DataSetName;
                                                         notificationsInGroup = new List<MonitoredItemNotificationModel>
                                                         {
                                                             eventNotification
@@ -360,13 +365,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     {
                                                         notificationsInGroup = notificationsInGroup
                                                             .OrderByDescending(k => k.Value?.SourceTimestamp) // Descend from latest
-                                                            .DistinctBy(k => k.DataSetFieldName) // Only leave the latest values
+                                                            .DistinctBy(k => k.FieldId) // Only leave the latest values
                                                             .ToList();
                                                     }
                                                 }
                                                 foreach (var notification in notificationsInGroup)
                                                 {
-                                                    if (notification.DataSetFieldName != null)
+                                                    if (notification.FieldId != null)
                                                     {
                                                         _logger.LogTrace("Processing notification: {Notification}",
                                                             notification.ToString());
@@ -383,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             SequenceNumber = Context.NextWriterSequenceNumber(),
                                                             ExtensionFields = Context.Writer.DataSet?.ExtensionFields?
                                                                 .ToDictionary(k => k.DataSetFieldName, v => v.Value),
-                                                            Payload = new DataSet(notification.DataSetFieldName,
+                                                            Payload = new DataSet(notification.FieldId,
                                                                 notification.Value, (uint)dataSetFieldContentMask)
                                                         };
                                                         AddMessage(dataSetMessage);
@@ -406,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                         {
                                             result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                                () => currentNotifications.ForEach(n => n.Dispose()), Notification.ServiceMessageContext));
+                                                () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -416,13 +421,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         }
                                     }
                                 }
-                                else if (Context.MetaData != null && !hasSamplesPayload)
+                                else if (Context.SendMetaData && !hasSamplesPayload)
                                 {
                                     if (currentMessage.Messages.Count > 0)
                                     {
                                         // Start a new message but first emit current
                                         result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                            () => currentNotifications.ForEach(n => n.Dispose()), Notification.ServiceMessageContext));
+                                            () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -430,26 +435,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetClassId, publisherId);
                                         currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                     }
+
                                     PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
                                         ? new JsonMetaDataMessage
                                         {
                                             UseAdvancedEncoding = !standardsCompliant,
                                             UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Context.MetaData,
+                                            MetaData = Notification.Codec.EncodeMetaData(Context.Writer),
                                             MessageId = Guid.NewGuid().ToString(),
-                                            DataSetWriterName = GetDataSetWriterName(Notification, Context)
+                                            DataSetWriterName = Context.Writer.DataSetWriterName
+                                                ?? Constants.DefaultDataSetWriterName
                                         } : new UadpMetaDataMessage
                                         {
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Context.MetaData
+                                            MetaData = Notification.Codec.EncodeMetaData(Context.Writer)
                                         };
                                     metadataMessage.PublisherId = publisherId;
                                     metadataMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
 
                                     result.Add((0, metadataMessage, topic, true,
                                         Context.Writer.MetaDataUpdateTime ?? default, qos, Notification.Dispose,
-                                            Notification.ServiceMessageContext));
+                                            Notification.Codec.Context));
 #if DEBUG
                                     Notification.MarkProcessed();
 #endif
@@ -459,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
-                                    currentNotifications.LastOrDefault()?.ServiceMessageContext));
+                                    currentNotifications.LastOrDefault()?.Codec.Context));
 #if DEBUG
                                 currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -490,21 +497,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                                 currentMessage.PublisherId = publisherId;
                                 currentMessage.DataSetClassId = dataSetClassId;
-                                currentMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
+                                currentMessage.DataSetWriterGroup = writerGroup.Name
+                                    ?? Constants.DefaultWriterGroupName;
                                 return currentMessage;
-                            }
-
-                            static string GetDataSetWriterName(IOpcUaSubscriptionNotification Notification,
-                                WriterGroupMessageContext Context)
-                            {
-                                var dataSetWriterName = Context.Writer.DataSetWriterName
-                                    ?? Constants.DefaultDataSetWriterName;
-                                var dataSetName = Notification.DataSetName;
-                                if (!string.IsNullOrWhiteSpace(dataSetName))
-                                {
-                                    return dataSetWriterName + "|" + dataSetName;
-                                }
-                                return dataSetWriterName;
                             }
 
                             DateTime? GetTimestamp(IOpcUaSubscriptionNotification Notification)
@@ -541,7 +536,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (totalNotifications > 0)
             {
-                _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
+                _logger.LogWarning("Dropped {TotalNotifications} values",
+                    totalNotifications);
                 NotificationsDroppedCount += totalNotifications;
             }
         }
@@ -554,14 +550,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
                 () => new Measurement<long>(NotificationsProcessedCount, metrics.TagList),
-                description: "Number of successfully processed subscription notifications received from OPC client.");
+                description: "Number of successfully processed subscription notifications " +
+                "received from OPC client.");
             _meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
                 () => new Measurement<long>(NotificationsDroppedCount, metrics.TagList),
-                description: "Number of incoming subscription notifications that are too big to be processed based " +
+                description: "Number of incoming subscription notifications that are too " +
+                "big to be processed based " +
                 "on the message size limits or other issues with the notification.");
             _meter.CreateObservableCounter("iiot_edge_publisher_processed_messages",
                 () => new Measurement<long>(MessagesProcessedCount, metrics.TagList),
-                description: "Number of successfully generated messages that are to be sent using the message sender");
+                description: "Number of successfully generated messages that are to be " +
+                "sent using the message sender");
             _meter.CreateObservableGauge("iiot_edge_publisher_notifications_per_message_average",
                 () => new Measurement<double>(AvgNotificationsPerMessage, metrics.TagList),
                 description: "Average subscription notifications packed into a message");
@@ -573,12 +572,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "IoT Hub chunk size average");
             _meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
                 () => new Measurement<double>(MaxMessageSplitRatio, metrics.TagList),
-                description: "The message split ration specifies into how many messages a subscription notification had " +
-                "to be split. Less is better for performance. If the number is large user should attempt to limit the " +
-                "number of notifications in a message using configuration.");
+                description: "The message split ration specifies into how many messages " +
+                "a subscription notification had to be split. Less is better for " +
+                "performance. If the number is large user should attempt to limit " +
+                "the number of notifications in a message using configuration.");
         }
 
-        private static readonly ConfigurationVersionDataType kEmptyConfiguration = new() { MajorVersion = 1u };
         private uint _sequenceNumber; // TODO: Use writer group context
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;

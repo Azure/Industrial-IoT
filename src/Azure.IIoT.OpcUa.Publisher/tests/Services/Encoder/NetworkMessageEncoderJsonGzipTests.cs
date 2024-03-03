@@ -196,18 +196,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 PublisherId = "abc",
                 Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
                 Topic = null,
-                Writer = new DataSetWriterModel { Id = "1" },
-                WriterGroup = new WriterGroupModel { Id = "3" },
-                MetaData = new DataSetMetaDataType
+                Writer = new DataSetWriterModel
                 {
-                    Name = "test",
-                    Fields = new FieldMetaDataCollection {
-                        new FieldMetaData {
-                            Name = "test",
-                            BuiltInType = (byte)BuiltInType.UInt16
+                    Id = "1",
+                    DataSet = new PublishedDataSetModel
+                    {
+                        DataSetMetaData = new DataSetMetaDataModel
+                        {
+                            DataSetClassId = Guid.NewGuid(),
+                            Name = "test"
+                        },
+                        DataSetSource = new PublishedDataSetSourceModel
+                        {
+                            PublishedVariables = new PublishedDataItemsModel
+                            {
+                                PublishedData = new[]
+                                {
+                                    new PublishedDataSetVariableModel
+                                    {
+                                        DataSetFieldName = "test",
+                                        MetaData = new PublishedDataItemMetaDataModel
+                                        {
+                                            BuiltInType = (byte)BuiltInType.UInt16
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                }
+                },
+                WriterGroup = new WriterGroupModel { Id = "3" },
+                MetaDataVersion = new ConfigurationVersionDataType(),
+                SendMetaData = true
             };
 
             using var encoder = GetEncoder();

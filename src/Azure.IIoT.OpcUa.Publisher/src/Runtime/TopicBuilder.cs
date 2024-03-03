@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
@@ -82,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 { nameof(EventsTopic),
                     f => f.Format(_templates.Events
                         ?? _options.TopicTemplates.Events) },
-                { "Encoding",
+                { PublisherConfig.EncodingVariableName,
                     _ => (encoding
                         ?? MessageEncoding.Json).ToString() },
                 { nameof(options.SiteId),

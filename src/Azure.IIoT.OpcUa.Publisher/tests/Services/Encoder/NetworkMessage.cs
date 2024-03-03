@@ -146,12 +146,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var dataItem = new OpcUaMonitoredItem.DataChange(new DataMonitoredItemModel
             {
+                Id = "2",
+                Order = 0,
                 StartNodeId = "i=2258"
             }, Log.Console<OpcUaMonitoredItem.DataChange>());
 #pragma warning restore CA2000 // Dispose objects before losing scope
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var eventItem = new OpcUaMonitoredItem.Event(new EventMonitoredItemModel
             {
+                Id = "1",
+                Order = 1,
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
             }, Log.Console<OpcUaMonitoredItem.Event>());
@@ -190,8 +194,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         eventItem.Template = eventItem.Template with
                         {
                             StartNodeId = nodeId,
-                            DataSetFieldId = nodeId,
-                            DataSetFieldName = displayName,
+                            Id = nodeId,
+                            Name = displayName,
                         };
                         eventItem.DisplayName = displayName;
                         eventItem.StartNodeId = new NodeId(nodeId, 0);
@@ -215,8 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         dataItem.Template = dataItem.Template with
                         {
                             StartNodeId = nodeId,
-                            DataSetFieldId = nodeId,
-                            DataSetFieldName = displayName,
+                            Id = nodeId,
+                            Name = displayName,
                         };
                         dataItem.DisplayName = displayName;
                         dataItem.StartNodeId = new NodeId(nodeId, 0);
@@ -236,12 +240,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Topic = string.Empty,
                         PublisherId = publisherId,
                         Writer = writer,
+                        MetaDataVersion = new ConfigurationVersionDataType(),
                         WriterGroup = writerGroup
                     },
                     PublishTimestamp = DateTime.UtcNow,
                     MessageType = eventList ?
                         Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
-                    ServiceMessageContext = new ServiceMessageContext(),
+                    Codec = null!,
                     Notifications = notifications,
                     SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,

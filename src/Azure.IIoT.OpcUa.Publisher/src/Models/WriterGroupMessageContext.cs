@@ -45,8 +45,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public required WriterGroupModel WriterGroup { get; init; }
 
         /// <summary>
+        /// Message schema version
+        /// </summary>
+        public required ConfigurationVersionDataType MetaDataVersion { get; init; }
+
+        /// <summary>
         /// Metadata
         /// </summary>
-        public DataSetMetaDataType? MetaData { get; internal set; }
+        public bool SendMetaData { get; init; }
     }
 }

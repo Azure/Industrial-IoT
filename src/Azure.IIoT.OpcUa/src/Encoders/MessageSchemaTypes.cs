@@ -57,11 +57,5 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         public const string DeviceLifecycleNotification =
             "deviceLifecycleNotification";
-
-        /// <summary>
-        /// Content is a twin change event
-        /// </summary>
-        public const string TwinChangeNotification =
-            "twinChangeNotification";
     }
 }

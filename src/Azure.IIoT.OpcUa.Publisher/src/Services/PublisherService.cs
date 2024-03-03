@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static Furly.Azure.ConnectionString;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through

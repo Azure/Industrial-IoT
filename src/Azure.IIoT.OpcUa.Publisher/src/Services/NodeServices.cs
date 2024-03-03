@@ -737,8 +737,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update with input arguments provided in request payload
                 if ((request.Arguments?.Count ?? 0) != 0)
                 {
-                    System.Diagnostics.Debug.Assert(request.Arguments != null);
-                    System.Diagnostics.Debug.Assert(inputs != null);
+                    Debug.Assert(request.Arguments != null);
+                    Debug.Assert(inputs != null);
                     for (var i = 0; i < request.Arguments.Count; i++)
                     {
                         var arg = request.Arguments[i];
@@ -1483,7 +1483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var response = await session.Services.BrowseAsync(
                                 header.ToRequestHeader(), null, 1,
                                 browseDescriptions, ct).ConfigureAwait(false);
-                            System.Diagnostics.Debug.Assert(response != null);
+                            Debug.Assert(response != null);
                             var results = response.Validate(response.Results, r => r.StatusCode,
                                 response.DiagnosticInfos, browseDescriptions);
                             if (results.ErrorInfo == null && results.Count > 0)
@@ -1625,7 +1625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
                 header.ToRequestHeader(), browsepaths,
                 ct).ConfigureAwait(false);
-            System.Diagnostics.Debug.Assert(response != null);
+            Debug.Assert(response != null);
             var results = response.Validate(response.Results, r => r.StatusCode,
                 response.DiagnosticInfos, browsepaths);
             var count = results[0].Result.Targets?.Count ?? 0;

@@ -117,6 +117,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     { $"fm|fullfeaturedmessage=|{PublisherConfig.FullFeaturedMessage}=",
                         "The full featured mode for messages (all fields filled in) for backwards compatibilty. \nDefault: `False` for legacy compatibility.\n",
                         (string b) => this[PublisherConfig.FullFeaturedMessage] = b, true },
+                { $"fd|fetchdisplayname:|{PublisherConfig.FetchOpcNodeDisplayNameKey}:",
+                    "Resolves names of fields in data sets if the field name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
+                    (bool? b) => this[PublisherConfig.FetchOpcNodeDisplayNameKey] = b?.ToString() ?? "True" },
                 { $"bi|batchtriggerinterval=|{PublisherConfig.BatchTriggerIntervalKey}=",
                     "The network message publishing interval in milliseconds. Determines the publishing period at which point messages are emitted.\nWhen `--bs` is 1 and `--bi` is set to 0 batching is disabled.\nDefault: `10000` (10 seconds).\nAlso can be set using `BatchTriggerInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n",
                     (uint k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromMilliseconds(k).ToString() },
@@ -144,32 +147,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"npd|maxnodesperdataset=|{PublisherConfig.MaxNodesPerDataSetKey}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
                     (uint i) => this[PublisherConfig.MaxNodesPerDataSetKey] = i.ToString(CultureInfo.CurrentCulture) },
-
-                { $"kfc|keyframecount=|{OpcUaSubscriptionConfig.DefaultKeyFrameCountKey}=",
-                    "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
-                    (uint i) => this[OpcUaSubscriptionConfig.DefaultKeyFrameCountKey] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"ka|sendkeepalives:|{OpcUaSubscriptionConfig.EnableDataSetKeepAlivesKey}:",
+                { $"ka|sendkeepalives:|{PublisherConfig.EnableDataSetKeepAlivesKey}:",
                     "Enables sending keep alive messages triggered by writer subscription's keep alive notifications. This setting can be used to enable the messaging profile's support for keep alive messages.\nIf the chosen messaging profile does not support keep alive messages this setting is ignored.\nDefault: `False` (to save bandwidth).\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.EnableDataSetKeepAlivesKey] = b?.ToString() ?? "True" },
-                { $"eip|immediatepublishing:|{OpcUaSubscriptionConfig.EnableImmediatePublishingKey}:",
-                    "By default OPC Publisher will create a subscription with publishing disabled and only enable it after it has filled it with all configured monitored items. Use this setting to create the subscription with publishing already enabled.\nDefault: `False`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.EnableImmediatePublishingKey] = b?.ToString() ?? "True" },
-                { $"msi|metadatasendinterval=|{OpcUaSubscriptionConfig.DefaultMetaDataUpdateTimeKey}=",
+                    (bool? b) => this[PublisherConfig.EnableDataSetKeepAlivesKey] = b?.ToString() ?? "True" },
+                { $"kfc|keyframecount=|{PublisherConfig.DefaultKeyFrameCountKey}=",
+                    "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
+                    (uint i) => this[PublisherConfig.DefaultKeyFrameCountKey] = i.ToString(CultureInfo.CurrentCulture) },
+                { $"msi|metadatasendinterval=|{PublisherConfig.DefaultMetaDataUpdateTimeKey}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
-                    (uint i) => this[OpcUaSubscriptionConfig.DefaultMetaDataUpdateTimeKey] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"dm|disablemetadata:|{OpcUaSubscriptionConfig.DisableDataSetMetaDataKey}:",
+                    (uint i) => this[PublisherConfig.DefaultMetaDataUpdateTimeKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"dm|disablemetadata:|{PublisherConfig.DisableDataSetMetaDataKey}:",
                     "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending.\nIt is recommended to disable sending metadata when too many nodes are part of a data set as this can slow down start up time.\nDefault: `False` if the messaging profile selected supports sending metadata and `--strict` is set but not '--dct', `True` otherwise.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.DisableDataSetMetaDataKey] = b?.ToString() ?? "True" },
+                    (bool? b) => this[PublisherConfig.DisableDataSetMetaDataKey] = b?.ToString() ?? "True" },
                     { $"lc|legacycompatibility=|{LegacyCompatibility}=",
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `False` (disabled).\n",
                         b => this[LegacyCompatibility] = b, true },
-                { $"amt|asyncmetadatathreshold=|{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey}=",
-                    $"The default threshold of monitored items in a subscription under which meta data is loaded synchronously during subscription creation.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to always load metadata asynchronously.\nOnly used if meta data is supported and enabled.\nDefault: `{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdDefault}`.\n",
-                    (uint i) => this[OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"dsg|disablesessionpergroup:|{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey}:",
-                    $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupDefault}`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
-
+                { $"dsg|disablesessionpergroup:|{PublisherConfig.DisableSessionPerWriterGroupKey}:",
+                    $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{PublisherConfig.DisableSessionPerWriterGroupDefault}`.\n",
+                    (bool? b) => this[PublisherConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
                     $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (uint i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
@@ -258,6 +253,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"op|opcpublishinginterval=|{OpcUaSubscriptionConfig.DefaultPublishingIntervalKey}=",
                     "Default value in milliseconds for the publishing interval setting of a subscription created with an OPC UA server. This value is used if an explicit publishing interval was not configured.\nDefault: `1000`.\nAlso can be set using `DefaultPublishingInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n",
                     (uint i) => this[OpcUaSubscriptionConfig.DefaultPublishingIntervalKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"eip|immediatepublishing:|{OpcUaSubscriptionConfig.EnableImmediatePublishingKey}:",
+                    "By default OPC Publisher will create a subscription with publishing disabled and only enable it after it has filled it with all configured monitored items. Use this setting to create the subscription with publishing already enabled.\nDefault: `False`.\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.EnableImmediatePublishingKey] = b?.ToString() ?? "True" },
                 { $"ska|keepalivecount=|{OpcUaSubscriptionConfig.DefaultKeepAliveCountKey}=",
                     $"Specifies the default number of publishing intervals before a keep alive is returned with the next queued publishing response.\nDefault: `{OpcUaSubscriptionConfig.DefaultKeepAliveCountDefault}`.\n",
                     (uint u) => this[OpcUaSubscriptionConfig.DefaultKeepAliveCountKey] = u.ToString(CultureInfo.CurrentCulture) },
@@ -270,12 +268,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     { "MinSubscriptionLifetime=",
                     "Legacy way of specifying the subscription lifetime.\n",
                         (string s) => this[OpcUaSubscriptionConfig.DefaultLifetimeCountKey] = s, true },
-                { $"fd|fetchdisplayname:|{OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey}:",
-                    "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcNodeDisplayNameKey] = b?.ToString() ?? "True" },
-                { $"fp|fetchpathfromroot:|{OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey}:",
-                    "(Experimental) Explicitly disable or enable retrieving relative paths from root for monitored items.\nDefault: `false` (disabled).\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.FetchOpcBrowsePathFromRootKey] = b?.ToString() ?? "True" },
                 { $"qs|queuesize=|{OpcUaSubscriptionConfig.DefaultQueueSize}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
                     (uint u) => this[OpcUaSubscriptionConfig.DefaultQueueSize] = u.ToString(CultureInfo.CurrentCulture) },
@@ -308,12 +300,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"sqp|sequentialpublishing:|{OpcUaSubscriptionConfig.EnableSequentialPublishingKey}:",
                     "(Experimental) Explicitly disable or enable sequential publishing.\nDefault: `true` (enabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.EnableSequentialPublishingKey] = b?.ToString() ?? "True" },
-                { $"urc|usereverseconnect:|{OpcUaSubscriptionConfig.DefaultUseReverseConnectKey}:",
+                { $"urc|usereverseconnect:|{PublisherConfig.DefaultUseReverseConnectKey}:",
                     "(Experimental) Use reverse connect for all endpoints that are part of the subscription configuration unless otherwise configured.\nDefault: `false`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.DefaultUseReverseConnectKey] = b?.ToString() ?? "True" },
-                { $"dct|disablecomplextypesystem:|{OpcUaSubscriptionConfig.DisableComplexTypeSystemKey}:",
+                    (bool? b) => this[PublisherConfig.DefaultUseReverseConnectKey] = b?.ToString() ?? "True" },
+                { $"dct|disablecomplextypesystem:|{PublisherConfig.DisableComplexTypeSystemKey}:",
                     "Never load the complex type system for any connections that are required for subscriptions.\nThis setting not just disables meta data messages but also prevents transcoding of unknown complex types in outgoing messages.\nDefault: `false`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.DisableComplexTypeSystemKey] = b?.ToString() ?? "True" },
+                    (bool? b) => this[PublisherConfig.DisableComplexTypeSystemKey] = b?.ToString() ?? "True" },
 
                 "",
                 "OPC UA Client configuration",
@@ -674,21 +666,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
                 messageTemplate, propertyValue0));
-        }
-
-        /// <summary>
-        /// Write a log event with the Debug level.
-        /// </summary>
-        /// <typeparam name="T0"></typeparam>
-        /// <typeparam name="T1"></typeparam>
-        /// <param name="messageTemplate">Message template describing the event.</param>
-        /// <param name="propertyValue0">Object positionally formatted into the message template.</param>
-        /// <param name="propertyValue1">Object positionally formatted into the message template.</param>
-        public virtual void Debug<T0, T1>(string messageTemplate,
-            T0 propertyValue0, T1 propertyValue1)
-        {
-            Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
-                messageTemplate, propertyValue0, propertyValue1));
         }
     }
 }

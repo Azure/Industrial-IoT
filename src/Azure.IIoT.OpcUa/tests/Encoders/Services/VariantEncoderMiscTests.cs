@@ -164,14 +164,16 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var doc = new XmlDocument();
             doc.LoadXml(
-          @"<?xml version=""1.0"" encoding=""UTF-8""?>
+          """
+<?xml version="1.0" encoding="UTF-8"?>
             <note>
                 <to>Tove</to>
                 <from>Jani</from>
-                <heading test=""1.0"">Reminder</heading>
+                <heading test="1.0">Reminder</heading>
                 <author><nothing/></author>
                 <body>Don't forget me this weekend!</body>
-            </note>"
+            </note>
+"""
             );
             var expected = new Variant(doc.DocumentElement);
             var encoded = codec.Encode(expected);

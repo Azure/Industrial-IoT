@@ -19,25 +19,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Update display name
-    /// </summary>
-    /// <param name="displayName"></param>
-    public delegate void UpdateString(string displayName);
-
-    /// <summary>
     /// Update node id
     /// </summary>
     /// <param name="nodeId"></param>
     /// <param name="messageContext"></param>
     public delegate void UpdateNodeId(NodeId nodeId,
-        IServiceMessageContext messageContext);
-
-    /// <summary>
-    /// Update relative path
-    /// </summary>
-    /// <param name="path"></param>
-    /// <param name="messageContext"></param>
-    public delegate void UpdateRelativePath(RelativePath path,
         IServiceMessageContext messageContext);
 
     /// <summary>
@@ -50,13 +36,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <param name="diagnosticsOnly"></param>
     public delegate void Callback(MessageType messageType,
         IEnumerable<MonitoredItemNotificationModel> notifications,
-        ISession? session = null, string? dataSetName = null,
-        bool diagnosticsOnly = false);
+        ISession? session = null, bool diagnosticsOnly = false);
 
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract partial class OpcUaMonitoredItem : MonitoredItem, IDisposable
+    internal abstract partial class OpcUaMonitoredItem : MonitoredItem,
+        IDisposable
     {
         /// <summary>
         /// Assigned monitored item id on server
@@ -75,9 +61,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool Valid { get; protected internal set; }
 
         /// <summary>
-        /// Data set name
+        /// Order of the item
         /// </summary>
-        public virtual string? DataSetName { get; }
+        public int Order { get; }
 
         /// <summary>
         /// Whether the item is part of a subscription or not
@@ -92,24 +78,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => null;
 
         /// <summary>
-        /// Get the display name for the node. This is called after
-        /// the node is resolved and registered as applicable.
-        /// </summary>
-        public virtual (string NodeId, UpdateString Update)? GetDisplayName
-            => null;
-
-        /// <summary>
         /// Resolve relative path first. If this returns null
         /// the relative path either does not exist or we let
         /// subscription take care of resolving the path.
         /// </summary>
         public virtual (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
             => null;
-
-        /// <summary>
-        /// Effective node id
-        /// </summary>
-        protected string NodeId { get; set; }
 
         /// <summary>
         /// Last saved value
@@ -120,10 +94,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create item
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="nodeId"></param>
-        protected OpcUaMonitoredItem(ILogger logger, string nodeId)
+        /// <param name="order"></param>
+        protected OpcUaMonitoredItem(ILogger logger, int order)
         {
-            NodeId = nodeId;
+            Order = order;
             _logger = logger;
         }
 
@@ -137,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             bool copyEventHandlers, bool copyClientHandle)
             : base(item, copyEventHandlers, copyClientHandle)
         {
-            NodeId = item.NodeId;
+            Order = item.Order;
             _logger = item._logger;
 
             LastReceivedValue = item.LastReceivedValue;
@@ -152,6 +126,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override object Clone()
         {
             return CloneMonitoredItem(true, true);
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            if (obj is OpcUaMonitoredItem)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return 252343123;
         }
 
         /// <summary>
@@ -297,11 +287,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             return false;
         }
-
-        /// <summary>
-        /// Finalize remove from
-        /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeRemoveFrom { get; }
 
         /// <summary>
         /// Complete changes previously made and provide callback
@@ -504,26 +489,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
 
                 // Not a change yet, will be done as bulk update
                 // itemChange = true;
-            }
-
-            if (updated.FetchDataSetFieldName != desired.FetchDataSetFieldName)
-            {
-                updated = updated with
-                {
-                    FetchDataSetFieldName = desired.FetchDataSetFieldName,
-                    DataSetFieldName = desired.FetchDataSetFieldName == true ?
-                        null : updated.DataSetFieldName
-                };
-                // Not a change yet, will be done as display name fetching or below
-                // itemChange = true;
-            }
-
-            if (updated.FetchDataSetFieldName != true &&
-                updated.DisplayName != desired.DisplayName)
-            {
-                updated = updated with { DataSetFieldName = desired.DataSetFieldName };
-                DisplayName = updated.DisplayName;
-                itemChange = true;
             }
             return itemChange;
         }

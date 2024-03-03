@@ -6,13 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -85,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .As<IJsonSerializer>()
                         .ExternallyOwned();
 
-                    builder.RegisterType<WriterGroup>()
+                    builder.RegisterType<WriterGroupController>()
                         .WithParameter(TypedParameter.From(writerGroupId))
                         .AsImplementedInterfaces()
                         .SingleInstance();

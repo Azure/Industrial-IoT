@@ -10,22 +10,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Autofac;
+    using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
-    using Furly.Extensions.Messaging;
-    using System.Text;
-    using System.Buffers;
-    using Autofac;
-    using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -188,61 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupModel writerGroup, DataSetWriterModel dataSetWriter)
             {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
-                _dataSetWriter = dataSetWriter?.Clone() ??
-                    throw new ArgumentNullException(nameof(dataSetWriter));
-                _writerGroup = writerGroup;
-
-                _routing = _dataSetWriter.DataSet?.Routing ??
-                    _outer._options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    _routing != DataSetRoutingMode.None);
-
-                _outer._logger.LogDebug(
-                    "Open new writer with subscription {Id} in writer group {WriterGroup}...", Id,
-                        writerGroup.Id);
-
-                var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId
-                    ?? Guid.Empty;
-                var escWriterName = TopicFilter.Escape(
-                    _dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
-                var escWriterGroup = TopicFilter.Escape(
-                    writerGroup.Name ?? Constants.DefaultWriterGroupName);
-
-                _variables = new Dictionary<string, string>
-                {
-                    [PublisherConfig.DataSetWriterIdVariableName] = _dataSetWriter.Id,
-                    [PublisherConfig.DataSetWriterVariableName] = escWriterName,
-                    [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
-                    [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
-                    [PublisherConfig.WriterGroupIdVariableName] = _writerGroup.Id ?? string.Empty,
-                    [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
-                    [PublisherConfig.WriterGroupVariableName] = escWriterGroup
-                    // ...
-                };
-
-                var builder = new TopicBuilder(_outer._options.Value, writerGroup.MessageType,
-                    new TopicTemplatesOptions
-                    {
-                        Telemetry = _dataSetWriter.Publishing?.QueueName
-                            ?? writerGroup.Publishing?.QueueName,
-                        DataSetMetaData = _dataSetWriter.MetaData?.QueueName
-                    }, _variables);
-
-                _topic = builder.TelemetryTopic;
-                _qos = _dataSetWriter.Publishing?.RequestedDeliveryGuarantee
-                    ?? writerGroup.Publishing?.RequestedDeliveryGuarantee;
-
-                _metadataTopic = builder.DataSetMetaDataTopic;
-                if (string.IsNullOrWhiteSpace(_metadataTopic))
-                {
-                    _metadataTopic = _topic;
-                }
-
-                _contextSelector = _routing == DataSetRoutingMode.None
-                    ? n => n.Context
-                    : n => n.PathFromRoot == null || n.Context != null ? n.Context : new TopicContext(
-                        _topic, n.PathFromRoot, _qos, _routing != DataSetRoutingMode.UseBrowseNames);
+                _options = new SubscriptionOptions(writerGroup, dataSetWriter);
 
                 TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
                 {
@@ -251,6 +198,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new KeyValuePair<string, object?>(Constants.DataSetWriterNameTag,
                         dataSetWriter.DataSetWriterName)
                 };
+
+                _subscriptionInfo = _options.DataSetWriter.ToSubscriptionModel(
+                      _outer._subscriptionConfig.Value, CreateMonitoredItemContext);
+
+                _outer._logger.LogDebug(
+                    "Open new writer with subscription {Id} in writer group {WriterGroup}...",
+                    Id, writerGroup.Id);
 
                 //
                 // Creating inner OPC UA subscription object. This will create a session
@@ -280,11 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     "Updating writer with subscription {Id} in writer group {WriterGroup}...",
                     Id, writerGroup.Id);
 
-                _dataSetWriter = dataSetWriter.Clone();
-                _writerGroup = writerGroup;
-                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    _routing != DataSetRoutingMode.None);
+                _options = new SubscriptionOptions(writerGroup, dataSetWriter);
 
                 var subscription = Subscription;
                 if (subscription == null)
@@ -293,6 +243,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         "Writer does not have a subscription to update yet!");
                     return;
                 }
+
+                _subscriptionInfo = _options.DataSetWriter.ToSubscriptionModel(
+                    _outer._subscriptionConfig.Value, CreateMonitoredItemContext);
+
                 _frameCount = 0;
                 InitializeMetaDataTrigger();
                 InitializeKeepAlive();
@@ -334,14 +288,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (subscription != null)
                 {
                     _outer._logger.LogInformation(
-                        "Writer with subscription {Id} in writer group {WriterGroup} new subscription received.",
-                        Id, _writerGroup.Id);
+                        "Writer with subscription {Id} in group {WriterGroup} new subscription received.",
+                        Id, _options.WriterGroup.Id);
                 }
                 else
                 {
                     _outer._logger.LogInformation(
-                        "Writer with subscription {Id} in writer group {WriterGroup} subscription removed.",
-                        Id, _writerGroup.Id);
+                        "Writer with subscription {Id} in group {WriterGroup} had subscription removed.",
+                        Id, _options.WriterGroup.Id);
                 }
             }
 
@@ -362,8 +316,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 IOpcUaSubscriptionNotification ProcessKeyFrame(IOpcUaSubscriptionNotification notification)
                 {
-                    var keyFrameCount = _dataSetWriter.KeyFrameCount
-                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
+                    var keyFrameCount = _options.DataSetWriter.KeyFrameCount
+                        ?? _outer._options.Value.DefaultKeyFrameCount ?? 0;
                     if (keyFrameCount > 0)
                     {
                         var frameCount = Interlocked.Increment(ref _frameCount);
@@ -390,9 +344,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._valueChanges.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
                             _outer._logger.LogDebug(
-                                "Notifications counter in subscription {Id} has been reset to prevent" +
-                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
-                                "value changes were invoked by message source.",
+                                "Notifications counter in subscription {Id} has been reset to " +
+                                "prevent overflow. So far, {DataChangesCount} data changes and " +
+                                "{ValueChangesCount} value changes were invoked by message source.",
                                 Id, _outer._dataChanges.Count, _outer._valueChanges.Count);
                             _outer._dataChanges.Count = 0;
                             _outer._valueChanges.Count = 0;
@@ -423,9 +377,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _outer._sampledValues.Count >= kNumberOfInvokedMessagesResetThreshold)
                     {
                         _outer._logger.LogDebug(
-                            "Notifications counter in subscription {Id} has been reset to prevent" +
-                            " overflow. So far, {ReadCount} data changes and {ValuesCount} " +
-                            "value changes were invoked by message source.",
+                            "Notifications counter in subscription {Id} has been reset to " +
+                            "prevent overflow. So far, {ReadCount} data changes and " +
+                            "{ValuesCount} value changes were invoked by source.",
                             Id, _outer._cyclicReads.Count, _outer._sampledValues.Count);
                         _outer._cyclicReads.Count = 0;
                         _outer._sampledValues.Count = 0;
@@ -459,9 +413,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             // reset both
                             _outer._logger.LogDebug(
-                                "Notifications counter in subscription {Id} has been reset to prevent" +
-                                " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
-                                "event value changes were invoked by message source.",
+                                "Notifications counter in subscription {Id} has been reset to " +
+                                "prevent overflow. So far, {EventChangesCount} event changes and " +
+                                "{EventValueChangesCount} event value changes were invoked by source.",
                                 Id, _outer._events.Count, _outer._eventNotification.Count);
                             _outer._events.Count = 0;
                             _outer._eventNotification.Count = 0;
@@ -483,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             private object? CreateMonitoredItemContext(PublishingQueueSettingsModel? settings)
             {
-                return settings?.QueueName == null ? null : new LazilyEvaluatedContext(this, settings);
+                return settings?.QueueName == null ? null : new TopicContext(settings);
             }
 
             /// <summary>
@@ -498,13 +452,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return;
                 }
 
-                _outer._logger.LogDebug("Closing writer with subscription {Id} in writer group {WriterGroup}...",
-                    Id, _writerGroup.Id);
+                _outer._logger.LogDebug(
+                    "Closing writer with subscription {Id} in writer group {WriterGroup}...",
+                    Id, _options.WriterGroup.Id);
 
                 subscription.Close();
 
-                _outer._logger.LogInformation("Writer with subscription {Id} in writer group {WriterGroup} closed.",
-                    Id, _writerGroup.Id);
+                _outer._logger.LogInformation(
+                    "Writer with subscription {Id} in writer group {WriterGroup} closed.",
+                    Id, _options.WriterGroup.Id);
             }
 
             /// <summary>
@@ -512,8 +468,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             private void InitializeKeepAlive()
             {
-                _sendKeepAlives = _dataSetWriter.DataSet?.SendKeepAlive
-                    ?? _outer._subscriptionConfig.Value.EnableDataSetKeepAlives == true;
+                _sendKeepAlives = _options.DataSetWriter.DataSet?.SendKeepAlive
+                    ?? _outer._options.Value.EnableDataSetKeepAlives == true;
             }
 
             /// <summary>
@@ -521,12 +477,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             private void InitializeMetaDataTrigger()
             {
-                var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
+                var metaDataSendInterval = _options.DataSetWriter.MetaDataUpdateTime
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
                 if (metaDataSendInterval > 0 &&
-                    _outer._subscriptionConfig.Value.DisableDataSetMetaData != true)
+                    _outer._options.Value.DisableDataSetMetaData != true)
                 {
                     if (_metadataTimer == null)
                     {
@@ -591,32 +547,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void CallMessageReceiverDelegates(IOpcUaSubscriptionNotification subscriptionNotification,
                 bool metaDataTimer = false)
             {
-                var writerGroup = _writerGroup;
-                if (writerGroup == null)
-                {
-                    return;
-                }
                 try
                 {
+                    var options = _options;
                     lock (_lock)
                     {
-                        foreach (var notification in subscriptionNotification.Split(_contextSelector))
+                        foreach (var notification in subscriptionNotification.Split(options.ContextSelector))
                         {
-                            var itemContext = notification.Context as MonitoredItemContext;
-                            var metadata = itemContext?.MetaData;
-                            if (metadata != null)
+                            var notificationContext = notification.Context as DataSetContext;
+
+                            if (options.MetaDataVersion != null)
                             {
                                 var sendMetadata = metaDataTimer;
+
                                 //
                                 // Only send if called from metadata timer or if the metadata version changes.
                                 // Metadata reference is owned by the notification/message, a new metadata is
                                 // created when it changes so old one is not mutated and this should be safe.
                                 //
-                                if (_currentMetadataMajorVersion != metadata.ConfigurationVersion.MajorVersion &&
-                                    _currentMetadataMinorVersion != metadata.ConfigurationVersion.MinorVersion)
+                                if (_currentMetadataMajorVersion != options.MetaDataVersion.MajorVersion &&
+                                    _currentMetadataMinorVersion != options.MetaDataVersion.MinorVersion)
                                 {
-                                    _currentMetadataMajorVersion = metadata.ConfigurationVersion.MajorVersion;
-                                    _currentMetadataMinorVersion = metadata.ConfigurationVersion.MinorVersion;
+                                    _currentMetadataMajorVersion = options.MetaDataVersion.MajorVersion;
+                                    _currentMetadataMinorVersion = options.MetaDataVersion.MinorVersion;
+
                                     sendMetadata = true;
                                 }
                                 if (sendMetadata)
@@ -624,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
                                     var metadataNotification = new MetadataNotificationModel(notification)
                                     {
-                                        Context = CreateMessageContext(_metadataTopic, _qos, metadata,
+                                        Context = CreateMessageContext(options, true,
                                             () => Interlocked.Increment(ref _metadataSequenceNumber))
                                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -636,8 +590,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (!metaDataTimer)
                             {
                                 Debug.Assert(notification.Notifications != null);
-                                notification.Context = CreateMessageContext(_topic, _qos, metadata,
-                                    () => Interlocked.Increment(ref _dataSetSequenceNumber), itemContext);
+                                notification.Context = CreateMessageContext(options, false,
+                                    () => Interlocked.Increment(ref _dataSetSequenceNumber), notificationContext);
                                 _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                     notification.ToString());
                                 _outer._sink.OnNotify(notification);
@@ -647,21 +601,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 catch (Exception ex)
                 {
-                    _outer._logger.LogWarning(ex, "Failed to produce message.");
+                    _outer._logger.LogWarning(ex, "Failed to publish message to network sink.");
                 }
 
-                WriterGroupMessageContext CreateMessageContext(string topic, QoS? qos, DataSetMetaDataType? metaData,
-                    Func<uint> sequenceNumber, MonitoredItemContext? item = null)
+                WriterGroupMessageContext CreateMessageContext(SubscriptionOptions options,
+                    bool sendMetadata, Func<uint> sequenceNumber, DataSetContext? item = null)
                 {
                     return new WriterGroupMessageContext
                     {
                         PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
-                        Writer = _dataSetWriter,
+                        Writer = options.DataSetWriter,
                         NextWriterSequenceNumber = sequenceNumber,
-                        WriterGroup = writerGroup,
-                        MetaData = metaData,
-                        Topic = item?.Topic ?? topic,
-                        Qos = item?.Qos ?? qos
+                        WriterGroup = options.WriterGroup,
+                        SendMetaData = sendMetadata,
+                        // TODO: Make this a nullable meta data producer func to emit meta data for individual topics
+                        MetaDataVersion = options.MetaDataVersion ?? kDefaultVersion,
+                        Topic = item?.Topic ?? (!sendMetadata ? options.Topic : options.MetadataTopic),
+                        Qos = item?.Qos ?? options.Qos
                     };
                 }
             }
@@ -685,9 +641,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public ushort SubscriptionId { get; }
 
                 /// <inheritdoc/>
-                public string? DataSetName { get; }
-
-                /// <inheritdoc/>
                 public string? EndpointUrl { get; }
 
                 /// <inheritdoc/>
@@ -706,7 +659,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public object? Context { get; set; }
 
                 /// <inheritdoc/>
-                public IServiceMessageContext ServiceMessageContext { get; set; }
+                public IVariantEncoder Codec { get; set; }
 
                 /// <inheritdoc/>
                 public IList<MonitoredItemNotificationModel> Notifications { get; }
@@ -715,8 +668,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetadataNotificationModel(IOpcUaSubscriptionNotification notification)
                 {
                     SequenceNumber = notification.SequenceNumber;
-                    DataSetName = notification.DataSetName;
-                    ServiceMessageContext = notification.ServiceMessageContext;
+                    Codec = notification.Codec;
                     PublishTimestamp = notification.PublishTimestamp;
                     SubscriptionId = notification.SubscriptionId;
                     SubscriptionName = notification.SubscriptionName;
@@ -749,7 +701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Context used to split monitored item notification
             /// </summary>
-            private abstract class MonitoredItemContext
+            private abstract class DataSetContext
             {
                 /// <summary>
                 /// Meta data
@@ -770,12 +722,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Topic context
             /// </summary>
-            private sealed class TopicContext : MonitoredItemContext
+            private sealed class TopicContext : DataSetContext
             {
                 /// <inheritdoc/>
                 public override string Topic { get; }
                 /// <inheritdoc/>
                 public override QoS? Qos { get; }
+
+                /// <summary>
+                /// Create context from settings
+                /// </summary>
+                /// <param name="settings"></param>
+                public TopicContext(PublishingQueueSettingsModel settings)
+                {
+                    Topic = settings.QueueName ?? string.Empty;
+                    Qos = settings.RequestedDeliveryGuarantee;
+                }
 
                 /// <summary>
                 /// Create
@@ -816,69 +778,126 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Lazy context
+            /// Options to compare
             /// </summary>
-            private sealed class LazilyEvaluatedContext : MonitoredItemContext
+            private sealed class SubscriptionOptions
             {
-                /// <inheritdoc/>
-                public override string Topic => _topic.Value;
-                /// <inheritdoc/>
-                public override QoS? Qos => _settings.RequestedDeliveryGuarantee;
+                /// <summary>
+                /// Writer
+                /// </summary>
+                public DataSetWriterModel DataSetWriter { get; }
 
                 /// <summary>
-                /// Create context
+                /// Writer group
                 /// </summary>
-                /// <param name="subscription"></param>
-                /// <param name="settings"></param>
-                public LazilyEvaluatedContext(DataSetWriterSubscription subscription,
-                    PublishingQueueSettingsModel settings)
+                public WriterGroupModel WriterGroup { get; }
+
+                /// <summary>
+                /// Topic
+                /// </summary>
+                public string Topic { get; }
+
+                /// <summary>
+                /// Metadata topic
+                /// </summary>
+                public string MetadataTopic { get; }
+
+                /// <summary>
+                /// Qos
+                /// </summary>
+                public QoS? Qos { get; }
+
+                /// <summary>
+                /// Routing
+                /// </summary>
+                public DataSetRoutingMode Routing { get; }
+
+                /// <summary>
+                /// Selecting of context
+                /// </summary>
+                public Func<MonitoredItemNotificationModel, object?> ContextSelector { get; }
+
+                /// <summary>
+                /// Metadata version
+                /// </summary>
+                public ConfigurationVersionDataType? MetaDataVersion { get; }
+
+                /// <summary>
+                /// Create subscription options
+                /// </summary>
+                /// <param name="writerGroup"></param>
+                /// <param name="dataSetWriter"></param>
+                public SubscriptionOptions(WriterGroupModel writerGroup,
+                    DataSetWriterModel dataSetWriter)
                 {
-                    Debug.Assert(settings.QueueName != null);
-                    _settings = settings;
-                    _topic = new Lazy<string>(() =>
+                    DataSetWriter = dataSetWriter?.Clone() ??
+                        throw new ArgumentNullException(nameof(dataSetWriter));
+                    WriterGroup = writerGroup;
+
+                    Routing = DataSetWriter.DataSet?.Routing ?? DataSetRoutingMode.None;
+                    Topic = DataSetWriter.Publishing?.QueueName
+                       ?? writerGroup.Publishing?.QueueName
+                       ?? string.Empty;
+                    Qos = DataSetWriter.Publishing?.RequestedDeliveryGuarantee
+                        ?? writerGroup.Publishing?.RequestedDeliveryGuarantee;
+                    MetadataTopic = DataSetWriter.MetaData?.QueueName
+                        ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(MetadataTopic))
                     {
-                        return new TopicBuilder(subscription._outer._options.Value,
-                            subscription._writerGroup.MessageType ?? MessageEncoding.Json,
-                            new TopicTemplatesOptions
-                            {
-                                Telemetry = settings.QueueName
-                            }, subscription._variables).TelemetryTopic;
-                    });
+                        MetadataTopic = Topic;
+                    }
+                    ContextSelector = Routing == DataSetRoutingMode.None
+                        ? n => n.Context
+                        : n => n.PathFromRoot == null || n.Context != null ?
+                          n.Context : new TopicContext(Topic, n.PathFromRoot, Qos,
+                            Routing != DataSetRoutingMode.UseBrowseNames);
+                    var metaDataMajorVersion =
+                        DataSetWriter.DataSet?.DataSetMetaData?.MajorVersion;
+                    if (metaDataMajorVersion != null)
+                    {
+                        MetaDataVersion = new ConfigurationVersionDataType
+                        {
+                            MajorVersion = metaDataMajorVersion.Value,
+                            MinorVersion = DataSetWriter.DataSet?
+                                .GetMetaDataMinorVersion() ?? 0u
+                        };
+                    }
                 }
 
                 /// <inheritdoc/>
                 public override bool Equals(object? obj)
                 {
-                    return obj is LazilyEvaluatedContext context && _settings == context._settings;
+                    return obj is SubscriptionOptions options &&
+                        Topic == options.Topic &&
+                        Qos == options.Qos &&
+                        MetadataTopic == options.MetadataTopic &&
+                        Routing == options.Routing
+                        ;
                 }
 
                 /// <inheritdoc/>
                 public override int GetHashCode()
                 {
-                    return _settings.GetHashCode();
+                    return HashCode.Combine(Topic, Qos, MetadataTopic, Routing);
                 }
-
-                private readonly Lazy<string> _topic;
-                private readonly PublishingQueueSettingsModel _settings;
             }
 
-            private WriterGroupModel _writerGroup;
-            private readonly WriterGroupDataSource _outer;
-            private readonly Func<MonitoredItemNotificationModel, object?> _contextSelector;
-            private readonly object _lock = new();
+            private static readonly ConfigurationVersionDataType kDefaultVersion = new()
+            {
+                MajorVersion = 1,
+                MinorVersion = 0
+            };
+
             private Timer? _metadataTimer;
-            private volatile uint _frameCount;
-            private readonly string _topic;
-            private readonly QoS? _qos;
-            private readonly string _metadataTopic;
-            private readonly Dictionary<string, string> _variables;
-            private readonly DataSetRoutingMode _routing;
             private SubscriptionModel _subscriptionInfo;
-            private DataSetWriterModel _dataSetWriter;
+            private SubscriptionOptions _options;
+            private readonly WriterGroupDataSource _outer;
+            private readonly object _lock = new();
+            private volatile uint _frameCount;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
-            private uint _currentMetadataMajorVersion;
-            private uint _currentMetadataMinorVersion;
+            private uint? _currentMetadataMajorVersion;
+            private uint? _currentMetadataMinorVersion;
             private bool _sendKeepAlives;
             private bool _disposed;
         }

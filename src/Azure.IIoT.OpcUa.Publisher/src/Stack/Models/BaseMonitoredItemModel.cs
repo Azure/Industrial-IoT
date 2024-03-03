@@ -14,50 +14,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     public abstract record class BaseMonitoredItemModel
     {
         /// <summary>
-        /// Identifier for this monitored item
-        /// Prio 1: Id = DataSetFieldId - if already configured
-        /// Prio 2: Id = DataSetFieldName - if already configured
-        /// Prio 3: NodeId as configured
+        /// Identifier of the item
         /// </summary>
-        public string Id
-        {
-            get =>
-                !string.IsNullOrEmpty(DataSetFieldId) ? DataSetFieldId :
-                !string.IsNullOrEmpty(DataSetFieldName) ? DataSetFieldName :
-                StartNodeId;
-        }
+        public required string? Id { get; init; }
 
         /// <summary>
-        /// Data set field id
+        /// Specifies the order of the item
         /// </summary>
-        public string? DataSetFieldId { get; init; }
+        public required int Order { get; init; }
 
         /// <summary>
-        /// Display name
-        /// Prio 1: DisplayName = DataSetFieldName - if already configured
-        /// Prio 2: DisplayName = DataSetFieldId  - if already configured
-        /// Prio 3: NodeId as configured
+        /// Name of the item
         /// </summary>
-        public string DisplayName
-        {
-            get =>
-                !string.IsNullOrEmpty(DataSetFieldName) ? DataSetFieldName :
-                !string.IsNullOrEmpty(DataSetFieldId) ? DataSetFieldId :
-                StartNodeId;
-        }
+        public string? Name { get; set; }
 
         /// <summary>
-        /// Data set field name
-        /// </summary>
-        public string? DataSetFieldName { get; set; }
-
-        /// <summary>
-        /// Fetch dataset name
-        /// </summary>
-        public bool? FetchDataSetFieldName { get; init; }
-
-        /// <summary>
-        /// Node id
+        /// Start Node id
         /// </summary>
         public required string StartNodeId { get; init; }
 
@@ -100,5 +72,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Opaque context which will be added to the notifications
         /// </summary>
         public object? Context { get; init; }
+
+        /// <summary>
+        /// Data set field id
+        /// </summary>
+        public ServiceResultModel? State { get; set; }
+
+        /// <summary>
+        /// Identifier for this monitored item
+        /// Prio 1: Id = DataSetFieldId - if already configured
+        /// Prio 2: Id = DataSetFieldName - if already configured
+        /// Prio 3: NodeId as configured
+        /// </summary>
+        public string GetMonitoredItemId()
+        {
+            return
+                !string.IsNullOrEmpty(Id) ? Id :
+                !string.IsNullOrEmpty(Name) ? Name :
+                StartNodeId;
+        }
+
+        /// <summary>
+        /// Name of the field in the monitored item notification
+        /// Prio 1: DisplayName = DataSetFieldName - if already configured
+        /// Prio 2: DisplayName = DataSetFieldId  - if already configured
+        /// Prio 3: NodeId as configured
+        /// </summary>
+        public string GetMonitoredItemName()
+        {
+            return
+                !string.IsNullOrEmpty(Name) ? Name :
+                !string.IsNullOrEmpty(Id) ? Id :
+                StartNodeId;
+        }
     }
 }

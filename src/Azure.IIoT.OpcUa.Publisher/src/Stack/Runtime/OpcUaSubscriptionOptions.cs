@@ -55,22 +55,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public uint? DefaultLifeTimeCount { get; set; }
 
         /// <summary>
-        /// Whether to enable or disable data set metadata explicitly
-        /// </summary>
-        public bool? DisableDataSetMetaData { get; set; }
-
-        /// <summary>
-        /// Default metadata send interval.
-        /// </summary>
-        public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
-
-        /// <summary>
-        /// The number of items in a subscription for which
-        /// loading of metadata should be done inline.
-        /// </summary>
-        public int? AsyncMetaDataLoadThreshold { get; set; }
-
-        /// <summary>
         /// Enable publishing and monitored items when created
         /// rather than when publishing should start.
         /// </summary>
@@ -80,35 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Enable sequential publishing feature in the stack.
         /// </summary>
         public bool? EnableSequentialPublishing { get; set; }
-
-        /// <summary>
-        /// Whether to enable or disable keep alive messages
-        /// </summary>
-        public bool? EnableDataSetKeepAlives { get; set; }
-
-        /// <summary>
-        /// Default keyframe count
-        /// </summary>
-        public uint? DefaultKeyFrameCount { get; set; }
-
-        /// <summary>
-        /// Flag wether to grab the display name of nodes form
-        /// the OPC UA Server.
-        /// </summary>
-        public bool? ResolveDisplayName { get; set; }
-
-        /// <summary>
-        /// Always default to use or not use reverse connect
-        /// unless overridden by the configuration.
-        /// </summary>
-        public bool? DefaultUseReverseConnect { get; set; }
-
-        /// <summary>
-        /// Never load the complex type system from any session.
-        /// This disables metadata loading capability but also
-        /// the ability to encode complex types.
-        /// </summary>
-        public bool? DisableComplexTypeSystem { get; set; }
 
         /// <summary>
         /// set the default queue size for monitored items. If not
@@ -137,18 +92,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// status and value change triggering.
         /// </summary>
         public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
-
-        /// <summary>
-        /// Disable creating a separate session per writer group. This
-        /// will re-use sessions across writer groups. Default is to
-        /// create a seperate session.
-        /// </summary>
-        public bool? DisableSessionPerWriterGroup { get; set; }
-
-        /// <summary>
-        /// Retrieve paths from root folder to enable automatic
-        /// unified namespace publishing
-        /// </summary>
-        public bool? FetchOpcBrowsePathFromRoot { get; set; }
     }
 }

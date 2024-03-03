@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
     {
         private readonly BaseMonitoredItemModel _dataModel = new DataMonitoredItemModel
         {
+            Order = 0,
             StartNodeId = "DataStartNodeId",
             AggregateFilter = new AggregateFilterModel
             {
@@ -41,21 +42,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
             },
             DiscardNew = true,
             SkipFirst = true,
-            DataSetFieldName = "DataSetFieldName",
+            Name = "DataSetFieldName",
             HeartbeatInterval = TimeSpan.FromMilliseconds(30000),
-            DataSetFieldId = "DataSetFieldId",
+            Id = "DataSetFieldId",
             IndexRange = "DataIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" }
         };
         private readonly BaseMonitoredItemModel _eventModel = new EventMonitoredItemModel
         {
+            Order = 0,
             StartNodeId = "EventStartNodeId",
             QueueSize = 10,
             AttributeId = NodeAttribute.DataType,
             DiscardNew = true,
-            DataSetFieldName = "EventDataSetFieldName",
-            DataSetFieldId = "DataSetFieldId",
+            Name = "EventDataSetFieldName",
+            Id = "DataSetFieldId",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "EventRelativePath" },
             EventFilter = new EventFilterModel
@@ -67,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
                         BrowsePath = new string[] { "EventBrowsePath "},
                         IndexRange = "SelectClauseIndexRange",
                         TypeDefinitionId = "SelectClauseTypeDefinitionId",
-                        DisplayName = "SelectClauseDisplayName",
+                        DataSetFieldName = "SelectClauseDisplayName",
                         DataSetClassFieldId = Guid.NewGuid()
                     }
                 }

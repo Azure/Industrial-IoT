@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Autofac;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;
@@ -39,8 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create writer group network message sink
         /// </summary>
-        /// <param name="eventClients"></param>
         /// <param name="encoder"></param>
+        /// <param name="eventClients"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? (_logNotificationsFilter != null);
 
             _transport = new TransportOptions();
-            _queue = new NullQueue();
+            _queue = new NullPublishQueue();
 
             InitializeMetrics();
         }
@@ -101,17 +101,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask OnUpdatedAsync(WriterGroupModel writerGroup)
         {
             var options = new TransportOptions(writerGroup, _eventClients, _options);
-            if (options != _transport)
+            if (options == _transport)
             {
-                _transport = options;
-
-                // Todo: only check queue update
-
-                await _queue.DisposeAsync().ConfigureAwait(false);
-                _queue = options.MaxPublishQueuePartitions != 0
-                    ? new PublishQueue(this, options.MaxPublishQueuePartitions)
-                    : new PublishQueuePartition(this, 0, _logger);
+                // Group change does not effect transport settings
+                return;
             }
+
+            _transport = options;
+            // Todo: only check queue update
+
+            await _queue.DisposeAsync().ConfigureAwait(false);
+            _queue = options.MaxPublishQueuePartitions != 0
+                ? new PublishQueue(this, options.MaxPublishQueuePartitions)
+                : new PublishQueuePartition(this, 0, _logger);
+
+            _transport.Log(writerGroup, _logger);
         }
 
         /// <inheritdoc/>
@@ -120,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _cts.CancelAsync().ConfigureAwait(false);
             await _queue.DisposeAsync().ConfigureAwait(false);
 
-            _queue = new NullQueue();
+            _queue = new NullPublishQueue();
             _transport = new TransportOptions();
         }
 
@@ -167,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Iot edge configured
             /// </summary>
             public bool IsIoTEdge
-                => EventClient.Name.Equals(nameof(Models.WriterGroupTransport.IoTHub),
+                => EventClient.Name.Equals(nameof(WriterGroupTransport.IoTHub),
                             StringComparison.OrdinalIgnoreCase);
 
             /// <summary>
@@ -297,25 +301,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             bool TryPublish(IOpcUaSubscriptionNotification args);
         }
 
-        private sealed class NullQueue : IPublishQueue
+        /// <summary>
+        /// Dummy publish queue
+        /// </summary>
+        private sealed class NullPublishQueue : IPublishQueue
         {
+            /// <inheritdoc/>
             public int BufferOutput { get; }
+            /// <inheritdoc/>
             public int EncodingInput { get; }
+            /// <inheritdoc/>
             public int EncodingOutput { get; }
+            /// <inheritdoc/>
             public int SendInput { get; }
+            /// <inheritdoc/>
             public int PartitionCount { get; }
+            /// <inheritdoc/>
             public int ActiveCount { get; }
 
+            /// <inheritdoc/>
             public ValueTask DisposeAsync()
             {
                 return ValueTask.CompletedTask;
             }
 
+            /// <inheritdoc/>
             public void Reset()
             {
-
             }
 
+            /// <inheritdoc/>
             public bool TryPublish(IOpcUaSubscriptionNotification args)
             {
                 return false;
@@ -674,9 +689,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 for (var i = 0; i < args.Notifications.Count && !matched; i++)
                 {
-                    var itemName =
-                        args.Notifications[i].DataSetFieldName ??
-                        args.Notifications[i].DataSetName;
+                    var itemName = args.Notifications[i].FieldId;
                     if (itemName != null)
                     {
                         matched = _logNotificationsFilter.IsMatch(itemName);
@@ -714,7 +727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Append(item.Value?.ServerTimestamp
                             .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
                         .Append('|')
-                        .Append(item.DataSetFieldName ?? item.DataSetName)
+                        .Append(item.FieldId)
                         .Append('|')
                         .Append(item.Value?.SourceTimestamp
                             .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))

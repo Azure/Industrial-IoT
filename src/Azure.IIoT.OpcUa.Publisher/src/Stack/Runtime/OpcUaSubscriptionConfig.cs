@@ -26,25 +26,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultDiscardNewKey = "DiscardNew";
         public const string DefaultSamplingIntervalKey = "DefaultSamplingInterval";
         public const string DefaultPublishingIntervalKey = "DefaultPublishingInterval";
-        public const string EnableDataSetKeepAlivesKey = "EnableDataSetKeepAlives";
-        public const string DefaultKeyFrameCountKey = "DefaultKeyFrameCount";
-        public const string DisableDataSetMetaDataKey = "DisableDataSetMetaData";
-        public const string DefaultMetaDataUpdateTimeKey = "DefaultMetaDataUpdateTime";
         public const string DefaultDataChangeTriggerKey = "DefaulDataChangeTrigger";
-        public const string FetchOpcNodeDisplayNameKey = "FetchOpcNodeDisplayName";
-        public const string FetchOpcBrowsePathFromRootKey = "FetchOpcBrowsePathFromRoot";
         public const string DefaultQueueSize = "DefaultQueueSize";
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
-        public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
-        public const string AsyncMetaDataLoadThresholdKey = "AsyncMetaDataLoadThreshold";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
-        public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
         public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
-        public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -52,15 +42,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// </summary>
         public const int DefaultKeepAliveCountDefault = 10;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public const bool ResolveDisplayNameDefault = false;
         public const int DefaultLifetimeCountDefault = 100;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
-        public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
-        public const bool DisableSessionPerWriterGroupDefault = false;
         public static readonly TimeSpan DefaultRebrowsePeriodDefault = TimeSpan.FromHours(12);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -107,29 +94,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     DefaultLifetimeCountDefault);
             // Set a default from the strict setting
 
-            options.DisableComplexTypeSystem ??= GetBoolOrNull(DisableComplexTypeSystemKey);
-            options.DisableDataSetMetaData = options.DisableComplexTypeSystem;
-            options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
-                !(_options.Value.UseStandardsCompliantEncoding ?? false));
-            options.AsyncMetaDataLoadThreshold ??= GetIntOrDefault(
-                    AsyncMetaDataLoadThresholdKey, AsyncMetaDataLoadThresholdDefault);
-            if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)
-            {
-                options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
-            }
             options.EnableImmediatePublishing ??= GetBoolOrNull(EnableImmediatePublishingKey);
             options.EnableSequentialPublishing ??= GetBoolOrNull(EnableSequentialPublishingKey);
-            options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
-                    DisableSessionPerWriterGroupDefault);
-            options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
-            options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
-            options.ResolveDisplayName ??= GetBoolOrDefault(FetchOpcNodeDisplayNameKey,
-                    ResolveDisplayNameDefault);
             options.DefaultQueueSize ??= (uint?)GetIntOrNull(DefaultQueueSize);
 
             var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-            options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None
-                ? true : GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
 
             if (options.DefaultDataChangeTrigger == null &&
                 Enum.TryParse<DataChangeTriggerType>(GetStringOrDefault(DefaultDataChangeTriggerKey),
@@ -137,8 +106,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultDataChangeTrigger = trigger;
             }
-
-            options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
         }
 
         /// <summary>

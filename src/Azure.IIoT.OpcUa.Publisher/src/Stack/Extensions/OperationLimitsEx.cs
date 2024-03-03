@@ -5,8 +5,8 @@
 
 namespace Opc.Ua.Extensions
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 
     /// <summary>

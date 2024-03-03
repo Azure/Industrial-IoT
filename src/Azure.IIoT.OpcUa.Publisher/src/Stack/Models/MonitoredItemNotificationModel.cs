@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Opc.Ua;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Monitored item notification
@@ -14,24 +13,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     public sealed record class MonitoredItemNotificationModel
     {
         /// <summary>
-        /// Identifier of the monitored item that originated the message
+        /// Order of the item
         /// </summary>
-        public string? Id { get; set; }
+        public required int Order { get; init; }
+
+        /// <summary>
+        /// Identifier of the item that originated the message
+        /// </summary>
+        public required string MonitoredItemId { get; init; }
+
+        /// <summary>
+        /// Id of the field that changed
+        /// </summary>
+        public required string FieldId { get; init; }
 
         /// <summary>
         /// Identifier to relate notifications to a value
         /// </summary>
         public uint MessageId => SequenceNumber ?? (uint)GetHashCode();
-
-        /// <summary>
-        /// Data set field identifier as configured
-        /// </summary>
-        public string? DataSetFieldName { get; set; }
-
-        /// <summary>
-        /// Display name of the data set this item is part of.
-        /// </summary>
-        public string? DataSetName { get; internal set; }
 
         /// <summary>
         /// Node Id in string format as configured

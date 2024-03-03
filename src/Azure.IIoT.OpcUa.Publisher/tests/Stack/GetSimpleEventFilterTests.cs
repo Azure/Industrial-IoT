@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             // Arrange
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
@@ -65,6 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             // Arrange
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
@@ -118,6 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             // Arrange
             var template = new EventMonitoredItemModel
             {
+                Order = 0,
+                Id = "1",
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {

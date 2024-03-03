@@ -9,14 +9,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.Serialization;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -39,8 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Field(ExtensionFieldItemModel template,
-                ILogger<Field> logger) : base(logger, template.StartNodeId)
+            public Field(ExtensionFieldItemModel template, ILogger<Field> logger)
+                : base(logger, template.Order)
             {
                 Template = template;
             }
@@ -74,8 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                if ((Template.DataSetFieldName ?? string.Empty) !=
-                    (fieldItem.Template.DataSetFieldName ?? string.Empty))
+                if ((Template.Name ?? string.Empty) !=
+                    (fieldItem.Template.Name ?? string.Empty))
                 {
                     return false;
                 }
@@ -83,25 +80,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return true;
+                return base.Equals(obj);
             }
 
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = 81523234;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(
-                        Template.DataSetFieldName ?? string.Empty);
-                hashCode = (hashCode * -1521134295) +
-                    Template.Value.GetHashCode();
-                return hashCode;
+                return HashCode.Combine(base.GetHashCode(),
+                    nameof(Field),
+                    Template.Name ?? string.Empty,
+                    Template.Value);
             }
 
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Field '{Template.DataSetFieldName}' with value {Template.Value}.";
+                return $"Field '{Template.Name}' with value {Template.Value}.";
             }
 
             /// <inheritdoc/>
@@ -176,18 +170,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="sequenceNumber"></param>
             /// <returns></returns>
-            protected MonitoredItemNotificationModel ToMonitoredItemNotification(uint sequenceNumber)
+            protected MonitoredItemNotificationModel ToMonitoredItemNotification(
+                uint sequenceNumber)
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 return new MonitoredItemNotificationModel
                 {
-                    Id = Template.Id,
-                    DataSetFieldName = Template.DisplayName,
+                    Order = Order,
+                    MonitoredItemId = Template.GetMonitoredItemId(),
+                    FieldId = Template.GetMonitoredItemName(),
                     Context = Template.Context,
-                    DataSetName = Template.DisplayName,
-                    NodeId = NodeId,
+                    NodeId = null,
                     Value = _value,
                     Flags = 0,
                     SequenceNumber = sequenceNumber

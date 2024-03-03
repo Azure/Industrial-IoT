@@ -46,79 +46,79 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EventId.Value"
+                        DataSetFieldName = "/EventId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EventType.Value"
+                        DataSetFieldName = "/EventType.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SourceNode.Value"
+                        DataSetFieldName = "/SourceNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SourceName.Value"
+                        DataSetFieldName = "/SourceName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Time.Value"
+                        DataSetFieldName = "/Time.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ReceiveTime.Value"
+                        DataSetFieldName = "/ReceiveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LocalTime.Value"
+                        DataSetFieldName = "/LocalTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Message.Value"
+                        DataSetFieldName = "/Message.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Severity.Value"
+                        DataSetFieldName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionClassId.Value"
+                        DataSetFieldName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionClassName.Value"
+                        DataSetFieldName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionSubClassId.Value"
+                        DataSetFieldName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionSubClassName.Value"
+                        DataSetFieldName = "/ConditionSubClassName.Value"
                     }
                 }
             });
@@ -146,97 +146,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EventId.Value"
+                        DataSetFieldName = "/EventId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/EventType.Value"
+                        DataSetFieldName = "/EventType.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SourceNode.Value"
+                        DataSetFieldName = "/SourceNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/SourceName.Value"
+                        DataSetFieldName = "/SourceName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Time.Value"
+                        DataSetFieldName = "/Time.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ReceiveTime.Value"
+                        DataSetFieldName = "/ReceiveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/LocalTime.Value"
+                        DataSetFieldName = "/LocalTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Message.Value"
+                        DataSetFieldName = "/Message.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Severity.Value"
+                        DataSetFieldName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionClassId.Value"
+                        DataSetFieldName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionClassName.Value"
+                        DataSetFieldName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionSubClassId.Value"
+                        DataSetFieldName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/ConditionSubClassName.Value"
+                        DataSetFieldName = "/ConditionSubClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=235",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#CycleId" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/CycleId.Value"
+                        DataSetFieldName = "/CycleId.Value"
                     },
                     new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=235",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#CurrentStep" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/CurrentStep.Value"
+                        DataSetFieldName = "/CurrentStep.Value"
                     },
                     new() {
                         TypeDefinitionId = "http://opcfoundation.org/SimpleEvents#i=184",
                         BrowsePath = new[] { "/http://opcfoundation.org/SimpleEvents#Steps" },
                         AttributeId = NodeAttribute.Value,
-                        DisplayName = "/Steps.Value"
+                        DataSetFieldName = "/Steps.Value"
                     }
                 },
                 WhereClause = new ContentFilterModel

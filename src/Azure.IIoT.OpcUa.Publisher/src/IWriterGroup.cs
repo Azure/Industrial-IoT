@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
 
     /// <summary>
     /// Writer group configuration

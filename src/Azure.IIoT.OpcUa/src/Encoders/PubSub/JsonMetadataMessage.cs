@@ -215,7 +215,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             PublisherId = decoder.ReadString(nameof(PublisherId));
             DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
-            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(
+                nameof(MetaData), typeof(DataSetMetaDataType));
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             return true;
         }

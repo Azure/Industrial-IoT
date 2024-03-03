@@ -31,19 +31,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 ConditionHandling = model.ConditionHandling.Clone()
             });
         }
-
-        /// <summary>
-        /// Returns the unique id of the item
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="indexInDataSet"></param>
-        /// <returns></returns>
-        public static string GetUniqueId(this PublishedDataSetEventModel model, int indexInDataSet)
-        {
-            return model.Id
-                ?? model.PublishedEventName
-                ?? model.TypeDefinitionId ?? model.EventNotifier
-                ?? indexInDataSet.ToString();
-        }
     }
 }

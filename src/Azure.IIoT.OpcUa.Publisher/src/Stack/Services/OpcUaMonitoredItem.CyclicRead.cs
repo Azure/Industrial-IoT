@@ -103,13 +103,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = base.GetHashCode();
-                hashCode = (hashCode * -1521134295) +
-                    _client.GetHashCode();
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<TimeSpan>.Default.GetHashCode(
-                        Template.SamplingInterval ?? TimeSpan.FromSeconds(1));
-                return hashCode;
+                return HashCode.Combine(base.GetHashCode(),
+                   nameof(CyclicRead),
+                   Template.SamplingInterval ?? TimeSpan.FromSeconds(1),
+                   _client);
             }
 
             /// <inheritdoc/>

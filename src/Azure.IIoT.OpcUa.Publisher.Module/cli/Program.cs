@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Autofac;
@@ -25,10 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using System.Text.Json;
-    using Microsoft.AspNetCore.Hosting.Server;
 
     /// <summary>
     /// Publisher module host process

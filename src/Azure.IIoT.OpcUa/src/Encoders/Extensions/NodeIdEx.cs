@@ -20,11 +20,6 @@ namespace Opc.Ua.Extensions
     public static class NodeIdEx
     {
         /// <summary>
-        /// Set to use standards compliant node ids
-        /// </summary>
-        public static bool UseStandardsCompliantNodeIds { get; set; }
-
-        /// <summary>
         /// Creates an expanded node id from node id.
         /// </summary>
         /// <param name="nodeId"></param>

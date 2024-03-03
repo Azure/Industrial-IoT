@@ -39,5 +39,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "builtInType", Order = 4,
             EmitDefaultValue = false)]
         public byte? BuiltInType { get; set; }
+
+        /// <summary>
+        /// This is an option set and represents bit flags.
+        /// </summary>
+        [DataMember(Name = "isOptionSet", Order = 5,
+            EmitDefaultValue = false)]
+        public bool IsOptionSet { get; set; }
     }
 }

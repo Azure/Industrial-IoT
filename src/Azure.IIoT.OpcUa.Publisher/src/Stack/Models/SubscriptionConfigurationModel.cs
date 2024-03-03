@@ -43,17 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public bool? UseDeferredAcknoledgements { get; set; }
 
         /// <summary>
-        /// The number of items in a subscription for which
-        /// loading of metadata should be done inline during
-        /// subscription creation (otherwise will be completed
-        /// asynchronously). If the number of items in the
-        /// subscription is below this value it is guaranteed
-        /// that the first notification contains metadata.
-        /// Defaults to 30 items.
-        /// </summary>
-        public int? AsyncMetaDataLoadThreshold { get; set; }
-
-        /// <summary>
         /// Will set the subscription to have publishing
         /// enabled and every monitored item created to be
         /// in desired monitoring mode.

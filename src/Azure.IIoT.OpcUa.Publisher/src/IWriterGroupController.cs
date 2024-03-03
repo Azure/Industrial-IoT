@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -15,13 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// </summary>
     public interface IWriterGroupController
     {
-        /// <summary>
-        /// Try update writer group with new configuration.
-        /// </summary>
-        /// <param name="writerGroup"></param>
-        /// <returns></returns>
-        bool TryUpdate(WriterGroupModel writerGroup);
-
         /// <summary>
         /// Update writer group and block
         /// </summary>

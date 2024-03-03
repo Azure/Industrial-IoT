@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                return 334455667 + base.GetHashCode();
+                return HashCode.Combine(base.GetHashCode(), nameof(Heartbeat));
             }
 
             /// <inheritdoc/>
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, _heartbeatInterval, model._heartbeatInterval);
 
                     _heartbeatInterval = model._heartbeatInterval;
-                    itemChange = true; // TODO: Not really a change in the item
+                    itemChange = true;
                 }
 
                 if (_heartbeatBehavior != model._heartbeatBehavior)
@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, _heartbeatBehavior, model._heartbeatBehavior);
 
                     _heartbeatBehavior = model._heartbeatBehavior;
-                    itemChange = true; // TODO: Not really a change in the item
+                    itemChange = true;
                 }
 
                 itemChange |= base.MergeWith(model, session);
@@ -291,9 +291,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // If last value is null create a error value.
                 var heartbeat = new MonitoredItemNotificationModel
                 {
-                    Id = Template.Id,
-                    DataSetFieldName = Template.DisplayName,
-                    DataSetName = Template.DisplayName,
+                    Order = Order,
+                    MonitoredItemId = Template.GetMonitoredItemId(),
+                    FieldId = Template.GetMonitoredItemName(),
                     Context = Template.Context,
                     NodeId = TheResolvedNodeId,
                     Value = lastValue,
