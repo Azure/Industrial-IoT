@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CancellationToken ct)
             {
                 var (eventFilter, internalSelectClauses) =
-                    await BuildEventFilterAsync(session, ct).ConfigureAwait(false);
+                    await BuildEventFilterAsync(session).ConfigureAwait(false);
 
                 var conditionHandlingState = InitializeConditionHandlingState(
                     eventFilter, internalSelectClauses);
@@ -418,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 var notifications = state.Active
                     .Select(entry => entry.Value
-                        .Where(n => n.FieldId != null)
+                        .Where(n => !string.IsNullOrEmpty(n.FieldId))
                         .Select(n => n with { })
                         .ToList())
                     .ToList();

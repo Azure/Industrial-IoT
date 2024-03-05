@@ -13,70 +13,70 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// an item produced by the dataset writer
     /// </summary>
     [DataContract]
-    public record class PublishedDataItemMetaDataModel
+    public record class PublishedMetaDataModel
     {
         /// <summary>
         /// Minor version
         /// </summary>
         [DataMember(Name = "minorVersion", Order = 1,
             EmitDefaultValue = false)]
-        public uint MinorVersion { get; set; }
+        public uint MinorVersion { get; init; }
 
         /// <summary>
         /// Description
         /// </summary>
         [DataMember(Name = "description", Order = 2,
             EmitDefaultValue = false)]
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
         /// <summary>
         /// Flags
         /// </summary>
         [DataMember(Name = "flags", Order = 3,
             EmitDefaultValue = false)]
-        public ushort Flags { get; set; }
+        public ushort Flags { get; init; }
 
         /// <summary>
         /// Underlying built in type of the type
         /// </summary>
         [DataMember(Name = "builtInType", Order = 4,
             EmitDefaultValue = false)]
-        public byte BuiltInType { get; set; }
+        public byte BuiltInType { get; init; }
 
         /// <summary>
         /// Data type
         /// </summary>
         [DataMember(Name = "dataType", Order = 5,
             EmitDefaultValue = false)]
-        public string? DataType { get; set; }
+        public string? DataType { get; init; }
 
         /// <summary>
         /// Value rank of the type
         /// </summary>
         [DataMember(Name = "valueRank", Order = 6,
             EmitDefaultValue = false)]
-        public int ValueRank { get; set; }
+        public int ValueRank { get; init; }
 
         /// <summary>
         /// Array dimensions if non scalar
         /// </summary>
         [DataMember(Name = "arrayDimensions", Order = 7,
             EmitDefaultValue = false)]
-        public IReadOnlyList<uint>? ArrayDimensions { get; set; }
+        public IReadOnlyList<uint>? ArrayDimensions { get; init; }
 
         /// <summary>
         /// Max string length
         /// </summary>
         [DataMember(Name = "maxStringLength", Order = 8,
             EmitDefaultValue = false)]
-        public uint MaxStringLength { get; set; }
+        public uint MaxStringLength { get; init; }
 
         /// <summary>
         /// Properties of the field
         /// </summary>
         [DataMember(Name = "properties", Order = 10,
             EmitDefaultValue = false)]
-        public IReadOnlyList<ExtensionFieldModel>? Properties { get; set; }
+        public IReadOnlyList<ExtensionFieldModel>? Properties { get; init; }
 
         /// <summary>
         /// Structure schema definitions

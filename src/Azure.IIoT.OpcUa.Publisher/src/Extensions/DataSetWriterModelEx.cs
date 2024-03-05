@@ -116,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             dataSetSource.PublishedVariables?.ToMonitoredItems(options, monitoredItems, configure);
             dataSetSource.PublishedEvents?.ToMonitoredItems(options, monitoredItems, configure);
-            dataSet.ExtensionFields?.ToMonitoredItems(monitoredItems);
+            dataSetSource.PublishedObjects?.ToMonitoredItems(options, monitoredItems, configure);
+            dataSet.ExtensionFields?.ToMonitoredItems(monitoredItems, configure);
             if (monitoredItems.Count == 0)
             {
                 throw new ArgumentException("DataSet source empty.", nameof(dataSet));
@@ -125,7 +126,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
-        /// Convert to monitored items including heartbeat handling.
+        /// Convert to monitored items
+        /// </summary>
+        /// <param name="dataItems"></param>
+        /// <param name="options"></param>
+        /// <param name="items"></param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        private static void ToMonitoredItems(
+            this PublishedObjectItemsModel dataItems, OpcUaSubscriptionOptions options,
+            List<BaseItemModel> items,
+            Func<PublishingQueueSettingsModel?, object?> configure)
+        {
+            if (dataItems?.PublishedData == null)
+            {
+                return;
+            }
+            foreach (var publishedData in dataItems.PublishedData
+                .Where(o => o.PublishedVariables != null)
+                .SelectMany(o => o.PublishedVariables!.PublishedData)
+                .OrderBy(b => b.FieldIndex))
+            {
+                var item = publishedData?.ToMonitoredItemTemplate(options,
+                    configure, items.Count);
+                if (item != null)
+                {
+                    items.Add(item);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Convert to monitored items
         /// </summary>
         /// <param name="dataItems"></param>
         /// <param name="options"></param>
@@ -139,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             Func<PublishingQueueSettingsModel?, object?> configure,
             bool includeTriggering = true)
         {
-            if ((dataItems?.PublishedData) == null)
+            if (dataItems?.PublishedData == null)
             {
                 return;
             }
@@ -160,15 +192,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="extensionFields"></param>
         /// <param name="items"></param>
+        /// <param name="configure"></param>
         /// <returns></returns>
         private static void ToMonitoredItems(
             this IReadOnlyList<ExtensionFieldModel> extensionFields,
-            List<BaseItemModel> items)
+            List<BaseItemModel> items, Func<PublishingQueueSettingsModel?, object?> configure)
         {
             foreach (var extensionField in extensionFields
                 .OrderBy(b => b.FieldIndex))
             {
-                var item = extensionField.ToMonitoredItemTemplate(items.Count);
+                var item = extensionField.ToMonitoredItemTemplate(configure, items.Count);
                 if (item != null)
                 {
                     items.Add(item);
@@ -226,6 +259,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return null;
             }
 
+            if (publishedEvent.State != null)
+            {
+                return new ConfigurationErrorItemModel
+                {
+                    Order = order,
+                    Id = publishedEvent.Id,
+                    Name = publishedEvent.Name,
+                    Context = configure(publishedEvent.Publishing),
+                    State = publishedEvent.State
+                };
+            }
+
             var eventNotifier = publishedEvent.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
             var fields = publishedEvent.SelectedFields;
             if (publishedEvent.ModelChangeHandling != null)
@@ -234,7 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 {
                     Order = order,
                     Id = publishedEvent.Id,
-                    Name = publishedEvent.PublishedEventName,
+                    Name = publishedEvent.Name,
                     //
                     // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
                     // 0 the Server returns the default queue size for Event Notifications
@@ -246,7 +291,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     TriggeredItems = includeTriggering ? null
                         : ToMonitoredItems(publishedEvent.Triggering, options, configure),
                     AttributeId = null,
-                    State = publishedEvent.State,
                     DiscardNew = false,
                     MonitoringMode = publishedEvent.MonitoringMode ?? MonitoringMode.Reporting,
                     StartNodeId = eventNotifier,
@@ -259,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 Order = order,
                 Id = publishedEvent.Id,
-                Name = publishedEvent.PublishedEventName,
+                Name = publishedEvent.Name,
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = publishedEvent.SelectedFields?
@@ -279,7 +323,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 //
                 QueueSize = publishedEvent.QueueSize
                     ?? options.DefaultQueueSize ?? 0,
-                State = publishedEvent.State,
                 AttributeId = null,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
@@ -295,10 +338,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert to monitored item
         /// </summary>
         /// <param name="extensionField"></param>
+        /// <param name="configure"></param>
         /// <param name="order"></param>
         /// <returns></returns>
         private static ExtensionFieldItemModel? ToMonitoredItemTemplate(
-            this ExtensionFieldModel extensionField, int order)
+            this ExtensionFieldModel extensionField,
+            Func<PublishingQueueSettingsModel?, object?> configure, int order)
         {
             if (string.IsNullOrEmpty(extensionField.DataSetFieldName))
             {
@@ -309,7 +354,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Id = extensionField.Id,
                 Order = order,
                 Name = extensionField.DataSetFieldName,
-                Value = extensionField.Value
+                Value = extensionField.Value,
+                Context = configure(null) // TODO
             };
         }
 
@@ -322,7 +368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="order"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
-        private static DataMonitoredItemModel? ToMonitoredItemTemplate(
+        private static BaseItemModel? ToMonitoredItemTemplate(
             this PublishedDataSetVariableModel publishedVariable, OpcUaSubscriptionOptions options,
             Func<PublishingQueueSettingsModel?, object?> configure, int order,
             bool includeTriggering = true)
@@ -330,6 +376,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             if (string.IsNullOrEmpty(publishedVariable.PublishedVariableNodeId))
             {
                 return null;
+            }
+
+            if (publishedVariable.State != null)
+            {
+                return new ConfigurationErrorItemModel
+                {
+                    Order = order,
+                    Id = publishedVariable.Id,
+                    Name = publishedVariable.DataSetFieldName,
+                    Context = configure(publishedVariable.Publishing),
+                    State = publishedVariable.State
+                };
             }
             return new DataMonitoredItemModel
             {
@@ -361,7 +419,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 MonitoringMode = publishedVariable.MonitoringMode,
-                State = publishedVariable.State,
                 TriggeredItems = includeTriggering ? null
                     : ToMonitoredItems(publishedVariable.Triggering, options, configure),
                 Context = configure(publishedVariable.Publishing),

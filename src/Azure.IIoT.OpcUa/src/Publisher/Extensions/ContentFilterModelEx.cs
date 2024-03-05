@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                Elements = model.Elements?
+                Elements = model.Elements
                     .Select(e => e.Clone())
                     .ToList()
             });

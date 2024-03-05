@@ -18,6 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The flat list of elements in the filter AST
         /// </summary>
         [DataMember(Name = "elements", Order = 0)]
-        public IReadOnlyList<ContentFilterElementModel>? Elements { get; set; }
+        public required IReadOnlyList<ContentFilterElementModel> Elements { get; init; }
     }
 }

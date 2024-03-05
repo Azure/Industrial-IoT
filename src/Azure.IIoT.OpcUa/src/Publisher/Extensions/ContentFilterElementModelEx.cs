@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                FilterOperands = model.FilterOperands?
+                FilterOperands = model.FilterOperands
                     .Select(f => f.Clone())
                     .ToList()
             });

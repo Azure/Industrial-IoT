@@ -19,41 +19,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "networkMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
-        public NetworkMessageContentMask? NetworkMessageContentMask { get; set; }
+        public NetworkMessageContentMask? NetworkMessageContentMask { get; init; }
 
         /// <summary>
         /// Group version
         /// </summary>
         [DataMember(Name = "groupVersion", Order = 1,
             EmitDefaultValue = false)]
-        public uint? GroupVersion { get; set; }
+        public uint? GroupVersion { get; init; }
 
         /// <summary>
         /// Uadp dataset ordering
         /// </summary>
         [DataMember(Name = "dataSetOrdering", Order = 2,
             EmitDefaultValue = false)]
-        public DataSetOrderingType? DataSetOrdering { get; set; }
+        public DataSetOrderingType? DataSetOrdering { get; init; }
 
         /// <summary>
         /// Uadp Sampling offset
         /// </summary>
         [DataMember(Name = "samplingOffset", Order = 3,
             EmitDefaultValue = false)]
-        public double? SamplingOffset { get; set; }
+        public double? SamplingOffset { get; init; }
 
         /// <summary>
         /// Publishing offset for uadp messages
         /// </summary>
         [DataMember(Name = "publishingOffset", Order = 4,
             EmitDefaultValue = false)]
-        public IReadOnlyList<double>? PublishingOffset { get; set; }
+        public IReadOnlyList<double>? PublishingOffset { get; init; }
 
         /// <summary>
         /// Max messages per publish
         /// </summary>
         [DataMember(Name = "maxDataSetMessagesPerPublish", Order = 5,
             EmitDefaultValue = false)]
-        public uint? MaxDataSetMessagesPerPublish { get; set; }
+        public uint? MaxDataSetMessagesPerPublish { get; init; }
     }
 }

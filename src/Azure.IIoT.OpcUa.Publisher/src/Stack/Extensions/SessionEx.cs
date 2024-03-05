@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     /// <summary>
     /// Session Handle extensions
@@ -642,8 +643,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             };
             while (true)
             {
-                var response = await session.Services.BrowseAsync(header, null, 0, nodeToBrowse,
-                    ct).ConfigureAwait(false);
+                var response = await session.Services.BrowseAsync(header, null, 0,
+                    nodeToBrowse, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, nodeToBrowse);
                 if (results.ErrorInfo != null)
@@ -839,8 +840,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(VariableMetadataModel?, ServiceResultModel?)> GetVariableMetadataAsync(
-            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, NamespaceFormat namespaceFormat,
-            CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId,
+            NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             var results = new List<VariableMetadataModel>();
             var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
@@ -1366,6 +1367,175 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             true, new ByteStringCollection(batch), ct).ConfigureAwait(false);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Browse recursively up to a certain depth
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="view"></param>
+        /// <param name="nodesToBrowse"></param>
+        /// <param name="maxSearchDepth"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal static async IAsyncEnumerable<BrowseResult> BrowseAsync(
+            this IOpcUaSession session, RequestHeader requestHeader,
+            ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
+            int maxSearchDepth = 128, [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            const int kMaxReferencesPerNode = 1000;
+            var browseDescriptionCollection = nodesToBrowse;
+
+            // Browse
+            var foundReferences = new Dictionary<ReferenceDescription, NodeId>(
+                Compare.Using<ReferenceDescription>(Utils.IsEqual));
+            var foundNodes = new Dictionary<NodeId, Node>();
+
+            var searchDepth = 0;
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            var maxNodesPerBrowse = limits.GetMaxNodesPerBrowse();
+            while (browseDescriptionCollection.Count != 0 && searchDepth < maxSearchDepth)
+            {
+                searchDepth++;
+                bool repeatBrowse;
+                var allBrowseResults = new List<(BrowseDescription, Opc.Ua.BrowseResult)>();
+                var unprocessedOperations = new BrowseDescriptionCollection();
+                BrowseResultCollection? browseResultCollection = null;
+                do
+                {
+                    var browseCollection = maxNodesPerBrowse == 0
+                        ? browseDescriptionCollection
+                        : browseDescriptionCollection.Take(maxNodesPerBrowse).ToArray();
+                    repeatBrowse = false;
+
+                    var browseResponse = await session.Services.BrowseAsync(requestHeader,
+                        view, kMaxReferencesPerNode, browseCollection, ct).ConfigureAwait(false);
+                    browseResultCollection = browseResponse.Results;
+                    var results = browseResponse.Validate(browseResponse.Results,
+                        r => r.StatusCode, browseResponse.DiagnosticInfos, browseCollection);
+
+                    if (results.ErrorInfo != null)
+                    {
+                        if (results.ErrorInfo.StatusCode == StatusCodes.BadEncodingLimitsExceeded ||
+                            results.ErrorInfo.StatusCode == StatusCodes.BadResponseTooLarge)
+                        {
+                            // try to address by overriding operation limit
+                            maxNodesPerBrowse = maxNodesPerBrowse == 0 ?
+                                browseCollection.Count / 2 : maxNodesPerBrowse / 2;
+                            repeatBrowse = true;
+                            continue;
+                        }
+                        yield return new BrowseResult(null, null, results.ErrorInfo);
+                        yield break;
+                    }
+
+                    // seperate unprocessed nodes for later
+                    foreach (var browseResult in results)
+                    {
+                        // check for error.
+                        var statusCode = browseResult.StatusCode;
+                        if (StatusCode.IsBad(statusCode))
+                        {
+                            //
+                            // this error indicates that the server does not have enough
+                            // simultaneously active continuation points. This request will
+                            // need to be re-sent after the other operations have been
+                            // completed and their continuation points released.
+                            //
+                            if (statusCode == StatusCodes.BadNoContinuationPoints)
+                            {
+                                unprocessedOperations.Add(browseResult.Request);
+                                continue;
+                            }
+                        }
+                        // save results.
+                        allBrowseResults.Add((browseResult.Request, browseResult.Result));
+                    }
+                }
+                while (repeatBrowse);
+
+                // Browse next
+                Debug.Assert(browseResultCollection != null);
+                var (nodeIds, continuationPoints) = PrepareBrowseNext(
+                    new NodeIdCollection(browseDescriptionCollection
+                        .Take(browseResultCollection.Count).Select(r => r.NodeId)),
+                    browseResultCollection);
+                while (continuationPoints.Count != 0)
+                {
+                    var browseNextResult = await session.Services.BrowseNextAsync(
+                        requestHeader, false, continuationPoints, ct).ConfigureAwait(false);
+                    var browseNextResultCollection = browseNextResult.Results;
+
+                    var results = browseNextResult.Validate(browseNextResult.Results,
+                        r => r.StatusCode, browseNextResult.DiagnosticInfos, nodeIds);
+                    if (results.ErrorInfo != null)
+                    {
+                        yield return new BrowseResult(null, null, results.ErrorInfo);
+                        yield break;
+                    }
+
+                    allBrowseResults.AddRange(browseNextResultCollection
+                        .Select((r, i) => (browseDescriptionCollection[i], r)));
+                    (nodeIds, continuationPoints)
+                        = PrepareBrowseNext(nodeIds, browseNextResultCollection);
+                }
+
+                if (maxNodesPerBrowse == 0)
+                {
+                    browseDescriptionCollection.Clear();
+                }
+                else
+                {
+                    browseDescriptionCollection = browseDescriptionCollection
+                        .Skip(browseResultCollection.Count)
+                        .ToArray();
+                }
+
+                static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
+                    NodeIdCollection browseSourceCollection, BrowseResultCollection results)
+                {
+                    var continuationPoints = new ByteStringCollection();
+                    var nodeIdCollection = new NodeIdCollection();
+                    for (var i = 0; i < results.Count; i++)
+                    {
+                        var browseResult = results[i];
+                        if (browseResult.ContinuationPoint != null)
+                        {
+                            nodeIdCollection.Add(browseSourceCollection[i]);
+                            continuationPoints.Add(browseResult.ContinuationPoint);
+                        }
+                    }
+                    return (nodeIdCollection, continuationPoints);
+                }
+
+                // Build browse request for next level
+                foreach (var (description, browseResult) in allBrowseResults)
+                {
+                    var nodesToRead = new List<NodeId>();
+                    foreach (var reference in browseResult.References)
+                    {
+                        var targetNodeId = ExpandedNodeId.ToNodeId(reference.NodeId,
+                            session.MessageContext.NamespaceUris);
+
+                        browseDescriptionCollection.Add(new BrowseDescription
+                        {
+                            Handle = description.Handle,
+                            BrowseDirection = Opc.Ua.BrowseDirection.Forward,
+                            ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                            IncludeSubtypes = true,
+                            NodeId = targetNodeId,
+                            NodeClassMask = 0,
+                            ResultMask = (uint)BrowseResultMask.All
+                        });
+
+                        yield return new BrowseResult(description,
+                            browseResult.References, null);
+                    }
+                }
+                // add unprocessed nodes if any
+                browseDescriptionCollection.AddRange(unprocessedOperations);
             }
         }
 

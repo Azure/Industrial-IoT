@@ -23,18 +23,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// <para>
     /// The writer group controller is the central to all services
-    /// running inside the pub sub layer. The group controller receives
+    /// running inside the pub sub layer. The controller receives
     /// updates to the writer group configuration and manages their
-    /// live state. The group controller also manages the resolution
-    /// and collation of data sets inside its writers before they are
-    /// hitting the stack. This way we have central control over the
-    /// resolution of nodes, names, keys and relative paths at the
-    /// pub sub layer. This also includes metadata which we resolve
-    /// per variable or selected fields vor events so we have the right
-    /// setup for the subscriptions when we create them.
+    /// live state.
     /// </para>
     /// <para>
-    /// This controller also supports lookup of writers by matching
+    /// The writer group controller sets all defaults of the
+    /// configuration using the publisher options. The controller
+    /// then resolves the information for the data sets inside
+    /// its writers before they are hitting the stack.
+    /// </para>
+    /// <para>
+    /// This includes resolution of nodes and sub-nodes, names,
+    /// keys, browse names and relative paths to be used for the
+    /// pub sub layer. This also includes metadata which we resolve
+    /// per variable or selected fields vor events so we have the
+    /// right setup for the subscriptions when we create them.
+    /// </para>
+    /// <para>
+    /// The controller also supports lookup of writers by matching
     /// incoming data sets to the a writer. If we do not have a writer
     /// name because the message does not contain it we match the
     /// key/values to a writer, all of them should be in one and we
@@ -69,14 +76,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="writerGroupId"></param>
         /// <param name="listeners"></param>
         /// <param name="client"></param>
-        /// <param name="options"></param>
         /// <param name="metrics"></param>
+        /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
+        /// <param name="stateProvider"></param>
         public WriterGroupController(string writerGroupId,
             IEnumerable<IWriterGroupNotifications> listeners,
-            IOpcUaClientManager<ConnectionModel> client,
-            IOptions<PublisherOptions> options, IMetricsContext metrics,
-            ILoggerFactory loggerFactory)
+            IOpcUaClientManager<ConnectionModel> client, IMetricsContext metrics,
+            IOptions<PublisherOptions> options, ILoggerFactory loggerFactory,
+            IStateProvider<WriterGroupModel>? stateProvider = null)
         {
             Id = writerGroupId;
 
@@ -91,12 +99,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _listeners = listeners?.ToList()
                 ?? throw new ArgumentNullException(nameof(listeners));
 
+            _stateProvider = stateProvider;
             _logger = _loggerFactory.CreateLogger<WriterGroupController>();
             Configuration = new WriterGroupModel { Id = Id };
 
             InitializeMetrics();
 
-            _resolver = new DataSetItemResolver(_options,
+            _resolver = new DataSetItemResolver(
                 loggerFactory.CreateLogger<DataSetItemResolver>());
             _dataSources =
                 ImmutableDictionary<ConnectionIdentifier, DataSetWriterSource>.Empty;
@@ -179,6 +188,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
+                // Load configuration
+                if (_stateProvider != null)
+                {
+                    var copy = await _stateProvider.LoadAsync(Id, ct).ConfigureAwait(false);
+                    if (!IsSame(Configuration, copy))
+                    {
+                        // Update external state
+                        Configuration = copy;
+
+                        foreach (var listener in _listeners)
+                        {
+                            await listener.OnUpdatedAsync(copy).ConfigureAwait(false);
+                        }
+                    }
+                }
+
                 await foreach (var change in _changeFeed.Reader.ReadAllAsync(ct))
                 {
                     try
@@ -257,17 +282,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _logger.LogError(ex, "Failed to dispose source.");
                 }
             }
-
-            copy.DataSetWriters = updatedSources.Values
-                .SelectMany(w => w.GetDataSetWriters())
-                .ToList();
+            copy = copy with
+            {
+                // We null the publishing settings because we put them resolved into
+                // the writers.
+                Publishing = null,
+                DataSetWriters = updatedSources.Values
+                    .SelectMany(w => w.GetDataSetWriters(_options.Value.MaxNodesPerDataSet))
+                    .ToList()
+            };
             _dataSources = updatedSources.ToImmutableDictionary();
-            if (Configuration.IsSameAs(copy))
+            if (IsSame(Configuration, copy))
             {
                 return;
             }
 
-            // TODO: Persist
+            // Persist
+            if (_stateProvider != null)
+            {
+                await _stateProvider.StoreAsync(Id, copy, ct).ConfigureAwait(false);
+            }
 
             // Update external state
             Configuration = copy;
@@ -287,39 +321,119 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static WriterGroupModel CreateWriterGroupCopy(
             WriterGroupModel change, PublisherOptions options)
         {
-            var writerGroup = change with
+            // Set the messaging profile settings
+            var defaultMessagingProfile = options.MessagingProfile ??
+                MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
+            var headerLayoutUri = change.HeaderLayoutUri;
+            if (headerLayoutUri != null)
+            {
+                defaultMessagingProfile = MessagingProfile.Get(
+                    Enum.Parse<MessagingMode>(headerLayoutUri),
+                    change.MessageType ?? defaultMessagingProfile.MessageEncoding);
+            }
+
+            // Set the messaging settings for the encoder
+            var messageType = change.MessageType ??
+                defaultMessagingProfile.MessageEncoding;
+            var messageSettings = (change.MessageSettings ??
+                new WriterGroupMessageSettingsModel()) with
+                {
+                    NetworkMessageContentMask =
+                        change.MessageSettings?.NetworkMessageContentMask ??
+                        defaultMessagingProfile.NetworkMessageContentMask
+                };
+
+            return change with
             {
                 // Not copying writers here, we do this later
                 DataSetWriters = null,
+                MessageType = messageType,
                 LocaleIds = change.LocaleIds?.ToList(),
-                MessageSettings = change.MessageSettings.Clone(),
+                MessageSettings = messageSettings,
                 SecurityKeyServices = change.SecurityKeyServices?
                     .Select(c => c.Clone())
                     .ToList()
             };
+        }
 
-            // Set the messaging profile settings
-            var defaultMessagingProfile = options.MessagingProfile ??
-                MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
-            if (writerGroup.HeaderLayoutUri != null)
+        /// <summary>
+        /// Check if same writer group configuration
+        /// Excludes writers.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSame(WriterGroupModel model, WriterGroupModel other)
+        {
+            if (ReferenceEquals(model, other))
             {
-                defaultMessagingProfile = MessagingProfile.Get(
-                    Enum.Parse<MessagingMode>(writerGroup.HeaderLayoutUri),
-                    writerGroup.MessageType
-                        ?? defaultMessagingProfile.MessageEncoding);
+                return true;
             }
-
-            writerGroup.MessageType ??= defaultMessagingProfile.MessageEncoding;
-
-            // Set the messaging settings for the encoder
-            if (writerGroup.MessageSettings?.NetworkMessageContentMask == null)
+            if (model is null || other is null)
             {
-                writerGroup.MessageSettings ??= new WriterGroupMessageSettingsModel();
-                writerGroup.MessageSettings.NetworkMessageContentMask =
-                    defaultMessagingProfile.NetworkMessageContentMask;
+                return false;
             }
-
-            return writerGroup;
+            if (model.PublishingInterval != other.PublishingInterval)
+            {
+                return false;
+            }
+            if (model.Name != other.Name)
+            {
+                return false;
+            }
+            if (model.Id != other.Id)
+            {
+                return false;
+            }
+            if (model.KeepAliveTime != other.KeepAliveTime)
+            {
+                return false;
+            }
+            if (model.Priority != other.Priority)
+            {
+                return false;
+            }
+            if (model.SecurityMode != other.SecurityMode)
+            {
+                return false;
+            }
+            if (model.SecurityGroupId != other.SecurityGroupId)
+            {
+                return false;
+            }
+            if (model.HeaderLayoutUri != other.HeaderLayoutUri)
+            {
+                return false;
+            }
+            if (model.MessageType != other.MessageType)
+            {
+                return false;
+            }
+            if (!model.MessageSettings.IsSameAs(other.MessageSettings))
+            {
+                return false;
+            }
+            if (model.MaxNetworkMessageSize != other.MaxNetworkMessageSize)
+            {
+                return false;
+            }
+            if (model.Transport != other.Transport)
+            {
+                return false;
+            }
+            if (model.PublishQueueSize != other.PublishQueueSize)
+            {
+                return false;
+            }
+            if (model.NotificationPublishThreshold != other.NotificationPublishThreshold)
+            {
+                return false;
+            }
+            if (!model.Publishing.IsSameAs(other.Publishing))
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -333,42 +447,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             WriterGroupModel writerGroup, DataSetWriterModel dataSetWriter,
             PublisherOptions options)
         {
-            dataSetWriter = dataSetWriter.Clone();
             if (dataSetWriter.DataSet?.DataSetSource?.Connection == null)
             {
                 throw new ArgumentException(
                     "Connection missing from data source", nameof(dataSetWriter));
             }
-
-            dataSetWriter.MetaDataUpdateTime ??= options.DefaultMetaDataUpdateTime;
-
             var defaultMessagingProfile = options.MessagingProfile ??
                 MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
-
-            if (dataSetWriter.MessageSettings?.DataSetMessageContentMask == null)
+            var messageSettings = (dataSetWriter.MessageSettings
+                ?? new DataSetWriterMessageSettingsModel()) with
             {
-                dataSetWriter.MessageSettings
-                    ??= new DataSetWriterMessageSettingsModel();
-                dataSetWriter.MessageSettings.DataSetMessageContentMask =
-                    defaultMessagingProfile.DataSetMessageContentMask;
-            }
-            dataSetWriter.DataSetFieldContentMask ??=
+                NamespaceFormat = dataSetWriter.MessageSettings?.NamespaceFormat
+                    ?? options.DefaultNamespaceFormat,
+                DataSetMessageContentMask =
+                    dataSetWriter.MessageSettings?.DataSetMessageContentMask
+                    ?? defaultMessagingProfile.DataSetMessageContentMask
+            };
+            var dataSetFieldContentMask = dataSetWriter.DataSetFieldContentMask ??
                     defaultMessagingProfile.DataSetFieldContentMask;
-
             if (options.WriteValueWhenDataSetHasSingleEntry == true)
             {
-                dataSetWriter.DataSetFieldContentMask
+                dataSetFieldContentMask
                     |= DataSetFieldContentMask.SingleFieldDegradeToValue;
             }
 
-            var dataSet = dataSetWriter.DataSet;
-            dataSet.Routing ??=
-                options.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-
-            var source = dataSet.DataSetSource;
-            // Subscription settings are updated by the stack
-
-            var connection = source.Connection;
+            var connection = dataSetWriter.DataSet.DataSetSource.Connection;
             if (connection.Group == null && options.DisableSessionPerWriterGroup != true)
             {
                 connection = connection with
@@ -396,32 +499,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         | ConnectionOptions.NoComplexTypeSystem
                 };
             }
-            source.Connection = connection;
 
+            var writerGroupPublishingSettings = writerGroup.Publishing;
             var builder = DataSetItemResolver.CreateTopicBuilder(writerGroup,
                 dataSetWriter, options);
 
             // Update publishing configuration with the resolved information
-            dataSetWriter.Publishing = new PublishingQueueSettingsModel
+            return dataSetWriter with
             {
-                QueueName = builder.TelemetryTopic,
-                RequestedDeliveryGuarantee =
-                    dataSetWriter.Publishing?.RequestedDeliveryGuarantee
-                        ?? writerGroup.Publishing?.RequestedDeliveryGuarantee
-            };
-
-            dataSetWriter.MetaData = new PublishingQueueSettingsModel
-            {
-                QueueName = builder.DataSetMetaDataTopic,
-                RequestedDeliveryGuarantee =
+                MetaData = new PublishingQueueSettingsModel
+                {
+                    QueueName = builder.DataSetMetaDataTopic,
+                    RequestedDeliveryGuarantee =
                     dataSetWriter.MetaData?.RequestedDeliveryGuarantee
-                    ?? writerGroup.Publishing?.RequestedDeliveryGuarantee
-            };
+                        ?? writerGroupPublishingSettings?.RequestedDeliveryGuarantee
+                },
+                Publishing = new PublishingQueueSettingsModel
+                {
+                    QueueName = builder.TelemetryTopic,
+                    RequestedDeliveryGuarantee =
+                    dataSetWriter.Publishing?.RequestedDeliveryGuarantee
+                        ?? writerGroupPublishingSettings?.RequestedDeliveryGuarantee
+                },
+                DataSet = dataSetWriter.DataSet with
+                {
+                    DataSetSource = dataSetWriter.DataSet.DataSetSource with
+                    {
+                        Connection = connection,
+                        // Subscription settings are updated by the stack
 
-            // We null the publishing settings because we put them resolved into
-            // the writer.
-            writerGroup.Publishing = null;
-            return dataSetWriter;
+                        // Clone before moving through resolver
+                        PublishedEvents =
+                            dataSetWriter.DataSet.DataSetSource.PublishedEvents?.Clone(),
+                        PublishedVariables =
+                            dataSetWriter.DataSet.DataSetSource.PublishedVariables?.Clone(),
+                    },
+                    // Clone before moving through resolver
+                    ExtensionFields = dataSetWriter.DataSet.ExtensionFields?
+                        .Select(e => e with { })
+                        .ToList(),
+                    DataSetMetaData = (options.DisableDataSetMetaData
+                        ?? options.DisableComplexTypeSystem
+                        ?? false)  ?  null : dataSetWriter.DataSet.DataSetMetaData,
+                    Routing = options.DefaultDataSetRouting ?? DataSetRoutingMode.None
+                },
+                DataSetFieldContentMask = dataSetFieldContentMask,
+                MetaDataUpdateTime = dataSetWriter.MetaDataUpdateTime
+                    ?? options.DefaultMetaDataUpdateTime,
+                MessageSettings = messageSettings
+            };
         }
 
         /// <summary>
@@ -492,9 +618,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Get data set writers
             /// </summary>
-            public IEnumerable<DataSetWriterModel> GetDataSetWriters()
+            /// <param name="maxItemsPerWriter"></param>
+            /// <returns></returns>
+            public IEnumerable<DataSetWriterModel> GetDataSetWriters(int maxItemsPerWriter)
             {
-                return _resolver.Split(_writers.Values);
+                return _resolver.Split(_writers.Values, maxItemsPerWriter);
             }
 
             private ImmutableDictionary<string, DataSetWriterModel> _writers;
@@ -520,6 +648,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Channel<WriterGroupModel> _changeFeed;
         private readonly Task _processor;
         private readonly IMetricsContext _metrics;
+        private readonly IStateProvider<WriterGroupModel>? _stateProvider;
         private readonly List<IWriterGroupNotifications> _listeners;
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
@@ -30,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </para>
     /// <para>
     /// We move the lookup of relative paths and display name here
-    /// to have it available for later matching of incomding
+    /// to have it available for later matching of incoming
     /// messages.
     /// </para>
     /// <para>
@@ -49,13 +48,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create resolver
         /// </summary>
-        /// <param name="options"></param>
         /// <param name="logger"></param>
-        public DataSetItemResolver(IOptions<PublisherOptions> options,
-            ILogger<DataSetItemResolver> logger)
+        public DataSetItemResolver(ILogger<DataSetItemResolver> logger)
         {
             _logger = logger;
-            _options = options;
         }
 
         /// <summary>
@@ -70,19 +66,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask ResolveAsync(IOpcUaSession session,
             IReadOnlyList<DataSetWriterModel> writers, CancellationToken ct)
         {
-            // 1. Resolve node
+            // 1. Resolve nodes
             await ResolveBrowsePathAsync(session, writers, ct).ConfigureAwait(false);
 
-            // 2. Resolve display names
+            // 2. Resolve components
+            await ResolveComponentsAsync(session, writers, ct).ConfigureAwait(false);
+
+            // 3. Resolve display names
             await ResolveFieldNamesAsync(session, writers, ct).ConfigureAwait(false);
 
-            // 3. Resolve queue names
+            // 4. Resolve queue names
             await ResolveQueueNamesAsync(session, writers, ct).ConfigureAwait(false);
 
-            // 4. Special resolve anything else
+            // 5. Special resolve anything else
             await ResolveRemainingsAsync(session, writers, ct).ConfigureAwait(false);
 
-            // 5. Resolve metadata
+            // 6. Resolve metadata
             await ResolveMetaDataAsync(session, writers, ct).ConfigureAwait(false);
         }
 
@@ -101,10 +100,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Split writers
         /// </summary>
         /// <param name="writers"></param>
+        /// <param name="maxItemsPerDataSet"></param>
         /// <returns></returns>
-        public IEnumerable<DataSetWriterModel> Split(IEnumerable<DataSetWriterModel> writers)
+        public IEnumerable<DataSetWriterModel> Split(IEnumerable<DataSetWriterModel> writers,
+            int maxItemsPerDataSet)
         {
-            return PublishedDataSetItem.Split(this, writers, _options.Value.MaxNodesPerDataSet);
+            return PublishedDataSetItem.Split(this, writers, maxItemsPerDataSet);
         }
 
         /// <summary>
@@ -224,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         result.Request.ErrorInfo = null;
                         result.Request.BrowsePath = null;
                         result.Request.NodeId = result.Result.Targets[0].TargetId.AsString(
-                            session.MessageContext, NamespaceFormat.Expanded);
+                            session.MessageContext, result.Request.NamespaceFormat);
                     }
                     else
                     {
@@ -233,6 +234,112 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _logger.LogDebug(
                             "Failed resolve browse path of {NodeId} due to '{ServiceResult}'",
                             result.Request!.NodeId, result.ErrorInfo);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Expand items
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="writers"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ResolveComponentsAsync(IOpcUaSession session,
+            IReadOnlyList<DataSetWriterModel> writers, CancellationToken ct)
+        {
+            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            foreach (var itembatches in writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w,
+                    PublishedDataSetItem.ItemTypes.Variables |
+                    PublishedDataSetItem.ItemTypes.Objects))
+                .Where(v => v.Flags.HasFlag(PublishedNodeExpansion.Expand))
+                .GroupBy(v => v.Flags.HasFlag(PublishedNodeExpansion.Recursive) ? 128 : 1)
+                .Select(v => (v.Key, v.Select(v => v)))
+                .Batch(limits.GetMaxNodesPerBrowse()))
+            {
+                foreach (var (depth, itemsToBrowse) in itembatches)
+                {
+                    // Different depths browsing of objects and variables
+                    var results = session.BrowseAsync(new RequestHeader(), null,
+                        itemsToBrowse
+                            .Select(item => new BrowseDescription
+                            {
+                                Handle = item,
+                                BrowseDirection = Opc.Ua.BrowseDirection.Forward,
+                                ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
+                                IncludeSubtypes = true,
+                                NodeClassMask =
+                                        (uint)Opc.Ua.NodeClass.Object
+                                    | (uint)Opc.Ua.NodeClass.Variable,
+                                NodeId = item.NodeId.ToNodeId(session.MessageContext),
+                                ResultMask = (int)BrowseResultMask.All
+                            })
+                            .ToArray(), depth, ct);
+
+                    // Add found items
+                    var newItems = new Dictionary<PublishedDataSetItem,
+                        List<PublishedDataSetVariableModel>>();
+                    await foreach (var result in results.ConfigureAwait(false))
+                    {
+                        var item = result.Description?.Handle as PublishedDataSetItem;
+                        if (result.ErrorInfo != null)
+                        {
+                            if (item == null)
+                            {
+                                foreach (var o in itemsToBrowse)
+                                {
+                                    o.ErrorInfo = result.ErrorInfo;
+                                }
+                                _logger.LogDebug(
+                                     "Failed to resolve any components due to {ErrorInfo}...",
+                                     result.ErrorInfo);
+                                return;
+                            }
+                            item.ErrorInfo = result.ErrorInfo;
+                            continue;
+                        }
+
+                        Debug.Assert(item != null);
+                        Debug.Assert(result.References != null);
+                        foreach (var reference in result.References)
+                        {
+                            var nodeId = reference.NodeId
+                                .AsString(session.MessageContext, item.NamespaceFormat);
+                            if (nodeId == null)
+                            {
+                                // Should not happen
+                                continue;
+                            }
+                            // Do not add properties, those go into the metadata
+                            if (reference.NodeClass == Opc.Ua.NodeClass.Variable &&
+                                reference.ReferenceTypeId != ReferenceTypeIds.HasProperty)
+                            {
+                                if (!newItems.TryGetValue(item, out var variables))
+                                {
+                                    variables = new List<PublishedDataSetVariableModel>();
+                                    newItems.Add(item, variables);
+                                }
+
+                                var name = reference.DisplayName.Text
+                                        ?? reference.BrowseName.AsString(
+                                            session.MessageContext, item.NamespaceFormat);
+
+                                // Add new variable
+                                variables.Add(item.CreateVariable(nodeId, name));
+                            }
+                        }
+                    }
+                    foreach (var (item, variables) in newItems)
+                    {
+                        _logger.LogInformation("Expanded item {Id} to {Count} Variables",
+                            item.Id, variables.Count);
+                        item.Expand = new PublishedDataItemsModel
+                        {
+                            PublishedData = variables
+                        };
+                        item.Flags &= ~PublishedNodeExpansion.Expand;
                     }
                 }
             }
@@ -269,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (results.ErrorInfo != null)
                 {
                     _logger.LogDebug(
-                        "Failed to resolve display namedue to {ErrorInfo}...",
+                        "Failed to resolve display name due to {ErrorInfo}...",
                         results.ErrorInfo);
 
                     foreach (var item in displayNameUpdates)
@@ -313,7 +420,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             foreach (var getPathsBatch in writers
                 .SelectMany(w => PublishedDataSetItem.Create(this, w))
-                .Where(i => i.Publishing?.QueueName == null)
+                .Where(i => i.NeedsQueueNameResolving)
                 .Batch(1000))
             {
                 var getPath = getPathsBatch.ToList();
@@ -335,10 +442,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     else
                     {
                         getPath[index].ErrorInfo = null;
-                        getPath[index].Publishing ??= new PublishingQueueSettingsModel();
-                        getPath[index].Publishing!.QueueName =
-                            ToQueueName(getPath[index].DataSetWriter,
-                                paths[index].Path, true);
+                        getPath[index].Publishing = (getPath[index].Publishing ??
+                            new PublishingQueueSettingsModel()) with
+                            {
+                                QueueName = ToQueueName(getPath[index].DataSetWriter,
+                                    paths[index].Path, true)
+                            };
                     }
                 }
             }
@@ -422,8 +531,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 Variables = 1,
                 Events = 2,
-                ExtensionField = 4,
-                All = Variables | Events | ExtensionField
+                Objects = 4,
+                ExtensionField = 8,
+                All = Variables | Events | ExtensionField | Objects
             }
 
             /// <summary>
@@ -452,6 +562,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public abstract PublishingQueueSettingsModel? Publishing { get; set; }
 
             /// <summary>
+            /// Flags
+            /// </summary>
+            public abstract PublishedNodeExpansion Flags { get; set; }
+
+            /// <summary>
+            /// Add components
+            /// </summary>
+            public abstract PublishedDataItemsModel? Expand { get; set; }
+
+            /// <summary>
             /// Writer
             /// </summary>
             public DataSetWriterModel DataSetWriter { get; }
@@ -473,19 +593,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ErrorInfo != null ||
                 BrowsePath?.Count > 0 ||
                 ResolvedName == null ||
-                (Publishing?.QueueName == null && !NoPathResolving)
+                Expand != null ||
+                NeedsQueueNameResolving
                 ;
 
             protected bool NoMetaData
-                => _resolver._options.Value.DisableDataSetMetaData
-                ?? _resolver._options.Value.DisableComplexTypeSystem
-                ?? DataSetWriter.DataSet?.DataSetMetaData == null;
-            protected bool NoPathResolving
-                => Routing == DataSetRoutingMode.None;
+                => DataSetWriter.DataSet?.DataSetMetaData == null;
+            public virtual bool NeedsQueueNameResolving
+                => Publishing?.QueueName == null
+                && Routing != DataSetRoutingMode.None;
             private DataSetRoutingMode Routing
                 => DataSetWriter.DataSet?.Routing
-                ?? _resolver._options.Value.DefaultDataSetRouting
                 ?? DataSetRoutingMode.None;
+            public NamespaceFormat NamespaceFormat
+                => DataSetWriter.MessageSettings?.NamespaceFormat
+                ?? NamespaceFormat.Uri;
 
             /// <summary>
             /// Create data set item
@@ -536,6 +658,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Create variable
+            /// </summary>
+            /// <param name="nodeId"></param>
+            /// <param name="name"></param>
+            /// <returns></returns>
+            /// <exception cref="NotSupportedException"></exception>
+            public virtual PublishedDataSetVariableModel CreateVariable(
+                string nodeId, string name)
+            {
+                throw new NotSupportedException();
+            }
+
+            /// <summary>
             /// Create items over a writer
             /// </summary>
             /// <param name="resolver"></param>
@@ -548,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (items.HasFlag(ItemTypes.Variables))
                 {
                     var publishedData =
-                    writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
+                        writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
                     if (publishedData != null)
                     {
                         foreach (var item in publishedData)
@@ -556,11 +691,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             yield return new VariableItem(resolver, writer, item);
                         }
                     }
+                    var publishedObjects =
+                        writer.DataSet?.DataSetSource?.PublishedObjects?.PublishedData;
+                    if (publishedObjects != null)
+                    {
+                        foreach (var item in publishedObjects
+                            .Where(o => o.PublishedVariables != null)
+                            .SelectMany(o => o.PublishedVariables!.PublishedData))
+                        {
+                            yield return new VariableItem(resolver, writer, item);
+                        }
+                    }
+
+                    // Return triggered variables?
                 }
                 if (items.HasFlag(ItemTypes.Events))
                 {
                     var publishedEvents =
-                    writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
+                        writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
                     if (publishedEvents != null)
                     {
                         foreach (var item in publishedEvents)
@@ -569,13 +717,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                     }
                 }
+                if (items.HasFlag(ItemTypes.Objects))
+                {
+                    var publishedObjects =
+                        writer.DataSet?.DataSetSource?.PublishedObjects?.PublishedData;
+                    if (publishedObjects != null)
+                    {
+                        foreach (var item in publishedObjects)
+                        {
+                            yield return new ObjectItem(resolver, writer, item);
+                        }
+                    }
+                }
                 if (items.HasFlag(ItemTypes.ExtensionField))
                 {
-                    var extgensionFields =
+                    var extensionFields =
                         writer.DataSet?.ExtensionFields;
-                    if (extgensionFields != null)
+                    if (extensionFields != null)
                     {
-                        foreach (var item in extgensionFields)
+                        foreach (var item in extensionFields)
                         {
                             yield return new ExtensionField(resolver, writer, item);
                         }
@@ -596,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // We do not filter so we can report errors through stack subscription
                 foreach (var writer in writers)
                 {
-                    var writerIndex = 0;
+                    var writerIndex = -1;
                     var publishedData =
                         writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
                     if (publishedData != null)
@@ -608,7 +768,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .Where(i => i.Count > 0)
                             .SelectMany(VariableItem.Split))
                         {
-                            yield return writerIndex++ == 0 ? w : w with
+                            writerIndex++;
+                            yield return writerIndex == 0 ? w : w with
                             {
                                 Id = w.Id + "_" + writerIndex
                             };
@@ -622,7 +783,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         foreach (var w in EventItem.Split(publishedEvents
                             .Select(v => new EventItem(resolver, writer, v))))
                         {
-                            yield return writerIndex++ == 0 ? w : w with
+                            writerIndex++;
+                            yield return writerIndex == 0 ? w : w with
+                            {
+                                Id = w.Id + "_" + writerIndex
+                            };
+                        }
+                    }
+                    var publishedObjects =
+                        writer.DataSet?.DataSetSource?.PublishedObjects?.PublishedData;
+                    if (publishedObjects != null)
+                    {
+                        foreach (var w in ObjectItem.Split(publishedObjects
+                            .Select(v => new ObjectItem(resolver, writer, v))))
+                        {
+                            writerIndex++;
+                            yield return writerIndex == 0 ? w : w with
                             {
                                 Id = w.Id + "_" + writerIndex
                             };
@@ -673,6 +849,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override ServiceResultModel? ErrorInfo { get; set; }
+
+                /// <inheritdoc/>
+                public override PublishedDataItemsModel? Expand { get; set; }
+
+                /// <inheritdoc/>
+                public override PublishedNodeExpansion Flags { get; set; }
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
@@ -778,6 +960,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
+                public override PublishedDataItemsModel? Expand { get; set; }
+
+                /// <inheritdoc/>
+                public override PublishedNodeExpansion Flags { get; set; }
+
+                /// <inheritdoc/>
                 public override PublishingQueueSettingsModel? Publishing
                 {
                     get => _variable.Publishing;
@@ -799,9 +987,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     && _variable.MetaData == null;
 
                 /// <inheritdoc/>
-                public VariableItem(DataSetItemResolver logger,
+                public VariableItem(DataSetItemResolver resolver,
                     DataSetWriterModel writer, PublishedDataSetVariableModel variable)
-                    : base(logger, writer)
+                    : base(resolver, writer)
                 {
                     _variable = variable;
 
@@ -904,6 +1092,173 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Variable item
+            /// </summary>
+            public sealed class ObjectItem : PublishedDataSetItem
+            {
+                /// <inheritdoc/>
+                public override string? NodeId
+                {
+                    get => _object.PublishedNodeId;
+                    set
+                    {
+                        if (_object.PublishedNodeId != value)
+                        {
+                            _object.PublishedNodeId = value;
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override IReadOnlyList<string>? BrowsePath
+                {
+                    get => _object.BrowsePath;
+                    set => _object.BrowsePath = value;
+                }
+
+                /// <inheritdoc/>
+                public override string? ResolvedName
+                {
+                    get => _object.Name;
+                    set
+                    {
+                        if (_object.Name != value)
+                        {
+                            _object.Name = value;
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override PublishedNodeExpansion Flags
+                {
+                    get => _object.Flags;
+                    set => _object.Flags = value;
+                }
+
+                /// <inheritdoc/>
+                public override PublishedDataItemsModel? Expand
+                {
+                    get => _object.PublishedVariables;
+                    set => _object.PublishedVariables = value;
+                }
+
+                /// <inheritdoc/>
+                public override PublishingQueueSettingsModel? Publishing { get; set; }
+
+                /// <inheritdoc/>
+                public override ServiceResultModel? ErrorInfo
+                {
+                    get => _object.State;
+                    set => _object.State = ErrorInfo;
+                }
+                /// <inheritdoc/>
+                public override string? Id => _object.Id;
+
+                /// <inheritdoc/>
+                public override bool MetaDataNeedsRefresh => false;
+
+                /// <inheritdoc/>
+                public override bool NeedsQueueNameResolving => false;
+
+                /// <inheritdoc/>
+                public ObjectItem(DataSetItemResolver resolver,
+                    DataSetWriterModel writer, PublishedObjectModel obj)
+                    : base(resolver, writer)
+                {
+                    _object = obj;
+
+                    if ((_object.PublishedVariables?.PublishedData.Count ?? 0) > 0 &&
+                        ErrorInfo == null)
+                    {
+                        _object.Flags &= ~PublishedNodeExpansion.Expand;
+                    }
+                    else
+                    {
+                        _object.Flags |= PublishedNodeExpansion.Expand;
+                    }
+
+                    if (_object.Id == null)
+                    {
+                        var sb = new StringBuilder()
+                            .Append(nameof(VariableItem))
+                        //    .Append(_object.DisplayName)
+                            .Append(_object.PublishedNodeId)
+                            // .Append(_object.DataSetClassId)
+                            // .Append(_variable.Triggering)
+                            .Append(_object.Template.Publishing?.QueueName ?? string.Empty)
+                            ;
+                        _object.BrowsePath?.ForEach(b => sb.Append(b));
+
+                        _object.Id = sb
+                            .ToString()
+                            .ToSha1Hash()
+                            ;
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override bool Merge(PublishedDataSetItem existing)
+                {
+                    if (!base.Merge(existing) || existing is not ObjectItem other)
+                    {
+                        return false;
+                    }
+
+                    // Merge state
+                    _object.PublishedVariables = other._object.PublishedVariables;
+                    return true;
+                }
+
+                /// <inheritdoc/>
+                public override PublishedDataSetVariableModel CreateVariable(
+                    string nodeId, string name)
+                {
+                    return _object.Template with
+                    {
+                        Attribute = NodeAttribute.Value,
+                        DataSetFieldName = name,
+                        BrowsePath = null,
+                        PublishedVariableNodeId = nodeId,
+                        Publishing = Publishing
+                    };
+                }
+
+                /// <inheritdoc/>
+                public static IEnumerable<DataSetWriterModel> Split(
+                    IEnumerable<PublishedDataSetItem> items)
+                {
+                    foreach (var writers in items.GroupBy(w => w.DataSetWriter.Id))
+                    {
+                        var objects = writers
+                            .OfType<ObjectItem>()
+                            .ToList();
+                        if (objects.Count == 0)
+                        {
+                            continue;
+                        }
+                        foreach (var item in objects)
+                        {
+                            foreach (var copy in VariableItem.Split(
+                                Create(item._resolver, item.DataSetWriter, ItemTypes.Variables)))
+                            {
+                                copy.DataSet!.Name = item._object.Name;
+                                yield return copy;
+                            }
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public override ValueTask ResolveMetaDataAsync(IOpcUaSession session,
+                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                {
+                    return ValueTask.CompletedTask;
+                }
+                private readonly PublishedObjectModel _object;
+            }
+
+            /// <summary>
             /// Event item
             /// </summary>
             public sealed class EventItem : PublishedDataSetItem
@@ -925,8 +1280,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <inheritdoc/>
                 public override string? ResolvedName
                 {
-                    get => _event.PublishedEventName;
-                    set => _event.PublishedEventName = value;
+                    get => _event.Name;
+                    set => _event.Name = value;
                 }
 
                 /// <inheritdoc/>
@@ -942,6 +1297,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     get => _event.State;
                     set => _event.State = ErrorInfo;
                 }
+
+                /// <inheritdoc/>
+                public override PublishedNodeExpansion Flags { get; set; }
+
+                /// <inheritdoc/>
+                public override PublishedDataItemsModel? Expand { get; set; }
 
                 /// <inheritdoc/>
                 public override string? Id => _event.Id;
@@ -966,7 +1327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         var sb = new StringBuilder()
                             .Append(nameof(EventItem))
-                            .Append(_event.PublishedEventName)
+                            .Append(_event.Name)
                             .Append(_event.EventNotifier)
                             .Append(_event.ReadEventNameFromNode == true)
                             .Append(_event.TypeDefinitionId)
@@ -1018,14 +1379,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             PublishedData = new[] { evtSet }
                         };
 
-                        copy.DataSet.Name = item._event.PublishedEventName;
+                        copy.DataSet.Name = item._event.Name;
                         copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
-                        // No need to clone more members of the field
-                        .Select((f, i) => f with
-                        {
-                            FieldIndex = i + item._event.SelectedFields?.Count ?? 2
-                        })
-                        .ToList();
+                            // No need to clone more members of the field
+                            .Select((f, i) => f with
+                            {
+                                FieldIndex = i + item._event.SelectedFields?.Count ?? 2
+                            })
+                            .ToList();
                         yield return copy;
                     }
                 }
@@ -1037,19 +1398,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (_event.ModelChangeHandling != null)
                     {
                         _event.SelectedFields = GetModelChangeEventFields().ToList();
-                        _event.Filter = new ContentFilterModel();
+                        _event.Filter = new ContentFilterModel
+                        {
+                            Elements = Array.Empty<ContentFilterElementModel>()
+                        };
                     }
                     else if (_event.SelectedFields == null && _event.Filter == null)
                     {
                         if (string.IsNullOrEmpty(_event.TypeDefinitionId))
                         {
                             _event.TypeDefinitionId = ObjectTypeIds.BaseEventType
-                                .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                                .AsString(session.MessageContext, NamespaceFormat);
                         }
 
                         // Resolve the simple event
                         await ResolveFilterForEventTypeDefinitionId(session,
                             _event, ct).ConfigureAwait(false);
+                    }
+                    else if (_event.SelectedFields != null)
+                    {
+                        await UpdateFieldNamesAsync(session,
+                            _event.SelectedFields).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Set default fields
                     }
 
                     Debug.Assert(_event.SelectedFields != null);
@@ -1133,7 +1506,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             DataSetClassFieldId = (Uuid)Guid.NewGuid(),
                             DataSetFieldName = fieldName,
-                            MetaData = new PublishedDataItemMetaDataModel
+                            MetaData = new PublishedMetaDataModel
                             {
                                 DataType = dataType ?? "i=" + builtInType,
                                 ValueRank = ValueRanks.Scalar,
@@ -1150,11 +1523,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 private bool NeedsFilterUpdate()
                 {
-                    if (_event.ModelChangeHandling != null)
+                    if (_event.SelectedFields == null || _event.Filter == null)
                     {
-                        return false;
+                        return true;
                     }
-                    return _event.SelectedFields == null && _event.Filter == null;
+                    if (_event.SelectedFields
+                        .Any(f => f.DataSetClassFieldId == Guid.Empty
+                            || string.IsNullOrEmpty(f.DataSetFieldName)))
+                    {
+                        return true;
+                    }
+                    return false;
                 }
 
                 /// <summary>
@@ -1164,7 +1543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <param name="dataSetEvent"></param>
                 /// <param name="ct"></param>
                 /// <returns></returns>
-                private static async ValueTask ResolveFilterForEventTypeDefinitionId(
+                private async ValueTask ResolveFilterForEventTypeDefinitionId(
                     IOpcUaSession session, PublishedDataSetEventModel dataSetEvent,
                     CancellationToken ct)
                 {
@@ -1209,7 +1588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             BrowsePath = Array.Empty<string>(),
                             TypeDefinitionId = ObjectTypeIds.ConditionType.AsString(
-                                session.MessageContext, NamespaceFormat.Expanded),
+                                session.MessageContext, NamespaceFormat),
                             DataSetClassFieldId = Guid.NewGuid(), // Todo: Use constant here
                             IndexRange = null,
                             DataSetFieldName = "ConditionId",
@@ -1219,19 +1598,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     foreach (var fieldName in fieldNames)
                     {
-                        var selectClause = new SimpleAttributeOperandModel()
+                        var browsePath = fieldName.Name
+                            .Split('|')
+                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .Select(q => q.AsString(session.MessageContext, NamespaceFormat))
+                            .ToArray();
+                        var selectClause = new SimpleAttributeOperandModel
                         {
                             TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // IS this correct?
-                                session.MessageContext, NamespaceFormat.Expanded),
+                                session.MessageContext, NamespaceFormat),
                             DataSetClassFieldId = Guid.NewGuid(),
-                            DataSetFieldName = fieldName.Name,
+                            DataSetFieldName = browsePath.LastOrDefault() ?? string.Empty,
                             IndexRange = null,
                             AttributeId = NodeAttribute.Value,
-                            BrowsePath = fieldName.Name
-                                .Split('|')
-                                .Select(x => new QualifiedName(x, fieldName.NamespaceIndex)
-                                    .AsString(session.MessageContext, NamespaceFormat.Expanded))
-                                .ToArray()
+                            BrowsePath = browsePath
                         };
                         selectedFields.Add(selectClause);
                     }
@@ -1248,7 +1628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     new FilterOperandModel
                                     {
-                                        NodeId = dataSetEvent.TypeDefinitionId
+                                        Value = dataSetEvent.TypeDefinitionId
                                     }
                                 }
                             }
@@ -1256,6 +1636,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     };
                     dataSetEvent.SelectedFields = selectedFields;
                     dataSetEvent.TypeDefinitionId = null;
+                }
+
+                /// <summary>
+                /// Update field names
+                /// </summary>
+                /// <param name="session"></param>
+                /// <param name="selectClauses"></param>
+                private ValueTask UpdateFieldNamesAsync(IOpcUaSession session,
+                    IEnumerable<SimpleAttributeOperandModel> selectClauses)
+                {
+                    Debug.Assert(session != null);
+                    // let's loop thru the final set of select clauses and setup the field names used
+                    foreach (var selectClause in selectClauses)
+                    {
+                        var fieldName = string.Empty;
+                        if (string.IsNullOrEmpty(selectClause.DataSetFieldName))
+                        {
+                            // TODO: Resolve names - Use FindNodeWithBrowsePathAsync()
+
+                            if (selectClause.BrowsePath != null && selectClause.BrowsePath.Count != 0)
+                            {
+                                // Format as relative path string
+                                fieldName = selectClause.BrowsePath
+                                    .Select(d => d.ToQualifiedName(session.MessageContext))
+                                    .Select(q => q.AsString(session.MessageContext, NamespaceFormat))
+                                    .Aggregate((a, b) => $"{a}/{b}");
+                            }
+                        }
+
+                        if (selectClause.DataSetClassFieldId == Guid.Empty)
+                        {
+                            selectClause.DataSetClassFieldId = Guid.NewGuid();
+                        }
+
+                        if (fieldName.Length == 0 &&
+                            selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                            selectClause.AttributeId == NodeAttribute.NodeId)
+                        {
+                            fieldName = "ConditionId";
+                        }
+                        selectClause.DataSetFieldName = fieldName;
+                    }
+                    return ValueTask.CompletedTask;
                 }
 
                 /// <summary>
@@ -1311,7 +1734,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     INode? found = null;
                     browsePath ??= Array.Empty<string>();
-                    foreach (var browseName in browsePath.Select(b => b.ToQualifiedName(session.MessageContext)))
+                    foreach (var browseName in browsePath
+                        .Select(b => b.ToQualifiedName(session.MessageContext)))
                     {
                         found = null;
                         while (found == null)
@@ -1369,7 +1793,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return DataSetWriter with
                 {
                     MessageSettings = DataSetWriter.MessageSettings == null
-                    ? null : DataSetWriter.MessageSettings with { },
+                        ? null : DataSetWriter.MessageSettings with { },
                     DataSet = (DataSetWriter.DataSet
                         ?? new PublishedDataSetModel()) with
                     {
@@ -1396,18 +1820,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="variable"></param>
             /// <param name="version"></param>
             /// <param name="ct"></param>
-            protected async ValueTask<PublishedDataItemMetaDataModel?> ResolveMetaDataAsync(
+            protected async ValueTask<PublishedMetaDataModel?> ResolveMetaDataAsync(
                 IOpcUaSession session, ComplexTypeSystem? typeSystem, VariableNode variable,
                 uint version, CancellationToken ct)
             {
                 var builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
                     session.TypeTree, ct).ConfigureAwait(false);
-                var field = new PublishedDataItemMetaDataModel
+                var field = new PublishedMetaDataModel
                 {
                     Flags = 0, // Set to 1 << 1 for PromotedField fields.
                     MinorVersion = version,
                     DataType = variable.DataType.AsString(session.MessageContext,
-                        NamespaceFormat.Expanded),
+                        NamespaceFormat),
                     ArrayDimensions = variable.ArrayDimensions?.Count > 0
                         ? variable.ArrayDimensions : null,
                     Description = variable.Description?.Text,
@@ -1432,7 +1856,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="typeSystem"></param>
             /// <param name="ct"></param>
             /// <exception cref="ServiceResultException"></exception>
-            private async ValueTask AddTypeDefinitionsAsync(PublishedDataItemMetaDataModel field,
+            private async ValueTask AddTypeDefinitionsAsync(PublishedMetaDataModel field,
                 NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
                 CancellationToken ct)
             {
@@ -1442,129 +1866,126 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var dataTypes = new NodeIdDictionary<object>(); // Need to use object here
                                                                 // we support 3 types
-                var baseType = dataTypeId;
-                while (!Opc.Ua.NodeId.IsNull(baseType))
+                var typesToResolve = new Queue<NodeId>();
+                typesToResolve.Enqueue(dataTypeId);
+                while (typesToResolve.Count > 0)
                 {
-                    try
+                    var baseType = typesToResolve.Dequeue();
+                    while (!Opc.Ua.NodeId.IsNull(baseType))
                     {
-                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
-                            ct).ConfigureAwait(false);
-                        if (dataType == null)
+                        try
                         {
-                            _logger.LogWarning(
-                                "{Item}: Failed to find node for data type {BaseType}!",
-                                this, baseType);
-                            break;
-                        }
+                            var dataType = await session.NodeCache.FetchNodeAsync(baseType,
+                                ct).ConfigureAwait(false);
+                            if (dataType == null)
+                            {
+                                _logger.LogWarning(
+                                    "{Item}: Failed to find node for data type {BaseType}!",
+                                    this, baseType);
+                                break;
+                            }
 
-                        dataTypeId = dataType.NodeId;
-                        Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
-                        if (IsBuiltInType(dataTypeId))
-                        {
-                            // Do not add builtin types
-                            break;
-                        }
+                            dataTypeId = dataType.NodeId;
+                            Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
+                            if (IsBuiltInType(dataTypeId))
+                            {
+                                // Do not add builtin types - we are done here now
+                                break;
+                            }
 
-                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                            session.TypeTree, ct).ConfigureAwait(false);
-                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
-                            ct).ConfigureAwait(false);
+                            var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                                session.TypeTree, ct).ConfigureAwait(false);
+                            baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                                ct).ConfigureAwait(false);
 
-                        var browseName = dataType.BrowseName
-                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
-                        var typeName = dataType.NodeId
-                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
-                        if (typeName == null)
-                        {
-                            return;
-                        }
+                            var browseName = dataType.BrowseName
+                                .AsString(session.MessageContext, NamespaceFormat);
+                            var typeName = dataType.NodeId
+                                .AsString(session.MessageContext, NamespaceFormat);
+                            if (typeName == null)
+                            {
+                                // No type name - that should not happen
+                                throw new ServiceResultException(StatusCodes.BadDataTypeIdUnknown,
+                                    $"Failed to get metadata type name for {dataType.NodeId}.");
+                            }
 
-                        switch (builtInType)
-                        {
-                            case BuiltInType.Enumeration:
-                            case BuiltInType.ExtensionObject:
-                                var types = typeSystem?.GetDataTypeDefinitionsForDataType(
-                                    dataType.NodeId);
-                                if (types == null || types.Count == 0)
-                                {
-                                    dataTypes.AddOrUpdate(dataType.NodeId,
-                                        GetDefault(session, dataType, builtInType));
-                                    break;
-                                }
-                                foreach (var type in types)
-                                {
-                                    if (!dataTypes.ContainsKey(type.Key))
+                            switch (builtInType)
+                            {
+                                case BuiltInType.Enumeration:
+                                case BuiltInType.ExtensionObject:
+                                    var types = typeSystem?.GetDataTypeDefinitionsForDataType(
+                                        dataType.NodeId);
+                                    if (types == null || types.Count == 0)
                                     {
-                                        var description = type.Value switch
-                                        {
-                                            StructureDefinition s =>
-                                                new StructureDescriptionModel
-                                                {
-                                                    DataTypeId = typeName,
-                                                    Name = browseName,
-                                                    BaseDataType = s.BaseDataType.AsString(
-                                                        session.MessageContext, NamespaceFormat.Expanded),
-                                                    DefaultEncodingId = s.DefaultEncodingId.AsString(
-                                                        session.MessageContext, NamespaceFormat.Expanded),
-                                                    StructureType = (Models.StructureType)s.StructureType,
-                                                    Fields = s.Fields
-                                                        .Select(f => new StructureFieldDescriptionModel
-                                                        {
-                                                            IsOptional = f.IsOptional,
-                                                            MaxStringLength = f.MaxStringLength,
-                                                            ValueRank = f.ValueRank,
-                                                            ArrayDimensions = f.ArrayDimensions,
-                                                            DataType = f.DataType.AsString(
-                                                                session.MessageContext,
-                                                                    NamespaceFormat.Expanded)
-                                                                ?? string.Empty,
-                                                            Name = f.Name,
-                                                            Description = f.Description?.Text
-                                                        })
-                                                        .ToList()
-                                                },
-                                            EnumDefinition e =>
-                                                new EnumDescriptionModel
-                                                {
-                                                    DataTypeId = typeName,
-                                                    Name = browseName,
-                                                    IsOptionSet = e.IsOptionSet,
-                                                    BuiltInType = null,
-                                                    Fields = e.Fields
-                                                        .Select(f => new EnumFieldDescriptionModel
-                                                        {
-                                                            Value = f.Value,
-                                                            DisplayName = f.DisplayName?.Text,
-                                                            Name = f.Name,
-                                                            Description = f.Description?.Text
-                                                        })
-                                                        .ToList()
-                                                },
-                                            _ => GetDefault(session, dataType, builtInType),
-                                        };
-                                        dataTypes.AddOrUpdate(type.Key, description);
+                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
+                                            dataType, builtInType, session.MessageContext,
+                                            NamespaceFormat));
+                                        break;
                                     }
-                                }
-                                break;
-                            default:
-                                var baseName = baseType
-                                    .AsString(session.MessageContext, NamespaceFormat.Expanded);
-                                dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescriptionModel
-                                {
-                                    DataTypeId = typeName,
-                                    Name = browseName,
-                                    BaseDataType = baseName,
-                                    BuiltInType = (byte)builtInType
-                                });
-                                break;
+                                    foreach (var type in types)
+                                    {
+                                        if (!dataTypes.ContainsKey(type.Key))
+                                        {
+                                            var description = type.Value switch
+                                            {
+                                                StructureDefinition s =>
+                                                    new StructureDescriptionModel
+                                                    {
+                                                        DataTypeId = typeName,
+                                                        Name = browseName,
+                                                        BaseDataType = s.BaseDataType.AsString(
+                                                            session.MessageContext, NamespaceFormat),
+                                                        DefaultEncodingId = s.DefaultEncodingId.AsString(
+                                                            session.MessageContext, NamespaceFormat),
+                                                        StructureType = (Models.StructureType)s.StructureType,
+                                                        Fields = GetFields(s.Fields, typesToResolve,
+                                                            session.MessageContext, NamespaceFormat)
+                                                            .ToList()
+                                                    },
+                                                EnumDefinition e =>
+                                                    new EnumDescriptionModel
+                                                    {
+                                                        DataTypeId = typeName,
+                                                        Name = browseName,
+                                                        IsOptionSet = e.IsOptionSet,
+                                                        BuiltInType = null,
+                                                        Fields = e.Fields
+                                                            .Select(f => new EnumFieldDescriptionModel
+                                                            {
+                                                                Value = f.Value,
+                                                                DisplayName = f.DisplayName?.Text,
+                                                                Name = f.Name,
+                                                                Description = f.Description?.Text
+                                                            })
+                                                            .ToList()
+                                                    },
+                                                _ => GetDefault(dataType, builtInType,
+                                                    session.MessageContext, NamespaceFormat),
+                                            };
+                                            dataTypes.AddOrUpdate(type.Key, description);
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    var baseName = baseType
+                                        .AsString(session.MessageContext, NamespaceFormat);
+                                    dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescriptionModel
+                                    {
+                                        DataTypeId = typeName,
+                                        Name = browseName,
+                                        BaseDataType = baseName,
+                                        BuiltInType = (byte)builtInType
+                                    });
+                                    break;
+                            }
                         }
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
-                    {
-                        _logger.LogInformation("{Item}: Failed to get meta data for type " +
-                            "{DataType} (base: {BaseType}) with message: {Message}", this,
-                            dataTypeId, baseType, ex.Message);
-                        break;
+                        catch (Exception ex) when (ex is not OperationCanceledException)
+                        {
+                            _logger.LogInformation("{Item}: Failed to get meta data for type " +
+                                "{DataType} (base: {BaseType}) with message: {Message}", this,
+                                dataTypeId, baseType, ex.Message);
+                            break;
+                        }
                     }
                 }
 
@@ -1590,10 +2011,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     return false;
                 }
-                static object GetDefault(IOpcUaSession session, Node dataType, BuiltInType builtInType)
+
+                static object GetDefault(Node dataType, BuiltInType builtInType,
+                    IServiceMessageContext context, NamespaceFormat namespaceFormat)
                 {
-                    var name = dataType.BrowseName.AsString(session.MessageContext, NamespaceFormat.Expanded);
-                    var dataTypeId = dataType.NodeId.AsString(session.MessageContext, NamespaceFormat.Expanded);
+                    var name = dataType.BrowseName.AsString(context, namespaceFormat);
+                    var dataTypeId = dataType.NodeId.AsString(context, namespaceFormat);
                     return dataTypeId == null
                         ? throw new ServiceResultException(StatusCodes.BadConfigurationError)
                         : builtInType == BuiltInType.Enumeration
@@ -1610,6 +2033,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Name = name
                         };
                 }
+
+                static IEnumerable<StructureFieldDescriptionModel> GetFields(
+                    StructureFieldCollection? fields, Queue<NodeId> typesToResolve,
+                    IServiceMessageContext context, NamespaceFormat namespaceFormat)
+                {
+                    if (fields == null)
+                    {
+                        yield break;
+                    }
+                    foreach (var f in fields)
+                    {
+                        if (!IsBuiltInType(f.DataType))
+                        {
+                            typesToResolve.Enqueue(f.DataType);
+                        }
+                        yield return new StructureFieldDescriptionModel
+                        {
+                            IsOptional = f.IsOptional,
+                            MaxStringLength = f.MaxStringLength,
+                            ValueRank = f.ValueRank,
+                            ArrayDimensions = f.ArrayDimensions,
+                            DataType = f.DataType
+                                .AsString(context, namespaceFormat)
+                                ?? string.Empty,
+                            Name = f.Name,
+                            Description = f.Description?.Text
+                        };
+                    }
+                }
             }
 
             protected readonly static ServiceResultModel kItemInvalid = new()
@@ -1621,6 +2073,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             protected readonly DataSetItemResolver _resolver;
         }
         private readonly ILogger _logger;
-        private readonly IOptions<PublisherOptions> _options;
     }
 }

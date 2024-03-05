@@ -18,9 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Queue name writer should use to publish messages
         /// to.
         /// </summary>
-        [DataMember(Name = "queueName", Order = 1,
-            EmitDefaultValue = false)]
-        public string? QueueName { get; set; }
+        [DataMember(Name = "queueName", Order = 1)]
+        public string? QueueName { get; init; }
 
         /// <summary>
         /// Desired Quality of service to use in case of broker
@@ -28,6 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "requestedDeliveryGuarantee", Order = 2,
             EmitDefaultValue = false)]
-        public QoS? RequestedDeliveryGuarantee { get; set; }
+        public QoS? RequestedDeliveryGuarantee { get; init; }
     }
 }

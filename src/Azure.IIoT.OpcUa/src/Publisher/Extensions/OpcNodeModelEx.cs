@@ -26,9 +26,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        /// <param name="includeTriggerNodes"></param>
+        /// <param name="includeTriggeredNodes"></param>
         public static bool IsSame(this OpcNodeModel? model, OpcNodeModel? that,
-            bool includeTriggerNodes = true)
+            bool includeTriggeredNodes = true)
         {
             if (ReferenceEquals(model, that))
             {
@@ -160,9 +160,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (includeTriggerNodes &&
+            if (includeTriggeredNodes &&
                 model.TriggeredNodes?.SetEqualsSafe(that.TriggeredNodes,
                     (a, b) => a.IsSame(b, false)) == false)
+            {
+                return false;
+            }
+
+            if (model.NodeExpansion != that.NodeExpansion)
+            {
+                return false;
+            }
+
+            if (!string.Equals(model.ExpandedNodeId,
+                that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -218,6 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.ModelChangeHandling?.RebrowseIntervalTimespan);
             hash.Add(model.ConditionHandling?.UpdateInterval);
             hash.Add(model.ConditionHandling?.SnapshotInterval);
+            hash.Add(model.NodeExpansion);
             hash.Add(model.UseCyclicRead);
             hash.Add(model.RegisterNode);
 

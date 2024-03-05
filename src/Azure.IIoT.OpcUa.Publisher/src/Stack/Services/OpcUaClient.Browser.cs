@@ -207,7 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         bool repeatBrowse;
                         var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
                         var unprocessedOperations = new BrowseDescriptionCollection();
-
                         BrowseResultCollection? browseResultCollection = null;
                         do
                         {

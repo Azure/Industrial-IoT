@@ -15,6 +15,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetEventModel
     {
         /// <summary>
+        /// Unique Identifier of event in the dataset.
+        /// </summary>
+        [DataMember(Name = "id", Order = 0,
+            EmitDefaultValue = false)]
+        public string? Id { get; set; }
+
+        /// <summary>
         /// Event notifier to subscribe to (or start node)
         /// </summary>
         [DataMember(Name = "eventNotifier", Order = 1)]
@@ -44,27 +51,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "queueSize", Order = 5,
             EmitDefaultValue = false)]
-        public uint? QueueSize { get; set; }
+        public uint? QueueSize { get; init; }
 
         /// <summary>
         /// Discard new values if queue is full (Publisher extension)
         /// </summary>
         [DataMember(Name = "discardNew", Order = 6,
             EmitDefaultValue = false)]
-        public bool? DiscardNew { get; set; }
+        public bool? DiscardNew { get; init; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)
         /// </summary>
         [DataMember(Name = "monitoringMode", Order = 7,
             EmitDefaultValue = false)]
-        public MonitoringMode? MonitoringMode { get; set; }
+        public MonitoringMode? MonitoringMode { get; init; }
 
         /// <summary>
         /// Condition handling settings
         /// </summary>
         [DataMember(Name = "conditionHandling", Order = 9)]
-        public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
+        public ConditionHandlingOptionsModel? ConditionHandling { get; init; }
 
         /// <summary>
         /// Simple event Type definition id
@@ -75,9 +82,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Event name
         /// </summary>
-        [DataMember(Name = "publishedEventName", Order = 11,
+        [DataMember(Name = "name", Order = 11,
             EmitDefaultValue = false)]
-        public string? PublishedEventName { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Read event name from node.
@@ -85,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "readEventNameFromNode", Order = 12,
             EmitDefaultValue = false)]
-        public bool? ReadEventNameFromNode { get; set; }
+        public bool? ReadEventNameFromNode { get; init; }
 
         /// <summary>
         /// Model change event publishing configuration.
@@ -93,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "modelChangeHandling", Order = 13,
             EmitDefaultValue = false)]
-        public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; set; }
+        public ModelChangeHandlingOptionsModel? ModelChangeHandling { get; init; }
 
         /// <summary>
         /// Triggering configuration.
@@ -101,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "triggering", Order = 14,
             EmitDefaultValue = false)]
-        public PublishedDataSetTriggerModel? Triggering { get; set; }
+        public PublishedDataSetTriggerModel? Triggering { get; init; }
 
         /// <summary>
         /// Queue settings writer should use to publish messages
@@ -111,13 +118,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 15,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
-
-        /// <summary>
-        /// Unique Identifier of event in the dataset.
-        /// </summary>
-        [DataMember(Name = "id", Order = 20,
-            EmitDefaultValue = false)]
-        public string? Id { get; set; }
 
         /// <summary>
         /// Sets the current error state

@@ -117,6 +117,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
         /// <summary>
+        /// How the node should be expanded into a dataset
+        /// </summary>
+        [DataMember(Name = "NodeExpansion", Order = 13,
+            EmitDefaultValue = false)]
+        public PublishedNodeExpansion NodeExpansion { get; set; }
+
+        /// <summary>
         /// Browse path from the node to reach the actual node
         /// to monitor.
         /// </summary>

@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Send notifications as event
                 foreach (var n in ToMonitoredItemNotifications(sequenceNumber, eventFields)
-                    .Where(n => n.FieldId != null))
+                    .Where(n => !string.IsNullOrEmpty(n.FieldId)))
                 {
                     notifications.Add(n);
                 }
@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CancellationToken ct)
             {
                 var (eventFilter, internalSelectClauses) =
-                    await BuildEventFilterAsync(session, ct).ConfigureAwait(false);
+                    await BuildEventFilterAsync(session).ConfigureAwait(false);
                 UpdateFieldNames(session, eventFilter, internalSelectClauses);
                 return eventFilter;
             }
@@ -331,6 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var fieldName = string.Empty;
                         var definedSelectClause = Template.EventFilter.SelectClauses?
                             .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
+                        var fieldGuid = definedSelectClause?.DataSetClassFieldId;
                         if (!string.IsNullOrEmpty(definedSelectClause?.DataSetFieldName))
                         {
                             fieldName = definedSelectClause.DataSetFieldName;
@@ -349,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             fieldName = "ConditionId";
                         }
-                        Fields.Add((fieldName, Guid.NewGuid()));
+                        Fields.Add((fieldName, fieldGuid ?? Guid.NewGuid()));
                     }
                     else
                     {
@@ -364,101 +365,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Build event filter
             /// </summary>
             /// <param name="session"></param>
-            /// <param name="ct"></param>
             /// <returns></returns>
-            protected async ValueTask<(EventFilter, List<SimpleAttributeOperand>)> BuildEventFilterAsync(
-                IOpcUaSession session, CancellationToken ct)
+            protected ValueTask<(EventFilter, List<SimpleAttributeOperand>)> BuildEventFilterAsync(
+                IOpcUaSession session)
             {
-                EventFilter? eventFilter;
-                if (!string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId))
-                {
-                    eventFilter = await GetSimpleEventFilterAsync(session, ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    eventFilter = session.Codec.Decode(Template.EventFilter);
-                }
+                var eventFilter = Template.EventFilter.SelectClauses == null
+                    ? FilterEncoderEx.GetDefaultEventFilter()
+                    : session.Codec.Decode(Template.EventFilter);
 
                 // let's keep track of the internal fields we add so that they don't show up in the output
                 var selectClauses = new List<SimpleAttributeOperand>();
                 if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                     && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
                 {
-                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
+                    var selectClause = new SimpleAttributeOperand(
+                        ObjectTypeIds.BaseEventType, BrowseNames.EventType);
                     eventFilter.SelectClauses.Add(selectClause);
                     selectClauses.Add(selectClause);
                 }
-                return (eventFilter, selectClauses);
-            }
-
-            /// <summary>
-            /// Builds select clause and where clause by using OPC UA reflection
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private async ValueTask<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
-                CancellationToken ct)
-            {
-                Debug.Assert(Template != null);
-                var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
-                    session.MessageContext);
-                var nodes = new List<Node>();
-                ExpandedNodeId? superType = null;
-                var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
-                    ct).ConfigureAwait(false);
-                nodes.Insert(0, typeDefinitionNode);
-                do
-                {
-                    superType = nodes[0].GetSuperType(session.TypeTree);
-                    if (superType != null)
-                    {
-                        typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
-                            ct).ConfigureAwait(false);
-                        nodes.Insert(0, typeDefinitionNode);
-                    }
-                }
-                while (superType != null);
-
-                var fieldNames = new List<QualifiedName>();
-
-                foreach (var node in nodes)
-                {
-                    await ParseFieldsAsync(session, fieldNames, node, string.Empty, ct).ConfigureAwait(false);
-                }
-                fieldNames = fieldNames
-                    .Distinct()
-                    .OrderBy(x => x.Name).ToList();
-
-                var eventFilter = new EventFilter();
-                // Let's add ConditionId manually first if event is derived from ConditionType
-                if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType))
-                {
-                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
-                    {
-                        BrowsePath = new QualifiedNameCollection(),
-                        TypeDefinitionId = ObjectTypeIds.ConditionType,
-                        AttributeId = Attributes.NodeId
-                    });
-                }
-
-                foreach (var fieldName in fieldNames)
-                {
-                    var selectClause = new SimpleAttributeOperand()
-                    {
-                        TypeDefinitionId = ObjectTypeIds.BaseEventType,
-                        AttributeId = Attributes.Value,
-                        BrowsePath = fieldName.Name
-                            .Split('|')
-                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
-                            .ToArray()
-                    };
-                    eventFilter.SelectClauses.Add(selectClause);
-                }
-                eventFilter.WhereClause = new ContentFilter();
-                eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
-
-                return eventFilter;
+                return ValueTask.FromResult((eventFilter, selectClauses));
             }
 
             /// <summary>

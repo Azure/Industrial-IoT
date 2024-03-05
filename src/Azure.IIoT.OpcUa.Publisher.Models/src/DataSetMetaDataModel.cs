@@ -19,27 +19,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
-        public string? Name { get; set; }
+        public string? Name { get; init; }
 
         /// <summary>
         /// Dataset class id
         /// </summary>
         [DataMember(Name = "dataSetClassId", Order = 3,
             EmitDefaultValue = false)]
-        public Guid DataSetClassId { get; set; }
+        public Guid DataSetClassId { get; init; }
 
         /// <summary>
         /// Description of the dataset
         /// </summary>
         [DataMember(Name = "description", Order = 4,
             EmitDefaultValue = false)]
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
         /// <summary>
         /// Major version
         /// </summary>
         [DataMember(Name = "majorVersion", Order = 5,
             EmitDefaultValue = false)]
-        public uint MajorVersion { get; set; }
+        public uint MajorVersion { get; init; }
     }
 }

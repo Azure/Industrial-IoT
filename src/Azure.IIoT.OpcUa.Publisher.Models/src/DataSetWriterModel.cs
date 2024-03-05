@@ -18,48 +18,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Dataset writer identifier.
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
 
         /// <summary>
         /// Published dataset inline definition
         /// </summary>
         [DataMember(Name = "dataSet", Order = 1,
             EmitDefaultValue = false)]
-        public PublishedDataSetModel? DataSet { get; set; }
+        public PublishedDataSetModel? DataSet { get; init; }
 
         /// <summary>
         /// Dataset field content mask
         /// </summary>
         [DataMember(Name = "dataSetFieldContentMask", Order = 2,
             EmitDefaultValue = false)]
-        public DataSetFieldContentMask? DataSetFieldContentMask { get; set; }
+        public DataSetFieldContentMask? DataSetFieldContentMask { get; init; }
 
         /// <summary>
         /// Data set message settings
         /// </summary>
         [DataMember(Name = "messageSettings", Order = 3,
             EmitDefaultValue = false)]
-        public DataSetWriterMessageSettingsModel? MessageSettings { get; set; }
+        public DataSetWriterMessageSettingsModel? MessageSettings { get; init; }
 
         /// <summary>
         /// Keyframe count
         /// </summary>
         [DataMember(Name = "keyFrameCount", Order = 4,
             EmitDefaultValue = false)]
-        public uint? KeyFrameCount { get; set; }
+        public uint? KeyFrameCount { get; init; }
 
         /// <summary>
         /// Dataset writer name.
         /// </summary>
         [DataMember(Name = "dataSetWriterName", Order = 5)]
-        public string? DataSetWriterName { get; set; }
+        public string? DataSetWriterName { get; init; }
 
         /// <summary>
         /// Metadata message sending interval
         /// </summary>
         [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
-        public TimeSpan? MetaDataUpdateTime { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; init; }
 
         /// <summary>
         /// Metadata queue settings the writer should use to publish
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaData", Order = 7,
             EmitDefaultValue = false)]
-        public PublishingQueueSettingsModel? MetaData { get; set; }
+        public PublishingQueueSettingsModel? MetaData { get; init; }
 
         /// <summary>
         /// Queue settings writer should use to publish messages
@@ -76,13 +76,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "publishing", Order = 8,
             EmitDefaultValue = false)]
-        public PublishingQueueSettingsModel? Publishing { get; set; }
+        public PublishingQueueSettingsModel? Publishing { get; init; }
 
         /// <summary>
         /// Sets the current error state
         /// </summary>
         [DataMember(Name = "state", Order = 10,
             EmitDefaultValue = false)]
-        public ServiceResultModel? State { get; set; }
+        public ServiceResultModel? State { get; init; }
     }
 }

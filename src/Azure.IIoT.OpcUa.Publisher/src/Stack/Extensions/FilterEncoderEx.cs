@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Gets a default event filter.
         /// </summary>
         /// <returns></returns>
-        private static EventFilter GetDefaultEventFilter()
+        public static EventFilter GetDefaultEventFilter()
         {
             var filter = new EventFilter();
             filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventId);
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterModel
             {
-                Elements = model.Elements?
+                Elements = model.Elements
                     .Select(e => encoder.Encode(e, namespaceFormat))
                     .ToList()
             };

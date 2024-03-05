@@ -18,27 +18,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
-        public DataSetContentMask? DataSetMessageContentMask { get; set; }
+        public DataSetContentMask? DataSetMessageContentMask { get; init; }
 
         /// <summary>
         /// Configured size of network message
         /// </summary>
         [DataMember(Name = "configuredSize", Order = 1,
             EmitDefaultValue = false)]
-        public ushort? ConfiguredSize { get; set; }
+        public ushort? ConfiguredSize { get; init; }
 
         /// <summary>
         /// Uadp metwork message number
         /// </summary>
         [DataMember(Name = "networkMessageNumber", Order = 2,
             EmitDefaultValue = false)]
-        public ushort? NetworkMessageNumber { get; set; }
+        public ushort? NetworkMessageNumber { get; init; }
 
         /// <summary>
         /// Uadp dataset offset
         /// </summary>
         [DataMember(Name = "dataSetOffset", Order = 3,
             EmitDefaultValue = false)]
-        public ushort? DataSetOffset { get; set; }
+        public ushort? DataSetOffset { get; init; }
+
+        /// <summary>
+        /// Optional namespace format to use when serializing
+        /// nodes and qualified names in responses.
+        /// </summary>
+        [DataMember(Name = "namespaceFormat", Order = 4,
+            EmitDefaultValue = false)]
+        public NamespaceFormat? NamespaceFormat { get; init; }
     }
 }

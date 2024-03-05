@@ -830,8 +830,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public SubscriptionOptions(WriterGroupModel writerGroup,
                     DataSetWriterModel dataSetWriter)
                 {
-                    DataSetWriter = dataSetWriter?.Clone() ??
-                        throw new ArgumentNullException(nameof(dataSetWriter));
+                    DataSetWriter = dataSetWriter;
                     WriterGroup = writerGroup;
 
                     Routing = DataSetWriter.DataSet?.Routing ?? DataSetRoutingMode.None;
@@ -847,7 +846,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         MetadataTopic = Topic;
                     }
                     ContextSelector = Routing == DataSetRoutingMode.None
-                        ? n => n.Context
+                        ? _ => null
                         : n => n.PathFromRoot == null || n.Context != null ?
                           n.Context : new TopicContext(Topic, n.PathFromRoot, Qos,
                             Routing != DataSetRoutingMode.UseBrowseNames);

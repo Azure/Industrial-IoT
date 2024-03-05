@@ -19,13 +19,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "filterOperator", Order = 0,
             EmitDefaultValue = false)]
-        public FilterOperatorType FilterOperator { get; set; }
+        public required FilterOperatorType FilterOperator { get; init; }
 
         /// <summary>
         /// The operands in the element for the operator
         /// </summary>
         [DataMember(Name = "filterOperands", Order = 1,
             EmitDefaultValue = false)]
-        public IReadOnlyList<FilterOperandModel>? FilterOperands { get; set; }
+        public required IReadOnlyList<FilterOperandModel> FilterOperands { get; init; }
     }
 }

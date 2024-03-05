@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                DataSetMetaData = model.DataSetMetaData.Clone(),
                 DataSetSource = model.DataSetSource.Clone(),
                 ExtensionFields = model.ExtensionFields?
                     .Select(e => e with { })
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSet"></param>
         /// <returns></returns>
-        public static IEnumerable<PublishedDataItemMetaDataModel?> EnumerateMetaData(
+        public static IEnumerable<PublishedMetaDataModel?> EnumerateMetaData(
             this PublishedDataSetModel dataSet)
         {
             if (dataSet.DataSetSource == null)

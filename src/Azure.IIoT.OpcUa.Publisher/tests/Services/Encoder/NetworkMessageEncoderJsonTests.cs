@@ -215,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                                     new PublishedDataSetVariableModel
                                     {
                                         DataSetFieldName = "test",
-                                        MetaData = new PublishedDataItemMetaDataModel
+                                        MetaData = new PublishedMetaDataModel
                                         {
                                             BuiltInType = (byte)BuiltInType.UInt16
                                         }

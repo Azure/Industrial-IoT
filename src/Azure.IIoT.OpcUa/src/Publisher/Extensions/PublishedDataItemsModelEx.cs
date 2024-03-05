@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                PublishedData = model.PublishedData?.Select(d => d.Clone()).ToList()
+                PublishedData = model.PublishedData.Select(d => d.Clone()).ToList()
             });
         }
     }

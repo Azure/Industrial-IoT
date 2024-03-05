@@ -199,6 +199,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         yield return new Field(efm,
                             factory.CreateLogger<Field>());
                         break;
+                    case ConfigurationErrorItemModel epi:
+                        yield return new Error(epi,
+                            factory.CreateLogger<Error>());
+                        break;
                     default:
                         Debug.Fail($"Unexpected type of item {item}");
                         break;

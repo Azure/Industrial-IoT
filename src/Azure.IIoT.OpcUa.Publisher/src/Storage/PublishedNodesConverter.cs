@@ -136,7 +136,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetPublishingIntervalTimespan = null,
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
-                                    item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
+                                    item.Writer.DataSet?.DataSetSource?.PublishedEvents, null,
+                                    preferTimeSpan, false)?
                                 .ToList() ?? new List<OpcNodeModel>(),
                             // ...
 
@@ -174,8 +175,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
 
             static IEnumerable<OpcNodeModel>? ToOpcNodes(PublishedDataSetSettingsModel? subscriptionSettings,
-                PublishedDataItemsModel? publishedVariables, PublishedEventItemsModel? publishedEvents, bool preferTimeSpan,
-                bool skipTriggeringNodes)
+                PublishedDataItemsModel? publishedVariables, PublishedEventItemsModel? publishedEvents,
+                PublishedObjectItemsModel? publishedObjects, bool preferTimeSpan, bool skipTriggeringNodes)
             {
                 if (publishedVariables == null && publishedEvents == null)
                 {
@@ -200,18 +201,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         QueueSize = variable.ServerQueueSize,
                         DataChangeTrigger = variable.DataChangeTrigger,
                         HeartbeatBehavior = variable.HeartbeatBehavior,
-                        HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
-                        HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
-                        OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
-                        OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingIntervalHint,
+                        HeartbeatInterval = preferTimeSpan ?
+                            null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
+                        HeartbeatIntervalTimespan = !preferTimeSpan ?
+                            null : variable.HeartbeatInterval,
+                        OpcSamplingInterval = preferTimeSpan ?
+                            null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
+                        OpcSamplingIntervalTimespan = !preferTimeSpan ?
+                            null : variable.SamplingIntervalHint,
                         OpcPublishingInterval = preferTimeSpan ? null : (int?)
                             subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
                         OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
                             subscriptionSettings?.PublishingInterval,
                         SkipFirst = variable.SkipFirst,
-                        TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
-                            variable.Triggering?.PublishedVariables,
-                            variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                        TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(
+                            subscriptionSettings, variable.Triggering?.PublishedVariables,
+                            variable.Triggering?.PublishedEvents, null, preferTimeSpan, true)?.ToList(),
                         Topic = variable.Publishing?.QueueName,
                         QualityOfService = variable.Publishing?.RequestedDeliveryGuarantee,
 
@@ -223,6 +228,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         ModelChangeHandling = null,
                         EventFilter = null
                     })
+                    .Concat((publishedObjects?.PublishedData ?? Enumerable.Empty<PublishedObjectModel>())
+                    .Select(obj => new OpcNodeModel
+                    {
+                        Id = obj.PublishedNodeId,
+                        BrowsePath = obj.BrowsePath,
+                        DiscardNew = obj.Template.DiscardNew,
+                        QueueSize = obj.Template.ServerQueueSize,
+                        OpcSamplingInterval = preferTimeSpan ? null :
+                            (int?)obj.Template.SamplingIntervalHint?.TotalMilliseconds,
+                        OpcSamplingIntervalTimespan = !preferTimeSpan ?
+                            null : obj.Template.SamplingIntervalHint,
+                        OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                            subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
+                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                            subscriptionSettings?.PublishingInterval,
+                        NodeExpansion = obj.Flags | PublishedNodeExpansion.Expand,
+                        DisplayName = obj.Name,
+                        Topic = obj.Template.Publishing?.QueueName,
+                        QualityOfService = obj.Template.Publishing?.RequestedDeliveryGuarantee,
+                        FetchDisplayName = obj.Template.ReadDisplayNameFromNode,
+                        RegisterNode = obj.Template.RegisterNodeForSampling,
+                        SkipFirst = obj.Template.SkipFirst,
+                        UseCyclicRead = obj.Template.SamplingUsingCyclicRead,
+                        DataChangeTrigger = obj.Template.DataChangeTrigger,
+                        DeadbandType = obj.Template.DeadbandType,
+                        DeadbandValue = obj.Template.DeadbandValue,
+                        HeartbeatBehavior = obj.Template.HeartbeatBehavior,
+                        HeartbeatInterval = preferTimeSpan ?
+                            null : (int?)obj.Template.HeartbeatInterval?.TotalMilliseconds,
+                        HeartbeatIntervalTimespan = !preferTimeSpan ?
+                            null : obj.Template.HeartbeatInterval,
+                        AttributeId = obj.Template.Attribute,
+                        // MonitoringMode = obj.Template.MonitoringMode,
+                        // ...
+
+                        TriggeredNodes = null,
+                        IndexRange = null,
+                        ExpandedNodeId = null,
+                        ConditionHandling = null,
+                        ModelChangeHandling = null,
+                        DataSetClassFieldId = Guid.Empty,
+                        DataSetFieldId = null,
+                        EventFilter = null
+                    }))
                     .Concat((publishedEvents?.PublishedData ?? Enumerable.Empty<PublishedDataSetEventModel>())
                     .Select(evt => new OpcNodeModel
                     {
@@ -236,14 +285,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         ConditionHandling = evt.ConditionHandling.Clone(),
                         ModelChangeHandling = evt.ModelChangeHandling.Clone(),
                         DataSetFieldId = evt.Id,
-                        DisplayName = evt.PublishedEventName,
+                        DisplayName = evt.Name,
                         FetchDisplayName = evt.ReadEventNameFromNode,
                         BrowsePath = evt.BrowsePath,
                         DiscardNew = evt.DiscardNew,
                         QueueSize = evt.QueueSize,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             evt.Triggering?.PublishedVariables,
-                            evt.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                            evt.Triggering?.PublishedEvents, null, preferTimeSpan, true)?.ToList(),
                         Topic = evt.Publishing?.QueueName,
                         QualityOfService = evt.Publishing?.RequestedDeliveryGuarantee,
 
@@ -394,9 +443,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Connection = new ConnectionModel
                                     {
-                                        Options =
-                                                b.Header.UseReverseConnect == true ?
-                                                     ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
+                                        Options = b.Header.UseReverseConnect == true ?
+                                            ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
                                         Endpoint = new EndpointModel
                                         {
                                             Url = b.Header.EndpointUrl,
@@ -405,9 +453,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                     (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
                                         },
                                         User =
-                                                b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
-                                                b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
-                                                    ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
+                                            b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
+                                            b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                                                ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
                                     },
                                     SubscriptionSettings = new PublishedDataSetSettingsModel
                                     {
@@ -416,6 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
                                         // ...
                                     },
+                                    PublishedObjects = ToPublishedObjectItems(b.Nodes),
                                     PublishedVariables = ToPublishedDataItems(b.Nodes, false),
                                     PublishedEvents = ToPublishedEventItems(b.Nodes, false)
                                 }
@@ -423,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageSettings = null,
                             DataSetFieldContentMask = null
                         })
-                            .ToList(),
+                        .ToList(),
                     KeepAliveTime = null,
                     MaxNetworkMessageSize = null,
                     MessageSettings = null,
@@ -468,6 +517,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
                                 DeadbandType = node.DeadbandType,
+                                NodeExpansion = node.NodeExpansion,
                                 DeadbandValue = node.DeadbandValue,
                                 EventFilter = node.EventFilter,
                                 HeartbeatBehavior = node.HeartbeatBehavior,
@@ -498,6 +548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     OpcSamplingIntervalTimespan = node
                                         .GetNormalizedSamplingInterval(),
                                     QueueSize = node.QueueSize,
+                                    NodeExpansion = node.NodeExpansion,
                                     SkipFirst = node.SkipFirst,
                                     DataChangeTrigger = node.DataChangeTrigger,
                                     BrowsePath = node.BrowsePath,
@@ -532,11 +583,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
             }
 
-            static PublishedDataItemsModel ToPublishedDataItems(IEnumerable<OpcNodeModel> opcNodes, bool skipTriggering)
+            static PublishedObjectItemsModel ToPublishedObjectItems(IEnumerable<OpcNodeModel> opcNodes)
+            {
+                return new PublishedObjectItemsModel
+                {
+                    PublishedData = opcNodes.Where(node =>
+                        node.NodeExpansion.HasFlag(PublishedNodeExpansion.Expand) &&
+                        node.EventFilter == null && node.ModelChangeHandling == null)
+                    .Select((node, i) => new PublishedObjectModel
+                    {
+                        Id = node.DataSetFieldId,
+                        Flags = node.NodeExpansion,
+                        Name = node.DataSetFieldId ?? node.DisplayName,
+                        PublishedNodeId = node.Id,
+                        BrowsePath = node.BrowsePath,
+                        Template = new PublishedDataSetVariableModel
+                        {
+                            FieldIndex = i,
+                            // At this point in time the next values are ensured to be filled in with
+                            // the appropriate value: configured or default
+                            SamplingIntervalHint = node.OpcSamplingIntervalTimespan,
+                            HeartbeatInterval = node.HeartbeatIntervalTimespan,
+                            HeartbeatBehavior = node.HeartbeatBehavior,
+                            ServerQueueSize = node.QueueSize,
+                            DiscardNew = node.DiscardNew,
+                            SamplingUsingCyclicRead = node.UseCyclicRead,
+                            Attribute = node.AttributeId,
+                            IndexRange = node.IndexRange,
+                            RegisterNodeForSampling = node.RegisterNode,
+                            ReadDisplayNameFromNode = node.FetchDisplayName,
+                            MonitoringMode = null,
+                            SubstituteValue = null,
+                            SkipFirst = node.SkipFirst,
+                            DataChangeTrigger = node.DataChangeTrigger,
+                            DeadbandValue = node.DeadbandValue,
+                            DeadbandType = node.DeadbandType,
+                            Publishing = node.Topic == null && node.QualityOfService == null
+                                ? null : new PublishingQueueSettingsModel
+                                {
+                                    QueueName = node.Topic,
+                                    RequestedDeliveryGuarantee = node.QualityOfService
+                                }
+                        },
+                        PublishedVariables = null,
+                        State = null
+                    })
+                    .ToList()
+                };
+            }
+
+            static PublishedDataItemsModel ToPublishedDataItems(IEnumerable<OpcNodeModel> opcNodes,
+                bool skipTriggering)
             {
                 return new PublishedDataItemsModel
                 {
-                    PublishedData = opcNodes.Where(node => node.EventFilter == null && node.ModelChangeHandling == null)
+                    PublishedData = opcNodes.Where(node =>
+                        !node.NodeExpansion.HasFlag(PublishedNodeExpansion.Expand) &&
+                        node.EventFilter == null && node.ModelChangeHandling == null)
                     .Select((node, i) => new PublishedDataSetVariableModel
                     {
                         FieldIndex = i,
@@ -582,23 +685,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 };
             }
 
-            static PublishedEventItemsModel ToPublishedEventItems(IEnumerable<OpcNodeModel> opcNodes, bool skipTriggering)
+            static PublishedEventItemsModel ToPublishedEventItems(IEnumerable<OpcNodeModel> opcNodes,
+                bool skipTriggering)
             {
                 return new PublishedEventItemsModel
                 {
-                    PublishedData = opcNodes.Where(node => node.EventFilter != null || node.ModelChangeHandling != null)
+                    PublishedData = opcNodes.Where(
+                        node => !node.NodeExpansion.HasFlag(PublishedNodeExpansion.Expand) &&
+                            (node.EventFilter != null || node.ModelChangeHandling != null))
                     .Select(node => new PublishedDataSetEventModel
                     {
                         Id = node.DataSetFieldId,
                         EventNotifier = node.Id,
                         QueueSize = node.QueueSize,
                         DiscardNew = node.DiscardNew,
-                        PublishedEventName = node.DisplayName,
+                        Name = node.DisplayName,
                         ReadEventNameFromNode = node.FetchDisplayName,
                         BrowsePath = node.BrowsePath,
                         MonitoringMode = null,
                         TypeDefinitionId = node.EventFilter?.TypeDefinitionId,
-                        SelectedFields = node.EventFilter?.SelectClauses?.Select(s => s.Clone()).ToList(),
+                        SelectedFields = node.EventFilter?.SelectClauses?
+                            .Select(s => s.Clone()).ToList(),
                         Filter = node.EventFilter?.WhereClause.Clone(),
                         ConditionHandling = node.ConditionHandling.Clone(),
                         ModelChangeHandling = node.ModelChangeHandling.Clone(),

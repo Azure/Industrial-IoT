@@ -18,25 +18,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal abstract partial class OpcUaMonitoredItem
     {
         /// <summary>
-        /// Extension Field item
+        /// Error placehold item
         /// </summary>
         [DataContract(Namespace = Namespaces.OpcUaXsd)]
         [KnownType(typeof(DataChangeFilter))]
         [KnownType(typeof(EventFilter))]
         [KnownType(typeof(AggregateFilter))]
-        internal class Field : OpcUaMonitoredItem
+        internal class Error : OpcUaMonitoredItem
         {
             /// <summary>
             /// Item as extension field
             /// </summary>
-            public ExtensionFieldItemModel Template { get; protected internal set; }
+            public ConfigurationErrorItemModel Template { get; protected internal set; }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Field(ExtensionFieldItemModel template, ILogger<Field> logger)
+            public Error(ConfigurationErrorItemModel template, ILogger<Error> logger)
                 : base(logger, template.Order)
             {
                 Template = template;
@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="item"></param>
             /// <param name="copyEventHandlers"></param>
             /// <param name="copyClientHandle"></param>
-            protected Field(Field item, bool copyEventHandlers,
+            protected Error(Error item, bool copyEventHandlers,
                 bool copyClientHandle)
                 : base(item, copyEventHandlers, copyClientHandle)
             {
@@ -60,13 +60,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override MonitoredItem CloneMonitoredItem(
                 bool copyEventHandlers, bool copyClientHandle)
             {
-                return new Field(this, copyEventHandlers, copyClientHandle);
+                return new Error(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
-                if (obj is not Field fieldItem)
+                if (obj is not Error fieldItem)
                 {
                     return false;
                 }
@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                if (Template.Value != fieldItem.Template.Value)
+                if (Template.State != fieldItem.Template.State)
                 {
                     return false;
                 }
@@ -86,22 +86,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override int GetHashCode()
             {
                 return HashCode.Combine(base.GetHashCode(),
-                    nameof(Field),
+                    nameof(Error),
                     Template.Name ?? string.Empty,
-                    Template.Value);
+                    Template.State);
             }
 
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Field '{Template.Name}' with value {Template.Value}.";
+                return $"Error for '{Template.Name}' with status {Template.State}.";
             }
 
             /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session)
             {
-                _value = new DataValue(session.Codec.Decode(Template.Value, BuiltInType.Variant));
+                _value = new DataValue(Template.State.StatusCode);
                 Valid = true;
                 return true;
             }
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
                 DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
-                Debug.Fail("Unexpected notification on extension field");
+                Debug.Fail("Unexpected notification on error placeholder.");
                 return false;
             }
 
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 uint sequenceNumber, StatusCode statusCode,
                 IList<MonitoredItemNotificationModel> notifications)
             {
-                Debug.Fail("Unexpected notification on extension field");
+                Debug.Fail("Unexpected notification on error placeholder.");
                 return false;
             }
 

@@ -5,22 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using System.Diagnostics.CodeAnalysis;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
-    /// Dataset metadata extensions
+    /// Published items
     /// </summary>
-    public static class DataSetMetaDataModelEx
+    [DataContract]
+    public sealed record class PublishedObjectItemsModel
     {
         /// <summary>
-        /// Clone
+        /// Published objects
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull(nameof(model))]
-        public static DataSetMetaDataModel? Clone(this DataSetMetaDataModel? model)
-        {
-            return model == null ? null : (model with { });
-        }
+        [DataMember(Name = "publishedData", Order = 0)]
+        public required IReadOnlyList<PublishedObjectModel> PublishedData { get; init; }
     }
 }

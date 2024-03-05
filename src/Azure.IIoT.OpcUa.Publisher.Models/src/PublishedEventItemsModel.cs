@@ -18,6 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Published data
         /// </summary>
         [DataMember(Name = "publishedData", Order = 0)]
-        public IReadOnlyList<PublishedDataSetEventModel>? PublishedData { get; set; }
+        public required IReadOnlyList<PublishedDataSetEventModel> PublishedData { get; init; }
     }
 }

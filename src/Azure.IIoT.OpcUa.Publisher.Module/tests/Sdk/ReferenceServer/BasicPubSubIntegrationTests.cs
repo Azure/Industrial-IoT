@@ -21,6 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     {
         internal const string kEventId = "EventId";
         internal const string kMessage = "Message";
+        internal const string kCycleIdExpanded = "nsu=http://opcfoundation.org/SimpleEvents;CycleId";
+        internal const string kCurrentStepExpanded = "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep";
         internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
@@ -282,8 +284,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Variant encoding is the default
                 var eventId = value.GetProperty(kEventId).GetProperty("Value");
                 var message = value.GetProperty(kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(kCycleIdExpanded).GetProperty("Value");
+                var currentStep = value.GetProperty(kCurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -324,11 +326,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
+                var cycleId = body.GetProperty(kCycleIdExpanded).GetProperty("Value");
                 Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
+                var currentStep = body.GetProperty(kCurrentStepExpanded).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
                 Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
@@ -356,6 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
+                .GroupBy(m => m.GetProperty("DataSetWriterName").GetString())
                 .ToArray();
 
             dataSetWriterNames.Select(d => d.Split('|')[1])
@@ -363,15 +366,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             // Assert
             Assert.NotEmpty(messages);
-            Assert.All(messages, m =>
+            Assert.All(messages
+                .Where(k => k.Key.EndsWith("|CycleStarted", StringComparison.Ordinal))
+                .SelectMany(m => m), m =>
             {
                 var value = m.GetProperty("Payload");
 
                 // Variant encoding is the default
                 var eventId = value.GetProperty(kEventId).GetProperty("Value");
                 var message = value.GetProperty(kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(kCycleIdExpanded).GetProperty("Value");
+                var currentStep = value.GetProperty(kCurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -539,12 +544,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 },
                 v =>
                 {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId", v.GetProperty("Name").GetString());
+                    Assert.Equal(kCycleIdExpanded, v.GetProperty("Name").GetString());
                     Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
                 v =>
                 {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#CurrentStep", v.GetProperty("Name").GetString());
+                    Assert.Equal(kCurrentStepExpanded, v.GetProperty("Name").GetString());
                     Assert.Equal(183, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                     Assert.Equal("http://opcfoundation.org/SimpleEvents",
                         v.GetProperty("DataType").GetProperty("Namespace").GetString());

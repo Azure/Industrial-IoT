@@ -87,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _topicCache = new ConcurrentDictionary<string, string>();
 
             _diagnosticInterval = options.Value.DiagnosticsInterval ?? TimeSpan.Zero;
-            _diagnostics = options.Value.DiagnosticsTarget ?? PublisherDiagnosticTargetType.Logger;
+            _diagnostics = options.Value.DiagnosticsTarget
+                ?? PublisherDiagnosticTargetType.Logger;
             if (_diagnosticInterval == TimeSpan.Zero)
             {
                 _diagnosticInterval = Timeout.InfiniteTimeSpan;
@@ -213,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
-                            "Using valid Certificate found in {Store} store (renewal in {Duration})...",
+                    "Using valid Certificate found in {Store} store (renewal in {Duration})...",
                             apiKeyStore.Name, renewalAfter);
                         _renewalTimer.Change(renewalAfter, Timeout.InfiniteTimeSpan);
                         // Done

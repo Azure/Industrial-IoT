@@ -20,28 +20,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// simple or full attribute operand.
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 0)]
-        public string? TypeDefinitionId { get; set; }
+        public string? TypeDefinitionId { get; init; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public IReadOnlyList<string>? BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; init; }
 
         /// <summary>
         /// Attribute id
         /// </summary>
         [DataMember(Name = "attributeId", Order = 2,
             EmitDefaultValue = false)]
-        public NodeAttribute? AttributeId { get; set; }
+        public NodeAttribute? AttributeId { get; init; }
 
         /// <summary>
         /// Index range of attribute operand
         /// </summary>
         [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
-        public string? IndexRange { get; set; }
+        public string? IndexRange { get; init; }
 
         /// <summary>
         /// Field name in the data set (Publisher extension)
@@ -62,13 +62,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaData", Order = 6,
             EmitDefaultValue = false)]
-        public PublishedDataItemMetaDataModel? MetaData { get; set; }
+        public PublishedMetaDataModel? MetaData { get; set; }
 
         /// <summary>
         /// Field index in the dataset.
         /// </summary>
         [DataMember(Name = "fieldIndex", Order = 7,
             EmitDefaultValue = false)]
-        public int FieldIndex { get; set; }
+        public int FieldIndex { get; init; }
     }
 }

@@ -2493,7 +2493,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             // Check model
             var model = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("TestingDisplayName", model.PublishedEventName);
+            Assert.Equal("TestingDisplayName", model.Name);
             Assert.Equal("i=2258", model.EventNotifier);
 
             // Check select clauses
@@ -2762,7 +2762,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("DisplayName2253", eventModel.PublishedEventName);
+            Assert.Equal("DisplayName2253", eventModel.Name);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal(11, eventModel.SelectedFields.Count);
             Assert.All(eventModel.SelectedFields, x =>

@@ -5,37 +5,36 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
-
     /// <summary>
     /// Base item model
     /// </summary>
     public abstract record BaseItemModel
     {
         /// <summary>
-        /// Identifier of the item
+        /// Unique identifier of the item.
         /// </summary>
         public required string? Id { get; init; }
 
         /// <summary>
-        /// Specifies the order of the item
+        /// Specifies the order of item. This is not the order
+        /// in the subscription, consider the subscription reporting
+        /// unordered list of notifications, but the monitored item
+        /// notification will contain this field which then allows
+        /// a consumer to order so to match this to metadata.
         /// </summary>
         public required int Order { get; init; }
 
         /// <summary>
-        /// Name of the item
+        /// Name of the item that should be reported inside the
+        /// monitored item notifications emitted.
         /// </summary>
         public string? Name { get; set; }
 
         /// <summary>
-        /// Opaque context which will be added to the notifications
+        /// Opaque context which will be added to all item monitored
+        /// notifications.
         /// </summary>
         public object? Context { get; init; }
-
-        /// <summary>
-        /// Data set field id
-        /// </summary>
-        public ServiceResultModel? State { get; set; }
     }
 
     /// <summary>

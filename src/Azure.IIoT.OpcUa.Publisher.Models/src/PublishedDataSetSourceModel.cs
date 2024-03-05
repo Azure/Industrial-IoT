@@ -14,30 +14,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetSourceModel
     {
         /// <summary>
+        /// Connection information (publisher extension)
+        /// </summary>
+        [DataMember(Name = "connection", Order = 5)]
+        public ConnectionModel? Connection { get; init; }
+
+        /// <summary>
+        /// Subscription settings (publisher extension)
+        /// </summary>
+        [DataMember(Name = "subscriptionSettings", Order = 6,
+            EmitDefaultValue = false)]
+        public PublishedDataSetSettingsModel? SubscriptionSettings { get; init; }
+
+        /// <summary>
         /// Either published data variables
         /// </summary>
-        [DataMember(Name = "publishedVariables", Order = 0,
+        [DataMember(Name = "publishedVariables", Order = 7,
             EmitDefaultValue = false)]
         public PublishedDataItemsModel? PublishedVariables { get; set; }
 
         /// <summary>
         /// Or published events data
         /// </summary>
-        [DataMember(Name = "publishedEvents", Order = 1,
+        [DataMember(Name = "publishedEvents", Order = 8,
             EmitDefaultValue = false)]
         public PublishedEventItemsModel? PublishedEvents { get; set; }
 
         /// <summary>
-        /// Connection information (publisher extension)
+        /// Or published objects (publisher extension)
         /// </summary>
-        [DataMember(Name = "connection", Order = 2)]
-        public ConnectionModel? Connection { get; set; }
-
-        /// <summary>
-        /// Subscription settings (publisher extension)
-        /// </summary>
-        [DataMember(Name = "subscriptionSettings", Order = 3,
+        [DataMember(Name = "publishedObjects", Order = 9,
             EmitDefaultValue = false)]
-        public PublishedDataSetSettingsModel? SubscriptionSettings { get; set; }
+        public PublishedObjectItemsModel? PublishedObjects { get; set; }
     }
 }

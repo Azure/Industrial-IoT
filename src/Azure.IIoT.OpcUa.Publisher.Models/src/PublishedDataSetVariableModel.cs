@@ -51,77 +51,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "attribute", Order = 4,
             EmitDefaultValue = false)]
-        public NodeAttribute? Attribute { get; set; }
+        public NodeAttribute? Attribute { get; init; }
 
         /// <summary>
         /// Index range
         /// </summary>
         [DataMember(Name = "indexRange", Order = 5,
             EmitDefaultValue = false)]
-        public string? IndexRange { get; set; }
+        public string? IndexRange { get; init; }
 
         /// <summary>
         /// Sampling Interval hint - default is best effort
         /// </summary>
         [DataMember(Name = "samplingIntervalHint", Order = 6,
             EmitDefaultValue = false)]
-        public TimeSpan? SamplingIntervalHint { get; set; }
+        public TimeSpan? SamplingIntervalHint { get; init; }
 
         /// <summary>
         /// Data change trigger
         /// </summary>
         [DataMember(Name = "dataChangeTrigger", Order = 7,
             EmitDefaultValue = false)]
-        public DataChangeTriggerType? DataChangeTrigger { get; set; }
+        public DataChangeTriggerType? DataChangeTrigger { get; init; }
 
         /// <summary>
         /// Deadband type
         /// </summary>
         [DataMember(Name = "deadbandType", Order = 8,
             EmitDefaultValue = false)]
-        public DeadbandType? DeadbandType { get; set; }
+        public DeadbandType? DeadbandType { get; init; }
 
         /// <summary>
         /// Deadband value
         /// </summary>
         [DataMember(Name = "deadbandValue", Order = 9,
             EmitDefaultValue = false)]
-        public double? DeadbandValue { get; set; }
+        public double? DeadbandValue { get; init; }
 
         /// <summary>
         /// Substitution value for bad / empty results (not supported yet)
         /// </summary>
         [DataMember(Name = "substituteValue", Order = 10,
             EmitDefaultValue = false)]
-        public VariantValue? SubstituteValue { get; set; }
+        public VariantValue? SubstituteValue { get; init; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)
         /// </summary>
         [DataMember(Name = "monitoringMode", Order = 12,
             EmitDefaultValue = false)]
-        public MonitoringMode? MonitoringMode { get; set; }
+        public MonitoringMode? MonitoringMode { get; init; }
 
         /// <summary>
         /// Queue size (Publisher extension)
         /// </summary>
         [DataMember(Name = "serverQueueSize", Order = 13,
             EmitDefaultValue = false)]
-        public uint? ServerQueueSize { get; set; }
+        public uint? ServerQueueSize { get; init; }
 
         /// <summary>
         /// Discard new values if queue is full (Publisher extension)
         /// </summary>
         [DataMember(Name = "discardNew", Order = 14,
             EmitDefaultValue = false)]
-        public bool? DiscardNew { get; set; }
+        public bool? DiscardNew { get; init; }
 
         /// <summary>
         /// Behavior of the heartbeatfeature (Publisher extension)
         /// </summary>
         [DataMember(Name = "heartbeatBehavior", Order = 15,
             EmitDefaultValue = false)]
-        public HeartbeatBehavior? HeartbeatBehavior { get; set; }
+        public HeartbeatBehavior? HeartbeatBehavior { get; init; }
 
         /// <summary>
         /// Hidden trigger that triggers reporting this variable on
@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "heartbeatInterval", Order = 16,
             EmitDefaultValue = false)]
-        public TimeSpan? HeartbeatInterval { get; set; }
+        public TimeSpan? HeartbeatInterval { get; init; }
 
         /// <summary>
         /// Instruct the monitored item to skip the first
@@ -138,14 +138,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "skipFirst", Order = 17,
             EmitDefaultValue = false)]
-        public bool? SkipFirst { get; set; }
+        public bool? SkipFirst { get; init; }
 
         /// <summary>
         /// Identifier of field in the dataset class.
         /// </summary>
         [DataMember(Name = "dataSetClassFieldId", Order = 18,
             EmitDefaultValue = false)]
-        public Guid DataSetClassFieldId { get; set; }
+        public Guid DataSetClassFieldId { get; init; }
 
         /// <summary>
         /// Try and perform a cyclic read using the client
@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "samplingUsingCyclicRead", Order = 19,
             EmitDefaultValue = false)]
-        public bool? SamplingUsingCyclicRead { get; set; }
+        public bool? SamplingUsingCyclicRead { get; init; }
 
         /// <summary>
         /// Try and register the node before sampling
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "registerNodeForSampling", Order = 20,
             EmitDefaultValue = false)]
-        public bool? RegisterNodeForSampling { get; set; }
+        public bool? RegisterNodeForSampling { get; init; }
 
         /// <summary>
         /// Read the display name from the node
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "readDisplayNameFromNode", Order = 21,
             EmitDefaultValue = false)]
-        public bool? ReadDisplayNameFromNode { get; set; }
+        public bool? ReadDisplayNameFromNode { get; init; }
 
         /// <summary>
         /// Triggering configuration
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "triggering", Order = 22,
             EmitDefaultValue = false)]
-        public PublishedDataSetTriggerModel? Triggering { get; set; }
+        public PublishedDataSetTriggerModel? Triggering { get; init; }
 
         /// <summary>
         /// Queue settings writer should use to publish messages
@@ -200,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaData", Order = 31,
             EmitDefaultValue = false)]
-        public PublishedDataItemMetaDataModel? MetaData { get; set; }
+        public PublishedMetaDataModel? MetaData { get; set; }
 
         /// <summary>
         /// Sets the current error state

@@ -457,7 +457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="majorVersion"></param>
         /// <returns></returns>
         public static DataSetMetaDataType? Encode(this IVariantEncoder encoder,
-            string? fieldName, Guid fieldGuid, PublishedDataItemMetaDataModel fieldMetaData,
+            string? fieldName, Guid fieldGuid, PublishedMetaDataModel fieldMetaData,
             uint majorVersion = 0)
         {
             var types = new Dictionary<string, DataTypeDescription>();
@@ -494,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="fields"></param>
         /// <param name="maxMinorVersion"></param>
         private static void CollectFieldMetaData(IVariantEncoder encoder, string? fieldName,
-            Guid fieldGuid, PublishedDataItemMetaDataModel? fieldMetaData, Dictionary<string,
+            Guid fieldGuid, PublishedMetaDataModel? fieldMetaData, Dictionary<string,
                 DataTypeDescription> types, List<FieldMetaData> fields, ref uint maxMinorVersion)
         {
             fields.Add(new FieldMetaData
@@ -531,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 foreach (var simple in fieldMetaData.SimpleDataTypes)
                 {
-                    if (!types.ContainsKey(simple.DataTypeId))
+                    if (types.ContainsKey(simple.DataTypeId))
                     {
                         continue;
                     }
@@ -549,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 foreach (var structure in fieldMetaData.StructureDataTypes)
                 {
-                    if (!types.ContainsKey(structure.DataTypeId))
+                    if (types.ContainsKey(structure.DataTypeId))
                     {
                         continue;
                     }
@@ -584,7 +584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 foreach (var enumType in fieldMetaData.EnumDataTypes)
                 {
-                    if (!types.ContainsKey(enumType.DataTypeId))
+                    if (types.ContainsKey(enumType.DataTypeId))
                     {
                         continue;
                     }

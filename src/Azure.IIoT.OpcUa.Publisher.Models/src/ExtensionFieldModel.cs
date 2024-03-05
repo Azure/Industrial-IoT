@@ -20,28 +20,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "fieldIndex", Order = 0,
             EmitDefaultValue = false)]
-        public int FieldIndex { get; set; }
+        public int FieldIndex { get; init; }
 
         /// <summary>
         /// Field name or display name of the published variable
         /// </summary>
         [DataMember(Name = "dataSetFieldName", Order = 1,
             EmitDefaultValue = false)]
-        public required string DataSetFieldName { get; set; }
+        public required string DataSetFieldName { get; init; }
 
         /// <summary>
         /// Name of the published dataset
         /// </summary>
         [DataMember(Name = "value", Order = 2,
             EmitDefaultValue = false)]
-        public required VariantValue Value { get; set; }
+        public required VariantValue Value { get; init; }
 
         /// <summary>
         /// Identifier of field in the dataset class.
         /// </summary>
         [DataMember(Name = "dataSetClassFieldId", Order = 3,
             EmitDefaultValue = false)]
-        public Guid DataSetClassFieldId { get; set; }
+        public Guid DataSetClassFieldId { get; init; }
 
         /// <summary>
         /// Unique Identifier of variable in the dataset.
@@ -55,6 +55,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaData", Order = 10,
             EmitDefaultValue = false)]
-        public PublishedDataItemMetaDataModel? MetaData { get; set; }
+        public PublishedMetaDataModel? MetaData { get; set; }
     }
 }

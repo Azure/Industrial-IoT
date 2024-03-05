@@ -19,49 +19,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "publishingInterval", Order = 0,
             EmitDefaultValue = false)]
-        public TimeSpan? PublishingInterval { get; set; }
+        public TimeSpan? PublishingInterval { get; init; }
 
         /// <summary>
         /// Life time
         /// </summary>
         [DataMember(Name = "lifeTimeCount", Order = 1,
             EmitDefaultValue = false)]
-        public uint? LifeTimeCount { get; set; }
+        public uint? LifeTimeCount { get; init; }
 
         /// <summary>
         /// Max keep alive count
         /// </summary>
         [DataMember(Name = "maxKeepAliveCount", Order = 2,
             EmitDefaultValue = false)]
-        public uint? MaxKeepAliveCount { get; set; }
+        public uint? MaxKeepAliveCount { get; init; }
 
         /// <summary>
         /// Max notifications per publish
         /// </summary>
         [DataMember(Name = "maxNotificationsPerPublish", Order = 3,
             EmitDefaultValue = false)]
-        public uint? MaxNotificationsPerPublish { get; set; }
+        public uint? MaxNotificationsPerPublish { get; init; }
 
         /// <summary>
         /// Priority
         /// </summary>
         [DataMember(Name = "priority", Order = 4,
             EmitDefaultValue = false)]
-        public byte? Priority { get; set; }
+        public byte? Priority { get; init; }
 
         /// <summary>
         /// Triggers automatic monitored items display name discovery
         /// </summary>
         [DataMember(Name = "resolveDisplayName", Order = 5,
             EmitDefaultValue = false)]
-        public bool? ResolveDisplayName { get; set; }
+        public bool? ResolveDisplayName { get; init; }
 
         /// <summary>
         /// Use deferred acknoledgements
         /// </summary>
         [DataMember(Name = "useDeferredAcknoledgements", Order = 6,
             EmitDefaultValue = false)]
-        public bool? UseDeferredAcknoledgements { get; set; }
+        public bool? UseDeferredAcknoledgements { get; init; }
 
         /// <summary>
         /// Will set the subscription to have publishing
@@ -70,13 +70,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "enableImmediatePublishing", Order = 8,
             EmitDefaultValue = false)]
-        public bool? EnableImmediatePublishing { get; set; }
+        public bool? EnableImmediatePublishing { get; init; }
 
         /// <summary>
         /// Enable sequential publishing feature in the stack.
         /// </summary>
         [DataMember(Name = "enableSequentialPublishing", Order = 9,
             EmitDefaultValue = false)]
-        public bool? EnableSequentialPublishing { get; set; }
+        public bool? EnableSequentialPublishing { get; init; }
     }
 }

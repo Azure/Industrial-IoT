@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Data set source
         /// </summary>
         [DataMember(Name = "dataSetSource", Order = 1)]
-        public PublishedDataSetSourceModel? DataSetSource { get; set; }
+        public PublishedDataSetSourceModel? DataSetSource { get; init; }
 
         /// <summary>
         /// Provides context of the dataset meta data that is to
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetMetaData", Order = 2,
             EmitDefaultValue = false)]
-        public DataSetMetaDataModel? DataSetMetaData { get; set; }
+        public DataSetMetaDataModel? DataSetMetaData { get; init; }
 
         /// <summary>
         /// Extension fields
@@ -47,13 +47,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "sendKeepAlive", Order = 4,
             EmitDefaultValue = false)]
-        public bool? SendKeepAlive { get; set; }
+        public bool? SendKeepAlive { get; init; }
 
         /// <summary>
         /// The data set routing option
         /// </summary>
         [DataMember(Name = "Routing", Order = 5,
             EmitDefaultValue = false)]
-        public DataSetRoutingMode? Routing { get; set; }
+        public DataSetRoutingMode? Routing { get; init; }
     }
 }

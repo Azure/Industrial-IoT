@@ -21,14 +21,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "index", Order = 0,
             EmitDefaultValue = false)]
-        public uint? Index { get; set; }
+        public uint? Index { get; init; }
 
         /// <summary>
         /// Variant value if operand is a literal
         /// </summary>
         [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
-        public VariantValue? Value { get; set; }
+        public VariantValue? Value { get; init; }
 
         /// <summary>
         /// Type definition node id if operand is
@@ -36,28 +36,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodeId", Order = 2,
             EmitDefaultValue = false)]
-        public string? NodeId { get; set; }
+        public string? NodeId { get; init; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
         [DataMember(Name = "browsePath", Order = 3,
             EmitDefaultValue = false)]
-        public IReadOnlyList<string>? BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; init; }
 
         /// <summary>
         /// Attribute id
         /// </summary>
         [DataMember(Name = "attributeId", Order = 4,
             EmitDefaultValue = false)]
-        public NodeAttribute? AttributeId { get; set; }
+        public NodeAttribute? AttributeId { get; init; }
 
         /// <summary>
         /// Index range of attribute operand
         /// </summary>
         [DataMember(Name = "indexRange", Order = 5,
             EmitDefaultValue = false)]
-        public string? IndexRange { get; set; }
+        public string? IndexRange { get; init; }
 
         /// <summary>
         /// Optional alias to refer to it makeing it a
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "alias", Order = 6,
             EmitDefaultValue = false)]
-        public string? Alias { get; set; }
+        public string? Alias { get; init; }
 
         /// <summary>
         /// Data type if operand is a literal
