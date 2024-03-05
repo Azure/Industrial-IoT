@@ -60,6 +60,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _metrics = metrics ??
                 IMetricsContext.Empty;
 
+            _defaultVersion = new ConfigurationVersionDataType
+            {
+                MajorVersion = (uint)(_options.Value.PublisherVersion ?? 1),
+                MinorVersion = 0
+            };
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
 
             InitializeMetrics();
@@ -351,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._dataChanges.Count = 0;
                             _outer._valueChanges.Count = 0;
                             _outer._heartbeats.Count = 0;
-                            _outer._sink.OnCounterReset();
+                            _outer._sink.OnReset();
                         }
 
                         _outer._valueChanges.Count += valueChanges;
@@ -383,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Id, _outer._cyclicReads.Count, _outer._sampledValues.Count);
                         _outer._cyclicReads.Count = 0;
                         _outer._sampledValues.Count = 0;
-                        _outer._sink.OnCounterReset();
+                        _outer._sink.OnReset();
                     }
 
                     _outer._sampledValues.Count += valuesSampled;
@@ -421,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _outer._eventNotification.Count = 0;
                             _outer._modelChanges.Count = 0;
 
-                            _outer._sink.OnCounterReset();
+                            _outer._sink.OnReset();
                         }
 
                         _outer._eventNotification.Count += events;
@@ -615,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         WriterGroup = options.WriterGroup,
                         SendMetaData = sendMetadata,
                         // TODO: Make this a nullable meta data producer func to emit meta data for individual topics
-                        MetaDataVersion = options.MetaDataVersion ?? kDefaultVersion,
+                        MetaDataVersion = options.MetaDataVersion ?? _outer._defaultVersion,
                         Topic = item?.Topic ?? (!sendMetadata ? options.Topic : options.MetadataTopic),
                         Qos = item?.Qos ?? options.Qos
                     };
@@ -881,12 +886,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
-            private static readonly ConfigurationVersionDataType kDefaultVersion = new()
-            {
-                MajorVersion = 1,
-                MinorVersion = 0
-            };
-
             private Timer? _metadataTimer;
             private SubscriptionModel _subscriptionInfo;
             private SubscriptionOptions _options;
@@ -1033,6 +1032,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "OPC UA endpoints that are disconnected.");
         }
 
+
+        private readonly ConfigurationVersionDataType _defaultVersion;
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
         private long _keepAliveCount;
         private readonly Meter _meter = Diagnostics.NewMeter();

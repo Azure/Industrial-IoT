@@ -436,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 Description = dataSet.DataSetMetaData.Description,
                 ConfigurationVersion = new ConfigurationVersionDataType
                 {
-                    MajorVersion = dataSet.DataSetMetaData.MajorVersion,
+                    MajorVersion = dataSet.DataSetMetaData.MajorVersion ?? 1u,
                     MinorVersion = minorVersion
                 },
                 Fields = fields.ToArray(),

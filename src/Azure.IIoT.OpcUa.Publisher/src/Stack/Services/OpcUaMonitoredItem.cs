@@ -276,7 +276,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Remove from subscription
         /// </summary>
         /// <param name="subscription"></param>
-        ///
         /// <returns></returns>
         public virtual bool RemoveFrom(Subscription subscription)
         {

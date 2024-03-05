@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public void OnCounterReset()
+        public void OnReset()
         {
             _dataFlowStartTime = DateTime.MinValue;
             _queue.Reset();

@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
+        public const string StateStoreFolderPathKey = "StateStoreFolderPath";
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
@@ -75,6 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
+        public const string PublisherVersionKey = "PublisherVersion";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -131,8 +133,10 @@ namespace Azure.IIoT.OpcUa.Publisher
                     _identity?.Id ?? Dns.GetHostName());
 
             options.SiteId ??= GetStringOrDefault(SiteIdKey);
+            options.PublisherVersion ??= GetIntOrNull(PublisherVersionKey);
 
             options.PublishedNodesFile ??= GetStringOrDefault(PublishedNodesFileKey);
+            options.StateStoreFolderPath ??= GetStringOrDefault(StateStoreFolderPathKey);
 
             if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
                 GetStringOrDefault(DefaultTransportKey), out var transport))

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -82,19 +83,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     builder.RegisterInstance(serializer)
                         .As<IJsonSerializer>()
                         .ExternallyOwned();
-
                     builder.RegisterType<WriterGroupController>()
                         .WithParameter(TypedParameter.From(writerGroupId))
                         .AsImplementedInterfaces()
                         .SingleInstance();
-
+                    builder.RegisterGeneric(typeof(StateStoreFolderProvider<>))
+                        .AsImplementedInterfaces()
+                        .SingleInstance();
                     builder.RegisterType<NetworkMessageSink>()
                         .AsImplementedInterfaces()
                         .SingleInstance();
                     builder.RegisterType<WriterGroupDataSource>()
                         .AsImplementedInterfaces()
                         .SingleInstance();
-
                     builder.RegisterType<NetworkMessageEncoder>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<NetworkMessageSource>()

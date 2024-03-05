@@ -83,8 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public WriterGroupController(string writerGroupId,
             IEnumerable<IWriterGroupNotifications> listeners,
             IOpcUaClientManager<ConnectionModel> client, IMetricsContext metrics,
-            IOptions<PublisherOptions> options, ILoggerFactory loggerFactory,
-            IStateProvider<WriterGroupModel>? stateProvider = null)
+            IStateProvider<WriterGroupModel> stateProvider,
+            IOptions<PublisherOptions> options, ILoggerFactory loggerFactory)
         {
             Id = writerGroupId;
 
@@ -96,10 +96,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? throw new ArgumentNullException(nameof(loggerFactory));
             _metrics = metrics
                 ?? throw new ArgumentNullException(nameof(metrics));
+            _stateProvider = stateProvider
+                ?? throw new ArgumentNullException(nameof(stateProvider));
             _listeners = listeners?.ToList()
                 ?? throw new ArgumentNullException(nameof(listeners));
 
-            _stateProvider = stateProvider;
             _logger = _loggerFactory.CreateLogger<WriterGroupController>();
             Configuration = new WriterGroupModel { Id = Id };
 
@@ -129,10 +130,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask DeleteAsync(CancellationToken ct)
+        public async ValueTask DeleteAsync(bool removeState,
+            CancellationToken ct)
         {
             _changeFeed.Writer.TryComplete();
-            return ValueTask.CompletedTask;
+
+            if (removeState)
+            {
+                await _stateProvider.RemoveAsync(Id, ct).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc/>
@@ -189,18 +195,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 // Load configuration
-                if (_stateProvider != null)
+                var copy = await _stateProvider.LoadAsync(Id, ct).ConfigureAwait(false);
+                if (copy != null)
                 {
-                    var copy = await _stateProvider.LoadAsync(Id, ct).ConfigureAwait(false);
-                    if (!IsSame(Configuration, copy))
-                    {
-                        // Update external state
-                        Configuration = copy;
+                    // Update external state
+                    Configuration = copy;
 
-                        foreach (var listener in _listeners)
-                        {
-                            await listener.OnUpdatedAsync(copy).ConfigureAwait(false);
-                        }
+                    foreach (var listener in _listeners)
+                    {
+                        await listener.OnUpdatedAsync(copy).ConfigureAwait(false);
                     }
                 }
 
@@ -208,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        var copy = CreateWriterGroupCopy(change, _options.Value);
+                        copy = CreateWriterGroupCopy(change, _options.Value);
                         await ProcessChangeAsync(change, ct).ConfigureAwait(false);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
@@ -271,8 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var listener in _listeners)
                     {
-                        await listener.OnRemovedAsync(
-                            Configuration).ConfigureAwait(false);
+                        await listener.OnRemovedAsync(Configuration).ConfigureAwait(false);
                     }
 
                     delete.Dispose();
@@ -282,33 +284,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _logger.LogError(ex, "Failed to dispose source.");
                 }
             }
+
             copy = copy with
             {
                 // We null the publishing settings because we put them resolved into
                 // the writers.
                 Publishing = null,
                 DataSetWriters = updatedSources.Values
-                    .SelectMany(w => w.GetDataSetWriters(_options.Value.MaxNodesPerDataSet))
+                    .SelectMany(w => w.GetDataSetWriters(
+                        _options.Value.MaxNodesPerDataSet))
                     .ToList()
             };
             _dataSources = updatedSources.ToImmutableDictionary();
-            if (IsSame(Configuration, copy))
-            {
-                return;
-            }
 
             // Persist
-            if (_stateProvider != null)
+            var updated = await _stateProvider.StoreAsync(Id, copy, ct).ConfigureAwait(false);
+            if (updated)
             {
-                await _stateProvider.StoreAsync(Id, copy, ct).ConfigureAwait(false);
-            }
+                // Update external state
+                Configuration = copy;
 
-            // Update external state
-            Configuration = copy;
-
-            foreach (var listener in _listeners)
-            {
-                await listener.OnUpdatedAsync(copy).ConfigureAwait(false);
+                foreach (var listener in _listeners)
+                {
+                    await listener.OnUpdatedAsync(copy).ConfigureAwait(false);
+                }
             }
         }
 
@@ -354,86 +353,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Select(c => c.Clone())
                     .ToList()
             };
-        }
-
-        /// <summary>
-        /// Check if same writer group configuration
-        /// Excludes writers.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="other"></param>
-        /// <returns></returns>
-        public static bool IsSame(WriterGroupModel model, WriterGroupModel other)
-        {
-            if (ReferenceEquals(model, other))
-            {
-                return true;
-            }
-            if (model is null || other is null)
-            {
-                return false;
-            }
-            if (model.PublishingInterval != other.PublishingInterval)
-            {
-                return false;
-            }
-            if (model.Name != other.Name)
-            {
-                return false;
-            }
-            if (model.Id != other.Id)
-            {
-                return false;
-            }
-            if (model.KeepAliveTime != other.KeepAliveTime)
-            {
-                return false;
-            }
-            if (model.Priority != other.Priority)
-            {
-                return false;
-            }
-            if (model.SecurityMode != other.SecurityMode)
-            {
-                return false;
-            }
-            if (model.SecurityGroupId != other.SecurityGroupId)
-            {
-                return false;
-            }
-            if (model.HeaderLayoutUri != other.HeaderLayoutUri)
-            {
-                return false;
-            }
-            if (model.MessageType != other.MessageType)
-            {
-                return false;
-            }
-            if (!model.MessageSettings.IsSameAs(other.MessageSettings))
-            {
-                return false;
-            }
-            if (model.MaxNetworkMessageSize != other.MaxNetworkMessageSize)
-            {
-                return false;
-            }
-            if (model.Transport != other.Transport)
-            {
-                return false;
-            }
-            if (model.PublishQueueSize != other.PublishQueueSize)
-            {
-                return false;
-            }
-            if (model.NotificationPublishThreshold != other.NotificationPublishThreshold)
-            {
-                return false;
-            }
-            if (!model.Publishing.IsSameAs(other.Publishing))
-            {
-                return false;
-            }
-            return true;
         }
 
         /// <summary>
@@ -504,6 +423,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var builder = DataSetItemResolver.CreateTopicBuilder(writerGroup,
                 dataSetWriter, options);
 
+            var dataSetMetaData = (options.DisableDataSetMetaData
+                        ?? options.DisableComplexTypeSystem
+                        ?? false) ? null : dataSetWriter.DataSet.DataSetMetaData;
+            if (dataSetMetaData != null && dataSetMetaData.MajorVersion == null)
+            {
+                dataSetMetaData = dataSetMetaData with
+                {
+                    MajorVersion = (uint)(options.PublisherVersion ?? 1)
+                };
+            }
+
             // Update publishing configuration with the resolved information
             return dataSetWriter with
             {
@@ -538,9 +468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ExtensionFields = dataSetWriter.DataSet.ExtensionFields?
                         .Select(e => e with { })
                         .ToList(),
-                    DataSetMetaData = (options.DisableDataSetMetaData
-                        ?? options.DisableComplexTypeSystem
-                        ?? false)  ?  null : dataSetWriter.DataSet.DataSetMetaData,
+                    DataSetMetaData = dataSetMetaData,
                     Routing = options.DefaultDataSetRouting ?? DataSetRoutingMode.None
                 },
                 DataSetFieldContentMask = dataSetFieldContentMask,
@@ -648,7 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Channel<WriterGroupModel> _changeFeed;
         private readonly Task _processor;
         private readonly IMetricsContext _metrics;
-        private readonly IStateProvider<WriterGroupModel>? _stateProvider;
+        private readonly IStateProvider<WriterGroupModel> _stateProvider;
         private readonly List<IWriterGroupNotifications> _listeners;
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;

@@ -40,6 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "majorVersion", Order = 5,
             EmitDefaultValue = false)]
-        public uint MajorVersion { get; init; }
+        public uint? MajorVersion { get; init; }
     }
 }

@@ -15,20 +15,31 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IStateProvider<T>
     {
         /// <summary>
-        /// Store
+        /// Store state
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask StoreAsync(string key, T value, CancellationToken ct);
+        ValueTask<bool> StoreAsync(string key,
+            T value, CancellationToken ct = default);
 
         /// <summary>
-        /// Load
+        /// Load state
         /// </summary>
         /// <param name="key"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<T> LoadAsync(string key, CancellationToken ct);
+        ValueTask<T?> LoadAsync(string key,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Remove state
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask RemoveAsync(string key,
+            CancellationToken ct = default);
     }
 }

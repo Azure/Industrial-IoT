@@ -20,6 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? PublisherId { get; set; }
 
         /// <summary>
+        /// Publisher version (default is 1)
+        /// </summary>
+        public int? PublisherVersion { get; set; }
+
+        /// <summary>
         /// Site of the publisher
         /// </summary>
         public string? SiteId { get; set; }
@@ -243,5 +248,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// the ability to encode complex types.
         /// </summary>
         public bool? DisableComplexTypeSystem { get; set; }
+
+        /// <summary>
+        /// State storage folder if the state should be written
+        /// to file system folder.
+        /// </summary>
+        public string? StateStoreFolderPath { get; set; }
     }
 }

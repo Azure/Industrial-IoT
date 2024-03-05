@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        await job.Value.DisposeAsync().ConfigureAwait(false);
+                        await job.Value.DeleteAsync(false).ConfigureAwait(false);
                         _logger.LogInformation("Writer group job {Job} stopped.",
                             job.Key);
                     }
@@ -245,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await delete.DisposeAsync().ConfigureAwait(false);
+                    await delete.DeleteAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Job context
         /// </summary>
-        private sealed class WriterGroupJob : IAsyncDisposable
+        private sealed class WriterGroupJob
         {
             /// <summary>
             /// Immutable writer group identifier
@@ -345,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     outer._logger.LogError(ex, "Failed to create writer group job {Name}",
                         context.Id);
-                    await context.DisposeAsync().ConfigureAwait(false);
+                    await context.DeleteAsync(false).ConfigureAwait(false);
                     throw;
                 }
             }
@@ -379,11 +379,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public async ValueTask DisposeAsync()
+            public async ValueTask DeleteAsync(bool jobRemoved = true)
             {
                 try
                 {
-                    await Controller.DeleteAsync().ConfigureAwait(false);
+                    await Controller.DeleteAsync(jobRemoved).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

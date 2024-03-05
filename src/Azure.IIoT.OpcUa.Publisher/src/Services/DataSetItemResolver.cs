@@ -280,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     // Add found items
                     var newItems = new Dictionary<PublishedDataSetItem,
-                        List<PublishedDataSetVariableModel>>();
+                        SortedSet<PublishedDataSetVariableModel>>();
                     await foreach (var result in results.ConfigureAwait(false))
                     {
                         var item = result.Description?.Handle as PublishedDataSetItem;
@@ -318,7 +318,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 if (!newItems.TryGetValue(item, out var variables))
                                 {
-                                    variables = new List<PublishedDataSetVariableModel>();
+                                    variables = new SortedSet<PublishedDataSetVariableModel>(
+                                        Comparer<PublishedDataSetVariableModel>.Create((a, b)
+                                        => StringComparer.Ordinal.Compare(
+                                            a?.DataSetFieldName, b?.DataSetFieldName)));
                                     newItems.Add(item, variables);
                                 }
 
@@ -337,7 +340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             item.Id, variables.Count);
                         item.Expand = new PublishedDataItemsModel
                         {
-                            PublishedData = variables
+                            PublishedData = variables.ToList()
                         };
                         item.Flags &= ~PublishedNodeExpansion.Expand;
                     }
@@ -481,11 +484,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
         {
             var metaDataVersion = DateTime.UtcNow.ToBinary();
-            var major = (uint)(metaDataVersion >> 32);
             var minor = (uint)metaDataVersion;
-
-            _logger.LogDebug("Loading Metadata {Major}.{Minor}...",
-                major, minor);
+            _logger.LogDebug("Loading Metadata ...");
 
             var sw = Stopwatch.StartNew();
             var typeSystem = await session.GetComplexTypeSystemAsync(
@@ -498,9 +498,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await item.ResolveMetaDataAsync(session,
                     typeSystem, minor, ct).ConfigureAwait(false);
             }
-            _logger.LogInformation(
-                "Loaded Metadata {Major}.{Minor} in {Duration}.",
-                major, minor, sw.Elapsed);
+            _logger.LogInformation("Loaded Metadata in {Duration}.",
+                sw.Elapsed);
         }
 
         /// <summary>
@@ -795,7 +794,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (publishedObjects != null)
                     {
                         foreach (var w in ObjectItem.Split(publishedObjects
-                            .Select(v => new ObjectItem(resolver, writer, v))))
+                            .Select(v => new ObjectItem(resolver, writer, v)), maxItemsPerWriter))
                         {
                             writerIndex++;
                             yield return writerIndex == 0 ? w : w with
@@ -1226,25 +1225,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public static IEnumerable<DataSetWriterModel> Split(
-                    IEnumerable<PublishedDataSetItem> items)
+                    IEnumerable<PublishedDataSetItem> items, int maxItemsPerWriter)
                 {
-                    foreach (var writers in items.GroupBy(w => w.DataSetWriter.Id))
+                    // Each object data set generates a writer
+                    foreach (var item in items.OfType<ObjectItem>())
                     {
-                        var objects = writers
-                            .OfType<ObjectItem>()
-                            .ToList();
-                        if (objects.Count == 0)
+                        if (item._object.PublishedVariables == null)
                         {
                             continue;
                         }
-                        foreach (var item in objects)
+                        foreach (var set in item._object.PublishedVariables.PublishedData
+                            .Batch(maxItemsPerWriter))
                         {
-                            foreach (var copy in VariableItem.Split(
-                                Create(item._resolver, item.DataSetWriter, ItemTypes.Variables)))
+                            var copy = item.CopyDataSetWriter();
+                            Debug.Assert(copy.DataSet?.DataSetSource != null);
+
+                            var oSet = item._object with
                             {
-                                copy.DataSet!.Name = item._object.Name;
-                                yield return copy;
-                            }
+                                // No need to clone more members
+                                PublishedVariables = new PublishedDataItemsModel
+                                {
+                                    PublishedData = set
+                                        .Select((item, i) => item with { FieldIndex = i })
+                                        .ToList()
+                                }
+                            };
+
+                            copy.DataSet.DataSetSource.PublishedObjects =
+                                new PublishedObjectItemsModel
+                                {
+                                    PublishedData = new[] { oSet }
+                                };
+                            copy.DataSet.Name = item._object.Name;
+                            copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
+                                // No need to clone more members of the field
+                                .Select((f, i) => f with
+                                {
+                                    FieldIndex = i + oSet.PublishedVariables.PublishedData.Count
+                                })
+                                .ToList();
+                            yield return copy;
                         }
                     }
                 }

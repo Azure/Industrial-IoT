@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Counter reset
         /// </summary>
-        void OnCounterReset();
+        void OnReset();
 
         /// <summary>
         /// Message received handler

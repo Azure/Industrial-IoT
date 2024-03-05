@@ -73,6 +73,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     }
                 }
             }
+            if (dataSet.DataSetSource.PublishedObjects?.PublishedData != null)
+            {
+                foreach (var obj in dataSet.DataSetSource.PublishedObjects.PublishedData)
+                {
+                    if (obj.PublishedVariables != null)
+                    {
+                        foreach (var item in obj.PublishedVariables.PublishedData)
+                        {
+                            yield return item.MetaData;
+                        }
+                    }
+                }
+            }
             if (dataSet.ExtensionFields != null)
             {
                 foreach (var item in dataSet.ExtensionFields)

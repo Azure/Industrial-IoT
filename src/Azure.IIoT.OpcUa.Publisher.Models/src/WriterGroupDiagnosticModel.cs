@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public record class WriterGroupDiagnosticModel
     {
         /// <summary>
-        /// Publisher version
+        /// Publisher version string
         /// </summary>
         [DataMember(Name = "PublisherVersion", Order = 99,
             EmitDefaultValue = true)]

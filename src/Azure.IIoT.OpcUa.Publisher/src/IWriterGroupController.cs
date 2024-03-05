@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -26,8 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Deletes the writer group
         /// </summary>
+        /// <param name="removeState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask DeleteAsync(CancellationToken ct = default);
+        ValueTask DeleteAsync(bool removeState = true,
+            CancellationToken ct = default);
     }
 }

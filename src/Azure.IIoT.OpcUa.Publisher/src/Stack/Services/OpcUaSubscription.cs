@@ -741,7 +741,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
             var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
             _logger.LogDebug(
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
