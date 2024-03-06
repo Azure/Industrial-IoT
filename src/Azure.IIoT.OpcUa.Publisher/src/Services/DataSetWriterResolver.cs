@@ -43,13 +43,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// too late.
     /// </para>
     /// </summary>
-    internal class DataSetItemResolver
+    internal class DataSetWriterResolver
     {
         /// <summary>
         /// Create resolver
         /// </summary>
         /// <param name="logger"></param>
-        public DataSetItemResolver(ILogger<DataSetItemResolver> logger)
+        public DataSetWriterResolver(ILogger<DataSetWriterResolver> logger)
         {
             _logger = logger;
         }
@@ -449,21 +449,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             new PublishingQueueSettingsModel()) with
                             {
                                 QueueName = ToQueueName(getPath[index].DataSetWriter,
-                                    paths[index].Path, true)
+                                    paths[index].Path, getPath[index].Routing)
                             };
                     }
                 }
             }
 
             static string ToQueueName(DataSetWriterModel dataSetWriter,
-                RelativePath subPath, bool includeNamespaceIndex)
+                RelativePath subPath, DataSetRoutingMode routingMode)
             {
                 Debug.Assert(dataSetWriter.Publishing != null);
                 var sb = new StringBuilder().Append(dataSetWriter.Publishing.QueueName);
                 foreach (var path in subPath.Elements)
                 {
                     sb.Append('/');
-                    if (path.TargetName.NamespaceIndex != 0 && includeNamespaceIndex)
+                    if (path.TargetName.NamespaceIndex != 0 &&
+                        routingMode == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
                     {
                         sb.Append(path.TargetName.NamespaceIndex).Append(':');
                     }
@@ -596,12 +597,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 NeedsQueueNameResolving
                 ;
 
-            protected bool NoMetaData
+            protected bool MetaDataDisabled
                 => DataSetWriter.DataSet?.DataSetMetaData == null;
             public virtual bool NeedsQueueNameResolving
                 => Publishing?.QueueName == null
                 && Routing != DataSetRoutingMode.None;
-            private DataSetRoutingMode Routing
+            public DataSetRoutingMode Routing
                 => DataSetWriter.DataSet?.Routing
                 ?? DataSetRoutingMode.None;
             public NamespaceFormat NamespaceFormat
@@ -613,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="resolver"></param>
             /// <param name="dataSetWriter"></param>
-            protected PublishedDataSetItem(DataSetItemResolver resolver,
+            protected PublishedDataSetItem(DataSetWriterResolver resolver,
                 DataSetWriterModel dataSetWriter)
             {
                 _resolver = resolver;
@@ -676,7 +677,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writer"></param>
             /// <param name="items"></param>
             /// <returns></returns>
-            public static IEnumerable<PublishedDataSetItem> Create(DataSetItemResolver resolver,
+            public static IEnumerable<PublishedDataSetItem> Create(DataSetWriterResolver resolver,
                 DataSetWriterModel writer, ItemTypes items = ItemTypes.All)
             {
                 if (items.HasFlag(ItemTypes.Variables))
@@ -749,7 +750,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writers"></param>
             /// <param name="maxItemsPerWriter"></param>
             /// <returns></returns>
-            public static IEnumerable<DataSetWriterModel> Split(DataSetItemResolver resolver,
+            public static IEnumerable<DataSetWriterModel> Split(DataSetWriterResolver resolver,
                 IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter)
             {
                 // We do not filter so we can report errors through stack subscription
@@ -857,7 +858,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
-                    => !NoMetaData
+                    => !MetaDataDisabled
                     && _extension.MetaData == null;
 
                 /// <inheritdoc/>
@@ -868,7 +869,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override bool NeedsUpdate => false;
 
                 /// <inheritdoc/>
-                public ExtensionField(DataSetItemResolver resolver, DataSetWriterModel writer,
+                public ExtensionField(DataSetWriterResolver resolver, DataSetWriterModel writer,
                     ExtensionFieldModel extension) : base(resolver, writer)
                 {
                     _extension = extension;
@@ -933,6 +934,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             _variable.MetaData = null;
                             _variable.PublishedVariableNodeId = value;
+                            if (_variable.ReadDisplayNameFromNode != true &&
+                                _variable.DataSetFieldName == null)
+                            {
+                                ResolvedName = value;
+                            }
                         }
                     }
                 }
@@ -982,16 +988,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
-                    => !NoMetaData
+                    => !MetaDataDisabled
                     && _variable.MetaData == null;
 
                 /// <inheritdoc/>
-                public VariableItem(DataSetItemResolver resolver,
+                public VariableItem(DataSetWriterResolver resolver,
                     DataSetWriterModel writer, PublishedDataSetVariableModel variable)
                     : base(resolver, writer)
                 {
                     _variable = variable;
 
+                    if (_variable.ReadDisplayNameFromNode != true &&
+                        _variable.DataSetFieldName == null)
+                    {
+                        ResolvedName = _variable.Id ?? NodeId;
+                    }
                     if (_variable.Id == null)
                     {
                         var sb = new StringBuilder()
@@ -1161,7 +1172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override bool NeedsQueueNameResolving => false;
 
                 /// <inheritdoc/>
-                public ObjectItem(DataSetItemResolver resolver,
+                public ObjectItem(DataSetWriterResolver resolver,
                     DataSetWriterModel writer, PublishedObjectModel obj)
                     : base(resolver, writer)
                 {
@@ -1329,7 +1340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
-                    => !NoMetaData
+                    => !MetaDataDisabled
                     && (_event.SelectedFields?.Any(f => f.MetaData == null) ?? false);
 
                 /// <inheritdoc/>
@@ -1337,7 +1348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     => base.NeedsUpdate || NeedsFilterUpdate();
 
                 /// <inheritdoc/>
-                public EventItem(DataSetItemResolver resolver,
+                public EventItem(DataSetWriterResolver resolver,
                     DataSetWriterModel writer, PublishedDataSetEventModel evt)
                     : base(resolver, writer)
                 {
@@ -2090,7 +2101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 StatusCode = StatusCodes.BadConfigurationError
             };
             protected ILogger _logger => _resolver._logger;
-            protected readonly DataSetItemResolver _resolver;
+            protected readonly DataSetWriterResolver _resolver;
         }
         private readonly ILogger _logger;
     }

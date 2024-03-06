@@ -189,12 +189,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         {
             var hash = new HashCode();
             hash.Add(model.Id);
-            hash.Add(model.DisplayName);
-            hash.Add(model.DataSetFieldId);
+            hash.Add(model.DisplayName ?? string.Empty);
+            hash.Add(model.DataSetFieldId ?? string.Empty);
             hash.Add(model.DataSetClassFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(model.QualityOfService);
-            hash.Add(model.Topic);
+            hash.Add(model.QualityOfService ?? QoS.AtLeastOnce);
+            hash.Add(model.Topic ?? string.Empty);
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());

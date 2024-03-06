@@ -526,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("testid", writerGroups
                 .Single().DataSetWriters
                 .Single().DataSetWriterName);
-            Assert.Equal("5256a3e80f028d78c673bac7866a09b3b3bb69fa_0", writerGroups
+            Assert.Equal("5256a3e80f028d78c673bac7866a09b3b3bb69fa", writerGroups
                 .Single().DataSetWriters
                 .Single().Id);
         }
@@ -558,7 +558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var writerGroups = converter.ToWriterGroups(entries).ToList();
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
-            Assert.Equal("39d40f4aae5f07696bc0737f6ba45a4d4bd63d79_0", writerGroups
+            Assert.Equal("39d40f4aae5f07696bc0737f6ba45a4d4bd63d79", writerGroups
                 .Single().DataSetWriters
                 .Single().Id);
             Assert.Null(writerGroups
@@ -630,9 +630,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
-            Assert.Equal("testfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().DataSetFieldName);
+            Assert.Equal("testfieldid1", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
 
         [Fact]
@@ -669,10 +672,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(2, writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
+            Assert.Equal("testfieldid1", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid2", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
+            Assert.Null(writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
                 .Single().DataSetWriters
@@ -715,8 +726,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid", writerGroups
                 .Single().DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
+            Assert.Null(writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
+            Assert.Null(writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
                 .Single().DataSetWriters
@@ -805,14 +824,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(2, writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid", writerGroups
+            Assert.Equal("testdisplayname", writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
-            Assert.Equal("testfieldid", writerGroups
+            Assert.Equal("testdisplayname", writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].DataSetFieldName);
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count - 1].Id);
         }
 
         [Fact]
@@ -848,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Single(writerGroups);
             Assert.Single(writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Equal("testfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
             Assert.Equal("i=2258", writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
@@ -901,7 +928,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             // Single group, single writer, double published data
             Assert.Equal(2, writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
             Assert.Equal("i=2258", writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
@@ -959,7 +986,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             // Single group, double writer, single published data
             Assert.Single(writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Equal("testfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].DataSetFieldName);
             Assert.Equal("i=2258", writerGroups
                 .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
@@ -1359,11 +1386,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries);
+            var writerGroups = converter.ToWriterGroups(entries).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
             Assert.Equal("testdatasetfieldid1", writerGroups
+                .Single().DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
+            Assert.Equal("testdisplayname1", writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().DataSetFieldName);
         }
@@ -1397,7 +1427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
-            Assert.Equal("testdatasetfieldid1", writerGroups
+            Assert.Null(writerGroups
                 .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().DataSetFieldName);
         }
@@ -2300,7 +2330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching1Test()
+        public void PnPlcMultiJob9Test()
         {
             var pn = new StringBuilder("""
 
@@ -2341,7 +2371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             Assert.Null(j.MessageSettings);
 
-            Assert.Equal(10, j.DataSetWriters.Count);
+            Assert.Single(j.DataSetWriters);
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Null(
@@ -2350,12 +2380,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Null(p.SamplingIntervalHint)));
             Assert.All(j.DataSetWriters, dataSetWriter =>
-                Assert.Equal(1000,
+                Assert.Equal(10000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching2Test()
+        public void PnPlcMultiJob10Test()
         {
             var pn = new StringBuilder("""
 
@@ -2398,29 +2428,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             Assert.Null(j.MessageSettings);
 
-            Assert.Equal(10, j.DataSetWriters.Count);
+            Assert.Equal(2, j.DataSetWriters.Count);
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.Equal(
                 new TimeSpan?[] {
                     TimeSpan.FromMilliseconds(2000),
-                    TimeSpan.FromMilliseconds(2000),
-                    TimeSpan.FromMilliseconds(2000),
-                    TimeSpan.FromMilliseconds(2000),
-                    TimeSpan.FromMilliseconds(2000),
-                    null,
-                    null,
-                    null,
-                    null,
                     null
                 }, j.DataSetWriters.Select(dataSetWriter =>
-                    dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval));
+                    dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval).ToArray());
 
             Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Null(p.SamplingIntervalHint)));
             Assert.All(j.DataSetWriters, dataSetWriter =>
-                Assert.Equal(1000,
+                Assert.Equal(5000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 

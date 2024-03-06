@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
         public void SerializerDeserializeArrayTypeToBufferWithFixture(Type type)
         {
-            var fixture = new Fixture();
+            var fixture = new Fixture { RepeatCount = 2 };
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
@@ -93,7 +93,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 new MultipleRequest(new SeededRequest(type, null)))).Cast<object>().ToArray();
 
             var buffer = _serializer.SerializeObjectToMemory(instance, instance.GetType());
-            var s = _serializer.SerializeObjectToString(instance, instance.GetType(), SerializeOption.Indented);
             var result = _serializer.Deserialize(buffer.ToArray(), type.MakeArrayType());
 
             result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());

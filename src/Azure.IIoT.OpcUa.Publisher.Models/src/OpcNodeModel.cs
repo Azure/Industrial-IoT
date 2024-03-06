@@ -38,8 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? OpcSamplingIntervalTimespan { get; set; }
 
         /// <summary>
-        /// The identifier of the field in the dataset message.
-        /// If not provided <see cref="DisplayName"/> is used.
+        /// The unique identifier of the field in the set.
         /// </summary>
         [DataMember(Name = "DataSetFieldId", Order = 3,
             EmitDefaultValue = false)]

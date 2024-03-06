@@ -5,11 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers.Json;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -240,13 +242,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Topic = string.Empty,
                         PublisherId = publisherId,
                         Writer = writer,
+                        SendMetaData = false,
                         MetaDataVersion = new ConfigurationVersionDataType(),
                         WriterGroup = writerGroup
                     },
                     PublishTimestamp = DateTime.UtcNow,
                     MessageType = eventList ?
                         Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
-                    Codec = null!,
+                    Codec = new JsonVariantEncoder(new ServiceMessageContext(), new DefaultJsonSerializer()),
                     Notifications = notifications,
                     SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,

@@ -106,8 +106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             InitializeMetrics();
 
-            _resolver = new DataSetItemResolver(
-                loggerFactory.CreateLogger<DataSetItemResolver>());
+            _resolver = new DataSetWriterResolver(
+                loggerFactory.CreateLogger<DataSetWriterResolver>());
             _dataSources =
                 ImmutableDictionary<ConnectionIdentifier, DataSetWriterSource>.Empty;
             _cts = new CancellationTokenSource();
@@ -373,6 +373,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             var defaultMessagingProfile = options.MessagingProfile ??
                 MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
+            var headerLayoutUri = writerGroup.HeaderLayoutUri;
+            if (headerLayoutUri != null)
+            {
+                defaultMessagingProfile = MessagingProfile.Get(
+                    Enum.Parse<MessagingMode>(headerLayoutUri),
+                    writerGroup.MessageType ?? defaultMessagingProfile.MessageEncoding);
+            }
             var messageSettings = (dataSetWriter.MessageSettings
                 ?? new DataSetWriterMessageSettingsModel()) with
             {
@@ -420,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var writerGroupPublishingSettings = writerGroup.Publishing;
-            var builder = DataSetItemResolver.CreateTopicBuilder(writerGroup,
+            var builder = DataSetWriterResolver.CreateTopicBuilder(writerGroup,
                 dataSetWriter, options);
 
             var dataSetMetaData = (options.DisableDataSetMetaData
@@ -469,7 +476,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Select(e => e with { })
                         .ToList(),
                     DataSetMetaData = dataSetMetaData,
-                    Routing = options.DefaultDataSetRouting ?? DataSetRoutingMode.None
+                    Routing = dataSetWriter.DataSet.Routing ??
+                        options.DefaultDataSetRouting ?? DataSetRoutingMode.None
                 },
                 DataSetFieldContentMask = dataSetFieldContentMask,
                 MetaDataUpdateTime = dataSetWriter.MetaDataUpdateTime
@@ -497,7 +505,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="resolver"></param>
             public DataSetWriterSource(ConnectionIdentifier connection,
                 IOpcUaClientManager<ConnectionModel> client,
-                DataSetItemResolver resolver)
+                DataSetWriterResolver resolver)
             {
                 Id = connection;
                 _writers = ImmutableDictionary<string, DataSetWriterModel>.Empty;
@@ -554,7 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             private ImmutableDictionary<string, DataSetWriterModel> _writers;
-            private readonly DataSetItemResolver _resolver;
+            private readonly DataSetWriterResolver _resolver;
             private readonly IOpcUaClientManager<ConnectionModel> _client;
         }
 
@@ -582,7 +590,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
         private readonly Meter _meter = Diagnostics.NewMeter();
-        private readonly DataSetItemResolver _resolver;
+        private readonly DataSetWriterResolver _resolver;
         private bool _isDisposed;
     }
 }

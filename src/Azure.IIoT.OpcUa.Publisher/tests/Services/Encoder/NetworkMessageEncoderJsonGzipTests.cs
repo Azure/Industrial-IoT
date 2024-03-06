@@ -190,12 +190,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].Context = new WriterGroupMessageContext
+            var context = (WriterGroupMessageContext)messages[10].Context;
+            messages[10].Context = context with
             {
-                NextWriterSequenceNumber = () => 3,
-                PublisherId = "abc",
-                Qos = Furly.Extensions.Messaging.QoS.AtMostOnce,
-                Topic = null,
                 Writer = new DataSetWriterModel
                 {
                     Id = "1",
@@ -225,7 +222,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         }
                     }
                 },
-                WriterGroup = new WriterGroupModel { Id = "3" },
                 MetaDataVersion = new ConfigurationVersionDataType(),
                 SendMetaData = true
             };
@@ -233,10 +229,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(3, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
+            Assert.Equal(2, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
             Assert.Equal(19, encoder.NotificationsProcessedCount);
             Assert.Equal(0, encoder.NotificationsDroppedCount);
-            Assert.Equal(3, encoder.MessagesProcessedCount);
+            Assert.Equal(2, encoder.MessagesProcessedCount);
         }
 
         [Theory]

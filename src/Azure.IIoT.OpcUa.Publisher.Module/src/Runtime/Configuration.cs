@@ -207,10 +207,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder,
             IConfiguration configuration)
         {
+            var option = new Otlp(configuration);
             var exporterOptions = new OtlpExporterOptions();
-            new Otlp(configuration).Configure(exporterOptions);
+            option.Configure(exporterOptions);
             if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
             {
+                builder.SetMaxMetricStreams(option.MaxMetricStreams);
                 builder.ConfigureServices(services => services.ConfigureOtlpExporter());
                 builder.AddOtlpExporter();
             }
@@ -225,9 +227,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static MeterProviderBuilder AddPrometheusExporter(this MeterProviderBuilder builder,
             IConfiguration configuration)
         {
-            if (new Otlp(configuration).AddPrometheusEndpoint)
+            var option = new Otlp(configuration);
+            if (option.AddPrometheusEndpoint)
             {
                 builder.ConfigureServices(services => services.AddSingleton<Otlp>());
+                builder.SetMaxMetricStreams(option.MaxMetricStreams);
                 builder.AddPrometheusExporter();
             }
             return builder;
@@ -361,23 +365,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,
             IConfigureOptions<MetricReaderOptions>, IConfigureNamedOptions<MetricReaderOptions>
         {
-            public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
             public const string EnableMetricsKey = "EnableMetrics";
+            public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
+            public const string OtlpMaxMetricStreamsKey = "OtlpMaxMetricStreams";
             public const string OtlpExportIntervalMillisecondsKey = "OtlpExportIntervalMilliseconds";
-            internal const string OtlpEndpointDisabled = "disabled";
+
             public const int OtlpExportIntervalMillisecondsDefault = 15000;
+            public const int OtlpMaxMetricDefault = 3000;
+            internal const string OtlpEndpointDisabled = "disabled";
 
             /// <summary>
             /// Use prometheus
             /// </summary>
             public bool AddPrometheusEndpoint
-            {
-                get
-                {
-                    return GetBoolOrDefault(EnableMetricsKey,
+                => GetBoolOrDefault(EnableMetricsKey,
                         GetStringOrDefault(OtlpCollectorEndpointKey) == null);
-                }
-            }
+
+            /// <summary>
+            /// Max metrics to collect, the default in otel is 1000
+            /// </summary>
+            public int MaxMetricStreams
+                => Math.Max(1, GetIntOrDefault(OtlpMaxMetricStreamsKey,
+                        OtlpMaxMetricDefault));
 
             /// <summary>
             /// Create otlp configuration

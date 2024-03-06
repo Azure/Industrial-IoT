@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         DataSetClassFieldId = variable.DataSetClassFieldId,
                         Id = variable.PublishedVariableNodeId,
                         DisplayName = variable.DataSetFieldName,
-                        DataSetFieldId = variable.DataSetFieldName,
+                        DataSetFieldId = variable.Id,
                         AttributeId = variable.Attribute,
                         IndexRange = variable.IndexRange,
                         RegisterNode = variable.RegisterNodeForSampling,
@@ -594,7 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         Id = node.DataSetFieldId,
                         Flags = node.NodeExpansion,
-                        Name = node.DataSetFieldId ?? node.DisplayName,
+                        Name = node.DisplayName,
                         PublishedNodeId = node.Id,
                         BrowsePath = node.BrowsePath,
                         Template = new PublishedDataSetVariableModel
@@ -644,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         FieldIndex = i,
                         Id = node.DataSetFieldId,
-                        DataSetFieldName = node.DataSetFieldId ?? node.DisplayName,
+                        DataSetFieldName = node.DisplayName,
                         PublishedVariableNodeId = node.Id,
                         DataSetClassFieldId = node.DataSetClassFieldId,
 

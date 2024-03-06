@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     await _serializer.SerializeAsync(fs, value,
                         SerializeOption.Indented, ct: ct).ConfigureAwait(false);
                 }
-                return false;
+                return true;
             }
             catch (Exception ex)
             {
