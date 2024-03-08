@@ -6,17 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Threading;
 

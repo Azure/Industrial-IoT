@@ -191,7 +191,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
             var context = (WriterGroupMessageContext)messages[10].Context;
-            messages[10].Context = context with {
+            messages[10].Context = context with
+            {
                 Writer = new DataSetWriterModel
                 {
                     Id = "1",

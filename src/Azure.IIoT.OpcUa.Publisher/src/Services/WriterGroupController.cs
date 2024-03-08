@@ -106,8 +106,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             InitializeMetrics();
 
-            _resolver = new DataSetWriterResolver(
-                loggerFactory.CreateLogger<DataSetWriterResolver>());
             _dataSources =
                 ImmutableDictionary<ConnectionIdentifier, DataSetWriterSource>.Empty;
             _cts = new CancellationTokenSource();
@@ -238,14 +236,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var copy = CreateWriterGroupCopy(change, _options.Value);
             Debug.Assert(copy.DataSetWriters == null);
 
-            var updatedSources =
-                new Dictionary<ConnectionIdentifier, DataSetWriterSource>();
+            var updatedSources = new Dictionary<ConnectionIdentifier, DataSetWriterSource>();
             if (change.DataSetWriters != null)
             {
                 foreach (var source in change.DataSetWriters
                     .Select(w => CreateDataSetWriterCopy(copy, w, _options.Value))
-                    .GroupBy(w => new ConnectionIdentifier(
-                        w.DataSet!.DataSetSource!.Connection!)))
+                    .GroupBy(w => new ConnectionIdentifier(w.DataSet!.DataSetSource!.Connection!)))
                 {
                     if (_dataSources.TryGetValue(source.Key, out var writerSource))
                     {
@@ -254,45 +250,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     else
                     {
                         // Create new writer source
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                        writerSource = new DataSetWriterSource(source.Key, _client,
-                            _resolver);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                        writerSource = new DataSetWriterSource(source.Key,
+                            _client, _loggerFactory);
                     }
 
                     // TODO: Parallelize these as they represent different servers/sessions
 
                     // Should not throw
-                    await writerSource.UpdateAsync(source, ct).ConfigureAwait(false);
+                    await writerSource.UpdateAsync(source, _options.Value.MaxNodesPerDataSet,
+                        ct).ConfigureAwait(false);
                     updatedSources.Add(source.Key, writerSource);
                 }
             }
 
-            foreach (var delete in _dataSources.Values)
-            {
-                try
-                {
-                    foreach (var listener in _listeners)
-                    {
-                        await listener.OnRemovedAsync(Configuration).ConfigureAwait(false);
-                    }
-
-                    delete.Dispose();
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogError(ex, "Failed to dispose source.");
-                }
-            }
-
+            // Collect all resolved data set writers
             copy = copy with
             {
                 // We null the publishing settings because we put them resolved into
                 // the writers.
                 Publishing = null,
                 DataSetWriters = updatedSources.Values
-                    .SelectMany(w => w.GetDataSetWriters(
-                        _options.Value.MaxNodesPerDataSet))
+                    .SelectMany(w => w.DataSetWriters)
                     .ToList()
             };
             _dataSources = updatedSources.ToImmutableDictionary();
@@ -336,11 +314,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 defaultMessagingProfile.MessageEncoding;
             var messageSettings = (change.MessageSettings ??
                 new WriterGroupMessageSettingsModel()) with
-                {
-                    NetworkMessageContentMask =
+            {
+                NetworkMessageContentMask =
                         change.MessageSettings?.NetworkMessageContentMask ??
                         defaultMessagingProfile.NetworkMessageContentMask
-                };
+            };
 
             return change with
             {
@@ -490,7 +468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Manages data set writers connected to a particular source. This enables
         /// batch resolution of configuration settings through the resolver.
         /// </summary>
-        internal sealed class DataSetWriterSource : IDisposable
+        internal sealed class DataSetWriterSource
         {
             /// <summary>
             /// Connection identifier describing the source
@@ -498,71 +476,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public ConnectionIdentifier Id { get; }
 
             /// <summary>
+            /// Get resulting data set writers
+            /// </summary>
+            public IEnumerable<DataSetWriterModel> DataSetWriters { get; private set; }
+
+            /// <summary>
             /// Source
             /// </summary>
             /// <param name="connection"></param>
             /// <param name="client"></param>
-            /// <param name="resolver"></param>
+            /// <param name="loggerFactory"></param>
             public DataSetWriterSource(ConnectionIdentifier connection,
-                IOpcUaClientManager<ConnectionModel> client,
-                DataSetWriterResolver resolver)
+                IOpcUaClientManager<ConnectionModel> client, ILoggerFactory loggerFactory)
             {
                 Id = connection;
+                DataSetWriters = Enumerable.Empty<DataSetWriterModel>();
+                _loggerFactory = loggerFactory;
                 _writers = ImmutableDictionary<string, DataSetWriterModel>.Empty;
-                _resolver = resolver;
                 _client = client;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
             }
 
             /// <summary>
             /// Merge and update the writer configurations in this source
             /// </summary>
             /// <param name="writers"></param>
+            /// <param name="maxItemsPerWriter"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async Task UpdateAsync(IEnumerable<DataSetWriterModel> writers,
+            public async ValueTask UpdateAsync(
+                IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter,
                 CancellationToken ct)
             {
-                var newWriters = new Dictionary<string, DataSetWriterModel>();
-                foreach (var writer in writers)
-                {
-                    if (_writers.TryGetValue(writer.Id, out var existing))
-                    {
-                        // Merge state of data set items to the new writer
-                        _resolver.Merge(existing, writer);
-                    }
-                    newWriters.Add(writer.Id, writer);
-                }
-
-                if (_resolver.NeedsUpdate(newWriters.Values))
+                var resolver = new DataSetWriterResolver(writers, _writers,
+                    _loggerFactory.CreateLogger<DataSetWriterResolver>());
+                if (resolver.NeedsUpdate)
                 {
                     await _client.ExecuteAsync(Id.Connection, async context =>
                     {
-                        await _resolver.ResolveAsync(context.Session,
-                            newWriters.Values.ToList(), ct).ConfigureAwait(false);
+                        await resolver.ResolveAsync(
+                            context.Session, ct).ConfigureAwait(false);
                         return true;
                     },
                     ct).ConfigureAwait(false);
                 }
-                _writers = newWriters.ToImmutableDictionary();
+                _writers = resolver.DataSetWriters.ToImmutableDictionary(w => w.Id);
+                DataSetWriters = resolver.Split(maxItemsPerWriter);
             }
 
-            /// <summary>
-            /// Get data set writers
-            /// </summary>
-            /// <param name="maxItemsPerWriter"></param>
-            /// <returns></returns>
-            public IEnumerable<DataSetWriterModel> GetDataSetWriters(int maxItemsPerWriter)
-            {
-                return _resolver.Split(_writers.Values, maxItemsPerWriter);
-            }
-
+            private readonly ILoggerFactory _loggerFactory;
             private ImmutableDictionary<string, DataSetWriterModel> _writers;
-            private readonly DataSetWriterResolver _resolver;
             private readonly IOpcUaClientManager<ConnectionModel> _client;
         }
 
@@ -590,7 +552,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
         private readonly Meter _meter = Diagnostics.NewMeter();
-        private readonly DataSetWriterResolver _resolver;
         private bool _isDisposed;
     }
 }

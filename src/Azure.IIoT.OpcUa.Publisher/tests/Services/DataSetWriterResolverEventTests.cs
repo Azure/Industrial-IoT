@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 Id = "1",
                 EventNotifier = "i=2258",
                 Name = "Condition",
-                TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
+                TypeDefinitionId = ObjectTypeIds.ConditionType.ToString()
             };
 
             // Act
@@ -165,8 +165,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     }
                 }
             };
-            var resolver = new DataSetWriterResolver(Log.Console<DataSetWriterResolver>());
-            await resolver.ResolveAsync(session, new[] { writer }, default);
+            var resolver = new DataSetWriterResolver(new[] { writer },
+                Log.Console<DataSetWriterResolver>());
+            await resolver.ResolveAsync(session, default);
         }
 
         protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)

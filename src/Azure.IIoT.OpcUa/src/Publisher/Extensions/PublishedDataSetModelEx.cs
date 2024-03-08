@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static uint GetMetaDataMinorVersion(this PublishedDataSetModel dataSet)
         {
-            return dataSet.EnumerateMetaData().Max(m => m?.MinorVersion ?? 0u);
+            return dataSet.EnumerateMetaData().Max(m => m.MetaData?.MinorVersion ?? 0u);
         }
 
         /// <summary>
@@ -46,7 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSet"></param>
         /// <returns></returns>
-        public static IEnumerable<PublishedMetaDataModel?> EnumerateMetaData(
+        public static IEnumerable<
+            (string? FieldName, PublishedMetaDataModel? MetaData)> EnumerateMetaData(
             this PublishedDataSetModel dataSet)
         {
             if (dataSet.DataSetSource == null)
@@ -57,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 foreach (var item in dataSet.DataSetSource.PublishedVariables.PublishedData)
                 {
-                    yield return item.MetaData;
+                    yield return (item.DataSetFieldName, item.MetaData);
                 }
             }
             if (dataSet.DataSetSource.PublishedEvents?.PublishedData != null)
@@ -68,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     {
                         foreach (var item in evt.SelectedFields)
                         {
-                            yield return item.MetaData;
+                            yield return (item.DataSetFieldName, item.MetaData);
                         }
                     }
                 }
@@ -81,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     {
                         foreach (var item in obj.PublishedVariables.PublishedData)
                         {
-                            yield return item.MetaData;
+                            yield return (item.DataSetFieldName, item.MetaData);
                         }
                     }
                 }
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 foreach (var item in dataSet.ExtensionFields)
                 {
-                    yield return item.MetaData;
+                    yield return (item.DataSetFieldName, item.MetaData);
                 }
             }
         }

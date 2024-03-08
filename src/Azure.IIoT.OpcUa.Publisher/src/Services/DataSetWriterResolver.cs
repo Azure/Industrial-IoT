@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Avro.Generic;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
@@ -46,85 +47,104 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     internal class DataSetWriterResolver
     {
         /// <summary>
+        /// Needs update
+        /// </summary>
+        /// <returns></returns>
+        public bool NeedsUpdate => _items.Any(v => v.NeedsUpdate);
+
+        /// <summary>
+        /// Get writers in the data set resolver
+        /// </summary>
+        public IEnumerable<DataSetWriterModel> DataSetWriters
+            => _items.Select(i => i.DataSetWriter).Distinct();
+
+        /// <summary>
         /// Create resolver
         /// </summary>
+        /// <param name="writers"></param>
         /// <param name="logger"></param>
-        public DataSetWriterResolver(ILogger<DataSetWriterResolver> logger)
+        public DataSetWriterResolver(IEnumerable<DataSetWriterModel> writers,
+            ILogger<DataSetWriterResolver> logger)
         {
+            _items = writers
+                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+                .ToList();
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Create resolver
+        /// </summary>
+        /// <param name="writers"></param>
+        /// <param name="oldWriters"></param>
+        /// <param name="logger"></param>
+        public DataSetWriterResolver(IEnumerable<DataSetWriterModel> writers,
+            IDictionary<string, DataSetWriterModel> oldWriters,
+            ILogger<DataSetWriterResolver> logger)
+        {
+            _items = writers
+                .SelectMany(w => PublishedDataSetItem.Merge(this, w, oldWriters))
+                .ToList();
             _logger = logger;
         }
 
         /// <summary>
         /// Update the configuration using session. This is only necessary if
-        /// <see cref="NeedsUpdate(IEnumerable{DataSetWriterModel})"/> returns
+        /// <see cref="NeedsUpdate()"/> returns
         /// true.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public async ValueTask ResolveAsync(IOpcUaSession session,
-            IReadOnlyList<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
             // 1. Resolve nodes
-            await ResolveBrowsePathAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveBrowsePathAsync(session, ct).ConfigureAwait(false);
 
             // 2. Resolve components
-            await ResolveComponentsAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveComponentsAsync(session, ct).ConfigureAwait(false);
 
             // 3. Resolve display names
-            await ResolveFieldNamesAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveFieldNamesAsync(session, ct).ConfigureAwait(false);
 
             // 4. Resolve queue names
-            await ResolveQueueNamesAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveQueueNamesAsync(session, ct).ConfigureAwait(false);
 
             // 5. Special resolve anything else
-            await ResolveRemainingsAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveRemainingsAsync(session, ct).ConfigureAwait(false);
 
             // 6. Resolve metadata
-            await ResolveMetaDataAsync(session, writers, ct).ConfigureAwait(false);
+            await ResolveMetaDataAsync(session,  ct).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Needs update
+        /// Split into new set of writers
         /// </summary>
-        /// <param name="writers"></param>
-        /// <returns></returns>
-        public bool NeedsUpdate(IEnumerable<DataSetWriterModel> writers)
-        {
-            return writers.SelectMany(w => PublishedDataSetItem.Create(this, w))
-                .Any(v => v.NeedsUpdate);
-        }
-
-        /// <summary>
-        /// Split writers
-        /// </summary>
-        /// <param name="writers"></param>
         /// <param name="maxItemsPerDataSet"></param>
         /// <returns></returns>
-        public IEnumerable<DataSetWriterModel> Split(IEnumerable<DataSetWriterModel> writers,
-            int maxItemsPerDataSet)
+        public IEnumerable<DataSetWriterModel> Split(int maxItemsPerDataSet)
         {
-            return PublishedDataSetItem.Split(this, writers, maxItemsPerDataSet);
-        }
-
-        /// <summary>
-        /// Merge items from old writer into new writer
-        /// </summary>
-        /// <param name="existing"></param>
-        /// <param name="newWriter"></param>
-        public void Merge(DataSetWriterModel existing, DataSetWriterModel newWriter)
-        {
-            // Create lookup to reference the old state
-            var lookup = PublishedDataSetItem.Create(this, existing)
-                .Where(d => d.Id != null)
-                .DistinctBy(d => d.Id)
-                .ToDictionary(d => d.Id!, d => d);
-            foreach (var item in PublishedDataSetItem.Create(this, newWriter))
+            // We do not filter so we can report errors through stack subscription
+            foreach (var writers in _items.GroupBy(w => w.DataSetWriter,
+                Compare.Using<DataSetWriterModel>((x, y) => x?.Id == y?.Id)))
             {
-                if (item.Id != null && lookup.TryGetValue(item.Id, out var existingItem))
+                // TODO: slice events and generated data sets to fit as many items
+                // into a split writer.
+
+                var writerId = -1;
+                foreach (var writer in PublishedDataSetItem.VariableItem
+                        .Split(writers.Key, writers, maxItemsPerDataSet)
+                    .Concat(PublishedDataSetItem.EventItem
+                        .Split(writers.Key, writers))
+                    .Concat(PublishedDataSetItem.ObjectItem
+                        .Split(writers.Key, writers, maxItemsPerDataSet)))
                 {
-                    item.Merge(existingItem);
+                    writerId++;
+                    yield return writer with
+                    {
+                        Id = writerId == 0 ? writer.Id : writer.Id + "_" + writerId
+                    };
                 }
             }
         }
@@ -174,15 +194,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Resolve browse names
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveBrowsePathAsync(IOpcUaSession session,
-            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
-            foreach (var resolvers in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+            foreach (var resolvers in _items
                 .Where(v => v.BrowsePath?.Count > 0)
                 .Batch(limits.GetMaxNodesPerTranslatePathsToNodeIds()))
             {
@@ -243,17 +261,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Expand items
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveComponentsAsync(IOpcUaSession session,
-            IReadOnlyList<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
-            foreach (var itembatches in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w,
-                    PublishedDataSetItem.ItemTypes.Variables |
-                    PublishedDataSetItem.ItemTypes.Objects))
+            foreach (var itembatches in _items
                 .Where(v => v.Flags.HasFlag(PublishedNodeExpansion.Expand))
                 .GroupBy(v => v.Flags.HasFlag(PublishedNodeExpansion.Recursive) ? 128 : 1)
                 .Select(v => (v.Key, v.Select(v => v)))
@@ -338,11 +352,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         _logger.LogInformation("Expanded item {Id} to {Count} Variables",
                             item.Id, variables.Count);
-                        item.Expand = new PublishedDataItemsModel
+
+
+                        item.Expand(this, new PublishedDataItemsModel
                         {
                             PublishedData = variables.ToList()
-                        };
-                        item.Flags &= ~PublishedNodeExpansion.Expand;
+                        });
                     }
                 }
             }
@@ -352,17 +367,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Resolve field names
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveFieldNamesAsync(IOpcUaSession session,
-            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
             // Get limits to batch requests during resolve
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
 
-            foreach (var displayNameUpdates in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+            foreach (var displayNameUpdates in _items
                 .Where(p => p.ResolvedName == null)
                 .Batch(limits.GetMaxNodesPerRead()))
             {
@@ -413,16 +426,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Resolve queue names
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveQueueNamesAsync(IOpcUaSession session,
-            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
 
-            foreach (var getPathsBatch in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+            foreach (var getPathsBatch in _items
                 .Where(i => i.NeedsQueueNameResolving)
                 .Batch(1000))
             {
@@ -447,10 +458,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         getPath[index].ErrorInfo = null;
                         getPath[index].Publishing = (getPath[index].Publishing ??
                             new PublishingQueueSettingsModel()) with
-                            {
-                                QueueName = ToQueueName(getPath[index].DataSetWriter,
+                        {
+                            QueueName = ToQueueName(getPath[index].DataSetWriter,
                                     paths[index].Path, getPath[index].Routing)
-                            };
+                        };
                     }
                 }
             }
@@ -478,26 +489,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Resolve metadata
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
-            var metaDataVersion = DateTime.UtcNow.ToBinary();
-            var minor = (uint)metaDataVersion;
             _logger.LogDebug("Loading Metadata ...");
 
             var sw = Stopwatch.StartNew();
             var typeSystem = await session.GetComplexTypeSystemAsync(
                 ct).ConfigureAwait(false);
 
-            foreach (var item in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w))
-                .Where(i => i.MetaDataNeedsRefresh))
+            foreach (var item in _items.Where(i => i.MetaDataNeedsRefresh))
             {
                 await item.ResolveMetaDataAsync(session,
-                    typeSystem, minor, ct).ConfigureAwait(false);
+                    typeSystem, ct).ConfigureAwait(false);
             }
             _logger.LogInformation("Loaded Metadata in {Duration}.",
                 sw.Elapsed);
@@ -507,14 +513,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Resolve all remmaining
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="writers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ResolveRemainingsAsync(IOpcUaSession session,
-            IEnumerable<DataSetWriterModel> writers, CancellationToken ct)
+            CancellationToken ct)
         {
-            foreach (var item in writers
-                .SelectMany(w => PublishedDataSetItem.Create(this, w))
+            foreach (var item in _items
                 .Where(i => i.ErrorInfo == null))
             {
                 await item.ResolveAsync(session, ct).ConfigureAwait(false);
@@ -567,9 +571,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public abstract PublishedNodeExpansion Flags { get; set; }
 
             /// <summary>
-            /// Add components
+            /// Expand writer with new items
             /// </summary>
-            public abstract PublishedDataItemsModel? Expand { get; set; }
+            /// <param name="resolver"></param>
+            /// <param name="value"></param>
+            /// <exception cref="NotSupportedException"></exception>
+            public virtual void Expand(DataSetWriterResolver resolver,
+                PublishedDataItemsModel value)
+            {
+                throw new NotSupportedException();
+            }
 
             /// <summary>
             /// Writer
@@ -579,7 +590,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Reset meta data
             /// </summary>
-            public abstract bool MetaDataNeedsRefresh { get; }
+            public virtual bool MetaDataNeedsRefresh
+            {
+                get => !MetaDataDisabled || NeedMetaDataRefresh;
+                set => NeedMetaDataRefresh = value;
+            }
+
+            private bool NeedMetaDataRefresh { get; set; }
 
             /// <summary>
             /// Get unique identifier
@@ -593,7 +610,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ErrorInfo != null ||
                 BrowsePath?.Count > 0 ||
                 ResolvedName == null ||
-                Expand != null ||
+                Flags.HasFlag(PublishedNodeExpansion.Expand) ||
                 NeedsQueueNameResolving
                 ;
 
@@ -671,6 +688,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Merge items
+            /// </summary>
+            /// <param name="resolver"></param>
+            /// <param name="writer"></param>
+            /// <param name="oldWriters"></param>
+            /// <returns></returns>
+            public static IEnumerable<PublishedDataSetItem> Merge(DataSetWriterResolver resolver,
+                DataSetWriterModel writer, IDictionary<string, DataSetWriterModel> oldWriters)
+            {
+                if (!oldWriters.TryGetValue(writer.Id, out var existing))
+                {
+                    foreach (var item in Create(resolver, writer))
+                    {
+                        yield return item;
+                    }
+                    yield break;
+                }
+
+                // Create lookup to reference the old state
+                var lookup = Create(resolver, existing)
+                    .Where(d => d.Id != null)
+                    .DistinctBy(d => d.Id)
+                    .ToDictionary(d => d.Id!, d => d);
+                foreach (var item in Create(resolver, writer))
+                {
+                    if (item.Id != null && lookup.TryGetValue(item.Id, out var existingItem))
+                    {
+                        item.Merge(existingItem);
+                    }
+                    yield return item;
+                }
+            }
+
+            /// <summary>
             /// Create items over a writer
             /// </summary>
             /// <param name="resolver"></param>
@@ -744,70 +795,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Split the writers and their items
-            /// </summary>
-            /// <param name="resolver"></param>
-            /// <param name="writers"></param>
-            /// <param name="maxItemsPerWriter"></param>
-            /// <returns></returns>
-            public static IEnumerable<DataSetWriterModel> Split(DataSetWriterResolver resolver,
-                IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter)
-            {
-                // We do not filter so we can report errors through stack subscription
-                foreach (var writer in writers)
-                {
-                    var writerIndex = -1;
-                    var publishedData =
-                        writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData;
-                    if (publishedData != null)
-                    {
-                        foreach (var w in publishedData
-                            .Select(v => new VariableItem(resolver, writer, v))
-                            .Batch(maxItemsPerWriter)
-                            .Select(i => i.ToList())
-                            .Where(i => i.Count > 0)
-                            .SelectMany(VariableItem.Split))
-                        {
-                            writerIndex++;
-                            yield return writerIndex == 0 ? w : w with
-                            {
-                                Id = w.Id + "_" + writerIndex
-                            };
-                        }
-                    }
-
-                    var publishedEvents =
-                        writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData;
-                    if (publishedEvents != null)
-                    {
-                        foreach (var w in EventItem.Split(publishedEvents
-                            .Select(v => new EventItem(resolver, writer, v))))
-                        {
-                            writerIndex++;
-                            yield return writerIndex == 0 ? w : w with
-                            {
-                                Id = w.Id + "_" + writerIndex
-                            };
-                        }
-                    }
-                    var publishedObjects =
-                        writer.DataSet?.DataSetSource?.PublishedObjects?.PublishedData;
-                    if (publishedObjects != null)
-                    {
-                        foreach (var w in ObjectItem.Split(publishedObjects
-                            .Select(v => new ObjectItem(resolver, writer, v)), maxItemsPerWriter))
-                        {
-                            writerIndex++;
-                            yield return writerIndex == 0 ? w : w with
-                            {
-                                Id = w.Id + "_" + writerIndex
-                            };
-                        }
-                    }
-                }
-            }
-
-            /// <summary>
             /// Resolve anything else
             /// </summary>
             /// <param name="session"></param>
@@ -824,11 +811,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="session"></param>
             /// <param name="typeSystem"></param>
-            /// <param name="version"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
             public abstract ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, uint version, CancellationToken ct);
+                ComplexTypeSystem? typeSystem, CancellationToken ct);
 
             /// <summary>
             /// Extension field
@@ -851,15 +837,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override ServiceResultModel? ErrorInfo { get; set; }
 
                 /// <inheritdoc/>
-                public override PublishedDataItemsModel? Expand { get; set; }
-
-                /// <inheritdoc/>
                 public override PublishedNodeExpansion Flags { get; set; }
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
-                    => !MetaDataDisabled
-                    && _extension.MetaData == null;
+                {
+                    get => base.MetaDataNeedsRefresh || _extension.MetaData == null;
+                    set => base.MetaDataNeedsRefresh = value;
+                }
 
                 /// <inheritdoc/>
                 public override string? Id
@@ -903,7 +888,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                    ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
                     if (_extension.MetaData != null)
                     {
@@ -913,7 +898,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         new VariableNode
                         {
                             DataType = (int)BuiltInType.Variant
-                        }, version, ct).ConfigureAwait(false);
+                        }, 0u, ct).ConfigureAwait(false);
                 }
 
                 private readonly ExtensionFieldModel _extension;
@@ -932,7 +917,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_variable.PublishedVariableNodeId != value)
                         {
-                            _variable.MetaData = null;
+                            MetaDataNeedsRefresh = true;
                             _variable.PublishedVariableNodeId = value;
                             if (_variable.ReadDisplayNameFromNode != true &&
                                 _variable.DataSetFieldName == null)
@@ -958,14 +943,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_variable.DataSetFieldName != value)
                         {
-                            _variable.MetaData = null;
+                            MetaDataNeedsRefresh = true;
                             _variable.DataSetFieldName = value;
                         }
                     }
                 }
-
-                /// <inheritdoc/>
-                public override PublishedDataItemsModel? Expand { get; set; }
 
                 /// <inheritdoc/>
                 public override PublishedNodeExpansion Flags { get; set; }
@@ -988,8 +970,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
-                    => !MetaDataDisabled
-                    && _variable.MetaData == null;
+                {
+                    get => base.MetaDataNeedsRefresh || _variable.MetaData == null ;
+                    set => base.MetaDataNeedsRefresh = value;
+                }
 
                 /// <inheritdoc/>
                 public VariableItem(DataSetWriterResolver resolver,
@@ -1036,29 +1020,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public static IEnumerable<DataSetWriterModel> Split(
-                    IEnumerable<PublishedDataSetItem> items)
+                public static IEnumerable<DataSetWriterModel> Split(DataSetWriterModel writer,
+                    IEnumerable<PublishedDataSetItem> items, int maxItemsPerWriter)
                 {
-                    foreach (var writers in items.GroupBy(w => w.DataSetWriter.Id))
+                    foreach (var variables in items
+                        .OfType<VariableItem>()
+                        .Batch(maxItemsPerWriter))
                     {
-                        var variables = writers
-                            .OfType<VariableItem>()
-                            .ToList();
-                        if (variables.Count == 0)
-                        {
-                            continue;
-                        }
-                        var copy = variables[0].CopyDataSetWriter();
+                        var copy = Copy(writer);
                         Debug.Assert(copy.DataSet?.DataSetSource != null);
                         copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
                         {
                             PublishedData = variables
-                            .Select((f, i) => f._variable with { FieldIndex = i })
-                            .ToList()
+                                .Select((f, i) => f._variable with { FieldIndex = i })
+                                .ToList()
                         };
+                        var offset = copy.DataSet.DataSetSource.PublishedVariables.PublishedData.Count;
                         copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
                             // No need to clone more members of the field
-                            .Select((f, i) => f with { FieldIndex = i + variables.Count })
+                            .Select((f, i) => f with { FieldIndex = i + offset })
                             .ToList();
                         yield return copy;
                     }
@@ -1066,7 +1046,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                    ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
                     Debug.Assert(_variable.Id != null);
                     var nodeId = _variable.PublishedVariableNodeId.ToNodeId(session.MessageContext);
@@ -1084,7 +1064,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (node is VariableNode variable)
                         {
                             _variable.MetaData = await ResolveMetaDataAsync(session,
-                                typeSystem, variable, version, ct).ConfigureAwait(false);
+                                typeSystem, variable, (_variable.MetaData?.MinorVersion ?? 0) + 1,
+                                ct).ConfigureAwait(false);
+                            MetaDataNeedsRefresh = false;
                         }
                     }
                     catch (ServiceResultException sre)
@@ -1147,10 +1129,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public override PublishedDataItemsModel? Expand
+                public override void Expand(DataSetWriterResolver resolver,
+                    PublishedDataItemsModel value)
                 {
-                    get => _object.PublishedVariables;
-                    set => _object.PublishedVariables = value;
+                    if (value != null)
+                    {
+                        _object.PublishedVariables = value;
+
+                        foreach (var item in value.PublishedData)
+                        {
+                            resolver._items.Add(new VariableItem(resolver, DataSetWriter, item));
+                        }
+                        Flags &= ~PublishedNodeExpansion.Expand;
+                    }
                 }
 
                 /// <inheritdoc/>
@@ -1164,9 +1155,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 /// <inheritdoc/>
                 public override string? Id => _object.Id;
-
-                /// <inheritdoc/>
-                public override bool MetaDataNeedsRefresh => false;
 
                 /// <inheritdoc/>
                 public override bool NeedsQueueNameResolving => false;
@@ -1235,7 +1223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public static IEnumerable<DataSetWriterModel> Split(
+                public static IEnumerable<DataSetWriterModel> Split(DataSetWriterModel writer,
                     IEnumerable<PublishedDataSetItem> items, int maxItemsPerWriter)
                 {
                     // Each object data set generates a writer
@@ -1248,7 +1236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         foreach (var set in item._object.PublishedVariables.PublishedData
                             .Batch(maxItemsPerWriter))
                         {
-                            var copy = item.CopyDataSetWriter();
+                            var copy = Copy(writer);
                             Debug.Assert(copy.DataSet?.DataSetSource != null);
 
                             var oSet = item._object with
@@ -1282,7 +1270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                    ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
                     return ValueTask.CompletedTask;
                 }
@@ -1333,15 +1321,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override PublishedNodeExpansion Flags { get; set; }
 
                 /// <inheritdoc/>
-                public override PublishedDataItemsModel? Expand { get; set; }
-
-                /// <inheritdoc/>
                 public override string? Id => _event.Id;
 
-                /// <inheritdoc/>
+                /// <summary>
+                /// Reset meta data
+                /// </summary>
                 public override bool MetaDataNeedsRefresh
-                    => !MetaDataDisabled
-                    && (_event.SelectedFields?.Any(f => f.MetaData == null) ?? false);
+                {
+                    get => !MetaDataDisabled ||
+                        (_event.SelectedFields?.Any(f => f.MetaData == null) ?? false);
+                    set => NeedMetaDataRefresh = value;
+                }
 
                 /// <inheritdoc/>
                 public override bool NeedsUpdate
@@ -1363,6 +1353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .Append(_event.ReadEventNameFromNode == true)
                             .Append(_event.TypeDefinitionId)
                             .Append(_event.ModelChangeHandling != null)
+                            .Append(_event.ConditionHandling != null)
                             // .Append(_variable.Triggering)
                             .Append(_event.Publishing?.QueueName ?? string.Empty)
                             ;
@@ -1389,12 +1380,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public static IEnumerable<DataSetWriterModel> Split(IEnumerable<PublishedDataSetItem> items)
+                public static IEnumerable<DataSetWriterModel> Split(DataSetWriterModel writer,
+                    IEnumerable<PublishedDataSetItem> items)
                 {
-                    // Each event data set generates a writer
+                    //
+                    // Each event data set right now generates a writer
+                    //
+                    // TODO: This is not that efficient as every event
+                    // gets a subscription, rather we should try and have
+                    // all events inside a single subscription up to
+                    // max events.
+                    //
                     foreach (var item in items.OfType<EventItem>())
                     {
-                        var copy = item.CopyDataSetWriter();
+                        var copy = Copy(writer);
                         Debug.Assert(copy.DataSet?.DataSetSource != null);
 
                         var evtSet = item._event with
@@ -1471,7 +1470,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 /// <inheritdoc/>
                 public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
-                    ComplexTypeSystem? typeSystem, uint version, CancellationToken ct)
+                    ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
                     if (_event.ModelChangeHandling != null)
                     {
@@ -1495,6 +1494,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var targetNode = await FindNodeWithBrowsePathAsync(session,
                                 selectClause.BrowsePath, selectClause.TypeDefinitionId,
                                 ct).ConfigureAwait(false);
+
+                            var version = (selectClause.MetaData?.MinorVersion ?? 0) + 1;
                             if (targetNode is VariableNode variable)
                             {
                                 selectClause.MetaData = await ResolveMetaDataAsync(session,
@@ -1509,6 +1510,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         DataType = (int)BuiltInType.Variant
                                     }, version, ct).ConfigureAwait(false);
                             }
+                            MetaDataNeedsRefresh = false;
                         }
                     }
                     catch (Exception e)
@@ -1667,6 +1669,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     };
                     dataSetEvent.SelectedFields = selectedFields;
                     dataSetEvent.TypeDefinitionId = null;
+                    MetaDataNeedsRefresh = true;
                 }
 
                 /// <summary>
@@ -1699,6 +1702,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (selectClause.DataSetClassFieldId == Guid.Empty)
                         {
                             selectClause.DataSetClassFieldId = Guid.NewGuid();
+                            MetaDataNeedsRefresh = true;
                         }
 
                         if (fieldName.Length == 0 &&
@@ -1707,7 +1711,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             fieldName = "ConditionId";
                         }
-                        selectClause.DataSetFieldName = fieldName;
+                        if (selectClause.DataSetFieldName != fieldName)
+                        {
+                            selectClause.DataSetFieldName = fieldName;
+                            MetaDataNeedsRefresh = true;
+                        }
                     }
                     return ValueTask.CompletedTask;
                 }
@@ -1816,27 +1824,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Copy the writer
+            /// Copy writer
             /// </summary>
+            /// <param name="dataSetWriter"></param>
             /// <returns></returns>
-            protected DataSetWriterModel CopyDataSetWriter()
+            protected static DataSetWriterModel Copy(DataSetWriterModel dataSetWriter)
             {
-                return DataSetWriter with
+                return dataSetWriter with
                 {
-                    MessageSettings = DataSetWriter.MessageSettings == null
-                        ? null : DataSetWriter.MessageSettings with { },
-                    DataSet = (DataSetWriter.DataSet
+                    MessageSettings = dataSetWriter.MessageSettings == null
+                        ? null : dataSetWriter.MessageSettings with { },
+                    DataSet = (dataSetWriter.DataSet
                         ?? new PublishedDataSetModel()) with
                     {
-                        DataSetMetaData = DataSetWriter.DataSet?.DataSetMetaData == null
-                                ? null : DataSetWriter.DataSet.DataSetMetaData with { },
-                        ExtensionFields = DataSetWriter.DataSet?.ExtensionFields?
+                        DataSetMetaData = dataSetWriter.DataSet?.DataSetMetaData == null
+                                ? null : dataSetWriter.DataSet.DataSetMetaData with { },
+                        ExtensionFields = dataSetWriter.DataSet?.ExtensionFields?
                                 .Select(e => e with { })
                                 .ToList(),
-                        DataSetSource = (DataSetWriter.DataSet?.DataSetSource
+                        DataSetSource = (dataSetWriter.DataSet?.DataSetSource
                                 ?? new PublishedDataSetSourceModel()) with
                         {
                             PublishedEvents = null,
+                            PublishedObjects = null,
                             PublishedVariables = null,
                         }
                     }
@@ -2103,6 +2113,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             protected ILogger _logger => _resolver._logger;
             protected readonly DataSetWriterResolver _resolver;
         }
+
+        private readonly List<PublishedDataSetItem> _items;
         private readonly ILogger _logger;
     }
 }

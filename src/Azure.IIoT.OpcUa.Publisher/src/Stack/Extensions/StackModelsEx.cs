@@ -456,7 +456,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="fieldMetaData"></param>
         /// <param name="majorVersion"></param>
         /// <returns></returns>
-        public static DataSetMetaDataType? Encode(this IVariantEncoder encoder,
+        public static DataSetMetaDataType? EncodeMetaData(this IVariantEncoder encoder,
             string? fieldName, Guid fieldGuid, PublishedMetaDataModel fieldMetaData,
             uint majorVersion = 0)
         {

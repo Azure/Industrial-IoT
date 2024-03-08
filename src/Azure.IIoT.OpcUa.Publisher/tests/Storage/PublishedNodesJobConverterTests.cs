@@ -626,7 +626,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
 
             var entries = converter.Read(pn);
-            var writerGroups = converter.ToWriterGroups(entries);
+            var writerGroups = converter.ToWriterGroups(entries).ToList();
 
             Assert.NotEmpty(writerGroups);
             Assert.Single(writerGroups);
