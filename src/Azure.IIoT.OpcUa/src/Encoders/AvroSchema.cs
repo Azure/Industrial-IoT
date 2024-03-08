@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Diagnostics;
     using System.Linq;
     using Opc.Ua;
-    using System.Runtime.CompilerServices;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -107,11 +107,11 @@ namespace Azure.IIoT.OpcUa.Encoders
 
                     var schema = fieldMetadata?.DataType == null ? null
                         : GetSchema(fieldMetadata.DataType);
-                    fields.Add(new Field(schema, fieldName, pos));
+                    fields.Add(new Field(schema, Escape(fieldName), pos));
                 }
             }
 
-            return RecordSchema.Create(dataSet.Name ?? "Payload", fields);
+            return RecordSchema.Create(Escape(dataSet.Name ?? "Payload"), fields);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         private void CollectTypes(PublishedDataSetModel dataSet)
         {
             foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData()
-                .Where(m => m.Item2 != null))
+                .Where(m => m.MetaData != null))
             {
                 Debug.Assert(fieldMetadata != null);
                 if (fieldMetadata.StructureDataTypes != null)
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     schema = description.Schema;
                 }
             }
-            schema ??= GetBuiltInSchema(dataType);
+            schema ??= GetBuiltInDataTypeSchema(dataType);
             if (schema != null)
             {
                 if (arrayDimensions != null)
@@ -192,36 +192,32 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return valueRank > 1 ? ArraySchema.Create(schema) : schema;
             }
             throw new ArgumentException($"No Schema found for {dataType}");
-        }
 
-        /// <summary>
-        /// Get built in schema
-        /// </summary>
-        /// <param name="dataType"></param>
-        /// <returns></returns>
-        internal static Schema? GetBuiltInSchema(string dataType)
-        {
-            if (int.TryParse(dataType[2..], out var id))
+            static Schema? GetBuiltInDataTypeSchema(string dataType)
             {
-                return GetBuiltInSchema(id);
+                if (int.TryParse(dataType[2..], out var id)
+                    && id >= 0 && id <= 29)
+                {
+                    return GetBuiltInSchema(id);
+                }
+                return null;
             }
-            return null;
         }
 
         internal static Schema DiagnosticInfoSchema
         {
             get
             {
-                return RecordSchema.Create("i=" + BuiltInType.DiagnosticInfo, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.DiagnosticInfo), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.Int32)!, "SymbolicId", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32)!, "NamespaceUri", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32)!, "Locale", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32)!, "LocalizedText", 3),
-                    new (GetBuiltInSchema((int)BuiltInType.String)!, "AdditionalInfo", 4),
-                    new (GetBuiltInSchema((int)BuiltInType.StatusCode)!, "InnerStatusCode", 5),
-                    new (GetBuiltInSchema((int)BuiltInType.DiagnosticInfo)!, "InnerDiagnosticInfo", 6)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.Int32), "SymbolicId", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.Int32), "NamespaceUri", 1),
+                    new (GetBuiltInSchema((int)BuiltInType.Int32), "Locale", 2),
+                    new (GetBuiltInSchema((int)BuiltInType.Int32), "LocalizedText", 3),
+                    new (GetBuiltInSchema((int)BuiltInType.String), "AdditionalInfo", 4),
+                    new (GetBuiltInSchema((int)BuiltInType.StatusCode), "InnerStatusCode", 5),
+                    new (GetBuiltInSchema((int)BuiltInType.DiagnosticInfo), "InnerDiagnosticInfo", 6)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.DiagnosticInfo });
             }
         }
 
@@ -231,10 +227,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var bodyType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.Null)!,
-                    GetBuiltInSchema((int)BuiltInType.String)!,
-                    GetBuiltInSchema((int)BuiltInType.XmlElement)!,
-                    GetBuiltInSchema((int)BuiltInType.ByteString)!
+                    GetBuiltInSchema((int)BuiltInType.Null),
+                    GetBuiltInSchema((int)BuiltInType.String),
+                    GetBuiltInSchema((int)BuiltInType.XmlElement),
+                    GetBuiltInSchema((int)BuiltInType.ByteString)
                 });
                 var encodingType = EnumSchema.Create("Encoding", new string[]
                 {
@@ -242,12 +238,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "ByteString",
                     "XmlElement"
                 });
-                return RecordSchema.Create("i=" + BuiltInType.ExtensionObject, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.ExtensionObject), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.NodeId)!, "TypeId", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.NodeId), "TypeId", 0),
                     new (encodingType, "Encoding", 1),
                     new (bodyType, "Body", 2)
-                });
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.ExtensionObject });
             }
         }
 
@@ -255,11 +251,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             get
             {
-                return RecordSchema.Create("i=" + BuiltInType.StatusCode, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.StatusCode), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32)!, "Code", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.String)!, "Symbol", 1)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Code", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.String), "Symbol", 1)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.StatusCode });
             }
         }
 
@@ -267,11 +263,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             get
             {
-                return RecordSchema.Create("i=" + BuiltInType.QualifiedName, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.QualifiedName), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.String)!, "Name", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32)!, "Uri", 1)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.String), "Name", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Uri", 1)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.QualifiedName });
             }
         }
 
@@ -279,11 +275,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             get
             {
-                return RecordSchema.Create("i=" + BuiltInType.LocalizedText, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.LocalizedText), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.String)!, "Locale", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.String)!, "Text", 1)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.String), "Locale", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.String), "Text", 1)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.LocalizedText });
             }
         }
 
@@ -293,10 +289,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var idType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32)!,
-                    GetBuiltInSchema((int)BuiltInType.String)!,
-                    GetBuiltInSchema((int)BuiltInType.Guid)!,
-                    GetBuiltInSchema((int)BuiltInType.ByteString)!
+                    GetBuiltInSchema((int)BuiltInType.UInt32),
+                    GetBuiltInSchema((int)BuiltInType.String),
+                    GetBuiltInSchema((int)BuiltInType.Guid),
+                    GetBuiltInSchema((int)BuiltInType.ByteString)
                 });
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
@@ -305,12 +301,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "Guid",
                     "ByteString"
                 });
-                return RecordSchema.Create("i=" + BuiltInType.NodeId, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.NodeId), new List<Field>
                 {
                     new (idTypeType, "IdType", 0),
                     new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32)!, "Namespace", 2)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Namespace", 2)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.NodeId });
             }
         }
 
@@ -320,10 +316,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var idType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32)!,
-                    GetBuiltInSchema((int)BuiltInType.String)!,
-                    GetBuiltInSchema((int)BuiltInType.Guid)!,
-                    GetBuiltInSchema((int)BuiltInType.ByteString)!
+                    GetBuiltInSchema((int)BuiltInType.UInt32),
+                    GetBuiltInSchema((int)BuiltInType.String),
+                    GetBuiltInSchema((int)BuiltInType.Guid),
+                    GetBuiltInSchema((int)BuiltInType.ByteString)
                 });
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
@@ -332,13 +328,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "Guid",
                     "ByteString"
                 });
-                return RecordSchema.Create("i=" + BuiltInType.NodeId, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.ExpandedNodeId), new List<Field>
                 {
                     new (idTypeType, "IdType", 0),
                     new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32)!, "Namespace", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16)!, "ServerUri", 3)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Namespace", 2),
+                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "ServerUri", 3)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.ExpandedNodeId });
             }
         }
 
@@ -346,15 +342,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             get
             {
-                return RecordSchema.Create("i=" + BuiltInType.DataValue, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.DataValue), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.Variant)!, "Value", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.StatusCode)!, "Status", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.DateTime)!, "SourceTimestamp", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16)!, "SourcePicoSeconds", 3),
-                    new (GetBuiltInSchema((int)BuiltInType.DateTime)!, "ServerTimestamp", 4),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16)!, "ServerPicoSeconds", 5)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.Variant), "Value", 0),
+                    new (GetBuiltInSchema((int)BuiltInType.StatusCode), "Status", 1),
+                    new (GetBuiltInSchema((int)BuiltInType.DateTime), "SourceTimestamp", 2),
+                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "SourcePicoSeconds", 3),
+                    new (GetBuiltInSchema((int)BuiltInType.DateTime), "ServerTimestamp", 4),
+                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.DataValue });
             }
         }
 
@@ -364,10 +360,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var idType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32)!,
-                    GetBuiltInSchema((int)BuiltInType.String)!,
-                    GetBuiltInSchema((int)BuiltInType.Guid)!,
-                    GetBuiltInSchema((int)BuiltInType.ByteString)!
+                    GetBuiltInSchema((int)BuiltInType.UInt32),
+                    GetBuiltInSchema((int)BuiltInType.String),
+                    GetBuiltInSchema((int)BuiltInType.Guid),
+                    GetBuiltInSchema((int)BuiltInType.ByteString)
                 });
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
@@ -376,12 +372,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "Guid",
                     "ByteString"
                 });
-                return RecordSchema.Create("i=" + BuiltInType.NodeId, new List<Field>
+                return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
                 {
                     new (idTypeType, "IdType", 0),
                     new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16)!, "Namespace", 2)
-                });
+                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "Namespace", 2)
+                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.Variant });
             }
         }
 
@@ -390,7 +386,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        internal static Schema? GetBuiltInSchema(int id)
+        /// <exception cref="ArgumentException"></exception>
+        internal static Schema GetBuiltInSchema(int id)
         {
             return id switch
             {
@@ -431,7 +428,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 27 => DerivedSchema.CreateLogical(id, "Integer", "string", "long"),
                 28 => DerivedSchema.CreateLogical(id, "UInteger", "string", "long"),
 
-                _ => null
+                29 => DerivedSchema.CreatePrimitive(id, "Enumeration", "int"),
+                _ => throw new ArgumentException($"Built in type {id} unknown")
             };
         }
 
@@ -457,16 +455,28 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }, out var result))
                 {
                     avroStyleNamespace = ns.Split('/')
+                        .Select(Escape)
                         .Aggregate((a, b) => $"{a}.{b}");
                 }
                 else
                 {
                     avroStyleNamespace = result.Host.Split('.').Reverse()
                         .Concat(result.AbsolutePath.Split('/'))
+                        .Select(Escape)
                         .Aggregate((a, b) => $"{a}.{b}");
                 }
             }
-            return (avroStyleNamespace, id.Identifier.ToString()!);
+            return (avroStyleNamespace, Escape(id.Identifier.ToString()!));
+        }
+
+        /// <summary>
+        /// Get a avro compliant name string
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        internal static string Escape(string name)
+        {
+            return Regex.Replace(name, @"`\d+$", string.Empty);
         }
 
         /// <summary>
@@ -504,36 +514,34 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// Create logical opc ua derived type
             /// </summary>
             /// <param name="builtInType"></param>
-            /// <param name="alias"></param>
+            /// <param name="name"></param>
             /// <param name="type"></param>
             /// <param name="logicalType"></param>
             /// <returns></returns>
-            internal static Schema CreateLogical(int builtInType, string alias,
+            internal static Schema CreateLogical(int builtInType, string name,
                 string type, string logicalType)
             {
-                var dataTypeId = "i=" + builtInType;
                 var baseType = Parse(
                     $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
                 return new DerivedSchema(baseType.Tag,
-                    new SchemaName(dataTypeId, kNamespaceZeroName, null, null),
-                    new[] { alias });
+                    new SchemaName(name, kNamespaceZeroName, null, null),
+                    new[] { "i_" + builtInType });
             }
 
             /// <summary>
             /// Create primitive opc ua built in type
             /// </summary>
             /// <param name="builtInType"></param>
-            /// <param name="alias"></param>
+            /// <param name="name"></param>
             /// <param name="type"></param>
             /// <returns></returns>
             internal static Schema CreatePrimitive(int builtInType,
-                string alias, string type)
+                string name, string type)
             {
-                var dataTypeId = "i=" + builtInType;
                 var baseType = PrimitiveSchema.NewInstance(type);
                 return new DerivedSchema(baseType.Tag,
-                    new SchemaName(dataTypeId, kNamespaceZeroName, null, null),
-                    new[] { alias });
+                    new SchemaName(name, kNamespaceZeroName, null, null),
+                    new[] { "i_" + builtInType });
             }
 
             internal static IList<SchemaName>? GetSchemaNames(
@@ -562,19 +570,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return;
                 }
-                var aliases = new[]
-                {
-                    Description.Name,
-                    Description.DataTypeId
-                };
-                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
 
+                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
                 if (Description.BaseDataType != null)
                 {
                     // Derive from base schema
                     var baseSchema = schemas.GetSchema(Description.BaseDataType);
                     Schema = new DerivedSchema(baseSchema.Tag,
-                        new SchemaName(dt, ns, null, null), aliases);
+                        new SchemaName(Escape(Description.Name), ns, null, null),
+                        new[] { dt });
                     return;
                 }
 
@@ -582,7 +586,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (Description.DataTypeId == "i=" + Description.BuiltInType)
                 {
                     // Emit the built in type definition here instead
-                    var builtIn = GetBuiltInSchema(Description.BuiltInType!.Value);
+                    Debug.Assert(Description.BuiltInType.HasValue);
+                    var builtIn = GetBuiltInSchema(Description.BuiltInType.Value);
                     if (builtIn != null)
                     {
                         Schema = builtIn;
@@ -611,15 +616,11 @@ namespace Azure.IIoT.OpcUa.Encoders
                     var field = Description.Fields[i];
                     var schema = schemas.GetSchema(field.DataType,
                         field.ValueRank, field.ArrayDimensions);
-                    fields.Add(new Field(schema, field.Name, i));
+                    fields.Add(new Field(schema, Escape(field.Name), i));
                 }
-                var aliases = new[]
-                {
-                    Description.Name,
-                    Description.DataTypeId
-                };
                 var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
-                Schema = RecordSchema.Create(dt, fields, ns, aliases);
+                Schema = RecordSchema.Create(Escape(Description.Name), fields, ns,
+                    new[] { dt });
             }
         }
 
@@ -637,11 +638,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return;
                 }
-                var aliases = new[]
-                {
-                    Description.Name,
-                    Description.DataTypeId
-                };
+
                 var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
 
                 if (Description.IsOptionSet)
@@ -650,9 +647,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // ...
                 }
 
-                var symbols = Description.Fields.Select(e => e.Name).ToList();
-                Schema = EnumSchema.Create(dt, symbols, ns, aliases,
-                    defaultSymbol: Description.Fields[0].Name);
+                var symbols = Description.Fields.Select(e => Escape(e.Name)).ToList();
+                Schema = EnumSchema.Create(Escape(Description.Name), symbols, ns,
+                    new[] { dt }, defaultSymbol: symbols[0]);
                 // TODO: Build doc from fields descriptions
             }
         }
