@@ -19,4 +19,18 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Resources\SingleDataWriter.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\SingleEventWriter.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\SinglePendingAlarm.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\SingleWithExtensions.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

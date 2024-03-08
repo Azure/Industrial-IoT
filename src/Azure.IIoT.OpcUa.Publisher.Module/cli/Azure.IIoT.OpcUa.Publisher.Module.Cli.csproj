@@ -19,6 +19,9 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Profiles\KeyFrames.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\NodeExpansion.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

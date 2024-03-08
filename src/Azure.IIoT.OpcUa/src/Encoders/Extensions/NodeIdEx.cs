@@ -91,7 +91,8 @@ namespace Opc.Ua.Extensions
                 if (index < 0)
                 {
                     throw new ArgumentException(
-                        $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.", nameof(nodeId));
+                        $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.",
+                        nameof(nodeId));
                 }
             }
             return new NodeId(nodeId.Identifier, (ushort)index);

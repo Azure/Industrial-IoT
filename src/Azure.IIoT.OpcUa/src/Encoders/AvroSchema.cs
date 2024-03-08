@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public class AvroSchema
+    public partial class AvroSchema
     {
         /// <summary>
         /// The actual schema
@@ -37,35 +37,41 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="context"></param>
         /// <returns></returns>
         public AvroSchema(DataSetWriterModel dataSetWriter,
+            IServiceMessageContext context) : this(
+                dataSetWriter.YieldReturn(), context)
+        {
+        }
+
+        /// <summary>
+        /// Get avro schema for a writer group
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public AvroSchema(WriterGroupModel writerGroup,
             IServiceMessageContext context)
-            : this(dataSetWriter.DataSet!, context,
-                  dataSetWriter.DataSetFieldContentMask)
+            : this(writerGroup.DataSetWriters!, context)
         {
         }
 
         /// <summary>
         /// Get avro schema for a dataset encoded in json
         /// </summary>
-        /// <param name="dataSet"></param>
+        /// <param name="dataSetWriters"></param>
         /// <param name="context"></param>
-        /// <param name="dataSetFieldContentMask"></param>
         /// <returns></returns>
-        public AvroSchema(PublishedDataSetModel dataSet,
-            IServiceMessageContext context,
-            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask)
+        public AvroSchema(
+            IEnumerable<DataSetWriterModel> dataSetWriters,
+            IServiceMessageContext context)
         {
-            ArgumentNullException.ThrowIfNull(dataSet);
+            ArgumentNullException.ThrowIfNull(dataSetWriters);
+            var dataSets = dataSetWriters
+                .Where(d => d.DataSet != null)
+                .Select(d => d.DataSet!)
+                .ToList();
             _context = context;
 
-            // Get the encoding mode to apply when generating the schema
-            dataSetFieldContentMask ??=
-                Publisher.Models.DataSetFieldContentMask.RawData;
-            GetEncodingModes(out _useReversibleEncoding, out _uriEncoding,
-                out _writeSingleValue, out _dataValueRepresentation,
-                dataSet.EnumerateMetaData().Take(2).Count() != 1,
-                (uint)dataSetFieldContentMask.Value);
-
-            Schema = CompileSchema(dataSet);
+            Schema = Compile(dataSets);
         }
 
         /// <inheritdoc/>
@@ -75,14 +81,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Compile the schema
+        /// Compile the schema for the data sets
         /// </summary>
-        /// <param name="dataSet"></param>
+        /// <param name="dataSets"></param>
         /// <returns></returns>
-        private RecordSchema CompileSchema(PublishedDataSetModel dataSet)
+        private Schema Compile(List<PublishedDataSetModel> dataSets)
         {
             // Collect types
-            CollectTypes(dataSet);
+            CollectTypes(dataSets);
 
             // Compile collected types to schemas
             foreach (var type in _types.Values)
@@ -93,34 +99,54 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             }
 
-            var fields = new List<Field>();
-            var pos = 0;
-            // Now collect the fields of the payload
-            foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
+            var schemas = GetDataSetSchemas(dataSets).ToList();
+            if (schemas.Count != 1)
             {
-                pos++;
-                if (fieldMetadata?.DataType != null && fieldName != null)
-                {
-                    // TODO: we want to take the data set and
-                    // network message format into account here
-                    // in particular the DataValue definition
-
-                    var schema = fieldMetadata?.DataType == null ? null
-                        : GetSchema(fieldMetadata.DataType);
-                    fields.Add(new Field(schema, Escape(fieldName), pos));
-                }
+                return UnionSchema.Create(schemas);
             }
+            return schemas[0];
+        }
 
-            return RecordSchema.Create(Escape(dataSet.Name ?? "Payload"), fields);
+        /// <summary>
+        /// Create data set schemas
+        /// </summary>
+        /// <param name="dataSets"></param>
+        /// <returns></returns>
+        private IEnumerable<Schema> GetDataSetSchemas(
+            IEnumerable<PublishedDataSetModel> dataSets)
+        {
+            foreach (var dataSet in dataSets)
+            {
+                var fields = new List<Field>();
+                var pos = 0;
+                // Now collect the fields of the payload
+                foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
+                {
+                    pos++;
+                    if (fieldMetadata?.DataType != null && fieldName != null)
+                    {
+                        // TODO: we want to take the data set and
+                        // network message format into account here
+                        // in particular the DataValue definition
+
+                        var schema = fieldMetadata?.DataType == null ? null
+                            : GetSchema(fieldMetadata.DataType);
+                        fields.Add(new Field(schema, Escape(fieldName), pos));
+                    }
+                }
+                yield return RecordSchema.Create(
+                    Escape(dataSet.Name ?? "Payload"), fields);
+            }
         }
 
         /// <summary>
         /// Collect types from data set
         /// </summary>
-        /// <param name="dataSet"></param>
-        private void CollectTypes(PublishedDataSetModel dataSet)
+        /// <param name="dataSets"></param>
+        private void CollectTypes(IEnumerable<PublishedDataSetModel> dataSets)
         {
-            foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData()
+            foreach (var (_, fieldMetadata) in dataSets
+                .SelectMany(d => d.EnumerateMetaData())
                 .Where(m => m.MetaData != null))
             {
                 Debug.Assert(fieldMetadata != null);
@@ -193,44 +219,44 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             throw new ArgumentException($"No Schema found for {dataType}");
 
-            static Schema? GetBuiltInDataTypeSchema(string dataType)
+            Schema? GetBuiltInDataTypeSchema(string dataType)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
-                    return GetBuiltInSchema(id);
+                    return GetBuiltInSchema((BuiltInType)id);
                 }
                 return null;
             }
         }
 
-        internal static Schema DiagnosticInfoSchema
+        internal Schema DiagnosticInfoSchema
         {
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.DiagnosticInfo), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.Int32), "SymbolicId", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32), "NamespaceUri", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32), "Locale", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.Int32), "LocalizedText", 3),
-                    new (GetBuiltInSchema((int)BuiltInType.String), "AdditionalInfo", 4),
-                    new (GetBuiltInSchema((int)BuiltInType.StatusCode), "InnerStatusCode", 5),
-                    new (GetBuiltInSchema((int)BuiltInType.DiagnosticInfo), "InnerDiagnosticInfo", 6)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.DiagnosticInfo });
+                    new (GetBuiltInSchema(BuiltInType.Int32), "SymbolicId", 0),
+                    new (GetBuiltInSchema(BuiltInType.Int32), "NamespaceUri", 1),
+                    new (GetBuiltInSchema(BuiltInType.Int32), "Locale", 2),
+                    new (GetBuiltInSchema(BuiltInType.Int32), "LocalizedText", 3),
+                    new (GetBuiltInSchema(BuiltInType.String), "AdditionalInfo", 4),
+                    new (GetBuiltInSchema(BuiltInType.StatusCode), "InnerStatusCode", 5),
+                    new (GetBuiltInSchema(BuiltInType.DiagnosticInfo), "InnerDiagnosticInfo", 6)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
         }
 
-        internal static Schema ExtensionObjectSchema
+        internal Schema ExtensionObjectSchema
         {
             get
             {
                 var bodyType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.Null),
-                    GetBuiltInSchema((int)BuiltInType.String),
-                    GetBuiltInSchema((int)BuiltInType.XmlElement),
-                    GetBuiltInSchema((int)BuiltInType.ByteString)
+                    GetBuiltInSchema(BuiltInType.Null),
+                    GetBuiltInSchema(BuiltInType.String),
+                    GetBuiltInSchema(BuiltInType.XmlElement),
+                    GetBuiltInSchema(BuiltInType.ByteString)
                 });
                 var encodingType = EnumSchema.Create("Encoding", new string[]
                 {
@@ -240,59 +266,59 @@ namespace Azure.IIoT.OpcUa.Encoders
                 });
                 return RecordSchema.Create(nameof(BuiltInType.ExtensionObject), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.NodeId), "TypeId", 0),
+                    new (GetBuiltInSchema(BuiltInType.NodeId), "TypeId", 0),
                     new (encodingType, "Encoding", 1),
                     new (bodyType, "Body", 2)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.ExtensionObject });
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.ExtensionObject) });
             }
         }
 
-        internal static Schema StatusCodeSchema
+        internal Schema StatusCodeSchema
         {
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.StatusCode), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Code", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.String), "Symbol", 1)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.StatusCode });
+                    new (GetBuiltInSchema(BuiltInType.UInt32), "Code", 0),
+                    new (GetBuiltInSchema(BuiltInType.String), "Symbol", 1)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.StatusCode) });
             }
         }
 
-        internal static Schema QualifiedNameSchema
+        internal Schema QualifiedNameSchema
         {
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.QualifiedName), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.String), "Name", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Uri", 1)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.QualifiedName });
+                    new (GetBuiltInSchema(BuiltInType.String), "Name", 0),
+                    new (GetBuiltInSchema(BuiltInType.UInt32), "Uri", 1)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.QualifiedName) });
             }
         }
 
-        internal static Schema LocalizedTextSchema
+        internal Schema LocalizedTextSchema
         {
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.LocalizedText), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.String), "Locale", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.String), "Text", 1)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.LocalizedText });
+                    new (GetBuiltInSchema(BuiltInType.String), "Locale", 0),
+                    new (GetBuiltInSchema(BuiltInType.String), "Text", 1)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.LocalizedText) });
             }
         }
 
-        internal static Schema NodeIdSchema
+        internal Schema NodeIdSchema
         {
             get
             {
                 var idType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32),
-                    GetBuiltInSchema((int)BuiltInType.String),
-                    GetBuiltInSchema((int)BuiltInType.Guid),
-                    GetBuiltInSchema((int)BuiltInType.ByteString)
+                    GetBuiltInSchema(BuiltInType.UInt32),
+                    GetBuiltInSchema(BuiltInType.String),
+                    GetBuiltInSchema(BuiltInType.Guid),
+                    GetBuiltInSchema(BuiltInType.ByteString)
                 });
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
@@ -305,21 +331,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     new (idTypeType, "IdType", 0),
                     new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Namespace", 2)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.NodeId });
+                    new (GetBuiltInSchema(BuiltInType.UInt32), "Namespace", 2)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.NodeId) });
             }
         }
 
-        internal static Schema ExpandedNodeIdSchema
+        internal Schema ExpandedNodeIdSchema
         {
             get
             {
                 var idType = UnionSchema.Create(new List<Schema>
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32),
-                    GetBuiltInSchema((int)BuiltInType.String),
-                    GetBuiltInSchema((int)BuiltInType.Guid),
-                    GetBuiltInSchema((int)BuiltInType.ByteString)
+                    GetBuiltInSchema(BuiltInType.UInt32),
+                    GetBuiltInSchema(BuiltInType.String),
+                    GetBuiltInSchema(BuiltInType.Guid),
+                    GetBuiltInSchema(BuiltInType.ByteString)
                 });
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
@@ -332,66 +358,93 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     new (idTypeType, "IdType", 0),
                     new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt32), "Namespace", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "ServerUri", 3)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.ExpandedNodeId });
+                    new (GetBuiltInSchema(BuiltInType.UInt32), "Namespace", 2),
+                    new (GetBuiltInSchema(BuiltInType.UInt16), "ServerUri", 3)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.ExpandedNodeId) });
             }
         }
 
-        internal static Schema DataValueSchema
+        internal Schema DataValueSchema
         {
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.DataValue), new List<Field>
                 {
-                    new (GetBuiltInSchema((int)BuiltInType.Variant), "Value", 0),
-                    new (GetBuiltInSchema((int)BuiltInType.StatusCode), "Status", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.DateTime), "SourceTimestamp", 2),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "SourcePicoSeconds", 3),
-                    new (GetBuiltInSchema((int)BuiltInType.DateTime), "ServerTimestamp", 4),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "ServerPicoSeconds", 5)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.DataValue });
+                    new (GetBuiltInSchema(BuiltInType.Variant), "Value", 0),
+                    new (GetBuiltInSchema(BuiltInType.StatusCode), "Status", 1),
+                    new (GetBuiltInSchema(BuiltInType.DateTime), "SourceTimestamp", 2),
+                    new (GetBuiltInSchema(BuiltInType.UInt16), "SourcePicoSeconds", 3),
+                    new (GetBuiltInSchema(BuiltInType.DateTime), "ServerTimestamp", 4),
+                    new (GetBuiltInSchema(BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.DataValue) });
             }
         }
 
-        internal static Schema VariantSchema
+        internal Schema VariantSchema
         {
             get
             {
-                var idType = UnionSchema.Create(new List<Schema>
+                var bodyType = UnionSchema.Create(
+                    GetPossibleTypes(false).Concat(GetPossibleTypes(true)).ToList());
+                IEnumerable<Schema> GetPossibleTypes(bool array)
                 {
-                    GetBuiltInSchema((int)BuiltInType.UInt32),
-                    GetBuiltInSchema((int)BuiltInType.String),
-                    GetBuiltInSchema((int)BuiltInType.Guid),
-                    GetBuiltInSchema((int)BuiltInType.ByteString)
-                });
-                var idTypeType = EnumSchema.Create("IdentifierType", new string[]
-                {
-                    "UInt32",
-                    "String",
-                    "Guid",
-                    "ByteString"
-                });
+                    if (array)
+                    {
+                        yield break;
+                    }
+                    for (var i = 0; i <= 29; i++)
+                    {
+                        if (i == (int)BuiltInType.Variant ||
+                            i == (int)BuiltInType.ExtensionObject ||
+                            i == (int)BuiltInType.DiagnosticInfo ||
+                            i == (int)BuiltInType.DataValue)
+                        {
+                            continue; // TODO: Array of variant is allowed
+                        }
+                        var schema = GetBuiltInSchema((BuiltInType)i);
+                        yield return array ? ArraySchema.Create(schema) : schema;
+                    }
+                }
                 return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
                 {
-                    new (idTypeType, "IdType", 0),
-                    new (idType, "Id", 1),
-                    new (GetBuiltInSchema((int)BuiltInType.UInt16), "Namespace", 2)
-                }, kNamespaceZeroName, new[] { "i_" + BuiltInType.Variant });
+                    new (GetBuiltInSchema(BuiltInType.UInt16), "Type", 0),
+                    new (bodyType, "Body", 1),
+                    new (ArraySchema.Create(GetBuiltInSchema(BuiltInType.Int32)),
+                        "Dimensions", 2)
+                }, kNamespaceZeroName, new[] { GetDataTypeId(BuiltInType.Variant) });
             }
+        }
+
+        /// <summary>
+        /// Get data typeid
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        internal static string GetDataTypeId(BuiltInType builtInType)
+        {
+            return "i_" + (int)builtInType;
         }
 
         /// <summary>
         /// Get built in schema
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="builtInType"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        internal static Schema GetBuiltInSchema(int id)
+        internal Schema GetBuiltInSchema(BuiltInType builtInType)
         {
-            return id switch
+            // https://reference.opcfoundation.org/Core/Part6/v104/docs/5.1.2#_Ref131507956
+            if (!_builtIn.TryGetValue(builtInType, out var schema))
+            {
+                schema = Get((int)builtInType);
+                _builtIn.Add(builtInType, schema);
+            }
+            return schema;
+
+            Schema Get(int id) => id switch
             {
                 0 => PrimitiveSchema.NewInstance("null"),
+
                 1 => DerivedSchema.CreatePrimitive(id, "Boolean", "boolean"),
                 2 => DerivedSchema.CreatePrimitive(id, "SByte", "int"),
                 3 => DerivedSchema.CreatePrimitive(id, "Byte", "int"),
@@ -401,16 +454,16 @@ namespace Azure.IIoT.OpcUa.Encoders
                 7 => DerivedSchema.CreatePrimitive(id, "UInt32", "int"),
 
                 // As per part 6 encoding, long is encoded as string
-                8 => DerivedSchema.CreateLogical(id, "Int64", "string", "long"),
-                9 => DerivedSchema.CreateLogical(id, "UInt64", "string", "long"),
+                8 => DerivedSchema.CreatePrimitive(id, "Int64", "string"),
+                9 => DerivedSchema.CreatePrimitive(id, "UInt64", "string"),
 
                 10 => DerivedSchema.CreatePrimitive(id, "Float", "float"),
                 11 => DerivedSchema.CreatePrimitive(id, "Double", "double"),
                 12 => DerivedSchema.CreatePrimitive(id, "String", "string"),
-                13 => DerivedSchema.CreateLogical(id, "DateTime", "string", "datetime"),
+                13 => DerivedSchema.CreatePrimitive(id, "DateTime", "string"), // TODO ISO type?
                 14 => DerivedSchema.CreateLogical(id, "Guid", "string", "uuid"),
                 15 => DerivedSchema.CreatePrimitive(id, "ByteString", "bytes"),
-                16 => DerivedSchema.CreateLogical(id, "XmlElement", "string", "xml"),
+                16 => DerivedSchema.CreatePrimitive(id, "XmlElement", "string"),
 
                 17 => NodeIdSchema, // "NodeId",
                 18 => ExpandedNodeIdSchema, // "ExpandedNodeId",
@@ -422,11 +475,11 @@ namespace Azure.IIoT.OpcUa.Encoders
                 24 => VariantSchema, // "Variant",
                 25 => DiagnosticInfoSchema, // "DiagnosticInfo",
 
-                26 => DerivedSchema.CreateLogical(id, "Number", "string", "decimal"),
+                26 => DerivedSchema.CreatePrimitive(id, "Number", "string"),
 
                 // Should this be string? As per json encoding, long is string
-                27 => DerivedSchema.CreateLogical(id, "Integer", "string", "long"),
-                28 => DerivedSchema.CreateLogical(id, "UInteger", "string", "long"),
+                27 => DerivedSchema.CreatePrimitive(id, "Integer", "string"),
+                28 => DerivedSchema.CreatePrimitive(id, "UInteger", "string"),
 
                 29 => DerivedSchema.CreatePrimitive(id, "Enumeration", "int"),
                 _ => throw new ArgumentException($"Built in type {id} unknown")
@@ -440,7 +493,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         private (string, string) SplitNodeId(string nodeId)
         {
-            var id = nodeId.ToNodeId(_context);
+            var id = nodeId.ToExpandedNodeId(_context);
             string avroStyleNamespace;
             if (id.NamespaceIndex == 0)
             {
@@ -448,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                var ns = _context.NamespaceUris.GetString(id.NamespaceIndex);
+                var ns = id.NamespaceUri;
                 if (!Uri.TryCreate(ns, new UriCreationOptions
                 {
                     DangerousDisablePathAndQueryCanonicalization = false
@@ -466,7 +519,14 @@ namespace Azure.IIoT.OpcUa.Encoders
                         .Aggregate((a, b) => $"{a}.{b}");
                 }
             }
-            return (avroStyleNamespace, Escape(id.Identifier.ToString()!));
+            var name = id.IdType switch
+            {
+                IdType.Opaque => "b_",
+                IdType.Guid => "g_",
+                IdType.String => "s_",
+                _ => "i_"
+            } + id.Identifier;
+            return (avroStyleNamespace, Escape(name));
         }
 
         /// <summary>
@@ -474,9 +534,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        internal static string Escape(string name)
+        public static string Escape(string name)
         {
-            return Regex.Replace(name, @"`\d+$", string.Empty);
+            return Escape(name, false);
+        }
+
+        /// <summary>
+        /// Get a avro compliant name string
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="remove"></param>
+        /// <returns></returns>
+        public static string Escape(string name, bool remove)
+        {
+            return EscapeAvroRegex().Replace(name.Replace('/', '_'), match => remove ? string.Empty : $"__{(int)match.Value[0]}");
         }
 
         /// <summary>
@@ -525,7 +596,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
                 return new DerivedSchema(baseType.Tag,
                     new SchemaName(name, kNamespaceZeroName, null, null),
-                    new[] { "i_" + builtInType });
+                    new[] { GetDataTypeId((BuiltInType)builtInType) });
             }
 
             /// <summary>
@@ -541,7 +612,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var baseType = PrimitiveSchema.NewInstance(type);
                 return new DerivedSchema(baseType.Tag,
                     new SchemaName(name, kNamespaceZeroName, null, null),
-                    new[] { "i_" + builtInType });
+                    new[] { GetDataTypeId((BuiltInType)builtInType) });
             }
 
             internal static IList<SchemaName>? GetSchemaNames(
@@ -587,7 +658,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     // Emit the built in type definition here instead
                     Debug.Assert(Description.BuiltInType.HasValue);
-                    var builtIn = GetBuiltInSchema(Description.BuiltInType.Value);
+                    var builtIn = schemas.GetBuiltInSchema(
+                        (BuiltInType)Description.BuiltInType.Value);
                     if (builtIn != null)
                     {
                         Schema = builtIn;
@@ -707,11 +779,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         private const string kNamespaceZeroName = "org.opcfoundation.ua";
+        private readonly Dictionary<BuiltInType, Schema> _builtIn = new();
         private readonly Dictionary<string, TypedDescription> _types = new();
-        private readonly Opc.Ua.IServiceMessageContext _context;
-        private readonly bool _useReversibleEncoding;
-        private readonly bool _uriEncoding;
-        private readonly bool _writeSingleValue;
-        private readonly bool _dataValueRepresentation;
+        private readonly IServiceMessageContext _context;
+
+        [GeneratedRegex("[^a-zA-Z0-9_]")]
+        private static partial Regex EscapeAvroRegex();
     }
 }

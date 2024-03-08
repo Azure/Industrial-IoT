@@ -851,7 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     => _extension.Id;
 
                 /// <inheritdoc/>
-                public override bool NeedsUpdate => false;
+                public override bool NeedsUpdate => MetaDataNeedsRefresh;
 
                 /// <inheritdoc/>
                 public ExtensionField(DataSetWriterResolver resolver, DataSetWriterModel writer,
