@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Autofac;
     using Furly.Extensions.Messaging;
@@ -26,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
-    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes

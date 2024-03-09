@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using System.Buffers;
 
     /// <summary>
     /// Publisher telemetry
@@ -57,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// <param name="ContentEncoding"></param>
     /// <param name="Properties"></param>
     public sealed record class PublisherTelemetry(string DeviceId, string ModuleId,
-        string Topic, ReadOnlyMemory<byte> Data, string ContentType, string ContentEncoding,
+        string Topic, ReadOnlySequence<byte> Data, string ContentType, string ContentEncoding,
         IReadOnlyDictionary<string, string> Properties);
 
     /// <summary>
@@ -503,7 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
 
             public ValueTask HandleAsync(string deviceId, string moduleId, string topic,
-                ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
+                ReadOnlySequence<byte> data, string contentType, string contentEncoding,
                 IReadOnlyDictionary<string, string> properties, CancellationToken ct)
             {
                 return _channel.Writer.WriteAsync(new PublisherTelemetry(
@@ -526,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 _channel = Channel.CreateUnbounded<PublisherTelemetry>();
             }
 
-            public async Task HandleAsync(string topic, ReadOnlyMemory<byte> data,
+            public async Task HandleAsync(string topic, ReadOnlySequence<byte> data,
                 string contentType, IReadOnlyDictionary<string, string> properties,
                 IEventClient responder = null, CancellationToken ct = default)
             {

@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Microsoft.IO;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
@@ -441,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver)
+            Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer))
@@ -480,10 +481,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(
             IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
-            var messages = new List<ReadOnlyMemory<byte>>();
+            var messages = new List<ReadOnlySequence<byte>>();
             var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
@@ -552,12 +553,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         }
                         stream.SetLength(encoder.Position);
 
+                        var messageBuffer = stream.GetReadOnlySequence();
+
                         // TODO: instead of copy using ToArray we shall include the
                         // stream with the message and dispose it later when it is
                         // consumed. To get here the bug in BinaryEncoder that it
                         // disposes the underlying stream even if leaveOpen: true
                         // is set must be fixed.
-                        messages.Add(stream.ToArray());
+                        messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
                     }
                 }
             }

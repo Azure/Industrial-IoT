@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Buffers;
 
     /// <summary>
     /// Network message sink connected to the source. The sink consists of
@@ -110,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string topic, ReadOnlyMemory<byte> data, string contentType,
+        public async Task HandleAsync(string topic, ReadOnlySequence<byte> data, string contentType,
             IReadOnlyDictionary<string, string?> properties, IEventClient? responder,
             CancellationToken ct)
         {
@@ -147,6 +148,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private class NullSubscriber : IEventSubscriber, IAsyncDisposable
         {
+            /// <inheritdoc/>
+            public string Name => "NULL";
+
             /// <inheritdoc/>
             public ValueTask DisposeAsync()
             {

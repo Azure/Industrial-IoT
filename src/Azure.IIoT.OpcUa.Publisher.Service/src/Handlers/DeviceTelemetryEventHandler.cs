@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Furly.Azure.IoT;
     using Furly.Extensions.Messaging;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
         /// <inheritdoc/>
         public async ValueTask HandleAsync(string deviceId, string? moduleId, string topic,
-            ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
+            ReadOnlySequence<byte> data, string contentType, string contentEncoding,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
 
         {
@@ -55,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
             if (_handlers.TryGetValue(schema.ToUpperInvariant(), out var handler))
             {
-                await handler.HandleAsync(deviceId, moduleId, data.ToArray(),
+                await handler.HandleAsync(deviceId, moduleId, data,
                     properties, ct).ConfigureAwait(false);
             }
             else

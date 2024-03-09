@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Threading;
 
     public abstract class DataSetWriterResolverTestBase

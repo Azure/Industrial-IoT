@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Furly;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
@@ -194,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver = null)
+            Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver = null)
         {
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer))
@@ -226,10 +227,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver = null)
         {
-            var chunks = new List<ReadOnlyMemory<byte>>();
+            var chunks = new List<ReadOnlySequence<byte>>();
             var messages = Messages.OfType<JsonDataSetMessage>().ToArray().AsSpan();
             var messageId = MessageId;
             try
@@ -254,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             void EncodeMessages(Span<JsonDataSetMessage> messages)
             {
-                byte[] messageBuffer;
+                ReadOnlySequence<byte> messageBuffer;
                 using (var memoryStream = Memory.GetStream())
                 {
                     var compression = UseGzipCompression ?
@@ -277,10 +278,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         compression?.Dispose();
                     }
 
+                    messageBuffer = memoryStream.GetReadOnlySequence();
+
                     // TODO: instead of copy using ToArray we shall include the
                     // stream with the message and dispose it later when it is
                     // consumed.
-                    messageBuffer = memoryStream.ToArray();
+                    messageBuffer = new ReadOnlySequence<byte>(messageBuffer.ToArray());
                 }
 
                 if (messageBuffer.Length < maxChunkSize)
@@ -289,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else if (messages.Length == 1)
                 {
-                    chunks.Add(null);
+                    chunks.Add(default);
                 }
                 else
                 {

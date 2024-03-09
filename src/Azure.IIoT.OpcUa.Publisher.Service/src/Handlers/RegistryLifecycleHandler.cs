@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Buffers;
 
     /// <summary>
     /// Gateway event handler.
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             if (!properties.TryGetValue("opType", out var opType) ||

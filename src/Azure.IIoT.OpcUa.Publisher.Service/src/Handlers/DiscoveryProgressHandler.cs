@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Buffers;
 
     /// <summary>
     /// Discovery progress handling
@@ -42,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             DiscoveryProgressModel? discovery;
@@ -57,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to convert discovery message {Json}",
-                    Encoding.UTF8.GetString(payload.Span));
+                    Encoding.UTF8.GetString(payload.ToArray()));
                 return;
             }
             try

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
@@ -430,9 +431,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             }, (uint)dataSetFieldContentMask);
         }
 
-        private static Queue<ReadOnlyMemory<byte>> CreateReader(IReadOnlyList<ReadOnlyMemory<byte>> buffers)
+        private static Queue<ReadOnlySequence<byte>> CreateReader(IReadOnlyList<ReadOnlySequence<byte>> buffers)
         {
-            var reader = new Queue<ReadOnlyMemory<byte>>();
+            var reader = new Queue<ReadOnlySequence<byte>>();
             foreach (var buffer in buffers)
             {
                 reader.Enqueue(buffer);

@@ -8,13 +8,15 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
+    using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using Opc.Ua;
     using System.Text.RegularExpressions;
+    using Furly.Extensions.Messaging;
+    using Furly;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -23,24 +25,27 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public partial class AvroSchema
+    public partial class AvroSchema : IEventSchema
     {
         /// <summary>
         /// The actual schema
         /// </summary>
         public Schema Schema { get; }
 
-        /// <summary>
-        /// Get avro schema for a writer
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public AvroSchema(DataSetWriterModel dataSetWriter,
-            IServiceMessageContext context) : this(
-                dataSetWriter.YieldReturn(), context)
-        {
-        }
+        /// <inheritdoc/>
+        public string Type => ContentMimeType.AvroSchema;
+
+        /// <inheritdoc/>
+        public string Name => Schema.Fullname;
+
+        /// <inheritdoc/>
+        public ulong Version { get; }
+
+        /// <inheritdoc/>
+        string IEventSchema.Schema => Schema.ToString();
+
+        /// <inheritdoc/>
+        public string? Id { get; }
 
         /// <summary>
         /// Get avro schema for a writer group
@@ -50,7 +55,53 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         public AvroSchema(WriterGroupModel writerGroup,
             IServiceMessageContext context)
-            : this(writerGroup.DataSetWriters!, context)
+            : this(writerGroup.DataSetWriters!, context,
+                  writerGroup.MessageType ?? MessageEncoding.Json,
+                  writerGroup.MessageSettings?.NetworkMessageContentMask)
+        {
+        }
+
+        /// <summary>
+        /// Get avro schema for a writer
+        /// </summary>
+        /// <param name="dataSetWriter"></param>
+        /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <returns></returns>
+        public AvroSchema(DataSetWriterModel dataSetWriter,
+            IServiceMessageContext? context = null, MessageEncoding? encoding = null,
+            NetworkMessageContentMask? networkMessageContentMask = null)
+            : this(dataSetWriter.YieldReturn(), context, encoding,
+                  networkMessageContentMask)
+        {
+        }
+
+        /// <summary>
+        /// Get avro schema for a dataset
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="dataSetContentMask"></param>
+        /// <param name="dataSetFieldContentMask"></param>
+        /// <returns></returns>
+        public AvroSchema(PublishedDataSetModel dataSet,
+            IServiceMessageContext? context = null, MessageEncoding? encoding = null,
+            NetworkMessageContentMask? networkMessageContentMask = null,
+            DataSetContentMask? dataSetContentMask = null,
+            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null)
+            : this(new DataSetWriterModel
+            {
+                Id = null!,
+                DataSet = dataSet,
+                DataSetFieldContentMask = dataSetFieldContentMask,
+                MessageSettings = new DataSetWriterMessageSettingsModel
+                {
+                    DataSetMessageContentMask = dataSetContentMask
+                }
+            }.YieldReturn(), context, encoding, networkMessageContentMask)
         {
         }
 
@@ -59,19 +110,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="dataSetWriters"></param>
         /// <param name="context"></param>
+        /// <param name="encoding"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
-        public AvroSchema(
-            IEnumerable<DataSetWriterModel> dataSetWriters,
-            IServiceMessageContext context)
+        internal AvroSchema(IEnumerable<DataSetWriterModel> dataSetWriters,
+            IServiceMessageContext? context, MessageEncoding? encoding,
+            NetworkMessageContentMask? networkMessageContentMask)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
-            var dataSets = dataSetWriters
-                .Where(d => d.DataSet != null)
-                .Select(d => d.DataSet!)
-                .ToList();
-            _context = context;
 
-            Schema = Compile(dataSets);
+            _context = context ?? new ServiceMessageContext();
+            Schema = Compile(dataSetWriters
+                .Where(d => d.DataSet != null)
+                .ToList(), networkMessageContentMask,
+                encoding ?? MessageEncoding.Json);
         }
 
         /// <inheritdoc/>
@@ -83,12 +135,35 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Compile the schema for the data sets
         /// </summary>
-        /// <param name="dataSets"></param>
+        /// <param name="dataSetWriters"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="encoding"></param>
         /// <returns></returns>
-        private Schema Compile(List<PublishedDataSetModel> dataSets)
+        private Schema Compile(List<DataSetWriterModel> dataSetWriters,
+            NetworkMessageContentMask? networkMessageContentMask,
+            MessageEncoding encoding)
+        {
+            var networkMessageMask = networkMessageContentMask.GetValueOrDefault(0);
+            if (networkMessageContentMask != 0 || dataSetWriters.Count <= 1)
+            {
+                // Compile a schema for the entire writer group
+                return CompileSchema(dataSetWriters,
+                    networkMessageMask, encoding);
+            }
+
+            // No network message so writer writes data set messages without header
+            // Get schema per writer
+            return UnionSchema.Create(dataSetWriters
+                .ConvertAll(writer => CompileSchema(
+                    new List<DataSetWriterModel>() { writer },
+                    networkMessageMask, encoding)));
+        }
+
+        private Schema CompileSchema(List<DataSetWriterModel> dataSetWriters,
+            NetworkMessageContentMask networkMessageContentMask, MessageEncoding encoding)
         {
             // Collect types
-            CollectTypes(dataSets);
+            CollectTypes(dataSetWriters);
 
             // Compile collected types to schemas
             foreach (var type in _types.Values)
@@ -99,7 +174,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             }
 
-            var schemas = GetDataSetSchemas(dataSets).ToList();
+            var schemas = GetDataSetSchemas(dataSetWriters,
+                networkMessageContentMask, encoding).ToList();
             if (schemas.Count != 1)
             {
                 return UnionSchema.Create(schemas);
@@ -110,13 +186,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Create data set schemas
         /// </summary>
-        /// <param name="dataSets"></param>
+        /// <param name="dataSetWriters"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="encoding"></param>
         /// <returns></returns>
         private IEnumerable<Schema> GetDataSetSchemas(
-            IEnumerable<PublishedDataSetModel> dataSets)
+            IEnumerable<DataSetWriterModel> dataSetWriters,
+            NetworkMessageContentMask networkMessageContentMask,
+            MessageEncoding encoding)
         {
-            foreach (var dataSet in dataSets)
+            foreach (var dataSetWriter in dataSetWriters)
             {
+                var dataSet = dataSetWriter.DataSet;
+                Debug.Assert(dataSet != null);
+
+                GetEncodingMode(out var reversible, out var uriEncoding, out var single,
+                    out var dataValues, dataSet.EnumerateMetaData().Take(2).Count() != 1,
+                    (uint)(dataSetWriter.DataSetFieldContentMask ?? 0u));
+
                 var fields = new List<Field>();
                 var pos = 0;
                 // Now collect the fields of the payload
@@ -142,11 +229,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Collect types from data set
         /// </summary>
-        /// <param name="dataSets"></param>
-        private void CollectTypes(IEnumerable<PublishedDataSetModel> dataSets)
+        /// <param name="dataSetWriters"></param>
+        private void CollectTypes(IEnumerable<DataSetWriterModel> dataSetWriters)
         {
-            foreach (var (_, fieldMetadata) in dataSets
-                .SelectMany(d => d.EnumerateMetaData())
+            foreach (var (_, fieldMetadata) in dataSetWriters
+                .SelectMany(d => d.DataSet!.EnumerateMetaData())
                 .Where(m => m.MetaData != null))
             {
                 Debug.Assert(fieldMetadata != null);
@@ -735,7 +822,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dataValueRepresentation"></param>
         /// <param name="isSingleFieldDataSet"></param>
         /// <param name="fieldContentMask"></param>
-        private static void GetEncodingModes(out bool reversible, out bool uriEncoding,
+        private static void GetEncodingMode(out bool reversible, out bool uriEncoding,
             out bool writeSingleValue, out bool dataValueRepresentation,
             bool isSingleFieldDataSet, uint fieldContentMask)
         {

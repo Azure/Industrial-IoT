@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Buffers;
 
     /// <summary>
     /// Json message

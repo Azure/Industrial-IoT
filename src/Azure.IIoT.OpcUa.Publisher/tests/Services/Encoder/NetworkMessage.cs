@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers.Json;
@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Buffers;
 
     public sealed class NetworkMessage : IEvent
     {
@@ -60,6 +61,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
+        public IEventSchema Schema { get; private set; }
+
+        public IEvent SetSchema(IEventSchema schema)
+        {
+            Schema = schema;
+            return this;
+        }
+
         public bool Retain { get; private set; }
 
         public IEvent SetRetain(bool value)
@@ -76,9 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        public IList<ReadOnlyMemory<byte>> Buffers { get; } = new List<ReadOnlyMemory<byte>>();
+        public IList<ReadOnlySequence<byte>> Buffers { get; } = new List<ReadOnlySequence<byte>>();
 
-        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
             Buffers.AddRange(value);
             return this;
@@ -270,5 +279,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             return ValueTask.CompletedTask;
         }
-    }
+   }
 }

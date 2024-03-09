@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -15,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Stack models extensions
