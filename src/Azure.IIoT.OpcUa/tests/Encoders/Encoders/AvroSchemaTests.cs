@@ -24,8 +24,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public async Task CreateSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new AvroSchema(group.DataSetWriters[0],
-                new ServiceMessageContext());
+            var schema = new AvroSchema(group.DataSetWriters[0]);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);

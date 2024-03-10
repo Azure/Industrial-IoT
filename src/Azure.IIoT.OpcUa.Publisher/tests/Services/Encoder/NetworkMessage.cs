@@ -249,6 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         NextWriterSequenceNumber = () => i,
                         Qos = null,
                         Topic = string.Empty,
+                        Schema = null,
                         PublisherId = publisherId,
                         Writer = writer,
                         SendMetaData = false,

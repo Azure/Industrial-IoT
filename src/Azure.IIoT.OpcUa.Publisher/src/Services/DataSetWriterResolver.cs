@@ -622,9 +622,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public DataSetRoutingMode Routing
                 => DataSetWriter.DataSet?.Routing
                 ?? DataSetRoutingMode.None;
+            // Format to use to encode namespaces, index is not allowed
             public NamespaceFormat NamespaceFormat
+                => NamespaceFormatInternal == NamespaceFormat.Index
+                ? NamespaceFormat.Expanded
+                : NamespaceFormatInternal;
+            private NamespaceFormat NamespaceFormatInternal
                 => DataSetWriter.MessageSettings?.NamespaceFormat
-                ?? NamespaceFormat.Uri;
+                ?? NamespaceFormat.Expanded;
 
             /// <summary>
             /// Create data set item

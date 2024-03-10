@@ -72,20 +72,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var chunkedMessages = new List<(IEvent, Action)>();
-                var networkMessages = GetNetworkMessages(notifications, asBatch);
-                foreach (var (notificationsPerMessage, networkMessage, topic,
-                    retain, ttl, qos, onSent, encodingContext) in networkMessages)
+                foreach (var m in GetNetworkMessages(notifications, asBatch))
                 {
-                    if (encodingContext == null)
+                    if (m.encodingContext == null)
                     {
                         _logger.LogError(
                             "Missing service message context for network message - dropping notification.");
                         NotificationsDroppedCount++;
-                        onSent();
+                        m.onSent();
                         continue;
                     }
-                    var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
-                    var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
+
+                    var chunks = m.networkMessage.Encode(m.encodingContext, maxMessageSize);
+                    var notificationsPerChunk = m.notificationsPerMessage / (double)chunks.Count;
                     var validChunks = 0;
                     foreach (var body in chunks)
                     {
@@ -111,47 +110,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (validChunks > 0)
                     {
                         var chunkedMessage = factory()
-                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, networkMessage.MessageSchema)
+                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, 
+                                m.networkMessage.MessageSchema)
                             .SetTimestamp(DateTime.UtcNow)
-                            .SetContentEncoding(networkMessage.ContentEncoding)
-                            .SetContentType(networkMessage.ContentType)
-                            .SetTopic(topic)
-                            .SetRetain(retain)
-                            .SetTtl(ttl)
-                            .SetQoS(qos)
+                            .SetContentEncoding(m.networkMessage.ContentEncoding)
+                            .SetContentType(m.networkMessage.ContentType)
+                            .SetTopic(m.topic)
+                            .SetRetain(m.retain)
+                            .SetTtl(m.ttl)
+                            .SetQoS(m.qos)
                             .AddBuffers(chunks)
                             ;
+
+                        if (m.Schema != null)
+                        {
+                            chunkedMessage = chunkedMessage
+                                .SetSchema(m.Schema);
+                        }
 
                         if (_options.Value.UseStandardsCompliantEncoding != true)
                         {
                             chunkedMessage = chunkedMessage
-                                .AddProperty("$$ContentType", networkMessage.ContentType)
-                                .AddProperty("$$ContentEncoding", networkMessage.ContentEncoding);
+                                .AddProperty("$$ContentType", m.networkMessage.ContentType)
+                                .AddProperty("$$ContentEncoding", m.networkMessage.ContentEncoding);
                         }
                         if (_options.Value.EnableDataSetRoutingInfo ?? false)
                         {
                             chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                networkMessage.DataSetWriterGroup);
+                                m.networkMessage.DataSetWriterGroup);
                         }
 
                         _logger.LogDebug(
                             "{Count} Notifications encoded into a network message (chunks:{Chunks})...",
-                            notificationsPerMessage, validChunks);
+                            m.notificationsPerMessage, validChunks);
 
-                        chunkedMessages.Add((chunkedMessage, onSent));
+                        chunkedMessages.Add((chunkedMessage, m.onSent));
                     }
                     else
                     {
                         // Nothing to send, complete here
-                        onSent();
+                        m.onSent();
                     }
 
                     // We dropped a number of notifications but processed the remainder successfully
                     var tooBig = chunks.Count - validChunks;
                     NotificationsDroppedCount += tooBig;
-                    if (notificationsPerMessage > tooBig)
+                    if (m.notificationsPerMessage > tooBig)
                     {
-                        NotificationsProcessedCount += notificationsPerMessage - tooBig;
+                        NotificationsProcessedCount += m.notificationsPerMessage - tooBig;
                     }
 
                     //
@@ -159,9 +165,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // split size to provide users with an indication how many times chunks had to
                     // be created so they can configure publisher to improve performance.
                     //
-                    if (notificationsPerMessage > 0 && notificationsPerMessage < validChunks)
+                    if (m.notificationsPerMessage > 0 && m.notificationsPerMessage < validChunks)
                     {
-                        var splitSize = validChunks / notificationsPerMessage;
+                        var splitSize = validChunks / m.notificationsPerMessage;
                         if (splitSize > MaxMessageSplitRatio)
                         {
                             MaxMessageSplitRatio = splitSize;
@@ -179,16 +185,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Encoded message
+        /// </summary>
+        /// <param name="notificationsPerMessage"></param>
+        /// <param name="networkMessage"></param>
+        /// <param name="topic"></param>
+        /// <param name="retain"></param>
+        /// <param name="ttl"></param>
+        /// <param name="qos"></param>
+        /// <param name="onSent"></param>
+        /// <param name="encodingContext"></param>
+        /// <param name="Schema"></param>
+        private record struct EncodedMessage(int notificationsPerMessage,
+            PubSubMessage networkMessage, string topic, bool retain,
+            TimeSpan ttl, QoS qos, Action onSent,
+            IServiceMessageContext? encodingContext = null,
+            IEventSchema? Schema = null);
+
+        /// <summary>
         /// Produce network messages from the data set message model
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action, IServiceMessageContext?)> GetNetworkMessages(
+        private List<EncodedMessage> GetNetworkMessages(
             IEnumerable<IOpcUaSubscriptionNotification> messages, bool isBatched)
         {
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
-            var result = new List<(int, PubSubMessage, string, bool, TimeSpan, QoS, Action, IServiceMessageContext?)>();
+            var result = new List<EncodedMessage>();
 
             static QoS GetQos(WriterGroupMessageContext context, QoS? defaultQos)
             {
@@ -412,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             _options.Value.DefaultMaxDataSetMessagesPerPublish;
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                         {
-                                            result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
+                                            result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
                                                 () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
@@ -428,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     if (currentMessage.Messages.Count > 0)
                                     {
                                         // Start a new message but first emit current
-                                        result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
+                                        result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
                                             () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
@@ -455,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     metadataMessage.PublisherId = publisherId;
                                     metadataMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
 
-                                    result.Add((0, metadataMessage, topic, true,
+                                    result.Add(new EncodedMessage(0, metadataMessage, topic, true,
                                         Context.Writer.MetaDataUpdateTime ?? default, qos, Notification.Dispose,
                                             Notification.Codec.Context));
 #if DEBUG
@@ -465,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                             if (currentMessage.Messages.Count > 0)
                             {
-                                result.Add((currentNotifications.Count, currentMessage, topic, false, default, qos,
+                                result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
                                     currentNotifications.LastOrDefault()?.Codec.Context));
 #if DEBUG

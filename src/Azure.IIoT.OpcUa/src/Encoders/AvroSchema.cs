@@ -5,9 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using Furly;
+    using Furly.Extensions.Messaging;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -15,8 +17,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Diagnostics;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using Furly.Extensions.Messaging;
-    using Furly;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         // in particular the DataValue definition
 
                         var schema = fieldMetadata?.DataType == null ? null
-                            : GetSchema(fieldMetadata.DataType);
+                            : GetSchema(fieldMetadata.DataType, true);
                         fields.Add(new Field(schema, Escape(fieldName), pos));
                     }
                 }
@@ -277,12 +277,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Get schema
         /// </summary>
         /// <param name="dataType"></param>
+        /// <param name="nullable"></param>
         /// <param name="valueRank"></param>
         /// <param name="arrayDimensions"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private Schema GetSchema(string dataType, int valueRank = 1,
-            IReadOnlyList<uint>? arrayDimensions = null)
+        private Schema GetSchema(string dataType, bool nullable,
+            int valueRank = 1, IReadOnlyList<uint>? arrayDimensions = null)
         {
             Schema? schema = null;
             if (_types.TryGetValue(dataType, out var description))
@@ -295,26 +296,40 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     schema = description.Schema;
                 }
+                if (nullable && schema != null)
+                {
+                    schema = Nullable(schema);
+                }
             }
-            schema ??= GetBuiltInDataTypeSchema(dataType);
+
+            if (arrayDimensions != null)
+            {
+                valueRank = arrayDimensions.Count;
+            }
+            var array = valueRank > 1;
+
+            schema ??= GetBuiltInDataTypeSchema(dataType, nullable && !array);
             if (schema != null)
             {
-                if (arrayDimensions != null)
+                if (array)
                 {
-                    valueRank = arrayDimensions.Count;
+                    // TODO: we also have matrices, we should have schemas for all
+                    schema = ArraySchema.Create(schema);
+                    if (nullable)
+                    {
+                        schema = Nullable(schema);
+                    }
                 }
-
-                // TODO: we also have matrices, we should have schemas for all
-                return valueRank > 1 ? ArraySchema.Create(schema) : schema;
+                return schema;
             }
             throw new ArgumentException($"No Schema found for {dataType}");
 
-            Schema? GetBuiltInDataTypeSchema(string dataType)
+            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
-                    return GetBuiltInSchema((BuiltInType)id);
+                    return GetBuiltInSchema((BuiltInType)id, nullable);
                 }
                 return null;
             }
@@ -474,11 +489,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             get
             {
-                var bodyType = UnionSchema.Create(
-                    GetPossibleTypes(false).Concat(GetPossibleTypes(true)).ToList());
+                var types = GetPossibleTypes(false)
+                    .Concat(GetPossibleTypes(true))
+                    .ToList();
+                var bodyType = UnionSchema.Create(types);
                 IEnumerable<Schema> GetPossibleTypes(bool array)
                 {
-                    if (array)
+                    if (array) // TODO: Fix
                     {
                         yield break;
                     }
@@ -519,9 +536,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Get built in schema
         /// </summary>
         /// <param name="builtInType"></param>
+        /// <param name="nullable"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        internal Schema GetBuiltInSchema(BuiltInType builtInType)
+        internal Schema GetBuiltInSchema(BuiltInType builtInType,
+            bool nullable = false)
         {
             // https://reference.opcfoundation.org/Core/Part6/v104/docs/5.1.2#_Ref131507956
             if (!_builtIn.TryGetValue(builtInType, out var schema))
@@ -529,7 +548,17 @@ namespace Azure.IIoT.OpcUa.Encoders
                 schema = Get((int)builtInType);
                 _builtIn.Add(builtInType, schema);
             }
+            if (nullable && IsNullable((int)builtInType))
+            {
+                return Nullable(schema);
+            }
             return schema;
+
+            static bool IsNullable(int id)
+            {
+                return id == 8 || id == 9 || id == 12 || 
+                    (id >= 15 && id <= 28);
+            }
 
             Schema Get(int id) => id switch
             {
@@ -637,7 +666,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         public static string Escape(string name, bool remove)
         {
-            return EscapeAvroRegex().Replace(name.Replace('/', '_'), match => remove ? string.Empty : $"__{(int)match.Value[0]}");
+            return EscapeAvroRegex().Replace(name.Replace('/', '_'),
+                match => remove ? string.Empty : $"__{(int)match.Value[0]}");
         }
 
         /// <summary>
@@ -718,6 +748,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
+        /// Create nullable
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        internal static Schema Nullable(Schema schema)
+        {
+            return UnionSchema.Create(new List<Schema>
+            {
+                PrimitiveSchema.NewInstance("null"),
+                schema
+            });
+        }
+
+        /// <summary>
         /// Simple type
         /// </summary>
         /// <param name="Description"></param>
@@ -736,7 +780,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (Description.BaseDataType != null)
                 {
                     // Derive from base schema
-                    var baseSchema = schemas.GetSchema(Description.BaseDataType);
+                    var baseSchema = schemas.GetSchema(Description.BaseDataType, false);
                     Schema = new DerivedSchema(baseSchema.Tag,
                         new SchemaName(Escape(Description.Name), ns, null, null),
                         new[] { dt });
@@ -772,17 +816,26 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return;
                 }
+
+                //
+                // |---------------|------------|----------------|
+                // | Field Value   | Reversible | Non-Reversible |
+                // |---------------|------------|----------------|
+                // | NULL          | Omitted    | JSON null      |
+                // | Default Value | Omitted    | Default Value  |
+                // |---------------|------------|----------------|
+                //
                 var fields = new List<Field>();
                 for (var i = 0; i < Description.Fields.Count; i++)
                 {
                     var field = Description.Fields[i];
-                    var schema = schemas.GetSchema(field.DataType,
+                    var schema = schemas.GetSchema(field.DataType, true,
                         field.ValueRank, field.ArrayDimensions);
                     fields.Add(new Field(schema, Escape(field.Name), i));
                 }
                 var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
-                Schema = RecordSchema.Create(Escape(Description.Name), fields, ns,
-                    new[] { dt });
+                Schema = RecordSchema.Create(Escape(Description.Name),
+                    fields, ns, new[] { dt });
             }
         }
 

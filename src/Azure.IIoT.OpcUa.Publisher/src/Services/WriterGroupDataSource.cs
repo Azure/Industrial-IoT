@@ -872,6 +872,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 .GetMetaDataMinorVersion() ?? 0u
                         };
 
+                        // We need to set the schema based on the configuration
                         Schema = new AvroSchema(WriterGroup);
                     }
                 }
