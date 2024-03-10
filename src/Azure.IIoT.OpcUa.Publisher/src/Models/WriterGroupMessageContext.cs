@@ -53,5 +53,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Metadata
         /// </summary>
         public bool SendMetaData { get; init; }
+
+        /// <summary>
+        /// Message schema
+        /// </summary>
+        public required IEventSchema? Schema { get; init; }
     }
 }

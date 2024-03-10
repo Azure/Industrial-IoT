@@ -619,6 +619,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = options.WriterGroup,
                         SendMetaData = sendMetadata,
+                        Schema = options.Schema,
                         // TODO: Make this a nullable meta data producer func to emit meta data for individual topics
                         MetaDataVersion = options.MetaDataVersion ?? _outer._defaultVersion,
                         Topic = item?.Topic ?? (!sendMetadata ? options.Topic : options.MetadataTopic),
@@ -828,6 +829,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public ConfigurationVersionDataType? MetaDataVersion { get; }
 
                 /// <summary>
+                /// Schema
+                /// </summary>
+                public IEventSchema? Schema { get; }
+
+                /// <summary>
                 /// Create subscription options
                 /// </summary>
                 /// <param name="writerGroup"></param>
@@ -865,6 +871,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             MinorVersion = DataSetWriter.DataSet?
                                 .GetMetaDataMinorVersion() ?? 0u
                         };
+
+                        Schema = new AvroSchema(WriterGroup);
                     }
                 }
 

@@ -51,11 +51,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Get avro schema for a writer group
         /// </summary>
         /// <param name="writerGroup"></param>
-        /// <param name="context"></param>
+        /// <param name="namespaces"></param>
         /// <returns></returns>
         public AvroSchema(WriterGroupModel writerGroup,
-            IServiceMessageContext context)
-            : this(writerGroup.DataSetWriters!, context,
+            NamespaceTable? namespaces = null)
+            : this(writerGroup.DataSetWriters!, namespaces,
                   writerGroup.MessageType ?? MessageEncoding.Json,
                   writerGroup.MessageSettings?.NetworkMessageContentMask)
         {
@@ -65,14 +65,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Get avro schema for a writer
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="context"></param>
+        /// <param name="namespaces"></param>
         /// <param name="encoding"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
         public AvroSchema(DataSetWriterModel dataSetWriter,
-            IServiceMessageContext? context = null, MessageEncoding? encoding = null,
+            NamespaceTable? namespaces = null, MessageEncoding? encoding = null,
             NetworkMessageContentMask? networkMessageContentMask = null)
-            : this(dataSetWriter.YieldReturn(), context, encoding,
+            : this(dataSetWriter.YieldReturn(), namespaces, encoding,
                   networkMessageContentMask)
         {
         }
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dataSetFieldContentMask"></param>
         /// <returns></returns>
         public AvroSchema(PublishedDataSetModel dataSet,
-            IServiceMessageContext? context = null, MessageEncoding? encoding = null,
+            NamespaceTable? context = null, MessageEncoding? encoding = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
             DataSetContentMask? dataSetContentMask = null,
             Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null)
@@ -114,12 +114,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
         internal AvroSchema(IEnumerable<DataSetWriterModel> dataSetWriters,
-            IServiceMessageContext? context, MessageEncoding? encoding,
+            NamespaceTable? context, MessageEncoding? encoding,
             NetworkMessageContentMask? networkMessageContentMask)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
-            _context = context ?? new ServiceMessageContext();
+            _context = new ServiceMessageContext
+            {
+                NamespaceUris = context ?? new NamespaceTable()
+            };
             Schema = Compile(dataSetWriters
                 .Where(d => d.DataSet != null)
                 .ToList(), networkMessageContentMask,
