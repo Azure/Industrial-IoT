@@ -129,18 +129,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 pos++;
                 if (fieldMetadata?.DataType != null)
                 {
+                    var schema = LookupSchema(fieldMetadata.DataType, !_omitFieldName);
                     if (_omitFieldName)
                     {
-                        yield return LookupSchema(m.MetaData.DataType, false);
+                        yield return schema;
                     }
                     else if (fieldName != null)
                     {
-                        var schema = LookupSchema(fieldMetadata.DataType, true);
                         if (_fieldsAreDataValues)
                         {
-                            // TODO: we want to take the data set and
-                            // network message format into account here
-                            // in particular the DataValue definition
                             schema = GetDataValueFieldSchema(schema.Name, schema);
                         }
                         fields.Add(new Field(schema, Escape(fieldName), pos));
