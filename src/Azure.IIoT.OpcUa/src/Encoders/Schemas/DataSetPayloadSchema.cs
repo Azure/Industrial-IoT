@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Xml.Linq;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -148,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 pos++;
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType, !_omitFieldName);
+                    var schema = LookupSchema(fieldMetadata.DataType, !_omitFieldName,
+                        out var typeName);
                     if (_omitFieldName)
                     {
                         yield return schema;
@@ -158,17 +160,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         if (_fieldsAreDataValues)
                         {
                             schema = Encoding.GetDataValueFieldSchema(
-                                schema.Name, schema);
+                                typeName ?? fieldName, schema);
                         }
-                        fields.Add(
-                            new Field(schema, AvroUtils.Escape(fieldName), pos));
+                        fields.Add(new Field(schema.AsNullable(),
+                            AvroUtils.Escape(fieldName), pos));
                     }
                 }
             }
             if (!_omitFieldName)
             {
                 yield return RecordSchema.Create(
-                    AvroUtils.Escape(name ?? dataSet.Name ?? "Payload"), fields);
+                    AvroUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields);
             }
         }
 
@@ -223,12 +225,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="nullable"></param>
         /// <param name="valueRank"></param>
         /// <param name="arrayDimensions"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private Schema LookupSchema(string dataType, bool nullable,
+        private Schema LookupSchema(string dataType, bool nullable, out string? name,
             int valueRank = 1, IReadOnlyList<uint>? arrayDimensions = null)
         {
             Schema? schema = null;
+
+            name = null;
             if (_types.TryGetValue(dataType, out var description))
             {
                 if (description.Schema == null)
@@ -238,10 +243,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 if (description.Schema != null)
                 {
                     schema = description.Schema;
-                }
-                if (nullable && schema != null)
-                {
-                    schema = schema.AsNullable();
+                    name = schema.Name;
+                    if (nullable)
+                    {
+                        schema = schema.AsNullable();
+                    }
                 }
             }
 
@@ -251,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             var array = valueRank > 1;
 
-            schema ??= GetBuiltInDataTypeSchema(dataType, nullable && !array);
+            schema ??= GetBuiltInDataTypeSchema(dataType, nullable && !array, out name);
             if (schema != null)
             {
                 if (array)
@@ -267,13 +273,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             throw new ArgumentException($"No Schema found for {dataType}");
 
-            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable)
+            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable, out string? name)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
+                    name = ((BuiltInType)id).ToString();
                     return Encoding.GetSchemaForBuiltInType((BuiltInType)id, nullable);
                 }
+                name = null;
                 return null;
             }
         }
@@ -283,33 +291,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="nodeId"></param>
         /// <returns></returns>
-        private (string, string) SplitNodeId(string nodeId)
+        private (string Id, string Namespace) SplitNodeId(string nodeId)
         {
             var id = nodeId.ToExpandedNodeId(_context);
             string avroStyleNamespace;
-            if (id.NamespaceIndex == 0)
+            if (id.NamespaceIndex == 0 && id.NamespaceUri == null)
             {
-                avroStyleNamespace = AvroUtils.kNamespaceZeroName;
+                avroStyleNamespace = AvroUtils.NamespaceZeroName;
             }
             else
             {
-                var ns = id.NamespaceUri;
-                if (!Uri.TryCreate(ns, new UriCreationOptions
-                {
-                    DangerousDisablePathAndQueryCanonicalization = false
-                }, out var result))
-                {
-                    avroStyleNamespace = ns.Split('/')
-                        .Select(AvroUtils.Escape)
-                        .Aggregate((a, b) => $"{a}.{b}");
-                }
-                else
-                {
-                    avroStyleNamespace = result.Host.Split('.').Reverse()
-                        .Concat(result.AbsolutePath.Split('/'))
-                        .Select(AvroUtils.Escape)
-                        .Aggregate((a, b) => $"{a}.{b}");
-                }
+                avroStyleNamespace =
+                    AvroUtils.NamespaceUriToNamespace(id.NamespaceUri);
             }
             var name = id.IdType switch
             {
@@ -319,6 +312,36 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 _ => "i_"
             } + id.Identifier;
             return (avroStyleNamespace, AvroUtils.Escape(name));
+        }
+
+        /// <summary>
+        /// Create namespace
+        /// </summary>
+        /// <param name="qualifiedName"></param>
+        /// <param name="outerNamespace"></param>
+        /// <returns></returns>
+        private string SplitQualifiedName(string qualifiedName,
+            string? outerNamespace = null)
+        {
+            var qn = qualifiedName.ToQualifiedName(_context);
+            string avroStyleNamespace;
+            if (qn.NamespaceIndex == 0)
+            {
+                avroStyleNamespace = AvroUtils.NamespaceZeroName;
+            }
+            else
+            {
+                var uri = _context.NamespaceUris.GetString(qn.NamespaceIndex);
+                avroStyleNamespace = AvroUtils.NamespaceUriToNamespace(uri);
+            }
+            var name = AvroUtils.Escape(qn.Name);
+            if (!string.Equals(outerNamespace, avroStyleNamespace,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                // Qualify if the name is in a different namespace
+                name = $"{avroStyleNamespace}.{name}";
+            }
+            return name;
         }
 
         /// <summary>
@@ -354,7 +377,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
 
                 var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
-
                 if (Description.DataTypeId == "i=" + Description.BuiltInType)
                 {
                     // Emit the built in type definition here instead
@@ -366,10 +388,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // Derive from base type or built in type
                     var baseSchema = Description.BaseDataType != null ?
-                        schemas.LookupSchema(Description.BaseDataType, false) :
+                        schemas.LookupSchema(Description.BaseDataType, false, out _) :
                         schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
                             (Description.BuiltInType ?? (byte?)BuiltInType.String));
-                    Schema = DerivedSchema.Create(AvroUtils.Escape(Description.Name),
+                    Schema = DerivedSchema.Create(
+                        schemas.SplitQualifiedName(Description.Name, ns),
                         baseSchema, ns, new[] { dt });
                 }
             }
@@ -402,13 +425,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 for (var i = 0; i < Description.Fields.Count; i++)
                 {
                     var field = Description.Fields[i];
-                    var schema = schemas.LookupSchema(field.DataType, true,
+                    var schema = schemas.LookupSchema(field.DataType, true, out _,
                         field.ValueRank, field.ArrayDimensions);
                     fields.Add(new Field(schema, AvroUtils.Escape(field.Name), i));
                 }
-                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
-                Schema = RecordSchema.Create(AvroUtils.Escape(Description.Name),
-                    fields, ns, new[] { dt });
+                var (ns1, dt) = schemas.SplitNodeId(Description.DataTypeId);
+
+                Schema = RecordSchema.Create(
+                    schemas.SplitQualifiedName(Description.Name, ns1),
+                    fields, ns1, new[] { dt });
             }
         }
 
@@ -435,15 +460,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // ...
                 }
 
-                var symbols = Description.Fields.Select(e => AvroUtils.Escape(e.Name)).ToList();
-                Schema = EnumSchema.Create(AvroUtils.Escape(Description.Name), symbols, ns,
-                    new[] { dt }, defaultSymbol: symbols[0]);
+                var symbols = Description.Fields
+                    .Select(e => AvroUtils.Escape(e.Name))
+                    .ToList();
+                Schema = EnumSchema.Create(
+                    schemas.SplitQualifiedName(Description.Name, ns),
+                    symbols, ns, new[] { dt }, defaultSymbol: symbols[0]);
                 // TODO: Build doc from fields descriptions
             }
         }
 
         /// <summary>
-        /// Get encoding modes
+        /// Determine field encoding
         /// </summary>
         /// <param name="writeSingleValue"></param>
         /// <param name="dataValueRepresentation"></param>

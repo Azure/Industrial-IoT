@@ -6,6 +6,8 @@
 namespace Azure.IIoT.OpcUa.Encoders.Utils
 {
     using Avro;
+    using System.Linq;
+    using System;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -16,12 +18,40 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// <summary>
         /// Namespace zero
         /// </summary>
-        public const string kNamespaceZeroName = "org.opcfoundation.ua";
+        public const string NamespaceZeroName = "org.opcfoundation.ua";
 
         /// <summary>
         /// Null schema
         /// </summary>
         public static Schema Null { get; } = PrimitiveSchema.NewInstance("null");
+
+        /// <summary>
+        /// Safely Convert a uri to a namespace
+        /// </summary>
+        /// <param name="ns"></param>
+        /// <returns></returns>
+        public static string NamespaceUriToNamespace(string ns)
+        {
+            if (!Uri.TryCreate(ns, new UriCreationOptions
+            {
+                DangerousDisablePathAndQueryCanonicalization = false
+            }, out var result))
+            {
+                return ns.Split('/', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(Escape)
+                    .Aggregate((a, b) => $"{a}.{b}");
+            }
+            else
+            {
+                return result.Host.Split('.', StringSplitOptions.RemoveEmptyEntries)
+                    .Reverse()
+                    .Where(c => c != "www")
+                    .Concat(result.AbsolutePath.Split('/',
+                        StringSplitOptions.RemoveEmptyEntries))
+                    .Select(Escape)
+                    .Aggregate((a, b) => $"{a}.{b}");
+            }
+        }
 
         /// <summary>
         /// Get a avro compliant name string

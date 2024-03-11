@@ -874,7 +874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         };
 
                         // We need to set the schema based on the configuration
-                        Schema = new JsonNetworkMessageSchema(WriterGroup);
+                        Schema = new JsonNetworkMessageSchema(name: WriterGroup);
                     }
                 }
 

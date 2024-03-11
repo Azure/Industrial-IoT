@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "InnerStatusCode", 5),
                         new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo),
                             "InnerDiagnosticInfo", 6)
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
         }
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (bodyType, "Body", 1),
                         new (ArraySchema.Create(GetSchemaForBuiltInType(BuiltInType.Int32)),
                             "Dimensions", 2)
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
             }
         }
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (GetSchemaForBuiltInType(BuiltInType.NodeId), "TypeId", 0),
                         new (encodingType, "Encoding", 1),
                         new (bodyType, "Body", 2)
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.ExtensionObject) });
             }
         }
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // it is only encoded if it is an element of a JSON array.
                     //
                     return DerivedSchema.Create(nameof(BuiltInType.StatusCode),
-                        GetSchemaForBuiltInType(BuiltInType.UInt32), AvroUtils.kNamespaceZeroName,
+                        GetSchemaForBuiltInType(BuiltInType.UInt32), AvroUtils.NamespaceZeroName,
                             new[] { GetDataTypeId(BuiltInType.StatusCode) });
                 }
 
@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     {
                             new (GetSchemaForBuiltInType(BuiltInType.UInt32), "Code", 0),
                             new (GetSchemaForBuiltInType(BuiltInType.String), "Symbol", 1)
-                    }, AvroUtils.kNamespaceZeroName);
+                    }, AvroUtils.NamespaceZeroName);
             }
         }
 
@@ -200,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     {
                         new (GetSchemaForBuiltInType(BuiltInType.String), "Name", 0),
                         field
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.QualifiedName) });
             }
         }
@@ -216,14 +216,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         {
                             new (GetSchemaForBuiltInType(BuiltInType.String), "Locale", 0),
                             new (GetSchemaForBuiltInType(BuiltInType.String), "Text", 1)
-                        }, AvroUtils.kNamespaceZeroName,
+                        }, AvroUtils.NamespaceZeroName,
                         new[] { GetDataTypeId(BuiltInType.LocalizedText) });
                 }
 
                 // For the non-reversible form, LocalizedText value shall
                 // be encoded as a JSON string containing the Text component.
                 return DerivedSchema.Create(nameof(BuiltInType.LocalizedText),
-                    GetSchemaForBuiltInType(BuiltInType.String), AvroUtils.kNamespaceZeroName,
+                    GetSchemaForBuiltInType(BuiltInType.String), AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.LocalizedText) });
             }
         }
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (idTypeType, "IdType", 0),
                         new (idType, "Id", 1),
                         field
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.NodeId) });
             }
         }
@@ -328,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             GetSchemaForBuiltInType(BuiltInType.String)
                         }), "Namespace", 2),
                         field
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.ExpandedNodeId) });
             }
         }
@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
-                    }, AvroUtils.kNamespaceZeroName,
+                    }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DataValue) });
             }
         }
@@ -575,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             var baseType = Schema.Parse(
                 $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
-            return DerivedSchema.Create(name, baseType, AvroUtils.kNamespaceZeroName,
+            return DerivedSchema.Create(name, baseType, AvroUtils.NamespaceZeroName,
                 new[] { GetDataTypeId((BuiltInType)builtInType) });
         }
 
@@ -590,7 +590,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             string type)
         {
             var baseType = PrimitiveSchema.NewInstance(type);
-            return DerivedSchema.Create(name, baseType, AvroUtils.kNamespaceZeroName,
+            return DerivedSchema.Create(name, baseType, AvroUtils.NamespaceZeroName,
                 new[] { GetDataTypeId((BuiltInType)builtInType) });
         }
 

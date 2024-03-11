@@ -36,10 +36,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Tests
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        public async Task CreateJsonNetworkMessageWithNs(string writerGroupFile)
+        {
+            var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
+            var schema = new JsonNetworkMessageSchema(group, "http://www.microsoft.com");
+
+            var json = schema.ToString();
+            var document = JsonDocument.Parse(json);
+            json = JsonSerializer.Serialize(document, kIndented);
+            Assert.NotNull(json);
+        }
+
+        [Theory]
+        [InlineData("./Resources/SingleDataWriter.json")]
+        [InlineData("./Resources/SingleEventWriter.json")]
+        [InlineData("./Resources/SingleWithExtensions.json")]
+        [InlineData("./Resources/SinglePendingAlarm.json")]
         public async Task CreateLegacyJsonNetworkMessage(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new JsonNetworkMessageSchema(group, true);
+            var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);

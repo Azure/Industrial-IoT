@@ -11,6 +11,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Furly;
     using Furly.Extensions.Messaging;
     using System.Collections.Generic;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using System.Xml.Linq;
 
     /// <summary>
     /// Network message avro schema
@@ -41,12 +43,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Get avro schema for a writer
         /// </summary>
         /// <param name="dataSetWriter"></param>
+        /// <param name="namespace"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
         public JsonDataSetMessageSchema(DataSetWriterModel dataSetWriter,
-            bool withDataSetMessageHeader = true,
+            string? @namespace = null, bool withDataSetMessageHeader = true,
             bool useCompatibilityMode = false,
             Opc.Ua.NamespaceTable? namespaces = null)
         {
@@ -54,8 +57,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new DataSetPayloadSchema(dataSetWriter, namespaces,
                 MessageEncoding.Json);
+            @namespace = GetNamespace(@namespace, namespaces);
             Schema = Compile(
                 dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
+                GetNamespace(@namespace, namespaces),
                 dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
         }
 
@@ -65,6 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSet"></param>
         /// <param name="dataSetContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
+        /// <param name="namespace"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="namespaces"></param>
@@ -72,15 +78,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public JsonDataSetMessageSchema(PublishedDataSetModel dataSet,
             DataSetContentMask? dataSetContentMask = null,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
-            bool withDataSetMessageHeader = true,
+            string? @namespace = null, bool withDataSetMessageHeader = true,
             bool useCompatibilityMode = false,
             Opc.Ua.NamespaceTable? namespaces = null)
         {
             _useCompatibilityMode = useCompatibilityMode;
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetSchema(dataSet, namespaces,
+            _dataSet = new DataSetPayloadSchema(null, dataSet, namespaces,
                 MessageEncoding.Json, dataSetFieldContentMask);
-            Schema = Compile(dataSet.Name, dataSetContentMask ?? 0u);
+            Schema = Compile(dataSet.Name,
+                GetNamespace(@namespace, namespaces), dataSetContentMask ?? 0u);
         }
 
         /// <inheritdoc/>
@@ -92,10 +99,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>
         /// Compile the data set message schema
         /// </summary>
-        /// <param name="dataSetName"></param>
+        /// <param name="typeName"></param>
+        /// <param name="namespace"></param>
         /// <param name="dataSetMessageContentMask"></param>
         /// <returns></returns>
-        private Schema Compile(string? dataSetName,
+        private Schema Compile(string? typeName, string? @namespace,
             DataSetContentMask dataSetMessageContentMask)
         {
             if (!_withDataSetMessageHeader)
@@ -153,8 +161,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // Up to version 2.8 we wrote the full status code
                     fields.Add(
-                        new(new JsonEncodingSchemaBuilder(false, false).GetSchemaForBuiltInType(
-                            Opc.Ua.BuiltInType.StatusCode),
+                        new(new JsonEncodingSchemaBuilder(false, false)
+                           .GetSchemaForBuiltInType(Opc.Ua.BuiltInType.StatusCode),
                                 nameof(DataSetContentMask.Status), pos++));
                 }
             }
@@ -173,8 +181,32 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             fields.Add(new(_dataSet.Schema, "Payload", pos++));
-            return RecordSchema.Create(dataSetName ?? "DataSet", fields,
-                AvroUtils.kNamespaceZeroName);
+
+            // Type name of the message record
+            typeName ??= nameof(JsonDataSetMessage);
+            if (@namespace != null)
+            {
+                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
+            }
+            return RecordSchema.Create(
+                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
+        }
+
+        /// <summary>
+        /// Get namespace uri
+        /// </summary>
+        /// <param name="namespace"></param>
+        /// <param name="namespaces"></param>
+        /// <returns></returns>
+        private static string? GetNamespace(string? @namespace,
+            Opc.Ua.NamespaceTable? namespaces)
+        {
+            if (@namespace == null && namespaces?.Count >= 1)
+            {
+                // Get own namespace from namespace table if possible
+                @namespace = namespaces.GetString(1);
+            }
+            return @namespace;
         }
 
         private readonly DataSetPayloadSchema _dataSet;

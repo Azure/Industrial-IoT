@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
 
     /// <summary>
     /// Network message avro schema
@@ -44,53 +45,58 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Get avro schema for a writer group
         /// </summary>
         /// <param name="writerGroup"></param>
+        /// <param name="namespace"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
         public JsonNetworkMessageSchema(WriterGroupModel writerGroup,
-            bool useCompatibilityMode = false, NamespaceTable? namespaces = null)
-            : this(writerGroup.Name, writerGroup.DataSetWriters!,
-                  useCompatibilityMode, namespaces,
-                    writerGroup.MessageSettings?.NetworkMessageContentMask)
+            string? @namespace = null, bool useCompatibilityMode = false,
+            NamespaceTable? namespaces = null)
+            : this(writerGroup.DataSetWriters!, writerGroup.Name, @namespace,
+                  writerGroup.MessageSettings?.NetworkMessageContentMask,
+                  useCompatibilityMode, namespaces)
         {
         }
 
         /// <summary>
         /// Get avro schema for a writer
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="dataSetWriter"></param>
+        /// <param name="name"></param>
+        /// <param name="namespace"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="namespaces"></param>
-        /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
-        public JsonNetworkMessageSchema(string name, DataSetWriterModel dataSetWriter,
-            bool useCompatibilityMode = false, NamespaceTable? namespaces = null,
-            NetworkMessageContentMask? networkMessageContentMask = null)
-            : this(name, dataSetWriter.YieldReturn(), useCompatibilityMode,
-                  namespaces, networkMessageContentMask)
+        public JsonNetworkMessageSchema(DataSetWriterModel dataSetWriter,
+            string? name = null, string? @namespace = null,
+            NetworkMessageContentMask? networkMessageContentMask = null,
+            bool useCompatibilityMode = false, NamespaceTable? namespaces = null)
+            : this(dataSetWriter.YieldReturn(), name, @namespace,
+                  networkMessageContentMask, useCompatibilityMode, namespaces)
         {
         }
 
         /// <summary>
         /// Get avro schema for a dataset encoded in json
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="dataSetWriters"></param>
+        /// <param name="name"></param>
+        /// <param name="namespace"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="namespaces"></param>
-        /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
-        internal JsonNetworkMessageSchema(string? name,
-            IEnumerable<DataSetWriterModel> dataSetWriters,
-            bool useCompatibilityMode, NamespaceTable? namespaces,
-            NetworkMessageContentMask? networkMessageContentMask)
+        internal JsonNetworkMessageSchema(
+            IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
+            string? @namespace, NetworkMessageContentMask? networkMessageContentMask,
+            bool useCompatibilityMode, NamespaceTable? namespaces)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
             _useCompatibilityMode = useCompatibilityMode;
 
-            Schema = Compile(name ?? "Message", dataSetWriters
+            Schema = Compile(name, @namespace, dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .ToList(),
                 namespaces, networkMessageContentMask ?? 0u);
@@ -105,17 +111,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>
         /// Compile the schema for the data sets
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="typeName"></param>
+        /// <param name="namespace"></param>
         /// <param name="dataSetWriters"></param>
         /// <param name="namespaces"></param>
         /// <param name="contentMask"></param>
         /// <returns></returns>
-        private Schema Compile(string name, List<DataSetWriterModel> dataSetWriters,
-            NamespaceTable? namespaces, NetworkMessageContentMask contentMask)
+        private Schema Compile(string? typeName, string? @namespace,
+            List<DataSetWriterModel> dataSetWriters, NamespaceTable? namespaces,
+            NetworkMessageContentMask contentMask)
         {
+            @namespace = GetNamespace(@namespace, namespaces);
+
             var dataSets = UnionSchema.Create(dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new JsonDataSetMessageSchema(writer,
+                .Select(writer => new JsonDataSetMessageSchema(writer, @namespace,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
                     _useCompatibilityMode, namespaces).Schema)
                 .ToList());
@@ -153,10 +163,33 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-               "DataSetWriterGroup", pos++));
+                "DataSetWriterGroup", pos++));
             fields.Add(new(payloadType,
                 "Payload", pos++));
-            return RecordSchema.Create(name, fields, AvroUtils.kNamespaceZeroName);
+
+            if (@namespace != null)
+            {
+                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
+            }
+            typeName ??= nameof(JsonNetworkMessage);
+            return RecordSchema.Create(
+                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
+        }
+
+        /// <summary>
+        /// Get namespace uri
+        /// </summary>
+        /// <param name="namespace"></param>
+        /// <param name="namespaces"></param>
+        /// <returns></returns>
+        private static string? GetNamespace(string? @namespace, NamespaceTable? namespaces)
+        {
+            if (@namespace == null && namespaces?.Count >= 1)
+            {
+                // Get own namespace from namespace table if possible
+                @namespace = namespaces.GetString(1);
+            }
+            return @namespace;
         }
 
         private readonly bool _useCompatibilityMode;
