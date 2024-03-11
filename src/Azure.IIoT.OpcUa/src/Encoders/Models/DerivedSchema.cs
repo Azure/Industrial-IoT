@@ -49,5 +49,4 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
                 alias, typeName.Namespace, null, null)).ToList();
         }
     }
-
 }

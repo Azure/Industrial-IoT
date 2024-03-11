@@ -219,13 +219,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
-        /// Get schema
+        /// Lookup the schema for the data type and make the type an array if
+        /// it has such value rank. Make the resulting schema nullable.
+        /// Return the name of the root schema.
         /// </summary>
         /// <param name="dataType"></param>
         /// <param name="nullable"></param>
+        /// <param name="name"></param>
         /// <param name="valueRank"></param>
         /// <param name="arrayDimensions"></param>
-        /// <param name="name"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         private Schema LookupSchema(string dataType, bool nullable, out string? name,

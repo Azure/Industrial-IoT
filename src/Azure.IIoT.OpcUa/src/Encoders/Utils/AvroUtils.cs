@@ -75,7 +75,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
                 match => remove ? string.Empty : $"__{(int)match.Value[0]}");
         }
 
-
         [GeneratedRegex("[^a-zA-Z0-9_]")]
         private static partial Regex EscapeAvroRegex();
     }

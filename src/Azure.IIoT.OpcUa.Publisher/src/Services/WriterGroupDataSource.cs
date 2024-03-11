@@ -874,7 +874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         };
 
                         // We need to set the schema based on the configuration
-                        Schema = new JsonNetworkMessageSchema(name: WriterGroup);
+                        Schema = new JsonNetworkMessageSchema(WriterGroup);
                     }
                 }
 
@@ -1041,7 +1041,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<int>(DisconnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are disconnected.");
         }
-
 
         private readonly ConfigurationVersionDataType _defaultVersion;
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;

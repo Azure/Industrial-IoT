@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum WriterGroupTransport
     {
         /// <summary>
-        /// IoT Hub or IoT Edge
+        /// Azure IoT Hub or Azure IoT Edge
         /// </summary>
         [EnumMember(Value = "IoTHub")]
         IoTHub,
@@ -24,6 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [EnumMember(Value = "Mqtt")]
         Mqtt,
+
+        /// <summary>
+        /// Azure Event Hub
+        /// </summary>
+        [EnumMember(Value = "EventHub")]
+        EventHub,
 
         /// <summary>
         /// Dapr

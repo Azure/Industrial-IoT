@@ -8,8 +8,8 @@
   <ItemGroup>
     <PackageReference Include="Apache.Avro" Version="1.11.3" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
-    <PackageReference Include="Furly.Extensions" Version="1.0.35" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.374.26-preview" />
+    <PackageReference Include="Furly.Extensions" Version="1.0.36" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.374.27" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

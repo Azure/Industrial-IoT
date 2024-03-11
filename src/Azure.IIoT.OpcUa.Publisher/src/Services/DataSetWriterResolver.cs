@@ -353,7 +353,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _logger.LogInformation("Expanded item {Id} to {Count} Variables",
                             item.Id, variables.Count);
 
-
                         item.Expand(this, new PublishedDataItemsModel
                         {
                             PublishedData = variables.ToList()
@@ -622,7 +621,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public DataSetRoutingMode Routing
                 => DataSetWriter.DataSet?.Routing
                 ?? DataSetRoutingMode.None;
-            // Format to use to encode namespaces, index is not allowed
+            /// <summary>
+            /// Format to use to encode namespaces, index is not allowed
+            /// </summary>
             public NamespaceFormat NamespaceFormat
                 => NamespaceFormatInternal == NamespaceFormat.Index
                 ? NamespaceFormat.Expanded
