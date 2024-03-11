@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using DataSetFieldFieldMask = Publisher.Models.DataSetFieldContentMask;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
@@ -359,9 +359,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Create encoding schema
         /// </summary>
         /// <param name="fieldContentMask"></param>
-        public JsonEncodingSchemaBuilder(DataSetFieldFieldMask fieldContentMask)
+        public JsonEncodingSchemaBuilder(DataSetFieldContentMask fieldContentMask)
         {
-            if ((fieldContentMask & DataSetFieldFieldMask.RawData) != 0)
+            if ((fieldContentMask & DataSetFieldContentMask.RawData) != 0)
             {
                 //
                 // If the DataSetFieldContentMask results in a RawData
@@ -444,20 +444,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 10 => PrimitiveType(id, "Float", "float"),
                 11 => PrimitiveType(id, "Double", "double"),
                 12 => PrimitiveType(id, "String", "string"),
-                13 => PrimitiveType(id, "DateTime", "string"), // TODO ISO type?
+                13 => PrimitiveType(id, "DateTime", "string"),
                 14 => LogicalType(id, "Guid", "string", "uuid"),
                 15 => PrimitiveType(id, "ByteString", "bytes"),
                 16 => PrimitiveType(id, "XmlElement", "string"),
 
-                17 => NodeIdSchema, // "NodeId",
-                18 => ExpandedNodeIdSchema, // "ExpandedNodeId",
-                19 => StatusCodeSchema, // "StatusCode",
-                20 => QualifiedNameSchema, // "QualifiedName",
-                21 => LocalizedTextSchema, // "LocalizedText",
-                22 => ExtensionObjectSchema, // "ExtensionObject",
-                23 => DataValueSchema, // "DataValue",
-                24 => VariantSchema, // "Variant",
-                25 => DiagnosticInfoSchema, // "DiagnosticInfo",
+                17 => NodeIdSchema,
+                18 => ExpandedNodeIdSchema,
+                19 => StatusCodeSchema,
+                20 => QualifiedNameSchema,
+                21 => LocalizedTextSchema,
+                22 => ExtensionObjectSchema,
+                23 => DataValueSchema,
+                24 => VariantSchema,
+                25 => DiagnosticInfoSchema,
 
                 26 => PrimitiveType(id, "Number", "string"),
 

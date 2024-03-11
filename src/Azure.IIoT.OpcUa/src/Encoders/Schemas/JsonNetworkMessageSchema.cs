@@ -182,7 +182,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="namespace"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
-        private static string? GetNamespace(string? @namespace, NamespaceTable? namespaces)
+        private static string? GetNamespace(string? @namespace,
+            NamespaceTable? namespaces)
         {
             if (@namespace == null && namespaces?.Count >= 1)
             {

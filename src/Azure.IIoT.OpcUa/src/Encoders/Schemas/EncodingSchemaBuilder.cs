@@ -75,17 +75,5 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public abstract Schema GetVariantField(string name, string ns,
             string dataTypeId, Schema bodyType);
-
-        /// <summary>
-        /// Get schema for type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public virtual Schema GetSchemaForEncodeableType<T>()
-            where T : IEncodeable
-        {
-            // TODO
-            return AvroUtils.Null;
-        }
     }
 }
