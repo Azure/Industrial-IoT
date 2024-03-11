@@ -183,7 +183,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             fields.Add(new(_dataSet.Schema, "Payload", pos++));
 
             // Type name of the message record
-            typeName ??= nameof(JsonDataSetMessage);
+            typeName = string.IsNullOrEmpty(typeName)
+                ? nameof(JsonDataSetMessage) : typeName + "DataSetMessage";
             if (@namespace != null)
             {
                 @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);

@@ -76,8 +76,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 var types = GetPossibleTypes(false)
                     .Concat(GetPossibleTypes(true))
+                    .Distinct()
                     .ToList();
-                var bodyType = UnionSchema.Create(types);
+                var bodyType = AvroUtils.CreateUnion(types);
                 IEnumerable<Schema> GetPossibleTypes(bool array)
                 {
                     if (array) // TODO: Fix
@@ -123,13 +124,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // TODO
                 }
 
-                var bodyType = UnionSchema.Create(new List<Schema>
-                {
+                var bodyType = AvroUtils.CreateUnion(
                     GetSchemaForBuiltInType(BuiltInType.Null),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.XmlElement),
-                    GetSchemaForBuiltInType(BuiltInType.ByteString)
-                });
+                    GetSchemaForBuiltInType(BuiltInType.ByteString));
                 var encodingType = EnumSchema.Create("Encoding", new string[]
                 {
                     "Structure",
@@ -169,8 +168,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return RecordSchema.Create(nameof(BuiltInType.StatusCode),
                     new List<Field>
                     {
-                            new (GetSchemaForBuiltInType(BuiltInType.UInt32), "Code", 0),
-                            new (GetSchemaForBuiltInType(BuiltInType.String), "Symbol", 1)
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt32), "Code", 0),
+                        new (GetSchemaForBuiltInType(BuiltInType.String), "Symbol", 1)
                     }, AvroUtils.NamespaceZeroName);
             }
         }
@@ -222,9 +221,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 // For the non-reversible form, LocalizedText value shall
                 // be encoded as a JSON string containing the Text component.
-                return DerivedSchema.Create(nameof(BuiltInType.LocalizedText),
-                    GetSchemaForBuiltInType(BuiltInType.String), AvroUtils.NamespaceZeroName,
-                    new[] { GetDataTypeId(BuiltInType.LocalizedText) });
+                return PrimitiveType((int)BuiltInType.LocalizedText,
+                    nameof(BuiltInType.LocalizedText), "string");
             }
         }
 
@@ -232,13 +230,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = UnionSchema.Create(new List<Schema>
-                {
+                var idType = AvroUtils.CreateUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
-                    GetSchemaForBuiltInType(BuiltInType.ByteString)
-                });
+                    GetSchemaForBuiltInType(BuiltInType.ByteString));
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
                     "UInt32",
@@ -278,13 +274,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = UnionSchema.Create(new List<Schema>
-                {
+                var idType = AvroUtils.CreateUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
-                    GetSchemaForBuiltInType(BuiltInType.ByteString)
-                });
+                    GetSchemaForBuiltInType(BuiltInType.ByteString));
                 var idTypeType = EnumSchema.Create("IdentifierType", new string[]
                 {
                     "UInt32",
@@ -322,11 +316,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         // containing the NamespaceUri or the NamespaceUri associated
                         // with the NamespaceIndex unless the NamespaceIndex is 0
                         // or 1. If the NamespaceIndex is 0 the field is omitted.
-                        new(UnionSchema.Create(new List<Schema>
-                        {
+                        new(AvroUtils.CreateUnion(
                             GetSchemaForBuiltInType(BuiltInType.UInt32),
-                            GetSchemaForBuiltInType(BuiltInType.String)
-                        }), "Namespace", 2),
+                            GetSchemaForBuiltInType(BuiltInType.String)),
+                            "Namespace", 2),
                         field
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.ExpandedNodeId) });
@@ -542,12 +535,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     new (ArraySchema.Create(
                         GetSchemaForBuiltInType(BuiltInType.Int32)).AsNullable(), "Dimensions", 2)
                 }, ns);
-            var variant = UnionSchema.Create(new List<Schema>
-            {
-                AvroUtils.Null,
-                variantSchema,
-                bodyType
-            });
+            var variant = AvroUtils.CreateUnion(AvroUtils.Null, variantSchema, bodyType);
             return new DerivedSchema(variantSchema.Tag, new SchemaName(AvroUtils.Escape(name),
                 ns, null, null), new[] { dataTypeId });
         }
@@ -570,13 +558,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="type"></param>
         /// <param name="logicalType"></param>
         /// <returns></returns>
-        private static DerivedSchema LogicalType(int builtInType, string name,
+        internal static Schema LogicalType(int builtInType, string name,
             string type, string logicalType)
         {
             var baseType = Schema.Parse(
                 $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
+#if !DERIVE_PRIMITIVE
+            return baseType;
+#else
             return DerivedSchema.Create(name, baseType, AvroUtils.NamespaceZeroName,
                 new[] { GetDataTypeId((BuiltInType)builtInType) });
+#endif
         }
 
         /// <summary>
@@ -586,12 +578,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="name"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static DerivedSchema PrimitiveType(int builtInType, string name,
+        internal static Schema PrimitiveType(int builtInType, string name,
             string type)
         {
             var baseType = PrimitiveSchema.NewInstance(type);
+#if !DERIVE_PRIMITIVE
+            return baseType;
+#else
             return DerivedSchema.Create(name, baseType, AvroUtils.NamespaceZeroName,
                 new[] { GetDataTypeId((BuiltInType)builtInType) });
+#endif
         }
 
         private readonly Dictionary<BuiltInType, Schema> _builtIn = new();

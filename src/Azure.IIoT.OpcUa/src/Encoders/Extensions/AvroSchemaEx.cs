@@ -20,11 +20,12 @@ namespace Avro
         /// <returns></returns>
         internal static Schema AsNullable(this Schema schema)
         {
-            return UnionSchema.Create(new List<Schema>
-            {
-                AvroUtils.Null,
-                schema
-            });
+            return schema == AvroUtils.Null ? schema :
+                UnionSchema.Create(new List<Schema>
+                {
+                    AvroUtils.Null,
+                    schema
+                });
         }
     }
 }

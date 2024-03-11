@@ -123,12 +123,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             @namespace = GetNamespace(@namespace, namespaces);
 
-            var dataSets = UnionSchema.Create(dataSetWriters
+            var dataSets = AvroUtils.CreateUnion(dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageSchema(writer, @namespace,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                    _useCompatibilityMode, namespaces).Schema)
-                .ToList());
+                    _useCompatibilityMode, namespaces).Schema));
 
             var payloadType =
                 contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
@@ -167,11 +166,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             fields.Add(new(payloadType,
                 "Payload", pos++));
 
+            typeName = string.IsNullOrEmpty(typeName)
+                ? nameof(JsonNetworkMessage) : typeName + "NetworkMessage";
             if (@namespace != null)
             {
                 @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
             }
-            typeName ??= nameof(JsonNetworkMessage);
             return RecordSchema.Create(
                 typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
         }

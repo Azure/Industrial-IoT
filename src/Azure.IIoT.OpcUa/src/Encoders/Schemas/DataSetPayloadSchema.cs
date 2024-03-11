@@ -124,10 +124,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             }
 
-            var schemas = GetDataSetSchemas(name, dataSet).ToList();
+            var schemas = GetDataSetSchemas(name, dataSet)
+                .Distinct()
+                .ToList();
             if (schemas.Count != 1)
             {
-                return UnionSchema.Create(schemas);
+                return AvroUtils.CreateUnion(schemas);
             }
             return schemas[0];
         }

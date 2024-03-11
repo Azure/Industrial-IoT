@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Tests
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
+            var schema2 = Avro.Schema.Parse(json);
+            //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
@@ -45,6 +47,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Tests
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
+
+            var schema2 = Avro.Schema.Parse(json);
+            //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
@@ -61,6 +66,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Tests
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
+            var schema2 = Avro.Schema.Parse(json);
+            //Assert.Equal(schema.Schema, schema2);
         }
 
         private static async ValueTask<T> LoadAsync<T>(string file)

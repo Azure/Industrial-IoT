@@ -9,6 +9,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
     using System.Linq;
     using System;
     using System.Text.RegularExpressions;
+    using System.Collections;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Helper functions for avro
@@ -51,6 +53,30 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
                     .Select(Escape)
                     .Aggregate((a, b) => $"{a}.{b}");
             }
+        }
+
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <param name="schemas"></param>
+        /// <returns></returns>
+        public static Schema CreateUnion(params Schema[] schemas)
+        {
+            return CreateUnion(schemas, customProperties: null);
+        }
+
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <param name="schemas"></param>
+        /// <param name="customProperties"></param>
+        /// <returns></returns>
+        public static UnionSchema CreateUnion(IEnumerable<Schema> schemas,
+            PropertyMap? customProperties = null)
+        {
+            var types = schemas.Distinct(
+                Compare.Using<Schema>((a, b) => a?.Fullname == b?.Fullname)).ToList();
+            return UnionSchema.Create(types, customProperties);
         }
 
         /// <summary>
