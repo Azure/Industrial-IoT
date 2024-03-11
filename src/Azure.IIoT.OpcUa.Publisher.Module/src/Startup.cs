@@ -161,6 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             builder.AddFileSystemEventClient(Configuration);
             builder.AddHttpEventClient(Configuration);
             builder.AddDaprPubSubClient(Configuration);
+            builder.AddEventHubsClient(Configuration);
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
 

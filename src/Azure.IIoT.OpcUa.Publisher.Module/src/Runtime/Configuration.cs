@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using Furly.Azure.EventHubs;
 
     /// <summary>
     /// Configuration extensions
@@ -123,6 +124,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 builder.AddIoTEdgeServices();
                 builder.RegisterType<IoTEdge>()
+                    .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add Event Hubs client
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddEventHubsClient(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            // Validate edge configuration
+            var eventHubsOptions = new EventHubsClientOptions();
+            new EventHubs(configuration).Configure(eventHubsOptions);
+            if (eventHubsOptions.ConnectionString != null)
+            {
+                builder.AddHubEventClient();
+                builder.RegisterType<EventHubs>()
                     .AsImplementedInterfaces();
             }
         }
@@ -973,6 +993,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public IoTEdge(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure edge client
+        /// </summary>
+        internal sealed class EventHubs : ConfigureOptionBase<EventHubsClientOptions>
+        {
+            /// <summary>
+            /// Configuration
+            /// </summary>
+            public const string SchemaGroupNameKey = "SchemaGroupName";
+            public const string EventHubNamespaceConnectionString = "EventHubNamespaceConnectionString";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, EventHubsClientOptions options)
+            {
+                if (string.IsNullOrEmpty(options.ConnectionString))
+                {
+                    options.ConnectionString = GetStringOrDefault(EventHubNamespaceConnectionString);
+                }
+                if (string.IsNullOrEmpty(options.SchemaGroupName))
+                {
+                    options.SchemaGroupName = GetStringOrDefault(SchemaGroupNameKey);
+                }
+            }
+
+            /// <summary>
+            /// Transport configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public EventHubs(IConfiguration configuration)
                 : base(configuration)
             {
             }

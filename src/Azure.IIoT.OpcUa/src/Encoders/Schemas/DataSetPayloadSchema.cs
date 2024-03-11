@@ -1,0 +1,469 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
+{
+    using Avro;
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Messaging;
+    using Furly;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+
+    /// <summary>
+    /// Extensions to convert metadata into avro schema. Note that this class
+    /// generates a schema that complies with the json representation in
+    /// <see cref="JsonEncoderEx.WriteDataSet(string?, Models.DataSet?)"/>.
+    /// This depends on the network settings and reversible vs. nonreversible
+    /// encoding mode.
+    /// </summary>
+    public class DataSetPayloadSchema : IEventSchema
+    {
+        /// <inheritdoc/>
+        public string Type => ContentMimeType.AvroSchema;
+
+        /// <inheritdoc/>
+        public string Name => Schema.Fullname;
+
+        /// <inheritdoc/>
+        public ulong Version { get; }
+
+        /// <inheritdoc/>
+        string IEventSchema.Schema => Schema.ToString();
+
+        /// <inheritdoc/>
+        public string? Id { get; }
+
+        /// <summary>
+        /// The schema of the data set
+        /// </summary>
+        public Schema Schema { get; }
+
+        /// <summary>
+        /// Encoding schema for the data set
+        /// </summary>
+        internal EncodingSchemaBuilder Encoding { get; }
+
+        /// <summary>
+        /// Get avro schema for a dataset
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataSet"></param>
+        /// <param name="namespaceTable"></param>
+        /// <param name="encoding"></param>
+        /// <param name="dataSetFieldContentMask"></param>
+        /// <returns></returns>
+        public DataSetPayloadSchema(string? name, PublishedDataSetModel dataSet,
+            NamespaceTable? namespaceTable = null, MessageEncoding? encoding = null,
+            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null)
+        {
+            ArgumentNullException.ThrowIfNull(dataSet);
+            _context = new ServiceMessageContext
+            {
+                NamespaceUris = namespaceTable ?? new NamespaceTable()
+            };
+
+            Encoding = EncodingSchemaBuilder.GetEncoding(encoding,
+                dataSetFieldContentMask);
+
+            var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
+            GetEncodingMode(out _omitFieldName, out _fieldsAreDataValues,
+                singleValue, (uint)(dataSetFieldContentMask ?? 0u));
+
+            Schema = Compile(name, dataSet);
+        }
+
+        /// <summary>
+        /// Get avro schema for a dataset encoded in json
+        /// </summary>
+        /// <param name="dataSetWriter"></param>
+        /// <param name="namespaceTable"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public DataSetPayloadSchema(DataSetWriterModel dataSetWriter,
+            NamespaceTable? namespaceTable, MessageEncoding? encoding) :
+            this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
+                    ?? throw new ArgumentException("Missing data set in writer"),
+                namespaceTable, encoding, dataSetWriter.DataSetFieldContentMask)
+        {
+        }
+
+        /// <inheritdoc/>
+        public override string? ToString()
+        {
+            return Schema.ToString();
+        }
+
+        /// <summary>
+        /// Compile
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataSet"></param>
+        /// <returns></returns>
+        private Schema Compile(string? name, PublishedDataSetModel dataSet)
+        {
+            // Collect types
+            CollectTypes(dataSet);
+
+            // Compile collected types to schemas
+            foreach (var type in _types.Values)
+            {
+                if (type.Schema == null)
+                {
+                    type.Resolve(this);
+                }
+            }
+
+            var schemas = GetDataSetSchemas(name, dataSet).ToList();
+            if (schemas.Count != 1)
+            {
+                return UnionSchema.Create(schemas);
+            }
+            return schemas[0];
+        }
+
+        /// <summary>
+        /// Create data set schemas
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataSet"></param>
+        /// <returns></returns>
+        private IEnumerable<Schema> GetDataSetSchemas(string? name,
+            PublishedDataSetModel dataSet)
+        {
+            var fields = new List<Field>();
+            var pos = 0;
+            foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
+            {
+                // Now collect the fields of the payload
+                pos++;
+                if (fieldMetadata?.DataType != null)
+                {
+                    var schema = LookupSchema(fieldMetadata.DataType, !_omitFieldName);
+                    if (_omitFieldName)
+                    {
+                        yield return schema;
+                    }
+                    else if (fieldName != null)
+                    {
+                        if (_fieldsAreDataValues)
+                        {
+                            schema = Encoding.GetDataValueFieldSchema(
+                                schema.Name, schema);
+                        }
+                        fields.Add(
+                            new Field(schema, AvroUtils.Escape(fieldName), pos));
+                    }
+                }
+            }
+            if (!_omitFieldName)
+            {
+                yield return RecordSchema.Create(
+                    AvroUtils.Escape(name ?? dataSet.Name ?? "Payload"), fields);
+            }
+        }
+
+        /// <summary>
+        /// Collect types from data set
+        /// </summary>
+        /// <param name="dataSet"></param>
+        private void CollectTypes(PublishedDataSetModel dataSet)
+        {
+            foreach (var (_, fieldMetadata) in dataSet!
+                .EnumerateMetaData()
+                .Where(m => m.MetaData != null))
+            {
+                Debug.Assert(fieldMetadata != null);
+                if (fieldMetadata.StructureDataTypes != null)
+                {
+                    foreach (var t in fieldMetadata.StructureDataTypes)
+                    {
+                        if (!_types.ContainsKey(t.DataTypeId))
+                        {
+                            _types.Add(t.DataTypeId, new StructureType(t));
+                        }
+                    }
+                }
+                if (fieldMetadata.SimpleDataTypes != null)
+                {
+                    foreach (var t in fieldMetadata.SimpleDataTypes)
+                    {
+                        if (!_types.ContainsKey(t.DataTypeId))
+                        {
+                            _types.Add(t.DataTypeId, new SimpleType(t));
+                        }
+                    }
+                }
+                if (fieldMetadata.EnumDataTypes != null)
+                {
+                    foreach (var t in fieldMetadata.EnumDataTypes)
+                    {
+                        if (!_types.ContainsKey(t.DataTypeId))
+                        {
+                            _types.Add(t.DataTypeId, new EnumType(t));
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get schema
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <param name="nullable"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="arrayDimensions"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        private Schema LookupSchema(string dataType, bool nullable,
+            int valueRank = 1, IReadOnlyList<uint>? arrayDimensions = null)
+        {
+            Schema? schema = null;
+            if (_types.TryGetValue(dataType, out var description))
+            {
+                if (description.Schema == null)
+                {
+                    description.Resolve(this);
+                }
+                if (description.Schema != null)
+                {
+                    schema = description.Schema;
+                }
+                if (nullable && schema != null)
+                {
+                    schema = schema.AsNullable();
+                }
+            }
+
+            if (arrayDimensions != null)
+            {
+                valueRank = arrayDimensions.Count;
+            }
+            var array = valueRank > 1;
+
+            schema ??= GetBuiltInDataTypeSchema(dataType, nullable && !array);
+            if (schema != null)
+            {
+                if (array)
+                {
+                    // TODO: we also have matrices, we should have schemas for all
+                    schema = ArraySchema.Create(schema);
+                    if (nullable)
+                    {
+                        schema = schema.AsNullable();
+                    }
+                }
+                return schema;
+            }
+            throw new ArgumentException($"No Schema found for {dataType}");
+
+            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable)
+            {
+                if (int.TryParse(dataType[2..], out var id)
+                    && id >= 0 && id <= 29)
+                {
+                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, nullable);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Create namespace
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <returns></returns>
+        private (string, string) SplitNodeId(string nodeId)
+        {
+            var id = nodeId.ToExpandedNodeId(_context);
+            string avroStyleNamespace;
+            if (id.NamespaceIndex == 0)
+            {
+                avroStyleNamespace = AvroUtils.kNamespaceZeroName;
+            }
+            else
+            {
+                var ns = id.NamespaceUri;
+                if (!Uri.TryCreate(ns, new UriCreationOptions
+                {
+                    DangerousDisablePathAndQueryCanonicalization = false
+                }, out var result))
+                {
+                    avroStyleNamespace = ns.Split('/')
+                        .Select(AvroUtils.Escape)
+                        .Aggregate((a, b) => $"{a}.{b}");
+                }
+                else
+                {
+                    avroStyleNamespace = result.Host.Split('.').Reverse()
+                        .Concat(result.AbsolutePath.Split('/'))
+                        .Select(AvroUtils.Escape)
+                        .Aggregate((a, b) => $"{a}.{b}");
+                }
+            }
+            var name = id.IdType switch
+            {
+                IdType.Opaque => "b_",
+                IdType.Guid => "g_",
+                IdType.String => "s_",
+                _ => "i_"
+            } + id.Identifier;
+            return (avroStyleNamespace, AvroUtils.Escape(name));
+        }
+
+        /// <summary>
+        /// Avro type
+        /// </summary>
+        private abstract record class TypedDescription
+        {
+            /// <summary>
+            /// Resolved schema of the type
+            /// </summary>
+            public Schema? Schema { get; set; }
+
+            /// <summary>
+            /// Resolve the type
+            /// </summary>
+            /// <param name="schema"></param>
+            public abstract void Resolve(DataSetPayloadSchema schema);
+        }
+
+        /// <summary>
+        /// Simple type
+        /// </summary>
+        /// <param name="Description"></param>
+        private record class SimpleType(SimpleTypeDescriptionModel Description)
+            : TypedDescription
+        {
+            /// <inheritdoc/>
+            public override void Resolve(DataSetPayloadSchema schemas)
+            {
+                if (Schema != null)
+                {
+                    return;
+                }
+
+                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
+
+                if (Description.DataTypeId == "i=" + Description.BuiltInType)
+                {
+                    // Emit the built in type definition here instead
+                    Debug.Assert(Description.BuiltInType.HasValue);
+                    Schema = schemas.Encoding.GetSchemaForBuiltInType(
+                        (BuiltInType)Description.BuiltInType.Value);
+                }
+                else
+                {
+                    // Derive from base type or built in type
+                    var baseSchema = Description.BaseDataType != null ?
+                        schemas.LookupSchema(Description.BaseDataType, false) :
+                        schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
+                            (Description.BuiltInType ?? (byte?)BuiltInType.String));
+                    Schema = DerivedSchema.Create(AvroUtils.Escape(Description.Name),
+                        baseSchema, ns, new[] { dt });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Record
+        /// </summary>
+        /// <param name="Description"></param>
+        private record class StructureType(StructureDescriptionModel Description)
+            : TypedDescription
+        {
+            /// <inheritdoc/>
+            public override void Resolve(DataSetPayloadSchema schemas)
+            {
+                if (Schema != null)
+                {
+                    return;
+                }
+
+                //
+                // |---------------|------------|----------------|
+                // | Field Value   | Reversible | Non-Reversible |
+                // |---------------|------------|----------------|
+                // | NULL          | Omitted    | JSON null      |
+                // | Default Value | Omitted    | Default Value  |
+                // |---------------|------------|----------------|
+                //
+                var fields = new List<Field>();
+                for (var i = 0; i < Description.Fields.Count; i++)
+                {
+                    var field = Description.Fields[i];
+                    var schema = schemas.LookupSchema(field.DataType, true,
+                        field.ValueRank, field.ArrayDimensions);
+                    fields.Add(new Field(schema, AvroUtils.Escape(field.Name), i));
+                }
+                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
+                Schema = RecordSchema.Create(AvroUtils.Escape(Description.Name),
+                    fields, ns, new[] { dt });
+            }
+        }
+
+        /// <summary>
+        /// Enum type
+        /// </summary>
+        /// <param name="Description"></param>
+        private record class EnumType(EnumDescriptionModel Description)
+            : TypedDescription
+        {
+            /// <inheritdoc/>
+            public override void Resolve(DataSetPayloadSchema schemas)
+            {
+                if (Schema != null)
+                {
+                    return;
+                }
+
+                var (ns, dt) = schemas.SplitNodeId(Description.DataTypeId);
+
+                if (Description.IsOptionSet)
+                {
+                    // Flags
+                    // ...
+                }
+
+                var symbols = Description.Fields.Select(e => AvroUtils.Escape(e.Name)).ToList();
+                Schema = EnumSchema.Create(AvroUtils.Escape(Description.Name), symbols, ns,
+                    new[] { dt }, defaultSymbol: symbols[0]);
+                // TODO: Build doc from fields descriptions
+            }
+        }
+
+        /// <summary>
+        /// Get encoding modes
+        /// </summary>
+        /// <param name="writeSingleValue"></param>
+        /// <param name="dataValueRepresentation"></param>
+        /// <param name="isSingleFieldDataSet"></param>
+        /// <param name="fieldContentMask"></param>
+        private static void GetEncodingMode(out bool writeSingleValue,
+            out bool dataValueRepresentation, bool isSingleFieldDataSet,
+            uint fieldContentMask)
+        {
+            writeSingleValue = isSingleFieldDataSet &&
+               ((fieldContentMask &
+                (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue) != 0);
+            dataValueRepresentation = (fieldContentMask &
+                (uint)Publisher.Models.DataSetFieldContentMask.RawData) == 0
+                && fieldContentMask != 0;
+        }
+
+        private readonly Dictionary<string, TypedDescription> _types = new();
+        private readonly IServiceMessageContext _context;
+        private readonly bool _omitFieldName;
+        private readonly bool _fieldsAreDataValues;
+    }
+}

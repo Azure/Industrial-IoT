@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (validChunks > 0)
                     {
                         var chunkedMessage = factory()
-                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, 
+                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                                 m.networkMessage.MessageSchema)
                             .SetTimestamp(DateTime.UtcNow)
                             .SetContentEncoding(m.networkMessage.ContentEncoding)
@@ -222,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var topics in messages
                 .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
                 .Where(m => m.Context != null)
-                .GroupBy(m => (m.Context!.Topic, GetQos(m.Context, _options.Value.DefaultQualityOfService))))
+                .GroupBy(m => (m.Context!.Topic,
+                    GetQos(m.Context, _options.Value.DefaultQualityOfService))))
             {
                 var (topic, qos) = topics.Key;
                 foreach (var publishers in topics.GroupBy(m => m.Context.PublisherId))
@@ -436,8 +437,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             _options.Value.DefaultMaxDataSetMessagesPerPublish;
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                         {
-                                            result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                                () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
+                                            result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
+                                                topic, false, default, qos, () => currentNotifications.ForEach(n => n.Dispose()),
+                                                Notification.Codec.Context, Context.Schema));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -452,8 +454,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     if (currentMessage.Messages.Count > 0)
                                     {
                                         // Start a new message but first emit current
-                                        result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
-                                            () => currentNotifications.ForEach(n => n.Dispose()), Notification.Codec.Context));
+                                        result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
+                                            topic, false, default, qos, () => currentNotifications.ForEach(n => n.Dispose()),
+                                            Notification.Codec.Context, Context.Schema));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -481,7 +484,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                     result.Add(new EncodedMessage(0, metadataMessage, topic, true,
                                         Context.Writer.MetaDataUpdateTime ?? default, qos, Notification.Dispose,
-                                            Notification.Codec.Context));
+                                            Notification.Codec.Context, Context.Schema));
 #if DEBUG
                                     Notification.MarkProcessed();
 #endif
@@ -491,7 +494,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
-                                    currentNotifications.LastOrDefault()?.Codec.Context));
+                                    currentNotifications.LastOrDefault()?.Codec.Context,
+                                    dataSetClass.LastOrDefault().Context.Schema));
 #if DEBUG
                                 currentNotifications.ForEach(n => n.MarkProcessed());
 #endif

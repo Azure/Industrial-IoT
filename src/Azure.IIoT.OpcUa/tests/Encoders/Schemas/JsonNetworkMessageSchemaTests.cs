@@ -3,28 +3,43 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Opc.Ua;
     using System.IO;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class AvroSchemaTests
+    public class JsonNetworkMessageSchemaTests
     {
         [Theory]
         [InlineData("./Resources/SingleDataWriter.json")]
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
-        public async Task CreateSchemas(string writerGroupFile)
+        public async Task CreateJsonNetworkMessageSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new AvroSchema(group.DataSetWriters[0]);
+            var schema = new JsonNetworkMessageSchema(group);
+
+            var json = schema.ToString();
+            var document = JsonDocument.Parse(json);
+            json = JsonSerializer.Serialize(document, kIndented);
+            Assert.NotNull(json);
+        }
+
+        [Theory]
+        [InlineData("./Resources/SingleDataWriter.json")]
+        [InlineData("./Resources/SingleEventWriter.json")]
+        [InlineData("./Resources/SingleWithExtensions.json")]
+        [InlineData("./Resources/SinglePendingAlarm.json")]
+        public async Task CreateLegacyJsonNetworkMessage(string writerGroupFile)
+        {
+            var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
+            var schema = new JsonNetworkMessageSchema(group, true);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -45,5 +60,5 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             WriteIndented = true
         };
- }
+    }
 }

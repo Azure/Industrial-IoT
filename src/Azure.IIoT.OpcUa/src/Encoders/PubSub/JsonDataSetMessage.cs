@@ -57,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader, string? property)
+        internal virtual void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader,
+            string? property)
         {
             if (withHeader)
             {
