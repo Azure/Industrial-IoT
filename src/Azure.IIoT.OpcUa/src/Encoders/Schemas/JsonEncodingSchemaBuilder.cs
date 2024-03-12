@@ -157,9 +157,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // the reversible encoding. If the StatusCode is Good (0)
                     // it is only encoded if it is an element of a JSON array.
                     //
+#if !DERIVE_PRIMITIVE
+                    return PrimitiveType((int)BuiltInType.StatusCode,
+                        nameof(BuiltInType.StatusCode), "int");
+#else
                     return DerivedSchema.Create(nameof(BuiltInType.StatusCode),
-                        GetSchemaForBuiltInType(BuiltInType.UInt32), AvroUtils.NamespaceZeroName,
+                        GetSchemaForBuiltInType(BuiltInType.UInt32),
+                        AvroUtils.NamespaceZeroName,
                             new[] { GetDataTypeId(BuiltInType.StatusCode) });
+#endif
                 }
 
                 // For the non - reversible form, StatusCode values
@@ -221,8 +227,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 // For the non-reversible form, LocalizedText value shall
                 // be encoded as a JSON string containing the Text component.
+#if !DERIVE_PRIMITIVE
                 return PrimitiveType((int)BuiltInType.LocalizedText,
                     nameof(BuiltInType.LocalizedText), "string");
+#else
+                    return DerivedSchema.Create(nameof(BuiltInType.LocalizedText),
+                        GetSchemaForBuiltInType(BuiltInType.String),
+                        AvroUtils.NamespaceZeroName,
+                            new[] { GetDataTypeId(BuiltInType.LocalizedText) });
+#endif
             }
         }
 

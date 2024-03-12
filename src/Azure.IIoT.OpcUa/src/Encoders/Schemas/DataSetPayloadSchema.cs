@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Avro;
-    using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -18,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Xml.Linq;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -59,18 +57,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="name"></param>
         /// <param name="dataSet"></param>
-        /// <param name="namespaceTable"></param>
         /// <param name="encoding"></param>
         /// <param name="dataSetFieldContentMask"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public DataSetPayloadSchema(string? name, PublishedDataSetModel dataSet,
-            NamespaceTable? namespaceTable = null, MessageEncoding? encoding = null,
-            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null)
+            MessageEncoding? encoding = null,
+            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null,
+            SchemaGenerationOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(dataSet);
+            _options = options ?? new SchemaGenerationOptions();
             _context = new ServiceMessageContext
             {
-                NamespaceUris = namespaceTable ?? new NamespaceTable()
+                NamespaceUris = _options.Namespaces ?? new NamespaceTable()
             };
 
             Encoding = EncodingSchemaBuilder.GetEncoding(encoding,
@@ -87,14 +87,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Get avro schema for a dataset encoded in json
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="namespaceTable"></param>
         /// <param name="encoding"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public DataSetPayloadSchema(DataSetWriterModel dataSetWriter,
-            NamespaceTable? namespaceTable, MessageEncoding? encoding) :
+            MessageEncoding? encoding, SchemaGenerationOptions? options = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
-                namespaceTable, encoding, dataSetWriter.DataSetFieldContentMask)
+                encoding, dataSetWriter.DataSetFieldContentMask, options)
         {
         }
 
@@ -162,17 +162,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         if (_fieldsAreDataValues)
                         {
                             schema = Encoding.GetDataValueFieldSchema(
-                                typeName ?? fieldName, schema);
+                                typeName ?? fieldName, schema).AsNullable();
                         }
-                        fields.Add(new Field(schema.AsNullable(),
-                            AvroUtils.Escape(fieldName), pos));
+                        fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
                 }
             }
             if (!_omitFieldName)
             {
                 yield return RecordSchema.Create(
-                    AvroUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields);
+                    EscapeSymbol(name ?? dataSet.Name ?? "DataSetPayload"), fields);
             }
         }
 
@@ -395,9 +394,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         schemas.LookupSchema(Description.BaseDataType, false, out _) :
                         schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
                             (Description.BuiltInType ?? (byte?)BuiltInType.String));
+#if !DERIVE_PRIMITIVE
+                    Schema = baseSchema;
+#else
                     Schema = DerivedSchema.Create(
                         schemas.SplitQualifiedName(Description.Name, ns),
                         baseSchema, ns, new[] { dt });
+#endif
                 }
             }
         }
@@ -431,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     var field = Description.Fields[i];
                     var schema = schemas.LookupSchema(field.DataType, true, out _,
                         field.ValueRank, field.ArrayDimensions);
-                    fields.Add(new Field(schema, AvroUtils.Escape(field.Name), i));
+                    fields.Add(new Field(schema, schemas.EscapeSymbol(field.Name), i));
                 }
                 var (ns1, dt) = schemas.SplitNodeId(Description.DataTypeId);
 
@@ -465,13 +468,28 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
 
                 var symbols = Description.Fields
-                    .Select(e => AvroUtils.Escape(e.Name))
+                    .Select(e => schemas.EscapeSymbol(e.Name))
                     .ToList();
                 Schema = EnumSchema.Create(
                     schemas.SplitQualifiedName(Description.Name, ns),
                     symbols, ns, new[] { dt }, defaultSymbol: symbols[0]);
                 // TODO: Build doc from fields descriptions
             }
+        }
+
+        /// <summary>
+        /// Helper to escape field names and symbols
+        /// based on the options set
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private string EscapeSymbol(string name)
+        {
+            if (_options.EscapeSymbols)
+            {
+                return AvroUtils.Escape(name);
+            }
+            return name;
         }
 
         /// <summary>
@@ -494,6 +512,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         private readonly Dictionary<string, TypedDescription> _types = new();
+        private readonly SchemaGenerationOptions _options;
         private readonly IServiceMessageContext _context;
         private readonly bool _omitFieldName;
         private readonly bool _fieldsAreDataValues;

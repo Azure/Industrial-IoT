@@ -610,7 +610,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BrowsePath?.Count > 0 ||
                 ResolvedName == null ||
                 Flags.HasFlag(PublishedNodeExpansion.Expand) ||
-                NeedsQueueNameResolving
+                NeedsQueueNameResolving ||
+                MetaDataNeedsRefresh
                 ;
 
             protected bool MetaDataDisabled
