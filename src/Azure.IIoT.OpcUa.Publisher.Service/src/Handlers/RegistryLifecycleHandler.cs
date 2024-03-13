@@ -14,10 +14,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Buffers;
 
     /// <summary>
     /// Gateway event handler.

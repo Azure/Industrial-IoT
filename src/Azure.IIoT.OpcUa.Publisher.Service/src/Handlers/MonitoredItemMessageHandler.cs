@@ -12,11 +12,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Buffers;
 
     /// <summary>
     /// Publisher message handling

@@ -14,10 +14,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Serializers.Json;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Buffers;
 
     public sealed class NetworkMessage : IEvent
     {

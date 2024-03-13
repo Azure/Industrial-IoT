@@ -5,6 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
@@ -15,10 +19,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Linq;
     using System.Text;
     using System.Xml;
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Opc.Ua;
-    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Encodes objects in a stream using Avro encoding.

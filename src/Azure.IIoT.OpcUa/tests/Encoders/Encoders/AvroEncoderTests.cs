@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -12,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Linq;
     using System.Text;
     using System.Xml;
-    using Opc.Ua;
     using Xunit;
 
     /// <summary>

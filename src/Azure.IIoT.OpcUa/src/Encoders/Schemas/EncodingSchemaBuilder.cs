@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Avro;
     using Opc.Ua;
-    using System;
     using DataSetFieldFieldMask = Publisher.Models.DataSetFieldContentMask;
+    using System;
 
     /// <summary>
     /// Represents a encoding as per part 6 of the OPC UA specification

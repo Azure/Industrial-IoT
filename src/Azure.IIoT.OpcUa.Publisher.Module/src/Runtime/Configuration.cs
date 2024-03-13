@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Autofac;
+    using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
@@ -34,7 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using Furly.Azure.EventHubs;
 
     /// <summary>
     /// Configuration extensions

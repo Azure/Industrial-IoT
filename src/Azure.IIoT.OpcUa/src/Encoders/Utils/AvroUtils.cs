@@ -6,11 +6,11 @@
 namespace Azure.IIoT.OpcUa.Encoders.Utils
 {
     using Avro;
-    using System.Linq;
     using System;
-    using System.Text.RegularExpressions;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Helper functions for avro

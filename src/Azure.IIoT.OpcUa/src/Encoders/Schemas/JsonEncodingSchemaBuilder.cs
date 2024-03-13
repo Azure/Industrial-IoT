@@ -5,15 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Avro;
-    using Avro.Util;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Avro;
+    using Avro.Util;
     using Opc.Ua;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
