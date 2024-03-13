@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using Xunit;
 
-    public class JsonEncoderDecoderTests
+    public class JsonDataSetTests
     {
         [Fact]
         public void ReadWriteProgramDiagnostic2DataTypeStream()

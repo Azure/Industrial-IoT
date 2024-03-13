@@ -36,7 +36,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         public string? Id { get; }
 
-
         /// <summary>
         /// The actual schema
         /// </summary>
