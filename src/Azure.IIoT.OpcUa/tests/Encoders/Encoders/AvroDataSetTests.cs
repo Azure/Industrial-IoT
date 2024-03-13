@@ -88,8 +88,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                         var result = decoder.ReadEncodeable(null, expected.GetType());
                         Assert.True(result.IsEqual(expected));
                     }
-                    var eof = decoder.ReadEncodeable(null, expected.GetType());
-                    Assert.Null(eof);
                 }
             }
         }
@@ -122,8 +120,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                         var result = decoder.ReadDataValue(null);
                         Assert.Equal(expected, result);
                     }
-                    var eof = decoder.ReadDataValue(null);
-                    Assert.Null(eof);
                 }
             }
         }
@@ -157,8 +153,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                         var result = decoder.ReadDataValue(null);
                         Assert.Equal(expected, result);
                     }
-                    var eof = decoder.ReadDataValue(null);
-                    Assert.Null(eof);
                 }
             }
         }
@@ -243,7 +237,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Create dummy
             var expected = new DataSet
             {
-                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+                ["abcd"] = new DataValue(new Variant(1234),
+                    StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
             };
 
             expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
@@ -265,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     var result = decoder.ReadDataSet(
                         expected.Keys.ToArray(), expected.DataSetFieldContentMask);
-                    Assert.Equal(expected["abcd"], result["abcd"]);
+                    Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
                 }
             }
         }

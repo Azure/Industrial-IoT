@@ -381,8 +381,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 //
                 // Write raw variant
                 //
-                WriteVariantArray(null, dataSet.Values
-                    .Select(v => v?.WrappedValue ?? default).ToList());
+                WriteArray(dataSet.Values
+                    .Select(v => v?.WrappedValue ?? default)
+                    .ToList(),
+                        v => WriteVariant(null, v));
             }
             else
             {
@@ -391,7 +393,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // the field value is a DataValue encoded using the non-reversible OPC UA
                 // JSON Data Encoding or reversible depending on encoder configuration.
                 //
-                WriteDataValueArray(null, dataSet.Values.ToList());
+                WriteArray(dataSet.Values
+                    .ToList(),
+                        v => WriteDataValue(null, v));
             }
         }
 
@@ -1378,25 +1382,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Writes an object array to the stream (converts to Variant first).
-        /// </summary>
-        /// <param name="values"></param>
-        private void WriteObjectArray(IList<object> values)
-        {
-            // Arrays are nullable, otherwise write length
-            if (WriteArrayLength(values))
-            {
-                return;
-            }
-
-            // write contents.
-            for (var ii = 0; ii < values.Count; ii++)
-            {
-                WriteVariant(null, new Variant(values[ii]));
-            }
-        }
-
-        /// <summary>
         /// Write the length of an array. Returns true if the array is empty.
         /// </summary>
         /// <param name="values"></param>
@@ -1437,7 +1422,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // array which consumes 1 byte (length 0 zig zag encoded).
             Matrix? matrix = null;
             var valueToEncode = value.Value;
-            if (value.TypeInfo.ValueRank > 1)
+            if (value.TypeInfo?.ValueRank > 1)
             {
                 matrix = (Matrix?)valueToEncode;
                 valueToEncode = matrix?.Elements;
@@ -1452,7 +1437,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return;
             }
 
-            if (value.TypeInfo.ValueRank < 0)
+            if (value.TypeInfo!.ValueRank < 0)
             {
                 // Write union discriminator for scalar
                 WriteInteger(ToUnionId(value.TypeInfo.BuiltInType));
@@ -1549,73 +1534,73 @@ namespace Azure.IIoT.OpcUa.Encoders
                 switch (value.TypeInfo.BuiltInType)
                 {
                     case BuiltInType.Boolean:
-                        WriteBooleanArray(null, (bool[])valueToEncode);
+                        WriteArray((bool[])valueToEncode, v => WriteBoolean(null, v));
                         break;
                     case BuiltInType.SByte:
-                        WriteSByteArray(null, (sbyte[])valueToEncode);
+                        WriteArray((sbyte[])valueToEncode, v => WriteSByte(null, v));
                         break;
                     case BuiltInType.Byte:
-                        WriteByteArray(null, (byte[])valueToEncode);
+                        WriteArray((byte[])valueToEncode, v => WriteByte(null, v));
                         break;
                     case BuiltInType.Int16:
-                        WriteInt16Array(null, (short[])valueToEncode);
+                        WriteArray((short[])valueToEncode, v => WriteInt16(null, v));
                         break;
                     case BuiltInType.UInt16:
-                        WriteUInt16Array(null, (ushort[])valueToEncode);
+                        WriteArray((ushort[])valueToEncode, v => WriteUInt16(null, v));
                         break;
                     case BuiltInType.Int32:
-                        WriteInt32Array(null, (int[])valueToEncode);
+                        WriteArray((int[])valueToEncode, v => WriteInt32(null, v));
                         break;
                     case BuiltInType.UInt32:
-                        WriteUInt32Array(null, (uint[])valueToEncode);
+                        WriteArray((uint[])valueToEncode, v => WriteUInt32(null, v));
                         break;
                     case BuiltInType.Int64:
-                        WriteInt64Array(null, (long[])valueToEncode);
+                        WriteArray((long[])valueToEncode, v => WriteInt64(null, v));
                         break;
                     case BuiltInType.UInt64:
-                        WriteUInt64Array(null, (ulong[])valueToEncode);
+                        WriteArray((ulong[])valueToEncode, v => WriteUInt64(null, v));
                         break;
                     case BuiltInType.Float:
-                        WriteFloatArray(null, (float[])valueToEncode);
+                        WriteArray((float[])valueToEncode, v => WriteFloat(null, v));
                         break;
                     case BuiltInType.Double:
-                        WriteDoubleArray(null, (double[])valueToEncode);
+                        WriteArray((double[])valueToEncode, v => WriteDouble(null, v));
                         break;
                     case BuiltInType.String:
-                        WriteStringArray(null, (string[])valueToEncode);
+                        WriteArray((string[])valueToEncode, v => WriteString(null, v));
                         break;
                     case BuiltInType.DateTime:
-                        WriteDateTimeArray(null, (DateTime[])valueToEncode);
+                        WriteArray((DateTime[])valueToEncode, v => WriteDateTime(null, v));
                         break;
                     case BuiltInType.Guid:
-                        WriteGuidArray(null, (Uuid[])valueToEncode);
+                        WriteArray((Uuid[])valueToEncode, v => WriteGuid(null, v));
                         break;
                     case BuiltInType.ByteString:
-                        WriteByteStringArray(null, (byte[][])valueToEncode);
+                        WriteArray((byte[][])valueToEncode, v => WriteByteString(null, v));
                         break;
                     case BuiltInType.XmlElement:
-                        WriteXmlElementArray(null, (XmlElement[])valueToEncode);
+                        WriteArray((XmlElement[])valueToEncode, v => WriteXmlElement(null, v));
                         break;
                     case BuiltInType.NodeId:
-                        WriteNodeIdArray(null, (NodeId[])valueToEncode);
+                        WriteArray((NodeId[])valueToEncode, v => WriteNodeId(null, v));
                         break;
                     case BuiltInType.ExpandedNodeId:
-                        WriteExpandedNodeIdArray(null, (ExpandedNodeId[])valueToEncode);
+                        WriteArray((ExpandedNodeId[])valueToEncode, v => WriteExpandedNodeId(null, v));
                         break;
                     case BuiltInType.StatusCode:
-                        WriteStatusCodeArray(null, (StatusCode[])valueToEncode);
+                        WriteArray((StatusCode[])valueToEncode, v => WriteStatusCode(null, v));
                         break;
                     case BuiltInType.QualifiedName:
-                        WriteQualifiedNameArray(null, (QualifiedName[])valueToEncode);
+                        WriteArray((QualifiedName[])valueToEncode, v => WriteQualifiedName(null, v));
                         break;
                     case BuiltInType.LocalizedText:
-                        WriteLocalizedTextArray(null, (LocalizedText[])valueToEncode);
+                        WriteArray((LocalizedText[])valueToEncode, v => WriteLocalizedText(null, v));
                         break;
                     case BuiltInType.ExtensionObject:
-                        WriteExtensionObjectArray(null, (ExtensionObject[])valueToEncode);
+                        WriteArray((ExtensionObject[])valueToEncode, v => WriteExtensionObject(null, v));
                         break;
                     case BuiltInType.DataValue:
-                        WriteDataValueArray(null, (DataValue[])valueToEncode);
+                        WriteArray((DataValue[])valueToEncode, v => WriteDataValue(null, v));
                         break;
                     case BuiltInType.Enumeration:
                         // Check whether the value to encode is int array.
@@ -1635,17 +1620,17 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 ints[ii] = (int)(object)enums[ii];
                             }
                         }
-                        WriteInt32Array(null, ints);
+                        WriteArray(ints, v => WriteInt32(null, v));
                         break;
                     case BuiltInType.Variant:
                         if (valueToEncode is Variant[] variants)
                         {
-                            WriteVariantArray(null, variants);
+                            WriteArray(variants, v => WriteVariant(null, v));
                             break;
                         }
                         if (valueToEncode is object[] objects)
                         {
-                            WriteObjectArray(objects);
+                            WriteArray(objects, v => WriteVariant(null, new Variant(v)));
                             break;
                         }
                         throw ServiceResultException.Create(
@@ -1653,7 +1638,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                             "Unexpected type encountered while encoding a Matrix: {0}",
                             valueToEncode.GetType());
                     case BuiltInType.DiagnosticInfo:
-                        WriteDiagnosticInfoArray(null, (DiagnosticInfo[])valueToEncode);
+                        WriteArray((DiagnosticInfo[])valueToEncode,
+                            v => WriteDiagnosticInfo(null, v));
                         break;
                     default:
                         throw ServiceResultException.Create(
