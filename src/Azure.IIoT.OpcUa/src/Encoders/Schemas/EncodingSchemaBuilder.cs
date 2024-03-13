@@ -40,9 +40,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="nullable"></param>
+        /// <param name="array"></param>
         /// <returns></returns>
         public abstract Schema GetSchemaForBuiltInType(
-            BuiltInType builtInType, bool nullable = false);
+            BuiltInType builtInType, bool nullable = false,
+            bool array = false);
 
         /// <summary>
         /// Get a schema for a data value field with the specified
@@ -64,16 +66,5 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public abstract Schema GetExtensionObjectSchema(string name,
             string ns, string dataTypeId, Schema bodyType);
-
-        /// <summary>
-        /// Get variant field
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="ns"></param>
-        /// <param name="dataTypeId"></param>
-        /// <param name="bodyType"></param>
-        /// <returns></returns>
-        public abstract Schema GetVariantField(string name, string ns,
-            string dataTypeId, Schema bodyType);
     }
 }

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Avro;
+    using Avro.Util;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
@@ -52,8 +53,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "LocalizedText", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.String), "AdditionalInfo", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "InnerStatusCode", 5),
-                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo),
-                            "InnerDiagnosticInfo", 6)
+                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo, true), "InnerDiagnosticInfo", 6)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
@@ -76,28 +76,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 var types = GetPossibleTypes(false)
                     .Concat(GetPossibleTypes(true))
-                    .Distinct()
                     .ToList();
                 var bodyType = AvroUtils.CreateUnion(types);
-                IEnumerable<Schema> GetPossibleTypes(bool array)
-                {
-                    if (array) // TODO: Fix
-                    {
-                        yield break;
-                    }
-                    for (var i = 0; i <= 29; i++)
-                    {
-                        if (i == (int)BuiltInType.Variant ||
-                            i == (int)BuiltInType.ExtensionObject ||
-                            i == (int)BuiltInType.DiagnosticInfo ||
-                            i == (int)BuiltInType.DataValue)
-                        {
-                            continue; // TODO: Array of variant is allowed
-                        }
-                        var schema = GetSchemaForBuiltInType((BuiltInType)i);
-                        yield return array ? ArraySchema.Create(schema) : schema;
-                    }
-                }
                 return RecordSchema.Create(nameof(BuiltInType.Variant),
                     new List<Field>
                     {
@@ -107,6 +87,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             "Dimensions", 2)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
+
+                IEnumerable<Schema> GetPossibleTypes(bool array)
+                {
+                    for (var i = 0; i <= 29; i++)
+                    {
+                        if ((i == (int)BuiltInType.Variant && !array) ||
+                            (i == (int)BuiltInType.Null && array))
+                        {
+                            continue; // TODO: Array of variant is allowed
+                        }
+                        yield return GetSchemaForBuiltInType((BuiltInType)i,
+                            false, array);
+                    }
+                }
             }
         }
 
@@ -415,24 +409,40 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="nullable"></param>
+        /// <param name="array"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            bool nullable = false)
+            bool nullable = false, bool array = false)
         {
             if (!_builtIn.TryGetValue(builtInType, out var schema))
             {
+                // Before we create the schema add a place
+                // holder here to break any recursion.
+
+                _builtIn.Add(builtInType, PlaceHolder(builtInType));
+
                 schema = Get((int)builtInType);
-                _builtIn.Add(builtInType, schema);
+                _builtIn[builtInType] = schema;
             }
-            if (nullable && IsNullable((int)builtInType))
+
+            // All array members are nullable
+            if ((nullable || array) && IsNullableType((int)builtInType))
             {
-                return schema.AsNullable();
+                schema = schema.AsNullable();
+            }
+            if (array)
+            {
+                schema = ArraySchema.Create(schema);
+                if (nullable)
+                {
+                    schema = schema.AsNullable();
+                }
             }
             return schema;
 
             // These are types that are nullable in the json encoding
-            static bool IsNullable(int id)
+            static bool IsNullableType(int id)
             {
                 return id == 8 || id == 9 || id == 12 ||
                     (id >= 15 && id <= 28);
@@ -529,30 +539,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 });
         }
 
-        /// <summary>a
-        /// Get a type in variant encoding form
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="ns"></param>
-        /// <param name="dataTypeId"></param>
-        /// <param name="bodyType"></param>
-        /// <returns></returns>
-        public override Schema GetVariantField(string name, string ns, string dataTypeId,
-            Schema bodyType)
-        {
-            var variantSchema = RecordSchema.Create(name + nameof(BuiltInType.Variant),
-                new List<Field>
-                {
-                    new (GetSchemaForBuiltInType(BuiltInType.UInt16), "Type", 0),
-                    new (bodyType, "Body", 1),
-                    new (ArraySchema.Create(
-                        GetSchemaForBuiltInType(BuiltInType.Int32)).AsNullable(), "Dimensions", 2)
-                }, ns);
-            var variant = AvroUtils.CreateUnion(AvroUtils.Null, variantSchema, bodyType);
-            return new DerivedSchema(variantSchema.Tag, new SchemaName(AvroUtils.Escape(name),
-                ns, null, null), new[] { dataTypeId });
-        }
-
         /// <summary>
         /// Get data typeid
         /// </summary>
@@ -601,6 +587,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return DerivedSchema.Create(name, baseType, AvroUtils.NamespaceZeroName,
                 new[] { GetDataTypeId((BuiltInType)builtInType) });
 #endif
+        }
+
+        /// <summary>
+        /// Create a place holder
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static PlaceHolderSchema PlaceHolder(BuiltInType builtInType)
+        {
+            return PlaceHolderSchema.Create(builtInType.ToString(),
+                AvroUtils.NamespaceZeroName);
         }
 
         private readonly Dictionary<BuiltInType, Schema> _builtIn = new();

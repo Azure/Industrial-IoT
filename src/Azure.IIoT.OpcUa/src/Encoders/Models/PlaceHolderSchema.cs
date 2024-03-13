@@ -12,10 +12,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Derived schema
     /// </summary>
-    internal class DerivedSchema : NamedSchema
+    internal class PlaceHolderSchema : NamedSchema
     {
         /// <inheritdoc/>
-        public DerivedSchema(Type type, SchemaName name,
+        private PlaceHolderSchema(Type type, SchemaName name,
             IList<string>? aliases = null, PropertyMap? props = null,
             SchemaNames? names = null, string? doc = null)
             : base(type, name, GetSchemaNames(aliases, name),
@@ -27,15 +27,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Create derived schema
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="baseSchema"></param>
         /// <param name="ns"></param>
-        /// <param name="aliases"></param>
         /// <returns></returns>
-        public static DerivedSchema Create(string name,
-            Schema baseSchema, string ns, string[] aliases)
+        public static PlaceHolderSchema Create(string name,
+            string ns)
         {
-            return new DerivedSchema(baseSchema.Tag,
-                new SchemaName(name, ns, null, null), aliases);
+            return new PlaceHolderSchema(Type.Record,
+                new SchemaName(name, ns, null, null));
         }
 
         internal static IList<SchemaName>? GetSchemaNames(

@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             var array = valueRank > 1;
 
-            schema ??= GetBuiltInDataTypeSchema(dataType, nullable && !array, out name);
+            schema ??= GetBuiltInDataTypeSchema(dataType, nullable, array, out name);
             if (schema != null)
             {
                 if (array)
@@ -276,13 +276,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             throw new ArgumentException($"No Schema found for {dataType}");
 
-            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable, out string? name)
+            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable, bool array,
+                out string? name)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
                     name = ((BuiltInType)id).ToString();
-                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, nullable);
+                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, nullable, array);
                 }
                 name = null;
                 return null;
