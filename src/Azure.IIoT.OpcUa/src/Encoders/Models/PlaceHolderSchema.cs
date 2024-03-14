@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Derived schema
     /// </summary>
-    internal class PlaceHolderSchema : NamedSchema
+    internal sealed class PlaceHolderSchema : NamedSchema
     {
         /// <inheritdoc/>
         private PlaceHolderSchema(Type type, SchemaName name,

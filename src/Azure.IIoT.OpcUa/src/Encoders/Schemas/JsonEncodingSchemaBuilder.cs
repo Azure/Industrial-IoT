@@ -493,14 +493,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             };
         }
 
-        /// <summary>
-        /// Get object as extension object encoding
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="ns"></param>
-        /// <param name="dataTypeId"></param>
-        /// <param name="bodyType"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override Schema GetExtensionObjectSchema(string name, string ns,
             string dataTypeId, Schema bodyType)
         {
@@ -519,12 +512,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }, ns, new[] { dataTypeId });
         }
 
-        /// <summary>
-        /// Get data value schema
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="valueSchema"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override Schema GetDataValueFieldSchema(string name, Schema valueSchema)
         {
             return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
@@ -537,6 +525,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                     new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
                 });
+        }
+
+        /// <inheritdoc/>
+        public override Schema GetVariantFieldSchema(string name, Schema valueSchema)
+        {
+            return valueSchema;
         }
 
         /// <summary>

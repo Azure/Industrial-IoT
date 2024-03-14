@@ -1559,8 +1559,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 //
-                // Adjust the host name from the host name that was use to
-                // successfully connect the discovery client
+                // Adjust the host name and port to the host name and port
+                // that was use to successfully connect the discovery client
                 //
                 var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
                 if (selectedUrl != null && discoveryUrl != null &&
@@ -1568,7 +1568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     selected.EndpointUrl = new UriBuilder(selectedUrl)
                     {
-                        Host = discoveryUrl.DnsSafeHost
+                        Host = discoveryUrl.DnsSafeHost,
+                        Port = discoveryUrl.Port
                     }.ToString();
                 }
 

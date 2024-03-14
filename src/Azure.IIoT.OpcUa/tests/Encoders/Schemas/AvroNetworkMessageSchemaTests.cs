@@ -14,17 +14,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Threading.Tasks;
     using Xunit;
 
-    public class JsonNetworkMessageSchemaTests
+    public class AvroNetworkMessageSchemaTests
     {
         [Theory]
         [InlineData("./Resources/SingleDataWriter.json")]
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
-        public async Task CreateJsonNetworkMessageSchemas(string writerGroupFile)
+        public async Task CreateAvroNetworkMessageSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -39,10 +39,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
-        public async Task CreateJsonNetworkMessageWithNs(string writerGroupFile)
+        public async Task CreateAvroNetworkMessageWithNs(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new JsonNetworkMessageSchema(group, new SchemaGenerationOptions
+            var schema = new AvroNetworkMessageSchema(group, new SchemaGenerationOptions
             {
                 Namespace = "http://www.microsoft.com"
             });
@@ -52,24 +52,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
 
-            var schema2 = Avro.Schema.Parse(json);
-            //Assert.Equal(schema.Schema, schema2);
-        }
-
-        [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        public async Task CreateLegacyJsonNetworkMessage(string writerGroupFile)
-        {
-            var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new JsonNetworkMessageSchema(group);
-
-            var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
             var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
@@ -91,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -119,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -146,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -181,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -216,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);

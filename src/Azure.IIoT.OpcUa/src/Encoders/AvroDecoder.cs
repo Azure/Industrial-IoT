@@ -5,7 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -29,13 +32,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
 
+        /// <inheritdoc/>
+        public Schema Schema { get; }
+
         /// <summary>
         /// Create avro decoder
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public AvroDecoder(Stream stream, IServiceMessageContext context)
+        /// <param name="schema"></param>
+        public AvroDecoder(Stream stream, IServiceMessageContext context,
+            Schema? schema = null)
         {
+            Schema = schema ?? AvroUtils.Null;
             _stream = stream;
             Context = context;
             _nestingLevel = 0;
@@ -529,19 +538,23 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DataSet? ReadDataSet(string[] fieldNames, uint fieldContentMask)
+        public DataSet ReadDataSet()
         {
-            var dataSet = new DataSet(fieldContentMask);
-            if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
-                fieldContentMask == 0)
+            var fieldNames = Array.Empty<string>();
+            var avroFieldContent = ReadUInt32(null);
+            var dataSet = avroFieldContent == 0 ?
+                new DataSet() :
+                new DataSet((uint)DataSetFieldContentMask.RawData);
+
+            if (avroFieldContent == 1) // Raw mode
             {
                 //
-                // Read raw variant
+                // Read array of raw variant
                 //
                 var variants = ReadVariantArray(null);
                 if (variants == null && fieldNames.Length == 0)
                 {
-                    return null;
+                    return dataSet;
                 }
                 if (variants == null || variants.Count != fieldNames.Length)
                 {
@@ -553,7 +566,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     dataSet.Add(fieldNames[index], new DataValue(variants[index]));
                 }
             }
-            else
+            else if (avroFieldContent == 0)
             {
                 //
                 // Read data values
@@ -561,7 +574,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var dataValues = ReadDataValueArray(null);
                 if (dataValues == null && fieldNames.Length == 0)
                 {
-                    return null;
+                    return dataSet;
                 }
                 if (dataValues == null || dataValues.Count != fieldNames.Length)
                 {
@@ -675,7 +688,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="reader"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal T[] ReadCollection<T>(Func<T> reader)
+        public T[] ReadCollection<T>(Func<T> reader)
         {
             var length = ReadInteger();
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
@@ -697,7 +710,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal Array? ReadNullableCollection(Func<object> reader,
+        public Array? ReadNullableCollection(Func<object> reader,
             System.Type type)
         {
             return ReadNullable(() => ReadCollection(reader, type));
@@ -1789,6 +1802,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 StatusCodes.BadEndOfStream, "Stream reached its end");
         }
 
+        private readonly AvroSchemaTraversal? _traversal;
         private readonly Stream _stream;
         private ushort[]? _namespaceMappings;
         private ushort[]? _serverMappings;

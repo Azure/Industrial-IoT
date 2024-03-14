@@ -200,7 +200,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer))
             {
-                using (var memoryStream = Memory.GetStream(buffer.ToArray()))
+                using (var memoryStream = buffer.IsSingleSegment ?
+                    Memory.GetStream(buffer.FirstSpan) :
+                    Memory.GetStream(buffer.ToArray()))
                 {
                     var compression = UseGzipCompression ?
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;

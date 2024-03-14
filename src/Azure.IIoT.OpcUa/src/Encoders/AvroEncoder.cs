@@ -5,8 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -35,18 +38,25 @@ namespace Azure.IIoT.OpcUa.Encoders
         public bool UseReversibleEncoding => true;
 
         /// <summary>
+        /// Schema to use
+        /// </summary>
+        public Schema Schema { get; }
+
+        /// <summary>
         /// Creates an encoder that writes to the stream.
         /// </summary>
         /// <param name="stream">The stream to which the
         /// encoder writes.</param>
         /// <param name="context">The message context to
         /// use for the encoding.</param>
+        /// <param name="schema"></param>
         /// <param name="leaveOpen">If the stream should
         /// be left open on dispose.</param>
         public AvroEncoder(Stream stream, IServiceMessageContext context,
-            bool leaveOpen = true)
+            Schema? schema = null, bool leaveOpen = true)
         {
             _stream = stream;
+            Schema = schema ?? AvroUtils.Null;
             Context = context;
             _leaveOpen = leaveOpen;
             _nestingLevel = 0;
@@ -160,9 +170,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public void WriteUInt64(string? fieldName, ulong value)
         {
-            Span<byte> bytes = stackalloc byte[sizeof(ulong)];
-            BinaryPrimitives.WriteUInt64LittleEndian(bytes, value);
-            WriteFixed(bytes);
+            // ulong is a union of long and fixed (> long.max)
+            if (value < long.MaxValue)
+            {
+                WriteInteger(0);
+                WriteInteger((long)value);
+            }
+            else
+            {
+                WriteInteger(1);
+                Span<byte> bytes = stackalloc byte[sizeof(ulong)];
+                BinaryPrimitives.WriteUInt64LittleEndian(bytes, value);
+                WriteFixed(bytes);
+            }
         }
 
         /// <summary>
@@ -367,19 +387,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteDataSet(DataSet? dataSet)
+        public void WriteDataSet(DataSet dataSet)
         {
-            if (WriteNullable(dataSet))
-            {
-                return;
-            }
-
             var fieldContentMask = dataSet.DataSetFieldContentMask;
             if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
                 fieldContentMask == 0)
             {
+                WriteInteger(1);
+
                 //
-                // Write raw variant
+                // Write array of raw variant
                 //
                 WriteArray(dataSet.Values
                     .Select(v => v?.WrappedValue ?? default)
@@ -388,10 +405,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
+                WriteInteger(0);
+
                 //
-                // If the DataSetFieldContentMask results in a DataValue representation,
-                // the field value is a DataValue encoded using the non-reversible OPC UA
-                // JSON Data Encoding or reversible depending on encoder configuration.
+                // Write array of data values
                 //
                 WriteArray(dataSet.Values
                     .ToList(),
@@ -1719,7 +1736,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        private void WriteNullableArray<T>(IList<T>? values, Action<T> writer)
+        public void WriteNullableArray<T>(IList<T>? values, Action<T> writer)
         {
             // All arrays can be nullable
             if (WriteNullable(values))
@@ -1731,7 +1748,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        private void WriteArray<T>(IList<T> values, Action<T> writer)
+        public void WriteArray<T>(IList<T> values, Action<T> writer)
         {
             // Arrays are nullable, otherwise write length
             if (WriteArrayLength(values))
@@ -1786,6 +1803,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             _nestingLevel++;
         }
 
+        private readonly AvroSchemaTraversal? _traversal;
         private readonly Stream _stream;
         private readonly bool _leaveOpen;
         private ushort[]? _namespaceMappings;

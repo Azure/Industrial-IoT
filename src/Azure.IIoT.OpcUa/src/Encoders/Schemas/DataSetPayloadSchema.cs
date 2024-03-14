@@ -164,6 +164,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             schema = Encoding.GetDataValueFieldSchema(
                                 typeName ?? fieldName, schema).AsNullable();
                         }
+                        else
+                        {
+                            schema = Encoding.GetVariantFieldSchema(
+                                typeName ?? fieldName, schema).AsNullable();
+                        }
                         fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
                 }

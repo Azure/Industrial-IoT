@@ -31,7 +31,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return new JsonEncodingSchemaBuilder(fieldMask ?? 0u);
             }
-
+            if (encoding?.HasFlag(MessageEncoding.Avro) != false)
+            {
+                return new AvroEncodingSchemaBuilder();
+            }
             throw new NotSupportedException("Encoding not yet supported");
         }
 
@@ -47,13 +50,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             bool array = false);
 
         /// <summary>
-        /// Get a schema for a data value field with the specified
-        /// value schema
+        /// Get a schema for a data value field with the
+        /// specified value schema. The union field in the
+        /// value variant will then be made a reserved
+        /// identifer
         /// </summary>
         /// <param name="name"></param>
         /// <param name="valueSchema"></param>
         /// <returns></returns>
         public abstract Schema GetDataValueFieldSchema(
+            string name, Schema valueSchema);
+
+        /// <summary>
+        /// Get a schema for a variant field with the
+        /// specified schema. The union field in the
+        /// variant will then be made a reserved identifer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="valueSchema"></param>
+        /// <returns></returns>
+        public abstract Schema GetVariantFieldSchema(
             string name, Schema valueSchema);
 
         /// <summary>

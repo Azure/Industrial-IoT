@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 12 => PrimitiveType(id, "String", "string"),        // Nullable
 
-                13 => LogicalType(id, "DateTime", "long", "time_millis"),
+                13 => LogicalType(id, "DateTime", "long", "timestamp-millis"),
                 14 => LogicalType(id, "Guid", "string", "uuid"),
 
                 15 => PrimitiveType(id, "ByteString", "bytes"),     // Nullable
@@ -322,14 +322,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             };
         }
 
-        /// <summary>
-        /// Get object as extension object encoding
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="ns"></param>
-        /// <param name="dataTypeId"></param>
-        /// <param name="bodyType"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override Schema GetExtensionObjectSchema(string name, string ns,
             string dataTypeId, Schema bodyType)
         {
@@ -367,23 +360,30 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }, ns, new[] { dataTypeId });
         }
 
-        /// <summary>
-        /// Get data value schema
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="valueSchema"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override Schema GetDataValueFieldSchema(string name, Schema valueSchema)
         {
             return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
                 new List<Field>
                 {
-                    new (valueSchema, "Value", 0),
+                    new (GetVariantFieldSchema(name, valueSchema), "Value", 0),
                     new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
                     new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
                     new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
                     new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                     new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                });
+        }
+
+        /// <inheritdoc/>
+        public override Schema GetVariantFieldSchema(string name, Schema valueSchema)
+        {
+            return RecordSchema.Create(name + nameof(BuiltInType.Variant),
+                new List<Field>
+                {
+                    new (GetSchemaForBuiltInType(BuiltInType.Int32, false, true), "Dimensions", 0),
+                    new (GetSchemaForBuiltInType(BuiltInType.Byte), "Reserved1", 1), // Stub out union id
+                    new (valueSchema, "Body", 2)
                 });
         }
 

@@ -191,8 +191,48 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var result = decoder.ReadDataSet(
-                            expected.Keys.ToArray(), expected.DataSetFieldContentMask);
+                        var result = decoder.ReadDataSet();
+                        Assert.Equal(expected, result);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteDataSetArrayRawTest()
+        {
+            // Create dummy
+            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
+                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
+                ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
+                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["..."] = new DataValue(new Variant("imbricated"))
+            };
+
+            const int count = 10000;
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroEncoder(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
+                        encoder.WriteDataSet(expected);
+                    }
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new AvroDecoder(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
+                        var result = decoder.ReadDataSet();
                         Assert.Equal(expected, result);
                     }
                 }
@@ -205,10 +245,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Create dummy
             var expected = new DataSet
             {
-                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+                ["abcd"] = new DataValue(new Variant(1234),
+                    StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
             };
-
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -224,8 +263,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, context))
                 {
-                    var result = decoder.ReadDataSet(
-                        expected.Keys.ToArray(), expected.DataSetFieldContentMask);
+                    var result = decoder.ReadDataSet();
                     Assert.Equal(expected["abcd"], result["abcd"]);
                 }
             }
@@ -235,14 +273,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleValueRawTest()
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
             {
                 ["abcd"] = new DataValue(new Variant(1234),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
             };
-
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMask.RawData;
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -250,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var encoder = new AvroEncoder(stream, context))
                 {
-                    encoder.WriteDataSet( expected);
+                    encoder.WriteDataSet(expected);
                 }
                 buffer = stream.ToArray();
             }
@@ -258,8 +293,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, context))
                 {
-                    var result = decoder.ReadDataSet(
-                        expected.Keys.ToArray(), expected.DataSetFieldContentMask);
+                    var result = decoder.ReadDataSet();
                     Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
                 }
             }
