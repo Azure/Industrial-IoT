@@ -1587,7 +1587,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     selected.EndpointUrl = new UriBuilder(selectedUrl)
                     {
-                        Host = discoveryUrl.DnsSafeHost
+                        Host = discoveryUrl.DnsSafeHost,
+                        Port = discoveryUrl.Port
                     }.ToString();
                 }
 
