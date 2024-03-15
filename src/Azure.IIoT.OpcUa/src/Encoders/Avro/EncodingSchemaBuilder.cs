@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Avro
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using DataSetFieldFieldMask = Publisher.Models.DataSetFieldContentMask;
     using System;
@@ -29,11 +29,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             if (encoding?.HasFlag(MessageEncoding.Json) != false)
             {
-                return new JsonEncodingSchemaBuilder(fieldMask ?? 0u);
+                return new JsonBuiltInTypeSchemas(fieldMask ?? 0u);
             }
             if (encoding?.HasFlag(MessageEncoding.Avro) != false)
             {
-                return new AvroEncodingSchemaBuilder();
+                return new AvroBuiltInTypeSchemas();
             }
             throw new NotSupportedException("Encoding not yet supported");
         }

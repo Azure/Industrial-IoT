@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Avro
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
@@ -396,17 +396,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 else
                 {
                     // Derive from base type or built in type
-                    var baseSchema = Description.BaseDataType != null ?
+                    Schema = Description.BaseDataType != null ?
                         schemas.LookupSchema(Description.BaseDataType, false, out _) :
                         schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
                             (Description.BuiltInType ?? (byte?)BuiltInType.String));
-#if !DERIVE_PRIMITIVE
-                    Schema = baseSchema;
-#else
-                    Schema = DerivedSchema.Create(
-                        schemas.SplitQualifiedName(Description.Name, ns),
-                        baseSchema, ns, new[] { dt });
-#endif
                 }
             }
         }
@@ -446,7 +439,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 Schema = RecordSchema.Create(
                     schemas.SplitQualifiedName(Description.Name, ns1),
-                    fields, ns1, new[] { dt });
+                    fields, ns1, new[] { dt },
+                    customProperties: AvroUtils.GetProperties(Description.DataTypeId));
             }
         }
 
@@ -478,7 +472,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     .ToList();
                 Schema = EnumSchema.Create(
                     schemas.SplitQualifiedName(Description.Name, ns),
-                    symbols, ns, new[] { dt }, defaultSymbol: symbols[0]);
+                    symbols, ns, new[] { dt },
+                    customProperties: AvroUtils.GetProperties(Description.DataTypeId),
+                    defaultSymbol: symbols[0]);
                 // TODO: Build doc from fields descriptions
             }
         }

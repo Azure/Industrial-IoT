@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Avro;
+    using global::Avro;
     using System.Collections.Generic;
     using System.Linq;
 

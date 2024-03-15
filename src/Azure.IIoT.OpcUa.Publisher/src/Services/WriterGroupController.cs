@@ -77,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="listeners"></param>
         /// <param name="client"></param>
         /// <param name="metrics"></param>
+        /// <param name="stateProvider"></param>
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
-        /// <param name="stateProvider"></param>
         public WriterGroupController(string writerGroupId,
             IEnumerable<IWriterGroupNotifications> listeners,
             IOpcUaClientManager<ConnectionModel> client, IMetricsContext metrics,

@@ -3,12 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Avro
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Avro;
-    using Avro.Util;
+    using global::Avro;
+    using global::Avro.Util;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
     /// </summary>
-    internal class AvroEncodingSchemaBuilder : EncodingSchemaBuilder
+    internal class AvroBuiltInTypeSchemas : EncodingSchemaBuilder
     {
         private static Schema EnumerationSchema
         {
@@ -271,8 +271,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             // These are types that are nullable in the avro encoding
             static bool IsNullable(int id)
             {
-                return id == 12 || id == 15 || id == 16 ||
-                    (id >= 20 && id <= 25);
+                return
+                    id == 12 ||
+                    id == 15 ||
+                    id == 16 ||
+                    (id >= 20 && id <= 23) ||
+                    id == 25
+                    ;
             }
 
             Schema Get(int id) => id switch
@@ -310,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 21 => LocalizedTextSchema,                          // Nullable
                 22 => ExtensionObjectSchema,                        // Nullable
                 23 => DataValueSchema,                              // Nullable
-                24 => VariantSchema,                                // Nullable
+                24 => VariantSchema,
                 25 => DiagnosticInfoSchema,                         // Nullable
 
                 26 => PrimitiveType(id, "Number", "string"),

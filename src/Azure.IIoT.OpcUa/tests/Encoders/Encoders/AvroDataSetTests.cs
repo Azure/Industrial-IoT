@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -228,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     encoder.WriteDataSet(expected);
                 }
@@ -261,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     var result = decoder.ReadDataSet();
                     Assert.Equal(expected["abcd"], result["abcd"]);
@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroEncoder(stream, context))
+                using (var encoder = new AvroEncoderCore(stream, context))
                 {
                     encoder.WriteDataSet(expected);
                 }
@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroDecoder(stream, context))
+                using (var decoder = new AvroDecoderCore(stream, context))
                 {
                     var result = decoder.ReadDataSet();
                     Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
