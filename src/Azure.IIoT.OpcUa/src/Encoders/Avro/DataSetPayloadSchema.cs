@@ -151,11 +151,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 pos++;
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType, !_omitFieldName,
-                        out var typeName);
+                    var schema = LookupSchema(fieldMetadata.DataType, out var typeName);
                     if (_omitFieldName)
                     {
-                        yield return schema;
+                        yield return schema.AsNullable();
                     }
                     else if (fieldName != null)
                     {
@@ -230,16 +229,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// Return the name of the root schema.
         /// </summary>
         /// <param name="dataType"></param>
-        /// <param name="nullable"></param>
         /// <param name="name"></param>
         /// <param name="valueRank"></param>
         /// <param name="arrayDimensions"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private Schema LookupSchema(string dataType, bool nullable, out string? name,
-            int valueRank = 1, IReadOnlyList<uint>? arrayDimensions = null)
+        private Schema LookupSchema(string dataType, out string? name, 
+            int valueRank = -1, IReadOnlyList<uint>? arrayDimensions = null)
         {
             Schema? schema = null;
+
+            if (arrayDimensions != null)
+            {
+                valueRank = arrayDimensions.Count;
+            }
+
+            var array = valueRank > 0;
 
             name = null;
             if (_types.TryGetValue(dataType, out var description))
@@ -252,43 +257,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 {
                     schema = description.Schema;
                     name = schema.Name;
-                    if (nullable)
+                    if (array)
                     {
-                        schema = schema.AsNullable();
+                        schema = ArraySchema.Create(schema);
                     }
                 }
             }
 
-            if (arrayDimensions != null)
-            {
-                valueRank = arrayDimensions.Count;
-            }
-            var array = valueRank > 1;
+            schema ??= GetBuiltInDataTypeSchema(dataType, array, out name);
+            return schema != null ? schema 
+                : throw new ArgumentException($"No Schema found for {dataType}");
 
-            schema ??= GetBuiltInDataTypeSchema(dataType, nullable, array, out name);
-            if (schema != null)
-            {
-                if (array)
-                {
-                    // TODO: we also have matrices, we should have schemas for all
-                    schema = ArraySchema.Create(schema);
-                    if (nullable)
-                    {
-                        schema = schema.AsNullable();
-                    }
-                }
-                return schema;
-            }
-            throw new ArgumentException($"No Schema found for {dataType}");
-
-            Schema? GetBuiltInDataTypeSchema(string dataType, bool nullable, bool array,
+            Schema? GetBuiltInDataTypeSchema(string dataType, bool array,
                 out string? name)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
                     name = ((BuiltInType)id).ToString();
-                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, nullable, array);
+                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id,
+                        array);
                 }
                 name = null;
                 return null;
@@ -397,7 +385,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 {
                     // Derive from base type or built in type
                     Schema = Description.BaseDataType != null ?
-                        schemas.LookupSchema(Description.BaseDataType, false, out _) :
+                        schemas.LookupSchema(Description.BaseDataType, out _) :
                         schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
                             (Description.BuiltInType ?? (byte?)BuiltInType.String));
                 }
@@ -431,8 +419,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 for (var i = 0; i < Description.Fields.Count; i++)
                 {
                     var field = Description.Fields[i];
-                    var schema = schemas.LookupSchema(field.DataType, true, out _,
+                    var schema = schemas.LookupSchema(field.DataType, out _,
                         field.ValueRank, field.ArrayDimensions);
+                    if (field.IsOptional)
+                    {
+                        schema = schema.AsNullable();
+                    }
                     fields.Add(new Field(schema, schemas.EscapeSymbol(field.Name), i));
                 }
                 var (ns1, dt) = schemas.SplitNodeId(Description.DataTypeId);

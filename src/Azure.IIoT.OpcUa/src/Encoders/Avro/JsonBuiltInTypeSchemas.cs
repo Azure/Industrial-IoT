@@ -8,12 +8,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using global::Avro;
-    using global::Avro.Util;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
@@ -53,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "LocalizedText", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.String), "AdditionalInfo", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "InnerStatusCode", 5),
-                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo, true), "InnerDiagnosticInfo", 6)
+                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo).AsNullable(),
+                            "InnerDiagnosticInfo", 6)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                             continue; // TODO: Array of variant is allowed
                         }
                         yield return GetSchemaForBuiltInType((BuiltInType)i,
-                            false, array);
+                            array);
                     }
                 }
             }
@@ -408,12 +408,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// https://reference.opcfoundation.org/Core/Part6/v104/docs/5.1.2#_Ref131507956
         /// </summary>
         /// <param name="builtInType"></param>
-        /// <param name="nullable"></param>
         /// <param name="array"></param>
+        ///
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            bool nullable = false, bool array = false)
+            bool array = false)
         {
             if (!_builtIn.TryGetValue(builtInType, out var schema))
             {
@@ -425,28 +425,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 schema = Get((int)builtInType);
                 _builtIn[builtInType] = schema;
             }
-
-            // All array members are nullable
-            if ((nullable || array) && IsNullableType((int)builtInType))
-            {
-                schema = schema.AsNullable();
-            }
             if (array)
             {
                 schema = ArraySchema.Create(schema);
-                if (nullable)
-                {
-                    schema = schema.AsNullable();
-                }
             }
             return schema;
-
-            // These are types that are nullable in the json encoding
-            static bool IsNullableType(int id)
-            {
-                return id == 8 || id == 9 || id == 12 ||
-                    (id >= 15 && id <= 28);
-            }
 
             Schema Get(int id) => id switch
             {

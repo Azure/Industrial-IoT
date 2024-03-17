@@ -42,12 +42,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// Get schema for built in type
         /// </summary>
         /// <param name="builtInType"></param>
-        /// <param name="nullable"></param>
         /// <param name="array"></param>
         /// <returns></returns>
         public abstract Schema GetSchemaForBuiltInType(
-            BuiltInType builtInType, bool nullable = false,
-            bool array = false);
+            BuiltInType builtInType, bool array = false);
 
         /// <summary>
         /// Get a schema for a data value field with the

@@ -42,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "LocalizedText", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.String), "AdditionalInfo", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "InnerStatusCode", 5),
-                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo, true), "InnerDiagnosticInfo", 6)
+                        new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo).AsNullable(),
+                            "InnerDiagnosticInfo", 6)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
@@ -60,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     new List<Field>
                     {
                         new (GetSchemaForBuiltInType(
-                            BuiltInType.Int32, false, true), "Dimensions", 0),
+                            BuiltInType.Int32, true), "Dimensions", 0),
                         new (bodyType, "Body", 1)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
@@ -75,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                             continue; // TODO: Array of variant is allowed
                         }
                         yield return GetSchemaForBuiltInType((BuiltInType)i,
-                            false, array);
+                            array);
                     }
                 }
             }
@@ -225,17 +226,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             }
         }
 
-        /// <summary>
-        /// Get built in schema. See
-        /// https://reference.opcfoundation.org/Core/Part6/v104/docs/5.1.2#_Ref131507956
-        /// </summary>
-        /// <param name="builtInType"></param>
-        /// <param name="nullable"></param>
-        /// <param name="array"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <inheritdoc/>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            bool nullable = false, bool array = false)
+            bool array = false)
         {
             if (!_builtIn.TryGetValue((builtInType, array), out var schema))
             {
@@ -249,10 +242,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 {
                     schema = CollectionType((int)builtInType,
                         builtInType.ToString());
-                    if (nullable)
-                    {
-                        schema = schema.AsNullable();
-                    }
                 }
                 else
                 {
@@ -260,25 +249,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 }
                 _builtIn[(builtInType, array)] = schema;
             }
-
-            // All array members are nullable
-            if (nullable && IsNullable((int)builtInType))
-            {
-                schema = schema.AsNullable();
-            }
             return schema;
-
-            // These are types that are nullable in the avro encoding
-            static bool IsNullable(int id)
-            {
-                return
-                    id == 12 ||
-                    id == 15 ||
-                    id == 16 ||
-                    (id >= 20 && id <= 23) ||
-                    id == 25
-                    ;
-            }
 
             Schema Get(int id) => id switch
             {
@@ -299,24 +270,24 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 10 => PrimitiveType(id, "Float", "float"),
                 11 => PrimitiveType(id, "Double", "double"),
 
-                12 => PrimitiveType(id, "String", "string"),        // Nullable
+                12 => PrimitiveType(id, "String", "string"),
 
                 13 => LogicalType(id, "DateTime", "long", "timestamp-millis"),
                 14 => LogicalType(id, "Guid", "string", "uuid"),
 
-                15 => PrimitiveType(id, "ByteString", "bytes"),     // Nullable
-                16 => PrimitiveType(id, "XmlElement", "string"),    // Nullable
+                15 => PrimitiveType(id, "ByteString", "bytes"),
+                16 => PrimitiveType(id, "XmlElement", "string"),
 
                 17 => NodeIdSchema,
                 18 => ExpandedNodeIdSchema,
                 19 => StatusCodeSchema,
 
-                20 => QualifiedNameSchema,                          // Nullable
-                21 => LocalizedTextSchema,                          // Nullable
-                22 => ExtensionObjectSchema,                        // Nullable
-                23 => DataValueSchema,                              // Nullable
+                20 => QualifiedNameSchema,
+                21 => LocalizedTextSchema,
+                22 => ExtensionObjectSchema,
+                23 => DataValueSchema,
                 24 => VariantSchema,
-                25 => DiagnosticInfoSchema,                         // Nullable
+                25 => DiagnosticInfoSchema,
 
                 26 => PrimitiveType(id, "Number", "string"),
                 27 => PrimitiveType(id, "Integer", "string"),
@@ -386,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             return RecordSchema.Create(name + nameof(BuiltInType.Variant),
                 new List<Field>
                 {
-                    new (GetSchemaForBuiltInType(BuiltInType.Int32, false, true), "Dimensions", 0),
+                    new (GetSchemaForBuiltInType(BuiltInType.Int32, true), "Dimensions", 0),
                     new (GetSchemaForBuiltInType(BuiltInType.Byte), "Reserved1", 1), // Stub out union id
                     new (valueSchema, "Body", 2)
                 });
@@ -448,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <returns></returns>
         internal Schema CollectionType(int builtInType, string name)
         {
-            var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType, true);
+            var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType);
             return RecordSchema.Create(name + "Collection", new List<Field>
             {
                 new (ArraySchema.Create(baseType), kSingleFieldName, 0)
@@ -468,8 +439,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             {
                 name += "Collection";
             }
-            return PlaceHolderSchema.Create(name,
-                AvroUtils.NamespaceZeroName);
+            return PlaceHolderSchema.Create(name, AvroUtils.NamespaceZeroName);
         }
 
         private const string kSingleFieldName = "Value";

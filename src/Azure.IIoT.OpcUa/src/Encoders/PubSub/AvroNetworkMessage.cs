@@ -128,8 +128,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                     try
                     {
-                        using var decoder = new AvroDecoderCore((Stream?)compression ?? memoryStream,
-                            context);
+                        using var decoder = new AvroDeserializer((Stream?)compression ?? memoryStream,
+                            Schema, context);
                         while (memoryStream.Position != memoryStream.Length)
                         {
                             if (!TryReadNetworkMessage(decoder))
@@ -177,8 +177,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         CompressionLevel.Optimal, leaveOpen: true) : null;
                     try
                     {
-                        using var encoder = new AvroEncoderCore(
-                            (Stream?)compression ?? memoryStream, context);
+                        using var encoder = new AvroSerializer(
+                            (Stream?)compression ?? memoryStream, Schema, context);
                         WriteMessages(encoder, messages);
                     }
                     finally
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteMessages(AvroEncoderCore encoder, Span<AvroDataSetMessage> messages)
+        private void WriteMessages(AvroSerializer encoder, Span<AvroDataSetMessage> messages)
         {
             var messagesToInclude = messages.ToArray();
             WriteNetworkMessage(encoder, messagesToInclude);
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <returns></returns>
-        private bool TryReadNetworkMessage(AvroDecoderCore decoder)
+        private bool TryReadNetworkMessage(AvroDeserializer decoder)
         {
             // Reset
             DataSetWriterGroup = null;
@@ -244,7 +244,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return false;
             }
 
-            var messages = decoder.ReadCollection<BaseDataSetMessage?>(() =>
+            var messages = decoder.ReadCollection<BaseDataSetMessage?>(
+                nameof(Messages), () =>
             {
                 var message = new AvroDataSetMessage(decoder.Schema);
                 if (!message.TryDecode(decoder, HasDataSetMessageHeader))
@@ -273,14 +274,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteNetworkMessage(AvroEncoderCore encoder, AvroDataSetMessage[] messages)
+        private void WriteNetworkMessage(AvroSerializer encoder,
+            AvroDataSetMessage[] messages)
         {
             var publisherId = PublisherId;
             if (HasNetworkMessageHeader)
             {
                 WriteNetworkMessageHeader(encoder);
             }
-            encoder.WriteArray(messages, v => v.Encode(encoder, HasDataSetMessageHeader));
+            encoder.WriteArray(nameof(Messages), messages,
+                v => v.Encode(encoder, HasDataSetMessageHeader));
         }
 
         /// <summary>
@@ -288,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <returns></returns>
-        private bool TryReadNetworkMessageHeader(AvroDecoderCore decoder)
+        private bool TryReadNetworkMessageHeader(AvroDeserializer decoder)
         {
             _messageId = decoder.ReadString(nameof(MessageId));
             var messageType = decoder.ReadString(nameof(MessageType));
@@ -308,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write network message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteNetworkMessageHeader(AvroEncoderCore encoder)
+        private void WriteNetworkMessageHeader(AvroSerializer encoder)
         {
             encoder.WriteString(nameof(MessageId), MessageId());
             encoder.WriteString(nameof(MessageType), MessageType);

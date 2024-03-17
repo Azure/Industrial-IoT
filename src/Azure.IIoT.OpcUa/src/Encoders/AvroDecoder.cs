@@ -5,322 +5,376 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using global::Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Avro;
     using Opc.Ua;
     using System;
+    using System.Buffers;
+    using System.Buffers.Binary;
+    using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
-    using System.Xml;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Opc.Ua.Extensions;
+    using System.Xml;
 
     /// <summary>
-    /// Decodes objects from underlying decoder using a provided
-    /// Avro schema. Validation errors throw.
+    /// Decodes objects from a Avro Binary encoded stream.
     /// </summary>
-    public sealed class AvroDecoder : Opc.Ua.IDecoder
+    internal sealed class AvroDecoder : IDecoder
     {
         /// <inheritdoc/>
-        public EncodingType EncodingType => _decoder.EncodingType;
+        public EncodingType EncodingType => (EncodingType)3;
 
         /// <inheritdoc/>
-        public IServiceMessageContext Context => _decoder.Context;
-
-        /// <inheritdoc/>
-        public Schema Schema { get; }
+        public IServiceMessageContext Context { get; }
 
         /// <summary>
-        /// Create avro schema decoder
+        /// Outer decoders need a way to get encodeables to
+        /// use them.
         /// </summary>
-        /// <param name="decoder"></param>
-        /// <param name="schema"></param>
-        internal AvroDecoder(AvroDecoderCore decoder, Schema schema)
-        {
-            Schema = schema;
-            _schema = new AvroSchemaTraversal(schema);
-            _decoder = decoder;
-
-            // Point encodeable decoder to us
-            _decoder.EncodeableDecoder = this;
-        }
+        public IDecoder EncodeableDecoder { get; set; }
 
         /// <summary>
-        /// Creates a decoder that decodes the data from the
-        /// passed in stream.
+        /// Create avro decoder
         /// </summary>
-        /// <param name="stream">The stream to which the
-        /// encoder writes.</param>
-        /// <param name="schema"></param>
-        /// <param name="context">The message context to
-        /// use for the encoding.</param>
-        public AvroDecoder(Stream stream, Schema schema,
-            IServiceMessageContext context) :
-            this(new AvroDecoderCore(stream, context), schema)
+        /// <param name="stream"></param>
+        /// <param name="context"></param>
+        public AvroDecoder(Stream stream, IServiceMessageContext context)
         {
+            EncodeableDecoder = this;
+            _reader = new AvroReader(stream)
+            {
+                MaxBytesLength = context.MaxByteStringLength,
+                MaxStringLength = context.MaxStringLength
+            };
+            Context = context;
+            _nestingLevel = 0;
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            _decoder.Dispose();
+            _reader.Dispose();
         }
 
         /// <inheritdoc/>
         public void Close()
         {
-            _decoder.Close();
+            // Dispose
         }
 
         /// <inheritdoc/>
         public void PushNamespace(string namespaceUri)
         {
-            _decoder.PushNamespace(namespaceUri);
+            // not used in the binary encoding.
         }
 
         /// <inheritdoc/>
         public void PopNamespace()
         {
-            _decoder.PopNamespace();
+            // not used in the binary encoding.
         }
 
         /// <inheritdoc/>
         public void SetMappingTables(NamespaceTable? namespaceUris,
             StringTable? serverUris)
         {
-            _decoder.SetMappingTables(namespaceUris, serverUris);
+            _namespaceMappings = null;
+
+            if (namespaceUris != null && Context.NamespaceUris != null)
+            {
+                _namespaceMappings = Context.NamespaceUris.CreateMapping(
+                    namespaceUris, false);
+            }
+
+            _serverMappings = null;
+
+            if (serverUris != null && Context.ServerUris != null)
+            {
+                _serverMappings = Context.ServerUris.CreateMapping(
+                    serverUris, false);
+            }
         }
 
         /// <inheritdoc/>
         public bool ReadBoolean(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Boolean,
-                _decoder.ReadBoolean);
+            return _reader.ReadBoolean();
         }
 
         /// <inheritdoc/>
         public sbyte ReadSByte(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.SByte,
-                _decoder.ReadSByte);
+            return (sbyte)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public byte ReadByte(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Byte,
-                _decoder.ReadByte);
+            return (byte)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public short ReadInt16(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int16,
-                _decoder.ReadInt16);
+            return (short)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public ushort ReadUInt16(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt16,
-                _decoder.ReadUInt16);
+            return (ushort)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public int ReadInt32(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int32,
-                _decoder.ReadInt32);
+            return (int)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public uint ReadUInt32(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt32,
-                _decoder.ReadUInt32);
+            return (uint)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public long ReadInt64(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int64,
-                _decoder.ReadUInt32);
-        }
-
-        /// <inheritdoc/>
-        public float ReadFloat(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.Float,
-                _decoder.ReadFloat);
-        }
-
-        /// <inheritdoc/>
-        public double ReadDouble(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.Double,
-                _decoder.ReadDouble);
-        }
-
-        /// <inheritdoc/>
-        public Uuid ReadGuid(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.Guid,
-                _decoder.ReadGuid);
-        }
-
-        /// <inheritdoc/>
-        public string? ReadString(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.String,
-                _decoder.ReadString, true);
+            return _reader.ReadInteger();
         }
 
         /// <inheritdoc/>
         public ulong ReadUInt64(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt64,
-                _decoder.ReadUInt64);
+            // ulong is a union of long and fixed (> long.max)
+            var index = _reader.ReadInteger();
+            if (index == 0)
+            {
+                return (ulong)_reader.ReadInteger();
+            }
+
+            Span<byte> bytes = stackalloc byte[sizeof(ulong)];
+            _reader.ReadFixed(bytes);
+            return BinaryPrimitives.ReadUInt64LittleEndian(bytes);
+        }
+
+        /// <inheritdoc/>
+        public float ReadFloat(string? fieldName)
+        {
+            return _reader.ReadFloat();
+        }
+
+        /// <inheritdoc/>
+        public double ReadDouble(string? fieldName)
+        {
+            return _reader.ReadDouble();
+        }
+
+        /// <inheritdoc/>
+        public Uuid ReadGuid(string? fieldName)
+        {
+            Span<byte> bytes = stackalloc byte[16];
+            _reader.ReadFixed(bytes);
+            return new Uuid(new Guid(bytes));
+        }
+
+        /// <inheritdoc/>
+        public string? ReadString(string? fieldName)
+        {
+            return _reader.ReadString();
         }
 
         /// <inheritdoc/>
         public DateTime ReadDateTime(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.DateTime,
-                _decoder.ReadDateTime);
+            var ticks = _reader.ReadInteger();
+
+            if (ticks >= (long.MaxValue - Opc.Ua.Utils.TimeBase.Ticks))
+            {
+                return DateTime.MaxValue;
+            }
+
+            ticks += Opc.Ua.Utils.TimeBase.Ticks;
+
+            if (ticks >= DateTime.MaxValue.Ticks)
+            {
+                return DateTime.MaxValue;
+            }
+
+            if (ticks <= Opc.Ua.Utils.TimeBase.Ticks)
+            {
+                return DateTime.MinValue;
+            }
+
+            return new DateTime(ticks, DateTimeKind.Utc);
         }
 
         /// <inheritdoc/>
-        public byte[]? ReadByteString(string? fieldName)
+        public byte[] ReadByteString(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.ByteString,
-                _decoder.ReadByteString, true);
+            return _reader.ReadBytes();
         }
 
         /// <inheritdoc/>
-        public XmlElement? ReadXmlElement(string? fieldName)
+        public XmlElement ReadXmlElement(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.XmlElement,
-                _decoder.ReadXmlElement, true);
-        }
-
-        /// <inheritdoc/>
-        public StatusCode ReadStatusCode(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.StatusCode,
-                _decoder.ReadStatusCode);
+            var xmlString = _reader.ReadString();
+            var document = new XmlDocument();
+            try
+            {
+                using (var stream = new StringReader(xmlString))
+                using (var reader = XmlReader.Create(stream,
+                    Opc.Ua.Utils.DefaultXmlReaderSettings()))
+                {
+                    document.Load(reader);
+                }
+            }
+            catch (XmlException ex)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    ex, "Xml element invalid");
+            }
+            return document.DocumentElement!;
         }
 
         /// <inheritdoc/>
         public NodeId ReadNodeId(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.NodeId,
-                _decoder.ReadNodeId);
+            //
+            // Node id is a record, with namespace and union of
+            // the id. The IdType value represents the union
+            // discriminator.
+            //
+            // Node id is not nullable, i=0 is a null node id.
+            //
+
+            var namespaceIndex = (ushort)_reader.ReadInteger();
+
+            if (_namespaceMappings != null && _namespaceMappings.Length > namespaceIndex)
+            {
+                namespaceIndex = _namespaceMappings[namespaceIndex];
+            }
+
+            switch ((IdType)_reader.ReadInteger()) // Union field id
+            {
+                case IdType.Numeric:
+                    return new NodeId(ReadUInt32(null), namespaceIndex);
+                case IdType.String:
+                    return new NodeId(_reader.ReadString(), namespaceIndex);
+                case IdType.Guid:
+                    return new NodeId(ReadGuid(null), namespaceIndex);
+                case IdType.Opaque:
+                    return new NodeId(_reader.ReadBytes(), namespaceIndex);
+                default:
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Unknown node id type");
+            }
         }
 
         /// <inheritdoc/>
         public ExpandedNodeId ReadExpandedNodeId(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.NodeId,
-                _decoder.ReadExpandedNodeId);
+            //
+            // Expanded Node id is a record extending NodeId.
+            // Namespace, and union of via IdType which represents
+            // the union discriminator.  After that we write the
+            // namespace uri and then server index.
+            //
+            // ExpandedNode id is not nullable, i=0 is a null node id.
+            //
+            var innerNodeId = ReadNodeId(null);
+
+            var nsUri = _reader.ReadString();
+            var serverIndex = ReadUInt32(null);
+
+            if (NodeId.IsNull(innerNodeId))
+            {
+                return ExpandedNodeId.Null;
+            }
+
+            if (_serverMappings != null && _serverMappings.Length > serverIndex)
+            {
+                serverIndex = _serverMappings[serverIndex];
+            }
+            return new ExpandedNodeId(innerNodeId, nsUri, serverIndex);
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfo? ReadDiagnosticInfo(string? fieldName)
+        public StatusCode ReadStatusCode(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               _decoder.ReadDiagnosticInfo, true);
+            return (StatusCode)ReadUInt32(fieldName);
+        }
+
+        /// <inheritdoc/>
+        public DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
+        {
+            return ReadDiagnosticInfo(0);
         }
 
         /// <inheritdoc/>
         public QualifiedName? ReadQualifiedName(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.QualifiedName,
-               _decoder.ReadQualifiedName, true);
+            var namespaceIndex = ReadUInt16(null);
+            var name = _reader.ReadString();
+            if (_namespaceMappings != null && _namespaceMappings.Length > namespaceIndex)
+            {
+                namespaceIndex = _namespaceMappings[namespaceIndex];
+            }
+            return new QualifiedName(name, namespaceIndex);
         }
 
         /// <inheritdoc/>
-        public LocalizedText? ReadLocalizedText(string? fieldName)
+        public LocalizedText ReadLocalizedText(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               _decoder.ReadLocalizedText, true);
-        }
-
-        /// <inheritdoc/>
-        public DataValue? ReadDataValue(string? fieldName)
-        {
-            // TODO: we will have data value schemas where the 
-            // Value is not a variant schema. Those are named
-            // something like <TypeName>DataValue
-            // Get current field schema
-
-            var currentSchema = GetFieldSchema(fieldName);
-
-            // The schema should be a data value schema
-
-            return _decoder.ReadDataValue(fieldName);
+            return new LocalizedText(_reader.ReadString(), _reader.ReadString());
         }
 
         /// <inheritdoc/>
         public Variant ReadVariant(string? fieldName)
         {
-            var schema = GetFieldSchema(fieldName);
-
-            if (schema.IsBuiltInType(out var builtInType) &&
-                builtInType == BuiltInType.Variant)
+            CheckAndIncrementNestingLevel();
+            try
             {
-                // If it is a original variant - we pass through or it is a built in type
-                return _decoder.ReadVariant(fieldName);
-            }
+                //
+                // Variant always starts with dimensions of the variant.
+                // In case of a scalar value this will be an empty
+                // array which consumes 1 byte (length 0 zig zag encoded).
+                //
+                var dimensions = ReadCollection(() => ReadInt32(null));
 
-            // We allow casting any allowed type to variant
-            var isNullable = CheckNullableAndMoveToSchema(ref schema);
-
-            // Record? Matrix are arrays with array dimension field
-            var isMatrix = false;
-            if (schema is RecordSchema r)
-            {
-                if (r.Count == 2 &&
-                    r.Fields[0].Schema is ArraySchema adims &&
-                    adims.ItemSchema.Name == nameof(BuiltInType.UInt32))
-                {
-                    isMatrix = true;
-                    schema = r.Fields[1].Schema;
-                }
-                else
+                // Read Union discriminator for the variant
+                var fieldId = ReadInt32(null);
+                if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
                 {
                     throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "A matrix must have 2 fields with a dimension and a body");
+                        "Cannot decode unknown union field.", fieldId);
                 }
+                var (isArray, builtInType) = _variantUnionFieldIds[fieldId];
+                return ReadVariantValue(builtInType, isArray, false, dimensions);
             }
-
-            var isArray = false;
-            if (schema is ArraySchema a)
+            finally
             {
-                // Array
-                schema = a.ItemSchema;
-                isArray = true;
+                _nestingLevel--;
             }
-
-            if (!schema.IsBuiltInType(out builtInType))
-            {
-                // Not a built in type
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema is not a built in schema");
-            }
-
-            return _decoder.ReadVariantValue(builtInType, isNullable, isArray, isMatrix);
         }
 
         /// <inheritdoc/>
-        public DataSet ReadDataSet(string? fieldName)
+        public DataValue? ReadDataValue(string? fieldName)
         {
-            var schema = GetFieldSchema(fieldName);
+            return new DataValue
+            {
+                WrappedValue = ReadVariant(null),
+                StatusCode = ReadStatusCode(null),
+                SourceTimestamp = ReadDateTime(null),
+                SourcePicoseconds = ReadUInt16(null),
+                ServerTimestamp = ReadDateTime(null),
+                ServerPicoseconds = ReadUInt16(null)
+            };
+        }
 
-            // Run through the fields and read either using variant or data values
-
+        /// <inheritdoc/>
+        public DataSet ReadDataSet()
+        {
             var fieldNames = Array.Empty<string>();
             var avroFieldContent = ReadUInt32(null);
             var dataSet = avroFieldContent == 0 ?
@@ -371,466 +425,1140 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string? fieldName, System.Type systemType,
-            ExpandedNodeId? encodeableTypeId = null)
+        public ExtensionObject? ReadExtensionObject(string? fieldName)
         {
-            var schema = GetFieldSchema(fieldName);
+            // Extension objects are records of fields
+            // 1. Encoding Node Id
+            // 2. A union of
+            //   1. null
+            //   2. A encodeable type
+            //   3. A record with
+            //     1. ExtensionObjectEncoding type enum
+            //     2. bytes that are either binary opc ua or xml/json utf 8
 
-            var isNullable = CheckNullableAndMoveToSchema(ref schema);
-            if (schema is not RecordSchema r)
+            // 1.
+            var typeId = ReadNodeId(null);
+
+            // convert to absolute node id.
+            var expandedTypeId = NodeId.ToExpandedNodeId(typeId, Context.NamespaceUris);
+            if (!NodeId.IsNull(typeId) && NodeId.IsNull(expandedTypeId))
             {
-                // Should be a record
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Encodeable schema {0} should be a record.", schema);
+                ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Cannot de-serialized extension objects if the NamespaceUri " +
+                    "is not in the NamespaceTable: Type = {0}", typeId);
             }
-            return _decoder.ReadEncodeable(fieldName, systemType, encodeableTypeId);
+
+            // 2. Read union field.
+            var unionId = _reader.ReadInteger();
+            switch (unionId)
+            {
+                case 0:
+                    // 2.1
+                    return new ExtensionObject(expandedTypeId);
+                case 1:
+                    // 2.2
+                    var systemType = Context.Factory.GetSystemType(expandedTypeId);
+                    if (systemType != null)
+                    {
+                        var encodeable = Activator.CreateInstance(systemType) as IEncodeable;
+                        // set type identifier for custom complex data types before decode.
+                        if (encodeable is IComplexTypeInstance complexTypeInstance)
+                        {
+                            complexTypeInstance.TypeId = expandedTypeId;
+                        }
+
+                        // decode body.
+                        if (encodeable != null)
+                        {
+                            encodeable.Decode(EncodeableDecoder);
+                            return new ExtensionObject(expandedTypeId, encodeable);
+                        }
+                    }
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Unknown extension object encodeable Type = {0}", expandedTypeId);
+                case 2:
+                    // 2.3
+                    switch ((ExtensionObjectEncoding)_reader.ReadInteger())
+                    {
+                        case ExtensionObjectEncoding.Binary:
+                            return new ExtensionObject(expandedTypeId, _reader.ReadBytes());
+                        case ExtensionObjectEncoding.Xml:
+                            return new ExtensionObject(expandedTypeId, ReadXmlElement(null));
+                        case ExtensionObjectEncoding.Json:
+                            return new ExtensionObject(expandedTypeId, _reader.ReadString());
+                        default:
+                            throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                                "Unknown encoding type in extension object");
+                    }
+                default:
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Unknown extension object union field: Type = {0}", unionId);
+            }
         }
 
         /// <inheritdoc/>
-        public ExtensionObject? ReadExtensionObject(string? fieldName)
+        public IEncodeable ReadEncodeable(string? fieldName, System.Type systemType,
+            ExpandedNodeId? encodeableTypeId = null)
         {
-            //
-            // Extension objects can be either fully encoded extension objects or
-            // can be just the encodeable that is decoded from the schema that is
-            // the current field schema.
-            //
-            var schema = GetFieldSchema(fieldName);
-
-            // Could be nullable
-
-            // TODO: This could be a union of many structure types, get which
-            // using the union index and so on!!
-
-            var isNullable = CheckNullableAndMoveToSchema(ref schema);
-
-            if (schema.IsBuiltInType(out var builtInType))
+            if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
             {
-                if (builtInType == BuiltInType.ExtensionObject)
+                throw ServiceResultException.Create(
+                    StatusCodes.BadDecodingError,
+                    Opc.Ua.Utils.Format("Cannot decode type '{0}'.", systemType.FullName));
+            }
+
+            if (encodeableTypeId != null)
+            {
+                // set type identifier for custom complex data types before decode.
+
+                if (encodeable is IComplexTypeInstance complexTypeInstance)
                 {
-                    // The schema is a extension object schema so we decode as such
-                    return _decoder.ReadExtensionObject(fieldName);
+                    complexTypeInstance.TypeId = encodeableTypeId;
                 }
-
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema {0} is a built in type but not an extension object.",
-                    schema);
-
-                // Decode as variant?
             }
 
-            // Get the type id directly from teh schema and load the system type 
-            var typeId = schema.GetDataTypeId(Context);
-            if (NodeId.IsNull(typeId))
+            CheckAndIncrementNestingLevel();
+
+            try
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema {0} does not reference a valid type id to look up system type.",
-                    schema);
+                encodeable.Decode(EncodeableDecoder);
+            }
+            finally
+            {
+                _nestingLevel--;
             }
 
-            var systemType = Context.Factory.GetSystemType(typeId);
-            if (systemType == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "A system type for schema {0} could not befound using the typeid {1}.",
-                    schema, typeId);
-            }
-            return new ExtensionObject(typeId,
-                ReadEncodeable(fieldName, systemType, typeId));
+            return encodeable;
         }
 
         /// <inheritdoc/>
         public Enum ReadEnumerated(string? fieldName, System.Type enumType)
         {
-            // TODO:
-            var schema = GetFieldSchema(fieldName);
-
-            return _decoder.ReadEnumerated(fieldName, enumType);
+            return (Enum)Enum.ToObject(enumType, _reader.ReadInteger());
         }
 
         /// <inheritdoc/>
         public BooleanCollection? ReadBooleanArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadBooleanArray, false, true);
+            return ReadCollection(() => ReadBoolean(null));
         }
 
         /// <inheritdoc/>
         public SByteCollection? ReadSByteArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.SByte,
-               _decoder.ReadSByteArray, false, true);
+            return ReadCollection(() => ReadSByte(null));
         }
 
         /// <inheritdoc/>
         public ByteCollection? ReadByteArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Byte,
-               _decoder.ReadByteArray, false, true);
+            // TODO: Read fixed bytes instead
+            return ReadCollection(() => ReadByte(null));
         }
 
         /// <inheritdoc/>
         public Int16Collection? ReadInt16Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int16,
-               _decoder.ReadInt16Array, false, true);
+            return ReadCollection(() => ReadInt16(null));
         }
 
         /// <inheritdoc/>
         public UInt16Collection? ReadUInt16Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt16,
-              _decoder.ReadUInt16Array, false, true);
+            return ReadCollection(() => ReadUInt16(null));
         }
 
         /// <inheritdoc/>
         public Int32Collection? ReadInt32Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int32,
-               _decoder.ReadInt32Array, false, true);
+            return ReadCollection(() => ReadInt32(null));
         }
 
         /// <inheritdoc/>
         public UInt32Collection? ReadUInt32Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt32,
-               _decoder.ReadUInt32Array, false, true);
+            return ReadCollection(() => ReadUInt32(null));
         }
 
         /// <inheritdoc/>
         public Int64Collection? ReadInt64Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Int64,
-               _decoder.ReadInt64Array, false, true);
+            return ReadCollection(() => ReadInt64(null));
         }
 
         /// <inheritdoc/>
         public UInt64Collection? ReadUInt64Array(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.UInt64,
-               _decoder.ReadUInt64Array, false, true);
+            return ReadCollection(() => ReadUInt64(null));
         }
 
         /// <inheritdoc/>
         public FloatCollection? ReadFloatArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Float,
-               _decoder.ReadFloatArray, false, true);
+            return ReadCollection(() => ReadFloat(null));
         }
 
         /// <inheritdoc/>
         public DoubleCollection? ReadDoubleArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Double,
-               _decoder.ReadDoubleArray, false, true);
+            return ReadCollection(() => ReadDouble(null));
         }
 
         /// <inheritdoc/>
         public StringCollection? ReadStringArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.String,
-               _decoder.ReadStringArray, true, true);
+            return ReadCollection(() => ReadString(null));
         }
 
         /// <inheritdoc/>
         public DateTimeCollection? ReadDateTimeArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.DateTime,
-               _decoder.ReadDateTimeArray, false, true);
+            return ReadCollection(() => ReadDateTime(null));
         }
 
         /// <inheritdoc/>
         public UuidCollection? ReadGuidArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Guid,
-               _decoder.ReadGuidArray, false, true);
+            return ReadCollection(() => ReadGuid(null));
         }
 
         /// <inheritdoc/>
         public ByteStringCollection? ReadByteStringArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.ByteString,
-               _decoder.ReadByteStringArray, true, true);
+            return ReadCollection(() => ReadByteString(null));
         }
 
         /// <inheritdoc/>
         public XmlElementCollection? ReadXmlElementArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.XmlElement,
-               _decoder.ReadXmlElementArray, true, true);
+            return ReadCollection(() => ReadXmlElement(null));
         }
 
         /// <inheritdoc/>
         public NodeIdCollection? ReadNodeIdArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.NodeId,
-               _decoder.ReadNodeIdArray, false, true);
+            return ReadCollection(() => ReadNodeId(null));
         }
 
         /// <inheritdoc/>
         public ExpandedNodeIdCollection? ReadExpandedNodeIdArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.ExpandedNodeId,
-               _decoder.ReadExpandedNodeIdArray, false, true);
+            return ReadCollection(() => ReadExpandedNodeId(null));
         }
 
         /// <inheritdoc/>
         public StatusCodeCollection? ReadStatusCodeArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.StatusCode,
-               _decoder.ReadStatusCodeArray, false, true);
+            return ReadCollection(() => ReadStatusCode(null));
         }
 
         /// <inheritdoc/>
         public DiagnosticInfoCollection? ReadDiagnosticInfoArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               _decoder.ReadDiagnosticInfoArray, true, true);
+            return ReadCollection(() => ReadDiagnosticInfo(null));
         }
 
         /// <inheritdoc/>
         public QualifiedNameCollection? ReadQualifiedNameArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadQualifiedNameArray, true, true);
+            return ReadCollection(() => ReadQualifiedName(null));
         }
 
         /// <inheritdoc/>
         public LocalizedTextCollection? ReadLocalizedTextArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               _decoder.ReadLocalizedTextArray, true, true);
+            return ReadCollection(() => ReadLocalizedText(null));
         }
 
         /// <inheritdoc/>
         public VariantCollection? ReadVariantArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Variant,
-               _decoder.ReadVariantArray, false, true);
+            return ReadCollection(() => ReadVariant(null));
         }
 
         /// <inheritdoc/>
         public DataValueCollection? ReadDataValueArray(string? fieldName)
         {
-            // TODO
-            return ValidatedRead(fieldName, BuiltInType.DataValue,
-               _decoder.ReadDataValueArray, true, true);
+            return ReadCollection(() => ReadDataValue(null));
         }
 
         /// <inheritdoc/>
         public ExtensionObjectCollection? ReadExtensionObjectArray(string? fieldName)
         {
-            // TODO
-            return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
-               _decoder.ReadExtensionObjectArray, true, true);
+            return ReadCollection(() => ReadExtensionObject(null));
         }
 
         /// <inheritdoc/>
         public Array? ReadEncodeableArray(string? fieldName, System.Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            // TODO
-            var schema = GetFieldSchema(fieldName);
-            return _decoder.ReadEncodeableArray(fieldName, systemType,
-                encodeableTypeId);
+            return ReadCollection(() => ReadEncodeable(null,
+                systemType, encodeableTypeId), systemType);
         }
 
         /// <inheritdoc/>
         public Array? ReadEnumeratedArray(string? fieldName, System.Type enumType)
         {
-            // TODO
-            var schema = GetFieldSchema(fieldName);
-            return _decoder.ReadEnumeratedArray(fieldName, enumType);
+            return ReadCollection(() => ReadEnumerated(null,
+                enumType), enumType);
         }
 
         /// <inheritdoc/>
         public Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
-            var schema = GetFieldSchema(fieldName);
-            // TODO
-            return _decoder.ReadArray(fieldName, valueRank, builtInType,
-                systemType, encodeableTypeId);
+            if (valueRank == ValueRanks.OneDimension)
+            {
+                switch (builtInType)
+                {
+                    case BuiltInType.Boolean:
+                        return ReadBooleanArray(fieldName)?.ToArray();
+                    case BuiltInType.SByte:
+                        return ReadSByteArray(fieldName)?.ToArray();
+                    case BuiltInType.Byte:
+                        return ReadByteArray(fieldName)?.ToArray();
+                    case BuiltInType.Int16:
+                        return ReadInt16Array(fieldName)?.ToArray();
+                    case BuiltInType.UInt16:
+                        return ReadUInt16Array(fieldName)?.ToArray();
+                    case BuiltInType.Enumeration:
+                        if (systemType != null && encodeableTypeId != null)
+                        {
+                            DetermineIEncodeableSystemType(ref systemType, encodeableTypeId);
+                            if (systemType?.IsEnum == true)
+                            {
+                                return ReadEnumeratedArray(fieldName, systemType);
+                            }
+                        }
+                        // if system type is not known or not an enum, fall back to Int32
+                        goto case BuiltInType.Int32;
+                    case BuiltInType.Int32:
+                        return ReadInt32Array(fieldName)?.ToArray();
+                    case BuiltInType.UInt32:
+                        return ReadUInt32Array(fieldName)?.ToArray();
+                    case BuiltInType.Int64:
+                        return ReadInt64Array(fieldName)?.ToArray();
+                    case BuiltInType.UInt64:
+                        return ReadUInt64Array(fieldName)?.ToArray();
+                    case BuiltInType.Float:
+                        return ReadFloatArray(fieldName)?.ToArray();
+                    case BuiltInType.Double:
+                        return ReadDoubleArray(fieldName)?.ToArray();
+                    case BuiltInType.String:
+                        return ReadStringArray(fieldName)?.ToArray();
+                    case BuiltInType.DateTime:
+                        return ReadDateTimeArray(fieldName)?.ToArray();
+                    case BuiltInType.Guid:
+                        return ReadGuidArray(fieldName)?.ToArray();
+                    case BuiltInType.ByteString:
+                        return ReadByteStringArray(fieldName)?.ToArray();
+                    case BuiltInType.XmlElement:
+                        return ReadXmlElementArray(fieldName)?.ToArray();
+                    case BuiltInType.NodeId:
+                        return ReadNodeIdArray(fieldName)?.ToArray();
+                    case BuiltInType.ExpandedNodeId:
+                        return ReadExpandedNodeIdArray(fieldName)?.ToArray();
+                    case BuiltInType.StatusCode:
+                        return ReadStatusCodeArray(fieldName)?.ToArray();
+                    case BuiltInType.QualifiedName:
+                        return ReadQualifiedNameArray(fieldName)?.ToArray();
+                    case BuiltInType.LocalizedText:
+                        return ReadLocalizedTextArray(fieldName)?.ToArray();
+                    case BuiltInType.DataValue:
+                        return ReadDataValueArray(fieldName)?.ToArray();
+                    case BuiltInType.Variant:
+                        if (systemType != null && encodeableTypeId != null
+                            && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
+                        {
+                            return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
+                        }
+                        return ReadVariantArray(fieldName)?.ToArray();
+                    case BuiltInType.ExtensionObject:
+                        return ReadExtensionObjectArray(fieldName)?.ToArray();
+                    case BuiltInType.DiagnosticInfo:
+                        return ReadDiagnosticInfoArray(fieldName)?.ToArray();
+                    default:
+                        if (systemType != null && encodeableTypeId != null
+                            && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
+                        {
+                            return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
+                        }
+                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                            "Cannot decode unknown type in Array object with BuiltInType: {0}.",
+                            builtInType);
+                }
+            }
+
+            // two or more dimensions
+            if (valueRank >= ValueRanks.TwoDimensions)
+            {
+                // read dimensions array
+                var dimensions = ReadInt32Array(null);
+                if (dimensions?.Count > 0)
+                {
+                    //int length;
+                    (_, var length) = Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
+
+                    // read the elements
+                    Array? elements = null;
+                    if (systemType != null && encodeableTypeId != null
+                        && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
+                    {
+                        elements = Array.CreateInstance(systemType, length);
+                        for (var i = 0; i < length; i++)
+                        {
+                            var element = ReadEncodeable(null, systemType, encodeableTypeId);
+                            elements.SetValue(Convert.ChangeType(element, systemType,
+                                CultureInfo.InvariantCulture), i);
+                        }
+                    }
+
+                    elements ??= ReadArrayElements(length, builtInType);
+
+                    if (elements == null)
+                    {
+                        throw ServiceResultException.Create(
+                            StatusCodes.BadDecodingError,
+                            "Unexpected null Array for multidimensional matrix with {0} elements.", length);
+                    }
+
+                    if (builtInType == BuiltInType.Enumeration && systemType?.IsEnum == true)
+                    {
+                        var newElements = Array.CreateInstance(systemType, elements.Length);
+                        var ii = 0;
+                        foreach (var element in elements)
+                        {
+                            newElements.SetValue(Enum.ToObject(systemType, element), ii++);
+                        }
+                        elements = newElements;
+                    }
+
+                    return new Matrix(elements, builtInType, dimensions.ToArray()).ToArray();
+                }
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Unexpected null or empty Dimensions for multidimensional matrix.");
+            }
+            return null;
         }
 
         /// <summary>
-        /// Perform the read of the built in type after validating the
-        /// operation against the schema of the field if there is a field.
+        /// Reads a DiagnosticInfo from the stream.
+        /// Limits the InnerDiagnosticInfo nesting level.
+        /// </summary>
+        /// <param name="depth"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        internal DiagnosticInfo ReadDiagnosticInfo(int depth)
+        {
+            if (depth >= DiagnosticInfo.MaxInnerDepth)
+            {
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "Maximum nesting level of InnerDiagnosticInfo was exceeded");
+            }
+            CheckAndIncrementNestingLevel();
+            try
+            {
+                return new DiagnosticInfo
+                {
+                    SymbolicId = ReadInt32(null),
+                    NamespaceUri = ReadInt32(null),
+                    Locale = ReadInt32(null),
+                    LocalizedText = ReadInt32(null),
+                    AdditionalInfo = _reader.ReadString(),
+                    InnerStatusCode = ReadStatusCode(null),
+                    InnerDiagnosticInfo = ReadNullableDiagnosticInfo(depth + 1)
+                };
+            }
+            finally
+            {
+                _nestingLevel--;
+            }
+        }
+
+        /// <summary>
+        /// Reads a DiagnosticInfo from the stream.
+        /// Limits the InnerDiagnosticInfo nesting level.
+        /// </summary>
+        /// <param name="depth"></param>
+        private DiagnosticInfo? ReadNullableDiagnosticInfo(int depth)
+        {
+            var unionId = _reader.ReadInteger();
+            if (unionId == 0)
+            {
+                return default;
+            }
+            Debug.Assert(unionId == 1);
+            return ReadDiagnosticInfo(depth);
+        }
+
+        /// <summary>
+        /// Read array using specified element reader
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="fieldName"></param>
-        /// <param name="builtInType"></param>
-        /// <param name="value"></param>
-        /// <param name="nullable"></param>
-        /// <param name="array"></param>
+        /// <param name="reader"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private T ValidatedRead<T>(string? fieldName, BuiltInType builtInType,
-            Func<string?, T> value, bool nullable = false, bool array = false)
+        public T[] ReadCollection<T>(Func<T> reader)
         {
-            // Get current field schema
-            var currentSchema = GetFieldSchema(fieldName);
-
-            // Get expected schema
-            var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType,
-                nullable, array);
-
-            // Should be the same
-            if (!currentSchema.Equals(expectedType))
+            var length = _reader.ReadInteger();
+            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to decode. Schema {0} is not as expected {1}",
-                    currentSchema, expectedType);
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "MaxArrayLength {0} < {1}",
+                    Context.MaxArrayLength,
+                    length);
             }
-            return value(fieldName);
+            return Enumerable.Range(0, (int)length)
+                .Select(_ => reader())
+                .ToArray();
         }
 
         /// <summary>
-        /// Is nullable, then move to the concrete schema
+        /// Read array using specified element reader
         /// </summary>
-        /// <param name="schema"></param>
+        /// <param name="reader"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private static bool CheckNullableAndMoveToSchema(ref Schema schema)
+        internal Array ReadCollection(Func<object> reader, System.Type type)
         {
-            var isNullable = false;
-            if (schema is UnionSchema u)
+            var length = _reader.ReadInteger();
+            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
             {
-                if (u.Count == 2 && u.Schemas[0].Tag == Schema.Type.Null)
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "MaxArrayLength {0} < {1}",
+                    Context.MaxArrayLength,
+                    length);
+            }
+            var array = Array.CreateInstance(type, length);
+            for (var i = 0; i < length; i++)
+            {
+                array.SetValue(reader(), i);
+            }
+            return array;
+        }
+
+        /// <summary>
+        /// Get the system type from the type factory if not specified by caller.
+        /// </summary>
+        /// <param name="systemType">The reference to the system type, or null</param>
+        /// <param name="encodeableTypeId">The encodeable type id of the system type.</param>
+        /// <returns>If the system type is assignable to <see cref="IEncodeable"/> </returns>
+        private bool DetermineIEncodeableSystemType(ref Type systemType,
+            ExpandedNodeId encodeableTypeId)
+        {
+            if (encodeableTypeId != null && systemType == null)
+            {
+                systemType = Context.Factory.GetSystemType(encodeableTypeId);
+            }
+            return typeof(IEncodeable).IsAssignableFrom(systemType);
+        }
+
+        /// <summary>
+        /// Reads and returns an array of elements of the specified length and builtInType
+        /// </summary>
+        /// <param name="length"></param>
+        /// <param name="builtInType"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        private Array? ReadArrayElements(int length, BuiltInType builtInType)
+        {
+            Array? array = null;
+            switch (builtInType)
+            {
+                case BuiltInType.Boolean:
+                    {
+                        var values = new bool[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadBoolean(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.SByte:
+                    {
+                        var values = new sbyte[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadSByte(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Byte:
+                    {
+                        var values = new byte[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadByte(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Int16:
+                    {
+                        var values = new short[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadInt16(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.UInt16:
+                    {
+                        var values = new ushort[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadUInt16(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Int32:
+                case BuiltInType.Enumeration:
+                    {
+                        var values = new int[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadInt32(null);
+                        }
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.UInt32:
+                    {
+                        var values = new uint[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadUInt32(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Int64:
+                    {
+                        var values = new long[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadInt64(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.UInt64:
+                    {
+                        var values = new ulong[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadUInt64(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Float:
+                    {
+                        var values = new float[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadFloat(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Double:
+                    {
+                        var values = new double[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadDouble(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.String:
+                    {
+                        var values = new string?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadString(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.DateTime:
+                    {
+                        var values = new DateTime[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadDateTime(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Guid:
+                    {
+                        var values = new Uuid[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadGuid(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.ByteString:
+                    {
+                        var values = new byte[length][];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadByteString(null)!;
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.XmlElement:
+                    {
+                        try
+                        {
+                            var values = new XmlElement?[length];
+
+                            for (var ii = 0; ii < values.Length; ii++)
+                            {
+                                values[ii] = ReadXmlElement(null);
+                            }
+
+                            array = values;
+                        }
+                        catch (Exception ex)
+                        {
+                            Opc.Ua.Utils.LogError(ex, "Error reading array of XmlElement.");
+                        }
+
+                        break;
+                    }
+
+                case BuiltInType.NodeId:
+                    {
+                        var values = new NodeId?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadNodeId(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.ExpandedNodeId:
+                    {
+                        var values = new ExpandedNodeId?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadExpandedNodeId(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.StatusCode:
+                    {
+                        var values = new StatusCode[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadStatusCode(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.QualifiedName:
+                    {
+                        var values = new QualifiedName?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadQualifiedName(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.LocalizedText:
+                    {
+                        var values = new LocalizedText?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadLocalizedText(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.ExtensionObject:
+                    {
+                        var values = new ExtensionObject?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadExtensionObject(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.DataValue:
+                    {
+                        var values = new DataValue?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadDataValue(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.Variant:
+                    {
+                        var values = new Variant[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadVariant(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+
+                case BuiltInType.DiagnosticInfo:
+                    {
+                        var values = new DiagnosticInfo?[length];
+
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
+                            values[ii] = ReadDiagnosticInfo(null);
+                        }
+
+                        array = values;
+                        break;
+                    }
+                default:
+                    throw ServiceResultException.Create(
+                            StatusCodes.BadDecodingError,
+                            Opc.Ua.Utils.Format("Cannot decode unknown type in Variant object with BuiltInType: {0}.", builtInType));
+            }
+
+            return array;
+        }
+
+        /// <summary>
+        /// Reads the length of an array.
+        /// </summary>
+        /// <exception cref="ServiceResultException"></exception>
+        private int ReadArrayLength()
+        {
+            var length = (int)_reader.ReadInteger();
+
+            if (length < 0)
+            {
+                return -1;
+            }
+
+            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
+            {
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "MaxArrayLength {0} < {1}",
+                    Context.MaxArrayLength,
+                    length);
+            }
+            return length;
+        }
+
+        /// <summary>
+        /// Read variant body
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <param name="isArray"></param>
+        /// <param name="isMatrix"></param>
+        /// <param name="dimensions"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        public Variant ReadVariantValue(BuiltInType builtInType,
+            bool isArray = false, bool isMatrix = false, int[]? dimensions = null)
+        {
+            if (isMatrix)
+            {
+                // Read dimensions
+                dimensions = ReadCollection(() => ReadInt32(null));
+                isArray = true;
+            }
+
+            var value = new Variant();
+            if (!isArray)
+            {
+                switch (builtInType)
                 {
-                    // This is a nullable type
-                    isNullable = true;
-                    schema = u.Schemas[1];
+                    case BuiltInType.Null:
+                        value.Value = null;
+                        break;
+                    case BuiltInType.Boolean:
+                        value.Set(ReadBoolean(null));
+                        break;
+                    case BuiltInType.SByte:
+                        value.Set(ReadSByte(null));
+                        break;
+                    case BuiltInType.Byte:
+                        value.Set(ReadByte(null));
+                        break;
+                    case BuiltInType.Int16:
+                        value.Set(ReadInt16(null));
+                        break;
+                    case BuiltInType.UInt16:
+                        value.Set(ReadUInt16(null));
+                        break;
+                    case BuiltInType.Int32:
+                    case BuiltInType.Enumeration:
+                        value.Set(ReadInt32(null));
+                        break;
+                    case BuiltInType.UInt32:
+                        value.Set(ReadUInt32(null));
+                        break;
+                    case BuiltInType.Int64:
+                        value.Set(ReadInt64(null));
+                        break;
+                    case BuiltInType.UInt64:
+                        value.Set(ReadUInt64(null));
+                        break;
+                    case BuiltInType.Float:
+                        value.Set(ReadFloat(null));
+                        break;
+                    case BuiltInType.Double:
+                        value.Set(ReadDouble(null));
+                        break;
+                    case BuiltInType.String:
+                        value.Set(_reader.ReadString());
+                        break;
+                    case BuiltInType.DateTime:
+                        value.Set(ReadDateTime(null));
+                        break;
+                    case BuiltInType.Guid:
+                        value.Set(ReadGuid(null));
+                        break;
+                    case BuiltInType.ByteString:
+                        value.Set(_reader.ReadBytes());
+                        break;
+                    case BuiltInType.XmlElement:
+                        try
+                        {
+                            value.Set(ReadXmlElement(null));
+                        }
+                        catch
+                        {
+                            value.Set(StatusCodes.BadDecodingError);
+                        }
+                        break;
+                    case BuiltInType.NodeId:
+                        value.Set(ReadNodeId(null));
+                        break;
+                    case BuiltInType.ExpandedNodeId:
+                        value.Set(ReadExpandedNodeId(null));
+                        break;
+                    case BuiltInType.StatusCode:
+                        value.Set(ReadStatusCode(null));
+                        break;
+                    case BuiltInType.QualifiedName:
+                        value.Set(ReadQualifiedName(null));
+                        break;
+                    case BuiltInType.LocalizedText:
+                        value.Set(ReadLocalizedText(null));
+                        break;
+                    case BuiltInType.ExtensionObject:
+                        value.Set(ReadExtensionObject(null));
+                        break;
+                    case BuiltInType.DataValue:
+                        value.Set(ReadDataValue(null));
+                        break;
+                    default:
+                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                            "Cannot decode unknown type in Variant object (0x{0:X2}).",
+                            builtInType);
+                }
+            }
+            else
+            {
+                // read the array length.
+                var length = ReadArrayLength();
+                var array = ReadArrayElements(length, builtInType);
+                if (array == null)
+                {
+                    value = new Variant(StatusCodes.BadDecodingError);
                 }
                 else
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "A union type can only be used as nullable in variant.");
-                }
-            }
-
-            return isNullable;
-        }
-
-        /// <summary>
-        /// Get next schema
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private Schema GetFieldSchema(string? fieldName)
-        {
-            if (!_schema.TryPop(fieldName, out var schema))
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to decode. No schema for field {0]", fieldName);
-            }
-            return schema;
-        }
-
-        /// <summary>
-        /// Allows a encoder or decoder to follow the schema
-        /// </summary>
-        /// <returns></returns>
-        private sealed class AvroSchemaTraversal
-        {
-            /// <summary>
-            /// Create traversal
-            /// </summary>
-            /// <param name="schema"></param>
-            public AvroSchemaTraversal(Schema schema)
-            {
-                var list = new List<(string?, Schema)>();
-                Flatten((null, schema), list);
-                _schemas = new Queue<(string?, Schema)>(list);
-            }
-
-            /// <summary>
-            /// Split
-            /// </summary>
-            /// <param name="original"></param>
-            private AvroSchemaTraversal(AvroSchemaTraversal original)
-            {
-                _schemas = new Queue<(string?, Schema)>(
-                    original._schemas.ToList());
-            }
-
-            /// <summary>
-            /// Fork traversal to create a safe path
-            /// </summary>
-            /// <returns></returns>
-            public AvroSchemaTraversal Fork()
-            {
-                return new AvroSchemaTraversal(this);
-            }
-
-            /// <summary>
-            /// Flatten depth first like we will travers
-            /// </summary>
-            /// <param name="schema"></param>
-            /// <param name="flat"></param>
-            private static void Flatten((string?, Schema) schema, List<(string?, Schema)> flat)
-            {
-                flat.Add(schema);
-                var (_, s) = schema;
-                switch (s)
-                {
-                    case RecordSchema r:
-                        foreach (var f in r.Fields)
+                    if (dimensions?.Length > 1) // Value Rank > 1
+                    {
+                        (var valid, var matrixLength) = Matrix.ValidateDimensions(
+                            dimensions, length, Context.MaxArrayLength);
+                        if (!valid || (matrixLength != length))
                         {
-                            Flatten((f.Name, f.Schema), flat);
+                            throw new ServiceResultException(StatusCodes.BadDecodingError,
+                                "ArrayDimensions does not match with the ArrayLength " +
+                                "in Variant object.");
                         }
-                        break;
-                    case MapSchema m:
-                        Flatten((null, m.ValueSchema), flat);
-                        break;
+                        value = new Variant(new Matrix(array,
+                            builtInType, dimensions));
+                    }
+                    else
+                    {
+                        value = new Variant(array,
+                            new TypeInfo(builtInType, 1));
+                    }
                 }
             }
 
-            /// <summary>
-            /// Try get the next field schema
-            /// </summary>
-            /// <param name="fieldName"></param>
-            /// <param name="schema"></param>
-            /// <returns></returns>
-            public bool TryPop(string? fieldName, [NotNullWhen(true)] out Schema? schema)
-            {
-                if (!_schemas.TryDequeue(out var s) ||
-                    (fieldName != null && fieldName != s.Item1))
-                {
-                    schema = null;
-                    return false;
-                }
-                schema = s.Item2;
-                return true;
-            }
-
-            /// <summary>
-            /// Try to peek the next schema and field value
-            /// </summary>
-            /// <param name="schema"></param>
-            /// <param name="fieldName"></param>
-            /// <returns></returns>
-            public bool TryPeek(out Schema? schema, out string? fieldName)
-            {
-                var result = _schemas.TryPeek(out var s);
-                fieldName = s.Item1;
-                schema = s.Item2;
-                return result;
-            }
-
-            /// <summary>
-            /// Finalize
-            /// </summary>
-            public bool IsDone()
-            {
-                return _schemas.Count != 0;
-            }
-
-            private readonly Queue<(string?, Schema)> _schemas;
+            return value;
         }
 
-        private readonly AvroBuiltInTypeSchemas _builtIns = new();
-        private readonly AvroSchemaTraversal _schema;
-        private readonly AvroDecoderCore _decoder;
+        // TODO: Decide whether the opc ua types are records with single field
+        private static ReadOnlySpan<(bool, BuiltInType)> _variantUnionFieldIds => new (bool, BuiltInType)[]
+        {
+            (false, BuiltInType.Null), // 1,
+            (false, BuiltInType.Boolean), // 1,
+            (false, BuiltInType.SByte), // 2,
+            (false, BuiltInType.Byte), // 3,
+            (false, BuiltInType.Int16), // 4,
+            (false, BuiltInType.UInt16), // 5,
+            (false, BuiltInType.Int32), // 6,
+            (false, BuiltInType.UInt32), // 7,
+            (false, BuiltInType.Int64), // 8,
+            (false, BuiltInType.UInt64), // 8,
+            (false, BuiltInType.Float), // 10,
+            (false, BuiltInType.Double), // 11,
+            (false, BuiltInType.String), // 12,
+            (false, BuiltInType.DateTime), // 13,
+            (false, BuiltInType.Guid), // 14,
+            (false, BuiltInType.ByteString), // 15,
+            (false, BuiltInType.XmlElement), // 16,
+            (false, BuiltInType.NodeId), // 17,
+            (false, BuiltInType.ExpandedNodeId), // 18,
+            (false, BuiltInType.StatusCode), // 19,
+            (false, BuiltInType.QualifiedName), // 20,
+            (false, BuiltInType.LocalizedText), // 21,
+            (false, BuiltInType.ExtensionObject), // 22,
+            (false, BuiltInType.DataValue), // 23,
+            (false, BuiltInType.DiagnosticInfo), // 24,
+            (false, BuiltInType.Number), // 25,
+            (false, BuiltInType.Integer), // 26,
+            (false, BuiltInType.UInteger), // 27,
+            (false, BuiltInType.Enumeration), // 28,
+            (true, BuiltInType.Boolean), // 29,
+            (true, BuiltInType.SByte), // 30,
+            (true, BuiltInType.Byte), // 31,
+            (true, BuiltInType.Int16), // 32,
+            (true, BuiltInType.UInt16), // 33,
+            (true, BuiltInType.Int32), // 34,
+            (true, BuiltInType.UInt32), // 35,
+            (true, BuiltInType.Int64), // 36,
+            (true, BuiltInType.UInt64), // 37,
+            (true, BuiltInType.Float), // 38,
+            (true, BuiltInType.Double), // 39,
+            (true, BuiltInType.String), // 40,
+            (true, BuiltInType.DateTime), // 41,
+            (true, BuiltInType.Guid), // 42,
+            (true, BuiltInType.ByteString), // 43,
+            (true, BuiltInType.XmlElement), // 44,
+            (true, BuiltInType.NodeId), // 45,
+            (true, BuiltInType.ExpandedNodeId), // 46,
+            (true, BuiltInType.StatusCode), // 47,
+            (true, BuiltInType.QualifiedName), // 48,
+            (true, BuiltInType.LocalizedText), // 49,
+            (true, BuiltInType.ExtensionObject), // 50,
+            (true, BuiltInType.DataValue), // 51,
+            (true, BuiltInType.Variant), // 52,
+            (true, BuiltInType.DiagnosticInfo), // 53,
+            (true, BuiltInType.Number), // 54,
+            (true, BuiltInType.Integer), // 55,
+            (true, BuiltInType.UInteger), // 56,
+            (true, BuiltInType.Enumeration) // 57
+        };
+
+        /// <summary>
+        /// Test and increment the nesting level.
+        /// </summary>
+        /// <exception cref="ServiceResultException"></exception>
+        private void CheckAndIncrementNestingLevel()
+        {
+            if (_nestingLevel > Context.MaxEncodingNestingLevels)
+            {
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "Maximum nesting level of {0} was exceeded",
+                    Context.MaxEncodingNestingLevels);
+            }
+            _nestingLevel++;
+        }
+
+        private readonly AvroReader _reader;
+        private ushort[]? _namespaceMappings;
+        private ushort[]? _serverMappings;
+        private uint _nestingLevel;
     }
 }
