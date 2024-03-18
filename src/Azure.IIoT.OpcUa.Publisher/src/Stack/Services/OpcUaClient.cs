@@ -2402,7 +2402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var missed = GetMissed(elapsed);
                 values.ForEach(i => ((Sampler)i.Request.Handle).OnSample(seq,
                     SetOverflow(i.Result, missed > 0), missed));
-                DataValue SetOverflow(DataValue result, bool overflowBit)
+                static DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
                     result.StatusCode.SetOverflow(overflowBit);
                     return result;

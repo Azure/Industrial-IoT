@@ -6,18 +6,18 @@
     <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="coverlet.msbuild" Version="6.0.0">
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit" Version="2.6.6" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" Version="1.0.22" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.22" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.22" />
+    <PackageReference Include="Furly.Extensions.Json" Version="1.0.37" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.37" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.37" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

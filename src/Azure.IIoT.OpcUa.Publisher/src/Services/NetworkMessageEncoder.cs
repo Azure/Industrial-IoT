@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Buffers;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -119,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .SetRetain(retain)
                             .SetTtl(ttl)
                             .SetQoS(qos)
-                            .AddBuffers(chunks)
+                            .AddBuffers(chunks.Select(m => new ReadOnlySequence<byte>(m)))
                             ;
 
                         if (_options.Value.UseStandardsCompliantEncoding != true)

@@ -481,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Console.Out.WriteLine(builder.ToString());
             }
 
-            StringBuilder Append(StringBuilder builder, string writerGroupId,
+            static StringBuilder Append(StringBuilder builder, string writerGroupId,
                 WriterGroupDiagnosticModel info)
             {
                 var s = info.IngestionDuration.TotalSeconds == 0 ? 1 : info.IngestionDuration.TotalSeconds;
