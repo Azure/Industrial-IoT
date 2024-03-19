@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 return _dataSet.Schema;
             }
 
-            var encoding = new AvroBuiltInTypeSchemas();
+            var encoding = AvroBuiltInTypeSchemas.Default;
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
                 new List<Field>
             {

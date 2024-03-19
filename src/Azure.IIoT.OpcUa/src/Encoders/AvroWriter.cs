@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public void WriteBoolean(bool value)
         {
-            WriteInteger(value ? 0x1 : 0x0);
+            Stream.WriteByte((byte)(value ? 0x1 : 0x0));
         }
 
         /// <inheritdoc/>

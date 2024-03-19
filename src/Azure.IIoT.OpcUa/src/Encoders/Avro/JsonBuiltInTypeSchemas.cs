@@ -74,31 +74,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     // TODO
                 }
 
-                var types = GetPossibleTypes(false)
-                    .Concat(GetPossibleTypes(true))
-                    .ToList();
-                var bodyType = AvroUtils.CreateUnion(types);
-                return RecordSchema.Create(nameof(BuiltInType.Variant),
-                    new List<Field>
-                    {
-                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "Type", 0),
-                        new (bodyType, "Body", 1),
-                        new (ArraySchema.Create(GetSchemaForBuiltInType(BuiltInType.Int32)),
-                            "Dimensions", 2)
-                    }, AvroUtils.NamespaceZeroName,
-                    new[] { GetDataTypeId(BuiltInType.Variant) });
+                var types = GetPossibleTypes(ValueRanks.Scalar)
+                   .Concat(GetPossibleTypes(ValueRanks.OneDimension))
+                   .Concat(GetPossibleTypes(ValueRanks.TwoDimensions))
+                   .ToList();
+                return UnionSchema.Create(types);
 
-                IEnumerable<Schema> GetPossibleTypes(bool array)
+                IEnumerable<Schema> GetPossibleTypes(int valueRank)
                 {
-                    for (var i = 0; i <= 29; i++)
+                    for (var i = 1; i <= 29; i++)
                     {
-                        if ((i == (int)BuiltInType.Variant && !array) ||
-                            (i == (int)BuiltInType.Null && array))
+                        if (i == (int)BuiltInType.DiagnosticInfo)
                         {
-                            continue; // TODO: Array of variant is allowed
+                            continue;
                         }
-                        yield return GetSchemaForBuiltInType((BuiltInType)i,
-                            array);
+                        if (i == (int)BuiltInType.Variant && valueRank == ValueRanks.Scalar)
+                        {
+                            continue; // Array of variant is allowed
+                        }
+                        yield return GetSchemaForBuiltInType((BuiltInType)i, valueRank);
                     }
                 }
             }
@@ -408,12 +402,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// https://reference.opcfoundation.org/Core/Part6/v104/docs/5.1.2#_Ref131507956
         /// </summary>
         /// <param name="builtInType"></param>
-        /// <param name="array"></param>
-        ///
+        /// <param name="rank"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            bool array = false)
+            int rank = ValueRanks.Scalar)
         {
             if (!_builtIn.TryGetValue(builtInType, out var schema))
             {
@@ -425,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 schema = Get((int)builtInType);
                 _builtIn[builtInType] = schema;
             }
-            if (array)
+            if (rank >= ValueRanks.OneOrMoreDimensions)
             {
                 schema = ArraySchema.Create(schema);
             }
@@ -496,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         }
 
         /// <inheritdoc/>
-        public override Schema GetDataValueFieldSchema(string name, Schema valueSchema)
+        public override Schema GetDataSetFieldSchema(string name, Schema valueSchema)
         {
             return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
                 new List<Field>
@@ -508,12 +501,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                     new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
                 });
-        }
-
-        /// <inheritdoc/>
-        public override Schema GetVariantFieldSchema(string name, Schema valueSchema)
-        {
-            return valueSchema;
         }
 
         /// <summary>

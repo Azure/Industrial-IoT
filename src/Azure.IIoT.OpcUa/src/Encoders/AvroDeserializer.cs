@@ -441,161 +441,161 @@ namespace Azure.IIoT.OpcUa.Encoders
         public BooleanCollection? ReadBooleanArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadBooleanArray, true);
+               _decoder.ReadBooleanArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public SByteCollection? ReadSByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.SByte,
-               _decoder.ReadSByteArray, true);
+               _decoder.ReadSByteArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public ByteCollection? ReadByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Byte,
-               _decoder.ReadByteArray, true);
+               _decoder.ReadByteArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public Int16Collection? ReadInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int16,
-               _decoder.ReadInt16Array, true);
+               _decoder.ReadInt16Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public UInt16Collection? ReadUInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt16,
-              _decoder.ReadUInt16Array, true);
+              _decoder.ReadUInt16Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public Int32Collection? ReadInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int32,
-               _decoder.ReadInt32Array, true);
+               _decoder.ReadInt32Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public UInt32Collection? ReadUInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt32,
-               _decoder.ReadUInt32Array, true);
+               _decoder.ReadUInt32Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public Int64Collection? ReadInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int64,
-               _decoder.ReadInt64Array, true);
+               _decoder.ReadInt64Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public UInt64Collection? ReadUInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt64,
-               _decoder.ReadUInt64Array, true);
+               _decoder.ReadUInt64Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public FloatCollection? ReadFloatArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Float,
-               _decoder.ReadFloatArray, true);
+               _decoder.ReadFloatArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public DoubleCollection? ReadDoubleArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Double,
-               _decoder.ReadDoubleArray, true);
+               _decoder.ReadDoubleArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public StringCollection? ReadStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.String,
-               _decoder.ReadStringArray, true);
+               _decoder.ReadStringArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public DateTimeCollection? ReadDateTimeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DateTime,
-               _decoder.ReadDateTimeArray, true);
+               _decoder.ReadDateTimeArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public UuidCollection? ReadGuidArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Guid,
-               _decoder.ReadGuidArray, true);
+               _decoder.ReadGuidArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public ByteStringCollection? ReadByteStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ByteString,
-               _decoder.ReadByteStringArray, true);
+               _decoder.ReadByteStringArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public XmlElementCollection? ReadXmlElementArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.XmlElement,
-               _decoder.ReadXmlElementArray, true);
+               _decoder.ReadXmlElementArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public NodeIdCollection? ReadNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.NodeId,
-               _decoder.ReadNodeIdArray, true);
+               _decoder.ReadNodeIdArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public ExpandedNodeIdCollection? ReadExpandedNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ExpandedNodeId,
-               _decoder.ReadExpandedNodeIdArray, true);
+               _decoder.ReadExpandedNodeIdArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public StatusCodeCollection? ReadStatusCodeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.StatusCode,
-               _decoder.ReadStatusCodeArray, true);
+               _decoder.ReadStatusCodeArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public DiagnosticInfoCollection? ReadDiagnosticInfoArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               _decoder.ReadDiagnosticInfoArray, true);
+               _decoder.ReadDiagnosticInfoArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public QualifiedNameCollection? ReadQualifiedNameArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadQualifiedNameArray, true);
+               _decoder.ReadQualifiedNameArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public LocalizedTextCollection? ReadLocalizedTextArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               _decoder.ReadLocalizedTextArray, true);
+               _decoder.ReadLocalizedTextArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public VariantCollection? ReadVariantArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Variant,
-               _decoder.ReadVariantArray, true);
+               _decoder.ReadVariantArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
@@ -603,7 +603,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             // TODO
             return ValidatedRead(fieldName, BuiltInType.DataValue,
-               _decoder.ReadDataValueArray, true);
+               _decoder.ReadDataValueArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             // TODO
             return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
-               _decoder.ReadExtensionObjectArray, true);
+               _decoder.ReadExtensionObjectArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
@@ -658,18 +658,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="builtInType"></param>
         /// <param name="value"></param>
-        /// <param name="array"></param>
+        /// <param name="valueRank"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         private T ValidatedRead<T>(string? fieldName, BuiltInType builtInType,
-            Func<string?, T> value, bool array = false)
+            Func<string?, T> value, int valueRank = ValueRanks.Scalar)
         {
             // Get current field schema
             var currentSchema = GetFieldSchema(fieldName);
 
             // Get expected schema
             var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType,
-                array);
+                valueRank);
 
             // Should be the same
             if (!currentSchema.Equals(expectedType))
@@ -799,7 +799,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             private readonly Queue<(string?, Schema)> _schemas;
         }
 
-        private readonly AvroBuiltInTypeSchemas _builtIns = new();
+        private readonly AvroBuiltInTypeSchemas _builtIns
+            = AvroBuiltInTypeSchemas.Default;
         private readonly AvroSchemaStack _schema;
         private readonly AvroDecoder _decoder;
     }

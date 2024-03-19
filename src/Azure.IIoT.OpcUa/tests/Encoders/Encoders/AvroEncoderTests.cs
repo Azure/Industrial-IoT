@@ -101,9 +101,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestNodeId(object value)
         {
             var context = new ServiceMessageContext();
+            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
             using var stream = new MemoryStream();
             using var encoder = new AvroEncoder(stream, context, true);
-            var expected = new NodeId(value, 1);
+            var expected = new NodeId(value, ns);
             encoder.WriteNodeId(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, context);
@@ -117,9 +118,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            var srv = context.ServerUris.GetIndexOrAppend("Super");
             using var stream = new MemoryStream();
             using var encoder = new AvroEncoder(stream, context, true);
-            var expected = new ExpandedNodeId(value, 0, "test.org", 3);
+            var expected = new ExpandedNodeId(value, 0, "test.org", srv);
             encoder.WriteExpandedNodeId(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, context);
@@ -148,7 +150,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             encoder.WriteDataValue(null, null);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, context);
-            Assert.Null(decoder.ReadDataValue(null));
+            Assert.True(Opc.Ua.Utils.IsEqual(new DataValue(),
+                decoder.ReadDataValue(null)));
         }
     }
 }

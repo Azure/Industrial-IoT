@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             }
             if (encoding?.HasFlag(MessageEncoding.Avro) != false)
             {
-                return new AvroBuiltInTypeSchemas();
+                return AvroBuiltInTypeSchemas.Default;
             }
             throw new NotSupportedException("Encoding not yet supported");
         }
@@ -42,10 +42,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// Get schema for built in type
         /// </summary>
         /// <param name="builtInType"></param>
-        /// <param name="array"></param>
+        /// <param name="rank"></param>
         /// <returns></returns>
         public abstract Schema GetSchemaForBuiltInType(
-            BuiltInType builtInType, bool array = false);
+            BuiltInType builtInType, int rank = ValueRanks.Scalar);
 
         /// <summary>
         /// Get a schema for a data value field with the
@@ -56,18 +56,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="name"></param>
         /// <param name="valueSchema"></param>
         /// <returns></returns>
-        public abstract Schema GetDataValueFieldSchema(
-            string name, Schema valueSchema);
-
-        /// <summary>
-        /// Get a schema for a variant field with the
-        /// specified schema. The union field in the
-        /// variant will then be made a reserved identifer
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="valueSchema"></param>
-        /// <returns></returns>
-        public abstract Schema GetVariantFieldSchema(
+        public abstract Schema GetDataSetFieldSchema(
             string name, Schema valueSchema);
 
         /// <summary>

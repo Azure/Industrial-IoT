@@ -247,28 +247,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             // Node id is not nullable, i=0 is a null node id.
             //
-
-            var namespaceIndex = (ushort)_reader.ReadInteger();
-
-            if (_namespaceMappings != null && _namespaceMappings.Length > namespaceIndex)
+            var namespaceUri = _reader.ReadString();
+            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ? 0u :
+                Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
+            if (_namespaceMappings != null &&
+                _namespaceMappings.Length > namespaceIndex)
             {
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
-
-            switch ((IdType)_reader.ReadInteger()) // Union field id
-            {
-                case IdType.Numeric:
-                    return new NodeId(ReadUInt32(null), namespaceIndex);
-                case IdType.String:
-                    return new NodeId(_reader.ReadString(), namespaceIndex);
-                case IdType.Guid:
-                    return new NodeId(ReadGuid(null), namespaceIndex);
-                case IdType.Opaque:
-                    return new NodeId(_reader.ReadBytes(), namespaceIndex);
-                default:
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Unknown node id type");
-            }
+            return ReadNodeId((ushort)namespaceIndex);
         }
 
         /// <inheritdoc/>
@@ -282,21 +269,31 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             // ExpandedNode id is not nullable, i=0 is a null node id.
             //
-            var innerNodeId = ReadNodeId(null);
+            var namespaceUri = _reader.ReadString();
+            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ? 0u :
+                Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
+            if (_namespaceMappings != null &&
+                _namespaceMappings.Length > namespaceIndex)
+            {
+                namespaceIndex = _namespaceMappings[namespaceIndex];
+            }
 
-            var nsUri = _reader.ReadString();
-            var serverIndex = ReadUInt32(null);
+            var innerNodeId = ReadNodeId((ushort)namespaceIndex);
+            var serverUri = _reader.ReadString();
 
             if (NodeId.IsNull(innerNodeId))
             {
                 return ExpandedNodeId.Null;
             }
 
-            if (_serverMappings != null && _serverMappings.Length > serverIndex)
+            var serverIndex = string.IsNullOrEmpty(serverUri) ? 0u :
+                Context.ServerUris.GetIndexOrAppend(serverUri);
+            if (_serverMappings != null &&
+                _serverMappings.Length > serverIndex)
             {
                 serverIndex = _serverMappings[serverIndex];
             }
-            return new ExpandedNodeId(innerNodeId, nsUri, serverIndex);
+            return new ExpandedNodeId(innerNodeId, namespaceUri, serverIndex);
         }
 
         /// <inheritdoc/>
@@ -1480,7 +1477,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         // TODO: Decide whether the opc ua types are records with single field
         private static ReadOnlySpan<(bool, BuiltInType)> _variantUnionFieldIds => new (bool, BuiltInType)[]
         {
-            (false, BuiltInType.Null), // 1,
+            (false, BuiltInType.Null), // 0,
             (false, BuiltInType.Boolean), // 1,
             (false, BuiltInType.SByte), // 2,
             (false, BuiltInType.Byte), // 3,
@@ -1539,6 +1536,29 @@ namespace Azure.IIoT.OpcUa.Encoders
             (true, BuiltInType.UInteger), // 56,
             (true, BuiltInType.Enumeration) // 57
         };
+
+        /// <summary>
+        /// Read node id
+        /// </summary>
+        /// <param name="namespaceIndex"></param>
+        /// <returns></returns>
+        private NodeId ReadNodeId(ushort namespaceIndex)
+        {
+            switch ((IdType)_reader.ReadInteger()) // Union field id
+            {
+                case IdType.Numeric:
+                    return new NodeId(ReadUInt32(null), namespaceIndex);
+                case IdType.String:
+                    return new NodeId(_reader.ReadString(), namespaceIndex);
+                case IdType.Guid:
+                    return new NodeId(ReadGuid(null), namespaceIndex);
+                case IdType.Opaque:
+                    return new NodeId(_reader.ReadBytes(), namespaceIndex);
+                default:
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Unknown node id type");
+            }
+        }
 
         /// <summary>
         /// Test and increment the nesting level.

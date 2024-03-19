@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Utils
 {
     using global::Avro;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -64,9 +65,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// <returns></returns>
         public static PropertyMap GetProperties(string dataTypeId)
         {
+            // Need to add json strings
             return new PropertyMap
             {
-                ["TypeId"] = dataTypeId
+                ["uaDataTypeId"] = "\"" + dataTypeId + "\""
             };
         }
 
@@ -113,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         public static ExpandedNodeId GetDataTypeId(this Schema schema,
             IServiceMessageContext context)
         {
-            var type = schema.GetProperty("TypeId");
+            var type = schema.GetProperty("uaDataTypeId");
             if (type == null &&
                 schema is NamedSchema ns &&
                 TryFindNamespace(context.NamespaceUris, ns.Namespace,

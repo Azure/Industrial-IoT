@@ -312,9 +312,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
 
-            var namespaceUri = namespaceIndex == 0 ? string.Empty :
+            var namespaceUri = namespaceIndex == 0 ? null :
                 Context.NamespaceUris.GetString(namespaceIndex);
-            WriteNodeId(value, namespaceUri);
+            WriteNodeId(value, namespaceUri ?? string.Empty);
         }
 
         /// <summary>
@@ -359,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 serverIndex = _serverMappings[serverIndex];
             }
-            var serverUri = serverIndex == 0 ? string.Empty :
+            var serverUri = serverIndex == 0 ? null :
                 Context.ServerUris.GetString(serverIndex);
 
             var namespaceUri = value?.NamespaceUri;
@@ -372,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     namespaceIndex = _namespaceMappings[namespaceIndex];
                 }
-                namespaceUri = namespaceIndex == 0 ? string.Empty :
+                namespaceUri = namespaceIndex == 0 ? null :
                     Context.NamespaceUris.GetString(namespaceIndex);
             }
 
@@ -384,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Encoders
              //
             WriteNodeId(value.ToNodeId(Context.NamespaceUris),
                 namespaceUri ?? string.Empty);
-            _writer.WriteString(serverUri);
+            _writer.WriteString(serverUri ?? string.Empty);
         }
 
         /// <inheritdoc/>

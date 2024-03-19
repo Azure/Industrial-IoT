@@ -521,13 +521,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (!_schemas.ContainsKey(dataTypeId))
             {
                  var schema = _builtIns.GetSchemaForBuiltInType(builtInType,
-                     array);
+                     ValueRanks.OneDimension);
                 _schemas.Add(dataTypeId, schema);
             }
         }
 
         private readonly NodeIdDictionary<Schema> _schemas = new();
-        private readonly AvroBuiltInTypeSchemas _builtIns = new();
+        private readonly AvroBuiltInTypeSchemas _builtIns
+            = AvroBuiltInTypeSchemas.Default;
         private readonly AvroEncoder _encoder;
     }
 }

@@ -160,13 +160,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     {
                         if (_fieldsAreDataValues)
                         {
-                            schema = Encoding.GetDataValueFieldSchema(
-                                typeName ?? fieldName, schema).AsNullable();
+                            // Add properties to the field type
+                            schema = Encoding.GetDataSetFieldSchema(
+                                (typeName ?? fieldName) + "DataValue", schema).AsNullable();
                         }
                         else
                         {
-                            schema = Encoding.GetVariantFieldSchema(
-                                typeName ?? fieldName, schema).AsNullable();
+                            schema = schema.AsNullable();
                         }
                         fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="arrayDimensions"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private Schema LookupSchema(string dataType, out string? name, 
+        private Schema LookupSchema(string dataType, out string? name,
             int valueRank = -1, IReadOnlyList<uint>? arrayDimensions = null)
         {
             Schema? schema = null;
@@ -257,18 +257,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 {
                     schema = description.Schema;
                     name = schema.Name;
-                    if (array)
+                    if (valueRank >= ValueRanks.OneOrMoreDimensions)
                     {
                         schema = ArraySchema.Create(schema);
                     }
                 }
             }
 
-            schema ??= GetBuiltInDataTypeSchema(dataType, array, out name);
-            return schema != null ? schema 
+            schema ??= GetBuiltInDataTypeSchema(dataType, valueRank, out name);
+            return schema != null ? schema
                 : throw new ArgumentException($"No Schema found for {dataType}");
 
-            Schema? GetBuiltInDataTypeSchema(string dataType, bool array,
+            Schema? GetBuiltInDataTypeSchema(string dataType, int valueRank,
                 out string? name)
             {
                 if (int.TryParse(dataType[2..], out var id)
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 {
                     name = ((BuiltInType)id).ToString();
                     return Encoding.GetSchemaForBuiltInType((BuiltInType)id,
-                        array);
+                        valueRank);
                 }
                 name = null;
                 return null;
