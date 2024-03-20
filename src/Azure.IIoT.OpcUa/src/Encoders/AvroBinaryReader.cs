@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Reads from a Avro Binary encoded stream.
     /// </summary>
-    public sealed class AvroReader : IDisposable
+    public sealed class AvroBinaryReader : IDisposable
     {
         /// <summary>
         /// Underlying stream
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Create avro reader
         /// </summary>
         /// <param name="stream"></param>
-        public AvroReader(Stream stream)
+        public AvroBinaryReader(Stream stream)
         {
             Stream = stream;
         }

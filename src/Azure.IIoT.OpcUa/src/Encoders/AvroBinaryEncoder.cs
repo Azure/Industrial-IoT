@@ -5,32 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using global::Avro;
-    using global::Avro.Generic;
-    using global::Avro.IO;
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Avro;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using global::Avro;
     using Opc.Ua;
-    using Opc.Ua.Extensions;
     using System;
-    using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
     using System.IO;
-    using System.Linq;
-    using System.Text;
     using System.Xml;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.
     /// </summary>
-    public sealed class AvroSerializer : IEncoder
+    public sealed class AvroBinaryEncoder : IEncoder
     {
         /// <summary>
         /// Schema to use
@@ -53,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="schema"></param>
-        internal AvroSerializer(AvroEncoder encoder, Schema schema)
+        internal AvroBinaryEncoder(SchemalessAvroEncoder encoder, Schema schema)
         {
             _encoder = encoder;
             Schema = schema;
@@ -72,9 +59,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// use for the encoding.</param>
         /// <param name="leaveOpen">If the stream should
         /// be left open on dispose.</param>
-        public AvroSerializer(Stream stream, Schema schema,
+        public AvroBinaryEncoder(Stream stream, Schema schema,
             IServiceMessageContext context, bool leaveOpen = true) :
-            this(new AvroEncoder(stream, context, leaveOpen), schema)
+            this(new SchemalessAvroEncoder(stream, context, leaveOpen), schema)
         {
         }
 
@@ -499,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void WriteArray<T>(string? fieldName, IList<T>? values,
             Action<T> writer)
         {
-            _encoder.WriteArray<T>(values, writer);
+            _encoder.WriteArray(values, writer);
         }
 
         /// <inheritdoc/>
@@ -520,8 +507,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var dataTypeId = new NodeId((uint)builtInType);
             if (!_schemas.ContainsKey(dataTypeId))
             {
-                 var schema = _builtIns.GetSchemaForBuiltInType(builtInType,
-                     ValueRanks.OneDimension);
+                var schema = _builtIns.GetSchemaForBuiltInType(builtInType,
+                    ValueRanks.OneDimension);
                 _schemas.Add(dataTypeId, schema);
             }
         }
@@ -529,6 +516,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         private readonly NodeIdDictionary<Schema> _schemas = new();
         private readonly AvroBuiltInTypeSchemas _builtIns
             = AvroBuiltInTypeSchemas.Default;
-        private readonly AvroEncoder _encoder;
+        private readonly SchemalessAvroEncoder _encoder;
     }
 }

@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         {
             if (schema is NamedSchema ns &&
                 ns.SchemaName.Namespace == AvroUtils.NamespaceZeroName &&
-                Enum.TryParse<BuiltInType>(ns.Name, out builtInType))
+                Enum.TryParse(ns.Name, out builtInType))
             {
                 return true;
             }

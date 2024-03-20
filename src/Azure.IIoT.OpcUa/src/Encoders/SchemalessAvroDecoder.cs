@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Decodes objects from a Avro Binary encoded stream.
     /// </summary>
-    internal sealed class AvroDecoder : IDecoder
+    internal sealed class SchemalessAvroDecoder : IDecoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => (EncodingType)3;
@@ -38,10 +38,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public AvroDecoder(Stream stream, IServiceMessageContext context)
+        public SchemalessAvroDecoder(Stream stream, IServiceMessageContext context)
         {
             EncodeableDecoder = this;
-            _reader = new AvroReader(stream)
+            _reader = new AvroBinaryReader(stream)
             {
                 MaxBytesLength = context.MaxByteStringLength,
                 MaxStringLength = context.MaxStringLength
@@ -494,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string? fieldName, System.Type systemType,
+        public IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Enum ReadEnumerated(string? fieldName, System.Type enumType)
+        public Enum ReadEnumerated(string? fieldName, Type enumType)
         {
             return (Enum)Enum.ToObject(enumType, _reader.ReadInteger());
         }
@@ -686,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadEncodeableArray(string? fieldName, System.Type systemType,
+        public Array? ReadEncodeableArray(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             return ReadCollection(() => ReadEncodeable(null,
@@ -694,7 +694,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadEnumeratedArray(string? fieldName, System.Type enumType)
+        public Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
             return ReadCollection(() => ReadEnumerated(null,
                 enumType), enumType);
@@ -918,7 +918,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="type"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal Array ReadCollection(Func<object> reader, System.Type type)
+        internal Array ReadCollection(Func<object> reader, Type type)
         {
             var length = _reader.ReadInteger();
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
@@ -1576,7 +1576,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             _nestingLevel++;
         }
 
-        private readonly AvroReader _reader;
+        private readonly AvroBinaryReader _reader;
         private ushort[]? _namespaceMappings;
         private ushort[]? _serverMappings;
         private uint _nestingLevel;

@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Encodes objects in a stream using Avro binary encoding.
     /// </summary>
-    public sealed class AvroWriter : IDisposable
+    public sealed class AvroBinaryWriter : IDisposable
     {
         /// <summary>
         /// Underlying stream
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// encoder writes.</param>
         /// <param name="leaveOpen">If the stream should
         /// be left open on dispose.</param>
-        public AvroWriter(Stream stream, bool leaveOpen = true)
+        public AvroBinaryWriter(Stream stream, bool leaveOpen = true)
         {
             Stream = stream;
             _leaveOpen = leaveOpen;

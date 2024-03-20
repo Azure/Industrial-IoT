@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Encodes objects in a stream using Avro binary encoding.
     /// </summary>
-    internal sealed class AvroEncoder : IEncoder
+    internal sealed class SchemalessAvroEncoder : IEncoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => (EncodingType)3;
@@ -46,11 +46,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// use for the encoding.</param>
         /// <param name="leaveOpen">If the stream should
         /// be left open on dispose.</param>
-        public AvroEncoder(Stream stream, IServiceMessageContext context,
+        public SchemalessAvroEncoder(Stream stream, IServiceMessageContext context,
             bool leaveOpen = true)
         {
             EncodeableEncoder = this;
-            _writer = new AvroWriter(stream);
+            _writer = new AvroBinaryWriter(stream);
             Context = context;
             _leaveOpen = leaveOpen;
             _nestingLevel = 0;
@@ -1619,7 +1619,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             _nestingLevel++;
         }
 
-        private readonly AvroWriter _writer;
+        private readonly AvroBinaryWriter _writer;
         private readonly bool _leaveOpen;
         private ushort[]? _namespaceMappings;
         private ushort[]? _serverMappings;

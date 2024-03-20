@@ -11,17 +11,14 @@ namespace Azure.IIoT.OpcUa.Encoders
     using global::Avro;
     using Opc.Ua;
     using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
-    using System.Linq;
     using System.Xml;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
     /// Avro schema. Validation errors throw.
     /// </summary>
-    public sealed class AvroDeserializer : Opc.Ua.IDecoder
+    public sealed class AvroBinaryDecoder : IDecoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => _decoder.EncodingType;
@@ -37,10 +34,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="schema"></param>
-        internal AvroDeserializer(AvroDecoder decoder, Schema schema)
+        internal AvroBinaryDecoder(SchemalessAvroDecoder decoder, Schema schema)
         {
             Schema = schema;
-            _schema = new AvroSchemaStack(schema);
+            _schema = new AvroSchemaTraversal(schema);
             _decoder = decoder;
 
             // Point encodeable decoder to us
@@ -56,9 +53,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="schema"></param>
         /// <param name="context">The message context to
         /// use for the encoding.</param>
-        public AvroDeserializer(Stream stream, Schema schema,
+        public AvroBinaryDecoder(Stream stream, Schema schema,
             IServiceMessageContext context) :
-            this(new AvroDecoder(stream, context), schema)
+            this(new SchemalessAvroDecoder(stream, context), schema)
         {
         }
 
@@ -367,7 +364,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string? fieldName, System.Type systemType,
+        public IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             var schema = GetFieldSchema(fieldName);
@@ -429,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Enum ReadEnumerated(string? fieldName, System.Type enumType)
+        public Enum ReadEnumerated(string? fieldName, Type enumType)
         {
             // TODO:
             var schema = GetFieldSchema(fieldName);
@@ -615,8 +612,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadEncodeableArray(string? fieldName, System.Type systemType,
-            ExpandedNodeId? encodeableTypeId = null)
+        public Array? ReadEncodeableArray(string? fieldName, Type systemType,
+            ExpandedNodeId? encodeableTypeId)
         {
             // TODO
             var schema = GetFieldSchema(fieldName);
@@ -625,7 +622,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadEnumeratedArray(string? fieldName, System.Type enumType)
+        public Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
             // TODO
             var schema = GetFieldSchema(fieldName);
@@ -633,8 +630,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
-            Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
+        public Array? ReadArray(string? fieldName, int valueRank, 
+            BuiltInType builtInType, Type? systemType, 
+            ExpandedNodeId? encodeableTypeId)
         {
             var schema = GetFieldSchema(fieldName);
             // TODO
@@ -647,7 +645,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var schema = GetFieldSchema(fieldName);
             // TODO
-            return _decoder.ReadCollection<T>(reader);
+            return _decoder.ReadCollection(reader);
         }
 
         /// <summary>
@@ -672,7 +670,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 valueRank);
 
             // Should be the same
-            if (!currentSchema.Equals(expectedType))
+            if (currentSchema.Fullname != expectedType.Fullname)
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Failed to decode. Schema {0} is not as expected {1}",
@@ -697,111 +695,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             return schema;
         }
 
-        /// <summary>
-        /// Allows a encoder or decoder to follow the schema
-        /// </summary>
-        /// <returns></returns>
-        private sealed class AvroSchemaStack
-        {
-            /// <summary>
-            /// Create traversal
-            /// </summary>
-            /// <param name="schema"></param>
-            public AvroSchemaStack(Schema schema)
-            {
-                var list = new List<(string?, Schema)>();
-                Flatten((null, schema), list);
-                _schemas = new Queue<(string?, Schema)>(list);
-            }
-
-            /// <summary>
-            /// Split
-            /// </summary>
-            /// <param name="original"></param>
-            private AvroSchemaStack(AvroSchemaStack original)
-            {
-                _schemas = new Queue<(string?, Schema)>(
-                    original._schemas.ToList());
-            }
-
-            /// <summary>
-            /// Fork traversal to create a safe path
-            /// </summary>
-            /// <returns></returns>
-            public AvroSchemaStack Fork()
-            {
-                return new AvroSchemaStack(this);
-            }
-
-            /// <summary>
-            /// Flatten depth first like we will travers
-            /// </summary>
-            /// <param name="schema"></param>
-            /// <param name="flat"></param>
-            private static void Flatten((string?, Schema) schema, List<(string?, Schema)> flat)
-            {
-                flat.Add(schema);
-                var (_, s) = schema;
-                switch (s)
-                {
-                    case RecordSchema r:
-                        foreach (var f in r.Fields)
-                        {
-                            Flatten((f.Name, f.Schema), flat);
-                        }
-                        break;
-                    case MapSchema m:
-                        Flatten((null, m.ValueSchema), flat);
-                        break;
-                }
-            }
-
-            /// <summary>
-            /// Try get the next field schema
-            /// </summary>
-            /// <param name="fieldName"></param>
-            /// <param name="schema"></param>
-            /// <returns></returns>
-            public bool TryPop(string? fieldName, [NotNullWhen(true)] out Schema? schema)
-            {
-                if (!_schemas.TryDequeue(out var s) ||
-                    (fieldName != null && fieldName != s.Item1))
-                {
-                    schema = null;
-                    return false;
-                }
-                schema = s.Item2;
-                return true;
-            }
-
-            /// <summary>
-            /// Try to peek the next schema and field value
-            /// </summary>
-            /// <param name="schema"></param>
-            /// <param name="fieldName"></param>
-            /// <returns></returns>
-            public bool TryPeek(out Schema? schema, out string? fieldName)
-            {
-                var result = _schemas.TryPeek(out var s);
-                fieldName = s.Item1;
-                schema = s.Item2;
-                return result;
-            }
-
-            /// <summary>
-            /// Finalize
-            /// </summary>
-            public bool IsDone()
-            {
-                return _schemas.Count != 0;
-            }
-
-            private readonly Queue<(string?, Schema)> _schemas;
-        }
-
         private readonly AvroBuiltInTypeSchemas _builtIns
             = AvroBuiltInTypeSchemas.Default;
-        private readonly AvroSchemaStack _schema;
-        private readonly AvroDecoder _decoder;
+        private readonly AvroSchemaTraversal _schema;
+        private readonly SchemalessAvroDecoder _decoder;
     }
 }

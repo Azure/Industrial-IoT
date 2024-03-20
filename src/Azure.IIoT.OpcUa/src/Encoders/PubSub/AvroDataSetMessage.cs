@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(AvroSerializer encoder, bool withHeader)
+        internal virtual void Encode(AvroBinaryEncoder encoder, bool withHeader)
         {
             if (withHeader)
             {
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual bool TryDecode(AvroDeserializer decoder, bool withHeader)
+        internal virtual bool TryDecode(AvroBinaryDecoder decoder, bool withHeader)
         {
             // Reset content
             DataSetMessageContentMask = 0;
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write data set message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteDataSetMessageHeader(AvroSerializer encoder)
+        private void WriteDataSetMessageHeader(AvroBinaryEncoder encoder)
         {
             switch (MessageType)
             {
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <returns></returns>
-        bool TryReadDataSetMessageHeader(AvroDeserializer decoder)
+        bool TryReadDataSetMessageHeader(AvroBinaryDecoder decoder)
         {
             var messageType = decoder.ReadString(nameof(MessageType));
             if (messageType != null)

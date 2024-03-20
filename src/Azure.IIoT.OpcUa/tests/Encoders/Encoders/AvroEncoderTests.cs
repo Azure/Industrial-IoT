@@ -27,10 +27,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteBoolean(null, value);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadBoolean(null));
         }
 
@@ -42,10 +42,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteInt64(null, value);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadInt64(null));
         }
 
@@ -58,10 +58,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteUInt64(null, value);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadUInt64(null));
         }
 
@@ -73,10 +73,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteStatusCode(null, value);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadStatusCode(null));
         }
 
@@ -88,10 +88,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteVariant(null, new Variant(value));
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadVariant(null).Value);
         }
 
@@ -103,11 +103,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             var expected = new NodeId(value, ns);
             encoder.WriteNodeId(null, expected);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(expected, decoder.ReadNodeId(null));
         }
 
@@ -120,11 +120,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             var expected = new ExpandedNodeId(value, 0, "test.org", srv);
             encoder.WriteExpandedNodeId(null, expected);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(expected, decoder.ReadExpandedNodeId(null));
         }
 
@@ -133,11 +133,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             var expected = new DataValue();
             encoder.WriteDataValue(null, expected);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(expected, decoder.ReadDataValue(null));
         }
 
@@ -146,10 +146,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var encoder = new AvroEncoder(stream, context, true);
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteDataValue(null, null);
             stream.Position = 0;
-            using var decoder = new AvroDecoder(stream, context);
+            using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.True(Opc.Ua.Utils.IsEqual(new DataValue(),
                 decoder.ReadDataValue(null)));
         }
