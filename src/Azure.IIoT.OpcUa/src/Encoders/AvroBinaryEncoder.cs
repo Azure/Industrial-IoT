@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="schema"></param>
-        internal AvroBinaryEncoder(SchemalessAvroEncoder encoder, Schema schema)
+        internal AvroBinaryEncoder(AvroSchemalessEncoder encoder, Schema schema)
         {
             _encoder = encoder;
             Schema = schema;
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// be left open on dispose.</param>
         public AvroBinaryEncoder(Stream stream, Schema schema,
             IServiceMessageContext context, bool leaveOpen = true) :
-            this(new SchemalessAvroEncoder(stream, context, leaveOpen), schema)
+            this(new AvroSchemalessEncoder(stream, context, leaveOpen), schema)
         {
         }
 
@@ -516,6 +516,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         private readonly NodeIdDictionary<Schema> _schemas = new();
         private readonly AvroBuiltInTypeSchemas _builtIns
             = AvroBuiltInTypeSchemas.Default;
-        private readonly SchemalessAvroEncoder _encoder;
+        private readonly AvroSchemalessEncoder _encoder;
     }
 }

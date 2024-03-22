@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
     /// </summary>
-    internal class JsonBuiltInTypeSchemas : EncodingSchemaBuilder
+    internal class JsonBuiltInTypeSchemas : BuiltInTypeSchemas
     {
         private Schema EnumerationSchema
         {
@@ -74,11 +74,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     // TODO
                 }
 
-                var types = GetPossibleTypes(ValueRanks.Scalar)
-                   .Concat(GetPossibleTypes(ValueRanks.OneDimension))
-                   .Concat(GetPossibleTypes(ValueRanks.TwoDimensions))
-                   .ToList();
-                return UnionSchema.Create(types);
+                var types = AvroUtils.Null.YieldReturn()
+                    .Concat(GetPossibleTypes(ValueRanks.Scalar))
+                    .Concat(GetPossibleTypes(ValueRanks.OneDimension))
+                    .Concat(GetPossibleTypes(ValueRanks.TwoDimensions))
+                    .ToList();
+                return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
+                {
+                    new (AvroUtils.CreateUnion(types), "Value", 0)
+                }, AvroUtils.NamespaceZeroName,
+                    new[] { GetDataTypeId(BuiltInType.Variant) });
 
                 IEnumerable<Schema> GetPossibleTypes(int valueRank)
                 {
@@ -470,7 +475,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         }
 
         /// <inheritdoc/>
-        public override Schema GetExtensionObjectSchema(string name, string ns,
+        public override Schema GetSchemaForExntendableType(string name, string ns,
             string dataTypeId, Schema bodyType)
         {
             var encodingType = EnumSchema.Create("Encoding", new string[]
@@ -489,18 +494,23 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         }
 
         /// <inheritdoc/>
-        public override Schema GetDataSetFieldSchema(string name, Schema valueSchema)
+        public override Schema GetSchemaForDataSetField(string name, bool asDataValue,
+            Schema valueSchema)
         {
-            return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
-                new List<Field>
-                {
-                    new (valueSchema, "Value", 0),
-                    new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
-                    new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
-                    new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
-                    new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
-                    new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
-                });
+            if (asDataValue)
+            {
+                return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
+                    new List<Field>
+                    {
+                        new (valueSchema, "Value", 0),
+                        new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
+                        new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
+                        new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                    }).AsNullable();
+            }
+            return valueSchema;
         }
 
         /// <summary>

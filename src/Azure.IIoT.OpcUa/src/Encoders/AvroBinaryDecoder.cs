@@ -34,10 +34,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="schema"></param>
-        internal AvroBinaryDecoder(SchemalessAvroDecoder decoder, Schema schema)
+        internal AvroBinaryDecoder(AvroSchemalessDecoder decoder, Schema schema)
         {
             Schema = schema;
-            _schema = new AvroSchemaTraversal(schema);
+            _schema = new AvroSchemaTraverser(schema);
             _decoder = decoder;
 
             // Point encodeable decoder to us
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// use for the encoding.</param>
         public AvroBinaryDecoder(Stream stream, Schema schema,
             IServiceMessageContext context) :
-            this(new SchemalessAvroDecoder(stream, context), schema)
+            this(new AvroSchemalessDecoder(stream, context), schema)
         {
         }
 
@@ -630,8 +630,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadArray(string? fieldName, int valueRank, 
-            BuiltInType builtInType, Type? systemType, 
+        public Array? ReadArray(string? fieldName, int valueRank,
+            BuiltInType builtInType, Type? systemType,
             ExpandedNodeId? encodeableTypeId)
         {
             var schema = GetFieldSchema(fieldName);
@@ -687,17 +687,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <exception cref="ServiceResultException"></exception>
         private Schema GetFieldSchema(string? fieldName)
         {
-            if (!_schema.TryPop(fieldName, out var schema))
+            _schema.ExpectedFieldName = fieldName;
+            if (!_schema.TryMoveNext())
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Failed to decode. No schema for field {0]", fieldName);
             }
-            return schema;
+            return _schema.Current;
         }
 
         private readonly AvroBuiltInTypeSchemas _builtIns
             = AvroBuiltInTypeSchemas.Default;
-        private readonly AvroSchemaTraversal _schema;
-        private readonly SchemalessAvroDecoder _decoder;
+        private readonly AvroSchemaTraverser _schema;
+        private readonly AvroSchemalessDecoder _decoder;
     }
 }

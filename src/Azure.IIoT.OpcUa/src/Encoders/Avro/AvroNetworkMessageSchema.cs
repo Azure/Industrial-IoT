@@ -117,12 +117,28 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var nwmHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
 
-            var dataSetMessages = AvroUtils.CreateUnion(dataSetWriters
+            var dataSetMessages = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new AvroDataSetMessageSchema(writer,
-                    dsmHeader, _options).Schema));
+                    dsmHeader, _options).Schema)
+                .ToList();
 
-            var payloadType = ArraySchema.Create(dataSetMessages);
+            if (dataSetMessages.Count == 0)
+            {
+                return AvroUtils.Null;
+            }
+
+            var payloadType = dataSetMessages.Count > 1 ?
+                AvroUtils.CreateUnion(dataSetMessages) : dataSetMessages[0];
+            var singleMessage = contentMask
+                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+
+            if (!singleMessage)
+            {
+                // Could be an array of messages
+                payloadType = ArraySchema.Create(payloadType);
+            }
+
             if (!nwmHeader)
             {
                 // No network message header

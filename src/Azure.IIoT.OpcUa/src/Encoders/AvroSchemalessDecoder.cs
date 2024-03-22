@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Decodes objects from a Avro Binary encoded stream.
     /// </summary>
-    internal sealed class SchemalessAvroDecoder : IDecoder
+    internal sealed class AvroSchemalessDecoder : IDecoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => (EncodingType)3;
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public SchemalessAvroDecoder(Stream stream, IServiceMessageContext context)
+        public AvroSchemalessDecoder(Stream stream, IServiceMessageContext context)
         {
             EncodeableDecoder = this;
             _reader = new AvroBinaryReader(stream)
@@ -248,7 +248,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Node id is not nullable, i=0 is a null node id.
             //
             var namespaceUri = _reader.ReadString();
-            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ? 0u :
+            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ?
+                (ushort)0 :
                 Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
             if (_namespaceMappings != null &&
                 _namespaceMappings.Length > namespaceIndex)
@@ -270,7 +271,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             // ExpandedNode id is not nullable, i=0 is a null node id.
             //
             var namespaceUri = _reader.ReadString();
-            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ? 0u :
+            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ?
+                (ushort)0 :
                 Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
             if (_namespaceMappings != null &&
                 _namespaceMappings.Length > namespaceIndex)
@@ -311,9 +313,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public QualifiedName? ReadQualifiedName(string? fieldName)
         {
-            var namespaceIndex = ReadUInt16(null);
+            var namespaceUri = _reader.ReadString();
             var name = _reader.ReadString();
-            if (_namespaceMappings != null && _namespaceMappings.Length > namespaceIndex)
+
+            var namespaceIndex = string.IsNullOrEmpty(namespaceUri) ?
+                (ushort)0 :
+                Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
+            if (_namespaceMappings != null &&
+                _namespaceMappings.Length > namespaceIndex)
             {
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }

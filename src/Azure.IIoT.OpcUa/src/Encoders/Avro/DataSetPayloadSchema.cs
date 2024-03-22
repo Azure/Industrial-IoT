@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <summary>
         /// Encoding schema for the data set
         /// </summary>
-        internal EncodingSchemaBuilder Encoding { get; }
+        internal BuiltInTypeSchemas Encoding { get; }
 
         /// <summary>
         /// Get avro schema for a dataset
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 NamespaceUris = _options.Namespaces ?? new NamespaceTable()
             };
 
-            Encoding = EncodingSchemaBuilder.GetEncoding(encoding,
+            Encoding = BuiltInTypeSchemas.GetEncodingSchemas(encoding,
                 dataSetFieldContentMask);
 
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
@@ -158,16 +158,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     }
                     else if (fieldName != null)
                     {
-                        if (_fieldsAreDataValues)
-                        {
-                            // Add properties to the field type
-                            schema = Encoding.GetDataSetFieldSchema(
-                                (typeName ?? fieldName) + "DataValue", schema).AsNullable();
-                        }
-                        else
-                        {
-                            schema = schema.AsNullable();
-                        }
+                        // TODO: Add properties to the field type
+                        schema = Encoding.GetSchemaForDataSetField(
+                            (typeName ?? fieldName) + "DataValue", _fieldsAreDataValues, schema);
+
                         fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
                 }

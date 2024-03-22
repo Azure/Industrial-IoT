@@ -13,9 +13,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     using System;
 
     /// <summary>
-    /// Represents a encoding as per part 6 of the OPC UA specification
+    /// Represents schemas for the encoding of the built in types
+    /// as per part 6 of the OPC UA specification.
     /// </summary>
-    internal abstract class EncodingSchemaBuilder
+    internal abstract class BuiltInTypeSchemas
     {
         /// <summary>
         /// Get the respective encoding
@@ -24,8 +25,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="fieldMask"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static EncodingSchemaBuilder GetEncoding(MessageEncoding? encoding,
-            DataSetFieldFieldMask? fieldMask)
+        public static BuiltInTypeSchemas GetEncodingSchemas(
+            MessageEncoding? encoding, DataSetFieldFieldMask? fieldMask)
         {
             if (encoding?.HasFlag(MessageEncoding.Json) != false)
             {
@@ -35,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             {
                 return AvroBuiltInTypeSchemas.Default;
             }
-            throw new NotSupportedException("Encoding not yet supported");
+            throw new NotSupportedException(
+                $"Encoding {encoding} not yet supported!");
         }
 
         /// <summary>
@@ -54,20 +56,24 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// identifer
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="asDataValue"></param>
         /// <param name="valueSchema"></param>
         /// <returns></returns>
-        public abstract Schema GetDataSetFieldSchema(
-            string name, Schema valueSchema);
+        public abstract Schema GetSchemaForDataSetField(
+            string name, bool asDataValue, Schema valueSchema);
 
         /// <summary>
-        /// Get extension object schema
+        /// Get the schema definition for a type that can
+        /// be any type in a hierarchy extension object
+        /// schema
         /// </summary>
         /// <param name="name"></param>
         /// <param name="ns"></param>
         /// <param name="dataTypeId"></param>
         /// <param name="bodyType"></param>
         /// <returns></returns>
-        public abstract Schema GetExtensionObjectSchema(string name,
-            string ns, string dataTypeId, Schema bodyType);
+        public abstract Schema GetSchemaForExntendableType(
+            string name, string ns, string dataTypeId,
+            Schema bodyType);
     }
 }
