@@ -259,8 +259,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             }
 
             schema ??= GetBuiltInDataTypeSchema(dataType, valueRank, out name);
-            return schema != null ? schema
-                : throw new ArgumentException($"No Schema found for {dataType}");
+            return schema
+                ?? throw new ArgumentException($"No Schema found for {dataType}");
 
             Schema? GetBuiltInDataTypeSchema(string dataType, int valueRank,
                 out string? name)

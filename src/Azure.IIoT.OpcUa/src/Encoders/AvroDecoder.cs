@@ -18,31 +18,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// Decodes objects from underlying decoder using a provided
     /// Avro schema. Validation errors throw.
     /// </summary>
-    public sealed class AvroBinaryDecoder : IDecoder
+    public sealed class AvroDecoder : BaseAvroDecoder
     {
         /// <inheritdoc/>
-        public EncodingType EncodingType => _decoder.EncodingType;
-
-        /// <inheritdoc/>
-        public IServiceMessageContext Context => _decoder.Context;
-
-        /// <inheritdoc/>
         public Schema Schema { get; }
-
-        /// <summary>
-        /// Create avro schema decoder
-        /// </summary>
-        /// <param name="decoder"></param>
-        /// <param name="schema"></param>
-        internal AvroBinaryDecoder(AvroSchemalessDecoder decoder, Schema schema)
-        {
-            Schema = schema;
-            _schema = new AvroSchemaTraverser(schema);
-            _decoder = decoder;
-
-            // Point encodeable decoder to us
-            _decoder.EncodeableDecoder = this;
-        }
 
         /// <summary>
         /// Creates a decoder that decodes the data from the
@@ -53,199 +32,170 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="schema"></param>
         /// <param name="context">The message context to
         /// use for the encoding.</param>
-        public AvroBinaryDecoder(Stream stream, Schema schema,
+        public AvroDecoder(Stream stream, Schema schema,
             IServiceMessageContext context) :
-            this(new AvroSchemalessDecoder(stream, context), schema)
+            base(stream, context)
         {
+            Schema = schema;
+            _schema = new AvroSchemaTraverser(schema);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            _decoder.Dispose();
-        }
-
-        /// <inheritdoc/>
-        public void Close()
-        {
-            _decoder.Close();
-        }
-
-        /// <inheritdoc/>
-        public void PushNamespace(string namespaceUri)
-        {
-            _decoder.PushNamespace(namespaceUri);
-        }
-
-        /// <inheritdoc/>
-        public void PopNamespace()
-        {
-            _decoder.PopNamespace();
-        }
-
-        /// <inheritdoc/>
-        public void SetMappingTables(NamespaceTable? namespaceUris,
-            StringTable? serverUris)
-        {
-            _decoder.SetMappingTables(namespaceUris, serverUris);
-        }
-
-        /// <inheritdoc/>
-        public bool ReadBoolean(string? fieldName)
+        public override bool ReadBoolean(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Boolean,
-                _decoder.ReadBoolean);
+                base.ReadBoolean);
         }
 
         /// <inheritdoc/>
-        public sbyte ReadSByte(string? fieldName)
+        public override sbyte ReadSByte(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.SByte,
-                _decoder.ReadSByte);
+                base.ReadSByte);
         }
 
         /// <inheritdoc/>
-        public byte ReadByte(string? fieldName)
+        public override byte ReadByte(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Byte,
-                _decoder.ReadByte);
+                base.ReadByte);
         }
 
         /// <inheritdoc/>
-        public short ReadInt16(string? fieldName)
+        public override short ReadInt16(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int16,
-                _decoder.ReadInt16);
+                base.ReadInt16);
         }
 
         /// <inheritdoc/>
-        public ushort ReadUInt16(string? fieldName)
+        public override ushort ReadUInt16(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt16,
-                _decoder.ReadUInt16);
+                base.ReadUInt16);
         }
 
         /// <inheritdoc/>
-        public int ReadInt32(string? fieldName)
+        public override int ReadInt32(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int32,
-                _decoder.ReadInt32);
+                base.ReadInt32);
         }
 
         /// <inheritdoc/>
-        public uint ReadUInt32(string? fieldName)
+        public override uint ReadUInt32(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt32,
-                _decoder.ReadUInt32);
+                base.ReadUInt32);
         }
 
         /// <inheritdoc/>
-        public long ReadInt64(string? fieldName)
+        public override long ReadInt64(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int64,
-                _decoder.ReadUInt32);
+                base.ReadInt64);
         }
 
         /// <inheritdoc/>
-        public float ReadFloat(string? fieldName)
+        public override float ReadFloat(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Float,
-                _decoder.ReadFloat);
+                base.ReadFloat);
         }
 
         /// <inheritdoc/>
-        public double ReadDouble(string? fieldName)
+        public override double ReadDouble(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Double,
-                _decoder.ReadDouble);
+                base.ReadDouble);
         }
 
         /// <inheritdoc/>
-        public Uuid ReadGuid(string? fieldName)
+        public override Uuid ReadGuid(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Guid,
-                _decoder.ReadGuid);
+                base.ReadGuid);
         }
 
         /// <inheritdoc/>
-        public string? ReadString(string? fieldName)
+        public override string? ReadString(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.String,
-                _decoder.ReadString);
+                base.ReadString);
         }
 
         /// <inheritdoc/>
-        public ulong ReadUInt64(string? fieldName)
+        public override ulong ReadUInt64(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt64,
-                _decoder.ReadUInt64);
+                base.ReadUInt64);
         }
 
         /// <inheritdoc/>
-        public DateTime ReadDateTime(string? fieldName)
+        public override DateTime ReadDateTime(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DateTime,
-                _decoder.ReadDateTime);
+                base.ReadDateTime);
         }
 
         /// <inheritdoc/>
-        public byte[]? ReadByteString(string? fieldName)
+        public override byte[] ReadByteString(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ByteString,
-                _decoder.ReadByteString);
+                base.ReadByteString);
         }
 
         /// <inheritdoc/>
-        public XmlElement? ReadXmlElement(string? fieldName)
+        public override XmlElement ReadXmlElement(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.XmlElement,
-                _decoder.ReadXmlElement);
+                base.ReadXmlElement);
         }
 
         /// <inheritdoc/>
-        public StatusCode ReadStatusCode(string? fieldName)
+        public override StatusCode ReadStatusCode(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.StatusCode,
-                _decoder.ReadStatusCode);
+                base.ReadStatusCode);
         }
 
         /// <inheritdoc/>
-        public NodeId ReadNodeId(string? fieldName)
+        public override NodeId ReadNodeId(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.NodeId,
-                _decoder.ReadNodeId);
+                base.ReadNodeId);
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeId ReadExpandedNodeId(string? fieldName)
+        public override ExpandedNodeId ReadExpandedNodeId(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.NodeId,
-                _decoder.ReadExpandedNodeId);
+            return ValidatedRead(fieldName, BuiltInType.ExpandedNodeId,
+                base.ReadExpandedNodeId);
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfo? ReadDiagnosticInfo(string? fieldName)
+        public override DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               _decoder.ReadDiagnosticInfo);
+               base.ReadDiagnosticInfo);
         }
 
         /// <inheritdoc/>
-        public QualifiedName? ReadQualifiedName(string? fieldName)
+        public override QualifiedName ReadQualifiedName(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.QualifiedName,
-               _decoder.ReadQualifiedName);
+               base.ReadQualifiedName);
         }
 
         /// <inheritdoc/>
-        public LocalizedText? ReadLocalizedText(string? fieldName)
+        public override LocalizedText ReadLocalizedText(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               _decoder.ReadLocalizedText);
+               base.ReadLocalizedText);
         }
 
         /// <inheritdoc/>
-        public DataValue? ReadDataValue(string? fieldName)
+        public override DataValue ReadDataValue(string? fieldName)
         {
             // TODO: we will have data value schemas where the 
             // Value is not a variant schema. Those are named
@@ -256,11 +206,11 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             // The schema should be a data value schema
 
-            return _decoder.ReadDataValue(fieldName);
+            return base.ReadDataValue(fieldName);
         }
 
         /// <inheritdoc/>
-        public Variant ReadVariant(string? fieldName)
+        public override Variant ReadVariant(string? fieldName)
         {
             var schema = GetFieldSchema(fieldName);
 
@@ -268,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 builtInType == BuiltInType.Variant)
             {
                 // If it is a original variant - we pass through or it is a built in type
-                return _decoder.ReadVariant(fieldName);
+                return base.ReadVariant(fieldName);
             }
 
             // Record? Matrix are arrays with array dimension field
@@ -304,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "Schema is not a built in schema");
             }
 
-            return _decoder.ReadVariantValue(builtInType, isArray, isMatrix);
+            return base.ReadVariantValue(builtInType, isArray, isMatrix);
         }
 
         /// <inheritdoc/>
@@ -364,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string? fieldName, Type systemType,
+        public override IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             var schema = GetFieldSchema(fieldName);
@@ -374,11 +324,11 @@ namespace Azure.IIoT.OpcUa.Encoders
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Encodeable schema {0} should be a record.", schema);
             }
-            return _decoder.ReadEncodeable(fieldName, systemType, encodeableTypeId);
+            return base.ReadEncodeable(fieldName, systemType, encodeableTypeId);
         }
 
         /// <inheritdoc/>
-        public ExtensionObject? ReadExtensionObject(string? fieldName)
+        public override ExtensionObject? ReadExtensionObject(string? fieldName)
         {
             //
             // Extension objects can be either fully encoded extension objects or
@@ -395,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (builtInType == BuiltInType.ExtensionObject)
                 {
                     // The schema is a extension object schema so we decode as such
-                    return _decoder.ReadExtensionObject(fieldName);
+                    return base.ReadExtensionObject(fieldName);
                 }
 
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
@@ -426,226 +376,227 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Enum ReadEnumerated(string? fieldName, Type enumType)
+        public override Enum ReadEnumerated(string? fieldName, Type enumType)
         {
             // TODO:
             var schema = GetFieldSchema(fieldName);
 
-            return _decoder.ReadEnumerated(fieldName, enumType);
+            return base.ReadEnumerated(fieldName, enumType);
         }
 
         /// <inheritdoc/>
-        public BooleanCollection? ReadBooleanArray(string? fieldName)
+        public override BooleanCollection ReadBooleanArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadBooleanArray, ValueRanks.OneDimension);
+               base.ReadBooleanArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public SByteCollection? ReadSByteArray(string? fieldName)
+        public override SByteCollection ReadSByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.SByte,
-               _decoder.ReadSByteArray, ValueRanks.OneDimension);
+               base.ReadSByteArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public ByteCollection? ReadByteArray(string? fieldName)
+        public override ByteCollection ReadByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Byte,
-               _decoder.ReadByteArray, ValueRanks.OneDimension);
+               base.ReadByteArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public Int16Collection? ReadInt16Array(string? fieldName)
+        public override Int16Collection ReadInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int16,
-               _decoder.ReadInt16Array, ValueRanks.OneDimension);
+               base.ReadInt16Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public UInt16Collection? ReadUInt16Array(string? fieldName)
+        public override UInt16Collection ReadUInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt16,
-              _decoder.ReadUInt16Array, ValueRanks.OneDimension);
+              base.ReadUInt16Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public Int32Collection? ReadInt32Array(string? fieldName)
+        public override Int32Collection ReadInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int32,
-               _decoder.ReadInt32Array, ValueRanks.OneDimension);
+               base.ReadInt32Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public UInt32Collection? ReadUInt32Array(string? fieldName)
+        public override UInt32Collection ReadUInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt32,
-               _decoder.ReadUInt32Array, ValueRanks.OneDimension);
+               base.ReadUInt32Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public Int64Collection? ReadInt64Array(string? fieldName)
+        public override Int64Collection ReadInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int64,
-               _decoder.ReadInt64Array, ValueRanks.OneDimension);
+               base.ReadInt64Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public UInt64Collection? ReadUInt64Array(string? fieldName)
+        public override UInt64Collection ReadUInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt64,
-               _decoder.ReadUInt64Array, ValueRanks.OneDimension);
+               base.ReadUInt64Array, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public FloatCollection? ReadFloatArray(string? fieldName)
+        public override FloatCollection ReadFloatArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Float,
-               _decoder.ReadFloatArray, ValueRanks.OneDimension);
+               base.ReadFloatArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public DoubleCollection? ReadDoubleArray(string? fieldName)
+        public override DoubleCollection ReadDoubleArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Double,
-               _decoder.ReadDoubleArray, ValueRanks.OneDimension);
+               base.ReadDoubleArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public StringCollection? ReadStringArray(string? fieldName)
+        public override StringCollection ReadStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.String,
-               _decoder.ReadStringArray, ValueRanks.OneDimension);
+               base.ReadStringArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public DateTimeCollection? ReadDateTimeArray(string? fieldName)
+        public override DateTimeCollection ReadDateTimeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DateTime,
-               _decoder.ReadDateTimeArray, ValueRanks.OneDimension);
+               base.ReadDateTimeArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public UuidCollection? ReadGuidArray(string? fieldName)
+        public override UuidCollection ReadGuidArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Guid,
-               _decoder.ReadGuidArray, ValueRanks.OneDimension);
+               base.ReadGuidArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public ByteStringCollection? ReadByteStringArray(string? fieldName)
+        public override ByteStringCollection ReadByteStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ByteString,
-               _decoder.ReadByteStringArray, ValueRanks.OneDimension);
+               base.ReadByteStringArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public XmlElementCollection? ReadXmlElementArray(string? fieldName)
+        public override XmlElementCollection ReadXmlElementArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.XmlElement,
-               _decoder.ReadXmlElementArray, ValueRanks.OneDimension);
+               base.ReadXmlElementArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public NodeIdCollection? ReadNodeIdArray(string? fieldName)
+        public override NodeIdCollection ReadNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.NodeId,
-               _decoder.ReadNodeIdArray, ValueRanks.OneDimension);
+               base.ReadNodeIdArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeIdCollection? ReadExpandedNodeIdArray(string? fieldName)
+        public override ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ExpandedNodeId,
-               _decoder.ReadExpandedNodeIdArray, ValueRanks.OneDimension);
+               base.ReadExpandedNodeIdArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public StatusCodeCollection? ReadStatusCodeArray(string? fieldName)
+        public override StatusCodeCollection ReadStatusCodeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.StatusCode,
-               _decoder.ReadStatusCodeArray, ValueRanks.OneDimension);
+               base.ReadStatusCodeArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfoCollection? ReadDiagnosticInfoArray(string? fieldName)
+        public override DiagnosticInfoCollection ReadDiagnosticInfoArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               _decoder.ReadDiagnosticInfoArray, ValueRanks.OneDimension);
+               base.ReadDiagnosticInfoArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public QualifiedNameCollection? ReadQualifiedNameArray(string? fieldName)
+        public override QualifiedNameCollection ReadQualifiedNameArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Boolean,
-               _decoder.ReadQualifiedNameArray, ValueRanks.OneDimension);
+            return ValidatedRead(fieldName, BuiltInType.QualifiedName,
+               base.ReadQualifiedNameArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public LocalizedTextCollection? ReadLocalizedTextArray(string? fieldName)
+        public override LocalizedTextCollection ReadLocalizedTextArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               _decoder.ReadLocalizedTextArray, ValueRanks.OneDimension);
+               base.ReadLocalizedTextArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public VariantCollection? ReadVariantArray(string? fieldName)
+        public override VariantCollection ReadVariantArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Variant,
-               _decoder.ReadVariantArray, ValueRanks.OneDimension);
+               base.ReadVariantArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public DataValueCollection? ReadDataValueArray(string? fieldName)
+        public override DataValueCollection ReadDataValueArray(string? fieldName)
         {
             // TODO
             return ValidatedRead(fieldName, BuiltInType.DataValue,
-               _decoder.ReadDataValueArray, ValueRanks.OneDimension);
+               base.ReadDataValueArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public ExtensionObjectCollection? ReadExtensionObjectArray(string? fieldName)
+        public override ExtensionObjectCollection ReadExtensionObjectArray(string? fieldName)
         {
             // TODO
             return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
-               _decoder.ReadExtensionObjectArray, ValueRanks.OneDimension);
+               base.ReadExtensionObjectArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
-        public Array? ReadEncodeableArray(string? fieldName, Type systemType,
+        public override Array? ReadEncodeableArray(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId)
         {
             // TODO
             var schema = GetFieldSchema(fieldName);
-            return _decoder.ReadEncodeableArray(fieldName, systemType,
+            return base.ReadEncodeableArray(fieldName, systemType,
                 encodeableTypeId);
         }
 
         /// <inheritdoc/>
-        public Array? ReadEnumeratedArray(string? fieldName, Type enumType)
+        public override Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
             // TODO
             var schema = GetFieldSchema(fieldName);
-            return _decoder.ReadEnumeratedArray(fieldName, enumType);
+            return base.ReadEnumeratedArray(fieldName, enumType);
         }
 
         /// <inheritdoc/>
-        public Array? ReadArray(string? fieldName, int valueRank,
+        public override Array? ReadArray(string? fieldName, int valueRank,
             BuiltInType builtInType, Type? systemType,
             ExpandedNodeId? encodeableTypeId)
         {
-            var schema = GetFieldSchema(fieldName);
-            // TODO
-            return _decoder.ReadArray(fieldName, valueRank, builtInType,
+            return base.ReadArray(fieldName, valueRank, builtInType,
                 systemType, encodeableTypeId);
         }
 
         /// <inheritdoc/>
-        public T[] ReadCollection<T>(string? fieldName, Func<T> reader)
+        public override T[] ReadCollection<T>(string? fieldName, Func<T> reader)
         {
-            var schema = GetFieldSchema(fieldName);
-            // TODO
-            return _decoder.ReadCollection(reader);
+            GetFieldSchema(fieldName);
+            return base.ReadCollection(fieldName, () =>
+            {
+                _schema.ExpectArrayItem = true;
+                return reader();
+            });
         }
 
         /// <summary>
@@ -691,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (!_schema.TryMoveNext())
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to decode. No schema for field {0]", fieldName);
+                    "Failed to decode. No schema for field {0}", fieldName ?? string.Empty);
             }
             return _schema.Current;
         }
@@ -699,6 +650,17 @@ namespace Azure.IIoT.OpcUa.Encoders
         private readonly AvroBuiltInTypeSchemas _builtIns
             = AvroBuiltInTypeSchemas.Default;
         private readonly AvroSchemaTraverser _schema;
-        private readonly AvroSchemalessDecoder _decoder;
+    }
+
+    /// <summary>
+    /// Schemaless avro decoder
+    /// </summary>
+    internal sealed class SchemalessAvroDecoder : BaseAvroDecoder
+    {
+        /// <inheritdoc/>
+        public SchemalessAvroDecoder(Stream stream,
+            IServiceMessageContext context) : base(stream, context)
+        {
+        }
     }
 }

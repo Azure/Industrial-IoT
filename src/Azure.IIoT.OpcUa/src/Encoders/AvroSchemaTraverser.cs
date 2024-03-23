@@ -79,6 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Allows to pop travers from stack
         /// </summary>
+        /// <param name="traverser"></param>
         private bool TryPop(Traverser traverser)
         {
             var top = _schemas.Pop();

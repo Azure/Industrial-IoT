@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Encodes objects in a stream using Avro binary encoding.
     /// </summary>
-    internal sealed class AvroSchemalessEncoder : IEncoder
+    public abstract class BaseAvroEncoder : IEncoder
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => (EncodingType)3;
@@ -33,11 +33,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         public bool UseReversibleEncoding => true;
 
         /// <summary>
-        /// Outer encoders need a way to get encodeables to use it.
-        /// </summary>
-        public IEncoder EncodeableEncoder { get; set; }
-
-        /// <summary>
         /// Creates an encoder that writes to the stream.
         /// </summary>
         /// <param name="stream">The stream to which the
@@ -46,10 +41,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// use for the encoding.</param>
         /// <param name="leaveOpen">If the stream should
         /// be left open on dispose.</param>
-        public AvroSchemalessEncoder(Stream stream,
+        protected BaseAvroEncoder(Stream stream,
             IServiceMessageContext context, bool leaveOpen = true)
         {
-            EncodeableEncoder = this;
             _writer = new AvroBinaryWriter(stream);
             Context = context;
             _leaveOpen = leaveOpen;
@@ -59,7 +53,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (!_leaveOpen)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc/>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_leaveOpen && disposing)
             {
                 _writer.Dispose();
             }
@@ -114,55 +115,55 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteBoolean(string? fieldName, bool value)
+        public virtual void WriteBoolean(string? fieldName, bool value)
         {
             _writer.WriteBoolean(value);
         }
 
         /// <inheritdoc/>
-        public void WriteSByte(string? fieldName, sbyte value)
+        public virtual void WriteSByte(string? fieldName, sbyte value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteByte(string? fieldName, byte value)
+        public virtual void WriteByte(string? fieldName, byte value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt16(string? fieldName, short value)
+        public virtual void WriteInt16(string? fieldName, short value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt16(string? fieldName, ushort value)
+        public virtual void WriteUInt16(string? fieldName, ushort value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt32(string? fieldName, int value)
+        public virtual void WriteInt32(string? fieldName, int value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt32(string? fieldName, uint value)
+        public virtual void WriteUInt32(string? fieldName, uint value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteInt64(string? fieldName, long value)
+        public virtual void WriteInt64(string? fieldName, long value)
         {
             _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
-        public void WriteUInt64(string? fieldName, ulong value)
+        public virtual void WriteUInt64(string? fieldName, ulong value)
         {
             // ulong is a union of long and fixed (> long.max)
             if (value < long.MaxValue)
@@ -180,19 +181,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteFloat(string? fieldName, float value)
+        public virtual void WriteFloat(string? fieldName, float value)
         {
             _writer.WriteFloat(value);
         }
 
         /// <inheritdoc/>
-        public void WriteDouble(string? fieldName, double value)
+        public virtual void WriteDouble(string? fieldName, double value)
         {
             _writer.WriteDouble(value);
         }
 
         /// <inheritdoc/>
-        public void WriteDateTime(string? fieldName, DateTime value)
+        public virtual void WriteDateTime(string? fieldName, DateTime value)
         {
             value = Opc.Ua.Utils.ToOpcUaUniversalTime(value);
             var ticks = value.Ticks;
@@ -216,19 +217,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string? fieldName, Uuid value)
+        public virtual void WriteGuid(string? fieldName, Uuid value)
         {
             _writer.WriteFixed(((Guid)value).ToByteArray());
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string? fieldName, Guid value)
+        public virtual void WriteGuid(string? fieldName, Guid value)
         {
             _writer.WriteFixed(value.ToByteArray());
         }
 
         /// <inheritdoc/>
-        public void WriteString(string? fieldName, string? value)
+        public virtual void WriteString(string? fieldName, string? value)
         {
             if (value == null)
             {
@@ -239,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteByteString(string? fieldName, byte[]? value)
+        public virtual void WriteByteString(string? fieldName, byte[]? value)
         {
             if (value == null)
             {
@@ -260,13 +261,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteXmlElement(string? fieldName, XmlElement? value)
+        public virtual void WriteXmlElement(string? fieldName, XmlElement? value)
         {
              _writer.WriteString(value?.OuterXml ?? string.Empty);
         }
 
         /// <inheritdoc/>
-        public void WriteDataSet(DataSet dataSet)
+        public virtual void WriteDataSet(string? fieldName, DataSet dataSet)
         {
             var fieldContentMask = dataSet.DataSetFieldContentMask;
             if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
@@ -277,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 //
                 // Write array of raw variant
                 //
-                WriteArray(dataSet.Values
+                WriteArray(fieldName, dataSet.Values
                     .Select(v => v?.WrappedValue ?? default)
                     .ToList(),
                         v => WriteVariant(null, v));
@@ -289,14 +290,14 @@ namespace Azure.IIoT.OpcUa.Encoders
                 //
                 // Write array of data values
                 //
-                WriteArray(dataSet.Values
+                WriteArray(fieldName, dataSet.Values
                     .ToList(),
                         v => WriteDataValue(null, v));
             }
         }
 
         /// <inheritdoc/>
-        public void WriteNodeId(string? fieldName, NodeId? value)
+        public virtual void WriteNodeId(string? fieldName, NodeId? value)
         {
             //
             // Node id is a record, with namespace and union of
@@ -350,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeId(string? fieldName,
+        public virtual void WriteExpandedNodeId(string? fieldName,
             ExpandedNodeId? value)
         {
             var serverIndex = value?.ServerIndex ?? 0;
@@ -388,19 +389,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteStatusCode(string? fieldName, StatusCode value)
+        public virtual void WriteStatusCode(string? fieldName, StatusCode value)
         {
             _writer.WriteInteger(value.Code);
         }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo? value)
+        public virtual void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo? value)
         {
             WriteDiagnosticInfo(value ?? new DiagnosticInfo(), 0);
         }
 
         /// <inheritdoc/>
-        public void WriteQualifiedName(string? fieldName, QualifiedName? value)
+        public virtual void WriteQualifiedName(string? fieldName, QualifiedName? value)
         {
             var namespaceIndex = value?.NamespaceIndex ?? 0;
             if (_namespaceMappings != null &&
@@ -416,14 +417,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteLocalizedText(string? fieldName, LocalizedText? value)
+        public virtual void WriteLocalizedText(string? fieldName, LocalizedText? value)
         {
             _writer.WriteString(value?.Locale ?? string.Empty);
             _writer.WriteString(value?.Text ?? string.Empty);
         }
 
         /// <inheritdoc/>
-        public void WriteVariant(string? fieldName, Variant value)
+        public virtual void WriteVariant(string? fieldName, Variant value)
         {
             CheckAndIncrementNestingLevel();
             try
@@ -437,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteDataValue(string? fieldName, DataValue? value)
+        public virtual void WriteDataValue(string? fieldName, DataValue? value)
         {
             // record of fields
             value ??= new DataValue();
@@ -450,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteExtensionObject(string? fieldName, ExtensionObject? value)
+        public virtual void WriteExtensionObject(string? fieldName, ExtensionObject? value)
         {
             value ??= new ExtensionObject();
             var encodeable = value.Body as IEncodeable;
@@ -500,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (encodeable != null)
             {
                 _writer.WriteInteger(1);
-                encodeable.Encode(EncodeableEncoder);
+                encodeable.Encode(this);
                 return;
             }
 
@@ -530,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeable(string? fieldName, IEncodeable? value,
+        public virtual void WriteEncodeable(string? fieldName, IEncodeable? value,
             Type? systemType)
         {
             CheckAndIncrementNestingLevel();
@@ -542,7 +543,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     value = Activator.CreateInstance(systemType) as IEncodeable;
                 }
                 // encode the object.
-                value?.Encode(EncodeableEncoder);
+                value?.Encode(this);
             }
             finally
             {
@@ -551,204 +552,204 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteEnumerated(string? fieldName, Enum? value)
+        public virtual void WriteEnumerated(string? fieldName, Enum? value)
         {
             _writer.WriteInteger(Convert.ToInt32(value,
                 CultureInfo.InvariantCulture));
         }
 
         /// <inheritdoc/>
-        public void WriteBooleanArray(string? fieldName,
+        public virtual void WriteBooleanArray(string? fieldName,
             IList<bool>? values)
         {
-            WriteArray(values, v => WriteBoolean(null, v));
+            WriteArray(fieldName, values, v => WriteBoolean(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteSByteArray(string? fieldName,
+        public virtual void WriteSByteArray(string? fieldName,
             IList<sbyte>? values)
         {
-            WriteArray(values, v => WriteSByte(null, v));
+            WriteArray(fieldName, values, v => WriteSByte(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteByteArray(string? fieldName,
+        public virtual void WriteByteArray(string? fieldName,
             IList<byte>? values)
         {
-            WriteArray(values, v => WriteByte(null, v));
+            WriteArray(fieldName, values, v => WriteByte(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt16Array(string? fieldName,
+        public virtual void WriteInt16Array(string? fieldName,
             IList<short>? values)
         {
-            WriteArray(values, v => WriteInt16(null, v));
+            WriteArray(fieldName, values, v => WriteInt16(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt16Array(string? fieldName,
+        public virtual void WriteUInt16Array(string? fieldName,
             IList<ushort>? values)
         {
-            WriteArray(values, v => WriteUInt16(null, v));
+            WriteArray(fieldName, values, v => WriteUInt16(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt32Array(string? fieldName,
+        public virtual void WriteInt32Array(string? fieldName,
             IList<int>? values)
         {
-            WriteArray(values, v => WriteInt32(null, v));
+            WriteArray(fieldName, values, v => WriteInt32(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt32Array(string? fieldName,
+        public virtual void WriteUInt32Array(string? fieldName,
             IList<uint>? values)
         {
-            WriteArray(values, v => WriteUInt32(null, v));
+            WriteArray(fieldName, values, v => WriteUInt32(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt64Array(string? fieldName,
+        public virtual void WriteInt64Array(string? fieldName,
             IList<long>? values)
         {
-            WriteArray(values, v => WriteInt64(null, v));
+            WriteArray(fieldName, values, v => WriteInt64(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt64Array(string? fieldName,
+        public virtual void WriteUInt64Array(string? fieldName,
             IList<ulong>? values)
         {
-            WriteArray(values, v => WriteUInt64(null, v));
+            WriteArray(fieldName, values, v => WriteUInt64(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteFloatArray(string? fieldName,
+        public virtual void WriteFloatArray(string? fieldName,
             IList<float>? values)
         {
-            WriteArray(values, v => WriteFloat(null, v));
+            WriteArray(fieldName, values, v => WriteFloat(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDoubleArray(string? fieldName,
+        public virtual void WriteDoubleArray(string? fieldName,
             IList<double>? values)
         {
-            WriteArray(values, v => WriteDouble(null, v));
+            WriteArray(fieldName, values, v => WriteDouble(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteStringArray(string? fieldName,
+        public virtual void WriteStringArray(string? fieldName,
             IList<string?>? values)
         {
-            WriteArray(values, v => WriteString(null, v));
+            WriteArray(fieldName, values, v => WriteString(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDateTimeArray(string? fieldName,
+        public virtual void WriteDateTimeArray(string? fieldName,
             IList<DateTime>? values)
         {
-            WriteArray(values, v => WriteDateTime(null, v));
+            WriteArray(fieldName, values, v => WriteDateTime(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string? fieldName,
+        public virtual void WriteGuidArray(string? fieldName,
             IList<Uuid>? values)
         {
-            WriteArray(values, v => WriteGuid(null, v));
+            WriteArray(fieldName, values, v => WriteGuid(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string? fieldName,
+        public virtual void WriteGuidArray(string? fieldName,
             IList<Guid>? values)
         {
-            WriteArray(values, v => WriteGuid(null, v));
+            WriteArray(fieldName, values, v => WriteGuid(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteByteStringArray(string? fieldName,
+        public virtual void WriteByteStringArray(string? fieldName,
             IList<byte[]?>? values)
         {
-            WriteArray(values, v => WriteByteString(null, v));
+            WriteArray(fieldName, values, v => WriteByteString(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteXmlElementArray(string? fieldName,
+        public virtual void WriteXmlElementArray(string? fieldName,
             IList<XmlElement?>? values)
         {
-            WriteArray(values, v => WriteXmlElement(null, v));
+            WriteArray(fieldName, values, v => WriteXmlElement(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteNodeIdArray(string? fieldName,
+        public virtual void WriteNodeIdArray(string? fieldName,
             IList<NodeId?>? values)
         {
-            WriteArray(values, v => WriteNodeId(null, v));
+            WriteArray(fieldName, values, v => WriteNodeId(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeIdArray(string? fieldName,
+        public virtual void WriteExpandedNodeIdArray(string? fieldName,
             IList<ExpandedNodeId?>? values)
         {
-            WriteArray(values, v => WriteExpandedNodeId(null, v));
+            WriteArray(fieldName, values, v => WriteExpandedNodeId(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteStatusCodeArray(string? fieldName,
+        public virtual void WriteStatusCodeArray(string? fieldName,
             IList<StatusCode>? values)
         {
-            WriteArray(values, v => WriteStatusCode(null, v));
+            WriteArray(fieldName, values, v => WriteStatusCode(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfoArray(string? fieldName,
+        public virtual void WriteDiagnosticInfoArray(string? fieldName,
             IList<DiagnosticInfo?>? values)
         {
-            WriteArray(values, v => WriteDiagnosticInfo(null, v));
+            WriteArray(fieldName, values, v => WriteDiagnosticInfo(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteQualifiedNameArray(string? fieldName,
+        public virtual void WriteQualifiedNameArray(string? fieldName,
             IList<QualifiedName?>? values)
         {
-            WriteArray(values, v => WriteQualifiedName(null, v));
+            WriteArray(fieldName, values, v => WriteQualifiedName(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteLocalizedTextArray(string? fieldName,
+        public virtual void WriteLocalizedTextArray(string? fieldName,
             IList<LocalizedText?>? values)
         {
-            WriteArray(values, v => WriteLocalizedText(null, v));
+            WriteArray(fieldName, values, v => WriteLocalizedText(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteVariantArray(string? fieldName,
+        public virtual void WriteVariantArray(string? fieldName,
             IList<Variant>? values)
         {
-            WriteArray(values, v => WriteVariant(null, v));
+            WriteArray(fieldName, values, v => WriteVariant(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDataValueArray(string? fieldName,
+        public virtual void WriteDataValueArray(string? fieldName,
             IList<DataValue?>? values)
         {
-            WriteArray(values, v => WriteDataValue(null, v));
+            WriteArray(fieldName, values, v => WriteDataValue(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteExtensionObjectArray(string? fieldName,
+        public virtual void WriteExtensionObjectArray(string? fieldName,
             IList<ExtensionObject?>? values)
         {
-            WriteArray(values, v => WriteExtensionObject(null, v));
+            WriteArray(fieldName, values, v => WriteExtensionObject(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeableArray(string? fieldName,
+        public virtual void WriteEncodeableArray(string? fieldName,
             IList<IEncodeable>? values, Type? systemType)
         {
-            WriteArray(values, v => WriteEncodeable(null, v, systemType));
+            WriteArray(fieldName, values, v => WriteEncodeable(null, v, systemType));
         }
 
         /// <inheritdoc/>
-        public void WriteEnumeratedArray(string? fieldName,
-            Array? values, Type systemType)
+        public virtual void WriteEnumeratedArray(string? fieldName,
+            Array? values, Type? systemType)
         {
             if (values == null)
             {
@@ -771,7 +772,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteArray(string? fieldName, object array,
+        public virtual void WriteArray(string? fieldName, object array,
             int valueRank, BuiltInType builtInType)
         {
             if (valueRank == ValueRanks.OneDimension)
@@ -779,67 +780,67 @@ namespace Azure.IIoT.OpcUa.Encoders
                 switch (builtInType)
                 {
                     case BuiltInType.Boolean:
-                        WriteArray((bool[])array, v => WriteBoolean(null, v));
+                        WriteArray(fieldName, (bool[])array, v => WriteBoolean(null, v));
                         break;
                     case BuiltInType.SByte:
-                        WriteArray((sbyte[])array, v => WriteSByte(null, v));
+                        WriteArray(fieldName, (sbyte[])array, v => WriteSByte(null, v));
                         break;
                     case BuiltInType.Byte:
-                        WriteArray((byte[])array, v => WriteByte(null, v));
+                        WriteArray(fieldName, (byte[])array, v => WriteByte(null, v));
                         break;
                     case BuiltInType.Int16:
-                        WriteArray((short[])array, v => WriteInt16(null, v));
+                        WriteArray(fieldName, (short[])array, v => WriteInt16(null, v));
                         break;
                     case BuiltInType.UInt16:
-                        WriteArray((ushort[])array, v => WriteUInt16(null, v));
+                        WriteArray(fieldName, (ushort[])array, v => WriteUInt16(null, v));
                         break;
                     case BuiltInType.Int32:
-                        WriteArray((int[])array, v => WriteInt32(null, v));
+                        WriteArray(fieldName, (int[])array, v => WriteInt32(null, v));
                         break;
                     case BuiltInType.UInt32:
-                        WriteArray((uint[])array, v => WriteUInt32(null, v));
+                        WriteArray(fieldName, (uint[])array, v => WriteUInt32(null, v));
                         break;
                     case BuiltInType.Int64:
-                        WriteArray((long[])array, v => WriteInt64(null, v));
+                        WriteArray(fieldName, (long[])array, v => WriteInt64(null, v));
                         break;
                     case BuiltInType.UInt64:
-                        WriteArray((ulong[])array, v => WriteUInt64(null, v));
+                        WriteArray(fieldName, (ulong[])array, v => WriteUInt64(null, v));
                         break;
                     case BuiltInType.Float:
-                        WriteArray((float[])array, v => WriteFloat(null, v));
+                        WriteArray(fieldName, (float[])array, v => WriteFloat(null, v));
                         break;
                     case BuiltInType.Double:
-                        WriteArray((double[])array, v => WriteDouble(null, v));
+                        WriteArray(fieldName, (double[])array, v => WriteDouble(null, v));
                         break;
                     case BuiltInType.DateTime:
-                        WriteArray((DateTime[])array, v => WriteDateTime(null, v));
+                        WriteArray(fieldName, (DateTime[])array, v => WriteDateTime(null, v));
                         break;
                     case BuiltInType.Guid:
-                        WriteArray((Uuid[])array, v => WriteGuid(null, v));
+                        WriteArray(fieldName, (Uuid[])array, v => WriteGuid(null, v));
                         break;
                     case BuiltInType.String:
-                        WriteArray((string[])array, v => WriteString(null, v));
+                        WriteArray(fieldName, (string[])array, v => WriteString(null, v));
                         break;
                     case BuiltInType.ByteString:
-                        WriteArray((byte[][])array, v => WriteByteString(null, v));
+                        WriteArray(fieldName, (byte[][])array, v => WriteByteString(null, v));
                         break;
                     case BuiltInType.QualifiedName:
-                        WriteArray((QualifiedName[])array, v => WriteQualifiedName(null, v));
+                        WriteArray(fieldName, (QualifiedName[])array, v => WriteQualifiedName(null, v));
                         break;
                     case BuiltInType.LocalizedText:
-                        WriteArray((LocalizedText[])array, v => WriteLocalizedText(null, v));
+                        WriteArray(fieldName, (LocalizedText[])array, v => WriteLocalizedText(null, v));
                         break;
                     case BuiltInType.NodeId:
-                        WriteArray((NodeId[])array, v => WriteNodeId(null, v));
+                        WriteArray(fieldName, (NodeId[])array, v => WriteNodeId(null, v));
                         break;
                     case BuiltInType.ExpandedNodeId:
-                        WriteArray((ExpandedNodeId[])array, v => WriteExpandedNodeId(null, v));
+                        WriteArray(fieldName, (ExpandedNodeId[])array, v => WriteExpandedNodeId(null, v));
                         break;
                     case BuiltInType.StatusCode:
-                        WriteArray((StatusCode[])array, v => WriteStatusCode(null, v));
+                        WriteArray(fieldName, (StatusCode[])array, v => WriteStatusCode(null, v));
                         break;
                     case BuiltInType.XmlElement:
-                        WriteArray((XmlElement[])array, v => WriteXmlElement(null, v));
+                        WriteArray(fieldName, (XmlElement[])array, v => WriteXmlElement(null, v));
                         break;
                     case BuiltInType.Variant:
                         {
@@ -866,7 +867,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         }
                         if (ints != null)
                         {
-                            WriteArray(ints, v => WriteInt32(null, v));
+                            WriteArray(fieldName, ints, v => WriteInt32(null, v));
                         }
                         else
                         {
@@ -876,13 +877,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                         }
                         break;
                     case BuiltInType.ExtensionObject:
-                        WriteArray((ExtensionObject[])array, v => WriteExtensionObject(null, v));
+                        WriteArray(fieldName, (ExtensionObject[])array, v => WriteExtensionObject(null, v));
                         break;
                     case BuiltInType.DiagnosticInfo:
-                        WriteArray((DiagnosticInfo[])array, v => WriteDiagnosticInfo(null, v));
+                        WriteArray(fieldName, (DiagnosticInfo[])array, v => WriteDiagnosticInfo(null, v));
                         break;
                     case BuiltInType.DataValue:
-                        WriteArray((DataValue[])array, v => WriteDataValue(null, v));
+                        WriteArray(fieldName, (DataValue[])array, v => WriteDataValue(null, v));
                         break;
                     default:
                         {
@@ -1274,7 +1275,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 matrix = (Matrix?)valueToEncode;
                 valueToEncode = matrix?.Elements;
             }
-            WriteArray(matrix?.Dimensions ?? Array.Empty<int>(),
+            WriteArray("Dimensions", matrix?.Dimensions ?? Array.Empty<int>(),
                 v => WriteInt32(null, v));
 
             // Shortcut here to write null
@@ -1381,73 +1382,73 @@ namespace Azure.IIoT.OpcUa.Encoders
                 switch (value.TypeInfo.BuiltInType)
                 {
                     case BuiltInType.Boolean:
-                        WriteArray((bool[])valueToEncode, v => WriteBoolean(null, v));
+                        WriteArray(null, (bool[])valueToEncode, v => WriteBoolean(null, v));
                         break;
                     case BuiltInType.SByte:
-                        WriteArray((sbyte[])valueToEncode, v => WriteSByte(null, v));
+                        WriteArray(null, (sbyte[])valueToEncode, v => WriteSByte(null, v));
                         break;
                     case BuiltInType.Byte:
-                        WriteArray((byte[])valueToEncode, v => WriteByte(null, v));
+                        WriteArray(null, (byte[])valueToEncode, v => WriteByte(null, v));
                         break;
                     case BuiltInType.Int16:
-                        WriteArray((short[])valueToEncode, v => WriteInt16(null, v));
+                        WriteArray(null, (short[])valueToEncode, v => WriteInt16(null, v));
                         break;
                     case BuiltInType.UInt16:
-                        WriteArray((ushort[])valueToEncode, v => WriteUInt16(null, v));
+                        WriteArray(null, (ushort[])valueToEncode, v => WriteUInt16(null, v));
                         break;
                     case BuiltInType.Int32:
-                        WriteArray((int[])valueToEncode, v => WriteInt32(null, v));
+                        WriteArray(null, (int[])valueToEncode, v => WriteInt32(null, v));
                         break;
                     case BuiltInType.UInt32:
-                        WriteArray((uint[])valueToEncode, v => WriteUInt32(null, v));
+                        WriteArray(null, (uint[])valueToEncode, v => WriteUInt32(null, v));
                         break;
                     case BuiltInType.Int64:
-                        WriteArray((long[])valueToEncode, v => WriteInt64(null, v));
+                        WriteArray(null, (long[])valueToEncode, v => WriteInt64(null, v));
                         break;
                     case BuiltInType.UInt64:
-                        WriteArray((ulong[])valueToEncode, v => WriteUInt64(null, v));
+                        WriteArray(null, (ulong[])valueToEncode, v => WriteUInt64(null, v));
                         break;
                     case BuiltInType.Float:
-                        WriteArray((float[])valueToEncode, v => WriteFloat(null, v));
+                        WriteArray(null, (float[])valueToEncode, v => WriteFloat(null, v));
                         break;
                     case BuiltInType.Double:
-                        WriteArray((double[])valueToEncode, v => WriteDouble(null, v));
+                        WriteArray(null, (double[])valueToEncode, v => WriteDouble(null, v));
                         break;
                     case BuiltInType.String:
-                        WriteArray((string[])valueToEncode, v => WriteString(null, v));
+                        WriteArray(null, (string[])valueToEncode, v => WriteString(null, v));
                         break;
                     case BuiltInType.DateTime:
-                        WriteArray((DateTime[])valueToEncode, v => WriteDateTime(null, v));
+                        WriteArray(null, (DateTime[])valueToEncode, v => WriteDateTime(null, v));
                         break;
                     case BuiltInType.Guid:
-                        WriteArray((Uuid[])valueToEncode, v => WriteGuid(null, v));
+                        WriteArray(null, (Uuid[])valueToEncode, v => WriteGuid(null, v));
                         break;
                     case BuiltInType.ByteString:
-                        WriteArray((byte[][])valueToEncode, v => WriteByteString(null, v));
+                        WriteArray(null, (byte[][])valueToEncode, v => WriteByteString(null, v));
                         break;
                     case BuiltInType.XmlElement:
-                        WriteArray((XmlElement[])valueToEncode, v => WriteXmlElement(null, v));
+                        WriteArray(null, (XmlElement[])valueToEncode, v => WriteXmlElement(null, v));
                         break;
                     case BuiltInType.NodeId:
-                        WriteArray((NodeId[])valueToEncode, v => WriteNodeId(null, v));
+                        WriteArray(null, (NodeId[])valueToEncode, v => WriteNodeId(null, v));
                         break;
                     case BuiltInType.ExpandedNodeId:
-                        WriteArray((ExpandedNodeId[])valueToEncode, v => WriteExpandedNodeId(null, v));
+                        WriteArray(null, (ExpandedNodeId[])valueToEncode, v => WriteExpandedNodeId(null, v));
                         break;
                     case BuiltInType.StatusCode:
-                        WriteArray((StatusCode[])valueToEncode, v => WriteStatusCode(null, v));
+                        WriteArray(null, (StatusCode[])valueToEncode, v => WriteStatusCode(null, v));
                         break;
                     case BuiltInType.QualifiedName:
-                        WriteArray((QualifiedName[])valueToEncode, v => WriteQualifiedName(null, v));
+                        WriteArray(null, (QualifiedName[])valueToEncode, v => WriteQualifiedName(null, v));
                         break;
                     case BuiltInType.LocalizedText:
-                        WriteArray((LocalizedText[])valueToEncode, v => WriteLocalizedText(null, v));
+                        WriteArray(null, (LocalizedText[])valueToEncode, v => WriteLocalizedText(null, v));
                         break;
                     case BuiltInType.ExtensionObject:
-                        WriteArray((ExtensionObject[])valueToEncode, v => WriteExtensionObject(null, v));
+                        WriteArray(null, (ExtensionObject[])valueToEncode, v => WriteExtensionObject(null, v));
                         break;
                     case BuiltInType.DataValue:
-                        WriteArray((DataValue[])valueToEncode, v => WriteDataValue(null, v));
+                        WriteArray(null, (DataValue[])valueToEncode, v => WriteDataValue(null, v));
                         break;
                     case BuiltInType.Enumeration:
                         // Check whether the value to encode is int array.
@@ -1467,17 +1468,17 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 ints[ii] = (int)(object)enums[ii];
                             }
                         }
-                        WriteArray(ints, v => WriteInt32(null, v));
+                        WriteArray(null, ints, v => WriteInt32(null, v));
                         break;
                     case BuiltInType.Variant:
                         if (valueToEncode is Variant[] variants)
                         {
-                            WriteArray(variants, v => WriteVariant(null, v));
+                            WriteArray(null, variants, v => WriteVariant(null, v));
                             break;
                         }
                         if (valueToEncode is object[] objects)
                         {
-                            WriteArray(objects, v => WriteVariant(null, new Variant(v)));
+                            WriteArray(null, objects, v => WriteVariant(null, new Variant(v)));
                             break;
                         }
                         throw ServiceResultException.Create(
@@ -1485,7 +1486,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                             "Unexpected type encountered while encoding a Matrix: {0}",
                             valueToEncode.GetType());
                     case BuiltInType.DiagnosticInfo:
-                        WriteArray((DiagnosticInfo[])valueToEncode,
+                        WriteArray(null, (DiagnosticInfo[])valueToEncode,
                             v => WriteDiagnosticInfo(null, v));
                         break;
                     default:
@@ -1566,7 +1567,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteArray<T>(IList<T>? values, Action<T> writer)
+        public virtual void WriteArray<T>(string? fieldName,
+            IList<T>? values, Action<T> writer)
         {
             values ??= Array.Empty<T>();
 
@@ -1618,6 +1620,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             _nestingLevel++;
         }
+
+        /// <summary>
+        /// Default name when field name is not provided
+        /// </summary>
+        protected const string kDefaultFieldName = "Value";
 
         private readonly AvroBinaryWriter _writer;
         private readonly bool _leaveOpen;

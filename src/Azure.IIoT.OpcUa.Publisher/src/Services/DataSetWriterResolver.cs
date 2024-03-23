@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// <para>
@@ -904,8 +905,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _extension.MetaData = await ResolveMetaDataAsync(session, typeSystem,
                         new VariableNode
                         {
-                            DataType = (int)BuiltInType.Variant
+                            DataType = GetBuiltInType(_extension.Value)
                         }, 0u, ct).ConfigureAwait(false);
+
+                    static NodeId GetBuiltInType(VariantValue value)
+                    {
+                        return new NodeId((uint)(value.GetTypeCode() switch
+                        {
+                            TypeCode.Boolean => BuiltInType.Boolean,
+                            TypeCode.SByte => BuiltInType.SByte,
+                            TypeCode.Byte => BuiltInType.Byte,
+                            TypeCode.Int16 => BuiltInType.Int16,
+                            TypeCode.UInt16 => BuiltInType.UInt16,
+                            TypeCode.Int32 => BuiltInType.Int32,
+                            TypeCode.UInt32 => BuiltInType.UInt32,
+                            TypeCode.Int64 => BuiltInType.Int64,
+                            TypeCode.UInt64 => BuiltInType.UInt64,
+                            TypeCode.Double => BuiltInType.Double,
+                            TypeCode.String => BuiltInType.String,
+                            TypeCode.DateTime => BuiltInType.DateTime,
+                            TypeCode.Empty => BuiltInType.Null,
+                            TypeCode.Object => BuiltInType.Variant,
+                            TypeCode.Char => BuiltInType.String,
+                            TypeCode.Single => BuiltInType.Float,
+                            TypeCode.Decimal => BuiltInType.Variant,
+                            _ => BuiltInType.Variant
+                        }));
+                    }
                 }
 
                 private readonly ExtensionFieldModel _extension;

@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using global::Avro;
     using Opc.Ua;
     using System;
     using System.IO;
@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new SchemalessAvroEncoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new SchemalessAvroDecoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new SchemalessAvroEncoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new SchemalessAvroDecoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new SchemalessAvroEncoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -146,12 +146,163 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new SchemalessAvroDecoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
                         var result = decoder.ReadDataValue(null);
                         Assert.Equal(expected, result);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteProgramDiagnostic2DataTypeSchema()
+        {
+            // Create dummy type
+            var expected = new ProgramDiagnostic2DataType
+            {
+                CreateClientName = "Testname",
+                CreateSessionId = new NodeId(Guid.NewGuid()),
+                InvocationCreationTime = DateTime.UtcNow,
+                LastMethodCall = "swappido",
+                LastMethodCallTime = DateTime.UtcNow,
+                LastMethodInputArguments = new ArgumentCollection {
+                    new Argument("something1",
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something2",
+                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something3",
+                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something4",
+                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
+                },
+                LastMethodInputValues = new VariantCollection {
+                    new Variant(4L),
+                    new Variant("test"),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
+                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                },
+                LastMethodOutputArguments = new ArgumentCollection {
+                    new Argument("foo1",
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("foo2",
+                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("adfsdafsdsdsafdsfa",
+                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("ddddd",
+                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
+                },
+                LastMethodOutputValues = new VariantCollection {
+                    new Variant(4L),
+                    new Variant("test"),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
+                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                },
+                LastMethodReturnStatus =
+                    StatusCodes.BadAggregateConfigurationRejected,
+                LastMethodSessionId = new NodeId(
+                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
+                LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
+            };
+
+            const int count = 100;
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context))
+                {
+                    encoder.WriteArray(null, Enumerable
+                        .Repeat(expected, count)
+                        .ToList(), v => encoder.WriteEncodeable(null, v, v.GetType()));
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new AvroDecoder(stream, schema, context))
+                {
+                    var results = decoder.ReadCollection(null,
+                        () => decoder.ReadEncodeable(null, expected.GetType()));
+                    Assert.Equal(count, results.Length);
+                    for (var i = 0; i < count; i++)
+                    {
+                        Assert.True(results[i].IsEqual(expected));
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteDataValueArrayWithIntAndSchema()
+        {
+            // Create dummy
+            var expected = new DataValue(new Variant(12345));
+            const int count = 10000;
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context))
+                {
+                    encoder.WriteArray(null, Enumerable
+                        .Repeat(expected, count)
+                        .ToList(), v => encoder.WriteDataValue(null, v));
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new AvroDecoder(stream, schema, context))
+                {
+                    var results = decoder.ReadCollection(null,
+                        () => decoder.ReadDataValue(null));
+                    Assert.Equal(count, results.Length);
+                    for (var i = 0; i < count; i++)
+                    {
+                        Assert.Equal(expected, results[i]);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void ReadWriteDataValueArrayWithStringAndSchema()
+        {
+            // Create dummy
+            var expected = new DataValue(new Variant("TestTestTestTest"
+                + Guid.NewGuid()));
+            const int count = 10000;
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context))
+                {
+                    encoder.WriteArray(null, Enumerable
+                        .Repeat(expected, count)
+                        .ToList(), v => encoder.WriteDataValue(null, v));
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new AvroDecoder(stream, schema, context))
+                {
+                    var results = decoder.ReadCollection(null,
+                        () => decoder.ReadDataValue(null));
+                    Assert.Equal(count, results.Length);
+                    for (var i = 0; i < count; i++)
+                    {
+                        Assert.Equal(expected, results[i]);
                     }
                 }
             }
@@ -176,18 +327,18 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new SchemalessAvroEncoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        encoder.WriteDataSet(expected);
+                        encoder.WriteDataSet(null, expected);
                     }
                 }
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new SchemalessAvroDecoder(stream, context))
                 {
                     for (var i = 0; i < count; i++)
                     {
@@ -215,25 +366,28 @@ namespace Azure.IIoT.OpcUa.Encoders
             const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
+            Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context))
                 {
-                    for (var i = 0; i < count; i++)
-                    {
-                        encoder.WriteDataSet(expected);
-                    }
+                    encoder.WriteArray(null, Enumerable
+                        .Repeat(expected, count)
+                        .ToList(), v => encoder.WriteDataSet(null, v));
+                    schema = encoder.Schema;
                 }
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new AvroDecoder(stream, schema, context))
                 {
+                    var results = decoder.ReadCollection(null,
+                        () => decoder.ReadDataSet(null));
+                    Assert.Equal(count, results.Length);
                     for (var i = 0; i < count; i++)
                     {
-                        var result = decoder.ReadDataSet();
-                        Assert.Equal(expected, result);
+                        Assert.Equal(expected, results[i]);
                     }
                 }
             }
@@ -251,19 +405,21 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             byte[] buffer;
             var context = new ServiceMessageContext();
+            Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context))
                 {
-                    encoder.WriteDataSet(expected);
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
                 }
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var result = decoder.ReadDataSet();
+                    var result = decoder.ReadDataSet(null);
                     Assert.Equal(expected["abcd"], result["abcd"]);
                 }
             }
@@ -281,19 +437,21 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             byte[] buffer;
             var context = new ServiceMessageContext();
+            Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemalessEncoder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context))
                 {
-                    encoder.WriteDataSet(expected);
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
                 }
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
             {
-                using (var decoder = new AvroSchemalessDecoder(stream, context))
+                using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var result = decoder.ReadDataSet();
+                    var result = decoder.ReadDataSet(null);
                     Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
                 }
             }

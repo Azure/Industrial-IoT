@@ -19,28 +19,21 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Decodes objects from a Avro Binary encoded stream.
     /// </summary>
-    internal sealed class AvroSchemalessDecoder : IDecoder
+    public abstract class BaseAvroDecoder : IDecoder
     {
         /// <inheritdoc/>
-        public EncodingType EncodingType => (EncodingType)3;
+        public virtual EncodingType EncodingType => (EncodingType)3;
 
         /// <inheritdoc/>
-        public IServiceMessageContext Context { get; }
-
-        /// <summary>
-        /// Outer decoders need a way to get encodeables to
-        /// use them.
-        /// </summary>
-        public IDecoder EncodeableDecoder { get; set; }
+        public virtual IServiceMessageContext Context { get; }
 
         /// <summary>
         /// Create avro decoder
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public AvroSchemalessDecoder(Stream stream, IServiceMessageContext context)
+        protected BaseAvroDecoder(Stream stream, IServiceMessageContext context)
         {
-            EncodeableDecoder = this;
             _reader = new AvroBinaryReader(stream)
             {
                 MaxBytesLength = context.MaxByteStringLength,
@@ -53,29 +46,42 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public void Dispose()
         {
-            _reader.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _reader.Dispose();
+            }
         }
 
         /// <inheritdoc/>
-        public void Close()
+        public virtual void Close()
         {
             // Dispose
         }
 
         /// <inheritdoc/>
-        public void PushNamespace(string namespaceUri)
+        public virtual void PushNamespace(string namespaceUri)
         {
             // not used in the binary encoding.
         }
 
         /// <inheritdoc/>
-        public void PopNamespace()
+        public virtual void PopNamespace()
         {
             // not used in the binary encoding.
         }
 
         /// <inheritdoc/>
-        public void SetMappingTables(NamespaceTable? namespaceUris,
+        public virtual void SetMappingTables(NamespaceTable? namespaceUris,
             StringTable? serverUris)
         {
             _namespaceMappings = null;
@@ -96,55 +102,55 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public bool ReadBoolean(string? fieldName)
+        public virtual bool ReadBoolean(string? fieldName)
         {
             return _reader.ReadBoolean();
         }
 
         /// <inheritdoc/>
-        public sbyte ReadSByte(string? fieldName)
+        public virtual sbyte ReadSByte(string? fieldName)
         {
             return (sbyte)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public byte ReadByte(string? fieldName)
+        public virtual byte ReadByte(string? fieldName)
         {
             return (byte)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public short ReadInt16(string? fieldName)
+        public virtual short ReadInt16(string? fieldName)
         {
             return (short)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public ushort ReadUInt16(string? fieldName)
+        public virtual ushort ReadUInt16(string? fieldName)
         {
             return (ushort)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public int ReadInt32(string? fieldName)
+        public virtual int ReadInt32(string? fieldName)
         {
             return (int)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public uint ReadUInt32(string? fieldName)
+        public virtual uint ReadUInt32(string? fieldName)
         {
             return (uint)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public long ReadInt64(string? fieldName)
+        public virtual long ReadInt64(string? fieldName)
         {
             return _reader.ReadInteger();
         }
 
         /// <inheritdoc/>
-        public ulong ReadUInt64(string? fieldName)
+        public virtual ulong ReadUInt64(string? fieldName)
         {
             // ulong is a union of long and fixed (> long.max)
             var index = _reader.ReadInteger();
@@ -159,19 +165,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public float ReadFloat(string? fieldName)
+        public virtual float ReadFloat(string? fieldName)
         {
             return _reader.ReadFloat();
         }
 
         /// <inheritdoc/>
-        public double ReadDouble(string? fieldName)
+        public virtual double ReadDouble(string? fieldName)
         {
             return _reader.ReadDouble();
         }
 
         /// <inheritdoc/>
-        public Uuid ReadGuid(string? fieldName)
+        public virtual Uuid ReadGuid(string? fieldName)
         {
             Span<byte> bytes = stackalloc byte[16];
             _reader.ReadFixed(bytes);
@@ -179,13 +185,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public string? ReadString(string? fieldName)
+        public virtual string? ReadString(string? fieldName)
         {
             return _reader.ReadString();
         }
 
         /// <inheritdoc/>
-        public DateTime ReadDateTime(string? fieldName)
+        public virtual DateTime ReadDateTime(string? fieldName)
         {
             var ticks = _reader.ReadInteger();
 
@@ -210,13 +216,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public byte[] ReadByteString(string? fieldName)
+        public virtual byte[] ReadByteString(string? fieldName)
         {
             return _reader.ReadBytes();
         }
 
         /// <inheritdoc/>
-        public XmlElement ReadXmlElement(string? fieldName)
+        public virtual XmlElement ReadXmlElement(string? fieldName)
         {
             var xmlString = _reader.ReadString();
             var document = new XmlDocument();
@@ -238,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public NodeId ReadNodeId(string? fieldName)
+        public virtual NodeId ReadNodeId(string? fieldName)
         {
             //
             // Node id is a record, with namespace and union of
@@ -260,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeId ReadExpandedNodeId(string? fieldName)
+        public virtual ExpandedNodeId ReadExpandedNodeId(string? fieldName)
         {
             //
             // Expanded Node id is a record extending NodeId.
@@ -299,19 +305,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public StatusCode ReadStatusCode(string? fieldName)
+        public virtual StatusCode ReadStatusCode(string? fieldName)
         {
             return (StatusCode)ReadUInt32(fieldName);
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
+        public virtual DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
         {
             return ReadDiagnosticInfo(0);
         }
 
         /// <inheritdoc/>
-        public QualifiedName? ReadQualifiedName(string? fieldName)
+        public virtual QualifiedName ReadQualifiedName(string? fieldName)
         {
             var namespaceUri = _reader.ReadString();
             var name = _reader.ReadString();
@@ -328,13 +334,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public LocalizedText ReadLocalizedText(string? fieldName)
+        public virtual LocalizedText ReadLocalizedText(string? fieldName)
         {
             return new LocalizedText(_reader.ReadString(), _reader.ReadString());
         }
 
         /// <inheritdoc/>
-        public Variant ReadVariant(string? fieldName)
+        public virtual Variant ReadVariant(string? fieldName)
         {
             CheckAndIncrementNestingLevel();
             try
@@ -344,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // In case of a scalar value this will be an empty
                 // array which consumes 1 byte (length 0 zig zag encoded).
                 //
-                var dimensions = ReadCollection(() => ReadInt32(null));
+                var dimensions = ReadCollection(fieldName, () => ReadInt32(null));
 
                 // Read Union discriminator for the variant
                 var fieldId = ReadInt32(null);
@@ -363,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DataValue? ReadDataValue(string? fieldName)
+        public virtual DataValue ReadDataValue(string? fieldName)
         {
             return new DataValue
             {
@@ -377,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DataSet ReadDataSet()
+        public virtual DataSet ReadDataSet()
         {
             var fieldNames = Array.Empty<string>();
             var avroFieldContent = ReadUInt32(null);
@@ -429,7 +435,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ExtensionObject? ReadExtensionObject(string? fieldName)
+        public virtual ExtensionObject? ReadExtensionObject(string? fieldName)
         {
             // Extension objects are records of fields
             // 1. Encoding Node Id
@@ -474,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         // decode body.
                         if (encodeable != null)
                         {
-                            encodeable.Decode(EncodeableDecoder);
+                            encodeable.Decode(this);
                             return new ExtensionObject(expandedTypeId, encodeable);
                         }
                     }
@@ -501,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string? fieldName, Type systemType,
+        public virtual IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
@@ -525,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             try
             {
-                encodeable.Decode(EncodeableDecoder);
+                encodeable.Decode(this);
             }
             finally
             {
@@ -536,179 +542,191 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Enum ReadEnumerated(string? fieldName, Type enumType)
+        public virtual Enum ReadEnumerated(string? fieldName, Type enumType)
         {
             return (Enum)Enum.ToObject(enumType, _reader.ReadInteger());
         }
 
         /// <inheritdoc/>
-        public BooleanCollection? ReadBooleanArray(string? fieldName)
+        public virtual T ReadEnumerated<T>(string? fieldName) where T : Enum
         {
-            return ReadCollection(() => ReadBoolean(null));
+            return (T)ReadEnumerated(fieldName, typeof(T));
         }
 
         /// <inheritdoc/>
-        public SByteCollection? ReadSByteArray(string? fieldName)
+        public virtual BooleanCollection ReadBooleanArray(string? fieldName)
         {
-            return ReadCollection(() => ReadSByte(null));
+            return ReadCollection(fieldName, () => ReadBoolean(null));
         }
 
         /// <inheritdoc/>
-        public ByteCollection? ReadByteArray(string? fieldName)
+        public virtual SByteCollection ReadSByteArray(string? fieldName)
+        {
+            return ReadCollection(fieldName, () => ReadSByte(null));
+        }
+
+        /// <inheritdoc/>
+        public virtual ByteCollection ReadByteArray(string? fieldName)
         {
             // TODO: Read fixed bytes instead
-            return ReadCollection(() => ReadByte(null));
+            return ReadCollection(fieldName, () => ReadByte(null));
         }
 
         /// <inheritdoc/>
-        public Int16Collection? ReadInt16Array(string? fieldName)
+        public virtual Int16Collection ReadInt16Array(string? fieldName)
         {
-            return ReadCollection(() => ReadInt16(null));
+            return ReadCollection(fieldName, () => ReadInt16(null));
         }
 
         /// <inheritdoc/>
-        public UInt16Collection? ReadUInt16Array(string? fieldName)
+        public virtual UInt16Collection ReadUInt16Array(string? fieldName)
         {
-            return ReadCollection(() => ReadUInt16(null));
+            return ReadCollection(fieldName, () => ReadUInt16(null));
         }
 
         /// <inheritdoc/>
-        public Int32Collection? ReadInt32Array(string? fieldName)
+        public virtual Int32Collection ReadInt32Array(string? fieldName)
         {
-            return ReadCollection(() => ReadInt32(null));
+            return ReadCollection(fieldName, () => ReadInt32(null));
         }
 
         /// <inheritdoc/>
-        public UInt32Collection? ReadUInt32Array(string? fieldName)
+        public virtual UInt32Collection ReadUInt32Array(string? fieldName)
         {
-            return ReadCollection(() => ReadUInt32(null));
+            return ReadCollection(fieldName, () => ReadUInt32(null));
         }
 
         /// <inheritdoc/>
-        public Int64Collection? ReadInt64Array(string? fieldName)
+        public virtual Int64Collection ReadInt64Array(string? fieldName)
         {
-            return ReadCollection(() => ReadInt64(null));
+            return ReadCollection(fieldName, () => ReadInt64(null));
         }
 
         /// <inheritdoc/>
-        public UInt64Collection? ReadUInt64Array(string? fieldName)
+        public virtual UInt64Collection ReadUInt64Array(string? fieldName)
         {
-            return ReadCollection(() => ReadUInt64(null));
+            return ReadCollection(fieldName, () => ReadUInt64(null));
         }
 
         /// <inheritdoc/>
-        public FloatCollection? ReadFloatArray(string? fieldName)
+        public virtual FloatCollection ReadFloatArray(string? fieldName)
         {
-            return ReadCollection(() => ReadFloat(null));
+            return ReadCollection(fieldName, () => ReadFloat(null));
         }
 
         /// <inheritdoc/>
-        public DoubleCollection? ReadDoubleArray(string? fieldName)
+        public virtual DoubleCollection ReadDoubleArray(string? fieldName)
         {
-            return ReadCollection(() => ReadDouble(null));
+            return ReadCollection(fieldName, () => ReadDouble(null));
         }
 
         /// <inheritdoc/>
-        public StringCollection? ReadStringArray(string? fieldName)
+        public virtual StringCollection ReadStringArray(string? fieldName)
         {
-            return ReadCollection(() => ReadString(null));
+            return ReadCollection(fieldName, () => ReadString(null));
         }
 
         /// <inheritdoc/>
-        public DateTimeCollection? ReadDateTimeArray(string? fieldName)
+        public virtual DateTimeCollection ReadDateTimeArray(string? fieldName)
         {
-            return ReadCollection(() => ReadDateTime(null));
+            return ReadCollection(fieldName, () => ReadDateTime(null));
         }
 
         /// <inheritdoc/>
-        public UuidCollection? ReadGuidArray(string? fieldName)
+        public virtual UuidCollection ReadGuidArray(string? fieldName)
         {
-            return ReadCollection(() => ReadGuid(null));
+            return ReadCollection(fieldName, () => ReadGuid(null));
         }
 
         /// <inheritdoc/>
-        public ByteStringCollection? ReadByteStringArray(string? fieldName)
+        public virtual ByteStringCollection ReadByteStringArray(string? fieldName)
         {
-            return ReadCollection(() => ReadByteString(null));
+            return ReadCollection(fieldName, () => ReadByteString(null));
         }
 
         /// <inheritdoc/>
-        public XmlElementCollection? ReadXmlElementArray(string? fieldName)
+        public virtual XmlElementCollection ReadXmlElementArray(string? fieldName)
         {
-            return ReadCollection(() => ReadXmlElement(null));
+            return ReadCollection(fieldName, () => ReadXmlElement(null));
         }
 
         /// <inheritdoc/>
-        public NodeIdCollection? ReadNodeIdArray(string? fieldName)
+        public virtual NodeIdCollection ReadNodeIdArray(string? fieldName)
         {
-            return ReadCollection(() => ReadNodeId(null));
+            return ReadCollection(fieldName, () => ReadNodeId(null));
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeIdCollection? ReadExpandedNodeIdArray(string? fieldName)
+        public virtual ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? fieldName)
         {
-            return ReadCollection(() => ReadExpandedNodeId(null));
+            return ReadCollection(fieldName, () => ReadExpandedNodeId(null));
         }
 
         /// <inheritdoc/>
-        public StatusCodeCollection? ReadStatusCodeArray(string? fieldName)
+        public virtual StatusCodeCollection ReadStatusCodeArray(string? fieldName)
         {
-            return ReadCollection(() => ReadStatusCode(null));
+            return ReadCollection(fieldName, () => ReadStatusCode(null));
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfoCollection? ReadDiagnosticInfoArray(string? fieldName)
+        public virtual DiagnosticInfoCollection ReadDiagnosticInfoArray(string? fieldName)
         {
-            return ReadCollection(() => ReadDiagnosticInfo(null));
+            return ReadCollection(fieldName, () => ReadDiagnosticInfo(null));
         }
 
         /// <inheritdoc/>
-        public QualifiedNameCollection? ReadQualifiedNameArray(string? fieldName)
+        public virtual QualifiedNameCollection ReadQualifiedNameArray(string? fieldName)
         {
-            return ReadCollection(() => ReadQualifiedName(null));
+            return ReadCollection(fieldName, () => ReadQualifiedName(null));
         }
 
         /// <inheritdoc/>
-        public LocalizedTextCollection? ReadLocalizedTextArray(string? fieldName)
+        public virtual LocalizedTextCollection ReadLocalizedTextArray(string? fieldName)
         {
-            return ReadCollection(() => ReadLocalizedText(null));
+            return ReadCollection(fieldName, () => ReadLocalizedText(null));
         }
 
         /// <inheritdoc/>
-        public VariantCollection? ReadVariantArray(string? fieldName)
+        public virtual VariantCollection ReadVariantArray(string? fieldName)
         {
-            return ReadCollection(() => ReadVariant(null));
+            return ReadCollection(fieldName, () => ReadVariant(null));
         }
 
         /// <inheritdoc/>
-        public DataValueCollection? ReadDataValueArray(string? fieldName)
+        public virtual DataValueCollection ReadDataValueArray(string? fieldName)
         {
-            return ReadCollection(() => ReadDataValue(null));
+            return ReadCollection(fieldName, () => ReadDataValue(null));
         }
 
         /// <inheritdoc/>
-        public ExtensionObjectCollection? ReadExtensionObjectArray(string? fieldName)
+        public virtual ExtensionObjectCollection ReadExtensionObjectArray(string? fieldName)
         {
-            return ReadCollection(() => ReadExtensionObject(null));
+            return ReadCollection(fieldName, () => ReadExtensionObject(null));
         }
 
         /// <inheritdoc/>
-        public Array? ReadEncodeableArray(string? fieldName, Type systemType,
+        public virtual Array? ReadEncodeableArray(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            return ReadCollection(() => ReadEncodeable(null,
+            return ReadCollection(fieldName, () => ReadEncodeable(null,
                 systemType, encodeableTypeId), systemType);
         }
 
         /// <inheritdoc/>
-        public Array? ReadEnumeratedArray(string? fieldName, Type enumType)
+        public virtual Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
-            return ReadCollection(() => ReadEnumerated(null,
+            return ReadCollection(fieldName, () => ReadEnumerated(null,
                 enumType), enumType);
         }
 
         /// <inheritdoc/>
-        public Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
+        public virtual T[]? ReadEnumeratedArray<T>(string? fieldName) where T : Enum
+        {
+            return (T[]?)ReadEnumeratedArray(fieldName, typeof(T));
+        }
+
+        /// <inheritdoc/>
+        public virtual Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
             if (valueRank == ValueRanks.OneDimension)
@@ -899,10 +917,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Read array using specified element reader
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public T[] ReadCollection<T>(Func<T> reader)
+        public virtual T[] ReadCollection<T>(string? fieldName, Func<T> reader)
         {
             var length = _reader.ReadInteger();
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
@@ -921,11 +940,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Read array using specified element reader
         /// </summary>
+        /// <param name="fieldName"></param>
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal Array ReadCollection(Func<object> reader, Type type)
+        protected virtual Array ReadCollection(string? fieldName,
+            Func<object> reader, Type type)
         {
             var length = _reader.ReadInteger();
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
@@ -1345,13 +1366,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dimensions"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public Variant ReadVariantValue(BuiltInType builtInType,
+        public virtual Variant ReadVariantValue(BuiltInType builtInType,
             bool isArray = false, bool isMatrix = false, int[]? dimensions = null)
         {
             if (isMatrix)
             {
                 // Read dimensions
-                dimensions = ReadCollection(() => ReadInt32(null));
+                dimensions = ReadCollection("Dimensions", () => ReadInt32(null));
                 isArray = true;
             }
 
@@ -1549,6 +1570,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="namespaceIndex"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private NodeId ReadNodeId(ushort namespaceIndex)
         {
             switch ((IdType)_reader.ReadInteger()) // Union field id

@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
             var schema2 = global::Avro.Schema.Parse(json);
-            
+
             //Assert.Equal(schema.Schema, schema2);
         }
 
