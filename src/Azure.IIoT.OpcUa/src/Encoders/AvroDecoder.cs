@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -187,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return ValidatedRead(fieldName, BuiltInType.QualifiedName,
                 base.ReadQualifiedName);
         }
-         
+
         /// <inheritdoc/>
         public override LocalizedText ReadLocalizedText(string? fieldName)
         {
@@ -314,14 +315,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            var schema = GetFieldSchema(fieldName);
-            if (schema is not RecordSchema r)
-            {
-                // Should be a record
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Encodeable schema {0} should be a record.", schema);
-            }
-            return base.ReadEncodeable(fieldName, systemType, encodeableTypeId);
+            return ValidatedRead(fieldName, systemType.Name,
+                f => base.ReadEncodeable(f, systemType, encodeableTypeId));
         }
 
         /// <inheritdoc/>
@@ -341,10 +336,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override Enum ReadEnumerated(string? fieldName, Type enumType)
         {
-            // TODO:
-            var schema = GetFieldSchema(fieldName);
-
-            return base.ReadEnumerated(fieldName, enumType);
+            return ValidatedRead(fieldName, BuiltInType.Enumeration,
+                f => base.ReadEnumerated(f, enumType));
         }
 
         /// <inheritdoc/>
@@ -505,41 +498,50 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override VariantCollection ReadVariantArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Variant,
-               base.ReadVariantArray, ValueRanks.OneDimension);
+                base.ReadVariantArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public override DataValueCollection ReadDataValueArray(string? fieldName)
         {
-            // TODO
             return ValidatedRead(fieldName, BuiltInType.DataValue,
-               base.ReadDataValueArray, ValueRanks.OneDimension);
+                base.ReadDataValueArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public override ExtensionObjectCollection ReadExtensionObjectArray(string? fieldName)
         {
-            // TODO
             return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
-               base.ReadExtensionObjectArray, ValueRanks.OneDimension);
+                base.ReadExtensionObjectArray, ValueRanks.OneDimension);
         }
 
         /// <inheritdoc/>
         public override Array? ReadEncodeableArray(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId)
         {
-            // TODO
-            var schema = GetFieldSchema(fieldName);
-            return base.ReadEncodeableArray(fieldName, systemType,
-                encodeableTypeId);
+            return base.ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
         }
 
         /// <inheritdoc/>
         public override Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
-            // TODO
-            var schema = GetFieldSchema(fieldName);
-            return base.ReadEnumeratedArray(fieldName, enumType);
+            return ValidatedRead(fieldName, BuiltInType.Enumeration,
+                f => base.ReadEnumeratedArray(f, enumType), ValueRanks.OneDimension);
+        }
+
+        /// <inheritdoc/>
+        public override T? ReadNull<T>(string? fieldName) where T : default
+        {
+            return ValidatedRead(fieldName, BuiltInType.Null,
+                base.ReadNull<T>, ValueRanks.Scalar);
+        }
+
+        /// <inheritdoc/>
+        protected override Array ReadArray(string? fieldName,
+            Func<object> reader, Type type)
+        {
+            return ValidatedReadArray(fieldName,
+                () => base.ReadArray(fieldName, reader, type));
         }
 
         /// <inheritdoc/>
@@ -547,29 +549,16 @@ namespace Azure.IIoT.OpcUa.Encoders
             BuiltInType builtInType, Type? systemType,
             ExpandedNodeId? encodeableTypeId)
         {
-            return base.ReadArray(fieldName, valueRank, builtInType,
-                systemType, encodeableTypeId);
+            return ValidatedReadArray(fieldName,
+                () => base.ReadArray(fieldName, valueRank, builtInType,
+                    systemType, encodeableTypeId));
         }
 
         /// <inheritdoc/>
         public override T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            var schema = GetFieldSchema(fieldName);
-            if (schema is not ArraySchema arr)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Reading array field but schema is not array schema");
-            }
-            try
-            {
-                return base.ReadArray(fieldName, () => reader());
-            }
-            finally
-            {
-                // Pop array from stack
-                schema = _schema.Pop();
-                Debug.Assert(schema == arr);
-            }
+            return ValidatedReadArray(fieldName,
+                () => base.ReadArray(fieldName, () => reader()));
         }
 
         /// <inheritdoc/>
@@ -594,7 +583,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var schema = _schema.Current; // Selected through union id
 
-            // Get the type id directly from the schema and load the system type 
+            // Get the type id directly from the schema and load the system type
             var typeId = schema.GetDataTypeId(Context);
             if (NodeId.IsNull(typeId))
             {
@@ -635,6 +624,34 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
+        /// Validated array reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private T ValidatedReadArray<T>(string? fieldName, Func<T> reader)
+        {
+            var schema = GetFieldSchema(null);
+            if (schema is not ArraySchema arr)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Reading array field but schema is not array schema");
+            }
+            try
+            {
+                return reader();
+            }
+            finally
+            {
+                // Pop array from stack
+                schema = _schema.Pop();
+                Debug.Assert(schema == arr);
+            }
+        }
+
+        /// <summary>
         /// Validate read
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -643,10 +660,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private T ValidatedRead<T>(string? fieldName, 
+        private T ValidatedRead<T>(string? fieldName,
             string expectedSchemaFullName, Func<string?, T> value)
         {
-
             // Get current field schema
             var currentSchema = GetFieldSchema(fieldName);
 
@@ -689,8 +705,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly AvroBuiltInTypeSchemas _builtIns
-            = AvroBuiltInTypeSchemas.Default;
+        private readonly AvroBuiltInTypeSchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

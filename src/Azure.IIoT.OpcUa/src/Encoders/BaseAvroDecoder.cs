@@ -369,12 +369,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             return new DataValue
             {
-                WrappedValue = ReadVariant(null),
-                StatusCode = ReadStatusCode(null),
-                SourceTimestamp = ReadDateTime(null),
-                SourcePicoseconds = ReadUInt16(null),
-                ServerTimestamp = ReadDateTime(null),
-                ServerPicoseconds = ReadUInt16(null)
+                WrappedValue = ReadVariant(nameof(DataValue.Value)),
+                StatusCode = ReadStatusCode(nameof(DataValue.StatusCode)),
+                SourceTimestamp = ReadDateTime(nameof(DataValue.SourceTimestamp)),
+                SourcePicoseconds = ReadUInt16(nameof(DataValue.SourcePicoseconds)),
+                ServerTimestamp = ReadDateTime(nameof(DataValue.ServerTimestamp)),
+                ServerPicoseconds = ReadUInt16(nameof(DataValue.ServerPicoseconds))
             };
         }
 
@@ -664,138 +664,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
-            if (valueRank == ValueRanks.OneDimension)
+            if (valueRank == ValueRanks.Scalar)
             {
-                switch (builtInType)
-                {
-                    case BuiltInType.Boolean:
-                        return ReadBooleanArray(fieldName)?.ToArray();
-                    case BuiltInType.SByte:
-                        return ReadSByteArray(fieldName)?.ToArray();
-                    case BuiltInType.Byte:
-                        return ReadByteArray(fieldName)?.ToArray();
-                    case BuiltInType.Int16:
-                        return ReadInt16Array(fieldName)?.ToArray();
-                    case BuiltInType.UInt16:
-                        return ReadUInt16Array(fieldName)?.ToArray();
-                    case BuiltInType.Enumeration:
-                        if (systemType != null && encodeableTypeId != null)
-                        {
-                            DetermineIEncodeableSystemType(ref systemType, encodeableTypeId);
-                            if (systemType?.IsEnum == true)
-                            {
-                                return ReadEnumeratedArray(fieldName, systemType);
-                            }
-                        }
-                        // if system type is not known or not an enum, fall back to Int32
-                        goto case BuiltInType.Int32;
-                    case BuiltInType.Int32:
-                        return ReadInt32Array(fieldName)?.ToArray();
-                    case BuiltInType.UInt32:
-                        return ReadUInt32Array(fieldName)?.ToArray();
-                    case BuiltInType.Int64:
-                        return ReadInt64Array(fieldName)?.ToArray();
-                    case BuiltInType.UInt64:
-                        return ReadUInt64Array(fieldName)?.ToArray();
-                    case BuiltInType.Float:
-                        return ReadFloatArray(fieldName)?.ToArray();
-                    case BuiltInType.Double:
-                        return ReadDoubleArray(fieldName)?.ToArray();
-                    case BuiltInType.String:
-                        return ReadStringArray(fieldName)?.ToArray();
-                    case BuiltInType.DateTime:
-                        return ReadDateTimeArray(fieldName)?.ToArray();
-                    case BuiltInType.Guid:
-                        return ReadGuidArray(fieldName)?.ToArray();
-                    case BuiltInType.ByteString:
-                        return ReadByteStringArray(fieldName)?.ToArray();
-                    case BuiltInType.XmlElement:
-                        return ReadXmlElementArray(fieldName)?.ToArray();
-                    case BuiltInType.NodeId:
-                        return ReadNodeIdArray(fieldName)?.ToArray();
-                    case BuiltInType.ExpandedNodeId:
-                        return ReadExpandedNodeIdArray(fieldName)?.ToArray();
-                    case BuiltInType.StatusCode:
-                        return ReadStatusCodeArray(fieldName)?.ToArray();
-                    case BuiltInType.QualifiedName:
-                        return ReadQualifiedNameArray(fieldName)?.ToArray();
-                    case BuiltInType.LocalizedText:
-                        return ReadLocalizedTextArray(fieldName)?.ToArray();
-                    case BuiltInType.DataValue:
-                        return ReadDataValueArray(fieldName)?.ToArray();
-                    case BuiltInType.Variant:
-                        if (systemType != null && encodeableTypeId != null
-                            && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
-                        {
-                            return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
-                        }
-                        return ReadVariantArray(fieldName)?.ToArray();
-                    case BuiltInType.ExtensionObject:
-                        return ReadExtensionObjectArray(fieldName)?.ToArray();
-                    case BuiltInType.DiagnosticInfo:
-                        return ReadDiagnosticInfoArray(fieldName)?.ToArray();
-                    default:
-                        if (systemType != null && encodeableTypeId != null
-                            && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
-                        {
-                            return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
-                        }
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                            "Cannot decode unknown type in Array object with BuiltInType: {0}.",
-                            builtInType);
-                }
+                return null;
             }
-
-            // two or more dimensions
-            if (valueRank >= ValueRanks.OneOrMoreDimensions)
+            var array = ReadArray(fieldName, builtInType, systemType, encodeableTypeId);
+            if (array == null || valueRank == ValueRanks.OneDimension)
             {
-                // read dimensions array
-                var dimensions = ReadInt32Array(null);
-                if (dimensions?.Count > 0)
-                {
-                    //int length;
-                    (_, var length) = Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
-
-                    // read the elements
-                    Array? elements = null;
-                    if (systemType != null && encodeableTypeId != null
-                        && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
-                    {
-                        elements = Array.CreateInstance(systemType, length);
-                        for (var i = 0; i < length; i++)
-                        {
-                            var element = ReadEncodeable(null, systemType, encodeableTypeId);
-                            elements.SetValue(Convert.ChangeType(element, systemType,
-                                CultureInfo.InvariantCulture), i);
-                        }
-                    }
-
-                    elements ??= ReadArrayElements(length, builtInType);
-
-                    if (elements == null)
-                    {
-                        throw ServiceResultException.Create(
-                            StatusCodes.BadDecodingError,
-                            "Unexpected null Array for multidimensional matrix with {0} elements.", length);
-                    }
-
-                    if (builtInType == BuiltInType.Enumeration && systemType?.IsEnum == true)
-                    {
-                        var newElements = Array.CreateInstance(systemType, elements.Length);
-                        var ii = 0;
-                        foreach (var element in elements)
-                        {
-                            newElements.SetValue(Enum.ToObject(systemType, element), ii++);
-                        }
-                        elements = newElements;
-                    }
-
-                    return new Matrix(elements, builtInType, dimensions.ToArray()).ToArray();
-                }
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Unexpected null or empty Dimensions for multidimensional matrix.");
+                return array;
             }
-            return null;
+            // read as matrix
+            var dimensions = ReadInt32Array(null);
+            if (dimensions?.Count > 0)
+            {
+                Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
+                return new Matrix(array, builtInType, dimensions.ToArray()).ToArray();
+            }
+            throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                "Unexpected null or empty Dimensions for multidimensional matrix.");
         }
 
         /// <summary>
@@ -805,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="depth"></param>
         /// <exception cref="ServiceResultException"></exception>
-        internal DiagnosticInfo ReadDiagnosticInfo(string? fieldName, int depth)
+        protected virtual DiagnosticInfo ReadDiagnosticInfo(string? fieldName, int depth)
         {
             if (depth >= DiagnosticInfo.MaxInnerDepth)
             {
@@ -845,10 +731,21 @@ namespace Azure.IIoT.OpcUa.Encoders
             var unionId = _reader.ReadInteger();
             if (unionId == 0)
             {
-                return default;
+                return ReadNull<DiagnosticInfo>(fieldName);
             }
             Debug.Assert(unionId == 1);
             return ReadDiagnosticInfo(fieldName, depth);
+        }
+
+        /// <summary>
+        /// Read null
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        public virtual T? ReadNull<T>(string? fieldName)
+        {
+            // Nothing to do
+            return default;
         }
 
         /// <summary>
@@ -929,382 +826,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Reads and returns an array of elements of the specified length and builtInType
-        /// </summary>
-        /// <param name="length"></param>
-        /// <param name="builtInType"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        private Array? ReadArrayElements(int length, BuiltInType builtInType)
-        {
-            Array? array = null;
-            switch (builtInType)
-            {
-                case BuiltInType.Boolean:
-                    {
-                        var values = new bool[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadBoolean(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.SByte:
-                    {
-                        var values = new sbyte[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadSByte(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Byte:
-                    {
-                        var values = new byte[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadByte(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Int16:
-                    {
-                        var values = new short[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadInt16(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.UInt16:
-                    {
-                        var values = new ushort[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadUInt16(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Int32:
-                case BuiltInType.Enumeration:
-                    {
-                        var values = new int[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadInt32(null);
-                        }
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.UInt32:
-                    {
-                        var values = new uint[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadUInt32(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Int64:
-                    {
-                        var values = new long[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadInt64(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.UInt64:
-                    {
-                        var values = new ulong[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadUInt64(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Float:
-                    {
-                        var values = new float[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadFloat(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Double:
-                    {
-                        var values = new double[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadDouble(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.String:
-                    {
-                        var values = new string?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadString(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.DateTime:
-                    {
-                        var values = new DateTime[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadDateTime(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Guid:
-                    {
-                        var values = new Uuid[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadGuid(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.ByteString:
-                    {
-                        var values = new byte[length][];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadByteString(null)!;
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.XmlElement:
-                    {
-                        try
-                        {
-                            var values = new XmlElement?[length];
-
-                            for (var ii = 0; ii < values.Length; ii++)
-                            {
-                                values[ii] = ReadXmlElement(null);
-                            }
-
-                            array = values;
-                        }
-                        catch (Exception ex)
-                        {
-                            Opc.Ua.Utils.LogError(ex, "Error reading array of XmlElement.");
-                        }
-
-                        break;
-                    }
-
-                case BuiltInType.NodeId:
-                    {
-                        var values = new NodeId?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadNodeId(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.ExpandedNodeId:
-                    {
-                        var values = new ExpandedNodeId?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadExpandedNodeId(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.StatusCode:
-                    {
-                        var values = new StatusCode[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadStatusCode(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.QualifiedName:
-                    {
-                        var values = new QualifiedName?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadQualifiedName(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.LocalizedText:
-                    {
-                        var values = new LocalizedText?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadLocalizedText(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.ExtensionObject:
-                    {
-                        var values = new ExtensionObject?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadExtensionObject(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.DataValue:
-                    {
-                        var values = new DataValue?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadDataValue(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.Variant:
-                    {
-                        var values = new Variant[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadVariant(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-
-                case BuiltInType.DiagnosticInfo:
-                    {
-                        var values = new DiagnosticInfo?[length];
-
-                        for (var ii = 0; ii < values.Length; ii++)
-                        {
-                            values[ii] = ReadDiagnosticInfo(null);
-                        }
-
-                        array = values;
-                        break;
-                    }
-                default:
-                    throw ServiceResultException.Create(
-                            StatusCodes.BadDecodingError,
-                            Opc.Ua.Utils.Format("Cannot decode unknown type in Variant object with BuiltInType: {0}.", builtInType));
-            }
-
-            return array;
-        }
-
-        /// <summary>
-        /// Reads the length of an array.
-        /// </summary>
-        /// <exception cref="ServiceResultException"></exception>
-        private int ReadArrayLength()
-        {
-            var length = (int)_reader.ReadInteger();
-
-            if (length < 0)
-            {
-                return -1;
-            }
-
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
-            {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}",
-                    Context.MaxArrayLength,
-                    length);
-            }
-            return length;
-        }
-
-        /// <summary>
         /// Read extension object
         /// </summary>
         /// <param name="unionId"></param>
@@ -1381,233 +902,321 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="valueRank"></param>
-        /// <param name="dimensions"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         protected virtual Variant ReadVariantValue(BuiltInType builtInType,
             int valueRank = ValueRanks.Scalar)
         {
-            var value = new Variant();
-            if (valueRank <= 0)
+            if (valueRank == ValueRanks.Scalar)
             {
-                switch (builtInType)
-                {
-                    case BuiltInType.Null:
-                        value.Value = null;
-                        break;
-                    case BuiltInType.Boolean:
-                        value.Set(ReadBoolean(null));
-                        break;
-                    case BuiltInType.SByte:
-                        value.Set(ReadSByte(null));
-                        break;
-                    case BuiltInType.Byte:
-                        value.Set(ReadByte(null));
-                        break;
-                    case BuiltInType.Int16:
-                        value.Set(ReadInt16(null));
-                        break;
-                    case BuiltInType.UInt16:
-                        value.Set(ReadUInt16(null));
-                        break;
-                    case BuiltInType.Int32:
-                    case BuiltInType.Enumeration:
-                        value.Set(ReadInt32(null));
-                        break;
-                    case BuiltInType.UInt32:
-                        value.Set(ReadUInt32(null));
-                        break;
-                    case BuiltInType.Int64:
-                        value.Set(ReadInt64(null));
-                        break;
-                    case BuiltInType.UInt64:
-                        value.Set(ReadUInt64(null));
-                        break;
-                    case BuiltInType.Float:
-                        value.Set(ReadFloat(null));
-                        break;
-                    case BuiltInType.Double:
-                        value.Set(ReadDouble(null));
-                        break;
-                    case BuiltInType.String:
-                        value.Set(ReadString(null));
-                        break;
-                    case BuiltInType.DateTime:
-                        value.Set(ReadDateTime(null));
-                        break;
-                    case BuiltInType.Guid:
-                        value.Set(ReadGuid(null));
-                        break;
-                    case BuiltInType.ByteString:
-                        value.Set(ReadByteString(null));
-                        break;
-                    case BuiltInType.XmlElement:
-                        try
-                        {
-                            value.Set(ReadXmlElement(null));
-                        }
-                        catch
-                        {
-                            value.Set(StatusCodes.BadDecodingError);
-                        }
-                        break;
-                    case BuiltInType.NodeId:
-                        value.Set(ReadNodeId(null));
-                        break;
-                    case BuiltInType.ExpandedNodeId:
-                        value.Set(ReadExpandedNodeId(null));
-                        break;
-                    case BuiltInType.StatusCode:
-                        value.Set(ReadStatusCode(null));
-                        break;
-                    case BuiltInType.QualifiedName:
-                        value.Set(ReadQualifiedName(null));
-                        break;
-                    case BuiltInType.LocalizedText:
-                        value.Set(ReadLocalizedText(null));
-                        break;
-                    case BuiltInType.ExtensionObject:
-                        value.Set(ReadExtensionObject(null));
-                        break;
-                    case BuiltInType.DataValue:
-                        value.Set(ReadDataValue(null));
-                        break;
-                    default:
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                            "Cannot decode unknown type in Variant object (0x{0:X2}).",
-                            builtInType);
-                }
+                return ReadScalar("Body", builtInType);
             }
-            else
+
+            // Read array
+            var array = ReadArray("Body", builtInType, null, null);
+            if (array == null)
             {
-                var dimensions = Array.Empty<int>();
-                if (valueRank > 1)
-                {
-                    // Read dimensions
-                    dimensions = ReadArray("Dimensions", () => ReadInt32(null));
-                }
- 
-                // read the array length.
-                var length = ReadArrayLength();
-                var array = ReadArrayElements(length, builtInType);
-                if (array == null)
-                {
-                    value = new Variant(StatusCodes.BadDecodingError);
-                }
-                else
-                {
-                    if (dimensions.Length > 1) // Value Rank > 1
+                return new Variant(StatusCodes.BadDecodingError);
+            }
+
+            if (valueRank <= ValueRanks.OneDimension)
+            {
+                return new Variant(array, new TypeInfo(builtInType, valueRank));
+            }
+
+            // Read matrix
+            var dimensions = ReadArray("Dimensions", () => ReadInt32(null));
+            (var valid, var matrixLength) = Matrix.ValidateDimensions(
+                dimensions, array.Length, Context.MaxArrayLength);
+            if (!valid || (matrixLength != array.Length))
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    "ArrayDimensions does not match with the ArrayLength " +
+                    "in Variant object.");
+            }
+            return new Variant(new Matrix(array, builtInType, dimensions));
+        }
+
+        /// <summary>
+        /// Read scalar element
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private Variant ReadScalar(string? fieldName, BuiltInType builtInType)
+        {
+            var value = new Variant();
+            switch (builtInType)
+            {
+                case BuiltInType.Null:
+                    value.Value = ReadNull<object>(fieldName);
+                    break;
+                case BuiltInType.Boolean:
+                    value.Set(ReadBoolean(fieldName));
+                    break;
+                case BuiltInType.SByte:
+                    value.Set(ReadSByte(fieldName));
+                    break;
+                case BuiltInType.Byte:
+                    value.Set(ReadByte(fieldName));
+                    break;
+                case BuiltInType.Int16:
+                    value.Set(ReadInt16(fieldName));
+                    break;
+                case BuiltInType.UInt16:
+                    value.Set(ReadUInt16(fieldName));
+                    break;
+                case BuiltInType.Int32:
+                case BuiltInType.Enumeration:
+                    value.Set(ReadInt32(fieldName));
+                    break;
+                case BuiltInType.UInt32:
+                    value.Set(ReadUInt32(fieldName));
+                    break;
+                case BuiltInType.Int64:
+                    value.Set(ReadInt64(fieldName));
+                    break;
+                case BuiltInType.UInt64:
+                    value.Set(ReadUInt64(fieldName));
+                    break;
+                case BuiltInType.Float:
+                    value.Set(ReadFloat(fieldName));
+                    break;
+                case BuiltInType.Double:
+                    value.Set(ReadDouble(fieldName));
+                    break;
+                case BuiltInType.String:
+                    value.Set(ReadString(fieldName));
+                    break;
+                case BuiltInType.DateTime:
+                    value.Set(ReadDateTime(fieldName));
+                    break;
+                case BuiltInType.Guid:
+                    value.Set(ReadGuid(fieldName));
+                    break;
+                case BuiltInType.ByteString:
+                    value.Set(ReadByteString(fieldName));
+                    break;
+                case BuiltInType.XmlElement:
+                    try
                     {
-                        (var valid, var matrixLength) = Matrix.ValidateDimensions(
-                            dimensions, length, Context.MaxArrayLength);
-                        if (!valid || (matrixLength != length))
-                        {
-                            throw new ServiceResultException(StatusCodes.BadDecodingError,
-                                "ArrayDimensions does not match with the ArrayLength " +
-                                "in Variant object.");
-                        }
-                        value = new Variant(new Matrix(array, builtInType, dimensions));
+                        value.Set(ReadXmlElement(fieldName));
                     }
-                    else
+                    catch
                     {
-                        value = new Variant(array, new TypeInfo(builtInType, 1));
+                        value.Set(StatusCodes.BadDecodingError);
                     }
-                }
+                    break;
+                case BuiltInType.NodeId:
+                    value.Set(ReadNodeId(fieldName));
+                    break;
+                case BuiltInType.ExpandedNodeId:
+                    value.Set(ReadExpandedNodeId(fieldName));
+                    break;
+                case BuiltInType.StatusCode:
+                    value.Set(ReadStatusCode(fieldName));
+                    break;
+                case BuiltInType.QualifiedName:
+                    value.Set(ReadQualifiedName(fieldName));
+                    break;
+                case BuiltInType.LocalizedText:
+                    value.Set(ReadLocalizedText(fieldName));
+                    break;
+                case BuiltInType.ExtensionObject:
+                    value.Set(ReadExtensionObject(fieldName));
+                    break;
+                case BuiltInType.DataValue:
+                    value.Set(ReadDataValue(fieldName));
+                    break;
+                default:
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Cannot decode unknown type in Variant object (0x{0:X2}).",
+                        builtInType);
             }
             return value;
+        }
+
+        /// <summary>
+        /// Read array
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="builtInType"></param>
+        /// <param name="systemType"></param>
+        /// <param name="encodeableTypeId"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private Array? ReadArray(string? fieldName, BuiltInType builtInType,
+            Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
+        {
+            switch (builtInType)
+            {
+                case BuiltInType.Boolean:
+                    return ReadBooleanArray(fieldName)?.ToArray();
+                case BuiltInType.SByte:
+                    return ReadSByteArray(fieldName)?.ToArray();
+                case BuiltInType.Byte:
+                    return ReadByteArray(fieldName)?.ToArray();
+                case BuiltInType.Int16:
+                    return ReadInt16Array(fieldName)?.ToArray();
+                case BuiltInType.UInt16:
+                    return ReadUInt16Array(fieldName)?.ToArray();
+                case BuiltInType.Enumeration:
+                    if (systemType != null && encodeableTypeId != null)
+                    {
+                        DetermineIEncodeableSystemType(ref systemType, encodeableTypeId);
+                        if (systemType?.IsEnum == true)
+                        {
+                            return ReadEnumeratedArray(fieldName, systemType);
+                        }
+                    }
+                    // if system type is not known or not an enum, fall back to Int32
+                    goto case BuiltInType.Int32;
+                case BuiltInType.Int32:
+                    return ReadInt32Array(fieldName)?.ToArray();
+                case BuiltInType.UInt32:
+                    return ReadUInt32Array(fieldName)?.ToArray();
+                case BuiltInType.Int64:
+                    return ReadInt64Array(fieldName)?.ToArray();
+                case BuiltInType.UInt64:
+                    return ReadUInt64Array(fieldName)?.ToArray();
+                case BuiltInType.Float:
+                    return ReadFloatArray(fieldName)?.ToArray();
+                case BuiltInType.Double:
+                    return ReadDoubleArray(fieldName)?.ToArray();
+                case BuiltInType.String:
+                    return ReadStringArray(fieldName)?.ToArray();
+                case BuiltInType.DateTime:
+                    return ReadDateTimeArray(fieldName)?.ToArray();
+                case BuiltInType.Guid:
+                    return ReadGuidArray(fieldName)?.ToArray();
+                case BuiltInType.ByteString:
+                    return ReadByteStringArray(fieldName)?.ToArray();
+                case BuiltInType.XmlElement:
+                    return ReadXmlElementArray(fieldName)?.ToArray();
+                case BuiltInType.NodeId:
+                    return ReadNodeIdArray(fieldName)?.ToArray();
+                case BuiltInType.ExpandedNodeId:
+                    return ReadExpandedNodeIdArray(fieldName)?.ToArray();
+                case BuiltInType.StatusCode:
+                    return ReadStatusCodeArray(fieldName)?.ToArray();
+                case BuiltInType.QualifiedName:
+                    return ReadQualifiedNameArray(fieldName)?.ToArray();
+                case BuiltInType.LocalizedText:
+                    return ReadLocalizedTextArray(fieldName)?.ToArray();
+                case BuiltInType.DataValue:
+                    return ReadDataValueArray(fieldName)?.ToArray();
+                case BuiltInType.Variant:
+                    if (systemType != null && encodeableTypeId != null
+                        && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
+                    {
+                        return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
+                    }
+                    return ReadVariantArray(fieldName)?.ToArray();
+                case BuiltInType.ExtensionObject:
+                    return ReadExtensionObjectArray(fieldName)?.ToArray();
+                case BuiltInType.DiagnosticInfo:
+                    return ReadDiagnosticInfoArray(fieldName)?.ToArray();
+                default:
+                    if (systemType != null && encodeableTypeId != null
+                        && DetermineIEncodeableSystemType(ref systemType, encodeableTypeId))
+                    {
+                        return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
+                    }
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Cannot decode unknown type in Array object with BuiltInType: {0}.",
+                        builtInType);
+            }
         }
 
         // TODO: Decide whether the opc ua types are records with single field
         internal static ReadOnlySpan<(int, BuiltInType)> _variantUnionFieldIds
             => new (int, BuiltInType)[]
         {
-            (ValueRanks.Scalar, BuiltInType.Null), // 0,
-            (ValueRanks.Scalar, BuiltInType.Boolean), // 1,
-            (ValueRanks.Scalar, BuiltInType.SByte), // 2,
-            (ValueRanks.Scalar, BuiltInType.Byte), // 3,
-            (ValueRanks.Scalar, BuiltInType.Int16), // 4,
-            (ValueRanks.Scalar, BuiltInType.UInt16), // 5,
-            (ValueRanks.Scalar, BuiltInType.Int32), // 6,
-            (ValueRanks.Scalar, BuiltInType.UInt32), // 7,
-            (ValueRanks.Scalar, BuiltInType.Int64), // 8,
-            (ValueRanks.Scalar, BuiltInType.UInt64), // 8,
-            (ValueRanks.Scalar, BuiltInType.Float), // 10,
-            (ValueRanks.Scalar, BuiltInType.Double), // 11,
-            (ValueRanks.Scalar, BuiltInType.String), // 12,
-            (ValueRanks.Scalar, BuiltInType.DateTime), // 13,
-            (ValueRanks.Scalar, BuiltInType.Guid), // 14,
-            (ValueRanks.Scalar, BuiltInType.ByteString), // 15,
-            (ValueRanks.Scalar, BuiltInType.XmlElement), // 16,
-            (ValueRanks.Scalar, BuiltInType.NodeId), // 17,
-            (ValueRanks.Scalar, BuiltInType.ExpandedNodeId), // 18,
-            (ValueRanks.Scalar, BuiltInType.StatusCode), // 19,
-            (ValueRanks.Scalar, BuiltInType.QualifiedName), // 20,
-            (ValueRanks.Scalar, BuiltInType.LocalizedText), // 21,
-            (ValueRanks.Scalar, BuiltInType.ExtensionObject), // 22,
-            (ValueRanks.Scalar, BuiltInType.DataValue), // 23,
-            (ValueRanks.Scalar, BuiltInType.DiagnosticInfo), // 24,
-            (ValueRanks.Scalar, BuiltInType.Number), // 25,
-            (ValueRanks.Scalar, BuiltInType.Integer), // 26,
-            (ValueRanks.Scalar, BuiltInType.UInteger), // 27,
-            (ValueRanks.Scalar, BuiltInType.Enumeration), // 28,
-            (ValueRanks.OneDimension, BuiltInType.Boolean), // 29,
-            (ValueRanks.OneDimension, BuiltInType.SByte), // 30,
-            (ValueRanks.OneDimension, BuiltInType.Byte), // 31,
-            (ValueRanks.OneDimension, BuiltInType.Int16), // 32,
-            (ValueRanks.OneDimension, BuiltInType.UInt16), // 33,
-            (ValueRanks.OneDimension, BuiltInType.Int32), // 34,
-            (ValueRanks.OneDimension, BuiltInType.UInt32), // 35,
-            (ValueRanks.OneDimension, BuiltInType.Int64), // 36,
-            (ValueRanks.OneDimension, BuiltInType.UInt64), // 37,
-            (ValueRanks.OneDimension, BuiltInType.Float), // 38,
-            (ValueRanks.OneDimension, BuiltInType.Double), // 39,
-            (ValueRanks.OneDimension, BuiltInType.String), // 40,
-            (ValueRanks.OneDimension, BuiltInType.DateTime), // 41,
-            (ValueRanks.OneDimension, BuiltInType.Guid), // 42,
-            (ValueRanks.OneDimension, BuiltInType.ByteString), // 43,
-            (ValueRanks.OneDimension, BuiltInType.XmlElement), // 44,
-            (ValueRanks.OneDimension, BuiltInType.NodeId), // 45,
-            (ValueRanks.OneDimension, BuiltInType.ExpandedNodeId), // 46,
-            (ValueRanks.OneDimension, BuiltInType.StatusCode), // 47,
-            (ValueRanks.OneDimension, BuiltInType.QualifiedName), // 48,
-            (ValueRanks.OneDimension, BuiltInType.LocalizedText), // 49,
-            (ValueRanks.OneDimension, BuiltInType.ExtensionObject), // 50,
-            (ValueRanks.OneDimension, BuiltInType.DataValue), // 51,
-            (ValueRanks.OneDimension, BuiltInType.Variant), // 52,
-            (ValueRanks.OneDimension, BuiltInType.DiagnosticInfo), // 53,
-            (ValueRanks.OneDimension, BuiltInType.Number), // 54,
-            (ValueRanks.OneDimension, BuiltInType.Integer), // 55,
-            (ValueRanks.OneDimension, BuiltInType.UInteger), // 56,
-            (ValueRanks.OneDimension, BuiltInType.Enumeration), // 57
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Boolean), // 58,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.SByte), // 59,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Byte), // 60,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int16), // 61,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt16), // 62,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int32), // 63,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt32), // 64,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int64), // 65,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt64), // 66,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Float), // 67,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Double), // 68,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.String), // 69,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.DateTime), // 70,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Guid), // 71,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ByteString), // 72,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.XmlElement), // 73,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.NodeId), // 74,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExpandedNodeId), // 75,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.StatusCode), // 76,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.QualifiedName), // 77,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.LocalizedText), // 78,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExtensionObject), // 79,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.DataValue), // 80,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Variant), // 81,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.DiagnosticInfo), // 82,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Number), // 83,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Integer), // 84,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInteger), // 85,
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Enumeration) // 86
+            (ValueRanks.Scalar, BuiltInType.Null),
+            (ValueRanks.Scalar, BuiltInType.Boolean),
+            (ValueRanks.Scalar, BuiltInType.SByte),
+            (ValueRanks.Scalar, BuiltInType.Byte),
+            (ValueRanks.Scalar, BuiltInType.Int16),
+            (ValueRanks.Scalar, BuiltInType.UInt16),
+            (ValueRanks.Scalar, BuiltInType.Int32),
+            (ValueRanks.Scalar, BuiltInType.UInt32),
+            (ValueRanks.Scalar, BuiltInType.Int64),
+            (ValueRanks.Scalar, BuiltInType.UInt64),
+            (ValueRanks.Scalar, BuiltInType.Float),
+            (ValueRanks.Scalar, BuiltInType.Double),
+            (ValueRanks.Scalar, BuiltInType.String),
+            (ValueRanks.Scalar, BuiltInType.DateTime),
+            (ValueRanks.Scalar, BuiltInType.Guid),
+            (ValueRanks.Scalar, BuiltInType.ByteString),
+            (ValueRanks.Scalar, BuiltInType.XmlElement),
+            (ValueRanks.Scalar, BuiltInType.NodeId),
+            (ValueRanks.Scalar, BuiltInType.ExpandedNodeId),
+            (ValueRanks.Scalar, BuiltInType.StatusCode),
+            (ValueRanks.Scalar, BuiltInType.QualifiedName),
+            (ValueRanks.Scalar, BuiltInType.LocalizedText),
+            (ValueRanks.Scalar, BuiltInType.ExtensionObject),
+            (ValueRanks.Scalar, BuiltInType.DataValue),
+            (ValueRanks.Scalar, BuiltInType.Number),
+            (ValueRanks.Scalar, BuiltInType.Integer),
+            (ValueRanks.Scalar, BuiltInType.UInteger),
+            (ValueRanks.Scalar, BuiltInType.Enumeration),
+            (ValueRanks.OneDimension, BuiltInType.Boolean),
+            (ValueRanks.OneDimension, BuiltInType.SByte),
+            (ValueRanks.OneDimension, BuiltInType.Byte),
+            (ValueRanks.OneDimension, BuiltInType.Int16),
+            (ValueRanks.OneDimension, BuiltInType.UInt16),
+            (ValueRanks.OneDimension, BuiltInType.Int32),
+            (ValueRanks.OneDimension, BuiltInType.UInt32),
+            (ValueRanks.OneDimension, BuiltInType.Int64),
+            (ValueRanks.OneDimension, BuiltInType.UInt64),
+            (ValueRanks.OneDimension, BuiltInType.Float),
+            (ValueRanks.OneDimension, BuiltInType.Double),
+            (ValueRanks.OneDimension, BuiltInType.String),
+            (ValueRanks.OneDimension, BuiltInType.DateTime),
+            (ValueRanks.OneDimension, BuiltInType.Guid),
+            (ValueRanks.OneDimension, BuiltInType.ByteString),
+            (ValueRanks.OneDimension, BuiltInType.XmlElement),
+            (ValueRanks.OneDimension, BuiltInType.NodeId),
+            (ValueRanks.OneDimension, BuiltInType.ExpandedNodeId),
+            (ValueRanks.OneDimension, BuiltInType.StatusCode),
+            (ValueRanks.OneDimension, BuiltInType.QualifiedName),
+            (ValueRanks.OneDimension, BuiltInType.LocalizedText),
+            (ValueRanks.OneDimension, BuiltInType.ExtensionObject),
+            (ValueRanks.OneDimension, BuiltInType.DataValue),
+            (ValueRanks.OneDimension, BuiltInType.Variant),
+            (ValueRanks.OneDimension, BuiltInType.Number),
+            (ValueRanks.OneDimension, BuiltInType.Integer),
+            (ValueRanks.OneDimension, BuiltInType.UInteger),
+            (ValueRanks.OneDimension, BuiltInType.Enumeration),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Boolean),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.SByte),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Byte),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int16),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt16),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int32),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt32),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int64),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt64),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Float),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Double),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.String),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.DateTime),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Guid),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.ByteString),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.XmlElement),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.NodeId),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExpandedNodeId),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.StatusCode),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.QualifiedName),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.LocalizedText),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExtensionObject),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.DataValue),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Variant),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Number),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Integer),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInteger),
+            (ValueRanks.OneOrMoreDimensions, BuiltInType.Enumeration)
         };
 
         /// <summary>

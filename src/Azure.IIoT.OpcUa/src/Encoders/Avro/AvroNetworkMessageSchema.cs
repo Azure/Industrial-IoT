@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 return payloadType;
             }
 
-            var encoding = AvroBuiltInTypeSchemas.Default;
+            var encoding = new AvroBuiltInTypeSchemas();
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),

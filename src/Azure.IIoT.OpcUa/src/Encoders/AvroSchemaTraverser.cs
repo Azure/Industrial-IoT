@@ -176,10 +176,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     return false;
                 }
                 _outer.Pop(); // Pop us and push the actual item if not null
-                if (selected.Tag != Schema.Type.Null)
-                {
-                    _outer.Push(selected);
-                }
+                _outer.Push(selected);
                 return true;
             }
 

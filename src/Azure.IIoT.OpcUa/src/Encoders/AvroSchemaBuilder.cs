@@ -461,8 +461,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEncodeableArray(string? fieldName,
             IList<IEncodeable>? values, Type? systemType)
         {
-            using var _ = Push(fieldName, values?.FirstOrDefault()?.GetType().Name
-                ?? systemType?.Name ?? "unknown", true);
             base.WriteEncodeableArray(fieldName, values, systemType);
         }
 
@@ -491,9 +489,10 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public override void WriteArray<T>(string? fieldName, IList<T>? values,
-            Action<T> writer)
+            Action<T> writer, string? typeName = null)
         {
-            using var _ = Push(fieldName, typeof(T).Name, true);
+            using var _ = Push(fieldName, typeName ??
+                values?.FirstOrDefault()?.GetType().Name ?? typeof(T).Name, true);
             base.WriteArray(fieldName, values, writer);
         }
 
@@ -609,8 +608,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         private readonly Stack<Schema> _schemas = new();
-        private readonly AvroBuiltInTypeSchemas _builtIns
-            = AvroBuiltInTypeSchemas.Default;
+        private readonly AvroBuiltInTypeSchemas _builtIns = new();
         private bool _skipInnerSchemas;
     }
 }

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using global::Avro;
     using Opc.Ua;
     using System;
@@ -224,6 +225,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             using (var stream = new MemoryStream(buffer))
             {
+                var json = schema.ToJson();
+                Assert.NotNull(json);
                 using (var decoder = new AvroDecoder(stream, schema, context))
                 {
                     var results = decoder.ReadArray(null,

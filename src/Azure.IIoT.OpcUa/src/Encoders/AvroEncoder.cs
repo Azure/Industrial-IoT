@@ -429,9 +429,9 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public override void WriteArray<T>(string? fieldName, IList<T>? values,
-            Action<T> writer)
+            Action<T> writer, string? typeName = null)
         {
-            base.WriteArray(fieldName, values, writer);
+            base.WriteArray(fieldName, values, writer, typeName);
         }
 
         /// <summary>
@@ -453,8 +453,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         private readonly NodeIdDictionary<Schema> _schemas = new();
-        private readonly AvroBuiltInTypeSchemas _builtIns
-            = AvroBuiltInTypeSchemas.Default;
+        private readonly AvroBuiltInTypeSchemas _builtIns = new();
     }
 
     /// <summary>

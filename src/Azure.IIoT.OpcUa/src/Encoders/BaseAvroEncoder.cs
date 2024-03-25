@@ -729,7 +729,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteEncodeableArray(string? fieldName,
             IList<IEncodeable>? values, Type? systemType)
         {
-            WriteArray(fieldName, values, v => WriteEncodeable(null, v, systemType));
+            WriteArray(fieldName, values, v => WriteEncodeable(null, v, systemType),
+                systemType?.Name);
         }
 
         /// <inheritdoc/>
@@ -1260,7 +1261,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             else if (value.TypeInfo!.ValueRank < 0)
             {
                 // Write union discriminator for scalar
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType, 
+                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
                     value.TypeInfo.ValueRank));
                 WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
             }
@@ -1519,7 +1520,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public virtual void WriteArray<T>(string? fieldName,
-            IList<T>? values, Action<T> writer)
+            IList<T>? values, Action<T> writer, string? typeName = null)
         {
             values ??= Array.Empty<T>();
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
@@ -1537,15 +1538,16 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         protected virtual void WriteMatrix<T>(string? fieldName,
-            IList<T>? values, int[] dimensions, Action<T> writer)
+            IList<T>? values, int[] dimensions, Action<T> writer, string? typeName = null)
         {
-            WriteArray(nameof(Matrix.Dimensions), dimensions, 
+            WriteArray(nameof(Matrix.Dimensions), dimensions,
                 v => WriteInt32(null, v));
-            WriteArray(kDefaultFieldName, values, writer);
+            WriteArray(kDefaultFieldName, values, writer, typeName);
         }
 
         /// <inheritdoc/>
-        protected virtual void WriteMatrix(string? fieldName, Matrix matrix)
+        protected virtual void WriteMatrix(string? fieldName, Matrix matrix,
+            string? typeName = null)
         {
             WriteArray(nameof(Matrix.Dimensions), matrix.Dimensions,
                 v => WriteInt32(null, v));

@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             }
             if (encoding?.HasFlag(MessageEncoding.Avro) != false)
             {
-                return AvroBuiltInTypeSchemas.Default;
+                return new AvroBuiltInTypeSchemas();
             }
             throw new NotSupportedException(
                 $"Encoding {encoding} not yet supported!");

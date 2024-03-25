@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Avro.Generic;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client.ComplexTypes;
@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// <para>
@@ -116,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await ResolveRemainingsAsync(session, ct).ConfigureAwait(false);
 
             // 6. Resolve metadata
-            await ResolveMetaDataAsync(session,  ct).ConfigureAwait(false);
+            await ResolveMetaDataAsync(session, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1004,7 +1003,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <inheritdoc/>
                 public override bool MetaDataNeedsRefresh
                 {
-                    get => base.MetaDataNeedsRefresh || _variable.MetaData == null ;
+                    get => base.MetaDataNeedsRefresh || _variable.MetaData == null;
                     set => base.MetaDataNeedsRefresh = value;
                 }
 

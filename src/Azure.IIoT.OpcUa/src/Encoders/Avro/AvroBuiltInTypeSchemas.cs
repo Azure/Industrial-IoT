@@ -12,8 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Security.AccessControl;
-    using System.Xml.Linq;
 
     /// <summary>
     /// Provides the Avro schemas of built in types and objects
@@ -21,19 +19,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     /// </summary>
     internal class AvroBuiltInTypeSchemas : BuiltInTypeSchemas
     {
-        /// <summary>
-        /// Get a default schemas
-        /// </summary>
-        public static AvroBuiltInTypeSchemas Default { get; }
-            = new AvroBuiltInTypeSchemas();
-
         private static Schema EnumerationSchema
         {
             get
             {
                 // Enumeration is a record of type int
                 return Primitive((int)BuiltInType.Enumeration,
-                    nameof(BuiltInType.Enumeration), "string");
+                    nameof(BuiltInType.Enumeration), "int");
             }
         }
 
@@ -185,11 +177,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                     new List<Field>
                     {
                         new (GetSchemaForBuiltInType(BuiltInType.Variant), "Value", 0),
-                        new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
+                        new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "StatusCode", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
-                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoseconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
-                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoseconds", 5)
                     }, AvroUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DataValue) });
             }
