@@ -31,11 +31,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         public Func<UnionSchema, Schema?>? ExpectUnionItem { get; set; }
 
         /// <summary>
-        /// Next should be the item in array
-        /// </summary>
-        public bool ExpectArrayItem { get; set; }
-
-        /// <summary>
         /// Create traversal
         /// </summary>
         /// <param name="schema"></param>
@@ -77,14 +72,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Allows to pop travers from stack
+        /// Allows to pop top traverser from stack
         /// </summary>
-        /// <param name="traverser"></param>
-        private bool TryPop(Traverser traverser)
+        public Schema Pop()
         {
-            var top = _schemas.Pop();
-            Debug.Assert(traverser == top);
-            return TryMoveNext();
+            var traverser = _schemas.Pop();
+            return traverser.Schema;
         }
 
         /// <summary>
@@ -116,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // There are no fields in here
                     return false;
                 }
-                return _outer.TryPop(this);
+                return true;
             }
 
             protected readonly AvroSchemaTraverser _outer;
@@ -146,13 +139,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // There are no fields in here
                     return false;
                 }
-                if (_outer.ExpectArrayItem)
-                {
-                    _outer.ExpectArrayItem = false;
-                    _outer.Push(_array.ItemSchema);
-                    return true;
-                }
-                return _outer.TryPop(this);
+                _outer.Push(_array.ItemSchema);
+                return true;
             }
 
             private readonly ArraySchema _array;
@@ -187,7 +175,11 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return false;
                 }
-                _outer.Push(selected);
+                _outer.Pop(); // Pop us and push the actual item if not null
+                if (selected.Tag != Schema.Type.Null)
+                {
+                    _outer.Push(selected);
+                }
                 return true;
             }
 
@@ -218,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (_pos == _record.Count)
                 {
                     _pos = -1;
-                    return _outer.TryPop(this);
+                    _outer.Pop();
                 }
                 var field = _record.Fields[_pos];
                 var fieldName = _outer.ExpectedFieldName;

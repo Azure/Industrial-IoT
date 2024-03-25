@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                             new List<Field>
                             {
                                 new (GetSchemaForBuiltInType(BuiltInType.NodeId), "TypeId", 0),
-                                new (GetSchemaForBuiltInType(BuiltInType.ByteString), "Body", 2)
+                                new (GetSchemaForBuiltInType(BuiltInType.ByteString), "Body", 1)
                             }, AvroUtils.NamespaceZeroName)), kSingleFieldName, 0)
                             // ...
                     }, AvroUtils.NamespaceZeroName,

@@ -226,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var results = decoder.ReadCollection(null,
+                    var results = decoder.ReadArray(null,
                         () => decoder.ReadEncodeable(null, expected.GetType()));
                     Assert.Equal(count, results.Length);
                     for (var i = 0; i < count; i++)
@@ -261,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var results = decoder.ReadCollection(null,
+                    var results = decoder.ReadArray(null,
                         () => decoder.ReadDataValue(null));
                     Assert.Equal(count, results.Length);
                     for (var i = 0; i < count; i++)
@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var results = decoder.ReadCollection(null,
+                    var results = decoder.ReadArray(null,
                         () => decoder.ReadDataValue(null));
                     Assert.Equal(count, results.Length);
                     for (var i = 0; i < count; i++)
@@ -382,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 using (var decoder = new AvroDecoder(stream, schema, context))
                 {
-                    var results = decoder.ReadCollection(null,
+                    var results = decoder.ReadArray(null,
                         () => decoder.ReadDataSet(null));
                     Assert.Equal(count, results.Length);
                     for (var i = 0; i < count; i++)

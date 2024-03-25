@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using global::Avro;
     using Opc.Ua;
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Xml;
 
@@ -177,41 +178,36 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               base.ReadDiagnosticInfo);
+                base.ReadDiagnosticInfo);
         }
 
         /// <inheritdoc/>
         public override QualifiedName ReadQualifiedName(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.QualifiedName,
-               base.ReadQualifiedName);
+                base.ReadQualifiedName);
         }
-
+         
         /// <inheritdoc/>
         public override LocalizedText ReadLocalizedText(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               base.ReadLocalizedText);
+                base.ReadLocalizedText);
         }
 
         /// <inheritdoc/>
         public override DataValue ReadDataValue(string? fieldName)
         {
-            // TODO: we will have data value schemas where the 
-            // Value is not a variant schema. Those are named
-            // something like <TypeName>DataValue
-            // Get current field schema
-
-            var currentSchema = GetFieldSchema(fieldName);
-
-            // The schema should be a data value schema
-
-            return base.ReadDataValue(fieldName);
+            return ValidatedRead(fieldName, BuiltInType.DataValue,
+                base.ReadDataValue);
         }
 
         /// <inheritdoc/>
         public override Variant ReadVariant(string? fieldName)
         {
+            return ValidatedRead(fieldName, BuiltInType.Variant,
+                base.ReadVariant);
+#if FALSE
             var schema = GetFieldSchema(fieldName);
 
             if (schema.IsBuiltInType(out var builtInType) &&
@@ -255,6 +251,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             return base.ReadVariantValue(builtInType, isArray, isMatrix);
+#endif
         }
 
         /// <inheritdoc/>
@@ -330,49 +327,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override ExtensionObject? ReadExtensionObject(string? fieldName)
         {
-            //
-            // Extension objects can be either fully encoded extension objects or
-            // can be just the encodeable that is decoded from the schema that is
-            // the current field schema.
-            //
-            var schema = GetFieldSchema(fieldName);
+            return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
+                base.ReadExtensionObject);
+        }
 
-            // TODO: This could be a union of many structure types, get which
-            // using the union index and so on!!
-
-            if (schema.IsBuiltInType(out var builtInType))
-            {
-                if (builtInType == BuiltInType.ExtensionObject)
-                {
-                    // The schema is a extension object schema so we decode as such
-                    return base.ReadExtensionObject(fieldName);
-                }
-
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema {0} is a built in type but not an extension object.",
-                    schema);
-
-                // Decode as variant?
-            }
-
-            // Get the type id directly from the schema and load the system type 
-            var typeId = schema.GetDataTypeId(Context);
-            if (NodeId.IsNull(typeId))
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema {0} does not reference a valid type id to look up system type.",
-                    schema);
-            }
-
-            var systemType = Context.Factory.GetSystemType(typeId);
-            if (systemType == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "A system type for schema {0} could not befound using the typeid {1}.",
-                    schema, typeId);
-            }
-            return new ExtensionObject(typeId,
-                ReadEncodeable(fieldName, systemType, typeId));
+        /// <inheritdoc/>
+        protected override ExtensionObject ReadEncodedDataType(string? fieldName)
+        {
+            return ValidatedRead(fieldName, AvroUtils.NamespaceZeroName + ".EncodedDataType",
+                base.ReadEncodedDataType);
         }
 
         /// <inheritdoc/>
@@ -589,14 +552,65 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override T[] ReadCollection<T>(string? fieldName, Func<T> reader)
+        public override T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            GetFieldSchema(fieldName);
-            return base.ReadCollection(fieldName, () =>
+            var schema = GetFieldSchema(fieldName);
+            if (schema is not ArraySchema arr)
             {
-                _schema.ExpectArrayItem = true;
-                return reader();
-            });
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Reading array field but schema is not array schema");
+            }
+            try
+            {
+                return base.ReadArray(fieldName, () => reader());
+            }
+            finally
+            {
+                // Pop array from stack
+                schema = _schema.Pop();
+                Debug.Assert(schema == arr);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override int ReadUnionSelector()
+        {
+            var index = base.ReadUnionSelector();
+            _schema.ExpectUnionItem = u =>
+            {
+                if (index < u.Schemas.Count && index >= 0)
+                {
+                    return u.Schemas[index];
+                }
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Union index read does not match schema union");
+            };
+            GetFieldSchema(null);
+            return index;
+        }
+
+        /// <inheritdoc/>
+        protected override IEncodeable ReadEncodeableInExtensionObject(int unionId)
+        {
+            var schema = _schema.Current; // Selected through union id
+
+            // Get the type id directly from the schema and load the system type 
+            var typeId = schema.GetDataTypeId(Context);
+            if (NodeId.IsNull(typeId))
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Schema {0} does not reference a valid type id to look up system type.",
+                    schema);
+            }
+
+            var systemType = Context.Factory.GetSystemType(typeId);
+            if (systemType == null)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "A system type for schema {0} could not befound using the typeid {1}.",
+                    schema, typeId);
+            }
+            return ReadEncodeable(null, systemType, typeId);
         }
 
         /// <summary>
@@ -613,21 +627,49 @@ namespace Azure.IIoT.OpcUa.Encoders
         private T ValidatedRead<T>(string? fieldName, BuiltInType builtInType,
             Func<string?, T> value, int valueRank = ValueRanks.Scalar)
         {
-            // Get current field schema
-            var currentSchema = GetFieldSchema(fieldName);
-
             // Get expected schema
             var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType,
                 valueRank);
+            var expectedName = expectedType.Fullname;
+            return ValidatedRead(fieldName, expectedName, value);
+        }
+
+        /// <summary>
+        /// Validate read
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="expectedSchemaFullName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private T ValidatedRead<T>(string? fieldName, 
+            string expectedSchemaFullName, Func<string?, T> value)
+        {
+
+            // Get current field schema
+            var currentSchema = GetFieldSchema(fieldName);
 
             // Should be the same
-            if (currentSchema.Fullname != expectedType.Fullname)
+            if (currentSchema.Fullname != expectedSchemaFullName)
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Failed to decode. Schema {0} is not as expected {1}",
-                    currentSchema, expectedType);
+                    currentSchema.Fullname, expectedSchemaFullName);
             }
-            return value(fieldName);
+
+            // Read type per schema
+            var result = value(fieldName);
+
+            // Pop the type from the stack
+            var completedSchema = _schema.Pop();
+            if (completedSchema != currentSchema)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Failed to pop built in type.");
+            }
+
+            return result;
         }
 
         /// <summary>

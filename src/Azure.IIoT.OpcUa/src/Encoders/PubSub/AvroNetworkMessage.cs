@@ -244,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return false;
             }
 
-            var messages = decoder.ReadCollection<BaseDataSetMessage?>(
+            var messages = decoder.ReadArray<BaseDataSetMessage?>(
                 nameof(Messages), () =>
             {
                 var message = new AvroDataSetMessage(decoder.Schema);

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Opc.Ua;
     using System;
@@ -168,21 +169,52 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new NodeId(value, ns);
             encoder.WriteNodeId(null, expected);
             stream.Position = 0;
+            var json = encoder.Schema.ToJson();
+            Assert.NotNull(json);
+            using var decoder = new AvroDecoder(stream, encoder.Schema, context);
+            Assert.Equal(expected, decoder.ReadNodeId(null));
+        }
+        [Fact]
+        public void TestNodeIdOpaque()
+        {
+            var context = new ServiceMessageContext();
+            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            using var stream = new MemoryStream();
+            using var encoder = new AvroSchemaBuilder(stream, context, true);
+            var expected = new NodeId(Guid.NewGuid().ToByteArray(), ns);
+            encoder.WriteNodeId(null, expected);
+            stream.Position = 0;
+            var json = encoder.Schema.ToJson();
+            Assert.NotNull(json);
             using var decoder = new AvroDecoder(stream, encoder.Schema, context);
             Assert.Equal(expected, decoder.ReadNodeId(null));
         }
 
-        [Theory]
-        [InlineData("test")]
-        [InlineData(12345u)]
-        public void TestExpandedNodeId(object value)
+        [Fact]
+        public void TestNodeIdGuid()
+        {
+            var context = new ServiceMessageContext();
+            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            using var stream = new MemoryStream();
+            using var encoder = new AvroSchemaBuilder(stream, context, true);
+            var expected = new NodeId(Guid.NewGuid(), ns);
+            encoder.WriteNodeId(null, expected);
+            stream.Position = 0;
+            var json = encoder.Schema.ToJson();
+            Assert.NotNull(json);
+            using var decoder = new AvroDecoder(stream, encoder.Schema, context);
+            Assert.Equal(expected, decoder.ReadNodeId(null));
+        }
+
+        [Fact]
+        public void TestExpandedNodeIdOpaque()
         {
             var context = new ServiceMessageContext();
             var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             using var stream = new MemoryStream();
             using var encoder = new AvroSchemaBuilder(stream, context, true);
-            var expected = new ExpandedNodeId(value, 0, "test.org", srv);
+            var expected = new ExpandedNodeId(Guid.NewGuid().ToByteArray(), 0, "test.org", srv);
             encoder.WriteExpandedNodeId(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, encoder.Schema, context);
@@ -290,6 +322,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             using var encoder = new AvroSchemaBuilder(stream, context, true);
             encoder.WriteExtensionObject(null, expected);
             stream.Position = 0;
+            var json = encoder.Schema.ToJson();
+            Assert.NotNull(json);
             using var decoder = new AvroDecoder(stream, encoder.Schema, context);
             var actual = decoder.ReadExtensionObject(null);
             Assert.Equal(expected.TypeId, actual.TypeId);

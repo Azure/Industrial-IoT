@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -86,6 +87,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
                     schema
                 });
         }
+
+        /// <summary>
+        /// Returns the schema as formatted json
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static string ToJson(this Schema schema, 
+            JsonSerializerOptions? options = null)
+        {
+            var json = schema.ToString();
+            var document = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(document, options ?? kIndented);
+        }
+
+        private static readonly JsonSerializerOptions kIndented = new()
+        {
+            WriteIndented = true
+        };
 
         /// <summary>
         /// Test for built in type

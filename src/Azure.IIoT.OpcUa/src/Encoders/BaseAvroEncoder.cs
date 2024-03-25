@@ -10,12 +10,14 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua.Extensions;
     using System;
     using System.Buffers.Binary;
+    using System.Collections.Frozen;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Xml;
 
     /// <summary>
@@ -263,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual void WriteXmlElement(string? fieldName, XmlElement? value)
         {
-             _writer.WriteString(value?.OuterXml ?? string.Empty);
+            _writer.WriteString(value?.OuterXml ?? string.Empty);
         }
 
         /// <inheritdoc/>
@@ -325,7 +327,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="namespaceUri"></param>
         private void WriteNodeId(NodeId? value, string namespaceUri)
         {
-            _writer.WriteString(namespaceUri);
+            const string kIdentifierName = "Identifier";
+            WriteString("Namespace", namespaceUri);
 
             var idUnionIndex = value?.IdType ?? IdType.Numeric;
             //  Numeric = 0,
@@ -336,16 +339,16 @@ namespace Azure.IIoT.OpcUa.Encoders
             switch (idUnionIndex)
             {
                 case IdType.Numeric:
-                    _writer.WriteInteger((uint)(value?.Identifier ?? 0u));
+                    WriteUInt32(kIdentifierName, (uint)(value?.Identifier ?? 0u));
                     break;
                 case IdType.String:
-                    _writer.WriteString((string)value!.Identifier);
+                    WriteString(kIdentifierName, (string)value!.Identifier);
                     break;
                 case IdType.Guid:
-                    WriteGuid(null, (Guid)value!.Identifier);
+                    WriteGuid(kIdentifierName, (Guid)value!.Identifier);
                     break;
                 case IdType.Opaque:
-                    _writer.WriteBytes((byte[])value!.Identifier);
+                    WriteByteString(kIdentifierName, (byte[])value!.Identifier);
                     break;
             }
         }
@@ -382,10 +385,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Namespace, and union of via IdType which represents
             // the union discriminator.  After that we write the
             // namespace uri and then server index.
-             //
+            //
             WriteNodeId(value.ToNodeId(Context.NamespaceUris),
                 namespaceUri ?? string.Empty);
-            _writer.WriteString(serverUri ?? string.Empty);
+            WriteString("ServerUri", serverUri);
         }
 
         /// <inheritdoc/>
@@ -410,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
 
-            var namespaceUri = namespaceIndex == 0 ? null:
+            var namespaceUri = namespaceIndex == 0 ? null :
                 Context.NamespaceUris.GetString(namespaceIndex);
             _writer.WriteString(namespaceUri ?? string.Empty);
             _writer.WriteString(value?.Name ?? string.Empty);
@@ -454,80 +457,62 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteExtensionObject(string? fieldName, ExtensionObject? value)
         {
             value ??= new ExtensionObject();
-            var encodeable = value.Body as IEncodeable;
 
             // write the type id.
             var typeId = value.TypeId;
-            if (encodeable != null)
+            var body = value.Body;
+            if (body is IEncodeable encodeable)
             {
-                typeId = value.Encoding == ExtensionObjectEncoding.Xml
-                    ? encodeable.XmlEncodingId : encodeable.BinaryEncodingId;
+                if (body is IJsonEncodeable je)
+                {
+                    typeId = je.JsonEncodingId;
+                    body = encodeable.AsJson(Context);
+                }
+                else if (value.Encoding == ExtensionObjectEncoding.Xml)
+                {
+                    typeId = encodeable.XmlEncodingId;
+                    body = encodeable.AsXmlElement(Context);
+                }
+                else
+                {
+                    typeId = encodeable.BinaryEncodingId;
+                    body = encodeable.AsBinary(Context);
+                }
             }
+
             var localTypeId = ExpandedNodeId.ToNodeId(typeId, Context.NamespaceUris);
             if (NodeId.IsNull(localTypeId) && !NodeId.IsNull(typeId))
             {
-                if (encodeable != null)
+                if (value.Body is IEncodeable e)
                 {
-                    throw ServiceResultException.Create(
-                        StatusCodes.BadEncodingError,
-    "Cannot encode bodies of type '{0}' in ExtensionObject unless the NamespaceUri ({1}) is in the encoder's NamespaceTable.",
-                        encodeable.GetType().FullName,
-                        typeId.NamespaceUri);
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                        "Cannot encode bodies of type '{0}' in ExtensionObject unless " +
+                        "the NamespaceUri ({1}) is in the encoder's NamespaceTable.",
+                        e.GetType().FullName, typeId.NamespaceUri);
                 }
                 localTypeId = NodeId.Null;
             }
 
-            // Extension objects are records of fields
-            // 1. Encoding Node Id
-            // 2. A union of
-            //   1. null
-            //   2. A encodeable type
-            //   3. A record with
-            //     1. ExtensionObjectEncoding type enum
-            //     2. bytes that are either binary opc ua or xml/json utf 8
-
-            // 1.
-            WriteNodeId(null, localTypeId);
-
-            // 2.1
-            var body = value.Body;
-            if (body is null)
-            {
-                _writer.WriteInteger(0);
-                return;
-            }
-
-            // 2.2
-            if (encodeable != null)
-            {
-                _writer.WriteInteger(1);
-                encodeable.Encode(this);
-                return;
-            }
-
-            // 2.3
-            _writer.WriteInteger(2);
-            // 2.3.1
-            _writer.WriteInteger((int)value.Encoding);
-            // 2.3.2
             switch (body)
             {
-                case byte[] buffer:
-                    // write binary bodies.
-                    _writer.WriteBytes(buffer);
+                case byte[]:
                     break;
                 case XmlElement xml:
-                    // write XML bodies.
-                    WriteXmlElement(null, xml);
+                    body = Encoding.UTF8.GetBytes(
+                        xml.OuterXml ?? string.Empty);
                     break;
                 case string str:
-                    // write json bodies.
-                    _writer.WriteString(str);
+                    body = Encoding.UTF8.GetBytes(str);
                     break;
                 default:
                     Debug.Fail("Should not get here");
                     break;
             }
+
+            // Write a raw encoded data type of the schema union
+            _writer.WriteInteger(0);
+            WriteNodeId("TypeId", localTypeId);
+            WriteByteString("Body", (byte[])body);
         }
 
         /// <inheritdoc/>
@@ -1265,305 +1250,271 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <exception cref="ServiceResultException"></exception>
         private void WriteVariantValue(Variant value)
         {
-            // always write the dimensions of the variant.
-            // In case of a scalar value this will be an empty
-            // array which consumes 1 byte (length 0 zig zag encoded).
-            Matrix? matrix = null;
             var valueToEncode = value.Value;
-            if (value.TypeInfo?.ValueRank > 1)
-            {
-                matrix = (Matrix?)valueToEncode;
-                valueToEncode = matrix?.Elements;
-            }
-            WriteArray("Dimensions", matrix?.Dimensions ?? Array.Empty<int>(),
-                v => WriteInt32(null, v));
 
-            // Shortcut here to write null
             if (valueToEncode == null)
             {
+                // Shortcut here to write null
                 _writer.WriteInteger(0);
-                return;
             }
-
-            if (value.TypeInfo!.ValueRank < 0)
+            else if (value.TypeInfo!.ValueRank < 0)
             {
                 // Write union discriminator for scalar
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType));
-                switch (value.TypeInfo.BuiltInType)
-                {
-                    case BuiltInType.Boolean:
-                        WriteBoolean(null, (bool)valueToEncode);
-                        return;
-                    case BuiltInType.SByte:
-                        WriteSByte(null, (sbyte)valueToEncode);
-                        return;
-                    case BuiltInType.Byte:
-                        WriteByte(null, (byte)valueToEncode);
-                        return;
-                    case BuiltInType.Int16:
-                        WriteInt16(null, (short)valueToEncode);
-                        return;
-                    case BuiltInType.UInt16:
-                        WriteUInt16(null, (ushort)valueToEncode);
-                        return;
-                    case BuiltInType.Int32:
-                        WriteInt32(null, (int)valueToEncode);
-                        return;
-                    case BuiltInType.UInt32:
-                        WriteUInt32(null, (uint)valueToEncode);
-                        return;
-                    case BuiltInType.Int64:
-                        WriteInt64(null, (long)valueToEncode);
-                        return;
-                    case BuiltInType.UInt64:
-                        WriteUInt64(null, (ulong)valueToEncode);
-                        return;
-                    case BuiltInType.Float:
-                        WriteFloat(null, (float)valueToEncode);
-                        return;
-                    case BuiltInType.Double:
-                        WriteDouble(null, (double)valueToEncode);
-                        return;
-                    case BuiltInType.String:
-                        _writer.WriteString((string)valueToEncode);
-                        return;
-                    case BuiltInType.DateTime:
-                        WriteDateTime(null, (DateTime)valueToEncode);
-                        return;
-                    case BuiltInType.Guid:
-                        WriteGuid(null, (Uuid)valueToEncode);
-                        return;
-                    case BuiltInType.ByteString:
-                        _writer.WriteBytes((byte[])valueToEncode);
-                        return;
-                    case BuiltInType.XmlElement:
-                        WriteXmlElement(null, (XmlElement)valueToEncode);
-                        return;
-                    case BuiltInType.NodeId:
-                        WriteNodeId(null, (NodeId)valueToEncode);
-                        return;
-                    case BuiltInType.ExpandedNodeId:
-                        WriteExpandedNodeId(null, (ExpandedNodeId)valueToEncode);
-                        return;
-                    case BuiltInType.StatusCode:
-                        WriteStatusCode(null, (StatusCode)valueToEncode);
-                        return;
-                    case BuiltInType.QualifiedName:
-                        WriteQualifiedName(null, (QualifiedName)valueToEncode);
-                        return;
-                    case BuiltInType.LocalizedText:
-                        WriteLocalizedText(null, (LocalizedText)valueToEncode);
-                        return;
-                    case BuiltInType.ExtensionObject:
-                        WriteExtensionObject(null, (ExtensionObject)valueToEncode);
-                        return;
-                    case BuiltInType.DataValue:
-                        WriteDataValue(null, (DataValue)valueToEncode);
-                        return;
-                    case BuiltInType.Enumeration:
-                        WriteInt32(null, Convert.ToInt32(valueToEncode,
-                            CultureInfo.InvariantCulture));
-                        return;
-                    case BuiltInType.DiagnosticInfo:
-                        WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
-                        return;
-                }
-
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingError,
-                    "Unexpected type encountered while encoding a Variant: {0}",
-                    value.TypeInfo.BuiltInType);
+                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType, 
+                    value.TypeInfo.ValueRank));
+                WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
             }
-
-            if (value.TypeInfo.ValueRank >= 0)
+            else if (valueToEncode is not Matrix m)
             {
                 // Write union discriminator for array
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType, true));
-                switch (value.TypeInfo.BuiltInType)
-                {
-                    case BuiltInType.Boolean:
-                        WriteArray(null, (bool[])valueToEncode, v => WriteBoolean(null, v));
-                        break;
-                    case BuiltInType.SByte:
-                        WriteArray(null, (sbyte[])valueToEncode, v => WriteSByte(null, v));
-                        break;
-                    case BuiltInType.Byte:
-                        WriteArray(null, (byte[])valueToEncode, v => WriteByte(null, v));
-                        break;
-                    case BuiltInType.Int16:
-                        WriteArray(null, (short[])valueToEncode, v => WriteInt16(null, v));
-                        break;
-                    case BuiltInType.UInt16:
-                        WriteArray(null, (ushort[])valueToEncode, v => WriteUInt16(null, v));
-                        break;
-                    case BuiltInType.Int32:
-                        WriteArray(null, (int[])valueToEncode, v => WriteInt32(null, v));
-                        break;
-                    case BuiltInType.UInt32:
-                        WriteArray(null, (uint[])valueToEncode, v => WriteUInt32(null, v));
-                        break;
-                    case BuiltInType.Int64:
-                        WriteArray(null, (long[])valueToEncode, v => WriteInt64(null, v));
-                        break;
-                    case BuiltInType.UInt64:
-                        WriteArray(null, (ulong[])valueToEncode, v => WriteUInt64(null, v));
-                        break;
-                    case BuiltInType.Float:
-                        WriteArray(null, (float[])valueToEncode, v => WriteFloat(null, v));
-                        break;
-                    case BuiltInType.Double:
-                        WriteArray(null, (double[])valueToEncode, v => WriteDouble(null, v));
-                        break;
-                    case BuiltInType.String:
-                        WriteArray(null, (string[])valueToEncode, v => WriteString(null, v));
-                        break;
-                    case BuiltInType.DateTime:
-                        WriteArray(null, (DateTime[])valueToEncode, v => WriteDateTime(null, v));
-                        break;
-                    case BuiltInType.Guid:
-                        WriteArray(null, (Uuid[])valueToEncode, v => WriteGuid(null, v));
-                        break;
-                    case BuiltInType.ByteString:
-                        WriteArray(null, (byte[][])valueToEncode, v => WriteByteString(null, v));
-                        break;
-                    case BuiltInType.XmlElement:
-                        WriteArray(null, (XmlElement[])valueToEncode, v => WriteXmlElement(null, v));
-                        break;
-                    case BuiltInType.NodeId:
-                        WriteArray(null, (NodeId[])valueToEncode, v => WriteNodeId(null, v));
-                        break;
-                    case BuiltInType.ExpandedNodeId:
-                        WriteArray(null, (ExpandedNodeId[])valueToEncode, v => WriteExpandedNodeId(null, v));
-                        break;
-                    case BuiltInType.StatusCode:
-                        WriteArray(null, (StatusCode[])valueToEncode, v => WriteStatusCode(null, v));
-                        break;
-                    case BuiltInType.QualifiedName:
-                        WriteArray(null, (QualifiedName[])valueToEncode, v => WriteQualifiedName(null, v));
-                        break;
-                    case BuiltInType.LocalizedText:
-                        WriteArray(null, (LocalizedText[])valueToEncode, v => WriteLocalizedText(null, v));
-                        break;
-                    case BuiltInType.ExtensionObject:
-                        WriteArray(null, (ExtensionObject[])valueToEncode, v => WriteExtensionObject(null, v));
-                        break;
-                    case BuiltInType.DataValue:
-                        WriteArray(null, (DataValue[])valueToEncode, v => WriteDataValue(null, v));
-                        break;
-                    case BuiltInType.Enumeration:
-                        // Check whether the value to encode is int array.
-                        if (valueToEncode is not int[] ints)
-                        {
-                            if (valueToEncode is not Enum[] enums)
-                            {
-                                throw new ServiceResultException(
-                                    StatusCodes.BadEncodingError,
-                                    Opc.Ua.Utils.Format(
-                                        "Type '{0}' is not allowed in an Enumeration.",
-                                        value.GetType().FullName));
-                            }
-                            ints = new int[enums.Length];
-                            for (var ii = 0; ii < enums.Length; ii++)
-                            {
-                                ints[ii] = (int)(object)enums[ii];
-                            }
-                        }
-                        WriteArray(null, ints, v => WriteInt32(null, v));
-                        break;
-                    case BuiltInType.Variant:
-                        if (valueToEncode is Variant[] variants)
-                        {
-                            WriteArray(null, variants, v => WriteVariant(null, v));
-                            break;
-                        }
-                        if (valueToEncode is object[] objects)
-                        {
-                            WriteArray(null, objects, v => WriteVariant(null, new Variant(v)));
-                            break;
-                        }
-                        throw ServiceResultException.Create(
-                            StatusCodes.BadEncodingError,
-                            "Unexpected type encountered while encoding a Matrix: {0}",
-                            valueToEncode.GetType());
-                    case BuiltInType.DiagnosticInfo:
-                        WriteArray(null, (DiagnosticInfo[])valueToEncode,
-                            v => WriteDiagnosticInfo(null, v));
-                        break;
-                    default:
-                        throw ServiceResultException.Create(
-                            StatusCodes.BadEncodingError,
-                            "Unexpected type encountered while encoding a Variant: {0}",
-                            value.TypeInfo.BuiltInType);
-                }
+                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
+                    ValueRanks.OneDimension));
+                WriteArray(value.TypeInfo.BuiltInType, valueToEncode);
             }
-            static int ToUnionId(BuiltInType builtInType, bool isArray = false)
+            else
             {
-                // TODO: Decide whether the opc ua types are records with single field
-                return (isArray, builtInType) switch
-                {
-                    (false, BuiltInType.Null) => 0,
-                    (false, BuiltInType.Boolean) => 1,
-                    (false, BuiltInType.SByte) => 2,
-                    (false, BuiltInType.Byte) => 3,
-                    (false, BuiltInType.Int16) => 4,
-                    (false, BuiltInType.UInt16) => 5,
-                    (false, BuiltInType.Int32) => 6,
-                    (false, BuiltInType.UInt32) => 7,
-                    (false, BuiltInType.Int64) => 8,
-                    (false, BuiltInType.UInt64) => 8,
-                    (false, BuiltInType.Float) => 10,
-                    (false, BuiltInType.Double) => 11,
-                    (false, BuiltInType.String) => 12,
-                    (false, BuiltInType.DateTime) => 13,
-                    (false, BuiltInType.Guid) => 14,
-                    (false, BuiltInType.ByteString) => 15,
-                    (false, BuiltInType.XmlElement) => 16,
-                    (false, BuiltInType.NodeId) => 17,
-                    (false, BuiltInType.ExpandedNodeId) => 18,
-                    (false, BuiltInType.StatusCode) => 19,
-                    (false, BuiltInType.QualifiedName) => 20,
-                    (false, BuiltInType.LocalizedText) => 21,
-                    (false, BuiltInType.ExtensionObject) => 22,
-                    (false, BuiltInType.DataValue) => 23,
-                    (false, BuiltInType.DiagnosticInfo) => 24,
-                    (false, BuiltInType.Number) => 25,
-                    (false, BuiltInType.Integer) => 26,
-                    (false, BuiltInType.UInteger) => 27,
-                    (false, BuiltInType.Enumeration) => 28,
-                    (true, BuiltInType.Boolean) => 29,
-                    (true, BuiltInType.SByte) => 30,
-                    (true, BuiltInType.Byte) => 31,
-                    (true, BuiltInType.Int16) => 32,
-                    (true, BuiltInType.UInt16) => 33,
-                    (true, BuiltInType.Int32) => 34,
-                    (true, BuiltInType.UInt32) => 35,
-                    (true, BuiltInType.Int64) => 36,
-                    (true, BuiltInType.UInt64) => 37,
-                    (true, BuiltInType.Float) => 38,
-                    (true, BuiltInType.Double) => 39,
-                    (true, BuiltInType.String) => 40,
-                    (true, BuiltInType.DateTime) => 41,
-                    (true, BuiltInType.Guid) => 42,
-                    (true, BuiltInType.ByteString) => 43,
-                    (true, BuiltInType.XmlElement) => 44,
-                    (true, BuiltInType.NodeId) => 45,
-                    (true, BuiltInType.ExpandedNodeId) => 46,
-                    (true, BuiltInType.StatusCode) => 47,
-                    (true, BuiltInType.QualifiedName) => 48,
-                    (true, BuiltInType.LocalizedText) => 49,
-                    (true, BuiltInType.ExtensionObject) => 50,
-                    (true, BuiltInType.DataValue) => 51,
-                    (true, BuiltInType.Variant) => 52,
-                    (true, BuiltInType.DiagnosticInfo) => 53,
-                    (true, BuiltInType.Number) => 54,
-                    (true, BuiltInType.Integer) => 55,
-                    (true, BuiltInType.UInteger) => 56,
-                    (true, BuiltInType.Enumeration) => 57,
-
-                    _ => throw ServiceResultException.Create(
-                        StatusCodes.BadEncodingError, "Type not allowed"),
-                };
+                // Write union discriminator for matrix
+                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
+                    ValueRanks.OneOrMoreDimensions));
+                WriteMatrix("Body", m);
             }
+
+            static int ToUnionId(BuiltInType builtInType, int valueRank)
+            {
+                if (!_variableUnionId.TryGetValue((valueRank, builtInType),
+                    out var unionId))
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                        "Invalid built in type or value rank for variant");
+                }
+                return unionId;
+            }
+        }
+
+        /// <summary>
+        /// Lookup
+        /// </summary>
+        internal static readonly FrozenDictionary<(int, BuiltInType), int> _variableUnionId =
+            BaseAvroDecoder._variantUnionFieldIds
+                .ToArray()
+                .Select((f, i) => System.Collections.Generic.KeyValuePair.Create(f, i))
+                .ToFrozenDictionary();
+
+        /// <summary>
+        /// Write array of variant
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <param name="valueToEncode"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        protected virtual void WriteArray(BuiltInType builtInType, object valueToEncode)
+        {
+            switch (builtInType)
+            {
+                case BuiltInType.Boolean:
+                    WriteArray(null, (bool[])valueToEncode, v => WriteBoolean(null, v));
+                    break;
+                case BuiltInType.SByte:
+                    WriteArray(null, (sbyte[])valueToEncode, v => WriteSByte(null, v));
+                    break;
+                case BuiltInType.Byte:
+                    WriteArray(null, (byte[])valueToEncode, v => WriteByte(null, v));
+                    break;
+                case BuiltInType.Int16:
+                    WriteArray(null, (short[])valueToEncode, v => WriteInt16(null, v));
+                    break;
+                case BuiltInType.UInt16:
+                    WriteArray(null, (ushort[])valueToEncode, v => WriteUInt16(null, v));
+                    break;
+                case BuiltInType.Int32:
+                    WriteArray(null, (int[])valueToEncode, v => WriteInt32(null, v));
+                    break;
+                case BuiltInType.UInt32:
+                    WriteArray(null, (uint[])valueToEncode, v => WriteUInt32(null, v));
+                    break;
+                case BuiltInType.Int64:
+                    WriteArray(null, (long[])valueToEncode, v => WriteInt64(null, v));
+                    break;
+                case BuiltInType.UInt64:
+                    WriteArray(null, (ulong[])valueToEncode, v => WriteUInt64(null, v));
+                    break;
+                case BuiltInType.Float:
+                    WriteArray(null, (float[])valueToEncode, v => WriteFloat(null, v));
+                    break;
+                case BuiltInType.Double:
+                    WriteArray(null, (double[])valueToEncode, v => WriteDouble(null, v));
+                    break;
+                case BuiltInType.String:
+                    WriteArray(null, (string[])valueToEncode, v => WriteString(null, v));
+                    break;
+                case BuiltInType.DateTime:
+                    WriteArray(null, (DateTime[])valueToEncode, v => WriteDateTime(null, v));
+                    break;
+                case BuiltInType.Guid:
+                    WriteArray(null, (Uuid[])valueToEncode, v => WriteGuid(null, v));
+                    break;
+                case BuiltInType.ByteString:
+                    WriteArray(null, (byte[][])valueToEncode, v => WriteByteString(null, v));
+                    break;
+                case BuiltInType.XmlElement:
+                    WriteArray(null, (XmlElement[])valueToEncode, v => WriteXmlElement(null, v));
+                    break;
+                case BuiltInType.NodeId:
+                    WriteArray(null, (NodeId[])valueToEncode, v => WriteNodeId(null, v));
+                    break;
+                case BuiltInType.ExpandedNodeId:
+                    WriteArray(null, (ExpandedNodeId[])valueToEncode, v => WriteExpandedNodeId(null, v));
+                    break;
+                case BuiltInType.StatusCode:
+                    WriteArray(null, (StatusCode[])valueToEncode, v => WriteStatusCode(null, v));
+                    break;
+                case BuiltInType.QualifiedName:
+                    WriteArray(null, (QualifiedName[])valueToEncode, v => WriteQualifiedName(null, v));
+                    break;
+                case BuiltInType.LocalizedText:
+                    WriteArray(null, (LocalizedText[])valueToEncode, v => WriteLocalizedText(null, v));
+                    break;
+                case BuiltInType.ExtensionObject:
+                    WriteArray(null, (ExtensionObject[])valueToEncode, v => WriteExtensionObject(null, v));
+                    break;
+                case BuiltInType.DataValue:
+                    WriteArray(null, (DataValue[])valueToEncode, v => WriteDataValue(null, v));
+                    break;
+                case BuiltInType.Enumeration:
+                    // Check whether the value to encode is int array.
+                    if (valueToEncode is not int[] ints)
+                    {
+                        if (valueToEncode is not Enum[] enums)
+                        {
+                            throw new ServiceResultException(
+                                StatusCodes.BadEncodingError,
+                                Opc.Ua.Utils.Format(
+                                    "Type '{0}' is not allowed in an Enumeration.",
+                                    valueToEncode.GetType().FullName));
+                        }
+                        ints = new int[enums.Length];
+                        for (var ii = 0; ii < enums.Length; ii++)
+                        {
+                            ints[ii] = (int)(object)enums[ii];
+                        }
+                    }
+                    WriteArray(null, ints, v => WriteInt32(null, v));
+                    break;
+                case BuiltInType.Variant:
+                    if (valueToEncode is Variant[] variants)
+                    {
+                        WriteArray(null, variants, v => WriteVariant(null, v));
+                        break;
+                    }
+                    if (valueToEncode is object[] objects)
+                    {
+                        WriteArray(null, objects, v => WriteVariant(null, new Variant(v)));
+                        break;
+                    }
+                    throw ServiceResultException.Create(
+                        StatusCodes.BadEncodingError,
+                        "Unexpected type encountered while encoding a Matrix: {0}",
+                        valueToEncode.GetType());
+                case BuiltInType.DiagnosticInfo:
+                    WriteArray(null, (DiagnosticInfo[])valueToEncode,
+                        v => WriteDiagnosticInfo(null, v));
+                    break;
+                default:
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                        "Unexpected type encountered while encoding a Variant: {0}",
+                        builtInType);
+            }
+        }
+
+        /// <summary>
+        /// Write scalar value
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <param name="valueToEncode"></param>
+        protected virtual void WriteScalar(BuiltInType builtInType, object valueToEncode)
+        {
+            switch (builtInType)
+            {
+                case BuiltInType.Boolean:
+                    WriteBoolean(null, (bool)valueToEncode);
+                    return;
+                case BuiltInType.SByte:
+                    WriteSByte(null, (sbyte)valueToEncode);
+                    return;
+                case BuiltInType.Byte:
+                    WriteByte(null, (byte)valueToEncode);
+                    return;
+                case BuiltInType.Int16:
+                    WriteInt16(null, (short)valueToEncode);
+                    return;
+                case BuiltInType.UInt16:
+                    WriteUInt16(null, (ushort)valueToEncode);
+                    return;
+                case BuiltInType.Int32:
+                    WriteInt32(null, (int)valueToEncode);
+                    return;
+                case BuiltInType.UInt32:
+                    WriteUInt32(null, (uint)valueToEncode);
+                    return;
+                case BuiltInType.Int64:
+                    WriteInt64(null, (long)valueToEncode);
+                    return;
+                case BuiltInType.UInt64:
+                    WriteUInt64(null, (ulong)valueToEncode);
+                    return;
+                case BuiltInType.Float:
+                    WriteFloat(null, (float)valueToEncode);
+                    return;
+                case BuiltInType.Double:
+                    WriteDouble(null, (double)valueToEncode);
+                    return;
+                case BuiltInType.String:
+                    _writer.WriteString((string)valueToEncode);
+                    return;
+                case BuiltInType.DateTime:
+                    WriteDateTime(null, (DateTime)valueToEncode);
+                    return;
+                case BuiltInType.Guid:
+                    WriteGuid(null, (Uuid)valueToEncode);
+                    return;
+                case BuiltInType.ByteString:
+                    _writer.WriteBytes((byte[])valueToEncode);
+                    return;
+                case BuiltInType.XmlElement:
+                    WriteXmlElement(null, (XmlElement)valueToEncode);
+                    return;
+                case BuiltInType.NodeId:
+                    WriteNodeId(null, (NodeId)valueToEncode);
+                    return;
+                case BuiltInType.ExpandedNodeId:
+                    WriteExpandedNodeId(null, (ExpandedNodeId)valueToEncode);
+                    return;
+                case BuiltInType.StatusCode:
+                    WriteStatusCode(null, (StatusCode)valueToEncode);
+                    return;
+                case BuiltInType.QualifiedName:
+                    WriteQualifiedName(null, (QualifiedName)valueToEncode);
+                    return;
+                case BuiltInType.LocalizedText:
+                    WriteLocalizedText(null, (LocalizedText)valueToEncode);
+                    return;
+                case BuiltInType.ExtensionObject:
+                    WriteExtensionObject(null, (ExtensionObject)valueToEncode);
+                    return;
+                case BuiltInType.DataValue:
+                    WriteDataValue(null, (DataValue)valueToEncode);
+                    return;
+                case BuiltInType.Enumeration:
+                    WriteInt32(null, Convert.ToInt32(valueToEncode,
+                        CultureInfo.InvariantCulture));
+                    return;
+                case BuiltInType.DiagnosticInfo:
+                    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
+                    return;
+            }
+
+            throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                "Unexpected type encountered while encoding a Variant: {0}",
+                builtInType);
         }
 
         /// <inheritdoc/>
@@ -1571,39 +1522,35 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<T>? values, Action<T> writer)
         {
             values ??= Array.Empty<T>();
-
-            // Arrays are nullable, otherwise write length
-            if (WriteArrayLength(values))
-            {
-                return;
-            }
-
-            // write contents.
-            foreach (var value in values)
-            {
-                writer(value);
-            }
-        }
-
-        /// <summary>
-        /// Write the length of an array. Returns true if the
-        /// array is empty.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="values"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        private bool WriteArrayLength<T>(
-            [NotNullWhen(false)] ICollection<T> values)
-        {
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
                     "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Count);
             }
 
-            // Arrays are nullable, otherwise write length
             _writer.WriteInteger(values.Count);
-            return values.Count == 0;
+            foreach (var value in values)
+            {
+                writer(value);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected virtual void WriteMatrix<T>(string? fieldName,
+            IList<T>? values, int[] dimensions, Action<T> writer)
+        {
+            WriteArray(nameof(Matrix.Dimensions), dimensions, 
+                v => WriteInt32(null, v));
+            WriteArray(kDefaultFieldName, values, writer);
+        }
+
+        /// <inheritdoc/>
+        protected virtual void WriteMatrix(string? fieldName, Matrix matrix)
+        {
+            WriteArray(nameof(Matrix.Dimensions), matrix.Dimensions,
+                v => WriteInt32(null, v));
+            WriteArray(kDefaultFieldName, matrix.Elements,
+                matrix.TypeInfo.ValueRank, matrix.TypeInfo.BuiltInType);
         }
 
         /// <summary>
