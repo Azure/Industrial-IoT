@@ -626,10 +626,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Format to use to encode namespaces, index is not allowed
             /// </summary>
             public NamespaceFormat NamespaceFormat
-                => NamespaceFormatInternal == NamespaceFormat.Index
-                ? NamespaceFormat.Expanded
-                : NamespaceFormatInternal;
-            private NamespaceFormat NamespaceFormatInternal
                 => DataSetWriter.MessageSettings?.NamespaceFormat
                 ?? NamespaceFormat.Expanded;
 
@@ -1649,7 +1645,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // We add ConditionId first if event is derived from ConditionType
                     if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType))
                     {
-                        selectedFields.Add(new SimpleAttributeOperandModel()
+                        selectedFields.Add(new SimpleAttributeOperandModel
                         {
                             BrowsePath = Array.Empty<string>(),
                             TypeDefinitionId = ObjectTypeIds.ConditionType.AsString(
@@ -1904,7 +1900,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Flags = 0, // Set to 1 << 1 for PromotedField fields.
                     MinorVersion = version,
                     DataType = variable.DataType.AsString(session.MessageContext,
-                        NamespaceFormat),
+                        NamespaceFormat.Expanded),
                     ArrayDimensions = variable.ArrayDimensions?.Count > 0
                         ? variable.ArrayDimensions : null,
                     Description = variable.Description?.Text,
@@ -1972,9 +1968,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 ct).ConfigureAwait(false);
 
                             var browseName = dataType.BrowseName
-                                .AsString(session.MessageContext, NamespaceFormat);
+                                .AsString(session.MessageContext, NamespaceFormat.Expanded);
                             var typeName = dataType.NodeId
-                                .AsString(session.MessageContext, NamespaceFormat);
+                                .AsString(session.MessageContext, NamespaceFormat.Expanded);
                             if (typeName == null)
                             {
                                 // No type name - that should not happen
@@ -1992,7 +1988,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     {
                                         dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
                                             dataType, builtInType, session.MessageContext,
-                                            NamespaceFormat));
+                                            NamespaceFormat.Expanded));
                                         break;
                                     }
                                     foreach (var type in types)
@@ -2007,12 +2003,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         DataTypeId = typeName,
                                                         Name = browseName,
                                                         BaseDataType = s.BaseDataType.AsString(
-                                                            session.MessageContext, NamespaceFormat),
+                                                            session.MessageContext, NamespaceFormat.Expanded),
                                                         DefaultEncodingId = s.DefaultEncodingId.AsString(
-                                                            session.MessageContext, NamespaceFormat),
+                                                            session.MessageContext, NamespaceFormat.Expanded),
                                                         StructureType = (Models.StructureType)s.StructureType,
                                                         Fields = GetFields(s.Fields, typesToResolve,
-                                                            session.MessageContext, NamespaceFormat)
+                                                            session.MessageContext, NamespaceFormat.Expanded)
                                                             .ToList()
                                                     },
                                                 EnumDefinition e =>
@@ -2033,7 +2029,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             .ToList()
                                                     },
                                                 _ => GetDefault(dataType, builtInType,
-                                                    session.MessageContext, NamespaceFormat),
+                                                    session.MessageContext, NamespaceFormat.Expanded),
                                             };
                                             dataTypes.AddOrUpdate(type.Key, description);
                                         }
@@ -2041,7 +2037,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     break;
                                 default:
                                     var baseName = baseType
-                                        .AsString(session.MessageContext, NamespaceFormat);
+                                        .AsString(session.MessageContext, NamespaceFormat.Expanded);
                                     dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescriptionModel
                                     {
                                         DataTypeId = typeName,

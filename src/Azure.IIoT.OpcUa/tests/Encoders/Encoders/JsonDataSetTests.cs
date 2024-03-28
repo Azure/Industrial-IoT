@@ -80,17 +80,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
+                for (var i = 0; i < count; i++)
                 {
-                    for (var i = 0; i < count; i++)
-                    {
-                        var result = decoder.ReadEncodeable(null, expected.GetType());
-                        Assert.True(result.IsEqual(expected));
-                    }
-                    var eof = decoder.ReadEncodeable(null, expected.GetType());
-                    Assert.Null(eof);
+                    var result = decoder.ReadEncodeable(null, expected.GetType());
+                    Assert.True(result.IsEqual(expected));
                 }
+                var eof = decoder.ReadEncodeable(null, expected.GetType());
+                Assert.Null(eof);
             }
         }
 
@@ -115,17 +113,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
+                for (var i = 0; i < count; i++)
                 {
-                    for (var i = 0; i < count; i++)
-                    {
-                        var result = decoder.ReadDataValue(null);
-                        Assert.Equal(expected, result);
-                    }
-                    var eof = decoder.ReadDataValue(null);
-                    Assert.Null(eof);
+                    var result = decoder.ReadDataValue(null);
+                    Assert.Equal(expected, result);
                 }
+                var eof = decoder.ReadDataValue(null);
+                Assert.Null(eof);
             }
         }
 
@@ -151,17 +147,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
+                for (var i = 0; i < count; i++)
                 {
-                    for (var i = 0; i < count; i++)
-                    {
-                        var result = decoder.ReadDataValue(null);
-                        Assert.Equal(expected, result);
-                    }
-                    var eof = decoder.ReadDataValue(null);
-                    Assert.Null(eof);
+                    var result = decoder.ReadDataValue(null);
+                    Assert.Equal(expected, result);
                 }
+                var eof = decoder.ReadDataValue(null);
+                Assert.Null(eof);
             }
         }
 
@@ -195,17 +189,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
+                for (var i = 0; i < count; i++)
                 {
-                    for (var i = 0; i < count; i++)
-                    {
-                        var result = decoder.ReadDataSet(null);
-                        Assert.Equal(expected, result);
-                    }
-                    var eof = decoder.ReadDataSet(null);
-                    Assert.Null(eof);
+                    var result = decoder.ReadDataSet(null);
+                    Assert.Equal(expected, result);
                 }
+                var eof = decoder.ReadDataSet(null);
+                Assert.Null(eof);
             }
         }
 
@@ -232,12 +224,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
-                {
-                    var result = decoder.ReadDataValue(null);
-                    Assert.Equal(expected["abcd"], result);
-                }
+                var result = decoder.ReadDataValue(null);
+                Assert.Equal(expected["abcd"], result);
             }
         }
 
@@ -265,12 +255,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 buffer = stream.ToArray();
             }
             using (var stream = new MemoryStream(buffer))
+            using (var decoder = new JsonDecoderEx(stream, context))
             {
-                using (var decoder = new JsonDecoderEx(stream, context))
-                {
-                    var result = decoder.ReadInt32(null);
-                    Assert.Equal(expected["abcd"].Value, result);
-                }
+                var result = decoder.ReadInt32(null);
+                Assert.Equal(expected["abcd"].Value, result);
             }
         }
     }

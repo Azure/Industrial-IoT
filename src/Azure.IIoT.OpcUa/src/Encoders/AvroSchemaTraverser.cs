@@ -54,6 +54,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="schema"></param>
         public void Push(Schema schema)
         {
+            if (_types.TryGetValue(schema.Fullname, out var seen))
+            {
+                //
+                // Partial types must be replaced with full type
+                // to handle recursive declarations correctly.
+                //
+                schema = seen;
+            }
+            else if (schema is RecordSchema record)
+            {
+                // Add the record to the list of types
+                _types.AddOrUpdate(record.Fullname, record);
+            }
+
             _schemas.Push(schema switch
             {
                 RecordSchema r => new RecordTraverser(this, r),
@@ -206,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
                 if (_pos == _record.Count)
                 {
-                    _pos = -1;
+                    _pos = 0;
                     _outer.Pop();
                 }
                 var field = _record.Fields[_pos];
@@ -219,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         return false;
                     }
-                    _pos = field.Pos;
+                    _pos = field.Pos - 1;
                 }
                 _outer.Push(field.Schema);
                 _pos++;
@@ -230,6 +244,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             private int _pos;
         }
 
+        private readonly Dictionary<string, RecordSchema> _types = new();
         private readonly Stack<Traverser> _schemas = new();
     }
 }

@@ -379,10 +379,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public virtual DataSet ReadDataSet()
+        public virtual DataSet ReadDataSet(string? fieldName)
         {
             var fieldNames = Array.Empty<string>();
-            var avroFieldContent = ReadUInt32(null);
+            var avroFieldContent = ReadUnionSelector();
+
             var dataSet = avroFieldContent == 0 ?
                 new DataSet() :
                 new DataSet((uint)DataSetFieldContentMask.RawData);
@@ -390,9 +391,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (avroFieldContent == 1) // Raw mode
             {
                 //
-                // Read array of raw variant
+                // Read map of raw variant
                 //
-                var variants = ReadVariantArray(null);
+                var variants = ReadVariantArray(null); // TODO: Read map
                 if (variants == null && fieldNames.Length == 0)
                 {
                     return dataSet;
@@ -410,9 +411,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             else if (avroFieldContent == 0)
             {
                 //
-                // Read data values
+                // Read map of data values
                 //
-                var dataValues = ReadDataValueArray(null);
+                var dataValues = ReadDataValueArray(null); // TODO: Read map
                 if (dataValues == null && fieldNames.Length == 0)
                 {
                     return dataSet;
@@ -728,7 +729,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="depth"></param>
         private DiagnosticInfo? ReadNullableDiagnosticInfo(string? fieldName, int depth)
         {
-            var unionId = _reader.ReadInteger();
+            var unionId = ReadUnionSelector();
             if (unionId == 0)
             {
                 return ReadNull<DiagnosticInfo>(fieldName);
@@ -909,11 +910,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (valueRank == ValueRanks.Scalar)
             {
-                return ReadScalar("Body", builtInType);
+                return ReadScalar(null, builtInType);
             }
 
             // Read array
-            var array = ReadArray("Body", builtInType, null, null);
+            var array = ReadArray(null, builtInType, null, null);
             if (array == null)
             {
                 return new Variant(StatusCodes.BadDecodingError);

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -22,7 +21,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// </summary>
     public sealed class AvroDecoder : BaseAvroDecoder
     {
-        /// <inheritdoc/>
+        /// <summary>
+        /// Schema to use
+        /// </summary>
         public Schema Schema { get; }
 
         /// <summary>
@@ -176,13 +177,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override DiagnosticInfo ReadDiagnosticInfo(string? fieldName)
-        {
-            return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-                base.ReadDiagnosticInfo);
-        }
-
-        /// <inheritdoc/>
         public override QualifiedName ReadQualifiedName(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.QualifiedName,
@@ -256,59 +250,35 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DataSet ReadDataSet(string? fieldName)
+        public override DataSet ReadDataSet(string? fieldName)
         {
             var schema = GetFieldSchema(fieldName);
-
-            // Run through the fields and read either using variant or data values
-
-            var fieldNames = Array.Empty<string>();
-            var avroFieldContent = ReadUInt32(null);
-            var dataSet = avroFieldContent == 0 ?
-                new DataSet() :
-                new DataSet((uint)DataSetFieldContentMask.RawData);
-
-            if (avroFieldContent == 1) // Raw mode
+            if (schema is not RecordSchema r)
             {
-                //
-                // Read array of raw variant
-                //
-                var variants = ReadVariantArray(null);
-                if (variants == null && fieldNames.Length == 0)
-                {
-                    return dataSet;
-                }
-                if (variants == null || variants.Count != fieldNames.Length)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Unexpected number of fields in data set");
-                }
-                for (var index = 0; index < fieldNames.Length; index++)
-                {
-                    dataSet.Add(fieldNames[index], new DataValue(variants[index]));
-                }
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Data sets must be records or maps.");
             }
-            else if (avroFieldContent == 0)
+            try
             {
-                //
-                // Read data values
-                //
-                var dataValues = ReadDataValueArray(null);
-                if (dataValues == null && fieldNames.Length == 0)
+                var dataSet = new DataSet();
+                var isRaw = true;
+
+                // Run through the fields and read either using variant or data values
+                foreach (var field in r.Fields)
                 {
-                    return dataSet;
+                    var dataValue = ReadDataSetField(field.Name, ref isRaw);
+                    dataSet.Add(field.Name, dataValue);
                 }
-                if (dataValues == null || dataValues.Count != fieldNames.Length)
+                if (isRaw)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Unexpected number of fields in data set");
+                    dataSet.DataSetFieldContentMask = (uint)DataSetFieldContentMask.RawData;
                 }
-                for (var index = 0; index < fieldNames.Length; index++)
-                {
-                    dataSet.Add(fieldNames[index], dataValues[index]);
-                }
+                return dataSet;
             }
-            return dataSet;
+            finally
+            {
+                _schema.Pop();
+            }
         }
 
         /// <inheritdoc/>
@@ -540,8 +510,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected override Array ReadArray(string? fieldName,
             Func<object> reader, Type type)
         {
-            return ValidatedReadArray(fieldName,
-                () => base.ReadArray(fieldName, reader, type));
+            return ValidatedReadArray(() => base.ReadArray(fieldName, reader, type));
         }
 
         /// <inheritdoc/>
@@ -549,16 +518,21 @@ namespace Azure.IIoT.OpcUa.Encoders
             BuiltInType builtInType, Type? systemType,
             ExpandedNodeId? encodeableTypeId)
         {
-            return ValidatedReadArray(fieldName,
-                () => base.ReadArray(fieldName, valueRank, builtInType,
+            return ValidatedReadArray(() => base.ReadArray(fieldName, valueRank, builtInType,
                     systemType, encodeableTypeId));
         }
 
         /// <inheritdoc/>
         public override T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            return ValidatedReadArray(fieldName,
-                () => base.ReadArray(fieldName, () => reader()));
+            return ValidatedReadArray(() => base.ReadArray(fieldName, () => reader()));
+        }
+
+        /// <inheritdoc/>
+        protected override DiagnosticInfo ReadDiagnosticInfo(string? fieldName, int depth)
+        {
+            return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
+                f => base.ReadDiagnosticInfo(f, depth));
         }
 
         /// <inheritdoc/>
@@ -603,6 +577,81 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
+        /// Read data set field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="isRaw"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private DataValue ReadDataSetField(string? fieldName, ref bool isRaw)
+        {
+            var schema = GetFieldSchema(fieldName);
+            if (schema is RecordSchema fieldRecord)
+            {
+                // The field is a record that should contain the data value fields
+                try
+                {
+                    if (fieldRecord.IsBuiltInType(out var builtInType) &&
+                        builtInType != BuiltInType.DataValue)
+                    {
+                        // Read value as variant
+                        return new DataValue(base.ReadVariant(null)); // TODO
+                    }
+
+                    var dataValue = new DataValue();
+                    foreach (var dvf in fieldRecord.Fields)
+                    {
+                        switch (dvf.Name)
+                        {
+                            case nameof(DataValue.Value):
+                                dataValue.Value =
+                                    ReadVariant(nameof(DataValue.Value));
+                                break;
+                            case nameof(DataValue.SourceTimestamp):
+                                isRaw = false;
+                                dataValue.SourceTimestamp =
+                                    ReadDateTime(nameof(DataValue.SourceTimestamp));
+                                break;
+                            case nameof(DataValue.SourcePicoseconds):
+                                isRaw = false;
+                                dataValue.SourcePicoseconds =
+                                    ReadUInt16(nameof(DataValue.SourcePicoseconds));
+                                break;
+                            case nameof(DataValue.ServerTimestamp):
+                                isRaw = false;
+                                dataValue.ServerTimestamp =
+                                    ReadDateTime(nameof(DataValue.ServerTimestamp));
+                                break;
+                            case nameof(DataValue.ServerPicoseconds):
+                                isRaw = false;
+                                dataValue.ServerPicoseconds =
+                                    ReadUInt16(nameof(DataValue.ServerPicoseconds));
+                                break;
+                            case nameof(DataValue.StatusCode):
+                                isRaw = false;
+                                dataValue.StatusCode =
+                                    ReadStatusCode(nameof(DataValue.StatusCode));
+                                break;
+                            default:
+                                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                                    $"Unknown field {dvf.Name} in dataset field.");
+                        }
+                    }
+                    return dataValue;
+                }
+                finally
+                {
+                    _schema.Pop();
+                }
+            }
+            else
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Data set fields must be records.");
+            }
+        }
+
+        /// <summary>
         /// Perform the read of the built in type after validating the
         /// operation against the schema of the field if there is a field.
         /// </summary>
@@ -624,35 +673,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Validated array reader
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="fieldName"></param>
-        /// <param name="reader"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private T ValidatedReadArray<T>(string? fieldName, Func<T> reader)
-        {
-            var schema = GetFieldSchema(null);
-            if (schema is not ArraySchema arr)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Reading array field but schema is not array schema");
-            }
-            try
-            {
-                return reader();
-            }
-            finally
-            {
-                // Pop array from stack
-                schema = _schema.Pop();
-                Debug.Assert(schema == arr);
-            }
-        }
-
-        /// <summary>
-        /// Validate read
+        /// Validates reading a value against the schema
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="fieldName"></param>
@@ -686,6 +707,33 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Validated array reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private T ValidatedReadArray<T>(Func<T> reader)
+        {
+            var schema = GetFieldSchema(null);
+            if (schema is not ArraySchema arr)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    "Reading array field but schema is not array schema");
+            }
+            try
+            {
+                return reader();
+            }
+            finally
+            {
+                // Pop array from stack
+                schema = _schema.Pop();
+                Debug.Assert(schema == arr);
+            }
         }
 
         /// <summary>

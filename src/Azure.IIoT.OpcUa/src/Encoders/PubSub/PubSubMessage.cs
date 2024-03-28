@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using global::Avro;
     using Furly;
     using Microsoft.IO;
     using Opc.Ua;
@@ -177,6 +178,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     if (message.TryDecode(context, reader, resolver))
                     {
                         return message;
+                    }
+                    break;
+
+                case ContentMimeType.AvroBinary:
+                    message = new AvroNetworkMessage(Schema.Parse(messageSchema));
+                    if (message.TryDecode(context, reader, resolver))
+                    {
+                        return message;
+                    }
+                    if (reader.Count == 0)
+                    {
+                        return null;
                     }
                     break;
                 default:

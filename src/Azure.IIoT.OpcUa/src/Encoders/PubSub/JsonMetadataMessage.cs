@@ -16,9 +16,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.Text;
 
     /// <summary>
-    /// Avro discovery metdata message
+    /// Json discovery metdata message
+    /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public class AvroMetaDataMessage : PubSubMessage
+    public class JsonMetaDataMessage : PubSubMessage
     {
         /// <inheritdoc/>
         public override string MessageSchema
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override string ContentType
-            => UseGzipCompression ? Encoders.ContentType.AvroGzip : Encoders.ContentType.Avro;
+            => UseGzipCompression ? Encoders.ContentType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
         public override string ContentEncoding => Encoding.UTF8.WebName;
@@ -78,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (obj is not AvroMetaDataMessage wrapper)
+            if (obj is not JsonMetaDataMessage wrapper)
             {
                 return false;
             }

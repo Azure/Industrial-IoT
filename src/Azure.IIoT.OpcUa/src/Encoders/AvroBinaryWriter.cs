@@ -124,25 +124,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             WriteBytes(Encoding.UTF8.GetBytes(value));
         }
 
-        /// <inheritdoc/>
-        public bool WriteNullable<T>([NotNullWhen(false)] T? o) where T : class
-        {
-            WriteInteger(o == null ? 0 : 1); // Union index, first is "null"
-            return o == null;
-        }
-
-        /// <inheritdoc/>
-        public void WriteArray<T>(IList<T> values, Action<T> writer)
-        {
-            WriteInteger(values.Count);
-
-            // write contents.
-            foreach (var value in values)
-            {
-                writer(value);
-            }
-        }
-
         private readonly bool _leaveOpen;
     }
 }

@@ -6,6 +6,8 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
+    using global::Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -168,14 +170,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteUInt64(string? fieldName, ulong value)
         {
             // ulong is a union of long and fixed (> long.max)
-            if (value < long.MaxValue)
+            var unionSelector = value < long.MaxValue ? 0 : 1;
+            _writer.WriteInteger(unionSelector);
+            if (unionSelector == 0)
             {
-                _writer.WriteInteger(0);
                 _writer.WriteInteger((long)value);
             }
             else
             {
-                _writer.WriteInteger(1);
                 Span<byte> bytes = stackalloc byte[sizeof(ulong)];
                 BinaryPrimitives.WriteUInt64LittleEndian(bytes, value);
                 _writer.WriteFixed(bytes);
@@ -275,26 +277,17 @@ namespace Azure.IIoT.OpcUa.Encoders
             if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
                 fieldContentMask == 0)
             {
-                _writer.WriteInteger(1);
-
-                //
-                // Write array of raw variant
-                //
-                WriteArray(fieldName, dataSet.Values
-                    .Select(v => v?.WrappedValue ?? default)
-                    .ToList(),
-                        v => WriteVariant(null, v));
+                foreach (var value in dataSet)
+                {
+                    WriteVariant(value.Key, value.Value?.WrappedValue ?? default);
+                }
             }
             else
             {
-                _writer.WriteInteger(0);
-
-                //
-                // Write array of data values
-                //
-                WriteArray(fieldName, dataSet.Values
-                    .ToList(),
-                        v => WriteDataValue(null, v));
+                foreach (var value in dataSet)
+                {
+                    WriteDataValue(value.Key, value.Value);
+                }
             }
         }
 
@@ -335,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             //  String = 1
             //  Guid = 2
             //  Opaque = 3
-            _writer.WriteInteger((int)idUnionIndex);
+            WriteUnionSelector((int)idUnionIndex);
             switch (idUnionIndex)
             {
                 case IdType.Numeric:
@@ -400,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo? value)
         {
-            WriteDiagnosticInfo(value ?? new DiagnosticInfo(), 0);
+            WriteDiagnosticInfo(fieldName, value ?? new DiagnosticInfo(), 0);
         }
 
         /// <inheritdoc/>
@@ -445,12 +438,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             // record of fields
             value ??= new DataValue();
-            WriteVariant(null, value.WrappedValue);
-            WriteStatusCode(null, value.StatusCode);
-            WriteDateTime(null, value.SourceTimestamp);
-            _writer.WriteInteger(value.SourcePicoseconds);
-            WriteDateTime(null, value.ServerTimestamp);
-            _writer.WriteInteger(value.ServerPicoseconds);
+            WriteVariant(nameof(value.Value), value.WrappedValue);
+            WriteStatusCode(nameof(value.StatusCode), value.StatusCode);
+            WriteDateTime(nameof(value.SourceTimestamp), value.SourceTimestamp);
+            WriteUInt16(nameof(value.SourcePicoseconds), value.SourcePicoseconds);
+            WriteDateTime(nameof(value.ServerTimestamp), value.ServerTimestamp);
+            WriteUInt16(nameof(value.ServerPicoseconds), value.ServerPicoseconds);
         }
 
         /// <inheritdoc/>
@@ -458,61 +451,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             value ??= new ExtensionObject();
 
-            // write the type id.
-            var typeId = value.TypeId;
-            var body = value.Body;
-            if (body is IEncodeable encodeable)
-            {
-                if (body is IJsonEncodeable je)
-                {
-                    typeId = je.JsonEncodingId;
-                    body = encodeable.AsJson(Context);
-                }
-                else if (value.Encoding == ExtensionObjectEncoding.Xml)
-                {
-                    typeId = encodeable.XmlEncodingId;
-                    body = encodeable.AsXmlElement(Context);
-                }
-                else
-                {
-                    typeId = encodeable.BinaryEncodingId;
-                    body = encodeable.AsBinary(Context);
-                }
-            }
-
-            var localTypeId = ExpandedNodeId.ToNodeId(typeId, Context.NamespaceUris);
-            if (NodeId.IsNull(localTypeId) && !NodeId.IsNull(typeId))
-            {
-                if (value.Body is IEncodeable e)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                        "Cannot encode bodies of type '{0}' in ExtensionObject unless " +
-                        "the NamespaceUri ({1}) is in the encoder's NamespaceTable.",
-                        e.GetType().FullName, typeId.NamespaceUri);
-                }
-                localTypeId = NodeId.Null;
-            }
-
-            switch (body)
-            {
-                case byte[]:
-                    break;
-                case XmlElement xml:
-                    body = Encoding.UTF8.GetBytes(
-                        xml.OuterXml ?? string.Empty);
-                    break;
-                case string str:
-                    body = Encoding.UTF8.GetBytes(str);
-                    break;
-                default:
-                    Debug.Fail("Should not get here");
-                    break;
-            }
-
             // Write a raw encoded data type of the schema union
-            _writer.WriteInteger(0);
-            WriteNodeId("TypeId", localTypeId);
-            WriteByteString("Body", (byte[])body);
+            WriteUnionSelector(0);
+            WriteEncodedDataType(fieldName, value);
         }
 
         /// <inheritdoc/>
@@ -737,24 +678,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteEnumeratedArray(string? fieldName,
             Array? values, Type? systemType)
         {
-            if (values == null)
-            {
-                _writer.WriteInteger(0);
-                return;
-            }
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Length);
-            }
-
-            // write length
-            _writer.WriteInteger(values.Length);
-
-            for (var index = 0; index < values.Length; index++)
-            {
-                WriteEnumerated(null, (Enum?)values.GetValue(index));
-            }
+            WriteArray(fieldName, values, v => WriteEnumerated(null, (Enum?)v));
         }
 
         /// <inheritdoc/>
@@ -905,7 +829,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     if (array is not Array multiArray || multiArray.Rank != valueRank)
                     {
                         // there is no Dimensions to write
-                        WriteInt32(null, -1);
+                        WriteInt32("Dimensions", -1);
                         return;
                     }
                     matrix = new Matrix(multiArray, builtInType);
@@ -1197,14 +1121,93 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
+        /// <inheritdoc/>
+        public virtual void WriteNull<T>(string? fieldName, T? value)
+        {
+        }
+
+        /// <summary>
+        /// Write union selector
+        /// </summary>
+        /// <param name="index"></param>
+        protected virtual void WriteUnionSelector(int index)
+        {
+            _writer.WriteInteger(index);
+        }
+
+        /// <summary>
+        /// Write encoded data type
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
+        protected virtual void WriteEncodedDataType(string? fieldName, ExtensionObject value)
+        {
+            // write the type id.
+            var typeId = value.TypeId;
+            var body = value.Body;
+            if (body is IEncodeable encodeable)
+            {
+                if (body is IJsonEncodeable je)
+                {
+                    typeId = je.JsonEncodingId;
+                    body = encodeable.AsJson(Context);
+                }
+                else if (value.Encoding == ExtensionObjectEncoding.Xml)
+                {
+                    typeId = encodeable.XmlEncodingId;
+                    body = encodeable.AsXmlElement(Context);
+                }
+                else
+                {
+                    typeId = encodeable.BinaryEncodingId;
+                    body = encodeable.AsBinary(Context);
+                }
+            }
+
+            var localTypeId = ExpandedNodeId.ToNodeId(typeId, Context.NamespaceUris);
+            if (NodeId.IsNull(localTypeId) && !NodeId.IsNull(typeId))
+            {
+                if (value.Body is IEncodeable e)
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                        "Cannot encode bodies of type '{0}' in ExtensionObject unless " +
+                        "the NamespaceUri ({1}) is in the encoder's NamespaceTable.",
+                        e.GetType().FullName, typeId.NamespaceUri);
+                }
+                localTypeId = NodeId.Null;
+            }
+
+            switch (body)
+            {
+                case byte[]:
+                    break;
+                case XmlElement xml:
+                    body = Encoding.UTF8.GetBytes(
+                        xml.OuterXml ?? string.Empty);
+                    break;
+                case string str:
+                    body = Encoding.UTF8.GetBytes(str);
+                    break;
+                default:
+                    Debug.Fail("Should not get here");
+                    break;
+            }
+
+            // Write a raw encoded data type of the schema union
+            WriteNodeId("TypeId", localTypeId);
+            WriteByteString("Body", (byte[])body);
+        }
+
         /// <summary>
         /// Writes a DiagnosticInfo to the stream.
         /// Ignores InnerDiagnosticInfo field if the nesting level
         /// <see cref="DiagnosticInfo.MaxInnerDepth"/> is exceeded.
         /// </summary>
+        /// <param name="fieldName"></param>
         /// <param name="value"></param>
         /// <param name="depth"></param>
-        private void WriteDiagnosticInfoNullable(DiagnosticInfo? value, int depth)
+        protected virtual void WriteDiagnosticInfoNullable(string? fieldName,
+            DiagnosticInfo? value, int depth)
         {
             if (depth >= DiagnosticInfo.MaxInnerDepth)
             {
@@ -1212,31 +1215,34 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             // Diagnostic info is nullable here
-            _writer.WriteInteger(value == null ? 0 : 1); // Union index, first is "null"
+            WriteUnionSelector(value == null ? 0 : 1); // Union index, first is "null"
             if (value == null)
             {
+                WriteNull<DiagnosticInfo>(fieldName, null);
                 return;
             }
-            WriteDiagnosticInfo(value, depth);
+            WriteDiagnosticInfo(fieldName, value, depth);
         }
 
         /// <summary>
         /// Write as non nullable
         /// </summary>
+        /// <param name="fieldName"></param>
         /// <param name="value"></param>
         /// <param name="depth"></param>
-        private void WriteDiagnosticInfo(DiagnosticInfo value, int depth = 0)
+        protected virtual void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo value, int depth)
         {
             CheckAndIncrementNestingLevel();
             try
             {
-                _writer.WriteInteger(value.SymbolicId);
-                _writer.WriteInteger(value.NamespaceUri);
-                _writer.WriteInteger(value.Locale);
-                _writer.WriteInteger(value.LocalizedText);
-                _writer.WriteString(value.AdditionalInfo ?? string.Empty);
-                WriteStatusCode(null, value.InnerStatusCode);
-                WriteDiagnosticInfoNullable(value.InnerDiagnosticInfo, depth + 1);
+                WriteInt32(nameof(value.SymbolicId), value.SymbolicId);
+                WriteInt32(nameof(value.NamespaceUri), value.NamespaceUri);
+                WriteInt32(nameof(value.Locale), value.Locale);
+                WriteInt32(nameof(value.LocalizedText), value.LocalizedText);
+                WriteString(nameof(value.AdditionalInfo), value.AdditionalInfo);
+                WriteStatusCode(nameof(value.InnerStatusCode), value.InnerStatusCode);
+                WriteDiagnosticInfoNullable(nameof(value.InnerDiagnosticInfo),
+                    value.InnerDiagnosticInfo, depth + 1);
             }
             finally
             {
@@ -1256,26 +1262,27 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (valueToEncode == null)
             {
                 // Shortcut here to write null
-                _writer.WriteInteger(0);
+                WriteUnionSelector(0);
+                WriteNull<object>(null, null);
             }
             else if (value.TypeInfo!.ValueRank < 0)
             {
                 // Write union discriminator for scalar
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
                     value.TypeInfo.ValueRank));
                 WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
             }
             else if (valueToEncode is not Matrix m)
             {
                 // Write union discriminator for array
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
                     ValueRanks.OneDimension));
                 WriteArray(value.TypeInfo.BuiltInType, valueToEncode);
             }
             else
             {
                 // Write union discriminator for matrix
-                _writer.WriteInteger(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
                     ValueRanks.OneOrMoreDimensions));
                 WriteMatrix("Body", m);
             }
@@ -1431,10 +1438,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="valueToEncode"></param>
+        /// <exception cref="ServiceResultException"></exception>
         protected virtual void WriteScalar(BuiltInType builtInType, object valueToEncode)
         {
             switch (builtInType)
             {
+                case BuiltInType.Null:
+                    WriteNull(null, valueToEncode);
+                    return;
                 case BuiltInType.Boolean:
                     WriteBoolean(null, (bool)valueToEncode);
                     return;
@@ -1469,7 +1480,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteDouble(null, (double)valueToEncode);
                     return;
                 case BuiltInType.String:
-                    _writer.WriteString((string)valueToEncode);
+                    WriteString(null, (string)valueToEncode);
                     return;
                 case BuiltInType.DateTime:
                     WriteDateTime(null, (DateTime)valueToEncode);
@@ -1478,7 +1489,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteGuid(null, (Uuid)valueToEncode);
                     return;
                 case BuiltInType.ByteString:
-                    _writer.WriteBytes((byte[])valueToEncode);
+                    WriteByteString(null, (byte[])valueToEncode);
                     return;
                 case BuiltInType.XmlElement:
                     WriteXmlElement(null, (XmlElement)valueToEncode);
@@ -1508,9 +1519,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteInt32(null, Convert.ToInt32(valueToEncode,
                         CultureInfo.InvariantCulture));
                     return;
-                case BuiltInType.DiagnosticInfo:
-                    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
-                    return;
+                //case BuiltInType.DiagnosticInfo:
+                //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
+                //    return;
             }
 
             throw ServiceResultException.Create(StatusCodes.BadEncodingError,
@@ -1533,6 +1544,30 @@ namespace Azure.IIoT.OpcUa.Encoders
             foreach (var value in values)
             {
                 writer(value);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected virtual void WriteArray(string? fieldName, Array? values,
+            Action<object?> writer)
+        {
+            if (values == null)
+            {
+                _writer.WriteInteger(0);
+                return;
+            }
+            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
+                    "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Length);
+            }
+
+            // write length
+            _writer.WriteInteger(values.Length);
+
+            for (var index = 0; index < values.Length; index++)
+            {
+                writer(values.GetValue(index));
             }
         }
 

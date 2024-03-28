@@ -70,9 +70,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 return false;
             }
-            if (!Values.SequenceEqualsSafe(set.Values))
+            if (!Values.SequenceEqualsSafe(set.Values,
+                (x, y) => Utils.IsEqual(x?.Value, y?.Value)))
             {
-                // return false;
+                return false;
             }
             return true;
         }

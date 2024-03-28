@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new DataSet(new Dictionary<string, DataValue> {
-                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
+                { "1", new DataValue(new Variant("test"), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
             }, (uint)dataSetFieldContentMask);
         }
     }
