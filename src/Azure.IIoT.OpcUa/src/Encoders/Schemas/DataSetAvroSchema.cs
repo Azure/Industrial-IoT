@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
@@ -25,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public class DataSetPayloadSchema : IEventSchema
+    public class DataSetAvroSchema : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -50,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <summary>
         /// Encoding schema for the data set
         /// </summary>
-        internal BuiltInTypeSchemas Encoding { get; }
+        internal BuiltInAvroSchemas Encoding { get; }
 
         /// <summary>
         /// Get avro schema for a dataset
@@ -61,19 +62,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public DataSetPayloadSchema(string? name, PublishedDataSetModel dataSet,
+        public DataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
             MessageEncoding? encoding = null,
             Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null,
-            SchemaGenerationOptions? options = null)
+            SchemaOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(dataSet);
-            _options = options ?? new SchemaGenerationOptions();
+            _options = options ?? new SchemaOptions();
             _context = new ServiceMessageContext
             {
                 NamespaceUris = _options.Namespaces ?? new NamespaceTable()
             };
 
-            Encoding = BuiltInTypeSchemas.GetEncodingSchemas(encoding,
+            Encoding = BuiltInAvroSchemas.GetEncodingSchemas(encoding,
                 dataSetFieldContentMask);
 
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
@@ -90,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="encoding"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public DataSetPayloadSchema(DataSetWriterModel dataSetWriter,
-            MessageEncoding? encoding, SchemaGenerationOptions? options = null) :
+        public DataSetAvroSchema(DataSetWriterModel dataSetWriter,
+            MessageEncoding? encoding, SchemaOptions? options = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
                 encoding, dataSetWriter.DataSetFieldContentMask, options)
@@ -349,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             /// Resolve the type
             /// </summary>
             /// <param name="schema"></param>
-            public abstract void Resolve(DataSetPayloadSchema schema);
+            public abstract void Resolve(DataSetAvroSchema schema);
         }
 
         /// <summary>
@@ -360,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(DataSetPayloadSchema schemas)
+            public override void Resolve(DataSetAvroSchema schemas)
             {
                 if (Schema != null)
                 {
@@ -394,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(DataSetPayloadSchema schemas)
+            public override void Resolve(DataSetAvroSchema schemas)
             {
                 if (Schema != null)
                 {
@@ -438,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(DataSetPayloadSchema schemas)
+            public override void Resolve(DataSetAvroSchema schemas)
             {
                 if (Schema != null)
                 {
@@ -492,15 +493,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             uint fieldContentMask)
         {
             writeSingleValue = isSingleFieldDataSet &&
-               ((fieldContentMask &
-                (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue) != 0);
+               (fieldContentMask &
+                (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue) != 0;
             dataValueRepresentation = (fieldContentMask &
                 (uint)Publisher.Models.DataSetFieldContentMask.RawData) == 0
                 && fieldContentMask != 0;
         }
 
         private readonly Dictionary<string, TypedDescription> _types = new();
-        private readonly SchemaGenerationOptions _options;
+        private readonly SchemaOptions _options;
         private readonly IServiceMessageContext _context;
         private readonly bool _omitFieldName;
         private readonly bool _fieldsAreDataValues;

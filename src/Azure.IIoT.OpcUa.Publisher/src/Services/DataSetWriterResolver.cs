@@ -1666,7 +1666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .ToArray();
                         var selectClause = new SimpleAttributeOperandModel
                         {
-                            TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // IS this correct?
+                            TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // TODO: IS this correct?
                                 session.MessageContext, NamespaceFormat),
                             DataSetClassFieldId = Guid.NewGuid(),
                             DataSetFieldName = browsePath.LastOrDefault() ?? string.Empty,

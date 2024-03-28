@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -70,6 +71,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
+                if (Template.NodeId != fieldItem.Template.NodeId)
+                {
+                    return false;
+                }
                 if ((Template.Name ?? string.Empty) !=
                     (fieldItem.Template.Name ?? string.Empty))
                 {
@@ -87,6 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return HashCode.Combine(base.GetHashCode(),
                     nameof(Error),
+                    Template.NodeId,
                     Template.Name ?? string.Empty,
                     Template.State);
             }
@@ -122,9 +128,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges, Callback cb)
             {
+                if (!Valid)
+                {
+                    return false;
+                }
+                cb(MessageType.DeltaFrame, ToMonitoredItemNotification(0).YieldReturn(),
+                    subscription.Session);
                 return true;
             }
 
@@ -181,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     MonitoredItemId = Template.GetMonitoredItemId(),
                     FieldId = Template.GetFieldId(),
                     Context = Template.Context,
-                    NodeId = null,
+                    NodeId = Template.NodeId,
                     Value = _value,
                     Flags = 0,
                     SequenceNumber = sequenceNumber

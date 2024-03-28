@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
     using System.Globalization;
@@ -575,8 +574,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestDiagnosticInfoWithInner()
         {
             var context = new ServiceMessageContext();
-            var expected = new DiagnosticInfo() { AdditionalInfo = "outer",
-                InnerDiagnosticInfo = new DiagnosticInfo() { AdditionalInfo = "inner" } };
+            var expected = new DiagnosticInfo()
+            {
+                AdditionalInfo = "outer",
+                InnerDiagnosticInfo = new DiagnosticInfo() { AdditionalInfo = "inner" }
+            };
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true);
             builder.WriteDiagnosticInfo(null, expected);

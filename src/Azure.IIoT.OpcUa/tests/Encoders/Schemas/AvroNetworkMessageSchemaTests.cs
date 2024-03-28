@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -30,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -42,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         public async Task CreateAvroNetworkMessageWithNs(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new AvroNetworkMessageSchema(group, new SchemaGenerationOptions
+            var schema = new AvroNetworkMessageSchema(group, new SchemaOptions
             {
                 Namespace = "http://www.microsoft.com"
             });
@@ -52,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
 
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -79,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -107,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -134,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -169,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -204,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
-            var schema2 = global::Avro.Schema.Parse(json);
+            var schema2 = Avro.Schema.Parse(json);
 
             //Assert.Equal(schema.Schema, schema2);
         }

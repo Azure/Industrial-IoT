@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Utils
 {
-    using global::Avro;
+    using Avro;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// <param name="schema"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static string ToJson(this Schema schema, 
+        public static string ToJson(this Schema schema,
             JsonSerializerOptions? options = null)
         {
             var json = schema.ToString();

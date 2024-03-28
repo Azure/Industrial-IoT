@@ -3,20 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
+    using Avro;
+    using System;
     using Opc.Ua;
     using DataSetFieldFieldMask = Publisher.Models.DataSetFieldContentMask;
-    using System;
 
     /// <summary>
     /// Represents schemas for the encoding of the built in types
     /// as per part 6 of the OPC UA specification.
     /// </summary>
-    internal abstract class BuiltInTypeSchemas
+    internal abstract class BuiltInAvroSchemas
     {
         /// <summary>
         /// Get the respective encoding
@@ -25,16 +24,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="fieldMask"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static BuiltInTypeSchemas GetEncodingSchemas(
+        public static BuiltInAvroSchemas GetEncodingSchemas(
             MessageEncoding? encoding, DataSetFieldFieldMask? fieldMask)
         {
             if (encoding?.HasFlag(MessageEncoding.Json) != false)
             {
-                return new JsonBuiltInTypeSchemas(fieldMask ?? 0u);
+                return new JsonAvroSchemas(fieldMask ?? 0u);
             }
             if (encoding?.HasFlag(MessageEncoding.Avro) != false)
             {
-                return new AvroBuiltInTypeSchemas();
+                return new AvroBinarySchemas();
             }
             throw new NotSupportedException(
                 $"Encoding {encoding} not yet supported!");

@@ -405,7 +405,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            var count = message.GetDiagnosticCounters(out var modelChanges, out var heartbeats, out var overflows);
+            var count = message.GetDiagnosticCounters(out var modelChanges,
+                out var heartbeats, out var overflows);
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
                 if (!diagnosticsOnly)

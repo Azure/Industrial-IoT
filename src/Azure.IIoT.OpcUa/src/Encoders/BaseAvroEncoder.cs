@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using global::Avro;
+    using Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -1112,8 +1112,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 }
                                 break;
                             }
-                            throw ServiceResultException.Create(
-                                StatusCodes.BadEncodingError,
+                            throw ServiceResultException.Create(StatusCodes.BadEncodingError,
                                 "Unexpected type encountered while encoding a Matrix with BuiltInType: {0}",
                                 matrix.TypeInfo.BuiltInType);
                         }
@@ -1140,6 +1139,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="value"></param>
+        /// <exception cref="ServiceResultException"></exception>
         protected virtual void WriteEncodedDataType(string? fieldName, ExtensionObject value)
         {
             // write the type id.

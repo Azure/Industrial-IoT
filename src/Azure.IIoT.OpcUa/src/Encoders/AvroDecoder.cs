@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Azure.IIoT.OpcUa.Encoders.Avro;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using global::Avro;
+    using Avro;
     using Opc.Ua;
     using System;
     using System.Diagnostics;
@@ -753,7 +753,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly AvroBuiltInTypeSchemas _builtIns = new();
+        private readonly AvroBinarySchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

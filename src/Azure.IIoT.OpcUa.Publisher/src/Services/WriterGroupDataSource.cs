@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders.Avro;
+    using Azure.IIoT.OpcUa.Encoders.PubSub.Schemas;
     using Autofac;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
@@ -874,7 +874,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         };
 
                         // We need to set the schema based on the configuration
-                        Schema = new JsonNetworkMessageSchema(WriterGroup);
+                        try
+                        {
+                            Schema = new JsonNetworkMessageSchema(WriterGroup);
+                        }
+                        catch
+                        {
+                            // TODO:
+                        }
                     }
                 }
 

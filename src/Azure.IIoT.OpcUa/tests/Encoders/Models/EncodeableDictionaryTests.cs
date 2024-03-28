@@ -3,9 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders
+namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System.IO;
     using Xunit;

@@ -3,17 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
+    using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Network message avro schema
@@ -49,11 +50,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <returns></returns>
         public AvroDataSetMessageSchema(DataSetWriterModel dataSetWriter,
             bool withDataSetMessageHeader = true,
-            SchemaGenerationOptions? options = null)
+            SchemaOptions? options = null)
         {
-            _options = options ?? new SchemaGenerationOptions();
+            _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetPayloadSchema(dataSetWriter,
+            _dataSet = new DataSetAvroSchema(dataSetWriter,
                 MessageEncoding.Avro, options);
             Schema = Compile(
                 dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
@@ -71,12 +72,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         public AvroDataSetMessageSchema(PublishedDataSetModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             bool withDataSetMessageHeader = true,
-            SchemaGenerationOptions? options = null)
+            SchemaOptions? options = null)
         {
-            _options = options ?? new SchemaGenerationOptions();
+            _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
 
-            _dataSet = new DataSetPayloadSchema(null, dataSet,
+            _dataSet = new DataSetAvroSchema(null, dataSet,
                 MessageEncoding.Avro, dataSetFieldContentMask, options);
             Schema = Compile(dataSet.Name,
                 GetNamespace(_options.Namespace, _options.Namespaces));
@@ -102,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
                 return _dataSet.Schema;
             }
 
-            var encoding = new AvroBuiltInTypeSchemas();
+            var encoding = new AvroBinarySchemas();
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
                 new List<Field>
             {
@@ -171,8 +172,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             return @namespace;
         }
 
-        private readonly DataSetPayloadSchema _dataSet;
-        private readonly SchemaGenerationOptions _options;
+        private readonly DataSetAvroSchema _dataSet;
+        private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }
 }

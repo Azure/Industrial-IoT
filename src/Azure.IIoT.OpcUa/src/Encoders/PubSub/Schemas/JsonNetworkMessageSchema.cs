@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
+    using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public class AvroNetworkMessageSchema : IEventSchema
+    public class JsonNetworkMessageSchema : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -47,8 +48,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public AvroNetworkMessageSchema(WriterGroupModel writerGroup,
-            SchemaGenerationOptions? options = null)
+        public JsonNetworkMessageSchema(WriterGroupModel writerGroup,
+            SchemaOptions? options = null)
             : this(writerGroup.DataSetWriters!, writerGroup.Name,
                   writerGroup.MessageSettings?.NetworkMessageContentMask,
                   options)
@@ -63,10 +64,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public AvroNetworkMessageSchema(DataSetWriterModel dataSetWriter,
+        public JsonNetworkMessageSchema(DataSetWriterModel dataSetWriter,
             string? name = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaGenerationOptions? options = null)
+            SchemaOptions? options = null)
             : this(dataSetWriter.YieldReturn(), name,
                   networkMessageContentMask, options)
         {
@@ -80,14 +81,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        internal AvroNetworkMessageSchema(
+        internal JsonNetworkMessageSchema(
             IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
             NetworkMessageContentMask? networkMessageContentMask,
-            SchemaGenerationOptions? options)
+            SchemaOptions? options)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
-            _options = options ?? new SchemaGenerationOptions();
+            _options = options ?? new SchemaOptions();
 
             Schema = Compile(name, dataSetWriters
                 .Where(writer => writer.DataSet != null)
@@ -112,61 +113,57 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
         {
             var @namespace = GetNamespace(_options.Namespace, _options.Namespaces);
 
-            var dsmHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
-            var nwmHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
-
-            var dataSetMessages = dataSetWriters
+            var dataSets = AvroUtils.CreateUnion(dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new AvroDataSetMessageSchema(writer,
-                    dsmHeader, _options).Schema)
-                .ToList();
+                .Select(writer => new JsonDataSetMessageSchema(writer,
+                    contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
+                    _options).Schema));
 
-            if (dataSetMessages.Count == 0)
-            {
-                return AvroUtils.Null;
-            }
+            var payloadType =
+                contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
+                (Schema)dataSets : ArraySchema.Create(dataSets);
 
-            var payloadType = dataSetMessages.Count > 1 ?
-                AvroUtils.CreateUnion(dataSetMessages) : dataSetMessages[0];
-            var singleMessage = contentMask
-                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
-
-            if (!singleMessage)
-            {
-                // Could be an array of messages
-                payloadType = ArraySchema.Create(payloadType);
-            }
-
-            if (!nwmHeader)
+            if ((contentMask &
+                ~(NetworkMessageContentMask.SingleDataSetMessage |
+                  NetworkMessageContentMask.DataSetMessageHeader)) == 0u)
             {
                 // No network message header
                 return payloadType;
             }
 
-            var encoding = new AvroBuiltInTypeSchemas();
+            var encoding = new JsonAvroSchemas(true, false);
+            var pos = 0;
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageId", 0),
+                    "MessageId", pos++),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageType", 1),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "PublisherId", 2),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
-                    "DataSetClassId", 3),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "DataSetWriterGroup", 4),
-                new(payloadType,
-                    "Messages", 5)
+                    "MessageType", pos++)
             };
+
+            if (contentMask.HasFlag(NetworkMessageContentMask.PublisherId))
+            {
+                fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                    "PublisherId", pos++));
+            }
+            if (contentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
+            {
+                fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
+                    "DataSetClassId", pos++));
+            }
+
+            fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                "DataSetWriterGroup", pos++));
+
+            // Now write messages - this is either one of or array of one of
+            fields.Add(new(payloadType,
+                "Messages", pos++));
 
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
                 // Type name of the message record
-                typeName = nameof(AvroNetworkMessage);
+                typeName = nameof(JsonNetworkMessage);
             }
             else
             {
@@ -201,6 +198,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Avro
             return @namespace;
         }
 
-        private readonly SchemaGenerationOptions _options;
+        private readonly SchemaOptions _options;
     }
 }

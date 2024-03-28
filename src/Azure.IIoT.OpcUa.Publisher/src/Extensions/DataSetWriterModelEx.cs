@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -259,19 +260,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return null;
             }
 
+            var eventNotifier = publishedEvent.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
             if (publishedEvent.State != null)
             {
                 return new ConfigurationErrorItemModel
                 {
                     Order = order,
                     Id = publishedEvent.Id,
+                    NodeId = eventNotifier,
                     Name = publishedEvent.Name,
                     Context = configure(publishedEvent.Publishing),
                     State = publishedEvent.State
                 };
             }
 
-            var eventNotifier = publishedEvent.EventNotifier ?? Opc.Ua.ObjectIds.Server.ToString();
             var fields = publishedEvent.SelectedFields;
             if (publishedEvent.ModelChangeHandling != null)
             {
@@ -385,6 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     Order = order,
                     Id = publishedVariable.Id,
                     Name = publishedVariable.DataSetFieldName,
+                    NodeId = publishedVariable.PublishedVariableNodeId,
                     Context = configure(publishedVariable.Publishing),
                     State = publishedVariable.State
                 };
@@ -392,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             return new DataMonitoredItemModel
             {
                 Order = order,
-                Id = publishedVariable.PublishedVariableNodeId,
+                Id = publishedVariable.Id,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 Name = publishedVariable.DataSetFieldName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable, options),

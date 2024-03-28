@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Avro
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Opc.Ua;
 
     /// <summary>
     /// Options for the schema generation
     /// </summary>
-    public class SchemaGenerationOptions
+    public class SchemaOptions
     {
         /// <summary>
         /// Namespace to use for message

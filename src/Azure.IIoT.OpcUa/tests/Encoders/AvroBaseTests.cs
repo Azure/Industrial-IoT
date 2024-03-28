@@ -5,11 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -154,6 +152,24 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadVariant(null).Value);
+        }
+
+        public static TheoryData<Variant> GetValues()
+        {
+            return new TheoryData<Variant>(VariantVariants.GetValues());
+        }
+
+        [Theory]
+        [MemberData(nameof(GetValues))]
+        public void TestVariantVariants(Variant value)
+        {
+            var context = new ServiceMessageContext();
+            using var stream = new MemoryStream();
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
+            encoder.WriteVariant(null, value);
+            stream.Position = 0;
+            using var decoder = new SchemalessAvroDecoder(stream, context);
+            Assert.Equal(value, decoder.ReadVariant(null));
         }
 
         [Theory]
@@ -331,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
-            var expected = new ExpandedNodeId[] { new (123u, 0, "test.org", srv), new (456u, 0, "test.org", srv) };
+            var expected = new ExpandedNodeId[] { new(123u, 0, "test.org", srv), new(456u, 0, "test.org", srv) };
             using var stream = new MemoryStream();
             using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteExpandedNodeIdArray(null, expected);
@@ -739,6 +755,25 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 Assert.Equal(expected[i].Value, actual[i].Value);
             }
+        }
+
+        public static TheoryData<Variant[]> GetVariantArrays()
+        {
+            return new TheoryData<Variant[]>(VariantVariants.GetValues()
+                .Select(v => Enumerable.Repeat(v, 3).ToArray()));
+        }
+
+        [Theory]
+        [MemberData(nameof(GetVariantArrays))]
+        public void TestVariantArrayVariants(Variant[] value)
+        {
+            var context = new ServiceMessageContext();
+            using var stream = new MemoryStream();
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
+            encoder.WriteVariantArray(null, value);
+            stream.Position = 0;
+            using var decoder = new SchemalessAvroDecoder(stream, context);
+            Assert.Equal(value, decoder.ReadVariantArray(null));
         }
     }
 }

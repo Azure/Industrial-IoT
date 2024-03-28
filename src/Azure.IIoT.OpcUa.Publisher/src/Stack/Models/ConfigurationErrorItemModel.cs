@@ -16,5 +16,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Error state of item
         /// </summary>
         public required ServiceResultModel State { get; init; }
+
+        /// <summary>
+        /// Node id that was mis-configured
+        /// </summary>
+        public required string NodeId { get; init; }
     }
 }

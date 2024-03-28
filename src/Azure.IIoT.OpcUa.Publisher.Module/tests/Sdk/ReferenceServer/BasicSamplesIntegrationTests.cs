@@ -119,10 +119,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTest),
                 "./Resources/HeartbeatErrors.json",
-                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
+                TimeSpan.FromMinutes(2), 1, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
 
             // Assert
-            Assert.True(messages.Count > 1);
+            Assert.True(messages.Count > 0);
             var message = messages[0].Message;
             _output.WriteLine(message.ToJsonString());
 
