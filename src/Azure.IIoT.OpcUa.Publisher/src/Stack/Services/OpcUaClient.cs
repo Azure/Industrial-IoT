@@ -970,15 +970,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 })).ConfigureAwait(false);
 
                 EnsureMinimumNumberOfPublishRequestsQueued();
-
-                if (numberOfSubscriptions > 1)
-                {
-                    // Clear the node cache - TODO: we should have a real node cache here
-                    session?.NodeCache.Clear();
-
-                    _logger.LogInformation("Applying changes to {Count} subscription(s) took {Duration}.",
-                        numberOfSubscriptions, sw.Elapsed);
-                }
             }
 
             int GetMinReconnectPeriod()

@@ -1986,10 +1986,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         dataType.NodeId);
                                     if (types == null || types.Count == 0)
                                     {
-                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
-                                            dataType, builtInType, session.MessageContext,
-                                            NamespaceFormat.Expanded));
-                                        break;
+                                        var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
+                                            ct).ConfigureAwait(false);
+                                        if (dtNode is DataTypeNode v &&
+                                            v.DataTypeDefinition.Body is DataTypeDefinition t)
+                                        {
+                                            types ??= new NodeIdDictionary<DataTypeDefinition>();
+                                            types.Add(dataTypeId, t);
+                                        }
+                                        else
+                                        {
+                                            dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
+                                                dataType, builtInType, session.MessageContext,
+                                                NamespaceFormat.Expanded));
+                                            break;
+                                        }
                                     }
                                     foreach (var type in types)
                                     {

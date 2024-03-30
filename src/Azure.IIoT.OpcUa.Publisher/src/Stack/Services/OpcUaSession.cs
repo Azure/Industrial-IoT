@@ -957,8 +957,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(!_client.DisableComplexTypeLoading);
             return Task.Run(async () =>
             {
+                var nodeCache = NodeCache;
                 if (Connected)
                 {
+                    Debug.Assert(nodeCache != null);
+                    nodeCache.LoadUaDefinedTypes(SystemContext);
+
                     var complexTypeSystem = new ComplexTypeSystem(this);
                     await complexTypeSystem.Load().ConfigureAwait(false);
 
@@ -969,7 +973,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here
-                        NodeCache?.Clear();
+                        nodeCache.Clear();
                         return complexTypeSystem;
                     }
                 }

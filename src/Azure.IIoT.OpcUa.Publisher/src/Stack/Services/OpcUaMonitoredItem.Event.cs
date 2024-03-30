@@ -385,45 +385,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 return ValueTask.FromResult((eventFilter, selectClauses));
             }
-
-            /// <summary>
-            /// Get all the fields of a type definition node to build the
-            /// select clause.
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="fieldNames"></param>
-            /// <param name="node"></param>
-            /// <param name="browsePathPrefix"></param>
-            /// <param name="ct"></param>
-            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
-                Node node, string browsePathPrefix, CancellationToken ct)
-            {
-                foreach (var reference in node.ReferenceTable)
-                {
-                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
-                        !reference.IsInverse)
-                    {
-                        var componentNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
-                            ct).ConfigureAwait(false);
-                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
-                        {
-                            var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
-                            fieldNames.Add(new QualifiedName(
-                                fieldName, componentNode.BrowseName.NamespaceIndex));
-                            await ParseFieldsAsync(session, fieldNames, componentNode,
-                                $"{fieldName}|", ct).ConfigureAwait(false);
-                        }
-                    }
-                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
-                    {
-                        var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
-                            ct).ConfigureAwait(false);
-                        var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
-                        fieldNames.Add(new QualifiedName(
-                            fieldName, propertyNode.BrowseName.NamespaceIndex));
-                    }
-                }
-            }
         }
     }
 }
