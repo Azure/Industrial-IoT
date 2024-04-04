@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Options for the schema generation
     /// </summary>
-    public class SchemaOptions
+    public record class SchemaOptions
     {
         /// <summary>
         /// Namespace to use for message

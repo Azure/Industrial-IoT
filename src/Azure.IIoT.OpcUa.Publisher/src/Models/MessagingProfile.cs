@@ -325,11 +325,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     BuildNetworkMessageContentMask(),
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Uadp);
-            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, true),
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true),
                     NetworkMessageContentMask.DataSetMessageHeader,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Uadp);
-            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, true),
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true),
                     NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Uadp);
@@ -341,6 +341,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     NetworkMessageContentMask.SingleDataSetMessage,
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Uadp);
+
+            // Avro encodings
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
+                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
+                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true),
+                    NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.SingleRawDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
         }
 
         /// <summary>

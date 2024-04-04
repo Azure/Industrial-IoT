@@ -40,13 +40,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "dataSetOffset", Order = 3,
             EmitDefaultValue = false)]
         public ushort? DataSetOffset { get; init; }
-
-        /// <summary>
-        /// Optional namespace format to use when serializing
-        /// nodes and qualified names in responses.
-        /// </summary>
-        [DataMember(Name = "namespaceFormat", Order = 4,
-            EmitDefaultValue = false)]
-        public NamespaceFormat? NamespaceFormat { get; init; }
     }
 }

@@ -258,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     // Should not throw
                     await writerSource.UpdateAsync(source, _options.Value.MaxNodesPerDataSet,
-                        ct).ConfigureAwait(false);
+                        copy.MessageSettings?.NamespaceFormat, ct).ConfigureAwait(false);
                     updatedSources.Add(source.Key, writerSource);
                 }
             }
@@ -315,6 +315,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var messageSettings = (change.MessageSettings ??
                 new WriterGroupMessageSettingsModel()) with
             {
+                NamespaceFormat = change.MessageSettings?.NamespaceFormat
+                    ?? options.DefaultNamespaceFormat,
                 NetworkMessageContentMask =
                         change.MessageSettings?.NetworkMessageContentMask ??
                         defaultMessagingProfile.NetworkMessageContentMask
@@ -361,8 +363,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var messageSettings = (dataSetWriter.MessageSettings
                 ?? new DataSetWriterMessageSettingsModel()) with
             {
-                NamespaceFormat = dataSetWriter.MessageSettings?.NamespaceFormat
-                    ?? options.DefaultNamespaceFormat,
                 DataSetMessageContentMask =
                     dataSetWriter.MessageSettings?.DataSetMessageContentMask
                     ?? defaultMessagingProfile.DataSetMessageContentMask
@@ -501,13 +501,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="writers"></param>
             /// <param name="maxItemsPerWriter"></param>
+            /// <param name="format"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async ValueTask UpdateAsync(
-                IEnumerable<DataSetWriterModel> writers, int maxItemsPerWriter,
-                CancellationToken ct)
+            public async ValueTask UpdateAsync(IEnumerable<DataSetWriterModel> writers,
+                int maxItemsPerWriter, NamespaceFormat? format, CancellationToken ct)
             {
                 var resolver = new DataSetWriterResolver(writers, _writers,
+                    format ?? NamespaceFormat.Uri,
                     _loggerFactory.CreateLogger<DataSetWriterResolver>());
                 if (resolver.NeedsUpdate)
                 {

@@ -94,6 +94,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
+            if (currentTimes.Count + outputs.Count != messages.Count)
+            {
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
+            }
             Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {

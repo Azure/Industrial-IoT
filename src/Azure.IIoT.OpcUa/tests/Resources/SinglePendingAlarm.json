@@ -27,7 +27,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "ConditionClassId",
-                    "dataSetClassFieldId": "bc2231e9-fbbc-4556-b186-849192794031",
+                    "dataSetClassFieldId": "9d41d72e-c2f7-48cd-8f33-09b2e8e041ed",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 17,
@@ -42,7 +42,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "ConditionClassName",
-                    "dataSetClassFieldId": "1cebf17e-71f2-4583-b75b-d8985e513bec",
+                    "dataSetClassFieldId": "fa6db338-8f49-4c3a-966c-ec0d8e05f8a5",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 21,
@@ -58,7 +58,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "ConditionSubClassId",
-                    "dataSetClassFieldId": "1ec0426a-1a27-4186-b93b-77a5b7420c1e",
+                    "dataSetClassFieldId": "913b9521-96a1-4273-b129-4e155f1ff365",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 17,
@@ -77,7 +77,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "ConditionSubClassName",
-                    "dataSetClassFieldId": "602f01e4-3360-4df6-999b-30d5254cba30",
+                    "dataSetClassFieldId": "247beef0-ddbe-4d20-af40-71b0e2d9dc38",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 21,
@@ -96,7 +96,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "EventId",
-                    "dataSetClassFieldId": "ab17230a-c428-46bd-a13b-e94ec66b6e96",
+                    "dataSetClassFieldId": "ee992e32-885b-44fb-9a4a-09c22c701d10",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 15,
@@ -112,7 +112,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "EventType",
-                    "dataSetClassFieldId": "e8f8d739-5910-442d-969e-d68257bb4567",
+                    "dataSetClassFieldId": "7d68d84c-8334-4c7e-af5f-7472a69f533d",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 17,
@@ -128,7 +128,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "LocalTime",
-                    "dataSetClassFieldId": "6662e43c-1e04-44a1-855e-c3071cb80215",
+                    "dataSetClassFieldId": "98794519-41da-4180-a5ea-2ae37050fb07",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 22,
@@ -138,10 +138,23 @@
                         {
                           "DataTypeId": "i=8912",
                           "Name": "TimeZoneDataType",
-                          "StructureType": null,
-                          "Fields": [],
-                          "BaseDataType": null,
-                          "DefaultEncodingId": null
+                          "StructureType": "Structure",
+                          "Fields": [
+                            {
+                              "name": "Offset",
+                              "dataType": "i=4",
+                              "valueRank": -1,
+                              "arrayDimensions": []
+                            },
+                            {
+                              "name": "DaylightSavingInOffset",
+                              "dataType": "i=1",
+                              "valueRank": -1,
+                              "arrayDimensions": []
+                            }
+                          ],
+                          "BaseDataType": "i=22",
+                          "DefaultEncodingId": "i=8917"
                         }
                       ],
                       "enumDataTypes": [],
@@ -156,7 +169,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "Message",
-                    "dataSetClassFieldId": "87a1c55b-0d36-4bbb-aab2-335ea9ac807b",
+                    "dataSetClassFieldId": "181140f9-0361-4c0f-8d4d-9acf2b045f03",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 21,
@@ -172,7 +185,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "ReceiveTime",
-                    "dataSetClassFieldId": "3fd18364-a63d-4365-bd18-de9586774760",
+                    "dataSetClassFieldId": "5bb97d66-ed9d-494e-8a83-3bf4b02a643e",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 13,
@@ -198,7 +211,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "Severity",
-                    "dataSetClassFieldId": "69f3e9e4-423d-480f-83c6-658fcbbf8a06",
+                    "dataSetClassFieldId": "69a699ec-9966-4667-9c3f-f32a1e914a7c",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 5,
@@ -214,7 +227,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "SourceName",
-                    "dataSetClassFieldId": "188d496b-eb98-4bc9-ad50-81a3da07b046",
+                    "dataSetClassFieldId": "480ddf92-7a46-4739-83a0-7daf94e4fd2b",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 12,
@@ -230,7 +243,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "SourceNode",
-                    "dataSetClassFieldId": "9b236b00-ee8e-4440-8fd5-1d50e6c92bb3",
+                    "dataSetClassFieldId": "8501f335-ad15-4b67-88ab-fc76d738f760",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 17,
@@ -246,7 +259,7 @@
                     ],
                     "attributeId": "Value",
                     "dataSetFieldName": "Time",
-                    "dataSetClassFieldId": "59afb295-567a-47ac-981c-3e71697d4225",
+                    "dataSetClassFieldId": "4328cb5d-a86a-4637-884c-83cac646ba47",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 13,
@@ -304,7 +317,7 @@
         "queueName": ""
       },
       "publishing": {
-        "queueName": "DESKTOP-BGFJS91/messages/<<UnknownWriterGroup>>"
+        "queueName": "iothub-lvmdwa_device_desktop-bgfjs91_module_publisher/messages/<<UnknownWriterGroup>>"
       }
     }
   ],

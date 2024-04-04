@@ -245,13 +245,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
                         }
+                        var namespaceFormat = writerGroup.MessageSettings?.NamespaceFormat
+                            ?? _options.Value.DefaultNamespaceFormat ?? NamespaceFormat.Uri;
                         var networkMessageContentMask = messageMask.ToStackType(encoding);
                         foreach (var dataSetClass in groups
                             .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
                         {
                             var dataSetClassId = dataSetClass.Key;
                             var currentMessage = CreateMessage(writerGroup, encoding,
-                                networkMessageContentMask, dataSetClassId, publisherId);
+                                networkMessageContentMask, dataSetClassId, publisherId, namespaceFormat);
                             var currentNotifications = new List<IOpcUaSubscriptionNotification>();
                             foreach (var (Notification, Context) in dataSetClass)
                             {
@@ -444,7 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                             currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                                dataSetClassId, publisherId);
+                                                dataSetClassId, publisherId, namespaceFormat);
                                             currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                         }
                                     }
@@ -461,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                         currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                            dataSetClassId, publisherId);
+                                            dataSetClassId, publisherId, namespaceFormat);
                                         currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                     }
 
@@ -469,6 +471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         ? new JsonMetaDataMessage
                                         {
                                             UseAdvancedEncoding = !standardsCompliant,
+                                            NamespaceFormat = namespaceFormat,
                                             UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                             DataSetWriterId = Notification.SubscriptionId,
                                             MetaData = Notification.Codec.EncodeMetaData(Context.Writer),
@@ -506,13 +509,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
 
                             BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
-                                uint networkMessageContentMask, Guid dataSetClassId, string publisherId)
+                                uint networkMessageContentMask, Guid dataSetClassId, string publisherId,
+                                NamespaceFormat namespaceFormat)
                             {
                                 BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
                                     new JsonNetworkMessage
                                     {
                                         UseAdvancedEncoding = !standardsCompliant,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                                        NamespaceFormat = namespaceFormat,
                                         UseArrayEnvelope = !standardsCompliant && isBatched,
                                         MessageId = () => Guid.NewGuid().ToString()
                                     } : new UadpNetworkMessage

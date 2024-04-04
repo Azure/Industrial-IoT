@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using System.Globalization;
 
     /// <summary>
     /// Network message avro schema
@@ -34,7 +35,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         string IEventSchema.Schema => Schema.ToString();
 
         /// <inheritdoc/>
-        public string? Id { get; }
+        public string? Id => SchemaNormalization
+            .ParsingFingerprint64(Schema)
+            .ToString(CultureInfo.InvariantCulture);
 
         /// <summary>
         /// The actual schema

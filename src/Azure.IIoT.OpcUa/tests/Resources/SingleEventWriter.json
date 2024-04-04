@@ -26,7 +26,7 @@
                       "EventId"
                     ],
                     "dataSetFieldName": "EventId",
-                    "dataSetClassFieldId": "4d4edc1c-9d1f-4e47-8ea3-e3ff9cd29ae1",
+                    "dataSetClassFieldId": "24f96f05-4cca-4f01-9351-0d9d1cee3d2c",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 15,
@@ -40,7 +40,7 @@
                       "Message"
                     ],
                     "dataSetFieldName": "Message",
-                    "dataSetClassFieldId": "3e0e75a9-cc6b-4c65-bfc8-c74a2d6d3b0f",
+                    "dataSetClassFieldId": "c61d577c-59b0-4362-af89-06f114f4396f",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 21,
@@ -55,7 +55,7 @@
                       "16:CycleId"
                     ],
                     "dataSetFieldName": "nsu=http://opcfoundation.org/SimpleEvents;CycleId",
-                    "dataSetClassFieldId": "0a0c3c61-36cc-47e5-9903-7b5fd8dadfd0",
+                    "dataSetClassFieldId": "74055d2f-309d-440c-95d3-d803bd7b2e3e",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 12,
@@ -70,7 +70,7 @@
                       "16:CurrentStep"
                     ],
                     "dataSetFieldName": "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep",
-                    "dataSetClassFieldId": "f66b9e2d-2957-4d90-af41-2be6c9a6a741",
+                    "dataSetClassFieldId": "5979cae5-1065-44d0-8229-fbf8c53c89f0",
                     "metaData": {
                       "minorVersion": 1,
                       "builtInType": 22,
@@ -141,7 +141,7 @@
         "queueName": ""
       },
       "publishing": {
-        "queueName": "DESKTOP-BGFJS91/messages/<<UnknownWriterGroup>>"
+        "queueName": "iothub-lvmdwa_device_desktop-bgfjs91_module_publisher/messages/<<UnknownWriterGroup>>"
       }
     }
   ],

@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateJsonNetworkMessageSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -40,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateJsonNetworkMessageWithNs(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -62,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateLegacyJsonNetworkMessage(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -80,6 +83,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateMessageSchemaWithoutNetworkHeader(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -107,6 +111,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateSingleMessageSchema(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -135,6 +140,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateSingleMessageSchemaWithoutHeader(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -162,6 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateRawMessageSchema(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -197,6 +204,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         [InlineData("./Resources/SingleEventWriter.json")]
         [InlineData("./Resources/SingleWithExtensions.json")]
         [InlineData("./Resources/SinglePendingAlarm.json")]
+        [InlineData("./Resources/SingleWriterWithError.json")]
         public async Task CreateRawMessageSchemaReversible(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);

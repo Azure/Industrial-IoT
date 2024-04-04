@@ -62,13 +62,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create resolver
         /// </summary>
         /// <param name="writers"></param>
+        /// <param name="format"></param>
         /// <param name="logger"></param>
         public DataSetWriterResolver(IEnumerable<DataSetWriterModel> writers,
-            ILogger<DataSetWriterResolver> logger)
+            NamespaceFormat format, ILogger<DataSetWriterResolver> logger)
         {
             _items = writers
                 .SelectMany(w => PublishedDataSetItem.Create(this, w))
                 .ToList();
+            _format = format;
             _logger = logger;
         }
 
@@ -77,14 +79,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="writers"></param>
         /// <param name="oldWriters"></param>
+        /// <param name="format"></param>
         /// <param name="logger"></param>
         public DataSetWriterResolver(IEnumerable<DataSetWriterModel> writers,
             IDictionary<string, DataSetWriterModel> oldWriters,
-            ILogger<DataSetWriterResolver> logger)
+            NamespaceFormat format, ILogger<DataSetWriterResolver> logger)
         {
             _items = writers
                 .SelectMany(w => PublishedDataSetItem.Merge(this, w, oldWriters))
                 .ToList();
+            _format = format;
             _logger = logger;
         }
 
@@ -622,12 +626,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public DataSetRoutingMode Routing
                 => DataSetWriter.DataSet?.Routing
                 ?? DataSetRoutingMode.None;
+
             /// <summary>
             /// Format to use to encode namespaces, index is not allowed
             /// </summary>
-            public NamespaceFormat NamespaceFormat
-                => DataSetWriter.MessageSettings?.NamespaceFormat
-                ?? NamespaceFormat.Expanded;
+            public NamespaceFormat NamespaceFormat => _resolver._format;
 
             /// <summary>
             /// Create data set item
@@ -1948,7 +1951,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 ct).ConfigureAwait(false);
                             if (dataType == null)
                             {
-                                _logger.LogWarning(
+                                _logger.LogError(
                                     "{Item}: Failed to find node for data type {BaseType}!",
                                     this, baseType);
                                 break;
@@ -1997,8 +2000,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         else
                                         {
                                             dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
-                                                dataType, builtInType, session.MessageContext,
-                                                NamespaceFormat.Expanded));
+                                                dataType, builtInType, session.MessageContext));
                                             break;
                                         }
                                     }
@@ -2039,8 +2041,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             })
                                                             .ToList()
                                                     },
-                                                _ => GetDefault(dataType, builtInType,
-                                                    session.MessageContext, NamespaceFormat.Expanded),
+                                                _ => GetDefault(dataType, builtInType, session.MessageContext),
                                             };
                                             dataTypes.AddOrUpdate(type.Key, description);
                                         }
@@ -2092,11 +2093,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return false;
                 }
 
-                static object GetDefault(Node dataType, BuiltInType builtInType,
-                    IServiceMessageContext context, NamespaceFormat namespaceFormat)
+                object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
-                    var name = dataType.BrowseName.AsString(context, namespaceFormat);
-                    var dataTypeId = dataType.NodeId.AsString(context, namespaceFormat);
+                    _logger.LogError("{Item}: Could not find a valid type definition for {Type} " +
+                        "({BuiltInType}). Adding a default placeholder with no fields instead.",
+                        this, dataType, builtInType);
+                    var name = dataType.BrowseName.AsString(context, NamespaceFormat.Expanded);
+                    var dataTypeId = dataType.NodeId.AsString(context, NamespaceFormat.Expanded);
                     return dataTypeId == null
                         ? throw new ServiceResultException(StatusCodes.BadConfigurationError)
                         : builtInType == BuiltInType.Enumeration
@@ -2134,8 +2137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             MaxStringLength = f.MaxStringLength,
                             ValueRank = f.ValueRank,
                             ArrayDimensions = f.ArrayDimensions,
-                            DataType = f.DataType
-                                .AsString(context, namespaceFormat)
+                            DataType = f.DataType.AsString(context, namespaceFormat)
                                 ?? string.Empty,
                             Name = f.Name,
                             Description = f.Description?.Text
@@ -2154,6 +2156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly List<PublishedDataSetItem> _items;
+        private readonly NamespaceFormat _format;
         private readonly ILogger _logger;
     }
 }

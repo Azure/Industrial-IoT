@@ -53,8 +53,8 @@
             "value": "mm/sec",
             "id": "5e09aeba4d22fee5abe741f41106c0c909214fc1",
             "metaData": {
-              "builtInType": 24,
-              "dataType": "i=24"
+              "builtInType": 12,
+              "dataType": "i=12"
             }
           },
           {
@@ -73,8 +73,8 @@
             "value": false,
             "id": "657665279ce1373259bd6d16d526116a95a4ae1d",
             "metaData": {
-              "builtInType": 24,
-              "dataType": "i=24"
+              "builtInType": 1,
+              "dataType": "i=1"
             }
           },
           {
@@ -83,8 +83,8 @@
             "value": 12.3465,
             "id": "7263495507c1655587f38afcddf5162aff6f8078",
             "metaData": {
-              "builtInType": 24,
-              "dataType": "i=24"
+              "builtInType": 10,
+              "dataType": "i=10"
             }
           }
         ],
@@ -102,7 +102,7 @@
         "queueName": ""
       },
       "publishing": {
-        "queueName": "DESKTOP-BGFJS91/messages/<<UnknownWriterGroup>>"
+        "queueName": "iothub-lvmdwa_device_desktop-bgfjs91_module_publisher/messages/<<UnknownWriterGroup>>"
       }
     }
   ],

@@ -535,24 +535,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 v =>
                 {
                     Assert.Equal("EventId", v.GetProperty("Name").GetString());
-                    Assert.Equal(15, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    Assert.Equal("i=15", v.GetProperty("DataType").GetString());
                 },
                 v =>
                 {
                     Assert.Equal("Message", v.GetProperty("Name").GetString());
-                    Assert.Equal(21, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    Assert.Equal("i=21", v.GetProperty("DataType").GetString());
                 },
                 v =>
                 {
                     Assert.Equal(kCycleIdExpanded, v.GetProperty("Name").GetString());
-                    Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    Assert.Equal("i=12", v.GetProperty("DataType").GetString());
                 },
                 v =>
                 {
                     Assert.Equal(kCurrentStepExpanded, v.GetProperty("Name").GetString());
-                    Assert.Equal(183, v.GetProperty("DataType").GetProperty("Id").GetInt32());
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents",
-                        v.GetProperty("DataType").GetProperty("Namespace").GetString());
+                    Assert.Equal("nsu=http://opcfoundation.org/SimpleEvents;i=183", v.GetProperty("DataType").GetString());
                 });
 
             var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
@@ -568,12 +566,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 v =>
                 {
                     Assert.Equal("Name", v.GetProperty("Name").GetString());
-                    Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    Assert.Equal("i=12", v.GetProperty("DataType").GetString());
                 },
                 v =>
                 {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
-                    Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
+                    Assert.Equal("i=11", v.GetProperty("DataType").GetString());
                 });
         }
 

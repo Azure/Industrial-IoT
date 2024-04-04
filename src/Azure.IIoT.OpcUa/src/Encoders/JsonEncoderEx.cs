@@ -31,15 +31,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
 
-        /// <summary>
-        /// Whether to use reversible encoding or not
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseReversibleEncoding { get; set; } = true;
 
         /// <summary>
-        /// Encode nodes as uri
+        /// Encode nodes and qualified names as string
         /// </summary>
-        public bool UseUriEncoding { get; set; } = true;
+        public bool EncodeNamespacedItemsAsString { get; set; } = true;
+
+        /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public Publisher.Models.NamespaceFormat NamespaceFormat { get; set; }
+            = Publisher.Models.NamespaceFormat.Uri; // backcompat
 
         /// <summary>
         /// Encode using microsoft variant
@@ -473,17 +477,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 WriteNull(fieldName);
             }
-            else if (UseAdvancedEncoding)
+            else if (EncodeNamespacedItemsAsString) // new encoding option
             {
-                if (UseUriEncoding || UseReversibleEncoding)
-                {
-                    WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
-                }
-                else
-                {
-                    WriteString(fieldName, value.ToString());
-                }
+                WriteString(fieldName, value.AsString(Context,
+                       NamespaceFormat));
             }
             else
             {
@@ -539,17 +536,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 WriteNull(fieldName);
             }
-            else if (UseAdvancedEncoding)
+            else if (EncodeNamespacedItemsAsString) // new encoding option
             {
-                if (UseUriEncoding || UseReversibleEncoding)
-                {
-                    WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
-                }
-                else
-                {
-                    WriteString(fieldName, value.ToString());
-                }
+                WriteString(fieldName, value.AsString(Context,
+                       NamespaceFormat));
             }
             else
             {
@@ -688,24 +678,21 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 WriteNull(fieldName);
             }
+            else if (EncodeNamespacedItemsAsString) // new encoding option
+            {
+                WriteString(fieldName, value.AsString(Context,
+                    NamespaceFormat));
+            }
             else if (UseReversibleEncoding)
             {
-                if (UseUriEncoding && UseAdvancedEncoding)
+                // Back compat to json encoding
+                PushObject(fieldName);
+                WriteString("Name", value.Name);
+                if (value.NamespaceIndex > 0)
                 {
-                    WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
+                    WriteUInt16("Uri", value.NamespaceIndex);
                 }
-                else
-                {
-                    // Back compat to json encoding
-                    PushObject(fieldName);
-                    WriteString("Name", value.Name);
-                    if (value.NamespaceIndex > 0)
-                    {
-                        WriteUInt16("Uri", value.NamespaceIndex);
-                    }
-                    PopObject();
-                }
+                PopObject();
             }
             else
             {
@@ -1153,7 +1140,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                 WriteNull(property);
                 return;
             }
-            var useUriEncoding = UseUriEncoding;
             var useReversibleEncoding = UseReversibleEncoding;
             try
             {
@@ -1167,7 +1153,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // the field value is a Variant encoded using the non-reversible OPC UA
                     // JSON Data Encoding defined in OPC 10000-6
                     //
-                    UseUriEncoding = true;
                     UseReversibleEncoding = false;
                     Write(property, dataSet,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
@@ -1179,7 +1164,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // the field value is encoded as a Variant encoded using the reversible
                     // OPC UA JSON Data Encoding defined in OPC 10000-6.
                     //
-                    UseUriEncoding = false;
                     UseReversibleEncoding = true;
                     Write(property, dataSet,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
@@ -1243,7 +1227,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             finally
             {
-                UseUriEncoding = useUriEncoding;
                 UseReversibleEncoding = useReversibleEncoding;
             }
         }

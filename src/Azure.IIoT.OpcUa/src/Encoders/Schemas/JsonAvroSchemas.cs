@@ -475,7 +475,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override Schema GetSchemaForExntendableType(string name, string ns,
+        public override Schema GetSchemaForExtendableType(string name, string ns,
             string dataTypeId, Schema bodyType)
         {
             var encodingType = EnumSchema.Create("Encoding", new string[]

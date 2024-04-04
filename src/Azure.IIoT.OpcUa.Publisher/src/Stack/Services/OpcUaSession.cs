@@ -960,9 +960,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var nodeCache = NodeCache;
                 if (Connected)
                 {
-                    Debug.Assert(nodeCache != null);
-                    nodeCache.LoadUaDefinedTypes(SystemContext);
-
                     var complexTypeSystem = new ComplexTypeSystem(this);
                     await complexTypeSystem.Load().ConfigureAwait(false);
 

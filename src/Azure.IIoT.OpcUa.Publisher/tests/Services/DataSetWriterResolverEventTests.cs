@@ -150,7 +150,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             PublishedDataSetEventModel template, NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;
-
             var writer = new DataSetWriterModel
             {
                 Id = "1",
@@ -166,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 }
             };
             var resolver = new DataSetWriterResolver(new[] { writer },
-                Log.Console<DataSetWriterResolver>());
+                NamespaceFormat.Expanded, Log.Console<DataSetWriterResolver>());
             await resolver.ResolveAsync(session, default);
         }
 

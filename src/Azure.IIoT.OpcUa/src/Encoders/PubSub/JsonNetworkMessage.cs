@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Opc.Ua;
     using System;
@@ -112,6 +113,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Flag that indicates if advanced encoding should be used
         /// </summary>
         public bool UseAdvancedEncoding { get; set; }
+
+        /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public NamespaceFormat NamespaceFormat { get; set; }
 
         /// <summary>
         /// Wrap the resulting message into an array. This is for legacy compatiblity
@@ -268,7 +274,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             (Stream?)compression ?? memoryStream, context, JsonEncoderStartingState)
                         {
                             UseAdvancedEncoding = UseAdvancedEncoding,
-                            UseUriEncoding = UseAdvancedEncoding,
+                            EncodeNamespacedItemsAsString = UseAdvancedEncoding,
+                            NamespaceFormat = NamespaceFormat,
                             IgnoreDefaultValues = true,
                             IgnoreNullValues = true,
                             UseReversibleEncoding = false
