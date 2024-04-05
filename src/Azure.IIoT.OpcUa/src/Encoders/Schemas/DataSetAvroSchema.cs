@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             SchemaOptions? options = null) : base(dataSetFieldContentMask,
                 new BuiltInAvroSchemas(), options)
         {
-            Schema = Compile(name, dataSet);
+            Schema = Compile(name, dataSet) ?? AvroUtils.Null;
         }
 
         /// <summary>
@@ -119,6 +119,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
                 }
+            }
+            if (fields.Count == 0)
+            {
+                return Enumerable.Empty<Schema>();
             }
             return RecordSchema.Create(
                 EscapeSymbol(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();

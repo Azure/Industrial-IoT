@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <summary>
         /// Schema reference
         /// </summary>
-        public JsonSchema Ref { get; }
+        public JsonSchema? Ref { get; }
 
         /// <summary>
         /// Definitions
@@ -111,8 +111,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
+                SchemaVersion = JsonSchema.V4Draft,
+                Type = Ref == null ? new[] { SchemaType.Null } : null,
                 Definitions = Definitions,
-                Reference = Ref.Reference
+                Reference = Ref?.Reference
             }.ToJsonString();
         }
 
@@ -122,20 +124,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="dataSetWriters"></param>
         /// <param name="contentMask"></param>
         /// <returns></returns>
-        private JsonSchema Compile(List<DataSetWriterModel> dataSetWriters,
+        private JsonSchema? Compile(List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                    _options, Definitions).Ref)
-                .AsUnion(Definitions);
+                        _options, Definitions).Ref!)
+                .Where(r => r != null)
+                .ToList();
 
+            if (dataSets.Count == 0)
+            {
+                return null;
+            }
+
+            var dataSetMessages = dataSets.Count > 1 ? dataSets.AsUnion(Definitions)
+                : dataSets[0];
             var payloadType =
                 contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
-                dataSets : dataSets.AsArray();
-
+                dataSetMessages : dataSetMessages.AsArray();
             if ((contentMask &
                 ~(NetworkMessageContentMask.SingleDataSetMessage |
                   NetworkMessageContentMask.DataSetMessageHeader)) == 0u)
@@ -147,33 +156,37 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var encoding = new BuiltInJsonSchemas(true, false, Definitions);
             var properties = new Dictionary<string, JsonSchema>
             {
-                ["MessageId"] = encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                ["MessageType"] = encoding.GetSchemaForBuiltInType(BuiltInType.String)
+                [nameof(JsonNetworkMessage.MessageId)] =
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                [nameof(JsonNetworkMessage.MessageType)] =
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String)
             };
 
             if (contentMask.HasFlag(NetworkMessageContentMask.PublisherId))
             {
-                properties.Add("PublisherId",
+                properties.Add(nameof(JsonNetworkMessage.PublisherId),
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
             if (contentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
             {
-                properties.Add("DataSetClassId",
+                properties.Add(nameof(JsonNetworkMessage.DataSetClassId),
                     encoding.GetSchemaForBuiltInType(BuiltInType.Guid));
             }
 
-            properties.Add("DataSetWriterGroup",
+            properties.Add(nameof(JsonNetworkMessage.DataSetWriterGroup),
                 encoding.GetSchemaForBuiltInType(BuiltInType.String));
 
             // Now write messages - this is either one of or array of one of
-            properties.Add("Messages", payloadType);
+            properties.Add(nameof(JsonNetworkMessage.Messages), payloadType);
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
                 Id = id,
                 Type = new[] { SchemaType.Object },
                 AdditionalProperties = new AdditionalProperties(false),
-                Properties = properties
+                Properties = properties,
+                Required = properties.Keys.ToList()
+
             });
         }
 

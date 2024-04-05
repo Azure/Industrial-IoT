@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="name"></param>
         /// <param name="dataSet"></param>
         /// <returns></returns>
-        protected T Compile(string? name, PublishedDataSetModel dataSet)
+        protected T? Compile(string? name, PublishedDataSetModel dataSet)
         {
             // Collect types
             CollectTypes(dataSet);
@@ -79,6 +79,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             var schemas = GetDataSetFieldSchemas(name, dataSet).ToList();
+            if (schemas.Count == 0)
+            {
+                return default;
+            }
             if (schemas.Count != 1)
             {
                 return UnionSchemaCreate(schemas);

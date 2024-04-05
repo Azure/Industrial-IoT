@@ -42,14 +42,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         public override JsonSchema Schema => new()
         {
+            SchemaVersion = JsonSchema.V4Draft,
             Definitions = Definitions,
-            Reference = Ref.Reference
+            Type = Ref == null ? new [] { SchemaType.Null } : null,
+            Reference = Ref?.Reference
         };
 
         /// <summary>
         /// Schema reference
         /// </summary>
-        public JsonSchema Ref { get; }
+        public JsonSchema? Ref { get; }
 
         /// <summary>
         /// Definitions
@@ -136,6 +138,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         properties.Add(fieldName, schema);
                     }
                 }
+            }
+            if (properties.Count == 0)
+            {
+                return Enumerable.Empty<JsonSchema>();
             }
             var type = name ?? dataSet.Name ?? "DataSetPayload";
             return Definitions.Reference(_options.GetSchemaId(type), id => new JsonSchema

@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Opc.Ua;
     using System.Collections.Generic;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
+    using System.Linq;
 
     /// <summary>
     /// DataSet message Json schema
@@ -38,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <summary>
         /// Schema reference
         /// </summary>
-        public JsonSchema Ref { get; }
+        public JsonSchema? Ref { get; }
 
         /// <summary>
         /// Definitions
@@ -98,8 +99,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
+                SchemaVersion = JsonSchema.V4Draft,
+                Type = Ref == null ? new[] { SchemaType.Null } : null,
                 Definitions = Definitions,
-                Reference = Ref.Reference
+                Reference = Ref?.Reference
             }.ToJsonString();
         }
 
@@ -108,8 +111,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// </summary>
         /// <param name="dataSetMessageContentMask"></param>
         /// <returns></returns>
-        private JsonSchema Compile(DataSetContentMask dataSetMessageContentMask)
+        private JsonSchema? Compile(DataSetContentMask dataSetMessageContentMask)
         {
+            if (_dataSet.Ref == null)
+            {
+                return null;
+            }
+
             if (!_withDataSetMessageHeader)
             {
                 // Not a data set message
@@ -192,7 +200,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 Id = id,
                 Type = new[] { SchemaType.Object },
                 AdditionalProperties = new AdditionalProperties(false),
-                Properties = properties
+                Properties = properties,
+                Required = properties.Keys.ToList()
             });
         }
 

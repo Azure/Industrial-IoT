@@ -47,10 +47,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="definitions"></param>
         /// <param name="title"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static JsonSchema AsUnion(this IEnumerable<JsonSchema> schemas,
             Dictionary<string, JsonSchema> definitions, string? title = null)
         {
             var s = schemas.ToList();
+            if (s.Count == 0)
+            {
+                throw new ArgumentException("Union must have at least one schema",
+                    nameof(schemas));
+            }
             return new JsonSchema
             {
                 Title = title,

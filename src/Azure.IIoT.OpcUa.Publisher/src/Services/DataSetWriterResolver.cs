@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // into a split writer.
 
                 var writerId = -1;
-                foreach (var writer in PublishedDataSetItem.VariableItem
+                foreach (var writer in PublishedDataSetItem.DataVariableItem
                         .Split(writers.Key, writers, maxItemsPerDataSet)
                     .Concat(PublishedDataSetItem.EventItem
                         .Split(writers.Key, writers))
@@ -745,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var item in publishedData)
                         {
-                            yield return new VariableItem(resolver, writer, item);
+                            yield return new DataVariableItem(resolver, writer, item);
                         }
                     }
                     var publishedObjects =
@@ -756,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .Where(o => o.PublishedVariables != null)
                             .SelectMany(o => o.PublishedVariables!.PublishedData))
                         {
-                            yield return new VariableItem(resolver, writer, item);
+                            yield return new ObjectVariableItem(resolver, writer, item);
                         }
                     }
 
@@ -936,9 +936,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Published variable item
+            /// </summary>
+            public sealed class DataVariableItem : VariableItem
+            {
+                public DataVariableItem(DataSetWriterResolver resolver,
+                    DataSetWriterModel writer, PublishedDataSetVariableModel variable)
+                    : base(resolver, writer, variable)
+                {
+                }
+
+                /// <inheritdoc/>
+                public static IEnumerable<DataSetWriterModel> Split(DataSetWriterModel writer,
+                    IEnumerable<PublishedDataSetItem> items, int maxItemsPerWriter)
+                {
+                    foreach (var variables in items
+                        .OfType<DataVariableItem>()
+                        .Batch(maxItemsPerWriter))
+                    {
+                        var copy = Copy(writer);
+                        Debug.Assert(copy.DataSet?.DataSetSource != null);
+                        copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
+                        {
+                            PublishedData = variables
+                                .Select((f, i) => f._variable with { FieldIndex = i })
+                                .ToList()
+                        };
+                        var offset = copy.DataSet.DataSetSource.PublishedVariables.PublishedData.Count;
+                        copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
+                            // No need to clone more members of the field
+                            .Select((f, i) => f with { FieldIndex = i + offset })
+                            .ToList();
+                        yield return copy;
+                    }
+                }
+            }
+
+            /// <summary>
             /// Variable item
             /// </summary>
-            public sealed class VariableItem : PublishedDataSetItem
+            public sealed class ObjectVariableItem : VariableItem
+            {
+                public ObjectVariableItem(DataSetWriterResolver resolver,
+                    DataSetWriterModel writer, PublishedDataSetVariableModel variable)
+                    : base(resolver, writer, variable)
+                {
+                }
+            }
+
+            /// <summary>
+            /// Variable item base
+            /// </summary>
+            public abstract class VariableItem : PublishedDataSetItem
             {
                 /// <inheritdoc/>
                 public override string? NodeId
@@ -1007,7 +1056,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public VariableItem(DataSetWriterResolver resolver,
+                protected VariableItem(DataSetWriterResolver resolver,
                     DataSetWriterModel writer, PublishedDataSetVariableModel variable)
                     : base(resolver, writer)
                 {
@@ -1051,31 +1100,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <inheritdoc/>
-                public static IEnumerable<DataSetWriterModel> Split(DataSetWriterModel writer,
-                    IEnumerable<PublishedDataSetItem> items, int maxItemsPerWriter)
-                {
-                    foreach (var variables in items
-                        .OfType<VariableItem>()
-                        .Batch(maxItemsPerWriter))
-                    {
-                        var copy = Copy(writer);
-                        Debug.Assert(copy.DataSet?.DataSetSource != null);
-                        copy.DataSet.DataSetSource.PublishedVariables = new PublishedDataItemsModel
-                        {
-                            PublishedData = variables
-                                .Select((f, i) => f._variable with { FieldIndex = i })
-                                .ToList()
-                        };
-                        var offset = copy.DataSet.DataSetSource.PublishedVariables.PublishedData.Count;
-                        copy.DataSet.ExtensionFields = copy.DataSet.ExtensionFields?
-                            // No need to clone more members of the field
-                            .Select((f, i) => f with { FieldIndex = i + offset })
-                            .ToList();
-                        yield return copy;
-                    }
-                }
-
-                /// <inheritdoc/>
                 public override async ValueTask ResolveMetaDataAsync(IOpcUaSession session,
                     ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
@@ -1111,7 +1135,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             nodeId, ex.Message);
                     }
                 }
-                private readonly PublishedDataSetVariableModel _variable;
+
+                protected readonly PublishedDataSetVariableModel _variable;
             }
 
             /// <summary>
@@ -1169,7 +1194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                         foreach (var item in value.PublishedData)
                         {
-                            resolver._items.Add(new VariableItem(resolver, DataSetWriter, item));
+                            resolver._items.Add(new ObjectVariableItem(resolver, DataSetWriter, item));
                         }
                         Flags &= ~PublishedNodeExpansion.Expand;
                     }
@@ -1210,7 +1235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (_object.Id == null)
                     {
                         var sb = new StringBuilder()
-                            .Append(nameof(VariableItem))
+                            .Append(nameof(ObjectItem))
                         //    .Append(_object.DisplayName)
                             .Append(_object.PublishedNodeId)
                             // .Append(_object.DataSetClassId)
