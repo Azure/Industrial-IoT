@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// Represents schemas for the encoding of the built in types
     /// as per part 6 of the OPC UA specification.
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class BaseBuiltInSchemas<T>
     {
         /// <summary>
@@ -29,11 +30,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// identifer
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="ns"></param>
         /// <param name="asDataValue"></param>
         /// <param name="valueSchema"></param>
         /// <returns></returns>
         public abstract T GetSchemaForDataSetField(
-            string name, bool asDataValue, T valueSchema);
+            string name, string ns, bool asDataValue, T valueSchema);
 
         /// <summary>
         /// Get the schema definition for a type that can

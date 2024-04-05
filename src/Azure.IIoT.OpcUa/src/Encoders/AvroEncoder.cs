@@ -717,7 +717,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly AvroBinarySchemas _builtIns = new();
+        private readonly BuiltInAvroSchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

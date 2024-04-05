@@ -6,11 +6,9 @@
 namespace Azure.IIoT.OpcUa.Encoders.Utils
 {
     using Avro;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
@@ -80,10 +78,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// <returns></returns>
         public static Schema AsNullable(this Schema schema)
         {
-            return schema == AvroUtils.Null ? schema :
+            return schema == Null ? schema :
                 UnionSchema.Create(new List<Schema>
                 {
-                    AvroUtils.Null,
+                    Null,
                     schema
                 });
         }
@@ -117,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
             out BuiltInType builtInType)
         {
             if (schema is NamedSchema ns &&
-                ns.SchemaName.Namespace == AvroUtils.NamespaceZeroName &&
+                ns.SchemaName.Namespace == NamespaceZeroName &&
                 Enum.TryParse(ns.Name, out builtInType))
             {
                 return true;
@@ -158,16 +156,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         public static bool TryFindNamespace(this NamespaceTable namespaces,
             string avroNamespace, out uint index, out string? namespaceUri)
         {
-            if (avroNamespace == AvroUtils.NamespaceZeroName)
+            if (avroNamespace == NamespaceZeroName)
             {
-                namespaceUri = Opc.Ua.Namespaces.OpcUa;
+                namespaceUri = Namespaces.OpcUa;
                 index = 0;
                 return true;
             }
             for (var i = 1u; i < namespaces.Count; i++)
             {
                 namespaceUri = namespaces.GetString(i);
-                var converted = AvroUtils.NamespaceUriToNamespace(namespaceUri);
+                var converted = NamespaceUriToNamespace(namespaceUri);
                 if (converted == avroNamespace)
                 {
                     index = i;

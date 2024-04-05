@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
 
@@ -43,13 +44,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Make union type from schemas
         /// </summary>
         /// <param name="schemas"></param>
+        /// <param name="definitions"></param>
+        /// <param name="title"></param>
         /// <returns></returns>
-        public static JsonSchema AsUnion(this IReadOnlyList<JsonSchema> schemas)
+        public static JsonSchema AsUnion(this IEnumerable<JsonSchema> schemas,
+            Dictionary<string, JsonSchema> definitions, string? title = null)
         {
+            var s = schemas.ToList();
             return new JsonSchema
             {
-                Type = schemas.Select(s => s.SafeGetType()).Distinct().ToArray(),
-                OneOf = schemas.ToList()
+                Title = title,
+                Type = s.Select(s => Resolve(s, definitions)
+                    .SafeGetType()).Distinct().ToArray(),
+                OneOf = s
             };
         }
 
@@ -57,14 +64,34 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Make array from schema
         /// </summary>
         /// <param name="schema"></param>
+        /// <param name="title"></param>
         /// <returns></returns>
-        public static JsonSchema AsArray(this JsonSchema schema)
+        public static JsonSchema AsArray(this JsonSchema schema,
+            string? title = null)
         {
             return new JsonSchema
             {
+                Title = title,
                 Type = new[] { SchemaType.Array },
                 Items = new Items(schema)
             };
+        }
+
+        /// <summary>
+        /// Make array from schema
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="definitions"></param>
+        /// <returns></returns>
+        public static JsonSchema Resolve(this JsonSchema schema,
+            Dictionary<string, JsonSchema> definitions)
+        {
+            if (schema.Reference == null)
+            {
+                Debug.Assert(schema.Type != null);
+                return schema;
+            }
+            return definitions.Values.First(d => d.Id == schema.Reference);
         }
 
         /// <summary>
@@ -94,6 +121,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
+        /// Create identifier of a schema in the namespace
+        /// configured in the options
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="fragment"></param>
+        /// <returns></returns>
+        public static UriOrFragment GetSchemaId(this SchemaOptions options,
+            string fragment)
+        {
+            var ns = options.Namespace ?? Namespaces.OpcUaSdk;
+            return new UriOrFragment(ns + "#" + fragment);
+        }
+
+        /// <summary>
         /// Create identifier of a schema
         /// </summary>
         /// <param name="nodeId"></param>
@@ -102,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this NodeId nodeId,
             ServiceMessageContext context)
         {
-            return new UriOrFragment(nodeId.AsString(context, NamespaceFormat.Uri));
+            return nodeId.ToExpandedNodeId(context.NamespaceUris).GetSchemaId(context);
         }
 
         /// <summary>
@@ -114,6 +155,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this ExpandedNodeId nodeId,
             ServiceMessageContext context)
         {
+            if (string.IsNullOrEmpty(nodeId.NamespaceUri))
+            {
+                nodeId = new ExpandedNodeId(nodeId.Identifier, 0, Namespaces.OpcUa, 0);
+            }
             return new UriOrFragment(nodeId.AsString(context, NamespaceFormat.Uri));
         }
     }

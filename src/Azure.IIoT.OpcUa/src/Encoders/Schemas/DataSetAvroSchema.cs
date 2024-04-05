@@ -49,16 +49,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="name"></param>
         /// <param name="dataSet"></param>
-        /// <param name="encoding"></param>
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
         public DataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
-            MessageEncoding? encoding = null,
             Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null) : base(dataSetFieldContentMask,
-                BuiltInAvroSchemas.GetEncodingSchemas(encoding, dataSetFieldContentMask),
-                options)
+                new BuiltInAvroSchemas(), options)
         {
             Schema = Compile(name, dataSet);
         }
@@ -67,14 +64,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Get avro schema for a dataset encoded in json
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="encoding"></param>
         /// <param name="options"></param>
         /// <returns></returns>
         public DataSetAvroSchema(DataSetWriterModel dataSetWriter,
-            MessageEncoding? encoding, SchemaOptions? options = null) :
+            SchemaOptions? options = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
-                encoding, dataSetWriter.DataSetFieldContentMask, options)
+                dataSetWriter.DataSetFieldContentMask, options)
         {
         }
 
@@ -89,9 +85,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             PublishedDataSetModel dataSet)
         {
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
-            GetEncodingMode(out var _omitFieldName, out var _fieldsAreDataValues,
+            GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
                 singleValue);
+            if (omitFieldName)
+            {
+                var set = new HashSet<Schema>();
+                foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData())
+                {
+                    if (fieldMetadata?.DataType != null)
+                    {
+                        set.Add(LookupSchema(fieldMetadata.DataType, out _));
+                    }
+                }
+                return set.Select(s => s.AsNullable());
+            }
 
+            var ns = AvroUtils.NamespaceUriToNamespace(_options.Namespace ?? Namespaces.OpcUaSdk);
             var fields = new List<Field>();
             var pos = 0;
             foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
@@ -101,25 +110,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 if (fieldMetadata?.DataType != null)
                 {
                     var schema = LookupSchema(fieldMetadata.DataType, out var typeName);
-                    if (_omitFieldName)
-                    {
-                        yield return schema.AsNullable();
-                    }
-                    else if (fieldName != null)
+                    if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", _fieldsAreDataValues, schema);
+                            (typeName ?? fieldName) + "DataValue", ns, fieldsAreDataValues, schema);
 
                         fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
                     }
                 }
             }
-            if (!_omitFieldName)
-            {
-                yield return RecordSchema.Create(
-                    EscapeSymbol(name ?? dataSet.Name ?? "DataSetPayload"), fields);
-            }
+            return RecordSchema.Create(
+                EscapeSymbol(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
         }
 
         /// <inheritdoc/>

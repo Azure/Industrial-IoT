@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return payloadType;
             }
 
-            var encoding = new AvroBinarySchemas();
+            var encoding = new BuiltInAvroSchemas();
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),

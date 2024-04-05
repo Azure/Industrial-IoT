@@ -29,14 +29,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // Enumeration values shall be encoded as a JSON number
                     // for the reversible encoding.
-                    return PrimitiveType((int)BuiltInType.Enumeration,
+                    return Simple((int)BuiltInType.Enumeration,
                         SchemaType.Integer, "int32");
                 }
 
                 // For the non - reversible form, Enumeration values are
                 // encoded as a JSON string with the following format:
                 // <name>_<value>
-                return PrimitiveType((int)BuiltInType.Enumeration,
+                return Simple((int)BuiltInType.Enumeration,
                     SchemaType.String);
             }
         }
@@ -47,8 +47,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.DiagnosticInfo),
-                    Id = GetDataTypeId(BuiltInType.DiagnosticInfo),
+                    Title = GetTitle(BuiltInType.DiagnosticInfo),
+                    Id = GetId(BuiltInType.DiagnosticInfo),
                     Type = new[] { SchemaType.Object },
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -73,6 +73,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
+                var any = new JsonSchema
+                {
+                    Title = "Any",
+                    Type = new[] {
+                        SchemaType.Number,
+                        SchemaType.Null,
+                        SchemaType.Object,
+                        SchemaType.Array,
+                        SchemaType.String,
+                        SchemaType.Integer,
+                        SchemaType.Boolean
+                    }
+                };
                 if (!_reversibleEncoding)
                 {
                     // For the non-reversible form, Variant values shall be
@@ -80,17 +93,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // the Body field. The Type and Dimensions fields are
                     // dropped. Multi-dimensional arrays are encoded as a
                     // multi-dimensional JSON array as described in 5.4.5.
-                    return new JsonSchema();
+                    return any;
                 }
                 return new JsonSchema
                 {
-                    Id = GetDataTypeId(BuiltInType.Variant),
+                    Id = GetId(BuiltInType.Variant),
                     Type = new[] { SchemaType.Object },
-                    Title = nameof(BuiltInType.Variant),
+                    Title = GetTitle(BuiltInType.Variant),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Type"] = GetSchemaForBuiltInType(BuiltInType.Byte),
-                        ["Body"] = new JsonSchema(),
+                        ["Body"] = any,
                         ["Dimensions"] = GetSchemaForBuiltInType(BuiltInType.UInt32,
                             ValueRanks.OneDimension)
                     },
@@ -116,9 +129,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
                 return new JsonSchema
                 {
-                    Id = GetDataTypeId(BuiltInType.ExtensionObject),
+                    Id = GetId(BuiltInType.ExtensionObject),
                     Type = new[] { SchemaType.Object },
-                    Title = nameof(BuiltInType.ExtensionObject),
+                    Title = GetTitle(BuiltInType.ExtensionObject),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["TypeId"] = GetSchemaForBuiltInType(BuiltInType.NodeId),
@@ -144,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // the reversible encoding. If the StatusCode is Good (0)
                     // it is only encoded if it is an element of a JSON array.
                     //
-                    return PrimitiveType((int)BuiltInType.StatusCode,
+                    return Simple((int)BuiltInType.StatusCode,
                         SchemaType.Integer, "uint32");
                 }
 
@@ -153,9 +166,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 // defined here.
                 return new JsonSchema
                 {
-                    Id = GetDataTypeId(BuiltInType.StatusCode),
+                    Id = GetId(BuiltInType.StatusCode),
                     Type = new[] { SchemaType.Object },
-                    Title = nameof(BuiltInType.StatusCode),
+                    Title = GetTitle(BuiltInType.StatusCode),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Code"] = GetSchemaForBuiltInType(BuiltInType.UInt32),
@@ -172,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 if (_encodeNamespacedValuesAsUri)
                 {
-                    return PrimitiveType((int)BuiltInType.QualifiedName, SchemaType.String,
+                    return Simple((int)BuiltInType.QualifiedName, SchemaType.String,
                         "opcuaQualifiedName");
                 }
 
@@ -182,8 +195,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 // If the NamespaceIndex is 0 the field is omitted.
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.QualifiedName),
-                    Id = GetDataTypeId(BuiltInType.QualifiedName),
+                    Title = GetTitle(BuiltInType.QualifiedName),
+                    Id = GetId(BuiltInType.QualifiedName),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Name"] = GetSchemaForBuiltInType(BuiltInType.String),
@@ -204,15 +217,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // For the non-reversible form, LocalizedText value shall
                     // be encoded as a JSON string containing the Text component.
-                    return PrimitiveType((int)BuiltInType.LocalizedText, SchemaType.String);
+                    return Simple((int)BuiltInType.LocalizedText, SchemaType.String);
                 }
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.LocalizedText),
-                    Id = GetDataTypeId(BuiltInType.LocalizedText),
+                    Title = GetTitle(BuiltInType.LocalizedText),
+                    Type = new[] { SchemaType.Object },
+                    Id = GetId(BuiltInType.LocalizedText),
                     Properties = new Dictionary<string, JsonSchema>
                     {
-                        ["Locale"] = PrimitiveType((int)BuiltInType.String,
+                        ["Locale"] = Simple((int)BuiltInType.String,
                                 SchemaType.String, "rfc3066"),
                         ["Text"] = GetSchemaForBuiltInType(BuiltInType.String)
                     },
@@ -227,18 +241,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 if (_encodeNamespacedValuesAsUri)
                 {
-                    return PrimitiveType((int)BuiltInType.NodeId, SchemaType.String,
+                    return Simple((int)BuiltInType.NodeId, SchemaType.String,
                         "opcuaNodeId");
                 }
 
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.NodeId),
-                    Id = GetDataTypeId(BuiltInType.NodeId),
+                    Title = GetTitle(BuiltInType.NodeId),
+                    Type = new[] { SchemaType.Object },
+                    Id = GetId(BuiltInType.NodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["IdentifierType"] = GetSchemaForBuiltInType(BuiltInType.Byte),
-                        ["Id"] = new JsonSchema(),
+                        ["Id"] = new[]
+                        {
+                            GetSchemaForBuiltInType(BuiltInType.UInt32),
+                            GetSchemaForBuiltInType(BuiltInType.ByteString),
+                            GetSchemaForBuiltInType(BuiltInType.Guid),
+                            GetSchemaForBuiltInType(BuiltInType.String)
+                        }
+                        .AsUnion(Definitions, "NodeIdentifer"),
                         //
                         // For reversible encoding this field is a JSON number
                         // with the NamespaceIndex. The field is omitted if the
@@ -264,17 +286,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 if (_encodeNamespacedValuesAsUri)
                 {
-                    return PrimitiveType((int)BuiltInType.ExpandedNodeId, SchemaType.String,
+                    return Simple((int)BuiltInType.ExpandedNodeId, SchemaType.String,
                         "opcuaExpandedNodeId");
                 }
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.ExpandedNodeId),
-                    Id = GetDataTypeId(BuiltInType.ExpandedNodeId),
+                    Title = GetTitle(BuiltInType.ExpandedNodeId),
+                    Type = new[] { SchemaType.Object },
+                    Id = GetId(BuiltInType.ExpandedNodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["IdentifierType"] = GetSchemaForBuiltInType(BuiltInType.Byte),
-                        ["Id"] = new JsonSchema(),
+                        ["Id"] = new[]
+                        {
+                            GetSchemaForBuiltInType(BuiltInType.UInt32),
+                            GetSchemaForBuiltInType(BuiltInType.ByteString),
+                            GetSchemaForBuiltInType(BuiltInType.Guid),
+                            GetSchemaForBuiltInType(BuiltInType.String)
+                        }
+                        .AsUnion(Definitions, "NodeIdentifer"),
                         //
                         // For reversible encoding this field is a JSON number
                         // with the NamespaceIndex. The field is omitted if the
@@ -313,8 +343,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return new JsonSchema
                 {
-                    Title = nameof(BuiltInType.DataValue),
-                    Id = GetDataTypeId(BuiltInType.DataValue),
+                    Title = GetTitle(BuiltInType.DataValue),
+                    Type = new[] { SchemaType.Object },
+                    Id = GetId(BuiltInType.DataValue),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Value"] = GetSchemaForBuiltInType(BuiltInType.Variant),
@@ -397,14 +428,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override JsonSchema GetSchemaForBuiltInType(BuiltInType builtInType,
             int rank = ValueRanks.Scalar)
         {
-            if (!Definitions.TryGetValue(GetDataTypeName(builtInType), out var schema))
+            var typeDefinitionName = GetDefinitionName(builtInType);
+            if (!Definitions.TryGetValue(typeDefinitionName, out var schema))
             {
-                schema = Get((int)builtInType);
-                if (schema.Id != null)
-                {
-                    Definitions.Add(GetDataTypeName(builtInType), schema);
-                    schema = BuiltInReference(builtInType);
-                }
+                schema = CreateSchemaForBuiltInType((int)builtInType);
+                Definitions.Add(typeDefinitionName, schema);
+            }
+
+            if (schema.Id != null)
+            {
+                schema = Reference(builtInType);
             }
             if (rank >= ValueRanks.OneOrMoreDimensions)
             {
@@ -416,27 +449,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             return schema;
 
-            JsonSchema Get(int id) => id switch
+            JsonSchema CreateSchemaForBuiltInType(int id) => id switch
             {
-                1 => PrimitiveType(id, SchemaType.Boolean),
-                2 => PrimitiveType(id, SchemaType.Integer, "int8"),
-                3 => PrimitiveType(id, SchemaType.Integer, "byte"),
-                4 => PrimitiveType(id, SchemaType.Integer, "int16"),
-                5 => PrimitiveType(id, SchemaType.Integer, "uint16"),
-                6 => PrimitiveType(id, SchemaType.Integer, "int32"),
-                7 => PrimitiveType(id, SchemaType.Integer, "uint32"),
+                1 => Simple(id, SchemaType.Boolean),
+                2 => Simple(id, SchemaType.Integer, "int8"),
+                3 => Simple(id, SchemaType.Integer, "byte"),
+                4 => Simple(id, SchemaType.Integer, "int16"),
+                5 => Simple(id, SchemaType.Integer, "uint16"),
+                6 => Simple(id, SchemaType.Integer, "int32"),
+                7 => Simple(id, SchemaType.Integer, "uint32"),
 
                 // As per part 6 encoding, long is encoded as string
-                8 => PrimitiveType(id, SchemaType.String, "int64"),
-                9 => PrimitiveType(id, SchemaType.String, "uint64"),
+                8 => Simple(id, SchemaType.String, "int64"),
+                9 => Simple(id, SchemaType.String, "uint64"),
 
-                10 => PrimitiveType(id, SchemaType.Number, "float"),
-                11 => PrimitiveType(id, SchemaType.Number, "double"),
-                12 => PrimitiveType(id, SchemaType.String),
-                13 => PrimitiveType(id, SchemaType.String, "date-time"),
-                14 => PrimitiveType(id, SchemaType.String, "uuid"),
-                15 => PrimitiveType(id, SchemaType.String, "byte"),
-                16 => PrimitiveType(id, SchemaType.String, "xmlelement"),
+                10 => Simple(id, SchemaType.Number, "float"),
+                11 => Simple(id, SchemaType.Number, "double"),
+                12 => Simple(id, SchemaType.String),
+                13 => Simple(id, SchemaType.String, "date-time"),
+                14 => Simple(id, SchemaType.String, "uuid"),
+                15 => Simple(id, SchemaType.String, "byte"),
+                16 => Simple(id, SchemaType.String, "xmlelement"),
 
                 17 => NodeIdSchema,
                 18 => ExpandedNodeIdSchema,
@@ -448,11 +481,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 24 => VariantSchema,
                 25 => DiagnosticInfoSchema,
 
-                26 => PrimitiveType(id, SchemaType.Number),
+                26 => Simple(id, SchemaType.Number),
 
                 // Should this be string? As per json encoding, long is string
-                27 => PrimitiveType(id, SchemaType.Integer),
-                28 => PrimitiveType(id, SchemaType.Number, "unsigned"),
+                27 => Simple(id, SchemaType.Integer),
+                28 => Simple(id, SchemaType.Number, "unsigned"),
 
                 29 => EnumerationSchema,
                 _ => throw new ArgumentException($"Built in type {id} unknown")
@@ -467,10 +500,33 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override JsonSchema GetSchemaForDataSetField(string name, bool asDataValue,
-            JsonSchema valueSchema)
+        public override JsonSchema GetSchemaForDataSetField(string name, string ns,
+            bool asDataValue, JsonSchema valueSchema)
         {
-            return GetSchemaForBuiltInType(BuiltInType.DataValue);
+            var id = new UriOrFragment(ns + "#" + name);
+            return Definitions.Reference(id, id =>
+            {
+                var fieldSchema = valueSchema.Resolve(Definitions);
+                var type = fieldSchema.Format
+                    ?? fieldSchema.Title
+                    ?? fieldSchema.SafeGetType().ToString();
+                return new JsonSchema
+                {
+                    Id = id,
+                    Title = $"Dataset Field of Type {type}",
+                    Type = new[] { SchemaType.Object },
+                    Properties = new Dictionary<string, JsonSchema>
+                    {
+                        ["Value"] = valueSchema,
+                        ["Status"] = GetSchemaForBuiltInType(BuiltInType.StatusCode),
+                        ["SourceTimestamp"] = GetSchemaForBuiltInType(BuiltInType.DateTime),
+                        ["SourcePicoSeconds"] = GetSchemaForBuiltInType(BuiltInType.UInt16),
+                        ["ServerTimestamp"] = GetSchemaForBuiltInType(BuiltInType.DateTime),
+                        ["ServerPicoSeconds"] = GetSchemaForBuiltInType(BuiltInType.UInt16)
+                    },
+                    AdditionalProperties = new AdditionalProperties(false)
+                };
+            });
         }
 
         /// <summary>
@@ -478,19 +534,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="builtInType"></param>
         /// <returns></returns>
-        private static UriOrFragment GetDataTypeId(BuiltInType builtInType)
+        private static UriOrFragment GetId(BuiltInType builtInType)
         {
-            return new UriOrFragment(Namespaces.OpcUa + "#" + GetDataTypeName(builtInType));
-        }
-
-        /// <summary>
-        /// Get data typeid
-        /// </summary>
-        /// <param name="builtInType"></param>
-        /// <returns></returns>
-        private static string GetDataTypeName(BuiltInType builtInType)
-        {
-            return "i=" + (int)builtInType;
+            return new UriOrFragment(Namespaces.OpcUa + "#i=" + (int)builtInType);
         }
 
         /// <summary>
@@ -500,28 +546,49 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="type"></param>
         /// <param name="format"></param>
         /// <returns></returns>
-        internal static JsonSchema PrimitiveType(int builtInType,
+        private static JsonSchema Simple(int builtInType,
             SchemaType type, string? format = null)
         {
             return new JsonSchema
             {
+                Title = GetTitle((BuiltInType)builtInType),
+                Id = GetId((BuiltInType)builtInType),
                 Type = new[] { type },
-                Title = ((BuiltInType)builtInType).ToString(),
                 Format = format
             };
         }
 
         /// <summary>
-        /// Create a place holder
+        /// Create a reference
         /// </summary>
         /// <param name="builtInType"></param>
         /// <returns></returns>
-        private static JsonSchema BuiltInReference(BuiltInType builtInType)
+        private static JsonSchema Reference(BuiltInType builtInType)
         {
             return new JsonSchema
             {
-                Reference = GetDataTypeId(builtInType)
+                Reference = GetId(builtInType)
             };
+        }
+
+        /// <summary>
+        /// Create a definition name
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static string GetDefinitionName(BuiltInType builtInType)
+        {
+            return Namespaces.OpcUa + "#" + builtInType;
+        }
+
+        /// <summary>
+        /// Create a title
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static string GetTitle(BuiltInType builtInType)
+        {
+            return $"OPC UA built in type {builtInType}";
         }
 
         private readonly bool _reversibleEncoding;

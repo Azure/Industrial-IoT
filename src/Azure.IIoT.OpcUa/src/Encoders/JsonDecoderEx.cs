@@ -1381,7 +1381,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             // Try to decode non reversible encoding first.
-            var dimensions = array.GetDimensions(out var type);
+            var dimensions = GetDimensions(array, out var type);
             if (dimensions.Length > 1)
             {
                 var builtInType = BuiltInType.Variant;
@@ -1523,7 +1523,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (token is JArray jarray)
             {
                 // Check array dimensions
-                var dimensions = jarray.GetDimensions(out _);
+                var dimensions = GetDimensions(jarray, out _);
                 if (dimensions.Length > 1)
                 {
                     return ReadVariantMatrixBody(jarray, dimensions, type);
@@ -2205,6 +2205,27 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 throw new ServiceResultException(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Returns dimensions of the multi dimensional array assuming
+        /// it is not jagged.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static int[] GetDimensions(JArray token, out JTokenType type)
+        {
+            var dimensions = new List<int>();
+            type = JTokenType.Undefined;
+            var array = token;
+            while (array != null && array.Count != 0)
+            {
+                dimensions.Add(array.Count);
+                type = array[0].Type;
+                array = array[0] as JArray;
+            }
+            return dimensions.ToArray();
         }
 
         /// <summary>

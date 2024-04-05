@@ -78,9 +78,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             }
 
-            var schemas = GetDataSetFieldSchemas(name, dataSet)
-                .Distinct()
-                .ToList();
+            var schemas = GetDataSetFieldSchemas(name, dataSet).ToList();
             if (schemas.Count != 1)
             {
                 return UnionSchemaCreate(schemas);

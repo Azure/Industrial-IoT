@@ -5,44 +5,50 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using Microsoft.Json.Schema;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using System.Globalization;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
-    /// Network message avro schema
+    /// DataSet message Json schema
     /// </summary>
-    public class JsonDataSetMessageSchema : IEventSchema
+    public sealed class JsonDataSetMessageSchema : IEventSchema
     {
         /// <inheritdoc/>
-        public string Type => ContentMimeType.AvroSchema;
+        public string Type => ContentMimeType.Json;
 
         /// <inheritdoc/>
-        public string Name => Schema.Fullname;
+        public string Name { get; }
 
         /// <inheritdoc/>
         public ulong Version { get; }
 
         /// <inheritdoc/>
-        string IEventSchema.Schema => Schema.ToString();
+        public string? Id { get; }
 
         /// <inheritdoc/>
-        public string? Id => SchemaNormalization
-            .ParsingFingerprint64(Schema)
-            .ToString(CultureInfo.InvariantCulture);
+        string IEventSchema.Schema => ToString()!;
 
         /// <summary>
-        /// The actual schema
+        /// Schema reference
         /// </summary>
-        public Schema Schema { get; }
+        public JsonSchema Ref { get; }
+
+        /// <summary>
+        /// Definitions
+        /// </summary>
+        internal Dictionary<string, JsonSchema> Definitions => _dataSet.Definitions;
+
+        /// <summary>
+        /// Definitions
+        /// </summary>
+        internal ServiceMessageContext Context => _dataSet.Context;
 
         /// <summary>
         /// Get avro schema for a writer
@@ -50,19 +56,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="dataSetWriter"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="options"></param>
+        /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonDataSetMessageSchema(DataSetWriterModel dataSetWriter,
-            bool withDataSetMessageHeader = true,
-            SchemaOptions? options = null)
+            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
+            Dictionary<string, JsonSchema>? definitions = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetAvroSchema(dataSetWriter,
-                MessageEncoding.Json, options);
-            Schema = Compile(
-                dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
-                GetNamespace(_options.Namespace, _options.Namespaces),
-                dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
+            _dataSet = new DataSetJsonSchema(dataSetWriter, options, definitions);
+            Name = GetName(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName);
+           Ref = Compile(dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
         }
 
         /// <summary>
@@ -73,118 +77,132 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="options"></param>
+        /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonDataSetMessageSchema(PublishedDataSetModel dataSet,
             DataSetContentMask? dataSetContentMask = null,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
-            bool withDataSetMessageHeader = true,
-            SchemaOptions? options = null)
+            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
+            Dictionary<string, JsonSchema>? definitions = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetAvroSchema(null, dataSet,
-                MessageEncoding.Json, dataSetFieldContentMask, options);
-            Schema = Compile(dataSet.Name,
-                GetNamespace(_options.Namespace, _options.Namespaces),
-                dataSetContentMask ?? 0u);
+            _dataSet = new DataSetJsonSchema(null, dataSet,
+                dataSetFieldContentMask, options, definitions);
+            Name = GetName(dataSet.Name);
+            Ref = Compile(dataSetContentMask ?? default);
         }
 
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return Schema.ToString();
+            return new JsonSchema
+            {
+                Definitions = Definitions,
+                Reference = Ref.Reference
+            }.ToJsonString();
         }
 
         /// <summary>
         /// Compile the data set message schema
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="namespace"></param>
         /// <param name="dataSetMessageContentMask"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName, string? @namespace,
-            DataSetContentMask dataSetMessageContentMask)
+        private JsonSchema Compile(DataSetContentMask dataSetMessageContentMask)
         {
             if (!_withDataSetMessageHeader)
             {
                 // Not a data set message
-                return _dataSet.Schema;
+                return _dataSet.Ref;
             }
 
-            var encoding = new JsonAvroSchemas(true, false);
-            var pos = 0;
-            var fields = new List<Field>();
+            var encoding = new BuiltInJsonSchemas(true, true, Definitions);
+            var properties = new Dictionary<string, JsonSchema>();
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterId))
             {
                 if (!_options.UseCompatibilityMode)
                 {
-                    fields.Add(
-                        new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt16),
-                            nameof(DataSetContentMask.DataSetWriterId), pos++));
+                    properties.Add(nameof(DataSetContentMask.DataSetWriterId),
+                        encoding.GetSchemaForBuiltInType(BuiltInType.UInt16));
                 }
                 else
                 {
                     // Up to version 2.8 we wrote the string id as id which is not per standard
-                    fields.Add(
-                        new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                            nameof(DataSetContentMask.DataSetWriterId), pos++));
+                    properties.Add(nameof(DataSetContentMask.DataSetWriterId),
+                        encoding.GetSchemaForBuiltInType(BuiltInType.String));
                 }
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.SequenceNumber))
             {
-                fields.Add(
-                    new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
-                        nameof(DataSetContentMask.SequenceNumber), pos++));
+                properties.Add(nameof(DataSetContentMask.SequenceNumber),
+                    encoding.GetSchemaForBuiltInType(BuiltInType.UInt32));
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.MetaDataVersion))
             {
-                var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
-                    new List<Field>
-                {
-                    new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
-                        "MajorVersion", 0),
-                    new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
-                        "MinorVersion", 1)
-                }, AvroUtils.NamespaceZeroName,
-                    new[] { "i_" + DataTypes.ConfigurationVersionDataType });
-                fields.Add(new(version, nameof(DataSetContentMask.MetaDataVersion), pos++));
+                var version = Definitions.Reference(
+                    DataTypeIds.ConfigurationVersionDataType.GetSchemaId(Context),
+                    id => new JsonSchema
+                    {
+                        Id = id,
+                        Type = new[] { SchemaType.Object },
+                        Properties = new Dictionary<string, JsonSchema>
+                        {
+                            ["MajorVersion"] = encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
+                            ["MinorVersion"] = encoding.GetSchemaForBuiltInType(BuiltInType.UInt32)
+                        }
+                    });
+                properties.Add(nameof(DataSetContentMask.MetaDataVersion), version);
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.Timestamp))
             {
-                fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.DateTime),
-                    nameof(DataSetContentMask.Timestamp), pos++));
+                properties.Add(nameof(DataSetContentMask.Timestamp),
+                    encoding.GetSchemaForBuiltInType(BuiltInType.DateTime));
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.Status))
             {
                 if (!_options.UseCompatibilityMode)
                 {
-                    fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode),
-                        nameof(DataSetContentMask.Status), pos++));
+                    properties.Add(nameof(DataSetContentMask.Status),
+                        encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode));
                 }
                 else
                 {
                     // Up to version 2.8 we wrote the full status code
-                    fields.Add(new(new JsonAvroSchemas(false, false)
-                        .GetSchemaForBuiltInType(BuiltInType.StatusCode),
-                            nameof(DataSetContentMask.Status), pos++));
+                    properties.Add(nameof(DataSetContentMask.Status),
+                        new BuiltInJsonSchemas(false, false, Definitions)
+                        .GetSchemaForBuiltInType(BuiltInType.StatusCode));
                 }
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.MessageType))
             {
-                fields.Add(
-                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                        nameof(DataSetContentMask.MessageType), pos++));
+                properties.Add(nameof(DataSetContentMask.MessageType),
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
             if (!_options.UseCompatibilityMode &&
                 dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterName))
             {
-                fields.Add(
-                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                        nameof(DataSetContentMask.DataSetWriterName), pos++));
+                properties.Add(nameof(DataSetContentMask.DataSetWriterName),
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
 
-            fields.Add(new(_dataSet.Schema, "Payload", pos++));
+            properties.Add("Payload", _dataSet.Ref);
 
+            return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
+            {
+                Id = id,
+                Type = new[] { SchemaType.Object },
+                AdditionalProperties = new AdditionalProperties(false),
+                Properties = properties
+            });
+        }
+
+        /// <summary>
+        /// Get name of the type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        private static string GetName(string? typeName)
+        {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
@@ -193,38 +211,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = AvroUtils.Escape(typeName);
-                }
                 typeName += "DataSetMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
+            return typeName;
         }
 
-        /// <summary>
-        /// Get namespace uri
-        /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
-        {
-            if (@namespace == null && namespaces?.Count >= 1)
-            {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
-            }
-            return @namespace;
-        }
-
-        private readonly DataSetAvroSchema _dataSet;
+        private readonly DataSetJsonSchema _dataSet;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }

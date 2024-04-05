@@ -57,8 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetAvroSchema(dataSetWriter,
-                MessageEncoding.Avro, options);
+            _dataSet = new DataSetAvroSchema(dataSetWriter, options);
             Schema = Compile(
                 dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
                 GetNamespace(_options.Namespace, _options.Namespaces));
@@ -81,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             _withDataSetMessageHeader = withDataSetMessageHeader;
 
             _dataSet = new DataSetAvroSchema(null, dataSet,
-                MessageEncoding.Avro, dataSetFieldContentMask, options);
+                dataSetFieldContentMask, options);
             Schema = Compile(dataSet.Name,
                 GetNamespace(_options.Namespace, _options.Namespaces));
         }
@@ -106,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return _dataSet.Schema;
             }
 
-            var encoding = new AvroBinarySchemas();
+            var encoding = new BuiltInAvroSchemas();
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
                 new List<Field>
             {

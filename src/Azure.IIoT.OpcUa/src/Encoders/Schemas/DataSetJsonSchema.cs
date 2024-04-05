@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Avro;
 
     /// <summary>
     /// Extensions to convert metadata into json schema. Note that this class
@@ -21,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public class DataSetJsonSchema : BaseDataSetSchema<JsonSchema>, IEventSchema
+    public sealed class DataSetJsonSchema : BaseDataSetSchema<JsonSchema>, IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -39,18 +40,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         string IEventSchema.Schema => Schema.ToJsonString();
 
         /// <inheritdoc/>
-        public override JsonSchema Schema
+        public override JsonSchema Schema => new()
         {
-            get
-            {
-                return new JsonSchema
-                {
-                    Definitions = Definitions,
-                    Id = Name.GetSchemaId(Context),
-                    Reference = new UriOrFragment(Name)
-                };
-            }
-        }
+            Definitions = Definitions,
+            Reference = Ref.Reference
+        };
+
+        /// <summary>
+        /// Schema reference
+        /// </summary>
+        public JsonSchema Ref { get; }
 
         /// <summary>
         /// Definitions
@@ -74,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 dataSetFieldContentMask ?? default, definitions), options)
         {
             Name = name ?? "DataSet";
-            Compile(name, dataSet);
+            Ref = Compile(name, dataSet);
         }
 
         /// <summary>
@@ -103,9 +102,24 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             PublishedDataSetModel dataSet)
         {
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
-            GetEncodingMode(out var _omitFieldName, out var _fieldsAreDataValues,
+            GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
                 singleValue);
 
+            if (omitFieldName)
+            {
+                var set = new HashSet<JsonSchema>();
+                foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData())
+                {
+                    if (fieldMetadata?.DataType != null)
+                    {
+                        var schema = LookupSchema(fieldMetadata.DataType, out _);
+                        set.Add(LookupSchema(fieldMetadata.DataType, out _));
+                    }
+                }
+                return set;
+            }
+
+            var ns = _options.Namespace ?? Opc.Ua.Namespaces.OpcUaSdk;
             var properties = new Dictionary<string, JsonSchema>();
             var required = new List<string>();
             foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
@@ -113,30 +127,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 if (fieldMetadata?.DataType != null)
                 {
                     var schema = LookupSchema(fieldMetadata.DataType, out var typeName);
-                    if (_omitFieldName)
-                    {
-                        yield return schema;
-                    }
-                    else if (fieldName != null)
+                    if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", _fieldsAreDataValues, schema);
+                            (typeName ?? fieldName) + "DataValue", ns, fieldsAreDataValues, schema);
 
                         properties.Add(fieldName, schema);
                     }
                 }
             }
-            if (!_omitFieldName)
+            var type = name ?? dataSet.Name ?? "DataSetPayload";
+            return Definitions.Reference(_options.GetSchemaId(type), id => new JsonSchema
             {
-                yield return new JsonSchema
-                {
-                    Title = name ?? dataSet.Name ?? "DataSetPayload",
-                    Properties = properties,
-                    Required = required,
-                    Type = new[] { SchemaType.Object }
-                };
-            }
+                Id = id,
+                Title = type,
+                Type = new[] { SchemaType.Object },
+                Properties = properties,
+                Required = required
+            }).YieldReturn();
         }
 
         /// <inheritdoc/>
@@ -205,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         protected override JsonSchema UnionSchemaCreate(IReadOnlyList<JsonSchema> schemas)
         {
-            return schemas.AsUnion();
+            return schemas.AsUnion(Definitions);
         }
     }
 }

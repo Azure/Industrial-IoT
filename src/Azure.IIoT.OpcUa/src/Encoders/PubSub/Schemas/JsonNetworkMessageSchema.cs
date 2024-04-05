@@ -7,55 +7,58 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Globalization;
+    using Microsoft.Json.Schema;
 
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public class JsonNetworkMessageSchema : IEventSchema
+    public sealed class JsonNetworkMessageSchema : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
 
         /// <inheritdoc/>
-        public string Name => Schema.Fullname;
+        public string Name { get; }
 
         /// <inheritdoc/>
         public ulong Version { get; }
 
         /// <inheritdoc/>
-        string IEventSchema.Schema => Schema.ToString();
+        public string? Id { get; }
 
         /// <inheritdoc/>
-        public string? Id => SchemaNormalization
-            .ParsingFingerprint64(Schema)
-            .ToString(CultureInfo.InvariantCulture);
+        string IEventSchema.Schema => ToString()!;
 
         /// <summary>
-        /// The actual schema
+        /// Schema reference
         /// </summary>
-        public Schema Schema { get; }
+        public JsonSchema Ref { get; }
+
+        /// <summary>
+        /// Definitions
+        /// </summary>
+        internal Dictionary<string, JsonSchema> Definitions { get; }
 
         /// <summary>
         /// Get avro schema for a writer group
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
+        /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonNetworkMessageSchema(WriterGroupModel writerGroup,
-            SchemaOptions? options = null)
+            SchemaOptions? options = null,
+            Dictionary<string, JsonSchema>? definitions = null)
             : this(writerGroup.DataSetWriters!, writerGroup.Name,
                   writerGroup.MessageSettings?.NetworkMessageContentMask,
-                  options)
+                  options, definitions)
         {
         }
 
@@ -66,13 +69,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="name"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
+        /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonNetworkMessageSchema(DataSetWriterModel dataSetWriter,
             string? name = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaOptions? options = null)
+            SchemaOptions? options = null,
+            Dictionary<string, JsonSchema>? definitions = null)
             : this(dataSetWriter.YieldReturn(), name,
-                  networkMessageContentMask, options)
+                  networkMessageContentMask, options, definitions)
         {
         }
 
@@ -83,17 +88,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="name"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
+        /// <param name="definitions"></param>
         /// <returns></returns>
         internal JsonNetworkMessageSchema(
             IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
             NetworkMessageContentMask? networkMessageContentMask,
-            SchemaOptions? options)
+            SchemaOptions? options, Dictionary<string, JsonSchema>? definitions)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
+            Definitions = definitions ?? new();
             _options = options ?? new SchemaOptions();
 
-            Schema = Compile(name, dataSetWriters
+            Name = GetName(name);
+            Ref = Compile(dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .ToList(), networkMessageContentMask ?? 0u);
         }
@@ -101,30 +109,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return Schema.ToString();
+            return new JsonSchema
+            {
+                Definitions = Definitions,
+                Reference = Ref.Reference
+            }.ToJsonString();
         }
 
         /// <summary>
         /// Compile the schema for the data sets
         /// </summary>
-        /// <param name="typeName"></param>
         /// <param name="dataSetWriters"></param>
         /// <param name="contentMask"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName, List<DataSetWriterModel> dataSetWriters,
+        private JsonSchema Compile(List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
-            var @namespace = GetNamespace(_options.Namespace, _options.Namespaces);
-
-            var dataSets = AvroUtils.CreateUnion(dataSetWriters
+            var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                    _options).Schema));
+                    _options, Definitions).Ref)
+                .AsUnion(Definitions);
 
             var payloadType =
                 contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
-                (Schema)dataSets : ArraySchema.Create(dataSets);
+                dataSets : dataSets.AsArray();
 
             if ((contentMask &
                 ~(NetworkMessageContentMask.SingleDataSetMessage |
@@ -134,34 +144,46 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return payloadType;
             }
 
-            var encoding = new JsonAvroSchemas(true, false);
-            var pos = 0;
-            var fields = new List<Field>
+            var encoding = new BuiltInJsonSchemas(true, false, Definitions);
+            var properties = new Dictionary<string, JsonSchema>
             {
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageId", pos++),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageType", pos++)
+                ["MessageId"] = encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                ["MessageType"] = encoding.GetSchemaForBuiltInType(BuiltInType.String)
             };
 
             if (contentMask.HasFlag(NetworkMessageContentMask.PublisherId))
             {
-                fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "PublisherId", pos++));
+                properties.Add("PublisherId",
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
             if (contentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
             {
-                fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
-                    "DataSetClassId", pos++));
+                properties.Add("DataSetClassId",
+                    encoding.GetSchemaForBuiltInType(BuiltInType.Guid));
             }
 
-            fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                "DataSetWriterGroup", pos++));
+            properties.Add("DataSetWriterGroup",
+                encoding.GetSchemaForBuiltInType(BuiltInType.String));
 
             // Now write messages - this is either one of or array of one of
-            fields.Add(new(payloadType,
-                "Messages", pos++));
+            properties.Add("Messages", payloadType);
 
+            return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
+            {
+                Id = id,
+                Type = new[] { SchemaType.Object },
+                AdditionalProperties = new AdditionalProperties(false),
+                Properties = properties
+            });
+        }
+
+        /// <summary>
+        /// Get name of the type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        private static string GetName(string? typeName)
+        {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
@@ -170,35 +192,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = AvroUtils.Escape(typeName);
-                }
                 typeName += "NetworkMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
-        }
-
-        /// <summary>
-        /// Get namespace uri
-        /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
-        {
-            if (@namespace == null && namespaces?.Count >= 1)
-            {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
-            }
-            return @namespace;
+            return typeName;
         }
 
         private readonly SchemaOptions _options;
