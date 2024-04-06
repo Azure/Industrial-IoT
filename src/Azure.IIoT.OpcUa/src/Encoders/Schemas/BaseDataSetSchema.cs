@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
@@ -85,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             if (schemas.Count != 1)
             {
-                return UnionSchemaCreate(schemas);
+                return CreateUnionSchema(schemas);
             }
             return schemas[0];
         }
@@ -103,29 +105,31 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Create record schema for the structure
         /// </summary>
         /// <param name="description"></param>
+        /// <param name="baseTypeSchema"></param>
         /// <returns></returns>
-        protected abstract T? RecordSchemaCreate(StructureDescriptionModel description);
+        protected abstract T CreateStructureSchema(
+            StructureDescriptionModel description, T? baseTypeSchema = default);
 
         /// <summary>
         /// Create enum schema for the enum description
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
-        protected abstract T? EnumSchemaCreate(EnumDescriptionModel description);
+        protected abstract T CreateEnumSchema(EnumDescriptionModel description);
 
         /// <summary>
         /// Create array schema
         /// </summary>
         /// <param name="schema"></param>
         /// <returns></returns>
-        protected abstract T ArraySchemaCreate(T schema);
+        protected abstract T CreateArraySchema(T schema);
 
         /// <summary>
         /// Create union schema
         /// </summary>
         /// <param name="schemas"></param>
         /// <returns></returns>
-        protected abstract T UnionSchemaCreate(IReadOnlyList<T> schemas);
+        protected abstract T CreateUnionSchema(IReadOnlyList<T> schemas);
 
         /// <summary>
         /// Collect types from data set
@@ -192,8 +196,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 valueRank = arrayDimensions.Count;
             }
 
-            var array = valueRank > 0;
-
             name = null;
             if (_types.TryGetValue(dataType, out var description))
             {
@@ -207,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     name = description.Name;
                     if (valueRank >= ValueRanks.OneOrMoreDimensions)
                     {
-                        schema = ArraySchemaCreate(schema);
+                        schema = CreateArraySchema(schema);
                     }
                 }
             }
@@ -300,7 +302,24 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     return;
                 }
-                Schema = schemas.RecordSchemaCreate(Description);
+
+                // Get super types
+                T? baseSchema = default;
+                if (Description.BaseDataType != null)
+                {
+                    if (schemas._types.TryGetValue(Description.BaseDataType, out var def))
+                    {
+                        if (def is StructureType cur)
+                        {
+                            cur.Resolve(schemas);
+                            if (cur.Schema != null)
+                            {
+                                baseSchema = cur.Schema;
+                            }
+                        }
+                    }
+                }
+                Schema = schemas.CreateStructureSchema(Description, baseSchema);
             }
         }
 
@@ -325,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // ...
                 }
 
-                Schema = schemas.EnumSchemaCreate(Description);
+                Schema = schemas.CreateEnumSchema(Description);
             }
         }
 

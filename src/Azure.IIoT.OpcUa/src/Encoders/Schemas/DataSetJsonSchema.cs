@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Encoders;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Microsoft.Json.Schema;
+    using Json.Schema;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -42,9 +42,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         public override JsonSchema Schema => new()
         {
-            SchemaVersion = JsonSchema.V4Draft,
+            SchemaVersion = SchemaVersion.Draft4,
             Definitions = Definitions,
-            Type = Ref == null ? new [] { SchemaType.Null } : null,
+            Types = Ref == null ? new [] { SchemaType.Null } : Array.Empty<SchemaType>(),
             Reference = Ref?.Reference
         };
 
@@ -148,14 +148,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 Id = id,
                 Title = type,
-                Type = new[] { SchemaType.Object },
+                Types = new[] { SchemaType.Object },
                 Properties = properties,
                 Required = required
             }).YieldReturn();
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema RecordSchemaCreate(StructureDescriptionModel description)
+        protected override JsonSchema CreateStructureSchema(StructureDescriptionModel description,
+            JsonSchema? baseTypeSchema)
         {
             return Definitions.Reference(description.DataTypeId.GetSchemaId(Context), id =>
             {
@@ -180,24 +181,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     }
                     properties.Add(field.Name, schema);
                 }
-
                 return new JsonSchema
                 {
                     Id = id,
                     Title = description.Name,
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
+                    AllOf = baseTypeSchema == null ? null : new[] { baseTypeSchema },
                     Properties = properties,
-                    Required = required
+                    Required = required,
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             });
+
         }
 
+
         /// <inheritdoc/>
-        protected override JsonSchema EnumSchemaCreate(EnumDescriptionModel description)
+        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description)
         {
             return Definitions.Reference(description.DataTypeId.GetSchemaId(Context), id =>
             {
-                var fields = description.Fields.Select(f => (object)(int)f.Value).ToArray();
+                var fields = description.Fields.Select(f => new Const<long>(f.Value)).ToArray();
                 // TODO: Build doc from fields descriptions
 
                 return new JsonSchema
@@ -205,20 +209,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     Id = id,
                     Title = description.Name,
                     Enum = fields,
-                    Type = new[] { SchemaType.Integer },
+                    Types = new[] { SchemaType.Integer },
                     Format = "int32"
                 };
             });
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema ArraySchemaCreate(JsonSchema schema)
+        protected override JsonSchema CreateArraySchema(JsonSchema schema)
         {
             return schema.AsArray();
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema UnionSchemaCreate(IReadOnlyList<JsonSchema> schemas)
+        protected override JsonSchema CreateUnionSchema(IReadOnlyList<JsonSchema> schemas)
         {
             return schemas.AsUnion(Definitions);
         }

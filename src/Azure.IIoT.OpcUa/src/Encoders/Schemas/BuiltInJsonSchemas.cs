@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Microsoft.Json.Schema;
+    using Json.Schema;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     Title = GetTitle(BuiltInType.DiagnosticInfo),
                     Id = GetId(BuiltInType.DiagnosticInfo),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["SymbolicId"] = GetSchemaForBuiltInType(BuiltInType.Int32),
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             Reference = new UriOrFragment("#")
                         }
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 var any = new JsonSchema
                 {
                     Title = "Any",
-                    Type = new[] {
+                    Types = new[] {
                         SchemaType.Number,
                         SchemaType.Null,
                         SchemaType.Object,
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.Variant),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Title = GetTitle(BuiltInType.Variant),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["Dimensions"] = GetSchemaForBuiltInType(BuiltInType.UInt32,
                             ValueRanks.OneDimension)
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -124,13 +124,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // fields are dropped.
                     return new JsonSchema
                     {
-                        Type = new[] { SchemaType.Object }
+                        Types = new[] { SchemaType.Object }
                     };
                 }
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.ExtensionObject),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Title = GetTitle(BuiltInType.ExtensionObject),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -138,10 +138,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["Encoding"] = GetSchemaForBuiltInType(BuiltInType.Byte),
                         ["Body"] = new JsonSchema
                         {
-                            Type = new[] { SchemaType.Object }
+                            Types = new[] { SchemaType.Object }
                         }
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -167,14 +167,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.StatusCode),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Title = GetTitle(BuiltInType.StatusCode),
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Code"] = GetSchemaForBuiltInType(BuiltInType.UInt32),
                         ["Symbol"] = GetSchemaForBuiltInType(BuiltInType.String)
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             _reversibleEncoding ? BuiltInType.UInt32 : BuiltInType.String)
                     },
                     Required = new[] { "Name" },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.LocalizedText),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Id = GetId(BuiltInType.LocalizedText),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                                 SchemaType.String, "rfc3066"),
                         ["Text"] = GetSchemaForBuiltInType(BuiltInType.String)
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.NodeId),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Id = GetId(BuiltInType.NodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             _reversibleEncoding ? BuiltInType.UInt32 : BuiltInType.String)
                     },
                     Required = new[] { "IdentifierType" },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -292,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.ExpandedNodeId),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Id = GetId(BuiltInType.ExpandedNodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -332,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             _reversibleEncoding ? BuiltInType.UInt16 : BuiltInType.String)
                     },
                     Required = new[] { "IdentifierType" },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -344,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.DataValue),
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Id = GetId(BuiltInType.DataValue),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -355,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["ServerTimestamp"] = GetSchemaForBuiltInType(BuiltInType.DateTime),
                         ["ServerPicoSeconds"] = GetSchemaForBuiltInType(BuiltInType.UInt16)
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             }
         }
@@ -443,8 +443,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return new JsonSchema
                 {
-                    Type = new[] { SchemaType.Array },
-                    Items = new Items(schema)
+                    Types = new[] { SchemaType.Array },
+                    Items = new[] { schema }
                 };
             }
             return schema;
@@ -452,19 +452,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             JsonSchema CreateSchemaForBuiltInType(int id) => id switch
             {
                 1 => Simple(id, SchemaType.Boolean),
-                2 => Simple(id, SchemaType.Integer, "int8"),
-                3 => Simple(id, SchemaType.Integer, "byte"),
-                4 => Simple(id, SchemaType.Integer, "int16"),
-                5 => Simple(id, SchemaType.Integer, "uint16"),
-                6 => Simple(id, SchemaType.Integer, "int32"),
-                7 => Simple(id, SchemaType.Integer, "uint32"),
+                2 => Simple(id, SchemaType.Integer, "int8", Limit.From(sbyte.MinValue), Limit.From(sbyte.MaxValue), Const.From(0)),
+                3 => Simple(id, SchemaType.Integer, "byte", Limit.From(byte.MinValue), Limit.From(byte.MaxValue), Const.From(0)),
+                4 => Simple(id, SchemaType.Integer, "int16", Limit.From(short.MinValue), Limit.From(short.MaxValue), Const.From(0)),
+                5 => Simple(id, SchemaType.Integer, "uint16", Limit.From(ushort.MinValue), Limit.From(ushort.MaxValue), Const.From(0)),
+                6 => Simple(id, SchemaType.Integer, "int32", Limit.From(int.MinValue), Limit.From(int.MaxValue), Const.From(0)),
+                7 => Simple(id, SchemaType.Integer, "uint32", Limit.From(uint.MinValue), Limit.From(uint.MaxValue), Const.From(0)),
 
                 // As per part 6 encoding, long is encoded as string
                 8 => Simple(id, SchemaType.String, "int64"),
                 9 => Simple(id, SchemaType.String, "uint64"),
 
-                10 => Simple(id, SchemaType.Number, "float"),
-                11 => Simple(id, SchemaType.Number, "double"),
+                10 => Simple(id, SchemaType.Number, "float", Limit.From(float.MinValue), Limit.From(float.MaxValue), Const.From(0f)),
+                11 => Simple(id, SchemaType.Number, "double", Limit.From(double.MinValue), Limit.From(double.MaxValue), Const.From(0d)),
                 12 => Simple(id, SchemaType.String),
                 13 => Simple(id, SchemaType.String, "date-time"),
                 14 => Simple(id, SchemaType.String, "uuid"),
@@ -485,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 // Should this be string? As per json encoding, long is string
                 27 => Simple(id, SchemaType.Integer),
-                28 => Simple(id, SchemaType.Number, "unsigned"),
+                28 => Simple(id, SchemaType.Integer, "unsigned", Limit.From(0)),
 
                 29 => EnumerationSchema,
                 _ => throw new ArgumentException($"Built in type {id} unknown")
@@ -514,7 +514,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     Id = id,
                     Title = $"Dataset Field of Type {type}",
-                    Type = new[] { SchemaType.Object },
+                    Types = new[] { SchemaType.Object },
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Value"] = valueSchema,
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["ServerTimestamp"] = GetSchemaForBuiltInType(BuiltInType.DateTime),
                         ["ServerPicoSeconds"] = GetSchemaForBuiltInType(BuiltInType.UInt16)
                     },
-                    AdditionalProperties = new AdditionalProperties(false)
+                    AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             });
         }
@@ -545,15 +545,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="builtInType"></param>
         /// <param name="type"></param>
         /// <param name="format"></param>
+        /// <param name="minValue"></param>
+        /// <param name="maxValue"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
         private static JsonSchema Simple(int builtInType,
-            SchemaType type, string? format = null)
+            SchemaType type, string? format = null, Limit? minValue = null,
+            Limit? maxValue = null, Const? defaultValue = null)
         {
             return new JsonSchema
             {
                 Title = GetTitle((BuiltInType)builtInType),
                 Id = GetId((BuiltInType)builtInType),
-                Type = new[] { type },
+                Minimum = minValue,
+                Maximum = maxValue,
+                Default = defaultValue,
+                Types = new[] { type },
                 Format = format
             };
         }

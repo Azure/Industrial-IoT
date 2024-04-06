@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Json.Schema;
+    using Json.Schema;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
     /// Extensions
@@ -30,9 +31,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static JsonSchema Reference(this Dictionary<string, JsonSchema> definitions,
             UriOrFragment id, Func<UriOrFragment, JsonSchema> schema)
         {
-            if (!definitions.ContainsKey(id.ToString()))
+            if (!definitions.ContainsKey(id.ToString()!))
             {
-                definitions.Add(id.ToString(), schema(id));
+                definitions.Add(id.ToString()!, schema(id));
             }
             return new JsonSchema
             {
@@ -60,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return new JsonSchema
             {
                 Title = title,
-                Type = s.Select(s => Resolve(s, definitions)
+                Types = s.Select(s => Resolve(s, definitions)
                     .SafeGetType()).Distinct().ToArray(),
                 OneOf = s
             };
@@ -78,8 +79,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return new JsonSchema
             {
                 Title = title,
-                Type = new[] { SchemaType.Array },
-                Items = new Items(schema)
+                Types = new[] { SchemaType.Array },
+                Items = new[] { schema }
             };
         }
 
@@ -94,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             if (schema.Reference == null)
             {
-                Debug.Assert(schema.Type != null);
+                Debug.Assert(schema.Types != null);
                 return schema;
             }
             return definitions.Values.First(d => d.Id == schema.Reference);
@@ -108,10 +109,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public static string ToJsonString(this JsonSchema schema, bool indented = false)
         {
-            using var writer = new StringWriter();
-            SchemaWriter.WriteSchema(writer, schema, indented
-                ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
-            return writer.ToString();
+            return SchemaWriter.SerializeAsString(schema, indented);
         }
 
         /// <summary>
@@ -165,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 nodeId = new ExpandedNodeId(nodeId.Identifier, 0, Namespaces.OpcUa, 0);
             }
-            return new UriOrFragment(nodeId.AsString(context, NamespaceFormat.Uri));
+            return new UriOrFragment(nodeId.AsString(context, NamespaceFormat.Uri)!);
         }
     }
 }

@@ -129,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        protected override Schema? RecordSchemaCreate(StructureDescriptionModel description)
+        protected override Schema CreateStructureSchema(StructureDescriptionModel description,
+            Schema? baseTypeSchema)
         {
             //
             // |---------------|------------|----------------|
@@ -140,19 +141,29 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             // |---------------|------------|----------------|
             //
             var fields = new List<Field>();
-            for (var i = 0; i < description.Fields.Count; i++)
+            var pos = 0;
+            if (baseTypeSchema is RecordSchema b)
             {
-                var field = description.Fields[i];
+                foreach (var field in b.Fields)
+                {
+                    fields.Add(new Field(field.Schema, field.Name, pos++,
+                        field.Aliases, field.Documentation, field.DefaultValue));
+                    // Can we copy type property to the field to show inheritance
+                }
+            }
+
+            foreach (var field in description.Fields)
+            {
                 var schema = LookupSchema(field.DataType, out _,
                     field.ValueRank, field.ArrayDimensions);
                 if (field.IsOptional)
                 {
                     schema = schema.AsNullable();
                 }
-                fields.Add(new Field(schema, EscapeSymbol(field.Name), i));
+                fields.Add(new Field(schema, EscapeSymbol(field.Name), pos++));
             }
-            var (ns1, dt) = SplitNodeId(description.DataTypeId);
 
+            var (ns1, dt) = SplitNodeId(description.DataTypeId);
             return RecordSchema.Create(
                 SplitQualifiedName(description.Name, ns1),
                 fields, ns1, new[] { dt },
@@ -160,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        protected override Schema? EnumSchemaCreate(EnumDescriptionModel description)
+        protected override Schema CreateEnumSchema(EnumDescriptionModel description)
         {
             var (ns, dt) = SplitNodeId(description.DataTypeId);
 
@@ -176,13 +187,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        protected override Schema ArraySchemaCreate(Schema schema)
+        protected override Schema CreateArraySchema(Schema schema)
         {
             return ArraySchema.Create(schema);
         }
 
         /// <inheritdoc/>
-        protected override Schema UnionSchemaCreate(IReadOnlyList<Schema> schemas)
+        protected override Schema CreateUnionSchema(IReadOnlyList<Schema> schemas)
         {
             return AvroUtils.CreateUnion(schemas);
         }

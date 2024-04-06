@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Json.Schema;
     using Microsoft.Json.Schema;
     using System.IO;
     using System.Linq;
@@ -34,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
 
+            var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
         }
 

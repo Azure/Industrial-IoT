@@ -8,13 +8,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Json.Schema;
+    using Json.Schema;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
     using System.Collections.Generic;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Linq;
+    using System;
 
     /// <summary>
     /// DataSet message Json schema
@@ -99,8 +100,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
-                SchemaVersion = JsonSchema.V4Draft,
-                Type = Ref == null ? new[] { SchemaType.Null } : null,
+                SchemaVersion = SchemaVersion.Draft4,
+                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
                 Definitions = Definitions,
                 Reference = Ref?.Reference
             }.ToJsonString();
@@ -152,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     id => new JsonSchema
                     {
                         Id = id,
-                        Type = new[] { SchemaType.Object },
+                        Types = new[] { SchemaType.Object },
                         Properties = new Dictionary<string, JsonSchema>
                         {
                             ["MajorVersion"] = encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
@@ -198,8 +199,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
                 Id = id,
-                Type = new[] { SchemaType.Object },
-                AdditionalProperties = new AdditionalProperties(false),
+                Types = new[] { SchemaType.Object },
+                AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
                 Required = properties.Keys.ToList()
             });

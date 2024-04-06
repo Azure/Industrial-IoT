@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.Json.Schema;
+    using Json.Schema;
 
     /// <summary>
     /// Network message avro schema
@@ -111,8 +111,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
-                SchemaVersion = JsonSchema.V4Draft,
-                Type = Ref == null ? new[] { SchemaType.Null } : null,
+                SchemaVersion = SchemaVersion.Draft4,
+                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
                 Definitions = Definitions,
                 Reference = Ref?.Reference
             }.ToJsonString();
@@ -182,8 +182,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
                 Id = id,
-                Type = new[] { SchemaType.Object },
-                AdditionalProperties = new AdditionalProperties(false),
+                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
+                AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
                 Required = properties.Keys.ToList()
 
