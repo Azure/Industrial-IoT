@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             _options = options ?? new SchemaOptions();
             Context = new ServiceMessageContext
             {
-                NamespaceUris = _options.Namespaces ?? new NamespaceTable()
+                NamespaceUris = new NamespaceTable()
             };
             Encoding = encoding;
         }
@@ -305,18 +305,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
                 // Get super types
                 T? baseSchema = default;
-                if (Description.BaseDataType != null)
+                if (Description.BaseDataType != null &&
+                    schemas._types.TryGetValue(Description.BaseDataType, out var def) &&
+                    def is StructureType baseDescription)
                 {
-                    if (schemas._types.TryGetValue(Description.BaseDataType, out var def))
+                    baseDescription.Resolve(schemas);
+                    if (baseDescription.Schema != null)
                     {
-                        if (def is StructureType cur)
-                        {
-                            cur.Resolve(schemas);
-                            if (cur.Schema != null)
-                            {
-                                baseSchema = cur.Schema;
-                            }
-                        }
+                        baseSchema = baseDescription.Schema;
                     }
                 }
                 Schema = schemas.CreateStructureSchema(Description, baseSchema);

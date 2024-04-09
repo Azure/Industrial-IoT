@@ -1,0 +1,361 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#Telemetry",
+  "$defs": {
+    "http://opcfoundation.org/UA/#UInt32": {
+      "$id": "http://opcfoundation.org/UA/#i=7",
+      "title": "OPC UA built in type UInt32",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "default": 0,
+      "format": "uint32"
+    },
+    "http://opcfoundation.org/UA/#StatusCode": {
+      "$id": "http://opcfoundation.org/UA/#i=19",
+      "title": "OPC UA built in type StatusCode",
+      "type": "integer",
+      "format": "uint32"
+    },
+    "http://opcfoundation.org/UA/#DateTime": {
+      "$id": "http://opcfoundation.org/UA/#i=13",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "http://opcfoundation.org/UA/#UInt16": {
+      "$id": "http://opcfoundation.org/UA/#i=5",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Boolean": {
+      "$id": "http://opcfoundation.org/UA/#i=1",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=1"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Double": {
+      "$id": "http://opcfoundation.org/UA/#i=11",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=11"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#ByteString": {
+      "$id": "http://opcfoundation.org/UA/#i=15",
+      "title": "OPC UA built in type ByteString",
+      "type": "string",
+      "format": "byte"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteStringDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteStringDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=15"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#String": {
+      "$id": "http://opcfoundation.org/UA/#i=12",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Byte": {
+      "$id": "http://opcfoundation.org/UA/#i=3",
+      "title": "OPC UA built in type Byte",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255,
+      "default": 0,
+      "format": "byte"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=3"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Int32": {
+      "$id": "http://opcfoundation.org/UA/#i=6",
+      "title": "OPC UA built in type Int32",
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "default": 0,
+      "format": "int32"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#Int32DataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#Int32DataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=6"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#Telemetry": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#Telemetry",
+      "title": "Telemetry",
+      "type": "object",
+      "properties": {
+        "\u0022!\u00A7$%\u0026/()=?\u0060\u00B4\\\u002B~*\u0027#_-:.;,\u003C\u003E|@^\u00B0\u20AC\u00B5{[]}": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "8bfc835e-71bc-4e6d-daaa-6146b931d4d8": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "AlternatingBoolean": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue"
+        },
+        "BadFastRandomUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "BadFastUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "BadSlowRandomUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "BadSlowUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "DipData": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue"
+        },
+        "FastRandomUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "FastRandomUIntScalar2": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "FastRandomUIntScalar3": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "FastUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "FastUIntScalar2": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "FastUIntScalar3": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "LongId3950": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "LongString100kB": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteStringDataValue"
+        },
+        "LongString10kB": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue"
+        },
+        "LongString200kB": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#ByteDataValue"
+        },
+        "LongString50kB": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue"
+        },
+        "NegativeTrendData": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue"
+        },
+        "PositiveTrendData": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue"
+        },
+        "RandomSignedInt32": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#Int32DataValue"
+        },
+        "RandomUnsignedInt32": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowRandomUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowRandomUIntScalar2": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowRandomUIntScalar3": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowUIntScalar1": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowUIntScalar2": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SlowUIntScalar3": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        },
+        "SpikeData": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#DoubleDataValue"
+        },
+        "StepUp": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#UInt32DataValue"
+        }
+      }
+    }
+  }
+}

@@ -114,8 +114,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private Schema Compile(string? typeName, List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
-            var @namespace = GetNamespace(_options.Namespace, _options.Namespaces);
-
             var dsmHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
             var nwmHeader = contentMask
@@ -174,35 +172,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = AvroUtils.Escape(typeName);
-                }
-                typeName += "NetworkMessage";
+                typeName = AvroUtils.Escape(typeName) + "NetworkMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
-        }
 
-        /// <summary>
-        /// Get namespace uri
-        /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
-        {
-            if (@namespace == null && namespaces?.Count >= 1)
-            {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
-            }
-            return @namespace;
+            var ns = _options.Namespace != null ?
+                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
+                AvroUtils.PublisherNamespace;
+            return RecordSchema.Create(typeName, fields, ns);
         }
 
         private readonly SchemaOptions _options;

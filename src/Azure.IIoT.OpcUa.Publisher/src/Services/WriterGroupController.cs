@@ -404,13 +404,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 };
             }
 
+            if (!connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) &&
+                options.DisableSubscriptionTransfer == true)
+            {
+                connection = connection with
+                {
+                    Options = connection.Options
+                        | ConnectionOptions.NoSubscriptionTransfer
+                };
+            }
+
             var writerGroupPublishingSettings = writerGroup.Publishing;
             var builder = DataSetWriterResolver.CreateTopicBuilder(writerGroup,
                 dataSetWriter, options);
 
-            var dataSetMetaData = (options.DisableDataSetMetaData
-                        ?? options.DisableComplexTypeSystem
-                        ?? false) ? null : dataSetWriter.DataSet.DataSetMetaData;
+            var dataSetMetaData = options.SchemaOptions != null ||
+                !(options.DisableDataSetMetaData
+                    ?? options.DisableComplexTypeSystem
+                    ?? false) ?
+                dataSetWriter.DataSet.DataSetMetaData : null;
             if (dataSetMetaData != null && dataSetMetaData.MajorVersion == null)
             {
                 dataSetMetaData = dataSetMetaData with

@@ -25,6 +25,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         public const string NamespaceZeroName = "org.opcfoundation.ua";
 
         /// <summary>
+        /// Publisher namespace
+        /// </summary>
+        public const string PublisherNamespace = "azure.iiot.opcua.publisher";
+
+        /// <summary>
         /// Null schema
         /// </summary>
         public static Schema Null { get; } = PrimitiveSchema.NewInstance("null");

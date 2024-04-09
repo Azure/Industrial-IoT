@@ -135,7 +135,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,
-                UseReverseConnect = model.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null,
+                UseReverseConnect =
+                    model.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null,
+                DisableSubscriptionTransfer =
+                    model.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
                 OpcNodes = new List<OpcNodeModel>()
@@ -202,6 +205,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 id.Append(model.EndpointUrl);
             }
             if (model.UseReverseConnect == true)
+            {
+                id.AppendLine();
+            }
+            if (model.DisableSubscriptionTransfer == true)
             {
                 id.AppendLine();
             }
@@ -307,6 +314,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if ((model.UseReverseConnect ?? false) !=
                 (that.UseReverseConnect ?? false))
+            {
+                return false;
+            }
+            if ((model.DisableSubscriptionTransfer ?? false) !=
+                (that.DisableSubscriptionTransfer ?? false))
             {
                 return false;
             }

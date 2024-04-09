@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences,
                                 IncludeSubtypes = true,
                                 NodeClassMask =
-                                        (uint)Opc.Ua.NodeClass.Object
+                                      (uint)Opc.Ua.NodeClass.Object
                                     | (uint)Opc.Ua.NodeClass.Variable,
                                 NodeId = item.NodeId.ToNodeId(session.MessageContext),
                                 ResultMask = (int)BrowseResultMask.All

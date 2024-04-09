@@ -94,6 +94,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem);
 
         /// <summary>
+        /// Transfer subscription on reconnect
+        /// </summary>
+        public bool DisableTransferSubscriptionOnReconnect
+            => _connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer);
+
+        /// <summary>
         /// Client is connected
         /// </summary>
         public bool IsConnected

@@ -42,9 +42,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         public override JsonSchema Schema => new()
         {
-            SchemaVersion = SchemaVersion.Draft4,
             Definitions = Definitions,
-            Types = Ref == null ? new [] { SchemaType.Null } : Array.Empty<SchemaType>(),
+            Type = Ref == null ? SchemaType.Null : SchemaType.None,
             Reference = Ref?.Reference
         };
 
@@ -121,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return set;
             }
 
-            var ns = _options.Namespace ?? Opc.Ua.Namespaces.OpcUaSdk;
+            var ns = _options.GetNamespaceUri();
             var properties = new Dictionary<string, JsonSchema>();
             var required = new List<string>();
             foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
@@ -133,7 +132,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", ns, fieldsAreDataValues, schema);
+                            (typeName ?? fieldName) + "DataValue", ns,
+                            fieldsAreDataValues, schema);
 
                         properties.Add(fieldName, schema);
                     }
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 Id = id,
                 Title = type,
-                Types = new[] { SchemaType.Object },
+                Type = SchemaType.Object,
                 Properties = properties,
                 Required = required
             }).YieldReturn();
@@ -185,16 +185,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     Id = id,
                     Title = description.Name,
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     AllOf = baseTypeSchema == null ? null : new[] { baseTypeSchema },
                     Properties = properties,
                     Required = required,
                     AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             });
-
         }
-
 
         /// <inheritdoc/>
         protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description)
@@ -209,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     Id = id,
                     Title = description.Name,
                     Enum = fields,
-                    Types = new[] { SchemaType.Integer },
+                    Type = SchemaType.Integer,
                     Format = "int32"
                 };
             });

@@ -1,0 +1,287 @@
+{
+  "type": "record",
+  "name": "PendingAlarms",
+  "fields": [
+    {
+      "name": "ConditionClassId",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "NodeId",
+          "namespace": "org.opcfoundation.ua",
+          "aliases": [
+            "org.opcfoundation.ua.i_17"
+          ],
+          "fields": [
+            {
+              "name": "Namespace",
+              "type": {
+                "type": "record",
+                "name": "String",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_12"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Identifier",
+              "type": [
+                {
+                  "type": "record",
+                  "name": "UInt32",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_7"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "int"
+                    }
+                  ]
+                },
+                "String",
+                {
+                  "type": "record",
+                  "name": "Guid",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_14"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": {
+                        "type": "string",
+                        "logicalType": "uuid"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ByteString",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_15"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "bytes"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ConditionClassName",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "LocalizedText",
+          "namespace": "org.opcfoundation.ua",
+          "aliases": [
+            "org.opcfoundation.ua.i_21"
+          ],
+          "fields": [
+            {
+              "name": "Locale",
+              "type": "String"
+            },
+            {
+              "name": "Text",
+              "type": "String"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ConditionSubClassId",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.NodeId"
+      ]
+    },
+    {
+      "name": "ConditionSubClassName",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.LocalizedText"
+      ]
+    },
+    {
+      "name": "EventId",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.ByteString"
+      ]
+    },
+    {
+      "name": "EventType",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.NodeId"
+      ]
+    },
+    {
+      "name": "LocalTime",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "TimeZoneDataType",
+          "namespace": "org.opcfoundation.ua",
+          "aliases": [
+            "org.opcfoundation.ua.i_8912"
+          ],
+          "fields": [
+            {
+              "name": "Offset",
+              "type": {
+                "type": "record",
+                "name": "Int16Collection",
+                "namespace": "org.opcfoundation.ua",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "record",
+                        "name": "Int16",
+                        "namespace": "org.opcfoundation.ua",
+                        "aliases": [
+                          "org.opcfoundation.ua.i_4"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "int"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "DaylightSavingInOffset",
+              "type": {
+                "type": "record",
+                "name": "BooleanCollection",
+                "namespace": "org.opcfoundation.ua",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "record",
+                        "name": "Boolean",
+                        "namespace": "org.opcfoundation.ua",
+                        "aliases": [
+                          "org.opcfoundation.ua.i_1"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "boolean"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "uaDataTypeId": "i=8912"
+        }
+      ]
+    },
+    {
+      "name": "Message",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.LocalizedText"
+      ]
+    },
+    {
+      "name": "ReceiveTime",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "DateTime",
+          "namespace": "org.opcfoundation.ua",
+          "aliases": [
+            "org.opcfoundation.ua.i_13"
+          ],
+          "fields": [
+            {
+              "name": "Value",
+              "type": "long"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Severity",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "UInt16",
+          "namespace": "org.opcfoundation.ua",
+          "aliases": [
+            "org.opcfoundation.ua.i_5"
+          ],
+          "fields": [
+            {
+              "name": "Value",
+              "type": "int"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SourceName",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.String"
+      ]
+    },
+    {
+      "name": "SourceNode",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.NodeId"
+      ]
+    },
+    {
+      "name": "Time",
+      "type": [
+        "null",
+        "org.opcfoundation.ua.DateTime"
+      ]
+    }
+  ]
+}

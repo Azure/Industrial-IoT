@@ -58,9 +58,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new DataSetAvroSchema(dataSetWriter, options);
+
             Schema = Compile(
-                dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
-                GetNamespace(_options.Namespace, _options.Namespaces));
+                dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName);
         }
 
         /// <summary>
@@ -81,8 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             _dataSet = new DataSetAvroSchema(null, dataSet,
                 dataSetFieldContentMask, options);
-            Schema = Compile(dataSet.Name,
-                GetNamespace(_options.Namespace, _options.Namespaces));
+            Schema = Compile(dataSet.Name);
         }
 
         /// <inheritdoc/>
@@ -95,9 +94,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Compile the data set message schema
         /// </summary>
         /// <param name="typeName"></param>
-        /// <param name="namespace"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName, string? @namespace)
+        private Schema Compile(string? typeName)
         {
             if (!_withDataSetMessageHeader)
             {
@@ -143,35 +141,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = AvroUtils.Escape(typeName);
-                }
-                typeName += "DataSetMessage";
+                typeName = AvroUtils.Escape(typeName) + "DataSetMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = AvroUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? AvroUtils.NamespaceZeroName);
-        }
 
-        /// <summary>
-        /// Get namespace uri
-        /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
-        {
-            if (@namespace == null && namespaces?.Count >= 1)
-            {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
-            }
-            return @namespace;
+            var ns = _options.Namespace != null ?
+                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
+                AvroUtils.PublisherNamespace;
+            return RecordSchema.Create(typeName, fields, ns);
         }
 
         private readonly DataSetAvroSchema _dataSet;

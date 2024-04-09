@@ -302,20 +302,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Valid)
             {
+                _logger.LogWarning(
+                    "Item {Item} in #{SubscriptionId} is invalid with {Status}.",
+                    this, subscription.Id, Status.Error);
                 return false;
             }
 
             if (!AttachedToSubscription)
             {
-                _logger.LogDebug(
+                _logger.LogWarning(
                     "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
                     this, subscription.Id, Status.Error);
-                // Complete removal
                 return true;
             }
 
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
+                _logger.LogWarning(
+                    "Item {Item} in #{SubscriptionId} is disabled with {Status}.",
+                    this, subscription.Id, Status.Error);
                 return false;
             }
 
@@ -324,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (SamplingInterval != Status.SamplingInterval ||
                     QueueSize != Status.QueueSize)
                 {
-                    _logger.LogInformation(
+                    _logger.LogDebug(
                         @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
 The item's actual/desired states:
 SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},

@@ -1,0 +1,434 @@
+{
+  "type": "record",
+  "name": "AvroNetworkMessage",
+  "namespace": "azure.iiot.opcua.publisher",
+  "fields": [
+    {
+      "name": "MessageId",
+      "type": {
+        "type": "record",
+        "name": "String",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_12"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageType",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "PublisherId",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "DataSetClassId",
+      "type": {
+        "type": "record",
+        "name": "Guid",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_14"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": {
+              "type": "string",
+              "logicalType": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataSetWriterGroup",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "Messages",
+      "type": {
+        "type": "array",
+        "items": [
+          {
+            "type": "record",
+            "name": "AvroDataSetMessage",
+            "namespace": "azure.iiot.opcua.publisher",
+            "fields": [
+              {
+                "name": "MessageType",
+                "type": "org.opcfoundation.ua.String"
+              },
+              {
+                "name": "DataSetWriterName",
+                "type": "org.opcfoundation.ua.String"
+              },
+              {
+                "name": "DataSetWriterId",
+                "type": {
+                  "type": "record",
+                  "name": "UInt16",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_5"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "int"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "SequenceNumber",
+                "type": {
+                  "type": "record",
+                  "name": "UInt32",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_7"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "int"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "MetaDataVersion",
+                "type": {
+                  "type": "record",
+                  "name": "ConfigurationVersionDataType",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_14593"
+                  ],
+                  "fields": [
+                    {
+                      "name": "MajorVersion",
+                      "type": "UInt32"
+                    },
+                    {
+                      "name": "MinorVersion",
+                      "type": "UInt32"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Timestamp",
+                "type": {
+                  "type": "record",
+                  "name": "DateTime",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_13"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "long"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Status",
+                "type": {
+                  "type": "record",
+                  "name": "StatusCode",
+                  "namespace": "org.opcfoundation.ua",
+                  "aliases": [
+                    "org.opcfoundation.ua.i_19"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "long"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Payload",
+                "type": {
+                  "type": "record",
+                  "name": "DataSetPayload",
+                  "fields": [
+                    {
+                      "name": "StepUp",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "name": "UInt32DataValue",
+                          "namespace": "azure.iiot.opcua.publisher",
+                          "fields": [
+                            {
+                              "name": "Value",
+                              "type": "org.opcfoundation.ua.UInt32"
+                            },
+                            {
+                              "name": "Status",
+                              "type": "org.opcfoundation.ua.StatusCode"
+                            },
+                            {
+                              "name": "SourceTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "SourcePicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            },
+                            {
+                              "name": "ServerTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "ServerPicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "AlternatingBoolean",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "name": "BooleanDataValue",
+                          "namespace": "azure.iiot.opcua.publisher",
+                          "fields": [
+                            {
+                              "name": "Value",
+                              "type": {
+                                "type": "record",
+                                "name": "Boolean",
+                                "namespace": "org.opcfoundation.ua",
+                                "aliases": [
+                                  "org.opcfoundation.ua.i_1"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "boolean"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "Status",
+                              "type": "org.opcfoundation.ua.StatusCode"
+                            },
+                            {
+                              "name": "SourceTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "SourcePicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            },
+                            {
+                              "name": "ServerTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "ServerPicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "RandomSignedInt32",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "name": "Int32DataValue",
+                          "namespace": "azure.iiot.opcua.publisher",
+                          "fields": [
+                            {
+                              "name": "Value",
+                              "type": {
+                                "type": "record",
+                                "name": "Int32",
+                                "namespace": "org.opcfoundation.ua",
+                                "aliases": [
+                                  "org.opcfoundation.ua.i_6"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "int"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "Status",
+                              "type": "org.opcfoundation.ua.StatusCode"
+                            },
+                            {
+                              "name": "SourceTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "SourcePicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            },
+                            {
+                              "name": "ServerTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "ServerPicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "RandomUnsignedInt32",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "DipData",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "name": "DoubleDataValue",
+                          "namespace": "azure.iiot.opcua.publisher",
+                          "fields": [
+                            {
+                              "name": "Value",
+                              "type": {
+                                "type": "record",
+                                "name": "Double",
+                                "namespace": "org.opcfoundation.ua",
+                                "aliases": [
+                                  "org.opcfoundation.ua.i_11"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "double"
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "Status",
+                              "type": "org.opcfoundation.ua.StatusCode"
+                            },
+                            {
+                              "name": "SourceTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "SourcePicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            },
+                            {
+                              "name": "ServerTimestamp",
+                              "type": "org.opcfoundation.ua.DateTime"
+                            },
+                            {
+                              "name": "ServerPicoSeconds",
+                              "type": "org.opcfoundation.ua.UInt16"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "FastUIntScalar1",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "FastUIntScalar2",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "FastUIntScalar3",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "FastRandomUIntScalar1",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "FastRandomUIntScalar2",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "FastRandomUIntScalar3",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "NegativeTrendData",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.DoubleDataValue"
+                      ]
+                    },
+                    {
+                      "name": "PositiveTrendData",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.DoubleDataValue"
+                      ]
+                    },
+                    {
+                      "name": "SpikeData",
+                      "type": [
+                        "null",
+                        "azure.iiot.opcua.publisher.DoubleDataValue"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

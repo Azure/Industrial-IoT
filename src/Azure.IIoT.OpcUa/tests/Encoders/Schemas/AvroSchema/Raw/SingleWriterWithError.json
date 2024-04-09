@@ -1,0 +1,158 @@
+[
+  {
+    "type": "record",
+    "name": "DataSetPayload",
+    "fields": [
+      {
+        "name": "StepUp",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "UInt32",
+            "namespace": "org.opcfoundation.ua",
+            "aliases": [
+              "org.opcfoundation.ua.i_7"
+            ],
+            "fields": [
+              {
+                "name": "Value",
+                "type": "int"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "AlternatingBoolean",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "Boolean",
+            "namespace": "org.opcfoundation.ua",
+            "aliases": [
+              "org.opcfoundation.ua.i_1"
+            ],
+            "fields": [
+              {
+                "name": "Value",
+                "type": "boolean"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "RandomSignedInt32",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "Int32",
+            "namespace": "org.opcfoundation.ua",
+            "aliases": [
+              "org.opcfoundation.ua.i_6"
+            ],
+            "fields": [
+              {
+                "name": "Value",
+                "type": "int"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "RandomUnsignedInt32",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "DipData",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "Double",
+            "namespace": "org.opcfoundation.ua",
+            "aliases": [
+              "org.opcfoundation.ua.i_11"
+            ],
+            "fields": [
+              {
+                "name": "Value",
+                "type": "double"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "FastUIntScalar1",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "FastUIntScalar2",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "FastUIntScalar3",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "FastRandomUIntScalar1",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "FastRandomUIntScalar2",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "FastRandomUIntScalar3",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.UInt32"
+        ]
+      },
+      {
+        "name": "NegativeTrendData",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.Double"
+        ]
+      },
+      {
+        "name": "PositiveTrendData",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.Double"
+        ]
+      },
+      {
+        "name": "SpikeData",
+        "type": [
+          "null",
+          "org.opcfoundation.ua.Double"
+        ]
+      }
+    ]
+  }
+]

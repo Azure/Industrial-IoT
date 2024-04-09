@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Messaging;
     using System;
@@ -250,9 +251,20 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? DisableComplexTypeSystem { get; set; }
 
         /// <summary>
+        /// Disable subscription transfer on reconnect.
+        /// </summary>
+        public bool? DisableSubscriptionTransfer { get; set; }
+
+        /// <summary>
         /// State storage folder if the state should be written
         /// to file system folder.
         /// </summary>
         public string? StateStoreFolderPath { get; set; }
+
+        /// <summary>
+        /// Schema generation options if schema generation is
+        /// enabled.
+        /// </summary>
+        public SchemaOptions? SchemaOptions { get; set; }
     }
 }

@@ -148,6 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             EndpointUrl = null,
                             UseSecurity = false,
                             UseReverseConnect = null,
+                            DisableSubscriptionTransfer = null,
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
@@ -218,6 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             subscriptionSettings, variable.Triggering?.PublishedVariables,
                             variable.Triggering?.PublishedEvents, null, preferTimeSpan, true)?.ToList(),
                         Topic = variable.Publishing?.QueueName,
+                        NodeExpansion = PublishedNodeExpansion.None,
                         QualityOfService = variable.Publishing?.RequestedDeliveryGuarantee,
 
                         // MonitoringMode = variable.MonitoringMode,
@@ -307,6 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         HeartbeatBehavior = null,
                         HeartbeatIntervalTimespan = null,
                         OpcSamplingInterval = null,
+                        NodeExpansion = PublishedNodeExpansion.None,
                         OpcSamplingIntervalTimespan = null,
                         AttributeId = null,
                         RegisterNode = null,
@@ -443,8 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Connection = new ConnectionModel
                                     {
-                                        Options = b.Header.UseReverseConnect == true ?
-                                            ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
+                                        Options = GetConnectionOptions(b.Header),
                                         Endpoint = new EndpointModel
                                         {
                                             Url = b.Header.EndpointUrl,
@@ -679,10 +681,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
                                 PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
                             },
+
+                        MetaData = null,
                         State = null
                     })
                     .ToList()
                 };
+            }
+
+            static ConnectionOptions GetConnectionOptions(PublishedNodesEntryModel header)
+            {
+                var options = ConnectionOptions.None;
+                if (header.UseReverseConnect == true)
+                {
+                    options |= ConnectionOptions.UseReverseConnect;
+                }
+                if (header.DisableSubscriptionTransfer == true)
+                {
+                    options |= ConnectionOptions.NoSubscriptionTransfer;
+                }
+                return options;
             }
 
             static PublishedEventItemsModel ToPublishedEventItems(IEnumerable<OpcNodeModel> opcNodes,
@@ -792,6 +810,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 publishedNodesEntryModel.UseReverseConnect =
                     connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null;
+                publishedNodesEntryModel.DisableSubscriptionTransfer =
+                    connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null;
             }
             return publishedNodesEntryModel;
 

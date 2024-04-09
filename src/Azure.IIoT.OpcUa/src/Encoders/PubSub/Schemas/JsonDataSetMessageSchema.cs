@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using System.Collections.Generic;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Linq;
-    using System;
 
     /// <summary>
     /// DataSet message Json schema
@@ -38,6 +37,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         string IEventSchema.Schema => ToString()!;
 
         /// <summary>
+        /// Compatibility with 2.8 when encoding and decoding
+        /// </summary>
+        public bool UseCompatibilityMode { get; }
+
+        /// <summary>
         /// Schema reference
         /// </summary>
         public JsonSchema? Ref { get; }
@@ -53,22 +57,25 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         internal ServiceMessageContext Context => _dataSet.Context;
 
         /// <summary>
-        /// Get avro schema for a writer
+        /// Get json schema for a writer
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="options"></param>
         /// <param name="definitions"></param>
+        /// <param name="useCompatibilityMode"></param>
         /// <returns></returns>
         public JsonDataSetMessageSchema(DataSetWriterModel dataSetWriter,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            Dictionary<string, JsonSchema>? definitions = null)
+            Dictionary<string, JsonSchema>? definitions = null,
+            bool useCompatibilityMode = false)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new DataSetJsonSchema(dataSetWriter, options, definitions);
+            UseCompatibilityMode = useCompatibilityMode;
             Name = GetName(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName);
-           Ref = Compile(dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
+            Ref = Compile(dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
         }
 
         /// <summary>
@@ -100,8 +107,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
-                SchemaVersion = SchemaVersion.Draft4,
-                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
+                Type = Ref == null ? SchemaType.Null : SchemaType.None,
                 Definitions = Definitions,
                 Reference = Ref?.Reference
             }.ToJsonString();
@@ -129,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var properties = new Dictionary<string, JsonSchema>();
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterId))
             {
-                if (!_options.UseCompatibilityMode)
+                if (!UseCompatibilityMode)
                 {
                     properties.Add(nameof(DataSetContentMask.DataSetWriterId),
                         encoding.GetSchemaForBuiltInType(BuiltInType.UInt16));
@@ -153,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     id => new JsonSchema
                     {
                         Id = id,
-                        Types = new[] { SchemaType.Object },
+                        Type = SchemaType.Object,
                         Properties = new Dictionary<string, JsonSchema>
                         {
                             ["MajorVersion"] = encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
@@ -169,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.Status))
             {
-                if (!_options.UseCompatibilityMode)
+                if (!UseCompatibilityMode)
                 {
                     properties.Add(nameof(DataSetContentMask.Status),
                         encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode));
@@ -187,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 properties.Add(nameof(DataSetContentMask.MessageType),
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
-            if (!_options.UseCompatibilityMode &&
+            if (!UseCompatibilityMode &&
                 dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterName))
             {
                 properties.Add(nameof(DataSetContentMask.DataSetWriterName),
@@ -199,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
                 Id = id,
-                Types = new[] { SchemaType.Object },
+                Type = SchemaType.Object,
                 AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
                 Required = properties.Keys.ToList()

@@ -1,0 +1,410 @@
+{
+  "type": "record",
+  "name": "AvroNetworkMessage",
+  "namespace": "com.microsoft",
+  "fields": [
+    {
+      "name": "MessageId",
+      "type": {
+        "type": "record",
+        "name": "String",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_12"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageType",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "PublisherId",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "DataSetClassId",
+      "type": {
+        "type": "record",
+        "name": "Guid",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_14"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": {
+              "type": "string",
+              "logicalType": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataSetWriterGroup",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "Messages",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "SimpleEventsDataSetMessage",
+          "namespace": "com.microsoft",
+          "fields": [
+            {
+              "name": "MessageType",
+              "type": "org.opcfoundation.ua.String"
+            },
+            {
+              "name": "DataSetWriterName",
+              "type": "org.opcfoundation.ua.String"
+            },
+            {
+              "name": "DataSetWriterId",
+              "type": {
+                "type": "record",
+                "name": "UInt16",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_5"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SequenceNumber",
+              "type": {
+                "type": "record",
+                "name": "UInt32",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_7"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "MetaDataVersion",
+              "type": {
+                "type": "record",
+                "name": "ConfigurationVersionDataType",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_14593"
+                ],
+                "fields": [
+                  {
+                    "name": "MajorVersion",
+                    "type": "UInt32"
+                  },
+                  {
+                    "name": "MinorVersion",
+                    "type": "UInt32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Timestamp",
+              "type": {
+                "type": "record",
+                "name": "DateTime",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_13"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Status",
+              "type": {
+                "type": "record",
+                "name": "StatusCode",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_19"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Payload",
+              "type": {
+                "type": "record",
+                "name": "SimpleEvents",
+                "fields": [
+                  {
+                    "name": "EventId",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ByteStringDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "ByteString",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_15"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "bytes"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Message",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "LocalizedTextDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "LocalizedText",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_21"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Locale",
+                                  "type": "String"
+                                },
+                                {
+                                  "name": "Text",
+                                  "type": "String"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu__61http__58__opcfoundation__46org_SimpleEvents__59CycleId",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "StringDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "org.opcfoundation.ua.String"
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu__61http__58__opcfoundation__46org_SimpleEvents__59CurrentStep",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "org/SimpleEvents;CurrentStepDataValue",
+                        "namespace": "nsu=http://opcfoundation",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "CycleStepDataType",
+                              "namespace": "org.opcfoundation.SimpleEvents",
+                              "aliases": [
+                                "org.opcfoundation.SimpleEvents.i_183"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Name",
+                                  "type": {
+                                    "type": "record",
+                                    "name": "StringCollection",
+                                    "namespace": "org.opcfoundation.ua",
+                                    "fields": [
+                                      {
+                                        "name": "Value",
+                                        "type": {
+                                          "type": "array",
+                                          "items": "String"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "name": "Duration",
+                                  "type": {
+                                    "type": "record",
+                                    "name": "DoubleCollection",
+                                    "namespace": "org.opcfoundation.ua",
+                                    "fields": [
+                                      {
+                                        "name": "Value",
+                                        "type": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "record",
+                                            "name": "Double",
+                                            "namespace": "org.opcfoundation.ua",
+                                            "aliases": [
+                                              "org.opcfoundation.ua.i_11"
+                                            ],
+                                            "fields": [
+                                              {
+                                                "name": "Value",
+                                                "type": "double"
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              "uaDataTypeId": "nsu=http://opcfoundation.org/SimpleEvents;i=183"
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

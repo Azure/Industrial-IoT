@@ -100,7 +100,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return set.Select(s => s.AsNullable());
             }
 
-            var ns = AvroUtils.NamespaceUriToNamespace(_options.Namespace ?? Namespaces.OpcUaSdk);
+            var ns = _options.Namespace != null ?
+                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
+                AvroUtils.PublisherNamespace;
+
             var fields = new List<Field>();
             var pos = 0;
             foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
@@ -116,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         schema = Encoding.GetSchemaForDataSetField(
                             (typeName ?? fieldName) + "DataValue", ns, fieldsAreDataValues, schema);
 
-                        fields.Add(new Field(schema, EscapeSymbol(fieldName), pos));
+                        fields.Add(new Field(schema, AvroUtils.Escape(fieldName), pos));
                     }
                 }
             }
@@ -125,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return Enumerable.Empty<Schema>();
             }
             return RecordSchema.Create(
-                EscapeSymbol(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
+                AvroUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
         }
 
         /// <inheritdoc/>
@@ -160,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     schema = schema.AsNullable();
                 }
-                fields.Add(new Field(schema, EscapeSymbol(field.Name), pos++));
+                fields.Add(new Field(schema, AvroUtils.Escape(field.Name), pos++));
             }
 
             var (ns1, dt) = SplitNodeId(description.DataTypeId);
@@ -176,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var (ns, dt) = SplitNodeId(description.DataTypeId);
 
             var symbols = description.Fields
-                .Select(e => EscapeSymbol(e.Name))
+                .Select(e => AvroUtils.Escape(e.Name))
                 .ToList();
             return EnumSchema.Create(
                 SplitQualifiedName(description.Name, ns),
@@ -252,20 +255,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 // Qualify if the name is in a different namespace
                 name = $"{avroStyleNamespace}.{name}";
-            }
-            return name;
-        }
-
-        /// <summary>
-        /// Helper to escape field names and symbols based on the options set
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private string EscapeSymbol(string name)
-        {
-            if (_options.EscapeSymbols)
-            {
-                return AvroUtils.Escape(name);
             }
             return name;
         }

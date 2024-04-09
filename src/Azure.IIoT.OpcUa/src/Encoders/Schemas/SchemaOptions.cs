@@ -13,14 +13,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     public record class SchemaOptions
     {
         /// <summary>
-        /// Namespace to use for message
+        /// Namespace to use as root for the schema
         /// </summary>
         public string? Namespace { get; set; }
-
-        /// <summary>
-        /// Use compatibility mode
-        /// </summary>
-        public bool UseCompatibilityMode { get; set; }
 
         /// <summary>
         /// Escape field names and symbols in schema

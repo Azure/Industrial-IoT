@@ -47,18 +47,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         internal Dictionary<string, JsonSchema> Definitions { get; }
 
         /// <summary>
+        /// Compatibility with 2.8 when encoding and decoding
+        /// </summary>
+        public bool UseCompatibilityMode { get; }
+
+        /// <summary>
         /// Get avro schema for a writer group
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
+        /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonNetworkMessageSchema(WriterGroupModel writerGroup,
-            SchemaOptions? options = null,
+            SchemaOptions? options = null, bool useCompatibilityMode = false,
             Dictionary<string, JsonSchema>? definitions = null)
             : this(writerGroup.DataSetWriters!, writerGroup.Name,
                   writerGroup.MessageSettings?.NetworkMessageContentMask,
-                  options, definitions)
+                  options, useCompatibilityMode, definitions)
         {
         }
 
@@ -69,15 +75,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="name"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
+        /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
         public JsonNetworkMessageSchema(DataSetWriterModel dataSetWriter,
             string? name = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaOptions? options = null,
+            SchemaOptions? options = null, bool useCompatibilityMode = false,
             Dictionary<string, JsonSchema>? definitions = null)
             : this(dataSetWriter.YieldReturn(), name,
-                  networkMessageContentMask, options, definitions)
+                  networkMessageContentMask, options, useCompatibilityMode, definitions)
         {
         }
 
@@ -88,15 +95,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="name"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
+        /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
         internal JsonNetworkMessageSchema(
             IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
             NetworkMessageContentMask? networkMessageContentMask,
-            SchemaOptions? options, Dictionary<string, JsonSchema>? definitions)
+            SchemaOptions? options, bool useCompatibilityMode,
+            Dictionary<string, JsonSchema>? definitions)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
+            UseCompatibilityMode = useCompatibilityMode;
             Definitions = definitions ?? new();
             _options = options ?? new SchemaOptions();
 
@@ -111,8 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
-                SchemaVersion = SchemaVersion.Draft4,
-                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
+                Type = Ref == null ? SchemaType.Null : SchemaType.None,
                 Definitions = Definitions,
                 Reference = Ref?.Reference
             }.ToJsonString();
@@ -131,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                        _options, Definitions).Ref!)
+                        _options, Definitions, UseCompatibilityMode).Ref!)
                 .Where(r => r != null)
                 .ToList();
 
@@ -182,11 +191,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
                 Id = id,
-                Types = Ref == null ? new[] { SchemaType.Null } : Array.Empty<SchemaType>(),
+                Type = Ref == null ? SchemaType.Null : SchemaType.None,
                 AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
                 Required = properties.Keys.ToList()
-
             });
         }
 

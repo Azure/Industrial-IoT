@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Json.Schema;
     using Microsoft.Json.Schema;
     using System.IO;
     using System.Linq;
@@ -34,6 +33,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
+            await AssertAsync("NetworkMessageDefault", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -54,10 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             });
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
-
+            await AssertAsync("NetworkMessage", writerGroupFile, json);
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
         }
@@ -74,9 +71,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("Legacy", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -103,9 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("Multiple", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -133,9 +126,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("Single", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -162,9 +153,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("Default", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -199,9 +188,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("Raw", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -236,9 +223,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var schema = new JsonNetworkMessageSchema(group);
 
             var json = schema.ToString();
-            var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
-            Assert.NotNull(json);
+            await AssertAsync("RawReversible", writerGroupFile, json);
 
             var schema2 = SchemaReader.ReadSchema(json, ".");
             //Assert.Equal(schema.Schema, schema2);
@@ -258,5 +243,23 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             WriteIndented = true
         };
+
+        private static async Task AssertAsync(string name, string writerGroupFile, string json)
+        {
+            var document = JsonDocument.Parse(json);
+            json = JsonSerializer.Serialize(document, kIndented);
+            Assert.NotNull(json);
+            var folder = Path.Combine(".", "Encoders", "Schemas", "JsonSchema", name);
+#if WRITE
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+            await File.WriteAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)), json);
+#else
+            var expected = await File.ReadAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)));
+            Assert.Equal(expected, json);
+#endif
+        }
     }
 }

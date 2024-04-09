@@ -31,6 +31,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Do not load complex types
         /// </summary>
         [EnumMember(Value = "NoComplexTypeSystem")]
-        NoComplexTypeSystem = 0x10
+        NoComplexTypeSystem = 0x10,
+
+        /// <summary>
+        /// Do not transfer subscription on reconnect
+        /// </summary>
+        [EnumMember(Value = "NoSubscriptionTransfer")]
+        NoSubscriptionTransfer = 0x20
     }
 }

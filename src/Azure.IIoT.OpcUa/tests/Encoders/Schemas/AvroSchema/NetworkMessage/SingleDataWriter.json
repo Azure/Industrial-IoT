@@ -1,0 +1,667 @@
+{
+  "type": "record",
+  "name": "AvroNetworkMessage",
+  "namespace": "com.microsoft",
+  "fields": [
+    {
+      "name": "MessageId",
+      "type": {
+        "type": "record",
+        "name": "String",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_12"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageType",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "PublisherId",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "DataSetClassId",
+      "type": {
+        "type": "record",
+        "name": "Guid",
+        "namespace": "org.opcfoundation.ua",
+        "aliases": [
+          "org.opcfoundation.ua.i_14"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": {
+              "type": "string",
+              "logicalType": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataSetWriterGroup",
+      "type": "org.opcfoundation.ua.String"
+    },
+    {
+      "name": "Messages",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "TelemetryDataSetMessage",
+          "namespace": "com.microsoft",
+          "fields": [
+            {
+              "name": "MessageType",
+              "type": "org.opcfoundation.ua.String"
+            },
+            {
+              "name": "DataSetWriterName",
+              "type": "org.opcfoundation.ua.String"
+            },
+            {
+              "name": "DataSetWriterId",
+              "type": {
+                "type": "record",
+                "name": "UInt16",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_5"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SequenceNumber",
+              "type": {
+                "type": "record",
+                "name": "UInt32",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_7"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "MetaDataVersion",
+              "type": {
+                "type": "record",
+                "name": "ConfigurationVersionDataType",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_14593"
+                ],
+                "fields": [
+                  {
+                    "name": "MajorVersion",
+                    "type": "UInt32"
+                  },
+                  {
+                    "name": "MinorVersion",
+                    "type": "UInt32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Timestamp",
+              "type": {
+                "type": "record",
+                "name": "DateTime",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_13"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Status",
+              "type": {
+                "type": "record",
+                "name": "StatusCode",
+                "namespace": "org.opcfoundation.ua",
+                "aliases": [
+                  "org.opcfoundation.ua.i_19"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Payload",
+              "type": {
+                "type": "record",
+                "name": "Telemetry",
+                "fields": [
+                  {
+                    "name": "__34__33__167__36__37__38___40__41__61__63__96__180__92__43__126__42__39__35___45__58__46__59__44__60__62__124__64__94__176__8364__181__123__91__93__125",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "UInt32DataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "org.opcfoundation.ua.UInt32"
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "8bfc835e__4571bc__454e6d__45daaa__456146b931d4d8",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "AlternatingBoolean",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "BooleanDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "Boolean",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_1"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "boolean"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "BadFastRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "BadFastUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "BadSlowRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "BadSlowUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "DipData",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "DoubleDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "Double",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_11"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "double"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "FastRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "FastRandomUIntScalar2",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "FastRandomUIntScalar3",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "FastUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "FastUIntScalar2",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "FastUIntScalar3",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "LongId3950",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "LongString100kB",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ByteStringDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "ByteString",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_15"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "bytes"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "LongString10kB",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "StringDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "org.opcfoundation.ua.String"
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "LongString200kB",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ByteDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "Byte",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_3"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "int"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "LongString50kB",
+                    "type": [
+                      "null",
+                      "com.microsoft.StringDataValue"
+                    ]
+                  },
+                  {
+                    "name": "NegativeTrendData",
+                    "type": [
+                      "null",
+                      "com.microsoft.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "PositiveTrendData",
+                    "type": [
+                      "null",
+                      "com.microsoft.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "RandomSignedInt32",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "Int32DataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "Int32",
+                              "namespace": "org.opcfoundation.ua",
+                              "aliases": [
+                                "org.opcfoundation.ua.i_6"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "int"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "Status",
+                            "type": "org.opcfoundation.ua.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.ua.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoSeconds",
+                            "type": "org.opcfoundation.ua.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "RandomUnsignedInt32",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowRandomUIntScalar2",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowRandomUIntScalar3",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowUIntScalar1",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowUIntScalar2",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SlowUIntScalar3",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "SpikeData",
+                    "type": [
+                      "null",
+                      "com.microsoft.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "StepUp",
+                    "type": [
+                      "null",
+                      "com.microsoft.UInt32DataValue"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

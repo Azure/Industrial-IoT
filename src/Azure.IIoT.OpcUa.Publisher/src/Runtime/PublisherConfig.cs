@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
@@ -76,6 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
+        public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
+        public const string PublishMessageSchemaKey = "PublishMessageSchema";
+        public const string EscapeSymbolsKey = "EscapeSymbolsInSchemas";
         public const string PublisherVersionKey = "PublisherVersion";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -348,6 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultDataSetRouting = routingMode;
             }
 
+            options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);
             options.DisableComplexTypeSystem ??= GetBoolOrNull(DisableComplexTypeSystemKey);
             options.DisableDataSetMetaData = options.DisableComplexTypeSystem;
             options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
@@ -364,6 +369,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             options.ResolveDisplayName ??= GetBoolOrDefault(FetchOpcNodeDisplayNameKey,
                     ResolveDisplayNameDefault);
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
+
+            if (options.SchemaOptions == null && GetBoolOrDefault(PublishMessageSchemaKey))
+            {
+                options.DisableComplexTypeSystem = false;
+                options.DisableDataSetMetaData = false;
+                options.SchemaOptions = new SchemaOptions
+                {
+                    // Namespace =
+                };
+            }
         }
 
         /// <summary>

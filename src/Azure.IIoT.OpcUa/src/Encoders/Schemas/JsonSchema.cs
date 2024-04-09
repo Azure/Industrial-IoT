@@ -228,9 +228,12 @@ namespace Json.Schema
         /// Get Schema type
         /// </summary>
         /// <returns></returns>
-        public SchemaType SafeGetType()
+        public SchemaType Type
         {
-            return Types?[0] ?? SchemaType.None;
+            get => Types != null && Types.Count > 0 ?
+                Types[0] : SchemaType.None;
+            set => Types = value == SchemaType.None ?
+                Array.Empty<SchemaType>() : new[] { value };
         }
     }
 

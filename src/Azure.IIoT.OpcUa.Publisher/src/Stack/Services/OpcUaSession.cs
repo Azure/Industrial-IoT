@@ -631,7 +631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             SessionFactory = _client;
             DeleteSubscriptionsOnClose = false;
-            TransferSubscriptionsOnReconnect = true;
+            TransferSubscriptionsOnReconnect = !_client.DisableTransferSubscriptionOnReconnect;
 
             PublishError +=
                 _client.Session_HandlePublishError;

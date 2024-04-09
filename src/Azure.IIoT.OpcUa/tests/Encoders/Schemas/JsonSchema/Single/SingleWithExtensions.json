@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#JsonDataSetMessage",
+  "$defs": {
+    "http://opcfoundation.org/UA/#DateTime": {
+      "$id": "http://opcfoundation.org/UA/#i=13",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "http://opcfoundation.org/UA/#UInt32": {
+      "$id": "http://opcfoundation.org/UA/#i=7",
+      "title": "OPC UA built in type UInt32",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "default": 0,
+      "format": "uint32"
+    },
+    "http://opcfoundation.org/UA/#String": {
+      "$id": "http://opcfoundation.org/UA/#i=12",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "http://opcfoundation.org/UA/#StatusCode": {
+      "$id": "http://opcfoundation.org/UA/#i=19",
+      "title": "OPC UA built in type StatusCode",
+      "type": "object",
+      "properties": {
+        "Code": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "Symbol": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#UInt16": {
+      "$id": "http://opcfoundation.org/UA/#i=5",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#CurrentTimeDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#CurrentTimeDataValue",
+      "title": "Dataset Field of Type date-time",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue",
+      "title": "Dataset Field of Type date-time",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Variant": {
+      "title": "Any",
+      "type": [
+        "number",
+        "null",
+        "object",
+        "array",
+        "string",
+        "integer",
+        "boolean"
+      ]
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#VariantDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#VariantDataValue",
+      "title": "Dataset Field of Type Any",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "title": "Any",
+          "type": [
+            "number",
+            "null",
+            "object",
+            "array",
+            "string",
+            "integer",
+            "boolean"
+          ]
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Boolean": {
+      "$id": "http://opcfoundation.org/UA/#i=1",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue",
+      "title": "Dataset Field of Type date-time",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=1"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Float": {
+      "$id": "http://opcfoundation.org/UA/#i=10",
+      "title": "OPC UA built in type Float",
+      "type": "number",
+      "minimum": -3.4028235E+38,
+      "maximum": 3.4028235E+38,
+      "default": 0,
+      "format": "float"
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#FloatDataValue": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#FloatDataValue",
+      "title": "Dataset Field of Type date-time",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=10"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#DataSetPayload": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#DataSetPayload",
+      "title": "DataSetPayload",
+      "type": "object",
+      "properties": {
+        "CurrentTime": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#CurrentTimeDataValue"
+        },
+        "EngineeringUnits": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#StringDataValue"
+        },
+        "AssetId": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#VariantDataValue"
+        },
+        "Important": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#BooleanDataValue"
+        },
+        "Variance": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#FloatDataValue"
+        }
+      }
+    },
+    "http://opcfoundation.org/UA/#i=14593": {
+      "$id": "http://opcfoundation.org/UA/#i=14593",
+      "type": "object",
+      "properties": {
+        "MajorVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "MinorVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        }
+      }
+    },
+    "http://microsoft.com/Industrial-IoT/OpcPublisher#JsonDataSetMessage": {
+      "$id": "http://microsoft.com/Industrial-IoT/OpcPublisher#JsonDataSetMessage",
+      "type": "object",
+      "properties": {
+        "MetaDataVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=14593"
+        },
+        "MessageType": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "DataSetWriterName": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "Payload": {
+          "$ref": "http://microsoft.com/Industrial-IoT/OpcPublisher#DataSetPayload"
+        }
+      },
+      "required": [
+        "MetaDataVersion",
+        "MessageType",
+        "DataSetWriterName",
+        "Payload"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

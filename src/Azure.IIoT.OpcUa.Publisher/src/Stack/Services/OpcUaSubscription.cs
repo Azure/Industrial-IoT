@@ -730,10 +730,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var desiredMonitoredItems = same;
             desiredMonitoredItems.UnionWith(add);
 
-            _logger.LogDebug(
+            _logger.LogInformation(
                 "Completing {Count} same/added and {Removed} removed items in subscription {Subscription}...",
                 desiredMonitoredItems.Count, remove.Count, this);
-            foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
+            foreach (var monitoredItem in remove)
+            {
+                monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification);
+            }
+            foreach (var monitoredItem in desiredMonitoredItems)
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
                 {
@@ -741,7 +745,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     invalidItems++;
                 }
             }
-
             var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
             _logger.LogDebug(
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
@@ -826,10 +829,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Cleanup all items that are not in the currently monitoring list
-            previouslyMonitored
+            var dispose = previouslyMonitored
                 .Except(set)
-                .ToList()
-                .ForEach(m => m.Dispose());
+                .ToList();
+            dispose.ForEach(m => m.Dispose());
 
             // Update subscription state
             _additionallyMonitored = set
@@ -840,8 +843,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _goodMonitoredItems = set.Count - invalidItems;
 
             _logger.LogInformation(
-                "Now monitoring {Count} (Good:{Good}/Bad:{Bad}) nodes in subscription {Subscription}.",
-                set.Count, _goodMonitoredItems, _badMonitoredItems, this);
+"Now monitoring {Count} (Good:{Good}/Bad:{Bad}/Removed:{Disposed}) nodes in subscription {Subscription}.",
+                set.Count, _goodMonitoredItems, _badMonitoredItems, dispose, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -852,7 +855,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await ConditionRefreshAsync(ct).ConfigureAwait(false);
                     _logger.LogInformation("ConditionRefresh on subscription " +
-                    "{Subscription} has completed.", this);
+                        "{Subscription} has completed.", this);
                 }
                 catch (Exception e)
                 {

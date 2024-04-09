@@ -17,7 +17,7 @@ namespace Json.Schema
         public static ReadOnlySpan<byte> IdPreDraft6 => "id"u8;
         public static ReadOnlySpan<byte> Defs => "$defs"u8;
         public static ReadOnlySpan<byte> Definitions => "definitions"u8;
-        public static ReadOnlySpan<byte> Ref => "ref"u8;
+        public static ReadOnlySpan<byte> Ref => "$ref"u8;
         public static ReadOnlySpan<byte> Title => "title"u8;
         public static ReadOnlySpan<byte> Type => "type"u8;
         public static ReadOnlySpan<byte> Enum => "enum"u8;

@@ -12,9 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
-    using System.Text;
+    using static System.Net.WebRequestMethods;
 
     /// <summary>
     /// Extensions
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 Title = title,
                 Types = s.Select(s => Resolve(s, definitions)
-                    .SafeGetType()).Distinct().ToArray(),
+                    .Type).Distinct().ToArray(),
                 OneOf = s
             };
         }
@@ -79,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return new JsonSchema
             {
                 Title = title,
-                Types = new[] { SchemaType.Array },
+                Type = SchemaType.Array,
                 Items = new[] { schema }
             };
         }
@@ -95,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             if (schema.Reference == null)
             {
-                Debug.Assert(schema.Types != null);
+                Debug.Assert(schema.Type != SchemaType.None);
                 return schema;
             }
             return definitions.Values.First(d => d.Id == schema.Reference);
@@ -125,6 +124,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
+        /// Get namespace
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static string GetNamespaceUri(this SchemaOptions options)
+        {
+            return options.Namespace ?? "http://microsoft.com/Industrial-IoT/OpcPublisher";
+        }
+
+        /// <summary>
         /// Create identifier of a schema in the namespace
         /// configured in the options
         /// </summary>
@@ -134,8 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this SchemaOptions options,
             string fragment)
         {
-            var ns = options.Namespace ?? Namespaces.OpcUaSdk;
-            return new UriOrFragment(ns + "#" + fragment);
+            return new UriOrFragment(options.GetNamespaceUri() + "#" + fragment);
         }
 
         /// <summary>

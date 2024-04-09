@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "http://www.microsoft.com#JsonNetworkMessage",
+  "$defs": {
+    "http://opcfoundation.org/UA/#UInt32": {
+      "$id": "http://opcfoundation.org/UA/#i=7",
+      "title": "OPC UA built in type UInt32",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "default": 0,
+      "format": "uint32"
+    },
+    "http://opcfoundation.org/UA/#String": {
+      "$id": "http://opcfoundation.org/UA/#i=12",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "http://opcfoundation.org/UA/#StatusCode": {
+      "$id": "http://opcfoundation.org/UA/#i=19",
+      "title": "OPC UA built in type StatusCode",
+      "type": "object",
+      "properties": {
+        "Code": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "Symbol": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#DateTime": {
+      "$id": "http://opcfoundation.org/UA/#i=13",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "http://opcfoundation.org/UA/#UInt16": {
+      "$id": "http://opcfoundation.org/UA/#i=5",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
+    },
+    "http://www.microsoft.com#UInt32DataValue": {
+      "$id": "http://www.microsoft.com#UInt32DataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Boolean": {
+      "$id": "http://opcfoundation.org/UA/#i=1",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "http://www.microsoft.com#BooleanDataValue": {
+      "$id": "http://www.microsoft.com#BooleanDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=1"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Int32": {
+      "$id": "http://opcfoundation.org/UA/#i=6",
+      "title": "OPC UA built in type Int32",
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "default": 0,
+      "format": "int32"
+    },
+    "http://www.microsoft.com#Int32DataValue": {
+      "$id": "http://www.microsoft.com#Int32DataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=6"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Double": {
+      "$id": "http://opcfoundation.org/UA/#i=11",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "http://www.microsoft.com#DoubleDataValue": {
+      "$id": "http://www.microsoft.com#DoubleDataValue",
+      "title": "Dataset Field of Type uint32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "http://opcfoundation.org/UA/#i=11"
+        },
+        "Status": {
+          "$ref": "http://opcfoundation.org/UA/#i=19"
+        },
+        "SourceTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        },
+        "ServerTimestamp": {
+          "$ref": "http://opcfoundation.org/UA/#i=13"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "http://opcfoundation.org/UA/#i=5"
+        }
+      },
+      "additionalProperties": false
+    },
+    "http://www.microsoft.com#DataSetPayload": {
+      "$id": "http://www.microsoft.com#DataSetPayload",
+      "title": "DataSetPayload",
+      "type": "object",
+      "properties": {
+        "StepUp": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "AlternatingBoolean": {
+          "$ref": "http://www.microsoft.com#BooleanDataValue"
+        },
+        "RandomSignedInt32": {
+          "$ref": "http://www.microsoft.com#Int32DataValue"
+        },
+        "RandomUnsignedInt32": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "DipData": {
+          "$ref": "http://www.microsoft.com#DoubleDataValue"
+        },
+        "FastUIntScalar1": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "FastUIntScalar2": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "FastUIntScalar3": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "FastRandomUIntScalar1": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "FastRandomUIntScalar2": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "FastRandomUIntScalar3": {
+          "$ref": "http://www.microsoft.com#UInt32DataValue"
+        },
+        "NegativeTrendData": {
+          "$ref": "http://www.microsoft.com#DoubleDataValue"
+        },
+        "PositiveTrendData": {
+          "$ref": "http://www.microsoft.com#DoubleDataValue"
+        },
+        "SpikeData": {
+          "$ref": "http://www.microsoft.com#DoubleDataValue"
+        }
+      }
+    },
+    "http://opcfoundation.org/UA/#i=14593": {
+      "$id": "http://opcfoundation.org/UA/#i=14593",
+      "type": "object",
+      "properties": {
+        "MajorVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        },
+        "MinorVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=7"
+        }
+      }
+    },
+    "http://www.microsoft.com#JsonDataSetMessage": {
+      "$id": "http://www.microsoft.com#JsonDataSetMessage",
+      "type": "object",
+      "properties": {
+        "MetaDataVersion": {
+          "$ref": "http://opcfoundation.org/UA/#i=14593"
+        },
+        "MessageType": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "DataSetWriterName": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "Payload": {
+          "$ref": "http://www.microsoft.com#DataSetPayload"
+        }
+      },
+      "required": [
+        "MetaDataVersion",
+        "MessageType",
+        "DataSetWriterName",
+        "Payload"
+      ],
+      "additionalProperties": false
+    },
+    "http://opcfoundation.org/UA/#Guid": {
+      "$id": "http://opcfoundation.org/UA/#i=14",
+      "title": "OPC UA built in type Guid",
+      "type": "string",
+      "format": "uuid"
+    },
+    "http://www.microsoft.com#JsonNetworkMessage": {
+      "$id": "http://www.microsoft.com#JsonNetworkMessage",
+      "type": "null",
+      "properties": {
+        "MessageId": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "MessageType": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "PublisherId": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "DataSetClassId": {
+          "$ref": "http://opcfoundation.org/UA/#i=14"
+        },
+        "DataSetWriterGroup": {
+          "$ref": "http://opcfoundation.org/UA/#i=12"
+        },
+        "Messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "oneOf": [
+              {
+                "$ref": "http://www.microsoft.com#JsonDataSetMessage"
+              },
+              {
+                "$ref": "http://www.microsoft.com#JsonDataSetMessage"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "MessageId",
+        "MessageType",
+        "PublisherId",
+        "DataSetClassId",
+        "DataSetWriterGroup",
+        "Messages"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

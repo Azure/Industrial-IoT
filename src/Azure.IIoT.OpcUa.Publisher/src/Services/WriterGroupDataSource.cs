@@ -130,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // Add
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                    var writerSubscription = new DataSetWriterSubscription(this, writerGroup, writer.Value);
+                    var writerSubscription =
+                        new DataSetWriterSubscription(this, writerGroup, writer.Value);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
@@ -195,7 +196,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupModel writerGroup, DataSetWriterModel dataSetWriter)
             {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
-                _options = new SubscriptionOptions(writerGroup, dataSetWriter);
+                _options = new SubscriptionOptions(writerGroup, dataSetWriter,
+                    _outer._options.Value);
 
                 TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
                 {
@@ -240,7 +242,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     "Updating writer with subscription {Id} in writer group {WriterGroup}...",
                     Id, writerGroup.Id);
 
-                _options = new SubscriptionOptions(writerGroup, dataSetWriter);
+                _options = new SubscriptionOptions(writerGroup, dataSetWriter,
+                    _outer._options.Value);
 
                 var subscription = Subscription;
                 if (subscription == null)
@@ -597,7 +600,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 Debug.Assert(notification.Notifications != null);
                                 notification.Context = CreateMessageContext(options, false,
-                                    () => Interlocked.Increment(ref _dataSetSequenceNumber), notificationContext);
+                                    () => Interlocked.Increment(ref _dataSetSequenceNumber),
+                                        notificationContext);
                                 _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                     notification.ToString());
                                 _outer._sink.OnNotify(notification);
@@ -615,16 +619,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new WriterGroupMessageContext
                     {
-                        PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
+                        PublisherId = _outer._options.Value.PublisherId
+                            ?? Constants.DefaultPublisherId,
                         Writer = options.DataSetWriter,
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = options.WriterGroup,
                         SendMetaData = sendMetadata,
                         Schema = options.Schema,
-                        // TODO: Make this a nullable meta data producer func to emit meta data for individual topics
-                        MetaDataVersion = options.MetaDataVersion ?? _outer._defaultVersion,
-                        Topic = item?.Topic ?? (!sendMetadata ? options.Topic : options.MetadataTopic),
-                        Qos = item?.Qos ?? options.Qos
+                        // TODO: Make this a nullable meta data producer func to
+                        // emit meta data for individual topics
+                        MetaDataVersion = options.MetaDataVersion
+                            ?? _outer._defaultVersion,
+                        Topic = item?.Topic
+                            ?? (!sendMetadata ? options.Topic : options.MetadataTopic),
+                        Qos = item?.Qos
+                            ?? options.Qos
                     };
                 }
             }
@@ -839,8 +848,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// </summary>
                 /// <param name="writerGroup"></param>
                 /// <param name="dataSetWriter"></param>
+                /// <param name="options"></param>
                 public SubscriptionOptions(WriterGroupModel writerGroup,
-                    DataSetWriterModel dataSetWriter)
+                    DataSetWriterModel dataSetWriter, PublisherOptions options)
                 {
                     DataSetWriter = dataSetWriter;
                     WriterGroup = writerGroup;
@@ -851,17 +861,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                        ?? string.Empty;
                     Qos = DataSetWriter.Publishing?.RequestedDeliveryGuarantee
                         ?? writerGroup.Publishing?.RequestedDeliveryGuarantee;
-                    MetadataTopic = DataSetWriter.MetaData?.QueueName
-                        ?? string.Empty;
+                    MetadataTopic = DataSetWriter.MetaData?.QueueName ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(MetadataTopic))
                     {
                         MetadataTopic = Topic;
                     }
-                    ContextSelector = Routing == DataSetRoutingMode.None
-                        ? _ => null
+                    ContextSelector = Routing == DataSetRoutingMode.None ? _ => null
                         : n => n.PathFromRoot == null || n.Context != null ?
                           n.Context : new TopicContext(Topic, n.PathFromRoot, Qos,
                             Routing != DataSetRoutingMode.UseBrowseNames);
+
+                    var messageEncoding = WriterGroup.MessageType ?? MessageEncoding.Json;
+                    if (options.SchemaOptions != null ||
+                        messageEncoding.HasFlag(MessageEncoding.Avro))
+                    {
+                        if (messageEncoding.HasFlag(MessageEncoding.Avro))
+                        {
+                            Schema = new AvroNetworkMessageSchema(WriterGroup,
+                                options.SchemaOptions);
+                            return; // Disable metadata
+                        }
+                        if (messageEncoding.HasFlag(MessageEncoding.Json))
+                        {
+                            Schema = new JsonNetworkMessageSchema(WriterGroup,
+                                options.SchemaOptions,
+                                options.UseStandardsCompliantEncoding ?? false);
+                            return; // Disable metadata
+                        }
+                    }
+
                     var metaDataMajorVersion =
                         DataSetWriter.DataSet?.DataSetMetaData?.MajorVersion;
                     if (metaDataMajorVersion != null)
@@ -869,19 +897,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         MetaDataVersion = new ConfigurationVersionDataType
                         {
                             MajorVersion = metaDataMajorVersion.Value,
-                            MinorVersion = DataSetWriter.DataSet?
-                                .GetMetaDataMinorVersion() ?? 0u
+                            MinorVersion =
+                                DataSetWriter.DataSet?.GetMetaDataMinorVersion() ?? 0u
                         };
-
-                        // We need to set the schema based on the configuration
-                        try
-                        {
-                            Schema = new JsonNetworkMessageSchema(WriterGroup);
-                        }
-                        catch
-                        {
-                            // TODO:
-                        }
                     }
                 }
 

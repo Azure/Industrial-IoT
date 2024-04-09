@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     Title = GetTitle(BuiltInType.DiagnosticInfo),
                     Id = GetId(BuiltInType.DiagnosticInfo),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["SymbolicId"] = GetSchemaForBuiltInType(BuiltInType.Int32),
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.Variant),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Title = GetTitle(BuiltInType.Variant),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.ExtensionObject),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Title = GetTitle(BuiltInType.ExtensionObject),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Id = GetId(BuiltInType.StatusCode),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Title = GetTitle(BuiltInType.StatusCode),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.LocalizedText),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Id = GetId(BuiltInType.LocalizedText),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.NodeId),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Id = GetId(BuiltInType.NodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -292,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.ExpandedNodeId),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Id = GetId(BuiltInType.ExpandedNodeId),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -344,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return new JsonSchema
                 {
                     Title = GetTitle(BuiltInType.DataValue),
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Id = GetId(BuiltInType.DataValue),
                     Properties = new Dictionary<string, JsonSchema>
                     {
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return new JsonSchema
                 {
-                    Types = new[] { SchemaType.Array },
+                    Type = SchemaType.Array,
                     Items = new[] { schema }
                 };
             }
@@ -509,12 +509,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 var fieldSchema = valueSchema.Resolve(Definitions);
                 var type = fieldSchema.Format
                     ?? fieldSchema.Title
-                    ?? fieldSchema.SafeGetType().ToString();
+                    ?? fieldSchema.Type.ToString();
                 return new JsonSchema
                 {
                     Id = id,
                     Title = $"Dataset Field of Type {type}",
-                    Types = new[] { SchemaType.Object },
+                    Type = SchemaType.Object,
                     Properties = new Dictionary<string, JsonSchema>
                     {
                         ["Value"] = valueSchema,
@@ -560,7 +560,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 Minimum = minValue,
                 Maximum = maxValue,
                 Default = defaultValue,
-                Types = new[] { type },
+                Type = type,
                 Format = format
             };
         }
