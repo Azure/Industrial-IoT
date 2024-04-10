@@ -230,7 +230,7 @@ namespace Json.Schema
         /// <returns></returns>
         public SchemaType Type
         {
-            get => Types != null && Types.Count > 0 ?
+            get => Types?.Count > 0 ?
                 Types[0] : SchemaType.None;
             set => Types = value == SchemaType.None ?
                 Array.Empty<SchemaType>() : new[] { value };
@@ -332,6 +332,7 @@ namespace Json.Schema
     /// Const value
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    /// <param name="Value"></param>
     public record class Const<T>(T Value) : Const
     {
         /// <inheritdoc/>

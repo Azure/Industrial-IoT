@@ -41,10 +41,8 @@ namespace Json.Schema
         /// <returns></returns>
         public static string SerializeAsString(JsonSchema schema, bool indented = false)
         {
-            if (schema.SchemaVersion == null)
-            {
-                schema.SchemaVersion = SchemaVersion.Draft7;
-            }
+            schema.SchemaVersion ??= SchemaVersion.Draft7;
+
             using (var stream = new MemoryStream())
             {
                 using (var writer = new SchemaWriter(stream, new JsonWriterOptions { Indented = indented }))

@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EventsTopicTemplateKey = "EventsTopicTemplate";
         public const string DiagnosticsTopicTemplateKey = "DiagnosticsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
+        public const string SchemaTopicTemplateKey = "SchemaTopicTemplate";
         public const string DefaultWriterGroupPartitionCountKey = "DefaultWriterGroupPartitionCount";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
@@ -79,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
-        public const string EscapeSymbolsKey = "EscapeSymbolsInSchemas";
+        public const string SchemaNamespaceKey = "SchemaNamespace";
         public const string PublisherVersionKey = "PublisherVersion";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -89,6 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string PublisherIdVariableName = "PublisherId";
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string RootTopicVariableName = "RootTopic";
+        public const string TelemetryTopicVariableName = "TelemetryTopic";
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
         public const string WriterGroupVariableName = "WriterGroup";
         public const string WriterGroupIdVariableName = "WriterGroupId";
@@ -114,6 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
+        public const string SchemaTopicTemplateDefault =
+            $"{{{TelemetryTopicVariableName}}}/schema";
         public const string PublishedNodesFileDefault = "publishednodes.json";
         public const string RuntimeStateRoutingInfoDefault = "runtimeinfo";
         public const bool EnableRuntimeStateReportingDefault = false;
@@ -268,6 +272,12 @@ namespace Azure.IIoT.OpcUa.Publisher
                     DataSetMetaDataTopicTemplateKey);
             }
 
+            if (options.TopicTemplates.Schema == null)
+            {
+                options.TopicTemplates.Schema = GetStringOrDefault(
+                    SchemaTopicTemplateKey, SchemaTopicTemplateDefault);
+            }
+
             options.DisableOpenApiEndpoint ??= GetBoolOrNull(DisableOpenApiEndpointKey);
 
             options.EnableRuntimeStateReporting ??= GetBoolOrDefault(
@@ -370,14 +380,16 @@ namespace Azure.IIoT.OpcUa.Publisher
                     ResolveDisplayNameDefault);
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
 
-            if (options.SchemaOptions == null && GetBoolOrDefault(PublishMessageSchemaKey))
+            var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
+            if (schemaNamespace != null || GetBoolOrDefault(PublishMessageSchemaKey))
+            {
+                options.SchemaOptions ??= new SchemaOptions();
+            }
+            if (options.SchemaOptions != null)
             {
                 options.DisableComplexTypeSystem = false;
                 options.DisableDataSetMetaData = false;
-                options.SchemaOptions = new SchemaOptions
-                {
-                    // Namespace =
-                };
+                options.SchemaOptions.Namespace ??= schemaNamespace;
             }
         }
 

@@ -106,6 +106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddMqttClient();
                 builder.RegisterType<MqttBroker>()
                     .AsImplementedInterfaces();
+                builder.RegisterType<SchemaTopicBuilder>()
+                    .AsImplementedInterfaces();
             }
         }
 
@@ -952,6 +954,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Configure schema topic templates
+        /// </summary>
+        internal sealed class SchemaTopicBuilder : ConfigureOptionBase<MqttOptions>
+        {
+            /// <inheritdoc/>
+            public override void Configure(string? name, MqttOptions options)
+            {
+                if (_options.Value.SchemaOptions != null &&
+                    _options.Value.TopicTemplates.Schema != null)
+                {
+                    options.ConfigureSchemaMessage = message =>
+                    {
+                        //
+                        // Set the telemetry topic template to the passed
+                        // in message topic
+                        //
+                        var templates = new TopicTemplatesOptions
+                        {
+                            Telemetry = message.Topic
+                        };
+                        message.Topic = new TopicBuilder(_options.Value,
+                            templates: templates).SchemaTopic;
+                    };
+                }
+            }
+
+            /// <inheritdoc/>
+            public SchemaTopicBuilder(IConfiguration configuration,
+                IOptions<PublisherOptions> options)
+                : base(configuration)
+            {
+                _options = options;
+            }
+
+            private readonly IOptions<PublisherOptions> _options;
+        }
+
+        /// <summary>
         /// Configure edge client
         /// </summary>
         internal sealed class IoTEdge : ConfigureOptionBase<IoTEdgeClientOptions>
@@ -1016,9 +1056,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     options.ConnectionString = GetStringOrDefault(EventHubNamespaceConnectionString);
                 }
-                if (string.IsNullOrEmpty(options.SchemaGroupName))
+
+                var schemaGroupName = GetStringOrDefault(SchemaGroupNameKey);
+
+                if (!string.IsNullOrEmpty(schemaGroupName))
                 {
-                    options.SchemaGroupName = GetStringOrDefault(SchemaGroupNameKey);
+                    options.SchemaRegistry = new SchemaRegistryOptions
+                    {
+                        FullyQualifiedNamespace = string.Empty, // TODO: Remove
+                        SchemaGroupName = schemaGroupName
+                    };
                 }
             }
 

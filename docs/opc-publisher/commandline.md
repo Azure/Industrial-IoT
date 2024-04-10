@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.5 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
+                                                 2.9.6 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
 
 General
 -------
@@ -62,6 +62,10 @@ General
                              Sets the publisher id of the publisher.
                                Default: `not set` which results in the IoT edge
                                identity being used
+  -v, --version, --PublisherVersion=VALUE
+                             Sets the default major version of the publisher
+                               module and metadata.
+                               Default: `1`
   -s, --site, --SiteId=VALUE Sets the site name of the publisher module.
                                Default: `not set`
       --rs, --runtimestatereporting, --RuntimeStateReporting[=VALUE]
@@ -78,6 +82,11 @@ General
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.
                                Default: `False` (enabled).
+      --ssf, --statestorefolder, --StateStoreFolderPath=VALUE
+                             The path to a folder where state is stored so that
+                               heavy resolution of writer groups is only done
+                               once or when the configuration changes.
+                               Default: `null` (disabled)
 
 Messaging configuration
 -----------------------
@@ -132,7 +141,15 @@ Messaging configuration
                                    `IsGzipCompressed`
                                    `JsonGzip`
                                    `JsonReversibleGzip`
+                                   `Avro`
+                                   `AvroGzip`
                                Default: `Json`.
+      --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
+                             Resolves names of fields in data sets if the field
+                               name was not specified in the configuration.
+                               Note: This has high impact on OPC Publisher
+                               startup performance.
+                               Default: `False` (disabled).
       --bi, --batchtriggerinterval, --BatchTriggerInterval=VALUE
                              The network message publishing interval in
                                milliseconds. Determines the publishing period
@@ -193,12 +210,6 @@ Messaging configuration
                                subscriptions. This also affects metadata
                                message size.
                                Default: `1000`.
-      --kfc, --keyframecount, --DefaultKeyFrameCount=VALUE
-                             The default number of delta messages to send until
-                               a key frame message is sent. If 0, no key frame
-                               messages are sent, if 1, every message will be a
-                               key frame.
-                               Default: `0`.
       --ka, --sendkeepalives, --EnableDataSetKeepAlives[=VALUE]
                              Enables sending keep alive messages triggered by
                                writer subscription's keep alive notifications.
@@ -207,14 +218,12 @@ Messaging configuration
                                If the chosen messaging profile does not support
                                keep alive messages this setting is ignored.
                                Default: `False` (to save bandwidth).
-      --eip, --immediatepublishing, --EnableImmediatePublishing[=VALUE]
-                             By default OPC Publisher will create a
-                               subscription with publishing disabled and only
-                               enable it after it has filled it with all
-                               configured monitored items. Use this setting to
-                               create the subscription with publishing already
-                               enabled.
-                               Default: `False`.
+      --kfc, --keyframecount, --DefaultKeyFrameCount=VALUE
+                             The default number of delta messages to send until
+                               a key frame message is sent. If 0, no key frame
+                               messages are sent, if 1, every message will be a
+                               key frame.
+                               Default: `0`.
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -237,17 +246,13 @@ Messaging configuration
                                Default: `False` if the messaging profile
                                selected supports sending metadata and `--strict`
                                 is set but not '--dct', `True` otherwise.
-      --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
-                             The default threshold of monitored items in a
-                               subscription under which meta data is loaded
-                               synchronously during subscription creation.
-                               Loaded metadata guarantees a metadata message is
-                               sent before the first message is sent but
-                               loading of metadata takes time during
-                               subscription setup. Set to `0` to always load
-                               metadata asynchronously.
-                               Only used if meta data is supported and enabled.
-                               Default: `30`.
+      --ps, --publishschemas, --PublishMessageSchema[=VALUE]
+                             Publish the Avro or Json message schemas to schema
+                               registry or subtopics.
+                               Automatically enables complex type system and
+                               metadata support.
+                               Default: `True` if the message encoding requires
+                               schemas (for example Avro) otherwise `False`.
       --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
                              Disable creating a separate session per writer
                                group. Instead sessions are re-used across
@@ -271,6 +276,7 @@ Messaging configuration
                                Allowed values:
                                    `IoTHub`
                                    `Mqtt`
+                                   `EventHub`
                                    `Dapr`
                                    `Http`
                                    `FileSystem`
@@ -314,6 +320,15 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
+      --eh, --eventhubnamespaceconnectionstring, --EventHubNamespaceConnectionString=VALUE
+                             The connection string of an existing event hub
+                               namespace to use for the Azure EventHub
+                               transport.
+                               Default: `not set`.
+      --sg, --schemagroup, --SchemaGroupName=VALUE
+                             The schema group in an event hub namespace to
+                               publish message schemas to.
+                               Default: `not set`.
   -d, --dcs, --daprconnectionstring, --DaprConnectionString=VALUE
                              Connect the OPC Publisher to a dapr pub sub
                                component using a connection string.
@@ -460,6 +475,21 @@ Routing configuration
                                is sent to the same output as regular messages.
                                If specified without value, the default output
                                is `{TelemetryTopic}/metadata`.
+      --stt, --schematopictemplate, --SchemaTopicTemplate[=VALUE]
+                             The topic that schemas should be sent to if schema
+                               publishing is configured.
+                               In case of MQTT schemas will not be sent with .
+                               Only valid if schema publishing is enabled (`--
+                               ps`).
+                               The template variables
+                                   `{RootTopic}`
+                                   `{SiteId}`
+                                   `{PublisherId}`
+                                   `{TelemetryTopic}`
+                               can be used as variables inside the template.
+                               Default: `{TelemetryTopic}/schema` which means
+                               the schema is sent to a sub topic where the
+                               telemetry message is sent to.
       --uns, --datasetrouting, --DefaultDataSetRouting=VALUE
                              Configures whether messages should automatically
                                be routed using the browse path of the monitored
@@ -503,6 +533,14 @@ Subscription settings
                                Also can be set using `DefaultPublishingInterval`
                                 environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
+      --eip, --immediatepublishing, --EnableImmediatePublishing[=VALUE]
+                             By default OPC Publisher will create a
+                               subscription with publishing disabled and only
+                               enable it after it has filled it with all
+                               configured monitored items. Use this setting to
+                               create the subscription with publishing already
+                               enabled.
+                               Default: `False`.
       --ska, --keepalivecount, --DefaultKeepAliveCount=VALUE
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
@@ -514,18 +552,6 @@ Subscription settings
                                reached instructs the server to declare the
                                subscription invalid.
                                Default: `100`.
-      --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
-                             Fetches the displayname for the monitored items
-                               subscribed if a display name was not specified
-                               in the configuration.
-                               Note: This has high impact on OPC Publisher
-                               startup performance.
-                               Default: `False` (disabled).
-      --fp, --fetchpathfromroot, --FetchOpcBrowsePathFromRoot[=VALUE]
-                             (Experimental) Explicitly disable or enable
-                               retrieving relative paths from root for
-                               monitored items.
-                               Default: `false` (disabled).
       --qs, --queuesize, --DefaultQueueSize=VALUE
                              Default queue size for all monitored items if
                                queue size was not specified in the
@@ -609,6 +635,10 @@ Subscription settings
                                This setting not just disables meta data
                                messages but also prevents transcoding of
                                unknown complex types in outgoing messages.
+                               Default: `false`.
+      --dtr, --disabletransferonreconnect, --DisableSubscriptionTransfer[=VALUE]
+                             Do not attempt to transfer subscriptions when
+                               reconnecting but re-establish the subscription.
                                Default: `false`.
 
 OPC UA Client configuration
@@ -922,6 +952,10 @@ Diagnostic options
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
                                Default: `15000` (15 seconds).
+      --mms, --maxmetricstreams, --OtlpMaxMetricStreams=VALUE
+                             Specifiy the max number of streams to collect in
+                               the default view.
+                               Default: `3000`.
       --em, --enableprometheusendpoint, --EnableMetrics=VALUE
                              Explicitly enable or disable exporting prometheus
                                metrics directly on the standard path.

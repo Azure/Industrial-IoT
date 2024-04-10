@@ -54,5 +54,4 @@ namespace Json.Schema
         public static ReadOnlySpan<byte> AnyOf => "anyOf"u8;
         public static ReadOnlySpan<byte> Not => "not"u8;
     }
-
 }
