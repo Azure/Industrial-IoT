@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public class AvroNetworkMessageSchema : IEventSchema
+    public class AvroNetworkMessageAvroSchema : IEventSchema, IAvroSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public AvroNetworkMessageSchema(WriterGroupModel writerGroup,
+        public AvroNetworkMessageAvroSchema(WriterGroupModel writerGroup,
             SchemaOptions? options = null)
             : this(writerGroup.DataSetWriters!, writerGroup.Name,
                   writerGroup.MessageSettings?.NetworkMessageContentMask,
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public AvroNetworkMessageSchema(DataSetWriterModel dataSetWriter,
+        public AvroNetworkMessageAvroSchema(DataSetWriterModel dataSetWriter,
             string? name = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
             SchemaOptions? options = null)
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        internal AvroNetworkMessageSchema(
+        internal AvroNetworkMessageAvroSchema(
             IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
             NetworkMessageContentMask? networkMessageContentMask,
             SchemaOptions? options)
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             var dataSetMessages = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new AvroDataSetMessageSchema(writer,
+                .Select(writer => new AvroDataSetMessageAvroSchema(writer,
                     dsmHeader, _options).Schema)
                 .ToList();
 
@@ -147,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return payloadType;
             }
 
-            var encoding = new BuiltInAvroSchemas();
+            var encoding = new AvroBuiltInAvroSchemas();
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),

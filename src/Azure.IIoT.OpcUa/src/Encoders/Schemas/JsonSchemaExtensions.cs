@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Extensions
     /// </summary>
-    internal static class SchemaExtensions
+    internal static class JsonSchemaExtensions
     {
         /// <summary>
         /// Create a reference
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public static string ToJsonString(this JsonSchema schema, bool indented = false)
         {
-            return SchemaWriter.SerializeAsString(schema, indented);
+            return JsonSchemaWriter.SerializeAsString(schema, indented);
         }
 
         /// <summary>

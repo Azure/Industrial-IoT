@@ -24,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public class DataSetAvroSchema : BaseDataSetSchema<Schema>, IEventSchema
+    public class AvroDataSetAvroSchema : BaseDataSetSchema<Schema>, IAvroSchema,
+        IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -52,10 +53,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public DataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
+        public AvroDataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
             Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null) : base(dataSetFieldContentMask,
-                new BuiltInAvroSchemas(), options)
+                new AvroBuiltInAvroSchemas(), options)
         {
             Schema = Compile(name, dataSet) ?? AvroUtils.Null;
         }
@@ -66,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSetWriter"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public DataSetAvroSchema(DataSetWriterModel dataSetWriter,
+        public AvroDataSetAvroSchema(DataSetWriterModel dataSetWriter,
             SchemaOptions? options = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),

@@ -877,13 +877,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (messageEncoding.HasFlag(MessageEncoding.Avro))
                         {
-                            Schema = new AvroNetworkMessageSchema(WriterGroup,
+                            Schema = new AvroNetworkMessageAvroSchema(WriterGroup,
                                 options.SchemaOptions);
                             return; // Disable metadata
                         }
                         if (messageEncoding.HasFlag(MessageEncoding.Json))
                         {
-                            Schema = new JsonNetworkMessageSchema(WriterGroup,
+                            Schema = new JsonNetworkMessageJsonSchema(WriterGroup,
                                 options.SchemaOptions,
                                 options.UseStandardsCompliantEncoding ?? false);
                             return; // Disable metadata

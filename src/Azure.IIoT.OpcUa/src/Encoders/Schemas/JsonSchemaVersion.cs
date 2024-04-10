@@ -8,7 +8,7 @@ namespace Json.Schema
     /// <summary>
     /// Versions
     /// </summary>
-    public static class SchemaVersion
+    public static class JsonSchemaVersion
     {
         /// <summary>
         /// http://json-schema.org/draft-04/schema#

@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
     /// </summary>
-    internal class BuiltInJsonSchemas : BaseBuiltInSchemas<JsonSchema>
+    internal class JsonBuiltInJsonSchemas : BaseBuiltInSchemas<JsonSchema>
     {
         /// <summary>
         /// Schema definitions
@@ -366,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="reversibleEncoding"></param>
         /// <param name="useUriEncoding"></param>
         /// <param name="definitions"></param>
-        public BuiltInJsonSchemas(bool reversibleEncoding,
+        public JsonBuiltInJsonSchemas(bool reversibleEncoding,
             bool useUriEncoding, Dictionary<string, JsonSchema>? definitions)
         {
             Definitions = definitions ?? new();
@@ -379,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="fieldContentMask"></param>
         /// <param name="definitions"></param>
-        public BuiltInJsonSchemas(DataSetFieldContentMask fieldContentMask,
+        public JsonBuiltInJsonSchemas(DataSetFieldContentMask fieldContentMask,
             Dictionary<string, JsonSchema>? definitions = null)
         {
             Definitions = definitions ?? new();

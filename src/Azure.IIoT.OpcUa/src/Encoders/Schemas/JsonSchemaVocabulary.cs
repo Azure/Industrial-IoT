@@ -10,7 +10,7 @@ namespace Json.Schema
     /// <summary>
     /// Schema vocabulary
     /// </summary>
-    internal static class SchemaVocabulary
+    internal static class JsonSchemaVocabulary
     {
         public static ReadOnlySpan<byte> Schema => "$schema"u8;
         public static ReadOnlySpan<byte> Id => "$id"u8;

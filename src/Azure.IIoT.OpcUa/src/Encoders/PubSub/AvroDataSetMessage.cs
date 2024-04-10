@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Avro;
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
     using System;
@@ -17,23 +16,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     public class AvroDataSetMessage : BaseDataSetMessage
     {
         /// <summary>
-        /// Message schema
-        /// </summary>
-        public Schema Schema { get; }
-
-        /// <summary>
         /// Dataset writer name
         /// </summary>
         public string? DataSetWriterName { get; set; }
-
-        /// <summary>
-        /// Create message
-        /// </summary>
-        /// <param name="schema"></param>
-        public AvroDataSetMessage(Schema schema)
-        {
-            Schema = schema;
-        }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)

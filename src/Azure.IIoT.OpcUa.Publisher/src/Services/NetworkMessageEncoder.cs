@@ -283,13 +283,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         }
 
                                         // Create regular data set messages
-                                        BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
-                                            ? new JsonDataSetMessage
+                                        BaseDataSetMessage dataSetMessage =
+                                            encoding.HasFlag(MessageEncoding.Json) ? new JsonDataSetMessage
                                             {
                                                 UseCompatibilityMode = !standardsCompliant,
                                                 DataSetWriterName = GetDataSetWriterName(Context)
-                                            }
-                                            : new UadpDataSetMessage();
+                                            } :
+                                            encoding.HasFlag(MessageEncoding.Avro) ? new AvroDataSetMessage
+                                            {
+                                                DataSetWriterName = GetDataSetWriterName(Context),
+                                            } :
+                                            new UadpDataSetMessage();
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
@@ -330,13 +334,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         if (!hasSamplesPayload)
                                         {
                                             // Create regular data set messages
-                                            BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
-                                                ? new JsonDataSetMessage
+                                            BaseDataSetMessage dataSetMessage =
+                                                encoding.HasFlag(MessageEncoding.Json) ? new JsonDataSetMessage
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
                                                     DataSetWriterName = GetDataSetWriterName(Context)
-                                                }
-                                                : new UadpDataSetMessage();
+                                                } :
+                                                encoding.HasFlag(MessageEncoding.Avro) ? new AvroDataSetMessage
+                                                {
+                                                    DataSetWriterName = GetDataSetWriterName(Context)
+                                                } :
+                                                new UadpDataSetMessage();
 
                                             dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                             dataSetMessage.MessageType = Notification.MessageType;
@@ -510,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                             BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
                                 uint networkMessageContentMask, Guid dataSetClassId, string publisherId,
-                                NamespaceFormat namespaceFormat)
+                                NamespaceFormat namespaceFormat, IEventSchema? schema)
                             {
                                 BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
                                     new JsonNetworkMessage
@@ -520,7 +528,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         NamespaceFormat = namespaceFormat,
                                         UseArrayEnvelope = !standardsCompliant && isBatched,
                                         MessageId = () => Guid.NewGuid().ToString()
-                                    } : new UadpNetworkMessage
+                                    } :
+                                    encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage(schema)
+                                    {
+                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                                        MessageId = () => Guid.NewGuid().ToString()
+                                    } :
+                                    new UadpNetworkMessage
                                     {
                                         //   WriterGroupId = writerGroup.Index,
                                         //   GroupVersion = writerGroup.Version,

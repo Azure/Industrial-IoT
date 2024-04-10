@@ -15,14 +15,14 @@ namespace Json.Schema
     /// <summary>
     /// Json Schema writer
     /// </summary>
-    public sealed class SchemaWriter : IDisposable
+    public sealed class JsonSchemaWriter : IDisposable
     {
         /// <summary>
         /// Create writer
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="options"></param>
-        public SchemaWriter(Stream stream, JsonWriterOptions options)
+        public JsonSchemaWriter(Stream stream, JsonWriterOptions options)
         {
             _writer = new Utf8JsonWriter(stream, options);
         }
@@ -41,11 +41,11 @@ namespace Json.Schema
         /// <returns></returns>
         public static string SerializeAsString(JsonSchema schema, bool indented = false)
         {
-            schema.SchemaVersion ??= SchemaVersion.Draft7;
+            schema.SchemaVersion ??= JsonSchemaVersion.Draft7;
 
             using (var stream = new MemoryStream())
             {
-                using (var writer = new SchemaWriter(stream, new JsonWriterOptions { Indented = indented }))
+                using (var writer = new JsonSchemaWriter(stream, new JsonWriterOptions { Indented = indented }))
                 {
                     writer.Write(schema);
                 }
@@ -59,7 +59,7 @@ namespace Json.Schema
         /// <param name="schema"></param>
         public void Write(JsonSchema schema)
         {
-            Write(schema, Current != SchemaVersion.Draft4);
+            Write(schema, Current != JsonSchemaVersion.Draft4);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Json.Schema
             if (schema.SchemaVersion != null && Current != schema.SchemaVersion)
             {
                 _schemaVersion.Push(schema.SchemaVersion!);
-                _writer.WriteString(SchemaVocabulary.Schema, schema.SchemaVersion);
+                _writer.WriteString(JsonSchemaVocabulary.Schema, schema.SchemaVersion);
                 pop = true;
             }
             try
@@ -98,85 +98,85 @@ namespace Json.Schema
                     if (schema.Reference != null)
                     {
                         // Write the reference
-                        Write(SchemaVocabulary.Ref, schema.Reference);
+                        Write(JsonSchemaVocabulary.Ref, schema.Reference);
                         return;
                     }
 
                     if (schema.Id != null)
                     {
-                        Write(Current != SchemaVersion.Draft4
-                            ? SchemaVocabulary.Id : SchemaVocabulary.IdPreDraft6,
+                        Write(Current != JsonSchemaVersion.Draft4
+                            ? JsonSchemaVocabulary.Id : JsonSchemaVocabulary.IdPreDraft6,
                             schema.Id);
                     }
 
-                    Write(SchemaVocabulary.Title, schema.Title);
-                    Write(SchemaVocabulary.Description, schema.Description);
-                    if (Current != SchemaVersion.Draft4)
+                    Write(JsonSchemaVocabulary.Title, schema.Title);
+                    Write(JsonSchemaVocabulary.Description, schema.Description);
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        Write(SchemaVocabulary.Examples, schema.Examples);
-                        if (Current != SchemaVersion.Draft6)
+                        Write(JsonSchemaVocabulary.Examples, schema.Examples);
+                        if (Current != JsonSchemaVersion.Draft6)
                         {
-                            Write(SchemaVocabulary.Comment, schema.Comment);
+                            Write(JsonSchemaVocabulary.Comment, schema.Comment);
                         }
                     }
 
-                    Write(SchemaVocabulary.Type, schema.Types);
+                    Write(JsonSchemaVocabulary.Type, schema.Types);
 
-                    Write(SchemaVocabulary.Enum, schema.Enum);
+                    Write(JsonSchemaVocabulary.Enum, schema.Enum);
 
-                    Write(SchemaVocabulary.Items, schema.Items, true);
-                    Write(SchemaVocabulary.MinItems, schema.MinItems);
-                    Write(SchemaVocabulary.MaxItems, schema.MaxItems);
-                    Write(SchemaVocabulary.UniqueItems, schema.UniqueItems);
-                    Write(SchemaVocabulary.AdditionalItems, schema.AdditionalItems, true);
-                    if (Current != SchemaVersion.Draft4)
+                    Write(JsonSchemaVocabulary.Items, schema.Items, true);
+                    Write(JsonSchemaVocabulary.MinItems, schema.MinItems);
+                    Write(JsonSchemaVocabulary.MaxItems, schema.MaxItems);
+                    Write(JsonSchemaVocabulary.UniqueItems, schema.UniqueItems);
+                    Write(JsonSchemaVocabulary.AdditionalItems, schema.AdditionalItems, true);
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        Write(SchemaVocabulary.Contains, schema.Contains);
+                        Write(JsonSchemaVocabulary.Contains, schema.Contains);
                     }
-                    Write(SchemaVocabulary.AllOf, schema.AllOf);
-                    Write(SchemaVocabulary.OneOf, schema.OneOf);
-                    Write(SchemaVocabulary.AnyOf, schema.AnyOf);
-                    Write(SchemaVocabulary.Not, schema.Not, Current != SchemaVersion.Draft4);
+                    Write(JsonSchemaVocabulary.AllOf, schema.AllOf);
+                    Write(JsonSchemaVocabulary.OneOf, schema.OneOf);
+                    Write(JsonSchemaVocabulary.AnyOf, schema.AnyOf);
+                    Write(JsonSchemaVocabulary.Not, schema.Not, Current != JsonSchemaVersion.Draft4);
 
-                    Write(SchemaVocabulary.Properties, schema.Properties);
-                    Write(SchemaVocabulary.MinProperties, schema.MinProperties);
-                    Write(SchemaVocabulary.MaxProperties, schema.MaxProperties);
-                    Write(SchemaVocabulary.Required, schema.Required);
-                    Write(SchemaVocabulary.AdditionalProperties, schema.AdditionalProperties, true);
-                    Write(SchemaVocabulary.Dependencies, schema.Dependencies);
-                    if (Current != SchemaVersion.Draft4)
+                    Write(JsonSchemaVocabulary.Properties, schema.Properties);
+                    Write(JsonSchemaVocabulary.MinProperties, schema.MinProperties);
+                    Write(JsonSchemaVocabulary.MaxProperties, schema.MaxProperties);
+                    Write(JsonSchemaVocabulary.Required, schema.Required);
+                    Write(JsonSchemaVocabulary.AdditionalProperties, schema.AdditionalProperties, true);
+                    Write(JsonSchemaVocabulary.Dependencies, schema.Dependencies);
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        Write(SchemaVocabulary.PropertyNames, schema.PropertyNames, true);
+                        Write(JsonSchemaVocabulary.PropertyNames, schema.PropertyNames, true);
                     }
 
-                    Write(SchemaVocabulary.Minimum, schema.Minimum);
-                    Write(SchemaVocabulary.Maximum, schema.Maximum);
-                    Write(SchemaVocabulary.Default, schema.Default);
-                    Write(SchemaVocabulary.Format, schema.Format);
-                    Write(SchemaVocabulary.MultipleOf, schema.MultipleOf);
-                    if (Current != SchemaVersion.Draft4)
+                    Write(JsonSchemaVocabulary.Minimum, schema.Minimum);
+                    Write(JsonSchemaVocabulary.Maximum, schema.Maximum);
+                    Write(JsonSchemaVocabulary.Default, schema.Default);
+                    Write(JsonSchemaVocabulary.Format, schema.Format);
+                    Write(JsonSchemaVocabulary.MultipleOf, schema.MultipleOf);
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        Write(SchemaVocabulary.Const, schema.Const);
-                        if (Current != SchemaVersion.Draft6)
+                        Write(JsonSchemaVocabulary.Const, schema.Const);
+                        if (Current != JsonSchemaVersion.Draft6)
                         {
                             if (schema.ReadOnly.HasValue)
                             {
-                                Write(SchemaVocabulary.ReadOnly, schema.ReadOnly);
+                                Write(JsonSchemaVocabulary.ReadOnly, schema.ReadOnly);
                             }
                             else
                             {
-                                Write(SchemaVocabulary.WriteOnly, schema.WriteOnly);
+                                Write(JsonSchemaVocabulary.WriteOnly, schema.WriteOnly);
                             }
                         }
                     }
 
-                    Write(SchemaVocabulary.MinLength, schema.MinLength);
-                    Write(SchemaVocabulary.MaxLength, schema.MaxLength);
+                    Write(JsonSchemaVocabulary.MinLength, schema.MinLength);
+                    Write(JsonSchemaVocabulary.MaxLength, schema.MaxLength);
                 }
                 finally
                 {
-                    Write(Current != SchemaVersion.Draft4
-                        ? SchemaVocabulary.Defs : SchemaVocabulary.Definitions,
+                    Write(Current != JsonSchemaVersion.Draft4
+                        ? JsonSchemaVocabulary.Defs : JsonSchemaVocabulary.Definitions,
                         schema.Definitions);
                 }
             }
@@ -273,7 +273,7 @@ namespace Json.Schema
             }
             if (schemas.Count == 1 && allowSingleItem)
             {
-                Write(schemas[0], Current != SchemaVersion.Draft4);
+                Write(schemas[0], Current != JsonSchemaVersion.Draft4);
                 return;
             }
 
@@ -304,26 +304,26 @@ namespace Json.Schema
             }
             if (limit.Exclusive)
             {
-                if (name.SequenceCompareTo(SchemaVocabulary.Minimum) == 0)
+                if (name.SequenceCompareTo(JsonSchemaVocabulary.Minimum) == 0)
                 {
-                    if (Current != SchemaVersion.Draft4)
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        name = SchemaVocabulary.ExclusiveMinimum;
+                        name = JsonSchemaVocabulary.ExclusiveMinimum;
                     }
                     else
                     {
-                        Write(SchemaVocabulary.ExclusiveMinimum, limit.Exclusive);
+                        Write(JsonSchemaVocabulary.ExclusiveMinimum, limit.Exclusive);
                     }
                 }
-                else if (name.SequenceCompareTo(SchemaVocabulary.Maximum) == 0)
+                else if (name.SequenceCompareTo(JsonSchemaVocabulary.Maximum) == 0)
                 {
-                    if (Current != SchemaVersion.Draft4)
+                    if (Current != JsonSchemaVersion.Draft4)
                     {
-                        name = SchemaVocabulary.ExclusiveMaximum;
+                        name = JsonSchemaVocabulary.ExclusiveMaximum;
                     }
                     else
                     {
-                        Write(SchemaVocabulary.ExclusiveMaximum, limit.Exclusive);
+                        Write(JsonSchemaVocabulary.ExclusiveMaximum, limit.Exclusive);
                     }
                 }
             }

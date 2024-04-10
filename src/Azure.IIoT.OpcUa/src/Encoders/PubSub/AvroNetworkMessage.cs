@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Avro;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Opc.Ua;
     using System;
     using System.Buffers;
@@ -74,9 +75,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Create message
         /// </summary>
         /// <param name="schema"></param>
-        public AvroNetworkMessage(Schema schema)
+        public AvroNetworkMessage(IAvroSchema schema)
         {
-            Schema = schema;
+            Schema = schema.Schema;
             MessageId = () => _messageId ?? string.Empty;
         }
 
@@ -247,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var messages = decoder.ReadArray<BaseDataSetMessage?>(
                 nameof(Messages), () =>
             {
-                var message = new AvroDataSetMessage(decoder.Schema);
+                var message = new AvroDataSetMessage();
                 if (!message.TryDecode(decoder, HasDataSetMessageHeader))
                 {
                     return null;

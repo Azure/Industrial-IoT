@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public sealed class JsonNetworkMessageSchema : IEventSchema
+    public sealed class JsonNetworkMessageJsonSchema : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        public JsonNetworkMessageSchema(WriterGroupModel writerGroup,
+        public JsonNetworkMessageJsonSchema(WriterGroupModel writerGroup,
             SchemaOptions? options = null, bool useCompatibilityMode = false,
             Dictionary<string, JsonSchema>? definitions = null)
             : this(writerGroup.DataSetWriters!, writerGroup.Name,
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        public JsonNetworkMessageSchema(DataSetWriterModel dataSetWriter,
+        public JsonNetworkMessageJsonSchema(DataSetWriterModel dataSetWriter,
             string? name = null,
             NetworkMessageContentMask? networkMessageContentMask = null,
             SchemaOptions? options = null, bool useCompatibilityMode = false,
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="useCompatibilityMode"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        internal JsonNetworkMessageSchema(
+        internal JsonNetworkMessageJsonSchema(
             IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
             NetworkMessageContentMask? networkMessageContentMask,
             SchemaOptions? options, bool useCompatibilityMode,
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new JsonDataSetMessageSchema(writer,
+                .Select(writer => new JsonDataSetMessageJsonSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
                         _options, Definitions, UseCompatibilityMode).Ref!)
                 .Where(r => r != null)
@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return payloadType;
             }
 
-            var encoding = new BuiltInJsonSchemas(true, false, Definitions);
+            var encoding = new JsonBuiltInJsonSchemas(true, false, Definitions);
             var properties = new Dictionary<string, JsonSchema>
             {
                 [nameof(JsonNetworkMessage.MessageId)] =

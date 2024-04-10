@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// Provides the Avro schemas of built in types and objects
     /// for the Avro binary encoding
     /// </summary>
-    internal class BuiltInAvroSchemas : BaseBuiltInSchemas<Schema>
+    internal class AvroBuiltInAvroSchemas : BaseBuiltInSchemas<Schema>
     {
         private static Schema EnumerationSchema
         {

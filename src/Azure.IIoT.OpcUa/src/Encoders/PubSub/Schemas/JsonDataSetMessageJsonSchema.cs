@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// DataSet message Json schema
     /// </summary>
-    public sealed class JsonDataSetMessageSchema : IEventSchema
+    public sealed class JsonDataSetMessageJsonSchema : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -65,14 +65,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="definitions"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <returns></returns>
-        public JsonDataSetMessageSchema(DataSetWriterModel dataSetWriter,
+        public JsonDataSetMessageJsonSchema(DataSetWriterModel dataSetWriter,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
             Dictionary<string, JsonSchema>? definitions = null,
             bool useCompatibilityMode = false)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetJsonSchema(dataSetWriter, options, definitions);
+            _dataSet = new JsonDataSetJsonSchema(dataSetWriter, options, definitions);
             UseCompatibilityMode = useCompatibilityMode;
             Name = GetName(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName);
             Ref = Compile(dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="options"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        public JsonDataSetMessageSchema(PublishedDataSetModel dataSet,
+        public JsonDataSetMessageJsonSchema(PublishedDataSetModel dataSet,
             DataSetContentMask? dataSetContentMask = null,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new DataSetJsonSchema(null, dataSet,
+            _dataSet = new JsonDataSetJsonSchema(null, dataSet,
                 dataSetFieldContentMask, options, definitions);
             Name = GetName(dataSet.Name);
             Ref = Compile(dataSetContentMask ?? default);
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return _dataSet.Ref;
             }
 
-            var encoding = new BuiltInJsonSchemas(true, true, Definitions);
+            var encoding = new JsonBuiltInJsonSchemas(true, true, Definitions);
             var properties = new Dictionary<string, JsonSchema>();
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterId))
             {
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 {
                     // Up to version 2.8 we wrote the full status code
                     properties.Add(nameof(DataSetContentMask.Status),
-                        new BuiltInJsonSchemas(false, false, Definitions)
+                        new JsonBuiltInJsonSchemas(false, false, Definitions)
                         .GetSchemaForBuiltInType(BuiltInType.StatusCode));
                 }
             }
@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return typeName;
         }
 
-        private readonly DataSetJsonSchema _dataSet;
+        private readonly JsonDataSetJsonSchema _dataSet;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }

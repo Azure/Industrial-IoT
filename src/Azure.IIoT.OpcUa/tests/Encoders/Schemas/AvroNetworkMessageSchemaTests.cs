@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateAvroNetworkMessageSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateAvroNetworkMessageWithNs(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
-            var schema = new AvroNetworkMessageSchema(group, new SchemaOptions
+            var schema = new AvroNetworkMessageAvroSchema(group, new SchemaOptions
             {
                 Namespace = "http://www.microsoft.com"
             });
@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             await AssertAsync("Multiple", writerGroupFile, json);
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             await AssertAsync("Single", writerGroupFile, json);
@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             };
 
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             await AssertAsync("Default", writerGroupFile, json);
@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             await AssertAsync("Raw", writerGroupFile, json);
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new AvroNetworkMessageSchema(group);
+            var schema = new AvroNetworkMessageAvroSchema(group);
 
             var json = schema.ToString();
             await AssertAsync("RawReversible", writerGroupFile, json);

@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public sealed class DataSetJsonSchema : BaseDataSetSchema<JsonSchema>, IEventSchema
+    public sealed class JsonDataSetJsonSchema : BaseDataSetSchema<JsonSchema>, IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Definitions
         /// </summary>
         internal Dictionary<string, JsonSchema> Definitions
-            => ((BuiltInJsonSchemas)Encoding).Definitions;
+            => ((JsonBuiltInJsonSchemas)Encoding).Definitions;
 
         /// <summary>
         /// Get json schema for a dataset
@@ -67,10 +67,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="options"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        public DataSetJsonSchema(string? name, PublishedDataSetModel dataSet,
+        public JsonDataSetJsonSchema(string? name, PublishedDataSetModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null, Dictionary<string, JsonSchema>? definitions = null)
-            : base(dataSetFieldContentMask, new BuiltInJsonSchemas(
+            : base(dataSetFieldContentMask, new JsonBuiltInJsonSchemas(
                 dataSetFieldContentMask ?? default, definitions), options)
         {
             Name = name ?? "DataSet";
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="options"></param>
         /// <param name="definitions"></param>
         /// <returns></returns>
-        public DataSetJsonSchema(DataSetWriterModel dataSetWriter,
+        public JsonDataSetJsonSchema(DataSetWriterModel dataSetWriter,
             SchemaOptions? options = null, Dictionary<string, JsonSchema>? definitions = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),

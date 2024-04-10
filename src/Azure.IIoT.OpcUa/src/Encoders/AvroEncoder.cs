@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Threading.Tasks;
     using System.Xml;
 
     /// <summary>
@@ -717,7 +716,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly BuiltInAvroSchemas _builtIns = new();
+        private readonly AvroBuiltInAvroSchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

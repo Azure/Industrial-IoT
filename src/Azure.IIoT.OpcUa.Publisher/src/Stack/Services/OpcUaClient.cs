@@ -287,7 +287,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (reverseConnectManager == null)
             {
                 return await CreateAsync(configuration, endpoint, updateBeforeConnect,
-                    checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
+                    checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales,
+                    ct).ConfigureAwait(false);
             }
             ITransportWaitingConnection? connection;
             do
