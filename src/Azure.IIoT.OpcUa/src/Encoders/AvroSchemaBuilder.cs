@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Schema to use
         /// </summary>
-        public Schema Schema => _schemas.Peek();
+        public Schema Schema => _schemas.Peek().Unwrap();
 
         /// <summary>
         /// Creates an encoder that writes to the stream.
@@ -524,8 +524,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 valueRanks);
             if (!_schemas.TryPeek(out var top))
             {
-                schema = CreateRootSchema(fieldName, schema);
-                _schemas.Push(schema);
+                _schemas.Push(AvroSchema.CreateRoot(schema, fieldName));
             }
             else if (top is ArraySchema arr)
             {
@@ -559,11 +558,11 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return Nothing.ToDo;
             }
             var schema = array ? (Schema)ArraySchema.Create(
-                PlaceHolderSchema.Create("Dummy", "")) :
+                AvroSchema.CreatePlaceHolder("Dummy", "")) :
                 RecordSchema.Create(typeName, new List<Field>());
             if (!_schemas.TryPeek(out var top))
             {
-                _schemas.Push(CreateRootSchema(fieldName, schema));
+                _schemas.Push(AvroSchema.CreateRoot(schema, fieldName));
             }
             else if (top is ArraySchema arr)
             {
@@ -583,14 +582,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             return new Pop(this);
         }
 
-        private static RecordSchema CreateRootSchema(string? fieldName, Schema schema)
-        {
-            return RecordSchema.Create("Root", new List<Field>
-            {
-                new (schema, fieldName ?? kDefaultFieldName, 0)
-            });
-        }
-
         private sealed record Pop(AvroSchemaBuilder outer) : IDisposable
         {
             public void Dispose()
@@ -605,6 +596,24 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 outer._skipInnerSchemas = false;
             }
+        }
+
+        /// <summary>
+        /// Create root schema for a schema or field at the root
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        public static RecordSchema CreateRoot(Schema schema, string? fieldName = null)
+        {
+            if (schema is RecordSchema r && fieldName == null)
+            {
+                return r;
+            }
+            return RecordSchema.Create("Root", new List<Field>
+            {
+                new (schema, fieldName ?? "Value", 0)
+            });
         }
 
         private sealed class Nothing : IDisposable

@@ -114,55 +114,61 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private Schema Compile(string? typeName, List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
-            var dsmHeader = contentMask
+            var HasDataSetMessageHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
-            var nwmHeader = contentMask
+            var HasNetworkMessageHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
 
-            var dataSetMessages = dataSetWriters
+            var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new AvroDataSetMessageAvroSchema(writer,
-                    dsmHeader, _options).Schema)
+                    HasDataSetMessageHeader, _options).Schema)
                 .ToList();
 
-            if (dataSetMessages.Count == 0)
+            if (dataSetMessageSchemas.Count == 0)
             {
                 return AvroSchema.Null;
             }
 
-            var payloadType = dataSetMessages.Count > 1 ?
-                AvroSchema.CreateUnion(dataSetMessages) : dataSetMessages[0];
-            var singleMessage = contentMask
-                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+            var payloadType = dataSetMessageSchemas.Count > 1 ?
+                AvroSchema.CreateUnion(dataSetMessageSchemas) :
+                dataSetMessageSchemas[0];
 
-            if (!singleMessage)
+            var HasSingleDataSetMessage = contentMask
+                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+            if (!HasSingleDataSetMessage)
             {
                 // Could be an array of messages
                 payloadType = ArraySchema.Create(payloadType);
             }
 
-            if (!nwmHeader)
+            if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
                 return payloadType;
             }
 
             var encoding = new AvroBuiltInAvroSchemas();
-            var fields = new List<Field>
-            {
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageId", 0),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageType", 1),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "PublisherId", 2),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
-                    "DataSetClassId", 3),
-                new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "DataSetWriterGroup", 4),
-                new(payloadType,
-                    "Messages", 5)
-            };
+            var fields = HasNetworkMessageHeader ?
+                new List<Field>
+                {
+                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                        nameof(AvroNetworkMessage.MessageId), 0),
+                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                        nameof(AvroNetworkMessage.MessageType), 1),
+                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                        nameof(AvroNetworkMessage.PublisherId), 2),
+                    new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
+                        nameof(AvroNetworkMessage.DataSetClassId), 3),
+                    new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
+                        nameof(AvroNetworkMessage.DataSetWriterGroup), 4),
+
+                    new(payloadType, nameof(AvroNetworkMessage.Messages), 5)
+                } :
+                new List<Field>
+                {
+                    new(payloadType, nameof(AvroNetworkMessage.Messages), 0)
+                };
 
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))

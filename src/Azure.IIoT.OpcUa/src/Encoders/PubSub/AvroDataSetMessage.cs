@@ -7,6 +7,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Avro;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -25,6 +27,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Dataset name
         /// </summary>
         public string? DataSetName { get; set; }
+
+        /// <summary>
+        /// Dataset header
+        /// </summary>
+        internal bool WithDataSetHeader { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -62,15 +69,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(BaseAvroEncoder encoder, string? fieldName, bool withHeader)
+        internal virtual void Encode(BaseAvroEncoder encoder, bool withDataSetHeader)
         {
-            if (!withHeader)
+            WithDataSetHeader = withDataSetHeader;
+            if (!WithDataSetHeader)
             {
+                // If no header, write payload object
                 encoder.WriteDataSet(null, Payload);
                 return;
             }
 
-            encoder.WriteObject(fieldName, DataSetName ?? nameof(AvroDataSetMessage), () =>
+            // If header, write data set message
+            encoder.WriteObject(null, DataSetName ?? nameof(AvroDataSetMessage), () =>
             {
                 WriteDataSetMessageHeader(encoder);
                 // Write payload
@@ -79,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual bool TryDecode(AvroDecoder decoder, string? fieldName, bool withHeader)
+        internal virtual bool TryDecode(AvroDecoder decoder, bool withDataSetHeader)
         {
             // Reset content
             DataSetMessageContentMask = 0;
@@ -89,14 +99,50 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             SequenceNumber = 0;
             MetaDataVersion = null;
             Timestamp = DateTime.MinValue;
+            WithDataSetHeader = withDataSetHeader;
 
-            if (withHeader && !TryReadDataSetMessageHeader(decoder))
+            var current = decoder.Current;
+
+            // Try first to read the object with header
+            if (withDataSetHeader)
             {
-                return false;
+                var result = decoder.ReadObject(null, schema =>
+                {
+                    if (schema is not RecordSchema recordSchema)
+                    {
+                        return false;
+                    }
+
+                    if (recordSchema.Fields.Count > 0 &&
+                        recordSchema.Fields[0].Name == nameof(MessageType))
+                    {
+                        WithDataSetHeader = true;
+                        DataSetName = recordSchema.Name;
+                        if (DataSetName == nameof(AvroDataSetMessage))
+                        {
+                            DataSetName = null;
+                        }
+                        if (!TryReadDataSetMessageHeader(decoder))
+                        {
+                            return false;
+                        }
+                        // Read payload
+                        Payload = decoder.ReadDataSet(nameof(Payload));
+                        return true;
+                    }
+                    return (bool?)null;
+                });
+
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
             }
 
-            // Read payload
-            Payload = decoder.ReadDataSet(nameof(Payload));
+            // Fall back to read the data set
+            decoder.Push(current);
+            WithDataSetHeader = false;
+            Payload = decoder.ReadDataSet(null);
             return true;
         }
 

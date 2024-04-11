@@ -43,22 +43,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataSetFieldContentMask.StatusCode;
 
         [Theory]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 1)]
+        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 1)]
         public void EncodeDecodeNetworkMessage(bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
             networkMessage.UseGzipCompression = compress;
@@ -80,22 +76,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 1)]
+        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 3)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 1)]
         public void EncodeDecodeNetworkMessageReversible(bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
                     DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
@@ -118,82 +110,39 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 15, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessages(bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
             networkMessage.UseGzipCompression = compress;
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
 
             ConvertToOpcUaUniversalTime(networkMessage);
 
             var m = buffers
                 .Select(buffer => (BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context))
-                .ToList();
-            var result = m[0];
-            result.Messages = m.SelectMany(m => m.Messages).ToList();
-            Assert.Equal(networkMessage, result);
-        }
-
-        [Theory]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        public void EncodeDecodeNetworkMessagesReversible(bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
-                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask, messages);
-            networkMessage.UseGzipCompression = compress;
-
-            var context = new ServiceMessageContext();
-            var buffers = networkMessage.Encode(context, maxMessageSize);
-
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            var m = buffers
-                .Select(buffer => (BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context))
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json))
                 .ToList();
             var result = m[0];
             result.Messages = m.SelectMany(m => m.Messages).ToList();
@@ -203,48 +152,88 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         [Theory]
         [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault, 15, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        public void EncodeDecodeNetworkMessagesNoNetworkMessageHeader(
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+        [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
+        public void EncodeDecodeNetworkMessagesReversible(bool compress,
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
+                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
+                .ToList();
+            var networkMessage = CreateNetworkMessage(contentMask, messages);
+            networkMessage.UseGzipCompression = compress;
+
+            var context = new ServiceMessageContext();
+            var buffers = networkMessage.Encode(context, maxMessageSize);
+
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
+            ConvertToOpcUaUniversalTime(networkMessage);
+
+            var m = buffers
+                .Select(buffer => (BaseNetworkMessage)PubSubMessage
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json))
+                .ToList();
+            var result = m[0];
+            result.Messages = m.SelectMany(m => m.Messages).ToList();
+            Assert.Equal(networkMessage, result);
+        }
+
+        [Theory]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
+        public void EncodeDecodeNetworkMessagesNoNetworkMessageHeader(
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+        {
+            var messages = Enumerable
+                .Range(3, numberOfMessages)
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask & ~JsonNetworkMessageContentMask.NetworkMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
 
             var result = buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context)).Messages)
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .ToList();
             Assert.Equal(networkMessage.Messages, result);
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoDataSetMessageHeader(
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
                 & ~JsonNetworkMessageContentMask.DataSetMessageHeader, messages);
@@ -252,31 +241,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
 
             var result = buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context)).Messages)
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .Select(m => m.Payload)
                 .ToList();
             Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeader(
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
                 & ~(JsonNetworkMessageContentMask.NetworkMessageHeader | JsonNetworkMessageContentMask.DataSetMessageHeader), messages);
@@ -284,31 +273,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
 
             var result = buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context)).Messages)
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .Select(m => m.Payload)
                 .ToList();
             Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeaderRaw(
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
+                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
                     dataSetFieldContentMask: DataSetFieldContentMask.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
@@ -317,13 +307,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
+            var schema = networkMessage.Schema;
+            Assert.NotNull(schema);
+            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
             var serializer = new NewtonsoftJsonSerializer();
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context)).Messages)
+                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload)
                 .Select(v => (v.Key, v.Value.Value))
                 .ToList()));
@@ -363,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private static AvroNetworkMessage CreateNetworkMessage(
             JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
         {
-            return new AvroNetworkMessage(null)
+            return new AvroNetworkMessage
             {
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 Messages = messages,
@@ -377,18 +370,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Create dataset message
         /// </summary>
-        /// <param name="useCompatibilityMode"></param>
         /// <param name="sequenceNumber"></param>
         /// <param name="dataSetMessageContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
-        private static AvroDataSetMessage CreateDataSetMessage(bool useCompatibilityMode, int sequenceNumber,
+        private static AvroDataSetMessage CreateDataSetMessage(int sequenceNumber,
             JsonDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
             DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new AvroDataSetMessage
             {
                 DataSetWriterName = "WriterId",
-                DataSetWriterId = (ushort)(useCompatibilityMode ? 0 : 3),
+                DataSetWriterId = 3,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = (ushort)sequenceNumber,
                 Status = StatusCodes.Bad,

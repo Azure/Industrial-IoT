@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Avro;
     using Opc.Ua;
     using System;
@@ -540,8 +539,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                     if (fieldRecord.IsBuiltInType(out var builtInType) &&
                         builtInType != BuiltInType.DataValue)
                     {
-                        // Read value as variant
-                        WriteVariant(null, value.WrappedValue); // TODO
+                        // Write value as variant
+                        base.WriteVariant(fieldName, value.WrappedValue); // TODO
+                        return;
                     }
 
                     foreach (var dvf in fieldRecord.Fields)
@@ -680,7 +680,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (currentSchema.Fullname != expectedSchemaFullName)
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Failed to decode. Schema {0} is not as expected {1}",
+                    "Failed to encode. Schema {0} is not as expected {1}",
                     currentSchema.Fullname, expectedSchemaFullName);
             }
 
@@ -734,7 +734,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (!_schema.TryMoveNext())
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Failed to decode. No schema for field {0}",
+                    "Failed to encode. No schema for field {0}",
                     fieldName ?? string.Empty);
             }
             return _schema.Current;

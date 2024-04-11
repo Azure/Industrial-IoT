@@ -524,8 +524,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 NamespaceFormat namespaceFormat, IEventSchema? schema)
                             {
                                 BaseNetworkMessage currentMessage = schema is IAvroSchema s &&
-                                    encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage(s.Schema)
+                                    encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage
                                     {
+                                        Schema = s.Schema,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                         MessageId = () => Guid.NewGuid().ToString()
                                     } :

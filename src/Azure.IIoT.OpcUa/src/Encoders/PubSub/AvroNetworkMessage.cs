@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Message schema
         /// </summary>
-        public Schema? Schema { get; private set; }
+        public Schema? Schema { get; set; }
 
         /// <summary>
         /// Message id
@@ -77,16 +77,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         public bool UseGzipCompression { get; set; }
 
-        /// <summary>
-        /// Create message
-        /// </summary>
-        /// <param name="schema"></param>
-        public AvroNetworkMessage(Schema? schema)
-        {
-            Schema = schema;
-            MessageId = () => _messageId ?? string.Empty;
-        }
-
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
@@ -94,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return true;
             }
-            if (obj is not JsonNetworkMessage wrapper)
+            if (obj is not AvroNetworkMessage wrapper)
             {
                 return false;
             }
@@ -266,20 +256,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Reset
             DataSetWriterGroup = null;
             DataSetClassId = default;
-            NetworkMessageContentMask = 0;
+            NetworkMessageContentMask = (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
             MessageId = () => Guid.NewGuid().ToString();
             PublisherId = null;
+            Messages.Clear();
 
-            return decoder.ReadObject(null, schema =>
+            var current = decoder.Current;
+            var result = decoder.ReadObject(null, schema =>
             {
-                if (schema is RecordSchema recordSchema &&
-                    recordSchema.Fields.Count == 6 &&
+                if (schema is not RecordSchema recordSchema)
+                {
+                    // Should always be a record at the start
+                    return false;
+                }
+
+                if (recordSchema.Fields.Count == 6 &&
                     recordSchema.Fields[0].Name == nameof(MessageId) &&
                     recordSchema.Fields[5].Name == nameof(Messages))
                 {
                     // Read network message header
                     NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
-                    _messageId = decoder.ReadString(nameof(MessageId));
+
+                    var messageId = decoder.ReadString(nameof(MessageId));
+                    if (messageId != null)
+                    {
+                        MessageId = () => messageId;
+                    }
                     var messageType = decoder.ReadString(nameof(MessageType));
                     if (!string.Equals(messageType, MessageTypeUaData,
                         StringComparison.OrdinalIgnoreCase))
@@ -291,56 +293,55 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     DataSetClassId = decoder.ReadGuid(nameof(DataSetClassId));
                     DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
 
-                    return TryReadDataSetMessages(decoder, nameof(Messages));
+                    // Header and content is array of messages
+                    return TryReadDataSetMessageArray(decoder, nameof(Messages));
                 }
 
-                // No header, read object
-                return TryReadDataSetMessages(decoder, null);
+                if (recordSchema.Fields.Count == 1 &&
+                    recordSchema.Fields[0].Name == nameof(Messages))
+                {
+                    // No header and content is array of messages
+                    return TryReadDataSetMessageArray(decoder, nameof(Messages));
+                }
+
+                // No header thus content must be single data set message
+                NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                return (bool?)null;
             });
 
-            bool TryReadDataSetMessages(AvroDecoder decoder, string? fieldName)
+            if (!result.HasValue)
             {
-                return decoder.ReadObject(fieldName, schema =>
+                // Reposition the schema
+                decoder.Push(current);
+                return TryReadDataSetMessage(decoder);
+
+            }
+            return result.Value;
+
+            bool TryReadDataSetMessageArray(AvroDecoder decoder, string fieldName)
+            {
+                // Read objects from field name
+                var result = decoder.ReadArray(fieldName, () => TryReadDataSetMessage(decoder));
+                if (result.Length == 1)
                 {
-                    // If schema is array, read array, if schema is not, read single message
+                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                }
+                return result.All(s => s);
+            }
 
-                    if (schema is not ArraySchema arraySchema)
+            bool TryReadDataSetMessage(AvroDecoder decoder)
+            {
+                var message = new AvroDataSetMessage();
+                if (message.TryDecode(decoder, HasDataSetMessageHeader))
+                {
+                    if (!message.WithDataSetHeader)
                     {
-                        NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
-                        var message = new AvroDataSetMessage();
-                        if (message.TryDecode(decoder, nameof(Messages), HasDataSetMessageHeader))
-                        {
-                            Messages.Clear();
-                            Messages.Add(message);
-                            return true;
-                        }
-                        return false;
+                        NetworkMessageContentMask &= ~(uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
                     }
-
-                    var messages = decoder.ReadArray<BaseDataSetMessage?>(
-                        nameof(Messages), () =>
-                    {
-                        var message = new AvroDataSetMessage();
-                        if (!message.TryDecode(decoder, null, HasDataSetMessageHeader))
-                        {
-                            return null;
-                        }
-                        return message;
-                    });
-
-                    // Add decoded messages to messages array
-                    foreach (var message in messages)
-                    {
-                        if (message == null)
-                        {
-                            // Reset
-                            Messages.Clear();
-                            return false;
-                        }
-                        Messages.Add(message);
-                    }
+                    Messages.Add(message);
                     return true;
-                });
+                }
+                return false;
             }
         }
 
@@ -352,34 +353,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private void WriteNetworkMessage(BaseAvroEncoder encoder,
             AvroDataSetMessage[] messages)
         {
-            if (!HasNetworkMessageHeader)
+            if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
-                messages[0].Encode(encoder, null, HasDataSetMessageHeader);
+                Debug.Assert(messages.Length == 1);
+                // Writes data set message or just data set
+                messages[0].Encode(encoder, HasDataSetMessageHeader);
                 return;
             }
 
             // Write network message
             encoder.WriteObject(null, nameof(AvroNetworkMessage), () =>
             {
-                encoder.WriteString(nameof(MessageId), MessageId());
-                encoder.WriteString(nameof(MessageType), MessageType);
-                encoder.WriteString(nameof(PublisherId), PublisherId);
-                encoder.WriteGuid(nameof(DataSetClassId), DataSetClassId);
-                encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
-                if (HasSingleDataSetMessage)
+                if (HasNetworkMessageHeader)
                 {
-                    Debug.Assert(messages.Length == 1);
-                    messages[0].Encode(encoder, nameof(Messages), HasDataSetMessageHeader);
+                    encoder.WriteString(nameof(MessageId), MessageId());
+                    encoder.WriteString(nameof(MessageType), MessageType);
+                    encoder.WriteString(nameof(PublisherId), PublisherId);
+                    encoder.WriteGuid(nameof(DataSetClassId), DataSetClassId);
+                    encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
                 }
-                else
-                {
-                    encoder.WriteArray(nameof(Messages), messages,
-                        v => v.Encode(encoder, null, HasDataSetMessageHeader));
-                }
+
+                // We write array regardless of single or multi message
+                encoder.WriteArray(nameof(Messages), messages,
+                    v => v.Encode(encoder, HasDataSetMessageHeader));
             });
         }
-
-        /// <summary> To update message id </summary>
-        protected string? _messageId;
     }
 }

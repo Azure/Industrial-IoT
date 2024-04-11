@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text.Json;
 
@@ -65,11 +66,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var document = JsonDocument.Parse(json);
             return JsonSerializer.Serialize(document, options ?? kIndented);
         }
-
-        private static readonly JsonSerializerOptions kIndented = new()
-        {
-            WriteIndented = true
-        };
 
         /// <summary>
         /// Test for built in type
@@ -134,5 +130,101 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 Compare.Using<Schema>((a, b) => a?.Fullname == b?.Fullname)).ToList();
             return UnionSchema.Create(types, customProperties);
         }
+
+        /// <summary>
+        /// Create root schema for a schema or field at the root
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        public static RecordSchema CreateRoot(this Schema schema, string? fieldName = null)
+        {
+            return RecordSchema.Create(kRootSchemaName, new List<Field>
+            {
+                new (schema, fieldName ?? kRootFieldName, 0)
+            }, kRootNamespace);
+        }
+
+        /// <summary>
+        /// Check whether to skip the dummy root during validation
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public static bool IsRoot(this Schema schema)
+        {
+            return schema is RecordSchema r && r.Name == kRootSchemaName &&
+                r.Fields.Count == 1 && r.Namespace == kRootNamespace;
+        }
+
+        /// <summary>
+        /// Unwrap a root place holder
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public static Schema Unwrap(this Schema schema)
+        {
+            if (schema.IsRoot())
+            {
+                var root = (RecordSchema)schema;
+                if (root.Fields.Count == 1 &&
+                    root.Fields[0].Name == kRootFieldName)
+                {
+                    root = root.Fields[0].Schema as RecordSchema;
+                    if (root != null)
+                    {
+                        return root;
+                    }
+                }
+            }
+            return schema;
+        }
+
+        /// <summary>
+        /// Create derived schema
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="ns"></param>
+        /// <returns></returns>
+        public static PlaceHolder CreatePlaceHolder(string name,
+            string ns)
+        {
+            return new PlaceHolder(Schema.Type.Record,
+                new SchemaName(name, ns, null, null));
+        }
+
+        /// <summary>
+        /// Derived schema
+        /// </summary>
+        public class PlaceHolder : NamedSchema
+        {
+            /// <inheritdoc/>
+            public PlaceHolder(Type type, SchemaName name,
+                IList<string>? aliases = null, PropertyMap? props = null,
+                SchemaNames? names = null, string? doc = null)
+                : base(type, name, GetSchemaNames(aliases, name),
+                      props, names ?? new SchemaNames(), doc)
+            {
+            }
+
+            internal static IList<SchemaName>? GetSchemaNames(
+                IEnumerable<string>? aliases, SchemaName typeName)
+            {
+                if (aliases == null)
+                {
+                    return null;
+                }
+                return aliases.Select(alias => new SchemaName(
+                    alias, typeName.Namespace, null, null)).ToList();
+            }
+        }
+
+        private const string kRootFieldName = "Value";
+        private const string kRootSchemaName = "Type";
+        private const string kRootNamespace = "org.apache.avro";
+
+        private static readonly JsonSerializerOptions kIndented = new()
+        {
+            WriteIndented = true
+        };
     }
 }

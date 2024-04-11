@@ -335,7 +335,7 @@
                       "name": "TimeZoneDataType",
                       "namespace": "org.opcfoundation.UA",
                       "aliases": [
-                        "org.opcfoundation.UA.i_8912"
+                        "org.opcfoundation.UA.i_x95_8912"
                       ],
                       "fields": [
                         {

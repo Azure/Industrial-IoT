@@ -184,7 +184,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 case Encoders.ContentType.Avro:
                 case Encoders.ContentType.AvroGzip:
                 case ContentMimeType.AvroBinary:
-                    message = new AvroNetworkMessage(Schema.Parse(messageSchema));
+                    message = new AvroNetworkMessage
+                    {
+                        Schema = Schema.Parse(messageSchema),
+                        UseGzipCompression = contentType.Equals(
+                            Encoders.ContentType.AvroGzip, StringComparison.OrdinalIgnoreCase)
+                    };
                     if (message.TryDecode(context, reader, resolver))
                     {
                         return message;

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Avro;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -36,7 +37,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="schema"></param>
         public AvroSchemaTraverser(Schema schema)
         {
-            Push(schema);
+            //
+            // We need to push a root schema to start traversal
+            // Either this is already a root schema for example
+            // if the value was not a record or a record on a
+            // field or we create an artificial one using array
+            // schema to start moving to the actual schema the
+            // first time move next is called.
+            //
+            Push(schema.IsRoot() ? schema : ArraySchema.Create(schema));
         }
 
         /// <summary>
@@ -78,11 +87,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Finalize
+        /// Validate we completed traversal
         /// </summary>
         public bool IsDone()
         {
-            return _schemas.Count != 0;
+            Debug.Assert(_schemas.Count > 0);
+            if (_schemas.Count == 1)
+            {
+                // See constructor
+                var root = _schemas.Peek();
+                return root.Schema is ArraySchema || root.Schema.IsRoot();
+            }
+            return false;
         }
 
         /// <summary>
@@ -228,8 +244,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 _outer.ExpectedFieldName = null;
                 if (fieldName != null && field.Name != fieldName)
                 {
-                    if (!_record.TryGetField(fieldName, out field) &&
-                        !_record.TryGetFieldAlias(fieldName, out field))
+                    var schemaField = SchemaUtils.Escape(fieldName);
+                    if (!_record.TryGetField(schemaField, out field) &&
+                        !_record.TryGetFieldAlias(schemaField, out field))
                     {
                         return false;
                     }

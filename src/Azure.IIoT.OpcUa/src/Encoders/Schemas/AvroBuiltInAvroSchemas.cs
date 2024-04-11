@@ -409,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="builtInType"></param>
         /// <param name="rank"></param>
         /// <returns></returns>
-        private static PlaceHolderSchema PlaceHolder(BuiltInType builtInType,
+        private static AvroSchema.PlaceHolder PlaceHolder(BuiltInType builtInType,
             int rank)
         {
             var name = builtInType.ToString();
@@ -421,7 +421,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 name += "Collection";
             }
-            return PlaceHolderSchema.Create(name, SchemaUtils.NamespaceZeroName);
+            return AvroSchema.CreatePlaceHolder(name, SchemaUtils.NamespaceZeroName);
         }
 
         private const string kSingleFieldName = "Value";

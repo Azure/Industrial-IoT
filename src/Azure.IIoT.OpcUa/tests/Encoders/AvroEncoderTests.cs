@@ -557,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestDiagnosticInfo()
         {
             var context = new ServiceMessageContext();
-            var expected = new DiagnosticInfo() { AdditionalInfo = "dd" };
+            var expected = new DiagnosticInfo { AdditionalInfo = "dd" };
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true);
             builder.WriteDiagnosticInfo(null, expected);
@@ -574,10 +574,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestDiagnosticInfoWithInner()
         {
             var context = new ServiceMessageContext();
-            var expected = new DiagnosticInfo()
+            var expected = new DiagnosticInfo
             {
                 AdditionalInfo = "outer",
-                InnerDiagnosticInfo = new DiagnosticInfo() { AdditionalInfo = "inner" }
+                InnerDiagnosticInfo = new DiagnosticInfo { AdditionalInfo = "inner" }
             };
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true);

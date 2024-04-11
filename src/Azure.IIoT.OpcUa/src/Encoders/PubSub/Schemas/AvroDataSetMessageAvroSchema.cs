@@ -7,15 +7,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Opc.Ua;
     using System.Collections.Generic;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Globalization;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Network message avro schema
@@ -130,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     nameof(DataSetContentMask.Timestamp), 5),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode),
                     nameof(DataSetContentMask.Status), 6),
-                new(_dataSet.Schema, "Payload", 7)
+
+                new(_dataSet.Schema, nameof(AvroDataSetMessage.Payload), 7)
             };
 
             // Type name of the message record

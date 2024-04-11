@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public Schema Schema { get; }
 
         /// <summary>
-        /// Current schema
+        /// Schema to use
         /// </summary>
         public Schema Current => _schema.Current;
 
@@ -255,20 +255,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override T ReadObject<T>(string? fieldName, Func<object?, T> reader)
-        {
-            var schema = GetFieldSchema(fieldName);
-            try
-            {
-                return reader(schema);
-            }
-            finally
-            {
-                _schema.Pop();
-            }
-        }
-
-        /// <inheritdoc/>
         public override DataSet ReadDataSet(string? fieldName)
         {
             var schema = GetFieldSchema(fieldName);
@@ -286,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 foreach (var field in r.Fields)
                 {
                     var dataValue = ReadDataSetField(field.Name, ref isRaw);
-                    dataSet.Add(field.Name, dataValue);
+                    dataSet.Add(SchemaUtils.Unescape(field.Name), dataValue);
                 }
                 if (isRaw)
                 {
@@ -545,6 +531,26 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
             return ValidatedReadArray(() => base.ReadArray(fieldName, () => reader()));
+        }
+
+        /// <inheritdoc/>
+        public override T ReadObject<T>(string? fieldName, Func<object?, T> reader)
+        {
+            var schema = GetFieldSchema(fieldName);
+            try
+            {
+                return reader(schema);
+            }
+            finally
+            {
+                _schema.Pop();
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Push(Schema schema)
+        {
+            _schema.Push(schema);
         }
 
         /// <inheritdoc/>

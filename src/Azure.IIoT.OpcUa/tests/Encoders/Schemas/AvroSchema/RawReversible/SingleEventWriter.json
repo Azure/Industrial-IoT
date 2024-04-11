@@ -60,14 +60,14 @@
       ]
     },
     {
-      "name": "nsu__61http__58__opcfoundation__46org_SimpleEvents__59CycleId",
+      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_SimpleEvents_x59_CycleId",
       "type": [
         "null",
         "org.opcfoundation.UA.String"
       ]
     },
     {
-      "name": "nsu__61http__58__opcfoundation__46org_SimpleEvents__59CurrentStep",
+      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_SimpleEvents_x59_CurrentStep",
       "type": [
         "null",
         {
@@ -75,7 +75,7 @@
           "name": "CycleStepDataType",
           "namespace": "org.opcfoundation.SimpleEvents",
           "aliases": [
-            "org.opcfoundation.SimpleEvents.i_183"
+            "org.opcfoundation.SimpleEvents.i_x95_183"
           ],
           "fields": [
             {

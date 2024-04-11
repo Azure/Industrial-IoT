@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Text.RegularExpressions;
 
@@ -165,28 +166,33 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
-        /// Get a avro compliant name string
+        /// Escape a name to only contain asciinumeric and escape
+        /// underscore and other characters with _ and the
+        /// ascii code of the character.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public static string Escape(string name)
         {
-            return Escape(name, false);
+            return EscapeAvroRegex().Replace(name, match =>
+                $"_x{((int)match.Value[0]).ToString(CultureInfo.InvariantCulture)}_");
         }
 
         /// <summary>
-        /// Get a avro compliant name string
+        /// Unesacpe
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="remove"></param>
         /// <returns></returns>
-        public static string Escape(string name, bool remove)
+        public static string Unescape(string name)
         {
-            return EscapeAvroRegex().Replace(name.Replace('/', '_'),
-                match => remove ? string.Empty : $"__{(int)match.Value[0]}");
+            return UnescapeAvroRegex().Replace(name, match =>
+                ((char)int.Parse(match.Groups[1].ValueSpan, CultureInfo.InvariantCulture)).ToString());
         }
 
-        [GeneratedRegex("[^a-zA-Z0-9_]")]
+        [GeneratedRegex("[^a-zA-Z0-9]")]
         private static partial Regex EscapeAvroRegex();
+
+        [GeneratedRegex("_x([0-9]*)_")]
+        private static partial Regex UnescapeAvroRegex();
     }
 }
