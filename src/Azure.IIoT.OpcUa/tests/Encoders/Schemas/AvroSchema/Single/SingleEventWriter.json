@@ -1,16 +1,16 @@
 {
   "type": "record",
   "name": "SimpleEventsDataSetMessage",
-  "namespace": "azure.iiot.opcua.publisher",
+  "namespace": "org.github.microsoft.opc.publisher",
   "fields": [
     {
       "name": "MessageType",
       "type": {
         "type": "record",
         "name": "String",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_12"
+          "org.opcfoundation.UA.i_12"
         ],
         "fields": [
           {
@@ -22,16 +22,16 @@
     },
     {
       "name": "DataSetWriterName",
-      "type": "org.opcfoundation.ua.String"
+      "type": "org.opcfoundation.UA.String"
     },
     {
       "name": "DataSetWriterId",
       "type": {
         "type": "record",
         "name": "UInt16",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_5"
+          "org.opcfoundation.UA.i_5"
         ],
         "fields": [
           {
@@ -46,9 +46,9 @@
       "type": {
         "type": "record",
         "name": "UInt32",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_7"
+          "org.opcfoundation.UA.i_7"
         ],
         "fields": [
           {
@@ -63,9 +63,9 @@
       "type": {
         "type": "record",
         "name": "ConfigurationVersionDataType",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_14593"
+          "org.opcfoundation.UA.i_14593"
         ],
         "fields": [
           {
@@ -84,9 +84,9 @@
       "type": {
         "type": "record",
         "name": "DateTime",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_13"
+          "org.opcfoundation.UA.i_13"
         ],
         "fields": [
           {
@@ -101,9 +101,9 @@
       "type": {
         "type": "record",
         "name": "StatusCode",
-        "namespace": "org.opcfoundation.ua",
+        "namespace": "org.opcfoundation.UA",
         "aliases": [
-          "org.opcfoundation.ua.i_19"
+          "org.opcfoundation.UA.i_19"
         ],
         "fields": [
           {
@@ -126,16 +126,16 @@
               {
                 "type": "record",
                 "name": "ByteStringDataValue",
-                "namespace": "azure.iiot.opcua.publisher",
+                "namespace": "org.github.microsoft.opc.publisher",
                 "fields": [
                   {
                     "name": "Value",
                     "type": {
                       "type": "record",
                       "name": "ByteString",
-                      "namespace": "org.opcfoundation.ua",
+                      "namespace": "org.opcfoundation.UA",
                       "aliases": [
-                        "org.opcfoundation.ua.i_15"
+                        "org.opcfoundation.UA.i_15"
                       ],
                       "fields": [
                         {
@@ -147,23 +147,23 @@
                   },
                   {
                     "name": "Status",
-                    "type": "org.opcfoundation.ua.StatusCode"
+                    "type": "org.opcfoundation.UA.StatusCode"
                   },
                   {
                     "name": "SourceTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "SourcePicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   },
                   {
                     "name": "ServerTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "ServerPicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   }
                 ]
               }
@@ -176,16 +176,16 @@
               {
                 "type": "record",
                 "name": "LocalizedTextDataValue",
-                "namespace": "azure.iiot.opcua.publisher",
+                "namespace": "org.github.microsoft.opc.publisher",
                 "fields": [
                   {
                     "name": "Value",
                     "type": {
                       "type": "record",
                       "name": "LocalizedText",
-                      "namespace": "org.opcfoundation.ua",
+                      "namespace": "org.opcfoundation.UA",
                       "aliases": [
-                        "org.opcfoundation.ua.i_21"
+                        "org.opcfoundation.UA.i_21"
                       ],
                       "fields": [
                         {
@@ -201,23 +201,23 @@
                   },
                   {
                     "name": "Status",
-                    "type": "org.opcfoundation.ua.StatusCode"
+                    "type": "org.opcfoundation.UA.StatusCode"
                   },
                   {
                     "name": "SourceTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "SourcePicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   },
                   {
                     "name": "ServerTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "ServerPicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   }
                 ]
               }
@@ -230,31 +230,31 @@
               {
                 "type": "record",
                 "name": "StringDataValue",
-                "namespace": "azure.iiot.opcua.publisher",
+                "namespace": "org.github.microsoft.opc.publisher",
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.ua.String"
+                    "type": "org.opcfoundation.UA.String"
                   },
                   {
                     "name": "Status",
-                    "type": "org.opcfoundation.ua.StatusCode"
+                    "type": "org.opcfoundation.UA.StatusCode"
                   },
                   {
                     "name": "SourceTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "SourcePicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   },
                   {
                     "name": "ServerTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "ServerPicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   }
                 ]
               }
@@ -284,7 +284,7 @@
                           "type": {
                             "type": "record",
                             "name": "StringCollection",
-                            "namespace": "org.opcfoundation.ua",
+                            "namespace": "org.opcfoundation.UA",
                             "fields": [
                               {
                                 "name": "Value",
@@ -301,7 +301,7 @@
                           "type": {
                             "type": "record",
                             "name": "DoubleCollection",
-                            "namespace": "org.opcfoundation.ua",
+                            "namespace": "org.opcfoundation.UA",
                             "fields": [
                               {
                                 "name": "Value",
@@ -310,9 +310,9 @@
                                   "items": {
                                     "type": "record",
                                     "name": "Double",
-                                    "namespace": "org.opcfoundation.ua",
+                                    "namespace": "org.opcfoundation.UA",
                                     "aliases": [
-                                      "org.opcfoundation.ua.i_11"
+                                      "org.opcfoundation.UA.i_11"
                                     ],
                                     "fields": [
                                       {
@@ -332,23 +332,23 @@
                   },
                   {
                     "name": "Status",
-                    "type": "org.opcfoundation.ua.StatusCode"
+                    "type": "org.opcfoundation.UA.StatusCode"
                   },
                   {
                     "name": "SourceTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "SourcePicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   },
                   {
                     "name": "ServerTimestamp",
-                    "type": "org.opcfoundation.ua.DateTime"
+                    "type": "org.opcfoundation.UA.DateTime"
                   },
                   {
                     "name": "ServerPicoSeconds",
-                    "type": "org.opcfoundation.ua.UInt16"
+                    "type": "org.opcfoundation.UA.UInt16"
                   }
                 ]
               }

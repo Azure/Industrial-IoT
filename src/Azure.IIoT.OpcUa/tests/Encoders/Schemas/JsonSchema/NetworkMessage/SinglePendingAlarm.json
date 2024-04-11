@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "http://www.microsoft.com#JsonNetworkMessage",
-  "$defs": {
-    "http://opcfoundation.org/UA/#Int16": {
-      "$id": "http://opcfoundation.org/UA/#i=4",
+  "$ref": "#/definitions/com.microsoft.JsonNetworkMessage",
+  "definitions": {
+    "org.opcfoundation.UA.Int16": {
+      "$id": "http://opcfoundation.org/UA/#Int16",
       "title": "OPC UA built in type Int16",
       "type": "integer",
       "minimum": -32768,
@@ -11,26 +11,26 @@
       "default": 0,
       "format": "int16"
     },
-    "http://opcfoundation.org/UA/#Boolean": {
-      "$id": "http://opcfoundation.org/UA/#i=1",
+    "org.opcfoundation.UA.Boolean": {
+      "$id": "http://opcfoundation.org/UA/#Boolean",
       "title": "OPC UA built in type Boolean",
       "type": "boolean"
     },
-    "http://opcfoundation.org/UA/#i=8912": {
-      "$id": "http://opcfoundation.org/UA/#i=8912",
+    "org.opcfoundation.UA.TimeZoneDataType": {
+      "$id": "http://opcfoundation.org/UA/#TimeZoneDataType",
       "title": "TimeZoneDataType",
       "type": "object",
       "properties": {
         "Offset": {
           "type": "array",
           "items": {
-            "$ref": "http://opcfoundation.org/UA/#i=4"
+            "$ref": "#/definitions/org.opcfoundation.UA.Int16"
           }
         },
         "DaylightSavingInOffset": {
           "type": "array",
           "items": {
-            "$ref": "http://opcfoundation.org/UA/#i=1"
+            "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
           }
         }
       },
@@ -40,20 +40,20 @@
       ],
       "additionalProperties": false
     },
-    "http://opcfoundation.org/UA/#DateTime": {
-      "$id": "http://opcfoundation.org/UA/#i=13",
+    "org.opcfoundation.UA.DateTime": {
+      "$id": "http://opcfoundation.org/UA/#DateTime",
       "title": "OPC UA built in type DateTime",
       "type": "string",
       "format": "date-time"
     },
-    "http://opcfoundation.org/UA/#NodeId": {
-      "$id": "http://opcfoundation.org/UA/#i=17",
+    "org.opcfoundation.UA.NodeId": {
+      "$id": "http://opcfoundation.org/UA/#NodeId",
       "title": "OPC UA built in type NodeId",
       "type": "string",
       "format": "opcuaNodeId"
     },
-    "http://opcfoundation.org/UA/#UInt32": {
-      "$id": "http://opcfoundation.org/UA/#i=7",
+    "org.opcfoundation.UA.UInt32": {
+      "$id": "http://opcfoundation.org/UA/#UInt32",
       "title": "OPC UA built in type UInt32",
       "type": "integer",
       "minimum": 0,
@@ -61,27 +61,27 @@
       "default": 0,
       "format": "uint32"
     },
-    "http://opcfoundation.org/UA/#String": {
-      "$id": "http://opcfoundation.org/UA/#i=12",
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
       "title": "OPC UA built in type String",
       "type": "string"
     },
-    "http://opcfoundation.org/UA/#StatusCode": {
-      "$id": "http://opcfoundation.org/UA/#i=19",
+    "org.opcfoundation.UA.StatusCode": {
+      "$id": "http://opcfoundation.org/UA/#StatusCode",
       "title": "OPC UA built in type StatusCode",
       "type": "object",
       "properties": {
         "Code": {
-          "$ref": "http://opcfoundation.org/UA/#i=7"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         },
         "Symbol": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         }
       },
       "additionalProperties": false
     },
-    "http://opcfoundation.org/UA/#UInt16": {
-      "$id": "http://opcfoundation.org/UA/#i=5",
+    "org.opcfoundation.UA.UInt16": {
+      "$id": "http://opcfoundation.org/UA/#UInt16",
       "title": "OPC UA built in type UInt16",
       "type": "integer",
       "minimum": 0,
@@ -89,298 +89,298 @@
       "default": 0,
       "format": "uint16"
     },
-    "http://www.microsoft.com#NodeIdDataValue": {
+    "com.microsoft.NodeIdDataValue": {
       "$id": "http://www.microsoft.com#NodeIdDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type opcuaNodeId",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=17"
+          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://opcfoundation.org/UA/#LocalizedText": {
-      "$id": "http://opcfoundation.org/UA/#i=21",
+    "org.opcfoundation.UA.LocalizedText": {
+      "$id": "http://opcfoundation.org/UA/#LocalizedText",
       "title": "OPC UA built in type LocalizedText",
       "type": "string"
     },
-    "http://www.microsoft.com#LocalizedTextDataValue": {
+    "com.microsoft.LocalizedTextDataValue": {
       "$id": "http://www.microsoft.com#LocalizedTextDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type OPC UA built in type LocalizedText",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=21"
+          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://opcfoundation.org/UA/#ByteString": {
-      "$id": "http://opcfoundation.org/UA/#i=15",
+    "org.opcfoundation.UA.ByteString": {
+      "$id": "http://opcfoundation.org/UA/#ByteString",
       "title": "OPC UA built in type ByteString",
       "type": "string",
       "format": "byte"
     },
-    "http://www.microsoft.com#ByteStringDataValue": {
+    "com.microsoft.ByteStringDataValue": {
       "$id": "http://www.microsoft.com#ByteStringDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type byte",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=15"
+          "$ref": "#/definitions/org.opcfoundation.UA.ByteString"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#LocalTimeDataValue": {
+    "com.microsoft.LocalTimeDataValue": {
       "$id": "http://www.microsoft.com#LocalTimeDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type TimeZoneDataType",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=8912"
+          "$ref": "#/definitions/org.opcfoundation.UA.TimeZoneDataType"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#ReceiveTimeDataValue": {
+    "com.microsoft.ReceiveTimeDataValue": {
       "$id": "http://www.microsoft.com#ReceiveTimeDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type date-time",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#UInt16DataValue": {
+    "com.microsoft.UInt16DataValue": {
       "$id": "http://www.microsoft.com#UInt16DataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type uint16",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#StringDataValue": {
+    "com.microsoft.StringDataValue": {
       "$id": "http://www.microsoft.com#StringDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type OPC UA built in type String",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#TimeDataValue": {
+    "com.microsoft.TimeDataValue": {
       "$id": "http://www.microsoft.com#TimeDataValue",
-      "title": "Dataset Field of Type int16",
+      "title": "Dataset Field of Type date-time",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "Status": {
-          "$ref": "http://opcfoundation.org/UA/#i=19"
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
         },
         "SourceTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "SourcePicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "ServerTimestamp": {
-          "$ref": "http://opcfoundation.org/UA/#i=13"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "ServerPicoSeconds": {
-          "$ref": "http://opcfoundation.org/UA/#i=5"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
     },
-    "http://www.microsoft.com#PendingAlarms": {
+    "com.microsoft.PendingAlarms": {
       "$id": "http://www.microsoft.com#PendingAlarms",
       "title": "PendingAlarms",
       "type": "object",
       "properties": {
         "ConditionClassId": {
-          "$ref": "http://www.microsoft.com#NodeIdDataValue"
+          "$ref": "#/definitions/com.microsoft.NodeIdDataValue"
         },
         "ConditionClassName": {
-          "$ref": "http://www.microsoft.com#LocalizedTextDataValue"
+          "$ref": "#/definitions/com.microsoft.LocalizedTextDataValue"
         },
         "ConditionSubClassId": {
-          "$ref": "http://www.microsoft.com#NodeIdDataValue"
+          "$ref": "#/definitions/com.microsoft.NodeIdDataValue"
         },
         "ConditionSubClassName": {
-          "$ref": "http://www.microsoft.com#LocalizedTextDataValue"
+          "$ref": "#/definitions/com.microsoft.LocalizedTextDataValue"
         },
         "EventId": {
-          "$ref": "http://www.microsoft.com#ByteStringDataValue"
+          "$ref": "#/definitions/com.microsoft.ByteStringDataValue"
         },
         "EventType": {
-          "$ref": "http://www.microsoft.com#NodeIdDataValue"
+          "$ref": "#/definitions/com.microsoft.NodeIdDataValue"
         },
         "LocalTime": {
-          "$ref": "http://www.microsoft.com#LocalTimeDataValue"
+          "$ref": "#/definitions/com.microsoft.LocalTimeDataValue"
         },
         "Message": {
-          "$ref": "http://www.microsoft.com#LocalizedTextDataValue"
+          "$ref": "#/definitions/com.microsoft.LocalizedTextDataValue"
         },
         "ReceiveTime": {
-          "$ref": "http://www.microsoft.com#ReceiveTimeDataValue"
+          "$ref": "#/definitions/com.microsoft.ReceiveTimeDataValue"
         },
         "Severity": {
-          "$ref": "http://www.microsoft.com#UInt16DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt16DataValue"
         },
         "SourceName": {
-          "$ref": "http://www.microsoft.com#StringDataValue"
+          "$ref": "#/definitions/com.microsoft.StringDataValue"
         },
         "SourceNode": {
-          "$ref": "http://www.microsoft.com#NodeIdDataValue"
+          "$ref": "#/definitions/com.microsoft.NodeIdDataValue"
         },
         "Time": {
-          "$ref": "http://www.microsoft.com#TimeDataValue"
+          "$ref": "#/definitions/com.microsoft.TimeDataValue"
         }
       }
     },
-    "http://opcfoundation.org/UA/#i=14593": {
+    "org.opcfoundation.UA.i=14593": {
       "$id": "http://opcfoundation.org/UA/#i=14593",
       "type": "object",
       "properties": {
         "MajorVersion": {
-          "$ref": "http://opcfoundation.org/UA/#i=7"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         },
         "MinorVersion": {
-          "$ref": "http://opcfoundation.org/UA/#i=7"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         }
       }
     },
-    "http://www.microsoft.com#PendingAlarmsDataSetMessage": {
+    "com.microsoft.PendingAlarmsDataSetMessage": {
       "$id": "http://www.microsoft.com#PendingAlarmsDataSetMessage",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
-          "$ref": "http://opcfoundation.org/UA/#i=14593"
+          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
         },
         "MessageType": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "DataSetWriterName": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Payload": {
-          "$ref": "http://www.microsoft.com#PendingAlarms"
+          "$ref": "#/definitions/com.microsoft.PendingAlarms"
         }
       },
       "required": [
@@ -391,35 +391,35 @@
       ],
       "additionalProperties": false
     },
-    "http://opcfoundation.org/UA/#Guid": {
-      "$id": "http://opcfoundation.org/UA/#i=14",
+    "org.opcfoundation.UA.Guid": {
+      "$id": "http://opcfoundation.org/UA/#Guid",
       "title": "OPC UA built in type Guid",
       "type": "string",
       "format": "uuid"
     },
-    "http://www.microsoft.com#JsonNetworkMessage": {
+    "com.microsoft.JsonNetworkMessage": {
       "$id": "http://www.microsoft.com#JsonNetworkMessage",
       "type": "null",
       "properties": {
         "MessageId": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "MessageType": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "PublisherId": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "DataSetClassId": {
-          "$ref": "http://opcfoundation.org/UA/#i=14"
+          "$ref": "#/definitions/org.opcfoundation.UA.Guid"
         },
         "DataSetWriterGroup": {
-          "$ref": "http://opcfoundation.org/UA/#i=12"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Messages": {
           "type": "array",
           "items": {
-            "$ref": "http://www.microsoft.com#PendingAlarmsDataSetMessage"
+            "$ref": "#/definitions/com.microsoft.PendingAlarmsDataSetMessage"
           }
         }
       },

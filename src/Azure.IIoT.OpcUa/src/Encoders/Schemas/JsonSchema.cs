@@ -391,63 +391,39 @@ namespace Json.Schema
     /// Represents a value that is either a URI reference according to
     /// RFC 2396, or a bare fragment.
     /// </summary>
-    public record class UriOrFragment : IEquatable<UriOrFragment>
+    public record class UriOrFragment
     {
         /// <summary>
-        /// Gets a value indicating whether this object represents
-        /// a URI reference that is valid according to RFC 2396.
+        /// Value
         /// </summary>
-        public bool IsUri => Uri != null;
+        public string Fragment { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this object
-        /// represents a bare fragment.
+        /// Value
         /// </summary>
-        public bool IsFragment => Fragment != null;
+        public string? Namespace { get; }
 
         /// <summary>
-        /// Gets the URI reference represented by this object
+        /// Create a fragment
         /// </summary>
-        public Uri? Uri { get; }
-
-        /// <summary>
-        /// Gets the bare fragment represented by this object
-        /// </summary>
-        public string? Fragment { get; }
-
-        /// <summary>
-        /// Create a uri or fragment
-        /// </summary>
-        /// <param name="uriString"></param>
-        public UriOrFragment(string uriString)
+        /// <param name="fragment"></param>
+        /// <param name="namespace"></param>
+        public UriOrFragment(string fragment, string? @namespace = null)
         {
-            if (uriString.StartsWith('#'))
-            {
-                Fragment = uriString;
-            }
-            else
-            {
-                Uri = new Uri(uriString, UriKind.RelativeOrAbsolute);
-            }
+            Fragment = fragment;
+            Namespace = @namespace;
         }
 
         /// <summary>
-        /// Create a uri or fragment
+        /// Value
         /// </summary>
-        /// <param name="other"></param>
-        public UriOrFragment(UriOrFragment other)
+        public override string ToString()
         {
-            Fragment = other.Fragment;
-            if (other.Uri != null)
+            if (Namespace != null)
             {
-                Uri = new Uri(other.Uri.OriginalString, UriKind.RelativeOrAbsolute);
+                return Namespace + "#" + Fragment;
             }
-        }
-
-        /// <inheritdoc/>
-        public override string? ToString()
-        {
-            return IsFragment ? Fragment : Uri?.OriginalString;
+            return Fragment;
         }
     }
 }

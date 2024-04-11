@@ -9,9 +9,9 @@
         {
           "type": "record",
           "name": "ByteString",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_15"
+            "org.opcfoundation.UA.i_15"
           ],
           "fields": [
             {
@@ -29,9 +29,9 @@
         {
           "type": "record",
           "name": "LocalizedText",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_21"
+            "org.opcfoundation.UA.i_21"
           ],
           "fields": [
             {
@@ -39,9 +39,9 @@
               "type": {
                 "type": "record",
                 "name": "String",
-                "namespace": "org.opcfoundation.ua",
+                "namespace": "org.opcfoundation.UA",
                 "aliases": [
-                  "org.opcfoundation.ua.i_12"
+                  "org.opcfoundation.UA.i_12"
                 ],
                 "fields": [
                   {
@@ -63,7 +63,7 @@
       "name": "nsu__61http__58__opcfoundation__46org_SimpleEvents__59CycleId",
       "type": [
         "null",
-        "org.opcfoundation.ua.String"
+        "org.opcfoundation.UA.String"
       ]
     },
     {
@@ -83,7 +83,7 @@
               "type": {
                 "type": "record",
                 "name": "StringCollection",
-                "namespace": "org.opcfoundation.ua",
+                "namespace": "org.opcfoundation.UA",
                 "fields": [
                   {
                     "name": "Value",
@@ -100,7 +100,7 @@
               "type": {
                 "type": "record",
                 "name": "DoubleCollection",
-                "namespace": "org.opcfoundation.ua",
+                "namespace": "org.opcfoundation.UA",
                 "fields": [
                   {
                     "name": "Value",
@@ -109,9 +109,9 @@
                       "items": {
                         "type": "record",
                         "name": "Double",
-                        "namespace": "org.opcfoundation.ua",
+                        "namespace": "org.opcfoundation.UA",
                         "aliases": [
-                          "org.opcfoundation.ua.i_11"
+                          "org.opcfoundation.UA.i_11"
                         ],
                         "fields": [
                           {

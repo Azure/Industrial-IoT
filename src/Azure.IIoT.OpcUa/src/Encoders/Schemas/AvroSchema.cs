@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Utils
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Avro;
     using Opc.Ua;
@@ -12,55 +12,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
-    using System.Text.RegularExpressions;
 
     /// <summary>
-    /// Helper functions for avro
+    /// Avro schema extensions
     /// </summary>
-    internal static partial class AvroUtils
+    internal static class AvroSchema
     {
-        /// <summary>
-        /// Namespace zero
-        /// </summary>
-        public const string NamespaceZeroName = "org.opcfoundation.ua";
-
-        /// <summary>
-        /// Publisher namespace
-        /// </summary>
-        public const string PublisherNamespace = "azure.iiot.opcua.publisher";
-
         /// <summary>
         /// Null schema
         /// </summary>
         public static Schema Null { get; } = PrimitiveSchema.NewInstance("null");
-
-        /// <summary>
-        /// Safely Convert a uri to a namespace
-        /// </summary>
-        /// <param name="ns"></param>
-        /// <returns></returns>
-        public static string NamespaceUriToNamespace(string ns)
-        {
-            if (!Uri.TryCreate(ns, new UriCreationOptions
-            {
-                DangerousDisablePathAndQueryCanonicalization = false
-            }, out var result))
-            {
-                return ns.Split('/', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(Escape)
-                    .Aggregate((a, b) => $"{a}.{b}");
-            }
-            else
-            {
-                return result.Host.Split('.', StringSplitOptions.RemoveEmptyEntries)
-                    .Reverse()
-                    .Where(c => c != "www")
-                    .Concat(result.AbsolutePath.Split('/',
-                        StringSplitOptions.RemoveEmptyEntries))
-                    .Select(Escape)
-                    .Aggregate((a, b) => $"{a}.{b}");
-            }
-        }
 
         /// <summary>
         /// Get the property map
@@ -120,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
             out BuiltInType builtInType)
         {
             if (schema is NamedSchema ns &&
-                ns.SchemaName.Namespace == NamespaceZeroName &&
+                ns.SchemaName.Namespace == SchemaUtils.NamespaceZeroName &&
                 Enum.TryParse(ns.Name, out builtInType))
             {
                 return true;
@@ -141,45 +102,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
             var type = schema.GetProperty("uaDataTypeId");
             if (type == null &&
                 schema is NamedSchema ns &&
-                TryFindNamespace(context.NamespaceUris, ns.Namespace,
+                context.NamespaceUris.TryFindNamespace(ns.Namespace,
                     out var namespaceIndex, out var namespaceUri))
             {
                 return new ExpandedNodeId(ns.Name,
                     (ushort)namespaceIndex, namespaceUri, 0);
             }
             return type.ToExpandedNodeId(context);
-        }
-
-        /// <summary>
-        /// Find index in namespace table
-        /// </summary>
-        /// <param name="namespaces"></param>
-        /// <param name="avroNamespace"></param>
-        /// <param name="index"></param>
-        /// <param name="namespaceUri"></param>
-        /// <returns></returns>
-        public static bool TryFindNamespace(this NamespaceTable namespaces,
-            string avroNamespace, out uint index, out string? namespaceUri)
-        {
-            if (avroNamespace == NamespaceZeroName)
-            {
-                namespaceUri = Namespaces.OpcUa;
-                index = 0;
-                return true;
-            }
-            for (var i = 1u; i < namespaces.Count; i++)
-            {
-                namespaceUri = namespaces.GetString(i);
-                var converted = NamespaceUriToNamespace(namespaceUri);
-                if (converted == avroNamespace)
-                {
-                    index = i;
-                    return true;
-                }
-            }
-            index = 0;
-            namespaceUri = null;
-            return false;
         }
 
         /// <summary>
@@ -205,30 +134,5 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
                 Compare.Using<Schema>((a, b) => a?.Fullname == b?.Fullname)).ToList();
             return UnionSchema.Create(types, customProperties);
         }
-
-        /// <summary>
-        /// Get a avro compliant name string
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static string Escape(string name)
-        {
-            return Escape(name, false);
-        }
-
-        /// <summary>
-        /// Get a avro compliant name string
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="remove"></param>
-        /// <returns></returns>
-        public static string Escape(string name, bool remove)
-        {
-            return EscapeAvroRegex().Replace(name.Replace('/', '_'),
-                match => remove ? string.Empty : $"__{(int)match.Value[0]}");
-        }
-
-        [GeneratedRegex("[^a-zA-Z0-9_]")]
-        private static partial Regex EscapeAvroRegex();
     }
 }

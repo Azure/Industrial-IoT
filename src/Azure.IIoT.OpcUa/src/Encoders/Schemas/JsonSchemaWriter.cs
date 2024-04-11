@@ -175,9 +175,9 @@ namespace Json.Schema
                 }
                 finally
                 {
-                    Write(Current != JsonSchemaVersion.Draft4
-                        ? JsonSchemaVocabulary.Defs : JsonSchemaVocabulary.Definitions,
-                        schema.Definitions);
+                    Write(Current != JsonSchemaVersion.Draft202012 ?
+                        JsonSchemaVocabulary.Definitions :
+                        JsonSchemaVocabulary.Defs, schema.Definitions);
                 }
             }
             finally
@@ -372,7 +372,7 @@ namespace Json.Schema
         }
 
         /// <summary>
-        /// Write uri
+        /// Write uri or fragment
         /// </summary>
         /// <param name="name"></param>
         /// <param name="uriOrFragment"></param>
@@ -382,7 +382,18 @@ namespace Json.Schema
             {
                 return;
             }
-            _writer.WriteString(name, uriOrFragment.ToString());
+            if (uriOrFragment.Namespace != null || uriOrFragment.Fragment == "#")
+            {
+                _writer.WriteString(name, uriOrFragment.ToString());
+            }
+            else if (Current != JsonSchemaVersion.Draft202012)
+            {
+                _writer.WriteString(name, "#/definitions/" + uriOrFragment.Fragment);
+            }
+            else
+            {
+                _writer.WriteString(name, "#/$defs/" + uriOrFragment.Fragment);
+            }
         }
 
         /// <summary>

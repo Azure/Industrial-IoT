@@ -484,6 +484,30 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public override void WriteObject(string? fieldName, string? typeName, Action writer)
+        {
+            var schema = GetFieldSchema(fieldName);
+            if (schema is not RecordSchema r || r.Name != typeName)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                    "Objects must be records or maps.");
+            }
+            if (typeName != null && r.Name != typeName)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                    $"Object has type {r.Name} but expected {typeName}.");
+            }
+            try
+            {
+                base.WriteObject(fieldName, typeName, writer);
+            }
+            finally
+            {
+                _schema.Pop();
+            }
+        }
+
+        /// <inheritdoc/>
         protected override void WriteDiagnosticInfo(string? fieldName,
             DiagnosticInfo value, int depth)
         {
@@ -494,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         protected override void WriteEncodedDataType(string? fieldName, ExtensionObject value)
         {
-            ValidatedWrite(fieldName, AvroUtils.NamespaceZeroName + ".EncodedDataType",
+            ValidatedWrite(fieldName, SchemaUtils.NamespaceZeroName + ".EncodedDataType",
                 value, base.WriteEncodedDataType);
         }
 

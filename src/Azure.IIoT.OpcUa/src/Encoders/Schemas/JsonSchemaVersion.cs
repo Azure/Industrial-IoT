@@ -24,5 +24,10 @@ namespace Json.Schema
         /// http://json-schema.org/draft-07/schema#
         /// </summary>
         public const string Draft7 = "http://json-schema.org/draft-07/schema#";
+
+        /// <summary>
+        /// http://json-schema.org/draft/2020-12/schema#"
+        /// </summary>
+        public const string Draft202012 = "http://json-schema.org/draft/2020-12/schema#";
     }
 }

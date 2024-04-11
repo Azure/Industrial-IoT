@@ -379,6 +379,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public virtual T ReadObject<T>(string? fieldName, Func<object?, T> reader)
+        {
+            return reader(null);
+        }
+
+        /// <inheritdoc/>
         public virtual DataSet ReadDataSet(string? fieldName)
         {
             var fieldNames = Array.Empty<string>();

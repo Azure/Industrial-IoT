@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -252,8 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
                         {
                             var dataSetClassId = dataSetClass.Key;
-                            var currentMessage = CreateMessage(writerGroup, encoding,
-                                networkMessageContentMask, dataSetClassId, publisherId, namespaceFormat);
+                            BaseNetworkMessage? currentMessage = null;
                             var currentNotifications = new List<IOpcUaSubscriptionNotification>();
                             foreach (var (Notification, Context) in dataSetClass)
                             {
@@ -283,17 +283,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         }
 
                                         // Create regular data set messages
-                                        BaseDataSetMessage dataSetMessage =
-                                            encoding.HasFlag(MessageEncoding.Json) ? new JsonDataSetMessage
-                                            {
-                                                UseCompatibilityMode = !standardsCompliant,
-                                                DataSetWriterName = GetDataSetWriterName(Context)
-                                            } :
-                                            encoding.HasFlag(MessageEncoding.Avro) ? new AvroDataSetMessage
-                                            {
-                                                DataSetWriterName = GetDataSetWriterName(Context),
-                                            } :
-                                            new UadpDataSetMessage();
+                                        BaseDataSetMessage dataSetMessage = Context.Schema is IAvroSchema &&
+                                            encoding.HasFlag(MessageEncoding.Avro) ?
+                                                new AvroDataSetMessage
+                                                {
+                                                    DataSetWriterName = GetDataSetWriterName(Context)
+                                                } :
+                                            encoding.HasFlag(MessageEncoding.Binary) ?
+                                                new UadpDataSetMessage() :
+                                                new JsonDataSetMessage
+                                                {
+                                                    UseCompatibilityMode = !standardsCompliant,
+                                                    DataSetWriterName = GetDataSetWriterName(Context)
+                                                } ;
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
@@ -442,7 +444,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     //
                                     void AddMessage(BaseDataSetMessage dataSetMessage)
                                     {
+                                        currentMessage ??= CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                            dataSetClassId, publisherId, namespaceFormat, Context.Schema);
                                         currentMessage.Messages.Add(dataSetMessage);
+
                                         var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
                                             _options.Value.DefaultMaxDataSetMessagesPerPublish;
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
@@ -453,15 +458,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
-                                            currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                                dataSetClassId, publisherId, namespaceFormat);
+                                            currentMessage = null;
                                             currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                         }
                                     }
                                 }
                                 else if (Context.SendMetaData && !hasSamplesPayload)
                                 {
-                                    if (currentMessage.Messages.Count > 0)
+                                    if (currentMessage?.Messages.Count > 0)
                                     {
                                         // Start a new message but first emit current
                                         result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
@@ -470,8 +474,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
-                                        currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                            dataSetClassId, publisherId, namespaceFormat);
+                                        currentMessage = null;
                                         currentNotifications = new List<IOpcUaSubscriptionNotification>();
                                     }
 
@@ -501,7 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #endif
                                 }
                             }
-                            if (currentMessage.Messages.Count > 0)
+                            if (currentMessage?.Messages.Count > 0)
                             {
                                 result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, topic, false, default, qos,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
@@ -520,7 +523,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 uint networkMessageContentMask, Guid dataSetClassId, string publisherId,
                                 NamespaceFormat namespaceFormat, IEventSchema? schema)
                             {
-                                BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
+                                BaseNetworkMessage currentMessage = schema is IAvroSchema s &&
+                                    encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage(s.Schema)
+                                    {
+                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                                        MessageId = () => Guid.NewGuid().ToString()
+                                    } :
+                                    encoding.HasFlag(MessageEncoding.Binary) ? new UadpNetworkMessage
+                                    {
+                                        //   WriterGroupId = writerGroup.Index,
+                                        //   GroupVersion = writerGroup.Version,
+                                        SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
+                                        Timestamp = DateTime.UtcNow,
+                                        PicoSeconds = 0
+                                    } :
                                     new JsonNetworkMessage
                                     {
                                         UseAdvancedEncoding = !standardsCompliant,
@@ -528,20 +544,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         NamespaceFormat = namespaceFormat,
                                         UseArrayEnvelope = !standardsCompliant && isBatched,
                                         MessageId = () => Guid.NewGuid().ToString()
-                                    } :
-                                    encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage(schema)
-                                    {
-                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                                        MessageId = () => Guid.NewGuid().ToString()
-                                    } :
-                                    new UadpNetworkMessage
-                                    {
-                                        //   WriterGroupId = writerGroup.Index,
-                                        //   GroupVersion = writerGroup.Version,
-                                        SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
-                                        Timestamp = DateTime.UtcNow,
-                                        PicoSeconds = 0
                                     };
+
                                 currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                                 currentMessage.PublisherId = publisherId;
                                 currentMessage.DataSetClassId = dataSetClassId;

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using static System.Net.WebRequestMethods;
 
     /// <summary>
     /// Extensions
@@ -30,14 +29,30 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static JsonSchema Reference(this Dictionary<string, JsonSchema> definitions,
             UriOrFragment id, Func<UriOrFragment, JsonSchema> schema)
         {
-            if (!definitions.ContainsKey(id.ToString()!))
+            var name = ToFragment(id);
+
+            if (!definitions.ContainsKey(name))
             {
-                definitions.Add(id.ToString()!, schema(id));
+                definitions.Add(name, schema(id));
             }
             return new JsonSchema
             {
-                Reference = id
+                Reference = new UriOrFragment(name)
             };
+        }
+
+        /// <summary>
+        /// Convert to fragment
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static string ToFragment(this UriOrFragment id)
+        {
+            if (id.Namespace == null)
+            {
+                return id.Fragment;
+            }
+            return SchemaUtils.NamespaceUriToNamespace(id.Namespace) + "." + id.Fragment;
         }
 
         /// <summary>
@@ -97,6 +112,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 Debug.Assert(schema.Type != SchemaType.None);
                 return schema;
             }
+            if (schema.Reference.Namespace == null)
+            {
+                return definitions[schema.Reference.Fragment];
+            }
             return definitions.Values.First(d => d.Id == schema.Reference);
         }
 
@@ -112,25 +131,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
-        /// Create identifier of a schema
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static UriOrFragment GetSchemaId(this string nodeId,
-            ServiceMessageContext context)
-        {
-            return nodeId.ToExpandedNodeId(context).GetSchemaId(context);
-        }
-
-        /// <summary>
         /// Get namespace
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
         public static string GetNamespaceUri(this SchemaOptions options)
         {
-            return options.Namespace ?? "http://microsoft.com/Industrial-IoT/OpcPublisher";
+            return options.Namespace ?? SchemaUtils.PublisherNamespaceUri;
         }
 
         /// <summary>
@@ -143,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this SchemaOptions options,
             string fragment)
         {
-            return new UriOrFragment(options.GetNamespaceUri() + "#" + fragment);
+            return new UriOrFragment(fragment, options.GetNamespaceUri());
         }
 
         /// <summary>
@@ -155,7 +162,34 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this NodeId nodeId,
             ServiceMessageContext context)
         {
-            return nodeId.ToExpandedNodeId(context.NamespaceUris).GetSchemaId(context);
+            return nodeId.AsString(context, NamespaceFormat.Uri).GetSchemaId(context);
+        }
+
+        /// <summary>
+        /// Create identifier of a schema
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static UriOrFragment GetSchemaId(this string? nodeId,
+            ServiceMessageContext context)
+        {
+            var (ns, n) = SchemaUtils.SplitNodeId(nodeId, context, false);
+            return new UriOrFragment(n, ns);
+        }
+
+        /// <summary>
+        /// Get schema id from a node with a display name as name
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="name"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static UriOrFragment GetSchemaId(this string? nodeId, string name,
+            ServiceMessageContext context)
+        {
+            var ns = SchemaUtils.SplitNodeId(nodeId, context, false).Namespace;
+            return new UriOrFragment(name, ns);
         }
 
         /// <summary>
@@ -171,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 nodeId = new ExpandedNodeId(nodeId.Identifier, 0, Namespaces.OpcUa, 0);
             }
-            return new UriOrFragment(nodeId.AsString(context, NamespaceFormat.Uri)!);
+            return nodeId.AsString(context, NamespaceFormat.Uri).GetSchemaId(context);
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Encodes objects and inline builds the schema from it
@@ -239,6 +240,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             using var _ = Push(fieldName,
                 value?.GetType().Name ?? systemType?.Name ?? "unknwon");
             base.WriteEncodeable(fieldName, value, systemType);
+        }
+
+        /// <inheritdoc/>
+        public override void WriteObject(string? fieldName, string? typeName,
+            Action writer)
+        {
+            using var _ = Push(fieldName, typeName ?? fieldName ?? "unknown");
+            base.WriteObject(fieldName, typeName, writer);
         }
 
         /// <inheritdoc/>

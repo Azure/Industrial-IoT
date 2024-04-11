@@ -9,9 +9,9 @@
         {
           "type": "record",
           "name": "UInt32",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_7"
+            "org.opcfoundation.UA.i_7"
           ],
           "fields": [
             {
@@ -26,7 +26,7 @@
       "name": "8bfc835e__4571bc__454e6d__45daaa__456146b931d4d8",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
@@ -36,9 +36,9 @@
         {
           "type": "record",
           "name": "Boolean",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_1"
+            "org.opcfoundation.UA.i_1"
           ],
           "fields": [
             {
@@ -53,28 +53,28 @@
       "name": "BadFastRandomUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "BadFastUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "BadSlowRandomUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "BadSlowUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
@@ -84,9 +84,9 @@
         {
           "type": "record",
           "name": "Double",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_11"
+            "org.opcfoundation.UA.i_11"
           ],
           "fields": [
             {
@@ -101,49 +101,49 @@
       "name": "FastRandomUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "FastRandomUIntScalar2",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "FastRandomUIntScalar3",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "FastUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "FastUIntScalar2",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "FastUIntScalar3",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "LongId3950",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
@@ -153,9 +153,9 @@
         {
           "type": "record",
           "name": "ByteString",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_15"
+            "org.opcfoundation.UA.i_15"
           ],
           "fields": [
             {
@@ -173,9 +173,9 @@
         {
           "type": "record",
           "name": "String",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_12"
+            "org.opcfoundation.UA.i_12"
           ],
           "fields": [
             {
@@ -193,9 +193,9 @@
         {
           "type": "record",
           "name": "Byte",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_3"
+            "org.opcfoundation.UA.i_3"
           ],
           "fields": [
             {
@@ -210,21 +210,21 @@
       "name": "LongString50kB",
       "type": [
         "null",
-        "org.opcfoundation.ua.String"
+        "org.opcfoundation.UA.String"
       ]
     },
     {
       "name": "NegativeTrendData",
       "type": [
         "null",
-        "org.opcfoundation.ua.Double"
+        "org.opcfoundation.UA.Double"
       ]
     },
     {
       "name": "PositiveTrendData",
       "type": [
         "null",
-        "org.opcfoundation.ua.Double"
+        "org.opcfoundation.UA.Double"
       ]
     },
     {
@@ -234,9 +234,9 @@
         {
           "type": "record",
           "name": "Int32",
-          "namespace": "org.opcfoundation.ua",
+          "namespace": "org.opcfoundation.UA",
           "aliases": [
-            "org.opcfoundation.ua.i_6"
+            "org.opcfoundation.UA.i_6"
           ],
           "fields": [
             {
@@ -251,63 +251,63 @@
       "name": "RandomUnsignedInt32",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowRandomUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowRandomUIntScalar2",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowRandomUIntScalar3",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowUIntScalar1",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowUIntScalar2",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SlowUIntScalar3",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     },
     {
       "name": "SpikeData",
       "type": [
         "null",
-        "org.opcfoundation.ua.Double"
+        "org.opcfoundation.UA.Double"
       ]
     },
     {
       "name": "StepUp",
       "type": [
         "null",
-        "org.opcfoundation.ua.UInt32"
+        "org.opcfoundation.UA.UInt32"
       ]
     }
   ]

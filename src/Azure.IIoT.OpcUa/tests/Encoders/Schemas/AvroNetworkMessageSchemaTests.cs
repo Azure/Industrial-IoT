@@ -233,14 +233,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             json = JsonSerializer.Serialize(document, kIndented);
             Assert.NotNull(json);
 
-            var folder = Path.Combine(".", "Encoders", "Schemas", "AvroSchema", name);
 #if WRITE
+            var folder = Path.Combine(".", "AvroSchema", name);
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
             }
             await File.WriteAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)), json);
 #else
+            var folder = Path.Combine(".", "Encoders", "Schemas", "AvroSchema", name);
             var expected = await File.ReadAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)));
             Assert.Equal(expected, json);
 #endif

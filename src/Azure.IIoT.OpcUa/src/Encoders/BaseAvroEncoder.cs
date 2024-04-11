@@ -292,6 +292,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public virtual void WriteObject(string? fieldName, string? typeName, Action writer)
+        {
+            writer();
+        }
+
+        /// <inheritdoc/>
         public virtual void WriteNodeId(string? fieldName, NodeId? value)
         {
             //

@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     "MajorVersion", 0),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
                     "MinorVersion", 1)
-            }, AvroUtils.NamespaceZeroName,
+            }, SchemaUtils.NamespaceZeroName,
                 new[] { "i_" + DataTypes.ConfigurationVersionDataType });
 
             var fields = new List<Field>
@@ -141,12 +141,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                typeName = AvroUtils.Escape(typeName) + "DataSetMessage";
+                typeName = SchemaUtils.Escape(typeName) + "DataSetMessage";
             }
 
             var ns = _options.Namespace != null ?
-                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
-                AvroUtils.PublisherNamespace;
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(typeName, fields, ns);
         }
 

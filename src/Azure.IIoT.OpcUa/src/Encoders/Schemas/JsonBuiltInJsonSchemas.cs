@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Json.Schema;
     using Opc.Ua;
     using System;
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>
         /// Schema definitions
         /// </summary>
-        public Dictionary<string, JsonSchema> Definitions { get; }
+        public Dictionary<string, JsonSchema> Schemas { get; }
 
         private JsonSchema EnumerationSchema
         {
@@ -226,8 +227,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     Id = GetId(BuiltInType.LocalizedText),
                     Properties = new Dictionary<string, JsonSchema>
                     {
-                        ["Locale"] = Simple((int)BuiltInType.String,
-                                SchemaType.String, "rfc3066"),
+                        ["Locale"] = new JsonSchema
+                        {
+                            Title = GetTitle(BuiltInType.String),
+                            Type = SchemaType.String,
+                            Format = "rfc3066"
+                        },
                         ["Text"] = GetSchemaForBuiltInType(BuiltInType.String)
                     },
                     AdditionalProperties = new JsonSchema { Allowed = false }
@@ -260,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             GetSchemaForBuiltInType(BuiltInType.Guid),
                             GetSchemaForBuiltInType(BuiltInType.String)
                         }
-                        .AsUnion(Definitions, "NodeIdentifer"),
+                        .AsUnion(Schemas, "NodeIdentifer"),
                         //
                         // For reversible encoding this field is a JSON number
                         // with the NamespaceIndex. The field is omitted if the
@@ -304,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                             GetSchemaForBuiltInType(BuiltInType.Guid),
                             GetSchemaForBuiltInType(BuiltInType.String)
                         }
-                        .AsUnion(Definitions, "NodeIdentifer"),
+                        .AsUnion(Schemas, "NodeIdentifer"),
                         //
                         // For reversible encoding this field is a JSON number
                         // with the NamespaceIndex. The field is omitted if the
@@ -369,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public JsonBuiltInJsonSchemas(bool reversibleEncoding,
             bool useUriEncoding, Dictionary<string, JsonSchema>? definitions)
         {
-            Definitions = definitions ?? new();
+            Schemas = definitions ?? new();
             _reversibleEncoding = reversibleEncoding;
             _encodeNamespacedValuesAsUri = useUriEncoding;
         }
@@ -382,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public JsonBuiltInJsonSchemas(DataSetFieldContentMask fieldContentMask,
             Dictionary<string, JsonSchema>? definitions = null)
         {
-            Definitions = definitions ?? new();
+            Schemas = definitions ?? new();
             _encodeNamespacedValuesAsUri = true;
 
             if ((fieldContentMask & DataSetFieldContentMask.RawData) != 0)
@@ -429,10 +434,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             int rank = ValueRanks.Scalar)
         {
             var typeDefinitionName = GetDefinitionName(builtInType);
-            if (!Definitions.TryGetValue(typeDefinitionName, out var schema))
+            if (!Schemas.TryGetValue(typeDefinitionName, out var schema))
             {
                 schema = CreateSchemaForBuiltInType((int)builtInType);
-                Definitions.Add(typeDefinitionName, schema);
+                Schemas.Add(typeDefinitionName, schema);
             }
 
             if (schema.Id != null)
@@ -452,19 +457,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             JsonSchema CreateSchemaForBuiltInType(int id) => id switch
             {
                 1 => Simple(id, SchemaType.Boolean),
-                2 => Simple(id, SchemaType.Integer, "int8", Limit.From(sbyte.MinValue), Limit.From(sbyte.MaxValue), Const.From(0)),
-                3 => Simple(id, SchemaType.Integer, "byte", Limit.From(byte.MinValue), Limit.From(byte.MaxValue), Const.From(0)),
-                4 => Simple(id, SchemaType.Integer, "int16", Limit.From(short.MinValue), Limit.From(short.MaxValue), Const.From(0)),
-                5 => Simple(id, SchemaType.Integer, "uint16", Limit.From(ushort.MinValue), Limit.From(ushort.MaxValue), Const.From(0)),
-                6 => Simple(id, SchemaType.Integer, "int32", Limit.From(int.MinValue), Limit.From(int.MaxValue), Const.From(0)),
-                7 => Simple(id, SchemaType.Integer, "uint32", Limit.From(uint.MinValue), Limit.From(uint.MaxValue), Const.From(0)),
+                2 => Simple(id, SchemaType.Integer, "int8",
+                    Limit.From(sbyte.MinValue), Limit.From(sbyte.MaxValue), Const.From(0)),
+                3 => Simple(id, SchemaType.Integer, "byte",
+                    Limit.From(byte.MinValue), Limit.From(byte.MaxValue), Const.From(0)),
+                4 => Simple(id, SchemaType.Integer, "int16",
+                    Limit.From(short.MinValue), Limit.From(short.MaxValue), Const.From(0)),
+                5 => Simple(id, SchemaType.Integer, "uint16",
+                    Limit.From(ushort.MinValue), Limit.From(ushort.MaxValue), Const.From(0)),
+                6 => Simple(id, SchemaType.Integer, "int32",
+                    Limit.From(int.MinValue), Limit.From(int.MaxValue), Const.From(0)),
+                7 => Simple(id, SchemaType.Integer, "uint32",
+                    Limit.From(uint.MinValue), Limit.From(uint.MaxValue), Const.From(0)),
 
                 // As per part 6 encoding, long is encoded as string
                 8 => Simple(id, SchemaType.String, "int64"),
                 9 => Simple(id, SchemaType.String, "uint64"),
 
-                10 => Simple(id, SchemaType.Number, "float", Limit.From(float.MinValue), Limit.From(float.MaxValue), Const.From(0f)),
-                11 => Simple(id, SchemaType.Number, "double", Limit.From(double.MinValue), Limit.From(double.MaxValue), Const.From(0d)),
+                10 => Simple(id, SchemaType.Number, "float",
+                    Limit.From(float.MinValue), Limit.From(float.MaxValue), Const.From(0f)),
+                11 => Simple(id, SchemaType.Number, "double",
+                    Limit.From(double.MinValue), Limit.From(double.MaxValue), Const.From(0d)),
                 12 => Simple(id, SchemaType.String),
                 13 => Simple(id, SchemaType.String, "date-time"),
                 14 => Simple(id, SchemaType.String, "uuid"),
@@ -503,10 +516,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override JsonSchema GetSchemaForDataSetField(string name, string ns,
             bool asDataValue, JsonSchema valueSchema)
         {
-            var id = new UriOrFragment(ns + "#" + name);
-            return Definitions.Reference(id, id =>
+            var id = new UriOrFragment(name, ns);
+            return Schemas.Reference(id, id =>
             {
-                var fieldSchema = valueSchema.Resolve(Definitions);
+                var fieldSchema = valueSchema.Resolve(Schemas);
                 var type = fieldSchema.Format
                     ?? fieldSchema.Title
                     ?? fieldSchema.Type.ToString();
@@ -536,7 +549,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         private static UriOrFragment GetId(BuiltInType builtInType)
         {
-            return new UriOrFragment(Namespaces.OpcUa + "#i=" + (int)builtInType);
+            return new UriOrFragment(builtInType.ToString(), Namespaces.OpcUa);
+        }
+
+        /// <summary>
+        /// Create a definition name
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static string GetDefinitionName(BuiltInType builtInType)
+        {
+            return SchemaUtils.NamespaceZeroName + "." + builtInType;
         }
 
         /// <summary>
@@ -574,18 +597,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             return new JsonSchema
             {
-                Reference = GetId(builtInType)
+                Reference = new UriOrFragment(GetDefinitionName(builtInType))
             };
-        }
-
-        /// <summary>
-        /// Create a definition name
-        /// </summary>
-        /// <param name="builtInType"></param>
-        /// <returns></returns>
-        private static string GetDefinitionName(BuiltInType builtInType)
-        {
-            return Namespaces.OpcUa + "#" + builtInType;
         }
 
         /// <summary>

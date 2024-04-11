@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             SchemaOptions? options = null) : base(dataSetFieldContentMask,
                 new AvroBuiltInAvroSchemas(), options)
         {
-            Schema = Compile(name, dataSet) ?? AvroUtils.Null;
+            Schema = Compile(name, dataSet) ?? AvroSchema.Null;
         }
 
         /// <summary>
@@ -102,8 +102,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             var ns = _options.Namespace != null ?
-                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
-                AvroUtils.PublisherNamespace;
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
 
             var fields = new List<Field>();
             var pos = 0;
@@ -118,9 +118,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", ns, fieldsAreDataValues, schema);
+                            (typeName ?? fieldName) + "DataValue", ns,
+                                fieldsAreDataValues, schema);
 
-                        fields.Add(new Field(schema, AvroUtils.Escape(fieldName), pos));
+                        fields.Add(new Field(schema, SchemaUtils.Escape(fieldName), pos));
                     }
                 }
             }
@@ -129,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return Enumerable.Empty<Schema>();
             }
             return RecordSchema.Create(
-                AvroUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
+                SchemaUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
         }
 
         /// <inheritdoc/>
@@ -164,28 +165,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     schema = schema.AsNullable();
                 }
-                fields.Add(new Field(schema, AvroUtils.Escape(field.Name), pos++));
+                fields.Add(new Field(schema, SchemaUtils.Escape(field.Name), pos++));
             }
 
-            var (ns1, dt) = SplitNodeId(description.DataTypeId);
+            var (ns1, dt) = SchemaUtils.SplitNodeId(description.DataTypeId, Context, true);
             return RecordSchema.Create(
-                SplitQualifiedName(description.Name, ns1),
+                SchemaUtils.SplitQualifiedName(description.Name, Context, ns1),
                 fields, ns1, new[] { dt },
-                customProperties: AvroUtils.GetProperties(description.DataTypeId));
+                customProperties: AvroSchema.GetProperties(description.DataTypeId));
         }
 
         /// <inheritdoc/>
         protected override Schema CreateEnumSchema(EnumDescriptionModel description)
         {
-            var (ns, dt) = SplitNodeId(description.DataTypeId);
-
+            var (ns, dt) = SchemaUtils.SplitNodeId(description.DataTypeId, Context, true);
             var symbols = description.Fields
-                .Select(e => AvroUtils.Escape(e.Name))
+                .Select(e => SchemaUtils.Escape(e.Name))
                 .ToList();
             return EnumSchema.Create(
-                SplitQualifiedName(description.Name, ns),
+                SchemaUtils.SplitQualifiedName(description.Name, Context, ns),
                 symbols, ns, new[] { dt },
-                customProperties: AvroUtils.GetProperties(description.DataTypeId),
+                customProperties: AvroSchema.GetProperties(description.DataTypeId),
                 defaultSymbol: symbols[0]);
             // TODO: Build doc from fields descriptions
         }
@@ -199,65 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         protected override Schema CreateUnionSchema(IReadOnlyList<Schema> schemas)
         {
-            return AvroUtils.CreateUnion(schemas);
-        }
-
-        /// <summary>
-        /// Create namespace
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <returns></returns>
-        private (string Id, string Namespace) SplitNodeId(string nodeId)
-        {
-            var id = nodeId.ToExpandedNodeId(Context);
-            string avroStyleNamespace;
-            if (id.NamespaceIndex == 0 && id.NamespaceUri == null)
-            {
-                avroStyleNamespace = AvroUtils.NamespaceZeroName;
-            }
-            else
-            {
-                avroStyleNamespace =
-                    AvroUtils.NamespaceUriToNamespace(id.NamespaceUri);
-            }
-            var name = id.IdType switch
-            {
-                IdType.Opaque => "b_",
-                IdType.Guid => "g_",
-                IdType.String => "s_",
-                _ => "i_"
-            } + id.Identifier;
-            return (avroStyleNamespace, AvroUtils.Escape(name));
-        }
-
-        /// <summary>
-        /// Create namespace
-        /// </summary>
-        /// <param name="qualifiedName"></param>
-        /// <param name="outerNamespace"></param>
-        /// <returns></returns>
-        private string SplitQualifiedName(string qualifiedName,
-            string? outerNamespace = null)
-        {
-            var qn = qualifiedName.ToQualifiedName(Context);
-            string avroStyleNamespace;
-            if (qn.NamespaceIndex == 0)
-            {
-                avroStyleNamespace = AvroUtils.NamespaceZeroName;
-            }
-            else
-            {
-                var uri = Context.NamespaceUris.GetString(qn.NamespaceIndex);
-                avroStyleNamespace = AvroUtils.NamespaceUriToNamespace(uri);
-            }
-            var name = AvroUtils.Escape(qn.Name);
-            if (!string.Equals(outerNamespace, avroStyleNamespace,
-                StringComparison.OrdinalIgnoreCase))
-            {
-                // Qualify if the name is in a different namespace
-                name = $"{avroStyleNamespace}.{name}";
-            }
-            return name;
+            return AvroSchema.CreateUnion(schemas);
         }
     }
 }

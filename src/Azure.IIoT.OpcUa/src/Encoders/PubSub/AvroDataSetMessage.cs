@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
     using System;
     using System.Linq;
 
     /// <summary>
-    /// Data set message
+    /// Avro binary data set message
     /// </summary>
     public class AvroDataSetMessage : BaseDataSetMessage
     {
@@ -19,6 +20,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Dataset writer name
         /// </summary>
         public string? DataSetWriterName { get; set; }
+
+        /// <summary>
+        /// Dataset name
+        /// </summary>
+        public string? DataSetName { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -39,6 +45,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
+            if (!Utils.IsEqual(wrapper.DataSetName, DataSetName))
+            {
+                return false;
+            }
             return true;
         }
 
@@ -52,19 +62,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(AvroEncoder encoder, bool withHeader)
+        internal virtual void Encode(BaseAvroEncoder encoder, string? fieldName, bool withHeader)
         {
-            if (withHeader)
+            if (!withHeader)
             {
-                WriteDataSetMessageHeader(encoder);
+                encoder.WriteDataSet(null, Payload);
+                return;
             }
 
-            // Write payload
-            encoder.WriteDataSet(nameof(Payload), Payload);
+            encoder.WriteObject(fieldName, DataSetName ?? nameof(AvroDataSetMessage), () =>
+            {
+                WriteDataSetMessageHeader(encoder);
+                // Write payload
+                encoder.WriteDataSet(nameof(Payload), Payload);
+            });
         }
 
         /// <inheritdoc/>
-        internal virtual bool TryDecode(AvroDecoder decoder, bool withHeader)
+        internal virtual bool TryDecode(AvroDecoder decoder, string? fieldName, bool withHeader)
         {
             // Reset content
             DataSetMessageContentMask = 0;
@@ -89,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write data set message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteDataSetMessageHeader(AvroEncoder encoder)
+        private void WriteDataSetMessageHeader(BaseAvroEncoder encoder)
         {
             switch (MessageType)
             {

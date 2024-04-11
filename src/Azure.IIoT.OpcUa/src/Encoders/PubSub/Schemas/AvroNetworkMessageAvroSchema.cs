@@ -127,11 +127,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             if (dataSetMessages.Count == 0)
             {
-                return AvroUtils.Null;
+                return AvroSchema.Null;
             }
 
             var payloadType = dataSetMessages.Count > 1 ?
-                AvroUtils.CreateUnion(dataSetMessages) : dataSetMessages[0];
+                AvroSchema.CreateUnion(dataSetMessages) : dataSetMessages[0];
             var singleMessage = contentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
 
@@ -172,12 +172,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                typeName = AvroUtils.Escape(typeName) + "NetworkMessage";
+                typeName = SchemaUtils.Escape(typeName) + "NetworkMessage";
             }
 
             var ns = _options.Namespace != null ?
-                AvroUtils.NamespaceUriToNamespace(_options.Namespace) :
-                AvroUtils.PublisherNamespace;
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(typeName, fields, ns);
         }
 

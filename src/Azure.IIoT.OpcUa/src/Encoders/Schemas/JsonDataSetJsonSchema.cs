@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Avro;
 
     /// <summary>
     /// Extensions to convert metadata into json schema. Note that this class
@@ -56,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Definitions
         /// </summary>
         internal Dictionary<string, JsonSchema> Definitions
-            => ((JsonBuiltInJsonSchemas)Encoding).Definitions;
+            => ((JsonBuiltInJsonSchemas)Encoding).Schemas;
 
         /// <summary>
         /// Get json schema for a dataset
@@ -158,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         protected override JsonSchema CreateStructureSchema(StructureDescriptionModel description,
             JsonSchema? baseTypeSchema)
         {
-            return Definitions.Reference(description.DataTypeId.GetSchemaId(Context), id =>
+            return Definitions.Reference(description.DataTypeId.GetSchemaId(description.Name, Context), id =>
             {
                 //
                 // |---------------|------------|----------------|
@@ -173,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 for (var i = 0; i < description.Fields.Count; i++)
                 {
                     var field = description.Fields[i];
-                    var schema = LookupSchema(field.DataType, out _,
+                    var schema = LookupSchema(field.DataType, out var s,
                         field.ValueRank, field.ArrayDimensions);
                     if (!field.IsOptional)
                     {
@@ -197,9 +196,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description)
         {
-            return Definitions.Reference(description.DataTypeId.GetSchemaId(Context), id =>
+            return Definitions.Reference(description.DataTypeId.GetSchemaId(description.Name, Context), id =>
             {
                 var fields = description.Fields.Select(f => new Const<long>(f.Value)).ToArray();
+
                 // TODO: Build doc from fields descriptions
 
                 return new JsonSchema

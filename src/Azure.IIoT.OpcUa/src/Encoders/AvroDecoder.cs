@@ -27,6 +27,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public Schema Schema { get; }
 
         /// <summary>
+        /// Current schema
+        /// </summary>
+        public Schema Current => _schema.Current;
+
+        /// <summary>
         /// Creates a decoder that decodes the data from the
         /// passed in stream.
         /// </summary>
@@ -250,6 +255,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public override T ReadObject<T>(string? fieldName, Func<object?, T> reader)
+        {
+            var schema = GetFieldSchema(fieldName);
+            try
+            {
+                return reader(schema);
+            }
+            finally
+            {
+                _schema.Pop();
+            }
+        }
+
+        /// <inheritdoc/>
         public override DataSet ReadDataSet(string? fieldName)
         {
             var schema = GetFieldSchema(fieldName);
@@ -299,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         protected override ExtensionObject ReadEncodedDataType(string? fieldName)
         {
-            return ValidatedRead(fieldName, AvroUtils.NamespaceZeroName + ".EncodedDataType",
+            return ValidatedRead(fieldName, SchemaUtils.NamespaceZeroName + ".EncodedDataType",
                 base.ReadEncodedDataType);
         }
 

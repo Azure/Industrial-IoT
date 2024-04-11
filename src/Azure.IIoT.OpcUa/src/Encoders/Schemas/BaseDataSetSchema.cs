@@ -12,8 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
