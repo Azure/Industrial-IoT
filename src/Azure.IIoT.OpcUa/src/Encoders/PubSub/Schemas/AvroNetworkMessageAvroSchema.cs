@@ -136,17 +136,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             var HasSingleDataSetMessage = contentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
-            if (!HasSingleDataSetMessage)
-            {
-                // Could be an array of messages
-                payloadType = ArraySchema.Create(payloadType);
-            }
-
             if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
                 return payloadType;
             }
+
+            payloadType = ArraySchema.Create(payloadType);
 
             var encoding = new AvroBuiltInAvroSchemas();
             var fields = HasNetworkMessageHeader ?

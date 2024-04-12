@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Linq;
     using System.Text;
     using System.Xml;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
 
     /// <summary>
     /// Encodes objects in a stream using Avro binary encoding.
@@ -286,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 foreach (var value in dataSet)
                 {
-                    WriteDataValue(value.Key, value.Value);
+                    WriteNullableDataValue(value.Key, value.Value);
                 }
             }
         }
@@ -1141,6 +1142,23 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
+        /// Write nullable data value
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
+        protected virtual void WriteNullableDataValue(string? fieldName,
+            DataValue? value)
+        {
+            WriteUnionSelector(value == null ? 0 : 1); // Union index, first is "null"
+            if (value == null)
+            {
+                WriteNull(fieldName, value);
+                return;
+            }
+            WriteDataValue(fieldName, value);
+        }
+
+        /// <summary>
         /// Write encoded data type
         /// </summary>
         /// <param name="fieldName"></param>
@@ -1594,6 +1612,30 @@ namespace Azure.IIoT.OpcUa.Encoders
                 v => WriteInt32(null, v));
             WriteArray(kDefaultFieldName, matrix.Elements,
                 matrix.TypeInfo.ValueRank, matrix.TypeInfo.BuiltInType);
+        }
+
+        /// <summary>
+        /// Detect full name of the encodeable object
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="systemType"></param>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        protected string? GetFullNameOfEncodeable(IEncodeable? value,
+            Type? systemType, out string? typeName)
+        {
+            typeName = systemType?.Name ?? value?.GetType().Name;
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return null;
+            }
+            var fullName = value?.TypeId.GetFullName(typeName, Context);
+            if (string.IsNullOrEmpty(fullName) && systemType != null)
+            {
+                value = (IEncodeable?)Activator.CreateInstance(systemType);
+                fullName = value?.TypeId.GetFullName(typeName, Context);
+            }
+            return fullName;
         }
 
         /// <summary>

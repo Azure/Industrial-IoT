@@ -155,7 +155,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -209,7 +209,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -246,7 +246,7 @@
                             "type": "org.opcfoundation.UA.String"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -340,7 +340,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {

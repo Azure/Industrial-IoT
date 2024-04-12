@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -103,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="escape"></param>
         /// <returns></returns>
         public static (string Namespace, string Id) SplitNodeId(string? nodeId,
-            ServiceMessageContext context, bool escape)
+            IServiceMessageContext context, bool escape)
         {
             var id = nodeId.ToExpandedNodeId(context);
             string ns;
@@ -142,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="outerNamespace"></param>
         /// <returns></returns>
         public static string SplitQualifiedName(string qualifiedName,
-            ServiceMessageContext context, string? outerNamespace = null)
+            IServiceMessageContext context, string? outerNamespace = null)
         {
             var qn = qualifiedName.ToQualifiedName(context);
             string avroStyleNamespace;
@@ -163,6 +164,28 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 name = $"{avroStyleNamespace}.{name}";
             }
             return name;
+        }
+
+        /// <summary>
+        /// Create identifier of a schema
+        /// </summary>
+        /// <param name="typeId"></param>
+        /// <param name="name"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string? GetFullName(this ExpandedNodeId? typeId, string name,
+            IServiceMessageContext context)
+        {
+            if (typeId == null)
+            {
+                return null;
+            }
+            if (string.IsNullOrEmpty(typeId.NamespaceUri))
+            {
+                typeId = new ExpandedNodeId(typeId.Identifier, 0, Namespaces.OpcUa, 0);
+            }
+            return typeId.AsString(context, NamespaceFormat.Uri)
+                .GetSchemaId(name, context).ToFragment();
         }
 
         /// <summary>

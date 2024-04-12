@@ -213,7 +213,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -267,7 +267,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -318,7 +318,7 @@
                             "type": "org.opcfoundation.UA.ByteString"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -432,7 +432,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -476,7 +476,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -513,7 +513,7 @@
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -550,7 +550,7 @@
                             "type": "org.opcfoundation.UA.String"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -594,7 +594,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {

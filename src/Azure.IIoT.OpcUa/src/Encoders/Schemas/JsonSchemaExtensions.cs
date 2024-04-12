@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="context"></param>
         /// <returns></returns>
         public static UriOrFragment GetSchemaId(this NodeId nodeId,
-            ServiceMessageContext context)
+            IServiceMessageContext context)
         {
             return nodeId.AsString(context, NamespaceFormat.Uri).GetSchemaId(context);
         }
@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="context"></param>
         /// <returns></returns>
         public static UriOrFragment GetSchemaId(this string? nodeId,
-            ServiceMessageContext context)
+            IServiceMessageContext context)
         {
             var (ns, n) = SchemaUtils.SplitNodeId(nodeId, context, false);
             return new UriOrFragment(n, ns);
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="context"></param>
         /// <returns></returns>
         public static UriOrFragment GetSchemaId(this string? nodeId, string name,
-            ServiceMessageContext context)
+            IServiceMessageContext context)
         {
             var ns = SchemaUtils.SplitNodeId(nodeId, context, false).Namespace;
             return new UriOrFragment(name, ns);
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="context"></param>
         /// <returns></returns>
         public static UriOrFragment GetSchemaId(this ExpandedNodeId nodeId,
-            ServiceMessageContext context)
+            IServiceMessageContext context)
         {
             if (string.IsNullOrEmpty(nodeId.NamespaceUri))
             {

@@ -314,7 +314,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // Reposition the schema
                 decoder.Push(current);
                 return TryReadDataSetMessage(decoder);
-
             }
             return result.Value;
 

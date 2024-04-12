@@ -290,8 +290,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            return ValidatedRead(fieldName, systemType.Name,
-                f => base.ReadEncodeable(f, systemType, encodeableTypeId));
+            if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
+            {
+                throw ServiceResultException.Create(
+                    StatusCodes.BadDecodingError,
+                    Opc.Ua.Utils.Format("Cannot decode type '{0}'.", systemType.FullName));
+            }
+
+            var fullName = encodeable.TypeId.GetFullName(systemType.Name, Context);
+            return ValidatedRead(fieldName, fullName ?? systemType.Name,
+                f => base.ReadEncodeable(f, systemType, encodeableTypeId), fullName != null);
         }
 
         /// <inheritdoc/>
@@ -608,10 +616,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="isRaw"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private DataValue ReadDataSetField(string? fieldName, ref bool isRaw)
+        private DataValue? ReadDataSetField(string? fieldName, ref bool isRaw)
         {
             var schema = GetFieldSchema(fieldName);
-            if (schema is RecordSchema fieldRecord)
+            if (schema is UnionSchema)
+            {
+                var unionId = ReadUnionSelector();
+                if (unionId == 0)
+                {
+                    return ReadNull<DataValue>(fieldName);
+                }
+                Debug.Assert(unionId == 1);
+            }
+
+            if (Current is RecordSchema fieldRecord)
             {
                 // The field is a record that should contain the data value fields
                 try
@@ -620,7 +638,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                         builtInType != BuiltInType.DataValue)
                     {
                         // Read value as variant
-                        return new DataValue(base.ReadVariant(null)); // TODO
+                        var value = base.ReadVariant(null);
+                        if (value == Variant.Null)
+                        {
+                            return null;
+                        }
+                        return new DataValue(value); // TODO
                     }
 
                     var dataValue = new DataValue();
@@ -702,22 +725,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="fieldName"></param>
-        /// <param name="expectedSchemaFullName"></param>
+        /// <param name="expectedSchemaName"></param>
         /// <param name="value"></param>
+        /// <param name="isFullName"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private T ValidatedRead<T>(string? fieldName,
-            string expectedSchemaFullName, Func<string?, T> value)
+        private T ValidatedRead<T>(string? fieldName, string expectedSchemaName,
+            Func<string?, T> value, bool isFullName = true)
         {
             // Get current field schema
             var currentSchema = GetFieldSchema(fieldName);
 
             // Should be the same
-            if (currentSchema.Fullname != expectedSchemaFullName)
+            var curName = isFullName ? currentSchema.Fullname : currentSchema.Name;
+            if (curName != expectedSchemaName)
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Failed to decode. Schema {0} is not as expected {1}",
-                    currentSchema.Fullname, expectedSchemaFullName);
+                    currentSchema.Fullname, expectedSchemaName);
             }
 
             // Read type per schema

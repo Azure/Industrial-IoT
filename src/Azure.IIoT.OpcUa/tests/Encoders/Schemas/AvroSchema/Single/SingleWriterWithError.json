@@ -134,7 +134,7 @@
                       "type": "org.opcfoundation.UA.UInt32"
                     },
                     {
-                      "name": "Status",
+                      "name": "StatusCode",
                       "type": "org.opcfoundation.UA.StatusCode"
                     },
                     {
@@ -184,7 +184,7 @@
                       }
                     },
                     {
-                      "name": "Status",
+                      "name": "StatusCode",
                       "type": "org.opcfoundation.UA.StatusCode"
                     },
                     {
@@ -234,7 +234,7 @@
                       }
                     },
                     {
-                      "name": "Status",
+                      "name": "StatusCode",
                       "type": "org.opcfoundation.UA.StatusCode"
                     },
                     {
@@ -291,7 +291,7 @@
                       }
                     },
                     {
-                      "name": "Status",
+                      "name": "StatusCode",
                       "type": "org.opcfoundation.UA.StatusCode"
                     },
                     {

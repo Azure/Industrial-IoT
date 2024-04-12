@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Diagnostics;
     using System.IO;
     using System.Xml;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.
@@ -228,9 +229,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEncodeable(string? fieldName,
             IEncodeable? value, Type? systemType)
         {
-            ValidatedWrite(fieldName,
-                systemType?.Name ?? value?.GetType().Name ?? "unknown",
-                value, (f, v) => base.WriteEncodeable(f, v, systemType));
+            var fullName = GetFullNameOfEncodeable(value, systemType,
+                out var typeName);
+            if (typeName == null)
+            {
+                // Perform unvalidated write. TODO: Throw?
+                GetFieldSchema(fieldName);
+                base.WriteEncodeable(fieldName, value, systemType);
+                _schema.Pop();
+                return;
+            }
+            ValidatedWrite(fieldName, fullName ?? typeName,
+                value, (f, v) => base.WriteEncodeable(f, v, systemType),
+                fullName != null);
         }
 
         /// <inheritdoc/>
@@ -472,8 +483,33 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Serialize the fields in the schema
                 foreach (var field in r.Fields)
                 {
-                    dataSet.TryGetValue(field.Name, out var dataValue);
-                    WriteDataSetField(field.Name, dataValue ?? new DataValue());
+                    var isVariant = field.Schema.IsBuiltInType(out var bt)
+                        && bt == BuiltInType.Variant;
+                    if (!dataSet.TryGetValue(field.Name, out var dataValue)
+                        || dataValue == null)
+                    {
+                        if (isVariant)
+                        {
+                            WriteVariant(field.Name, default);
+                        }
+                        else
+                        {
+                            WriteUnionSelector(0);
+                            WriteNull(field.Name, dataValue);
+                        }
+                    }
+                    else
+                    {
+                        if (isVariant)
+                        {
+                            WriteVariant(field.Name, dataValue.WrappedValue);
+                        }
+                        else
+                        {
+                            WriteUnionSelector(1);
+                            WriteDataSetField(field.Name, dataValue);
+                        }
+                    }
                 }
             }
             finally
@@ -665,23 +701,25 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="fieldName"></param>
-        /// <param name="expectedSchemaFullName"></param>
+        /// <param name="expectedSchemaName"></param>
         /// <param name="value"></param>
         /// <param name="writer"></param>
+        /// <param name="isFullName"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private void ValidatedWrite<T>(string? fieldName,
-            string expectedSchemaFullName, T value, Action<string?, T> writer)
+        private void ValidatedWrite<T>(string? fieldName, string expectedSchemaName,
+            T value, Action<string?, T> writer, bool isFullName = true)
         {
             // Get current field schema
             var currentSchema = GetFieldSchema(fieldName);
 
             // Should be the same
-            if (currentSchema.Fullname != expectedSchemaFullName)
+            var curName = isFullName ? currentSchema.Fullname : currentSchema.Name;
+            if (curName != expectedSchemaName)
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError,
                     "Failed to encode. Schema {0} is not as expected {1}",
-                    currentSchema.Fullname, expectedSchemaFullName);
+                    currentSchema.Fullname, expectedSchemaName);
             }
 
             // Write type per schema

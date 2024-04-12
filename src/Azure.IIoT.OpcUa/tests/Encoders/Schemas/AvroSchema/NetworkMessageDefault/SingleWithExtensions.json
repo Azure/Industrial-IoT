@@ -178,7 +178,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -215,7 +215,7 @@
                             "type": "org.opcfoundation.UA.String"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -581,48 +581,6 @@
                                     },
                                     {
                                       "type": "record",
-                                      "name": "Number",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "aliases": [
-                                        "org.opcfoundation.UA.i_26"
-                                      ],
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": "string"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "Integer",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "aliases": [
-                                        "org.opcfoundation.UA.i_27"
-                                      ],
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": "string"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "UInteger",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "aliases": [
-                                        "org.opcfoundation.UA.i_28"
-                                      ],
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": "string"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
                                       "name": "Enumeration",
                                       "namespace": "org.opcfoundation.UA",
                                       "aliases": [
@@ -967,48 +925,6 @@
                                           "type": {
                                             "type": "array",
                                             "items": "Variant"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "NumberCollection",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "Number"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "IntegerCollection",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "Integer"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "UIntegerCollection",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "UInteger"
                                           }
                                         }
                                       ]
@@ -1461,60 +1377,6 @@
                                     },
                                     {
                                       "type": "record",
-                                      "name": "NumberMatrix",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Dimensions",
-                                          "type": "Int32Collection"
-                                        },
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "Number"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "IntegerMatrix",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Dimensions",
-                                          "type": "Int32Collection"
-                                        },
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "Integer"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
-                                      "name": "UIntegerMatrix",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Dimensions",
-                                          "type": "Int32Collection"
-                                        },
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "UInteger"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
                                       "name": "EnumerationMatrix",
                                       "namespace": "org.opcfoundation.UA",
                                       "fields": [
@@ -1537,7 +1399,7 @@
                             }
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -1574,7 +1436,7 @@
                             "type": "org.opcfoundation.UA.Boolean"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {
@@ -1611,7 +1473,7 @@
                             "type": "org.opcfoundation.UA.Float"
                           },
                           {
-                            "name": "Status",
+                            "name": "StatusCode",
                             "type": "org.opcfoundation.UA.StatusCode"
                           },
                           {

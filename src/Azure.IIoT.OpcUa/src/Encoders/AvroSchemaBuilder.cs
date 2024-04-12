@@ -12,11 +12,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Encodes objects and inline builds the schema from it
@@ -237,8 +235,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEncodeable(string? fieldName,
             IEncodeable? value, Type? systemType)
         {
-            using var _ = Push(fieldName,
-                value?.GetType().Name ?? systemType?.Name ?? "unknwon");
+            var fullName = GetFullNameOfEncodeable(value, systemType, out var typeName);
+            if (typeName == null)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                    "Failed to encode a encodeable without system type");
+            }
+            using var _ = Push(fieldName, fullName ?? typeName);
             base.WriteEncodeable(fieldName, value, systemType);
         }
 
@@ -497,6 +500,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        protected override void WriteNullableDataValue(string? fieldName,
+            DataValue? value)
+        {
+            using var _ = Union(fieldName, true);
+            base.WriteNullableDataValue(fieldName, value);
+        }
+
+        /// <inheritdoc/>
         public override void WriteArray<T>(string? fieldName, IList<T>? values,
             Action<T> writer, string? typeName = null)
         {
@@ -524,11 +535,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 valueRanks);
             if (!_schemas.TryPeek(out var top))
             {
-                _schemas.Push(AvroSchema.CreateRoot(schema, fieldName));
+                _schemas.Push(schema.CreateRoot(fieldName));
             }
             else if (top is ArraySchema arr)
             {
                 arr.ItemSchema = schema;
+            }
+            else if (top is UnionSchema u)
+            {
+                u.Schemas.Add(schema);
             }
             else if (top is RecordSchema r)
             {
@@ -560,13 +575,50 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = array ? (Schema)ArraySchema.Create(
                 AvroSchema.CreatePlaceHolder("Dummy", "")) :
                 RecordSchema.Create(typeName, new List<Field>());
+            return PushSchema(fieldName, schema);
+        }
+
+        /// <summary>
+        /// Push a union
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="nullable"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private IDisposable Union(string? fieldName, bool nullable = false)
+        {
+            if (_skipInnerSchemas)
+            {
+                return Nothing.ToDo;
+            }
+            var schema = UnionSchema.Create(new List<Schema>());
+            if (nullable)
+            {
+                schema.Schemas.Add(AvroSchema.Null);
+            }
+            return PushSchema(fieldName, schema);
+        }
+
+        /// <summary>
+        /// Push schema
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private Pop PushSchema(string? fieldName, Schema schema)
+        {
             if (!_schemas.TryPeek(out var top))
             {
-                _schemas.Push(AvroSchema.CreateRoot(schema, fieldName));
+                _schemas.Push(schema.CreateRoot(fieldName));
             }
             else if (top is ArraySchema arr)
             {
                 arr.ItemSchema = schema;
+            }
+            else if (top is UnionSchema u)
+            {
+                u.Schemas.Add(schema);
             }
             else if (top is RecordSchema r)
             {

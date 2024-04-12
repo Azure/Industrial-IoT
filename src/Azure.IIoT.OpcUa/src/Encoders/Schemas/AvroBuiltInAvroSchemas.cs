@@ -71,6 +71,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         {
                             continue;
                         }
+                        if (i == 26 || i == 27 || i == 28)
+                        {
+                            continue;
+                        }
                         if (i == (int)BuiltInType.Variant && valueRank == ValueRanks.Scalar)
                         {
                             continue; // Array of variant is allowed
@@ -269,9 +273,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 24 => VariantSchema,
                 25 => DiagnosticInfoSchema,
 
-                26 => Primitive(id, "Number", "string"),
-                27 => Primitive(id, "Integer", "string"),
-                28 => Primitive(id, "UInteger", "string"),
+                26 => VariantSchema, // Primitive(id, "Number", "string"),
+                27 => VariantSchema, // Primitive(id, "Integer", "string"),
+                28 => VariantSchema, // Primitive(id, "UInteger", "string"),
 
                 29 => EnumerationSchema,
                 _ => throw new ArgumentException($"Built in type {id} unknown")
@@ -326,11 +330,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     new List<Field>
                     {
                         new (valueSchema, "Value", 0),
-                        new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
+                        new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "StatusCode", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
-                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoseconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
-                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
+                        new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoseconds", 5)
                     }, ns).AsNullable();
             }
             if (valueSchema is UnionSchema)

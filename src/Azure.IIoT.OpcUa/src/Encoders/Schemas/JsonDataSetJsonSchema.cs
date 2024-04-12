@@ -21,7 +21,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public sealed class JsonDataSetJsonSchema : BaseDataSetSchema<JsonSchema>, IEventSchema
+    public sealed class JsonDataSetJsonSchema : BaseDataSetSchema<JsonSchema>,
+        IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -64,13 +65,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSet"></param>
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
-        /// <param name="definitions"></param>
+        /// <param name="def"></param>
         /// <returns></returns>
         public JsonDataSetJsonSchema(string? name, PublishedDataSetModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
-            SchemaOptions? options = null, Dictionary<string, JsonSchema>? definitions = null)
+            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null)
             : base(dataSetFieldContentMask, new JsonBuiltInJsonSchemas(
-                dataSetFieldContentMask ?? default, definitions), options)
+                dataSetFieldContentMask ?? default, def), options)
         {
             Name = name ?? "DataSet";
             Ref = Compile(name, dataSet);
@@ -81,13 +82,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="options"></param>
-        /// <param name="definitions"></param>
+        /// <param name="def"></param>
         /// <returns></returns>
         public JsonDataSetJsonSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null, Dictionary<string, JsonSchema>? definitions = null) :
+            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
-                dataSetWriter.DataSetFieldContentMask, options, definitions)
+                dataSetWriter.DataSetFieldContentMask, options, def)
         {
         }
 

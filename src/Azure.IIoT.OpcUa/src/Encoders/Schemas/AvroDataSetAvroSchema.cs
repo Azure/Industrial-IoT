@@ -5,14 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Opc.Ua;
-    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
