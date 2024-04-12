@@ -201,7 +201,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -209,7 +209,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -255,7 +255,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -263,7 +263,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -306,7 +306,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -314,7 +314,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -420,7 +420,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -428,7 +428,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -464,7 +464,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -472,7 +472,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -501,7 +501,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -509,7 +509,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -538,7 +538,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -546,7 +546,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
@@ -582,7 +582,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "SourcePicoSeconds",
+                            "name": "SourcePicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           },
                           {
@@ -590,7 +590,7 @@
                             "type": "org.opcfoundation.UA.DateTime"
                           },
                           {
-                            "name": "ServerPicoSeconds",
+                            "name": "ServerPicoseconds",
                             "type": "org.opcfoundation.UA.UInt16"
                           }
                         ]
