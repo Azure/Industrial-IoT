@@ -64,17 +64,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="options"></param>
         /// <param name="definitions"></param>
         /// <param name="useCompatibilityMode"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetMessageJsonSchema(DataSetWriterModel dataSetWriter,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
             Dictionary<string, JsonSchema>? definitions = null,
-            bool useCompatibilityMode = false)
+            bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new JsonDataSetJsonSchema(dataSetWriter, options, definitions);
+            _dataSet = new JsonDataSetJsonSchema(dataSetWriter, options, definitions,
+                uniqueNames);
             UseCompatibilityMode = useCompatibilityMode;
-            Name = GetName(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName);
+            Name = GetName(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName, uniqueNames);
             Ref = Compile(dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
         }
 
@@ -87,18 +89,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="options"></param>
         /// <param name="definitions"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetMessageJsonSchema(PublishedDataSetModel dataSet,
             DataSetContentMask? dataSetContentMask = null,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            Dictionary<string, JsonSchema>? definitions = null)
+            Dictionary<string, JsonSchema>? definitions = null,
+            HashSet<string>? uniqueNames = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new JsonDataSetJsonSchema(null, dataSet,
-                dataSetFieldContentMask, options, definitions);
-            Name = GetName(dataSet.Name);
+                dataSetFieldContentMask, options, definitions, uniqueNames);
+            Name = GetName(dataSet.Name, uniqueNames);
             Ref = Compile(dataSetContentMask ?? default);
         }
 
@@ -216,8 +220,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Get name of the type
         /// </summary>
         /// <param name="typeName"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        private static string GetName(string? typeName)
+        private static string GetName(string? typeName, HashSet<string>? uniqueNames)
         {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
@@ -228,6 +233,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             else
             {
                 typeName += "DataSetMessage";
+            }
+            if (uniqueNames != null)
+            {
+                var uniqueName = typeName;
+                for (var index = 1; uniqueNames.Contains(uniqueName); index++)
+                {
+                    uniqueName = typeName + index;
+                }
+                uniqueNames.Add(uniqueName);
+                typeName = uniqueName;
             }
             return typeName;
         }

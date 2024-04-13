@@ -126,7 +126,7 @@
               "name": "Payload",
               "type": {
                 "type": "record",
-                "name": "DataSetPayload",
+                "name": "DataSet",
                 "fields": [
                   {
                     "name": "CurrentTime",

@@ -118,10 +118,10 @@
         "name": "Payload",
         "type": {
           "type": "record",
-          "name": "DataSetPayload",
+          "name": "DataSet",
           "fields": [
             {
-              "name": "StepUp",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_StepUp",
               "type": [
                 "null",
                 {
@@ -158,7 +158,7 @@
               ]
             },
             {
-              "name": "AlternatingBoolean",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_AlternatingBoolean",
               "type": [
                 "null",
                 {
@@ -208,7 +208,7 @@
               ]
             },
             {
-              "name": "RandomSignedInt32",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomSignedInt32",
               "type": [
                 "null",
                 {
@@ -258,14 +258,14 @@
               ]
             },
             {
-              "name": "RandomUnsignedInt32",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomUnsignedInt32",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "DipData",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_DipData",
               "type": [
                 "null",
                 {
@@ -315,66 +315,166 @@
               ]
             },
             {
-              "name": "FastUIntScalar1",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar1",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "FastUIntScalar2",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar2",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "FastUIntScalar3",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar3",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "FastRandomUIntScalar1",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar1",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "FastRandomUIntScalar2",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar2",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "FastRandomUIntScalar3",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar3",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             },
             {
-              "name": "NegativeTrendData",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_NegativeTrendData",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.DoubleDataValue"
               ]
             },
             {
-              "name": "PositiveTrendData",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_PositiveTrendData",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.DoubleDataValue"
               ]
             },
             {
-              "name": "SpikeData",
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SpikeData",
               "type": [
                 "null",
                 "org.github.microsoft.opc.publisher.DoubleDataValue"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "AvroDataSetMessage1",
+    "namespace": "org.github.microsoft.opc.publisher",
+    "fields": [
+      {
+        "name": "MessageType",
+        "type": "org.opcfoundation.UA.String"
+      },
+      {
+        "name": "DataSetWriterName",
+        "type": "org.opcfoundation.UA.String"
+      },
+      {
+        "name": "DataSetWriterId",
+        "type": "org.opcfoundation.UA.UInt16"
+      },
+      {
+        "name": "SequenceNumber",
+        "type": "org.opcfoundation.UA.UInt32"
+      },
+      {
+        "name": "MetaDataVersion",
+        "type": "org.opcfoundation.UA.ConfigurationVersionDataType"
+      },
+      {
+        "name": "Timestamp",
+        "type": "org.opcfoundation.UA.DateTime"
+      },
+      {
+        "name": "Status",
+        "type": "org.opcfoundation.UA.StatusCode"
+      },
+      {
+        "name": "Payload",
+        "type": {
+          "type": "record",
+          "name": "DataSet1",
+          "fields": [
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar1",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar2",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar3",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowUIntScalar1",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar1",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar2",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar3",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
+              ]
+            },
+            {
+              "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowRandomUIntScalar1",
+              "type": [
+                "null",
+                "org.github.microsoft.opc.publisher.UInt32DataValue"
               ]
             }
           ]

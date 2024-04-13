@@ -49,13 +49,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSet"></param>
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public AvroDataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
-            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask = null,
-            SchemaOptions? options = null) : base(dataSetFieldContentMask,
-                new AvroBuiltInAvroSchemas(), options)
+            DataSetFieldContentMask? dataSetFieldContentMask = null,
+            SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
+            : base(dataSetFieldContentMask, new AvroBuiltInAvroSchemas(), options)
         {
-            Schema = Compile(name, dataSet) ?? AvroSchema.Null;
+            Schema = Compile(name, dataSet, uniqueNames) ?? AvroSchema.Null;
         }
 
         /// <summary>
@@ -63,12 +64,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="options"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public AvroDataSetAvroSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null) :
+            SchemaOptions? options = null, HashSet<string>? uniqueNames = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
-                dataSetWriter.DataSetFieldContentMask, options)
+                dataSetWriter.DataSetFieldContentMask, options, uniqueNames)
         {
         }
 
@@ -80,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override IEnumerable<Schema> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet)
+            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames)
         {
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
             GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
@@ -126,8 +128,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return Enumerable.Empty<Schema>();
             }
-            return RecordSchema.Create(
-                SchemaUtils.Escape(name ?? dataSet.Name ?? "DataSetPayload"), fields).YieldReturn();
+            // Type name of the message record
+            name ??= dataSet.Name;
+            if (string.IsNullOrEmpty(name))
+            {
+                // Type name of the message record
+                name = "DataSet";
+            }
+            else
+            {
+                name = SchemaUtils.Escape(name);
+            }
+            return RecordSchema.Create(MakeUnique(name, uniqueNames), fields).YieldReturn();
         }
 
         /// <inheritdoc/>

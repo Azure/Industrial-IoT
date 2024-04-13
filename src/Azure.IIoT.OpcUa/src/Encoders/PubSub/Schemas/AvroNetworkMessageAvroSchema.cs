@@ -119,10 +119,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var HasNetworkMessageHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
 
+            var uniqueNames = new HashSet<string>();
             var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new AvroDataSetMessageAvroSchema(writer,
-                    HasDataSetMessageHeader, _options).Schema)
+                    HasDataSetMessageHeader, _options, uniqueNames).Schema)
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)

@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "AvroNetworkMessage",
-  "namespace": "org.github.microsoft.opc.publisher",
+  "namespace": "com.microsoft",
   "fields": [
     {
       "name": "MessageId",
@@ -60,7 +60,7 @@
           {
             "type": "record",
             "name": "AvroDataSetMessage",
-            "namespace": "org.github.microsoft.opc.publisher",
+            "namespace": "com.microsoft",
             "fields": [
               {
                 "name": "MessageType",
@@ -163,7 +163,7 @@
                 "name": "Payload",
                 "type": {
                   "type": "record",
-                  "name": "DataSetPayload",
+                  "name": "DataSet",
                   "fields": [
                     {
                       "name": "StepUp",
@@ -172,7 +172,7 @@
                         {
                           "type": "record",
                           "name": "UInt32DataValue",
-                          "namespace": "org.github.microsoft.opc.publisher",
+                          "namespace": "com.microsoft",
                           "fields": [
                             {
                               "name": "Value",
@@ -209,7 +209,7 @@
                         {
                           "type": "record",
                           "name": "BooleanDataValue",
-                          "namespace": "org.github.microsoft.opc.publisher",
+                          "namespace": "com.microsoft",
                           "fields": [
                             {
                               "name": "Value",
@@ -259,7 +259,7 @@
                         {
                           "type": "record",
                           "name": "Int32DataValue",
-                          "namespace": "org.github.microsoft.opc.publisher",
+                          "namespace": "com.microsoft",
                           "fields": [
                             {
                               "name": "Value",
@@ -306,7 +306,7 @@
                       "name": "RandomUnsignedInt32",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
@@ -316,7 +316,7 @@
                         {
                           "type": "record",
                           "name": "DoubleDataValue",
-                          "namespace": "org.github.microsoft.opc.publisher",
+                          "namespace": "com.microsoft",
                           "fields": [
                             {
                               "name": "Value",
@@ -363,63 +363,163 @@
                       "name": "FastUIntScalar1",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "FastUIntScalar2",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "FastUIntScalar3",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "FastRandomUIntScalar1",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "FastRandomUIntScalar2",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "FastRandomUIntScalar3",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                        "com.microsoft.UInt32DataValue"
                       ]
                     },
                     {
                       "name": "NegativeTrendData",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.DoubleDataValue"
+                        "com.microsoft.DoubleDataValue"
                       ]
                     },
                     {
                       "name": "PositiveTrendData",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.DoubleDataValue"
+                        "com.microsoft.DoubleDataValue"
                       ]
                     },
                     {
                       "name": "SpikeData",
                       "type": [
                         "null",
-                        "org.github.microsoft.opc.publisher.DoubleDataValue"
+                        "com.microsoft.DoubleDataValue"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "AvroDataSetMessage1",
+            "namespace": "com.microsoft",
+            "fields": [
+              {
+                "name": "MessageType",
+                "type": "org.opcfoundation.UA.String"
+              },
+              {
+                "name": "DataSetWriterName",
+                "type": "org.opcfoundation.UA.String"
+              },
+              {
+                "name": "DataSetWriterId",
+                "type": "org.opcfoundation.UA.UInt16"
+              },
+              {
+                "name": "SequenceNumber",
+                "type": "org.opcfoundation.UA.UInt32"
+              },
+              {
+                "name": "MetaDataVersion",
+                "type": "org.opcfoundation.UA.ConfigurationVersionDataType"
+              },
+              {
+                "name": "Timestamp",
+                "type": "org.opcfoundation.UA.DateTime"
+              },
+              {
+                "name": "Status",
+                "type": "org.opcfoundation.UA.StatusCode"
+              },
+              {
+                "name": "Payload",
+                "type": {
+                  "type": "record",
+                  "name": "DataSet1",
+                  "fields": [
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar1",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar2",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar3",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowUIntScalar1",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar1",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar2",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar3",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowRandomUIntScalar1",
+                      "type": [
+                        "null",
+                        "com.microsoft.UInt32DataValue"
                       ]
                     }
                   ]

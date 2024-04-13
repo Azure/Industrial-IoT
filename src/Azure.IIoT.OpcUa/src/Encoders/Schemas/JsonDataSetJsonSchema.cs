@@ -66,15 +66,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <param name="def"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetJsonSchema(string? name, PublishedDataSetModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
-            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null)
+            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
+            HashSet<string>? uniqueNames = null)
             : base(dataSetFieldContentMask, new JsonBuiltInJsonSchemas(
                 dataSetFieldContentMask ?? default, def), options)
         {
             Name = name ?? "DataSet";
-            Ref = Compile(name, dataSet);
+
+            Ref = Compile(name, dataSet, uniqueNames);
         }
 
         /// <summary>
@@ -83,12 +86,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSetWriter"></param>
         /// <param name="options"></param>
         /// <param name="def"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetJsonSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null) :
+            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
+            HashSet<string>? uniqueNames = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
-                dataSetWriter.DataSetFieldContentMask, options, def)
+                dataSetWriter.DataSetFieldContentMask, options, def, uniqueNames)
         {
         }
 
@@ -100,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override IEnumerable<JsonSchema> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet)
+            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames)
         {
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
             GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
@@ -143,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return Enumerable.Empty<JsonSchema>();
             }
-            var type = name ?? dataSet.Name ?? "DataSetPayload";
+            var type = MakeUnique(name ?? dataSet.Name ?? "DataSet", uniqueNames);
             return Definitions.Reference(_options.GetSchemaId(type), id => new JsonSchema
             {
                 Id = id,

@@ -136,11 +136,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private JsonSchema? Compile(List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
+            var uniqueNames = new HashSet<string>();
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageJsonSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                        _options, Definitions, UseCompatibilityMode).Ref!)
+                        _options, Definitions, UseCompatibilityMode, uniqueNames).Ref!)
                 .Where(r => r != null)
                 .ToList();
 

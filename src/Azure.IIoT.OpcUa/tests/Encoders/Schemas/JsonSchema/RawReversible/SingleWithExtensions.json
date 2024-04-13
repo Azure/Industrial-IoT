@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetPayload",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet",
   "definitions": {
     "org.opcfoundation.UA.DateTime": {
       "$id": "http://opcfoundation.org/UA/#DateTime",
@@ -219,9 +219,9 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSetPayload": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSetPayload",
-      "title": "DataSetPayload",
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
         "CurrentTime": {

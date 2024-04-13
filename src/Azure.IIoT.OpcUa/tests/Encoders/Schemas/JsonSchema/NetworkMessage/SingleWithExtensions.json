@@ -210,9 +210,9 @@
       },
       "additionalProperties": false
     },
-    "com.microsoft.DataSetPayload": {
-      "$id": "http://www.microsoft.com#DataSetPayload",
-      "title": "DataSetPayload",
+    "com.microsoft.DataSet": {
+      "$id": "http://www.microsoft.com#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
         "CurrentTime": {
@@ -258,7 +258,7 @@
           "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Payload": {
-          "$ref": "#/definitions/com.microsoft.DataSetPayload"
+          "$ref": "#/definitions/com.microsoft.DataSet"
         }
       },
       "required": [

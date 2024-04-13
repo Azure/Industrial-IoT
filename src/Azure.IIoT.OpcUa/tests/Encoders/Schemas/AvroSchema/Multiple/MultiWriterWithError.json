@@ -127,7 +127,7 @@
                 "name": "Payload",
                 "type": {
                   "type": "record",
-                  "name": "DataSetPayload",
+                  "name": "DataSet",
                   "fields": [
                     {
                       "name": "StepUp",
@@ -384,6 +384,106 @@
                       "type": [
                         "null",
                         "org.github.microsoft.opc.publisher.DoubleDataValue"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "AvroDataSetMessage1",
+            "namespace": "org.github.microsoft.opc.publisher",
+            "fields": [
+              {
+                "name": "MessageType",
+                "type": "org.opcfoundation.UA.String"
+              },
+              {
+                "name": "DataSetWriterName",
+                "type": "org.opcfoundation.UA.String"
+              },
+              {
+                "name": "DataSetWriterId",
+                "type": "org.opcfoundation.UA.UInt16"
+              },
+              {
+                "name": "SequenceNumber",
+                "type": "org.opcfoundation.UA.UInt32"
+              },
+              {
+                "name": "MetaDataVersion",
+                "type": "org.opcfoundation.UA.ConfigurationVersionDataType"
+              },
+              {
+                "name": "Timestamp",
+                "type": "org.opcfoundation.UA.DateTime"
+              },
+              {
+                "name": "Status",
+                "type": "org.opcfoundation.UA.StatusCode"
+              },
+              {
+                "name": "Payload",
+                "type": {
+                  "type": "record",
+                  "name": "DataSet1",
+                  "fields": [
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar1",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar2",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar3",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowUIntScalar1",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar1",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar2",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar3",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
+                      ]
+                    },
+                    {
+                      "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowRandomUIntScalar1",
+                      "type": [
+                        "null",
+                        "org.github.microsoft.opc.publisher.UInt32DataValue"
                       ]
                     }
                   ]

@@ -172,9 +172,9 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSetPayload": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSetPayload",
-      "title": "DataSetPayload",
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
         "StepUp": {
@@ -247,7 +247,63 @@
           "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetPayload"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet"
+        }
+      },
+      "required": [
+        "MetaDataVersion",
+        "MessageType",
+        "DataSetWriterName",
+        "Payload"
+      ],
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet1": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet1",
+      "title": "DataSet1",
+      "type": "object",
+      "properties": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        }
+      }
+    },
+    "org.github.microsoft.opcpublisher.JsonDataSetMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage1",
+      "type": "object",
+      "properties": {
+        "MetaDataVersion": {
+          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+        },
+        "MessageType": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DataSetWriterName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Payload": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet1"
         }
       },
       "required": [

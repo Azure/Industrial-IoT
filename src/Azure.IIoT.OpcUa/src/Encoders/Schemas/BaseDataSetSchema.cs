@@ -63,8 +63,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="name"></param>
         /// <param name="dataSet"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        protected T? Compile(string? name, PublishedDataSetModel dataSet)
+        protected T? Compile(string? name, PublishedDataSetModel dataSet,
+            HashSet<string>? uniqueNames)
         {
             // Collect types
             CollectTypes(dataSet);
@@ -78,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             }
 
-            var schemas = GetDataSetFieldSchemas(name, dataSet).ToList();
+            var schemas = GetDataSetFieldSchemas(name, dataSet, uniqueNames).ToList();
             if (schemas.Count == 0)
             {
                 return default;
@@ -95,9 +97,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="name"></param>
         /// <param name="dataSet"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         protected abstract IEnumerable<T> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet);
+            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames);
 
         /// <summary>
         /// Create record schema for the structure
@@ -229,6 +232,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 name = null;
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Create a type name
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <param name="uniqueNames"></param>
+        /// <returns></returns>
+        protected static string MakeUnique(string typeName, HashSet<string>? uniqueNames)
+        {
+            if (uniqueNames != null)
+            {
+                var uniqueName = typeName;
+                for (var index = 1; uniqueNames.Contains(uniqueName); index++)
+                {
+                    uniqueName = typeName + index;
+                }
+                uniqueNames.Add(uniqueName);
+                typeName = uniqueName;
+            }
+            return typeName;
         }
 
         /// <summary>

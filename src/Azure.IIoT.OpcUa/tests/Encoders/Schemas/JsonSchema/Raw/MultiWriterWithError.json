@@ -172,9 +172,9 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSetPayload": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSetPayload",
-      "title": "DataSetPayload",
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
         "StepUp": {
@@ -218,6 +218,37 @@
         },
         "SpikeData": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+        }
+      }
+    },
+    "org.github.microsoft.opcpublisher.DataSet1": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet1",
+      "title": "DataSet1",
+      "type": "object",
+      "properties": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         }
       }
     }

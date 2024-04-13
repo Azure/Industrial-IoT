@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonNetworkMessage",
+  "$ref": "#/definitions/com.microsoft.JsonNetworkMessage",
   "definitions": {
     "org.opcfoundation.UA.UInt32": {
       "$id": "http://opcfoundation.org/UA/#UInt32",
@@ -45,8 +45,8 @@
       "default": 0,
       "format": "uint16"
     },
-    "org.github.microsoft.opcpublisher.UInt32DataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#UInt32DataValue",
+    "com.microsoft.UInt32DataValue": {
+      "$id": "http://www.microsoft.com#UInt32DataValue",
       "title": "Dataset Field of Type uint32",
       "type": "object",
       "properties": {
@@ -76,8 +76,8 @@
       "title": "OPC UA built in type Boolean",
       "type": "boolean"
     },
-    "org.github.microsoft.opcpublisher.BooleanDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
+    "com.microsoft.BooleanDataValue": {
+      "$id": "http://www.microsoft.com#BooleanDataValue",
       "title": "Dataset Field of Type OPC UA built in type Boolean",
       "type": "object",
       "properties": {
@@ -111,8 +111,8 @@
       "default": 0,
       "format": "int32"
     },
-    "org.github.microsoft.opcpublisher.Int32DataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#Int32DataValue",
+    "com.microsoft.Int32DataValue": {
+      "$id": "http://www.microsoft.com#Int32DataValue",
       "title": "Dataset Field of Type int32",
       "type": "object",
       "properties": {
@@ -146,8 +146,8 @@
       "default": 0,
       "format": "double"
     },
-    "org.github.microsoft.opcpublisher.DoubleDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#DoubleDataValue",
+    "com.microsoft.DoubleDataValue": {
+      "$id": "http://www.microsoft.com#DoubleDataValue",
       "title": "Dataset Field of Type double",
       "type": "object",
       "properties": {
@@ -172,52 +172,52 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSetPayload": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSetPayload",
-      "title": "DataSetPayload",
+    "com.microsoft.DataSet": {
+      "$id": "http://www.microsoft.com#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
         "StepUp": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "AlternatingBoolean": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"
+          "$ref": "#/definitions/com.microsoft.BooleanDataValue"
         },
         "RandomSignedInt32": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.Int32DataValue"
+          "$ref": "#/definitions/com.microsoft.Int32DataValue"
         },
         "RandomUnsignedInt32": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "DipData": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+          "$ref": "#/definitions/com.microsoft.DoubleDataValue"
         },
         "FastUIntScalar1": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "FastUIntScalar2": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "FastUIntScalar3": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "FastRandomUIntScalar1": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "FastRandomUIntScalar2": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "FastRandomUIntScalar3": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
         },
         "NegativeTrendData": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+          "$ref": "#/definitions/com.microsoft.DoubleDataValue"
         },
         "PositiveTrendData": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+          "$ref": "#/definitions/com.microsoft.DoubleDataValue"
         },
         "SpikeData": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+          "$ref": "#/definitions/com.microsoft.DoubleDataValue"
         }
       }
     },
@@ -233,8 +233,8 @@
         }
       }
     },
-    "org.github.microsoft.opcpublisher.JsonDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage",
+    "com.microsoft.JsonDataSetMessage": {
+      "$id": "http://www.microsoft.com#JsonDataSetMessage",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
@@ -247,7 +247,63 @@
           "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetPayload"
+          "$ref": "#/definitions/com.microsoft.DataSet"
+        }
+      },
+      "required": [
+        "MetaDataVersion",
+        "MessageType",
+        "DataSetWriterName",
+        "Payload"
+      ],
+      "additionalProperties": false
+    },
+    "com.microsoft.DataSet1": {
+      "$id": "http://www.microsoft.com#DataSet1",
+      "title": "DataSet1",
+      "type": "object",
+      "properties": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1": {
+          "$ref": "#/definitions/com.microsoft.UInt32DataValue"
+        }
+      }
+    },
+    "com.microsoft.JsonDataSetMessage1": {
+      "$id": "http://www.microsoft.com#JsonDataSetMessage1",
+      "type": "object",
+      "properties": {
+        "MetaDataVersion": {
+          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+        },
+        "MessageType": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DataSetWriterName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Payload": {
+          "$ref": "#/definitions/com.microsoft.DataSet1"
         }
       },
       "required": [
@@ -264,8 +320,8 @@
       "type": "string",
       "format": "uuid"
     },
-    "org.github.microsoft.opcpublisher.JsonNetworkMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonNetworkMessage",
+    "com.microsoft.JsonNetworkMessage": {
+      "$id": "http://www.microsoft.com#JsonNetworkMessage",
       "type": "null",
       "properties": {
         "MessageId": {
@@ -289,10 +345,10 @@
             "type": "object",
             "oneOf": [
               {
-                "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
+                "$ref": "#/definitions/com.microsoft.JsonDataSetMessage"
               },
               {
-                "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
+                "$ref": "#/definitions/com.microsoft.JsonDataSetMessage1"
               }
             ]
           }

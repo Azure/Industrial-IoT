@@ -172,51 +172,51 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSetPayload": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSetPayload",
-      "title": "DataSetPayload",
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
       "type": "object",
       "properties": {
-        "StepUp": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "AlternatingBoolean": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"
         },
-        "RandomSignedInt32": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.Int32DataValue"
         },
-        "RandomUnsignedInt32": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "DipData": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
         },
-        "FastUIntScalar1": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "FastUIntScalar2": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "FastUIntScalar3": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "FastRandomUIntScalar1": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "FastRandomUIntScalar2": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "FastRandomUIntScalar3": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
         },
-        "NegativeTrendData": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
         },
-        "PositiveTrendData": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
         },
-        "SpikeData": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
         }
       }
@@ -247,7 +247,63 @@
           "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetPayload"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet"
+        }
+      },
+      "required": [
+        "MetaDataVersion",
+        "MessageType",
+        "DataSetWriterName",
+        "Payload"
+      ],
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet1": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet1",
+      "title": "DataSet1",
+      "type": "object",
+      "properties": {
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        }
+      }
+    },
+    "org.github.microsoft.opcpublisher.JsonDataSetMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage1",
+      "type": "object",
+      "properties": {
+        "MetaDataVersion": {
+          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+        },
+        "MessageType": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DataSetWriterName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Payload": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet1"
         }
       },
       "required": [
