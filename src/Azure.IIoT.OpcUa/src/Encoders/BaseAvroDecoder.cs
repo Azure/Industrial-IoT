@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System;
     using System.Buffers;
     using System.Buffers.Binary;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -762,21 +763,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
         public virtual T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            var length = _reader.ReadInteger();
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
-            {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}",
-                    Context.MaxArrayLength,
-                    length);
-            }
-            return Enumerable.Range(0, (int)length)
-                .Select(_ => reader())
-                .ToArray();
+            return ReadArray(reader).ToArray();
         }
 
         /// <summary>
@@ -786,25 +775,51 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
         protected virtual Array ReadArray(string? fieldName,
             Func<object> reader, Type type)
         {
-            var length = _reader.ReadInteger();
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < length)
+            var result = ReadArray(reader);
+            var array = Array.CreateInstance(type, result.Count);
+
+            // TODO: Can we just cast to Array?
+            for (var i = 0; i < result.Count; i++)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}",
-                    Context.MaxArrayLength,
-                    length);
-            }
-            var array = Array.CreateInstance(type, length);
-            for (var i = 0; i < length; i++)
-            {
-                array.SetValue(reader(), i);
+                array.SetValue(result[i], i);
             }
             return array;
+        }
+
+        /// <summary>
+        /// Read array using specified element reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private List<T> ReadArray<T>(Func<T> reader)
+        {
+            var result = new List<T>();
+            var length = _reader.ReadInteger();
+            do
+            {
+                var newLength = length + result.Count;
+                if (newLength < 0 || newLength > int.MaxValue ||
+                    (Context.MaxArrayLength > 0 && Context.MaxArrayLength < newLength))
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
+                        "MaxArrayLength {0} < {1}", Context.MaxArrayLength, length);
+                }
+                result.EnsureCapacity((int)newLength);
+                for (var i = 0; i < length; i++)
+                {
+                    result.Add(reader());
+                }
+
+                // Either another length or last block indicator
+                length = _reader.ReadInteger();
+            }
+            while (length > 0);
+            return result;
         }
 
         /// <summary>

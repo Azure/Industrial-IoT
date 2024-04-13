@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -15,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Collections.Frozen;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -1543,9 +1540,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteInt32(null, Convert.ToInt32(valueToEncode,
                         CultureInfo.InvariantCulture));
                     return;
-                //case BuiltInType.DiagnosticInfo:
-                //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
-                //    return;
+                    //case BuiltInType.DiagnosticInfo:
+                    //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
+                    //    return;
             }
 
             throw ServiceResultException.Create(StatusCodes.BadEncodingError,
@@ -1557,17 +1554,30 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteArray<T>(string? fieldName,
             IList<T>? values, Action<T> writer, string? typeName = null)
         {
-            values ??= Array.Empty<T>();
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
+            try
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Count);
-            }
+                if (values == null || values.Count == 0)
+                {
+                    _writer.WriteInteger(0);
+                    return;
+                }
 
-            _writer.WriteInteger(values.Count);
-            foreach (var value in values)
+                if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
+                        "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Count);
+                }
+
+                _writer.WriteInteger(values.Count);
+                foreach (var value in values)
+                {
+                    writer(value);
+                }
+            }
+            finally
             {
-                writer(value);
+                // Array block ends with 0 length
+                _writer.WriteInteger(0);
             }
         }
 
@@ -1575,23 +1585,32 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected virtual void WriteArray(string? fieldName, Array? values,
             Action<object?> writer)
         {
-            if (values == null)
+            try
             {
+                if (values == null || values.Length == 0)
+                {
+                    _writer.WriteInteger(0);
+                    return;
+                }
+
+                if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
+                        "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Length);
+                }
+
+                // write length
+                _writer.WriteInteger(values.Length);
+
+                for (var index = 0; index < values.Length; index++)
+                {
+                    writer(values.GetValue(index));
+                }
+            }
+            finally
+            {
+                // Array block ends with 0 length
                 _writer.WriteInteger(0);
-                return;
-            }
-            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxArrayLength {0} < {1}", Context.MaxArrayLength, values.Length);
-            }
-
-            // write length
-            _writer.WriteInteger(values.Length);
-
-            for (var index = 0; index < values.Length; index++)
-            {
-                writer(values.GetValue(index));
             }
         }
 
