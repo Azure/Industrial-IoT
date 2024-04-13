@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Text.Json;
 

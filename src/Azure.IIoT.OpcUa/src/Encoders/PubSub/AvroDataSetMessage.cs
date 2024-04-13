@@ -27,6 +27,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string? DataSetName { get; set; }
 
         /// <summary>
+        /// Union index
+        /// </summary>
+        public int? Index { get; set; }
+
+        /// <summary>
         /// Dataset header
         /// </summary>
         internal bool WithDataSetHeader { get; set; }
@@ -70,6 +75,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         internal virtual void Encode(BaseAvroEncoder encoder, bool withDataSetHeader)
         {
             WithDataSetHeader = withDataSetHeader;
+
+            if (encoder is AvroEncoder schemas)
+            {
+                var currentSchema = schemas.Current;
+                if (currentSchema is UnionSchema unionSchema)
+                {
+                    WriteUnionIndex(schemas, unionSchema);
+                }
+            }
+
             if (!WithDataSetHeader)
             {
                 // If no header, write payload object
@@ -100,6 +115,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             WithDataSetHeader = withDataSetHeader;
 
             var current = decoder.Current;
+            if (current is UnionSchema)
+            {
+                // Read union
+                var unionId = decoder.ReadUnion();
+                current = decoder.Current;
+            }
 
             // Try first to read the object with header
             if (withDataSetHeader)
@@ -226,6 +247,48 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Timestamp = decoder.ReadDateTime(nameof(Timestamp));
             Status = decoder.ReadStatusCode(nameof(Status));
             return true;
+        }
+
+        /// <summary>
+        /// Write union index if the message schema is a union
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="schema"></param>
+        private void WriteUnionIndex(AvroEncoder encoder, UnionSchema schema)
+        {
+            if (Index.HasValue)
+            {
+                encoder.WriteUnion(Index.Value);
+                return;
+            }
+
+            // Write as union with union index
+            var typeName = DataSetName ?? DataSetWriterName;
+            if (typeName != null)
+            {
+                for (var index = 0; index < schema.Count; index++)
+                {
+                    if (schema[index] is RecordSchema recordSchema
+                        && recordSchema.Name == typeName)
+                    {
+                        Index = index;
+                        encoder.WriteUnion(index);
+                        return;
+                    }
+                }
+            }
+
+            // TODO: Duck type the schema to the payload
+            //for (var index = 0; index < schema.Count; index++)
+            //{
+            //    if (schema[index] is RecordSchema recordSchema
+            //        && recordSchema.Name == typeName)
+            //    {
+            //        encoder.WriteUnion(index);
+            //        break;
+            //    }
+            //}
+            encoder.WriteUnion(0);
         }
     }
 }

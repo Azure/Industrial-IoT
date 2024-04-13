@@ -332,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             //  String = 1
             //  Guid = 2
             //  Opaque = 3
-            WriteUnionSelector((int)idUnionIndex);
+            WriteUnion((int)idUnionIndex);
             switch (idUnionIndex)
             {
                 case IdType.Numeric:
@@ -456,7 +456,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             value ??= new ExtensionObject();
 
             // Write a raw encoded data type of the schema union
-            WriteUnionSelector(0);
+            WriteUnion(0);
             WriteEncodedDataType(fieldName, value);
         }
 
@@ -1133,7 +1133,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Write union selector
         /// </summary>
         /// <param name="index"></param>
-        protected virtual void WriteUnionSelector(int index)
+        public virtual void WriteUnion(int index)
         {
             _writer.WriteInteger(index);
         }
@@ -1146,7 +1146,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected virtual void WriteNullableDataValue(string? fieldName,
             DataValue? value)
         {
-            WriteUnionSelector(value == null ? 0 : 1); // Union index, first is "null"
+            WriteUnion(value == null ? 0 : 1); // Union index, first is "null"
             if (value == null)
             {
                 WriteNull(fieldName, value);
@@ -1236,7 +1236,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             // Diagnostic info is nullable here
-            WriteUnionSelector(value == null ? 0 : 1); // Union index, first is "null"
+            WriteUnion(value == null ? 0 : 1); // Union index, first is "null"
             if (value == null)
             {
                 WriteNull<DiagnosticInfo>(fieldName, null);
@@ -1283,27 +1283,27 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (valueToEncode == null)
             {
                 // Shortcut here to write null
-                WriteUnionSelector(0);
+                WriteUnion(0);
                 WriteNull<object>(null, null);
             }
             else if (value.TypeInfo!.ValueRank < 0)
             {
                 // Write union discriminator for scalar
-                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnion(ToUnionId(value.TypeInfo.BuiltInType,
                     value.TypeInfo.ValueRank));
                 WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
             }
             else if (valueToEncode is not Matrix m)
             {
                 // Write union discriminator for array
-                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnion(ToUnionId(value.TypeInfo.BuiltInType,
                     ValueRanks.OneDimension));
                 WriteArray(value.TypeInfo.BuiltInType, valueToEncode);
             }
             else
             {
                 // Write union discriminator for matrix
-                WriteUnionSelector(ToUnionId(value.TypeInfo.BuiltInType,
+                WriteUnion(ToUnionId(value.TypeInfo.BuiltInType,
                     ValueRanks.OneOrMoreDimensions));
                 WriteMatrix("Body", m);
             }

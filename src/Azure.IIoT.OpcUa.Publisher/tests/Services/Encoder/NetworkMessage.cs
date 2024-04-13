@@ -280,5 +280,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             return ValueTask.CompletedTask;
         }
-   }
+    }
 }

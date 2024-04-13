@@ -7,8 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using System;
     using System.Buffers.Binary;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Text;
 

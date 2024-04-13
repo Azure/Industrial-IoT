@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Avro;
     using Opc.Ua;
     using System;
@@ -670,7 +669,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         private sealed class Nothing : IDisposable
         {
-            public static readonly Nothing ToDo = new ();
+            public static readonly Nothing ToDo = new();
 
             public void Dispose()
             {

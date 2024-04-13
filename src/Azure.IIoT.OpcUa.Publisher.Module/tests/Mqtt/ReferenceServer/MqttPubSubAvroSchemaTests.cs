@@ -6,11 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Furly.Extensions.Mqtt;
     using System;
-    using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;

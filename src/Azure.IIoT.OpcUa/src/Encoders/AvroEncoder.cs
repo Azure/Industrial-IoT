@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Diagnostics;
     using System.IO;
     using System.Xml;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.
@@ -25,6 +24,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Schema to use
         /// </summary>
         public Schema Schema { get; }
+
+        /// <summary>
+        /// Current schema
+        /// </summary>
+        public Schema Current => _schema.Current;
 
         /// <summary>
         /// Creates an encoder that writes to the stream.
@@ -494,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         }
                         else
                         {
-                            WriteUnionSelector(0);
+                            WriteUnion(0);
                             WriteNull(field.Name, dataValue);
                         }
                     }
@@ -506,7 +510,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         }
                         else
                         {
-                            WriteUnionSelector(1);
+                            WriteUnion(1);
                             WriteDataSetField(field.Name, dataValue);
                         }
                     }
@@ -659,9 +663,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        protected override void WriteUnionSelector(int index)
+        public override void WriteUnion(int index)
         {
-            base.WriteUnionSelector(index);
+            base.WriteUnion(index);
             _schema.ExpectUnionItem = u =>
             {
                 if (index < u.Schemas.Count && index >= 0)

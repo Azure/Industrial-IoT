@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service
 {
-    using System;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;

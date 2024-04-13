@@ -8,13 +8,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System;
-    using System.Buffers;
     using System.Buffers.Binary;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using System.Xml;
 
@@ -350,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             try
             {
                 // Read Union discriminator for the variant
-                var fieldId = ReadUnionSelector();
+                var fieldId = ReadUnion();
                 if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
                 {
                     throw ServiceResultException.Create(StatusCodes.BadDecodingError,
@@ -389,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual DataSet ReadDataSet(string? fieldName)
         {
             var fieldNames = Array.Empty<string>();
-            var avroFieldContent = ReadUnionSelector();
+            var avroFieldContent = ReadUnion();
 
             var dataSet = avroFieldContent == 0 ?
                 new DataSet() :
@@ -441,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual ExtensionObject? ReadExtensionObject(string? fieldName)
         {
-            var unionId = ReadUnionSelector();
+            var unionId = ReadUnion();
             if (unionId != 0)
             {
                 return new ExtensionObject(ReadEncodeableInExtensionObject(unionId));
@@ -736,7 +733,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="depth"></param>
         private DiagnosticInfo? ReadNullableDiagnosticInfo(string? fieldName, int depth)
         {
-            var unionId = ReadUnionSelector();
+            var unionId = ReadUnion();
             if (unionId == 0)
             {
                 return ReadNull<DiagnosticInfo>(fieldName);
@@ -826,7 +823,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Read union selector
         /// </summary>
         /// <returns></returns>
-        protected virtual int ReadUnionSelector()
+        public virtual int ReadUnion()
         {
             return (int)_reader.ReadInteger();
         }
@@ -1250,7 +1247,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         private NodeId ReadNodeId(ushort namespaceIndex)
         {
             const string kIdentifierName = "Identifier";
-            switch ((IdType)ReadUnionSelector()) // Union field id
+            switch ((IdType)ReadUnion()) // Union field id
             {
                 case IdType.Numeric:
                     return new NodeId(ReadUInt32(kIdentifierName), namespaceIndex);

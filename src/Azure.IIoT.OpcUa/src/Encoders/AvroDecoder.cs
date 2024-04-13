@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Avro;
     using Opc.Ua;
     using System;
@@ -569,9 +568,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        protected override int ReadUnionSelector()
+        public override int ReadUnion()
         {
-            var index = base.ReadUnionSelector();
+            var index = base.ReadUnion();
             _schema.ExpectUnionItem = u =>
             {
                 if (index < u.Schemas.Count && index >= 0)
@@ -621,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = GetFieldSchema(fieldName);
             if (schema is UnionSchema)
             {
-                var unionId = ReadUnionSelector();
+                var unionId = ReadUnion();
                 if (unionId == 0)
                 {
                     return ReadNull<DataValue>(fieldName);

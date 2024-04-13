@@ -295,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
                                                     DataSetWriterName = GetDataSetWriterName(Context)
-                                                } ;
+                                                };
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
