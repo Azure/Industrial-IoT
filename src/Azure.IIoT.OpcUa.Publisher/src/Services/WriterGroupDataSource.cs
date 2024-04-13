@@ -686,7 +686,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     SequenceNumber = notification.SequenceNumber;
                     Codec = notification.Codec;
                     PublishTimestamp = notification.PublishTimestamp;
-                    SubscriptionId = notification.SubscriptionId;
                     SubscriptionName = notification.SubscriptionName;
                     ApplicationUri = notification.ApplicationUri;
                     EndpointUrl = notification.EndpointUrl;

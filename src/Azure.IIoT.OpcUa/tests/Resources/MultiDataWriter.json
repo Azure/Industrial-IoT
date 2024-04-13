@@ -4,6 +4,7 @@
   "dataSetWriters": [
     {
       "id": "cb0a88f5c176801edf4154608ec5abd8b6bab607",
+      "dataSetWriterId": 0,
       "dataSet": {
         "dataSetSource": {
           "connection": {
@@ -229,6 +230,7 @@
     },
     {
       "id": "17937046c6c2b4d2b417f7678c6d73a3f75541b8",
+      "dataSetWriterId": 1,
       "dataSet": {
         "dataSetSource": {
           "connection": {

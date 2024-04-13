@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using System.Collections.Generic;
     using System.Linq;
     using System.Globalization;
+    using System.Diagnostics;
 
     /// <summary>
     /// Network message avro schema
@@ -121,8 +122,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var uniqueNames = new HashSet<string>();
             var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new AvroDataSetMessageAvroSchema(writer,
-                    HasDataSetMessageHeader, _options, uniqueNames).Schema)
+                .OrderBy(writer => writer.DataSetWriterId)
+                .Select(writer =>
+                    (writer.DataSetWriterId,
+                    new AvroDataSetMessageAvroSchema(writer,
+                        HasDataSetMessageHeader, _options, uniqueNames).Schema))
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)
@@ -130,9 +134,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return AvroSchema.Null;
             }
 
-            var payloadType = dataSetMessageSchemas.Count > 1 ?
-                AvroSchema.CreateUnion(dataSetMessageSchemas) :
-                dataSetMessageSchemas[0];
+            Schema? payloadType;
+            if (dataSetMessageSchemas.Count > 1)
+            {
+                // Use the index of the data set writer as union index
+                var length = dataSetMessageSchemas.Max(i => i.DataSetWriterId) + 1;
+                Debug.Assert(length < ushort.MaxValue);
+                var unionSchemas = Enumerable.Range(0, length)
+                    .Select(i => (Schema)AvroSchema.CreatePlaceHolder(
+                        "Empty" + i, SchemaUtils.PublisherNamespace))
+                    .ToList();
+                dataSetMessageSchemas
+                    .ForEach(kv => unionSchemas[kv.DataSetWriterId] = kv.Schema);
+                payloadType = AvroSchema.CreateUnion(unionSchemas);
+            }
+            else
+            {
+                payloadType = dataSetMessageSchemas[0].Schema;
+            }
 
             var HasSingleDataSetMessage = contentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);

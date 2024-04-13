@@ -147,6 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     writerId++;
                     yield return writer with
                     {
+                        DataSetWriterId = (ushort)writerId,
                         Id = writerId == 0 ? writer.Id : writer.Id + "_" + writerId
                     };
                 }

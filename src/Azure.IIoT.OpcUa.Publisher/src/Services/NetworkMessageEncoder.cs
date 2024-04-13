@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     DataSetWriterName = GetDataSetWriterName(Context)
                                                 };
 
-                                        dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
+                                        dataSetMessage.DataSetWriterId = Context.Writer.DataSetWriterId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
                                         dataSetMessage.MetaDataVersion = Context.MetaDataVersion;
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
@@ -348,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 } :
                                                 new UadpDataSetMessage();
 
-                                            dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
+                                            dataSetMessage.DataSetWriterId = Context.Writer.DataSetWriterId;
                                             dataSetMessage.MessageType = Notification.MessageType;
                                             dataSetMessage.MetaDataVersion = Context.MetaDataVersion;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
@@ -484,13 +484,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             UseAdvancedEncoding = !standardsCompliant,
                                             NamespaceFormat = namespaceFormat,
                                             UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                                            DataSetWriterId = Notification.SubscriptionId,
+                                            DataSetWriterId = Context.Writer.DataSetWriterId,
                                             MetaData = Notification.Codec.EncodeMetaData(Context.Writer),
                                             MessageId = Guid.NewGuid().ToString(),
                                             DataSetWriterName = GetDataSetWriterName(Context)
                                         } : new UadpMetaDataMessage
                                         {
-                                            DataSetWriterId = Notification.SubscriptionId,
+                                            DataSetWriterId = Context.Writer.DataSetWriterId,
                                             MetaData = Notification.Codec.EncodeMetaData(Context.Writer)
                                         };
                                     metadataMessage.PublisherId = publisherId;

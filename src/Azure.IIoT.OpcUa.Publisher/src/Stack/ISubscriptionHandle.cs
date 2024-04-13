@@ -20,11 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         string Name { get; }
 
         /// <summary>
-        /// Assigned index
-        /// </summary>
-        ushort LocalIndex { get; }
-
-        /// <summary>
         /// State of the underlying client
         /// </summary>
         IOpcUaClientDiagnostics State { get; }

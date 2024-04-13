@@ -408,8 +408,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 .Distinct(OpcNodeModelEx.Comparer)
                                 .ToList()
                         ))
-                        .Select(b => new DataSetWriterModel
+                        .Select((b, i) => new DataSetWriterModel
                         {
+                            DataSetWriterId = (ushort)i,
                             Id = b.WriterId,
                             DataSetWriterName = b.Header.DataSetWriterId,
                             MetaDataUpdateTime = b.Header.GetNormalizedMetaDataUpdateTime(),

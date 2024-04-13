@@ -15,49 +15,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class DataSetWriterModel
     {
         /// <summary>
+        /// Numeric index defining place in the writer group
+        /// </summary>
+        [DataMember(Name = "dataSetWriterId", Order = 0)]
+        public required ushort DataSetWriterId { get; init; }
+
+        /// <summary>
         /// Dataset writer identifier.
         /// </summary>
-        [DataMember(Name = "id", Order = 0)]
+        [DataMember(Name = "id", Order = 1)]
         public required string Id { get; init; }
+
+        /// <summary>
+        /// Dataset writer name.
+        /// </summary>
+        [DataMember(Name = "dataSetWriterName", Order = 2)]
+        public string? DataSetWriterName { get; init; }
 
         /// <summary>
         /// Published dataset inline definition
         /// </summary>
-        [DataMember(Name = "dataSet", Order = 1,
+        [DataMember(Name = "dataSet", Order = 3,
             EmitDefaultValue = false)]
         public PublishedDataSetModel? DataSet { get; init; }
 
         /// <summary>
         /// Dataset field content mask
         /// </summary>
-        [DataMember(Name = "dataSetFieldContentMask", Order = 2,
+        [DataMember(Name = "dataSetFieldContentMask", Order = 4,
             EmitDefaultValue = false)]
         public DataSetFieldContentMask? DataSetFieldContentMask { get; init; }
 
         /// <summary>
         /// Data set message settings
         /// </summary>
-        [DataMember(Name = "messageSettings", Order = 3,
+        [DataMember(Name = "messageSettings", Order = 5,
             EmitDefaultValue = false)]
         public DataSetWriterMessageSettingsModel? MessageSettings { get; init; }
 
         /// <summary>
         /// Keyframe count
         /// </summary>
-        [DataMember(Name = "keyFrameCount", Order = 4,
+        [DataMember(Name = "keyFrameCount", Order = 6,
             EmitDefaultValue = false)]
         public uint? KeyFrameCount { get; init; }
 
         /// <summary>
-        /// Dataset writer name.
-        /// </summary>
-        [DataMember(Name = "dataSetWriterName", Order = 5)]
-        public string? DataSetWriterName { get; init; }
-
-        /// <summary>
         /// Metadata message sending interval
         /// </summary>
-        [DataMember(Name = "metaDataUpdateTime", Order = 6,
+        [DataMember(Name = "metaDataUpdateTime", Order = 7,
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; init; }
 
@@ -65,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Metadata queue settings the writer should use to publish
         /// metadata messages to.
         /// </summary>
-        [DataMember(Name = "metaData", Order = 7,
+        [DataMember(Name = "metaData", Order = 8,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? MetaData { get; init; }
 
@@ -74,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// to. Overrides the writer group queue settings.
         /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "publishing", Order = 8,
+        [DataMember(Name = "publishing", Order = 9,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; init; }
 

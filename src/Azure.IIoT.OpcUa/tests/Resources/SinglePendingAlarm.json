@@ -4,6 +4,7 @@
   "dataSetWriters": [
     {
       "id": "cb0a88f5c176801edf4154608ec5abd8b6bab607",
+      "dataSetWriterId": 0,
       "dataSet": {
         "name": "PendingAlarms",
         "dataSetSource": {

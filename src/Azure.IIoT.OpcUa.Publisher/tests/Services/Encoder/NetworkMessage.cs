@@ -117,6 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var writer = new DataSetWriterModel
             {
                 Id = string.Empty,
+                DataSetWriterId = 0,
                 DataSet = new PublishedDataSetModel
                 {
                     DataSetSource = new PublishedDataSetSourceModel
@@ -261,7 +262,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
                     Codec = new JsonVariantEncoder(new ServiceMessageContext(), new DefaultJsonSerializer()),
                     Notifications = notifications,
-                    SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,
                     ApplicationUri = "ApplicationUri" + suffix
                 };

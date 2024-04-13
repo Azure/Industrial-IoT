@@ -45,9 +45,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public string Name => _template.Id.Id;
 
         /// <inheritdoc/>
-        public ushort LocalIndex { get; }
-
-        /// <inheritdoc/>
         public IOpcUaClientDiagnostics State
             => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
 
@@ -88,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
             _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
-            LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
+            _handle = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
             Initialize();
             _timer = new Timer(OnSubscriptionManagementTriggered);
@@ -114,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _template = ValidateSubscriptionInfo(subscription._template);
             _callbacks = subscription._callbacks;
 
-            LocalIndex = subscription.LocalIndex;
+            _handle = subscription._handle;
             _client = subscription._client;
             _useDeferredAcknoledge = subscription._useDeferredAcknoledge;
             _logger = subscription._logger;
@@ -208,7 +205,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         EndpointUrl = session.Endpoint.EndpointUrl,
                         SubscriptionName = Name,
                         SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                        SubscriptionId = LocalIndex,
                         MessageType = MessageType.KeepAlive
                     };
                 }
@@ -399,7 +395,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
                 EndpointUrl = curSession?.Endpoint?.EndpointUrl,
                 SubscriptionName = Name,
-                SubscriptionId = LocalIndex,
                 SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                 MessageType = messageType
             };
@@ -1007,7 +1002,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var sequentialPublishing =
                     _template.Configuration?.EnableSequentialPublishing ?? false;
 
-                Handle = LocalIndex;
+                Handle = _handle;
                 DisplayName = Name;
                 PublishingEnabled = enablePublishing;
                 KeepAliveCount = configuredKeepAliveCount;
@@ -1297,7 +1292,6 @@ Actual (revised) state/desired state:
                             ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                             EndpointUrl = session.Endpoint?.EndpointUrl,
                             SubscriptionName = Name,
-                            SubscriptionId = LocalIndex,
                             SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                             MessageType = MessageType.Event,
                             PublishTimestamp = publishTime
@@ -1387,7 +1381,6 @@ Actual (revised) state/desired state:
                     EndpointUrl = session.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
                     PublishTimestamp = publishTime,
-                    SubscriptionId = LocalIndex,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = MessageType.KeepAlive
                 };
@@ -1440,7 +1433,6 @@ Actual (revised) state/desired state:
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
-                    SubscriptionId = LocalIndex,
                     PublishTimestamp = publishTime,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = MessageType.DeltaFrame
@@ -1517,7 +1509,6 @@ Actual (revised) state/desired state:
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
                     SubscriptionName = Name,
-                    SubscriptionId = LocalIndex,
                     PublishTimestamp = publishTime,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = MessageType.DeltaFrame
@@ -1866,9 +1857,6 @@ Actual (revised) state/desired state:
             public string? SubscriptionName { get; internal set; }
 
             /// <inheritdoc/>
-            public ushort SubscriptionId { get; internal set; }
-
-            /// <inheritdoc/>
             public string? EndpointUrl { get; internal set; }
 
             /// <inheritdoc/>
@@ -2045,6 +2033,7 @@ Actual (revised) state/desired state:
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
+        private readonly ushort _handle;
         private SubscriptionModel _template;
         private IOpcUaClient? _client;
         private uint _previousSequenceNumber;

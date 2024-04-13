@@ -51,10 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriter);
-            if (dataSetWriter.Id == null)
-            {
-                throw new ArgumentException("DataSetWriter Id missing.", nameof(dataSetWriter));
-            }
             if (dataSetWriter.DataSet?.DataSetSource?.Connection == null)
             {
                 throw new ArgumentException("Connection missing from data source", nameof(dataSetWriter));

@@ -27,11 +27,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string? DataSetName { get; set; }
 
         /// <summary>
-        /// Union index
-        /// </summary>
-        public int? Index { get; set; }
-
-        /// <summary>
         /// Dataset header
         /// </summary>
         internal bool WithDataSetHeader { get; set; }
@@ -256,9 +251,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="schema"></param>
         private void WriteUnionIndex(AvroEncoder encoder, UnionSchema schema)
         {
-            if (Index.HasValue)
+            if (DataSetWriterId < schema.Count)
             {
-                encoder.WriteUnion(Index.Value);
+                encoder.WriteUnion(DataSetWriterId);
                 return;
             }
 
@@ -271,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     if (schema[index] is RecordSchema recordSchema
                         && recordSchema.Name == typeName)
                     {
-                        Index = index;
+                        DataSetWriterId = (ushort)index;
                         encoder.WriteUnion(index);
                         return;
                     }

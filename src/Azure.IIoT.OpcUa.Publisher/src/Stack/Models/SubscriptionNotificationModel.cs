@@ -27,9 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? SubscriptionName { get; set; }
 
         /// <inheritdoc/>
-        public ushort SubscriptionId { get; set; }
-
-        /// <inheritdoc/>
         public string? EndpointUrl { get; set; }
 
         /// <inheritdoc/>

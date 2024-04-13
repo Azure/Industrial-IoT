@@ -153,6 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var writer = new DataSetWriterModel
             {
                 Id = "1",
+                DataSetWriterId = 1,
                 DataSet = new PublishedDataSetModel
                 {
                     DataSetSource = new PublishedDataSetSourceModel
