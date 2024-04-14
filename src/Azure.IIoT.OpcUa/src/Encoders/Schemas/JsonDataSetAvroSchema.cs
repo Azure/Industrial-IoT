@@ -16,10 +16,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
-    /// generates a schema that complies with the avro representation in
-    /// <see cref="AvroEncoder.WriteDataSet(string?, Models.DataSet?)"/>.
+    /// generates a schema that complies with the json representation in
+    /// <see cref="JsonEncoderEx.WriteDataSet(string?, Models.DataSet?)"/>.
+    /// This depends on the network settings and reversible vs. nonreversible
+    /// encoding mode.
     /// </summary>
-    public class AvroDataSetAvroSchema : BaseDataSetSchema<Schema>, IAvroSchema,
+    public class JsonDataSetAvroSchema : BaseDataSetSchema<Schema>, IAvroSchema,
         IEventSchema
     {
         /// <inheritdoc/>
@@ -49,22 +51,23 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public AvroDataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
+        public JsonDataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
-            : base(dataSetFieldContentMask, new AvroBuiltInAvroSchemas(), options)
+            : base(dataSetFieldContentMask, new JsonBuiltInAvroSchemas(
+                dataSetFieldContentMask ?? default), options)
         {
             Schema = Compile(name, dataSet, uniqueNames) ?? AvroSchema.Null;
         }
 
         /// <summary>
-        /// Get avro schema for a dataset encoded in avro
+        /// Get avro schema for a dataset encoded in json
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public AvroDataSetAvroSchema(DataSetWriterModel dataSetWriter,
+        public JsonDataSetAvroSchema(DataSetWriterModel dataSetWriter,
             SchemaOptions? options = null, HashSet<string>? uniqueNames = null) :
             this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
