@@ -479,8 +479,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = GetFieldSchema(fieldName);
             if (schema is not RecordSchema r)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Data sets must be records or maps.");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Invalid schema {schema.ToJson()}. " +
+                    $"Data sets must be records or maps.\n{Schema.ToJson()}");
             }
             try
             {
@@ -489,7 +490,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     var isVariant = field.Schema.IsBuiltInType(out var bt)
                         && bt == BuiltInType.Variant;
-                    if (!dataSet.TryGetValue(field.Name, out var dataValue)
+                    if (!dataSet.TryGetValue(SchemaUtils.Unescape(field.Name),
+                            out var dataValue)
                         || dataValue == null)
                     {
                         if (isVariant)
@@ -528,13 +530,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = GetFieldSchema(fieldName);
             if (schema is not RecordSchema r)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Objects must be records or maps.");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Objects must be records or maps.\n{Schema.ToJson()}");
             }
             if (typeName != null && r.Name != typeName)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    $"Object has type {r.Name} but expected {typeName}.");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Object has type {r.Name} but expected {typeName}\n{Schema.ToJson()}");
             }
             try
             {
@@ -571,63 +573,62 @@ namespace Azure.IIoT.OpcUa.Encoders
         private void WriteDataSetField(string? fieldName, DataValue value)
         {
             var schema = GetFieldSchema(fieldName);
-            if (schema is RecordSchema fieldRecord)
+            if (schema is not RecordSchema fieldRecord)
             {
-                // The field is a record that should contain the data value fields
-                try
-                {
-                    if (fieldRecord.IsBuiltInType(out var builtInType) &&
-                        builtInType != BuiltInType.DataValue)
-                    {
-                        // Write value as variant
-                        base.WriteVariant(fieldName, value.WrappedValue); // TODO
-                        return;
-                    }
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Invalid schema {schema.ToJson()}." +
+                    $"Data set fields must be records.\n{Schema.ToJson()}");
+            }
 
-                    foreach (var dvf in fieldRecord.Fields)
-                    {
-                        switch (dvf.Name)
-                        {
-                            case nameof(value.Value):
-                                WriteVariant(nameof(value.Value),
-                                    value.WrappedValue);
-                                break;
-                            case nameof(value.SourceTimestamp):
-                                WriteDateTime(nameof(value.SourceTimestamp),
-                                    value.SourceTimestamp);
-                                break;
-                            case nameof(value.SourcePicoseconds):
-                                WriteUInt16(nameof(value.SourcePicoseconds),
-                                    value.SourcePicoseconds);
-                                break;
-                            case nameof(value.ServerTimestamp):
-                                WriteDateTime(nameof(value.ServerTimestamp),
-                                    value.ServerTimestamp);
-                                break;
-                            case nameof(value.ServerPicoseconds):
-                                WriteUInt16(nameof(value.ServerPicoseconds),
-                                    value.ServerPicoseconds);
-                                break;
-                            case nameof(value.StatusCode):
-                                WriteStatusCode(nameof(value.StatusCode),
-                                    value.StatusCode);
-                                break;
-                            default:
-                                throw ServiceResultException.Create(
-                                    StatusCodes.BadEncodingError,
-                                    $"Unknown field {dvf.Name} in dataset field.");
-                        }
-                    }
-                }
-                finally
+            // The field is a record that should contain the data value fields
+            try
+            {
+                if (fieldRecord.IsBuiltInType(out var builtInType) &&
+                    builtInType != BuiltInType.DataValue)
                 {
-                    _schema.Pop();
+                    // Write value as variant
+                    base.WriteVariant(fieldName, value.WrappedValue); // TODO
+                    return;
+                }
+
+                foreach (var dvf in fieldRecord.Fields)
+                {
+                    switch (dvf.Name)
+                    {
+                        case nameof(value.Value):
+                            WriteVariant(nameof(value.Value),
+                                value.WrappedValue);
+                            break;
+                        case nameof(value.SourceTimestamp):
+                            WriteDateTime(nameof(value.SourceTimestamp),
+                                value.SourceTimestamp);
+                            break;
+                        case nameof(value.SourcePicoseconds):
+                            WriteUInt16(nameof(value.SourcePicoseconds),
+                                value.SourcePicoseconds);
+                            break;
+                        case nameof(value.ServerTimestamp):
+                            WriteDateTime(nameof(value.ServerTimestamp),
+                                value.ServerTimestamp);
+                            break;
+                        case nameof(value.ServerPicoseconds):
+                            WriteUInt16(nameof(value.ServerPicoseconds),
+                                value.ServerPicoseconds);
+                            break;
+                        case nameof(value.StatusCode):
+                            WriteStatusCode(nameof(value.StatusCode),
+                                value.StatusCode);
+                            break;
+                        default:
+                            throw new ServiceResultException(
+                                StatusCodes.BadEncodingError,
+                                $"Unknown field {dvf.Name} in dataset field.");
+                    }
                 }
             }
-            else
+            finally
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Data set fields must be records.");
+                _schema.Pop();
             }
         }
 
@@ -672,8 +673,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return u.Schemas[index];
                 }
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Union index read does not match schema union");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Union index {index} not found in union {u.ToJson()}\n{Schema.ToJson()}");
             };
             GetFieldSchema(null);
         }
@@ -721,9 +722,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var curName = isFullName ? currentSchema.Fullname : currentSchema.Name;
             if (curName != expectedSchemaName)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Failed to encode. Schema {0} is not as expected {1}",
-                    currentSchema.Fullname, expectedSchemaName);
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to encode. Schema {currentSchema.Fullname} is not as " +
+                    $"expected {expectedSchemaName}.\n{Schema.ToJson()}");
             }
 
             // Write type per schema
@@ -733,8 +734,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var completedSchema = _schema.Pop();
             if (completedSchema != currentSchema)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Failed to pop built in type.");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
             }
         }
 
@@ -749,8 +750,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = GetFieldSchema(null);
             if (schema is not ArraySchema arr)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Reading array field but schema is not array schema");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Reading array field but schema {schema.ToJson()} is not " +
+                    $"array schema.\n{Schema.ToJson()}");
             }
             try
             {
@@ -759,8 +761,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             finally
             {
                 // Pop array from stack
-                schema = _schema.Pop();
-                Debug.Assert(schema == arr);
+                _schema.Pop();
             }
         }
 
@@ -775,9 +776,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             _schema.ExpectedFieldName = fieldName;
             if (!_schema.TryMoveNext())
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "Failed to encode. No schema for field {0}",
-                    fieldName ?? string.Empty);
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to encode. No schema for field {fieldName ?? "unnamed"}.\n" +
+                    $"{Schema.ToJson()}");
             }
             return _schema.Current;
         }

@@ -294,7 +294,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DebugLogNotificationsFilter =
                     GetStringOrDefault(DebugLogNotificationsFilterKey);
-                options.DebugLogNotifications ??= (options.DebugLogNotificationsFilter != null);
+                options.DebugLogNotifications ??=
+                    (options.DebugLogNotificationsFilter != null ? true : null);
             }
 
             if (options.DebugLogNotificationsWithHeartbeat == null)

@@ -389,8 +389,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (curSession is not IOpcUaSession sessionContext)
             {
                 // Can only send with context
-                _logger.LogWarning("Failed to send notification since no session exists " +
-                    "to use as context. Notification was dropped.");
+                if (curSession != null)
+                {
+                    // Should not happen
+                    _logger.LogError("Failed to send notification - the session is not " +
+                        "one of ours ({Session}).", curSession);
+                }
+                else
+                {
+                    _logger.LogDebug("Failed to send notification since no session exists " +
+                        "to use as context. Notification was dropped.");
+                }
                 return;
             }
 

@@ -734,7 +734,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
             {
                 var sb = new StringBuilder();
-                // Filter heartbeats and model changes
                 foreach (var item in notifications)
                 {
                     sb
