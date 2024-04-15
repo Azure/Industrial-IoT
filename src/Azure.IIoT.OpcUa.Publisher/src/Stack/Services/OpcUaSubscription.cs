@@ -839,7 +839,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.LogInformation(
 "Now monitoring {Count} (Good:{Good}/Bad:{Bad}/Removed:{Disposed}) nodes in subscription {Subscription}.",
-                set.Count, _goodMonitoredItems, _badMonitoredItems, dispose, this);
+                set.Count, _goodMonitoredItems, _badMonitoredItems, dispose.Count, this);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())

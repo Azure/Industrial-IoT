@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 #else
             var folder = Path.Combine(".", "Encoders", "Schemas", "AvroSchema", name);
             var expected = await File.ReadAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)));
-            Assert.Equal(expected.Replace("\r\n", "\n"), json.Replace("\r\n", "\n"));
+            Assert.Equal(expected.ReplaceLineEndings(), json.ReplaceLineEndings());
 #endif
         }
     }

@@ -58,19 +58,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Get flag that indicates if message has network message header
         /// </summary>
         public bool HasNetworkMessageHeader
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0;
+            => (NetworkMessageContentMask & (uint)AvroNetworkMessageContentMask.NetworkMessageHeader) != 0;
 
         /// <summary>
         /// Flag that indicates if the Network message contains a single dataset message
         /// </summary>
         public bool HasSingleDataSetMessage
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0;
+            => (NetworkMessageContentMask & (uint)AvroNetworkMessageContentMask.SingleDataSetMessage) != 0;
 
         /// <summary>
         /// Flag that indicates if the Network message dataSets have header
         /// </summary>
         public bool HasDataSetMessageHeader
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetMessageHeader) != 0;
+            => (NetworkMessageContentMask & (uint)AvroNetworkMessageContentMask.DataSetMessageHeader) != 0;
 
         /// <summary>
         /// Use gzip compression
@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Reset
             DataSetWriterGroup = null;
             DataSetClassId = default;
-            NetworkMessageContentMask = (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
+            NetworkMessageContentMask = (uint)AvroNetworkMessageContentMask.DataSetMessageHeader;
             MessageId = () => Guid.NewGuid().ToString();
             PublisherId = null;
             Messages.Clear();
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     recordSchema.Fields[5].Name == nameof(Messages))
                 {
                     // Read network message header
-                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
+                    NetworkMessageContentMask |= (uint)AvroNetworkMessageContentMask.NetworkMessageHeader;
 
                     var messageId = decoder.ReadString(nameof(MessageId));
                     if (messageId != null)
@@ -305,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
 
                 // No header thus content must be single data set message
-                NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                NetworkMessageContentMask |= (uint)AvroNetworkMessageContentMask.SingleDataSetMessage;
                 return (bool?)null;
             });
 
@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 var result = decoder.ReadArray(fieldName, () => TryReadDataSetMessage(decoder));
                 if (result.Length == 1)
                 {
-                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                    NetworkMessageContentMask |= (uint)AvroNetworkMessageContentMask.SingleDataSetMessage;
                 }
                 return result.All(s => s);
             }
@@ -335,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     if (!message.WithDataSetHeader)
                     {
-                        NetworkMessageContentMask &= ~(uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
+                        NetworkMessageContentMask &= ~(uint)AvroNetworkMessageContentMask.DataSetMessageHeader;
                     }
                     Messages.Add(message);
                     return true;

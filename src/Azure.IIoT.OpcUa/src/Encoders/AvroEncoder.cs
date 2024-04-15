@@ -526,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteObject(string? fieldName, string? typeName, Action writer)
         {
             var schema = GetFieldSchema(fieldName);
-            if (schema is not RecordSchema r || r.Name != typeName)
+            if (schema is not RecordSchema r)
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError,
                     "Objects must be records or maps.");

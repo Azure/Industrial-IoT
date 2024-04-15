@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new AvroDataSetAvroSchema(dataSetWriter, options, 
+            _dataSet = new AvroDataSetAvroSchema(dataSetWriter, options,
                 uniqueNames);
 
             Schema = Compile(dataSetWriter.DataSet?.Name

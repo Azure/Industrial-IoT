@@ -271,6 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Publishing = null,
                 DataSetWriters = updatedSources.Values
                     .SelectMany(w => w.DataSetWriters)
+                    .Select((w, index) => w with { DataSetWriterId = (ushort)index })
                     .ToList()
             };
             _dataSources = updatedSources.ToImmutableDictionary();
