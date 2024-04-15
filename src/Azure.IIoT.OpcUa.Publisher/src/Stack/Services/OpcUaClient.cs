@@ -917,7 +917,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     break;
                             }
 
-                            _logger.LogDebug("Event {Event} in State {State} processed.", trigger,
+                            _logger.LogTrace("Event {Event} in State {State} processed.", trigger,
                                 currentSessionState);
                         }
                     }
@@ -1259,7 +1259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(
+                _logger.LogTrace(
                     "#{ThreadId}: Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})",
                     Environment.CurrentManagedThreadId, ToString(e.AcknowledgementsToSend),
                     ToString(e.DeferredAcknowledgementsToSend), session.GoodPublishRequestCount);

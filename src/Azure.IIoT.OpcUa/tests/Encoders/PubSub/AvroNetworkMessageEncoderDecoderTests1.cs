@@ -18,20 +18,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     /// <summary>
     /// Avro encoder decoder tests
     /// </summary>
-    public class AvroNetworkMessageEncoderDecoderTests
+    public class AvroNetworkMessageEncoderDecoderTests1
     {
         public const AvroNetworkMessageContentMask NetworkMessageContentMaskDefault =
             AvroNetworkMessageContentMask.NetworkMessageHeader |
             AvroNetworkMessageContentMask.DataSetMessageHeader;
-
-        public const JsonDataSetMessageContentMask DataSetMessageContentMaskDefault =
-            JsonDataSetMessageContentMask.DataSetWriterName |
-            JsonDataSetMessageContentMask.MessageType |
-            JsonDataSetMessageContentMask.DataSetWriterId |
-            JsonDataSetMessageContentMask.SequenceNumber |
-            JsonDataSetMessageContentMask.MetaDataVersion |
-            JsonDataSetMessageContentMask.Timestamp |
-            JsonDataSetMessageContentMask.Status;
 
         public const DataSetFieldContentMask DataSetFieldContentMaskDefault =
             DataSetFieldContentMask.SourceTimestamp |
@@ -53,40 +44,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask, messages);
-            networkMessage.UseGzipCompression = compress;
-
-            var context = new ServiceMessageContext();
-            var buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
-
-            context = new ServiceMessageContext();
-            buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
-            Assert.Equal(schema, networkMessage.Schema);
-
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            var result = PubSubMessage.Decode(buffer, networkMessage.ContentType, context, messageSchema: json);
-            Assert.Equal(networkMessage, result);
-        }
-
-        [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 1)]
-        public void EncodeDecodeNetworkMessageReversible(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask, messages);
             networkMessage.UseGzipCompression = compress;
@@ -136,47 +93,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Assert.NotNull(schema);
             var json = schema.ToJson();
 
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            var m = buffers
-                .Select(buffer => (BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json))
-                .ToList();
-            var result = m[0];
-            result.Messages = m.SelectMany(m => m.Messages).ToList();
-            Assert.Equal(networkMessage, result);
-        }
-
-        [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessagesReversible(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    DataSetMessageContentMaskDefault | JsonDataSetMessageContentMask.ReversibleFieldEncoding))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask, messages);
-            networkMessage.UseGzipCompression = compress;
-
-            var context = new ServiceMessageContext();
-            var buffers = networkMessage.Encode(context, maxMessageSize);
-
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
 
             var m = buffers
@@ -369,10 +285,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Create dataset message
         /// </summary>
         /// <param name="sequenceNumber"></param>
-        /// <param name="dataSetMessageContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
         private static AvroDataSetMessage CreateDataSetMessage(int sequenceNumber,
-            JsonDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
             DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new AvroDataSetMessage
@@ -385,8 +299,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 Timestamp = DateTime.UtcNow,
                 MessageType = MessageType.KeyFrame,
                 Picoseconds = 1,
-                Payload = CreateDataSet(dataSetFieldContentMask),
-                DataSetMessageContentMask = (uint)dataSetMessageContentMask
+                Payload = CreateDataSet(dataSetFieldContentMask)
             };
         }
 

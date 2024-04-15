@@ -141,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 m.networkMessage.DataSetWriterGroup);
                         }
 
-                        _logger.LogDebug(
+                        _logger.LogTrace(
                             "{Count} Notifications encoded into a network message (chunks:{Chunks})...",
                             m.notificationsPerMessage, validChunks);
 

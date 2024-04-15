@@ -534,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return;
                 }
 
-                _outer._logger.LogDebug("Insert metadata message into Subscription {Id}...", Id);
+                _outer._logger.LogTrace("Insert metadata message into Subscription {Id}...", Id);
                 var notification = Subscription?.CreateKeepAlive();
                 if (notification != null)
                 {

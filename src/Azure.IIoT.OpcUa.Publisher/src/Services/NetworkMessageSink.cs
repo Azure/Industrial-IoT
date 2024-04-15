@@ -560,7 +560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             // Throws if cancelled
                             await message.Event.SendAsync(_cts.Token).ConfigureAwait(false);
-                            _outer._logger.LogDebug("#{Attempt}: Network message sent.", attempt);
+                            _outer._logger.LogTrace("#{Attempt}: Network message sent.", attempt);
                             break;
                         }
                         catch (OperationCanceledException) { }
@@ -658,7 +658,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _batchTriggerIntervalTimer.Change(_outer._transport.BatchTriggerInterval,
                         Timeout.InfiniteTimeSpan);
                 }
-                _logger.LogDebug("Trigger notification batch (Interval:{Interval})...",
+                _logger.LogTrace("Trigger notification batch (Interval:{Interval})...",
                     _outer._transport.BatchTriggerInterval);
                 _notificationBufferBlock.TriggerBatch();
             }

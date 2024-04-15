@@ -80,8 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // schema so that we can properly validate we are writing the
             // type. This can be optimized in the future.
             //
-            var typeName = DataSetName ?? DataSetWriterName
-                ?? nameof(AvroDataSetMessage);
+            var typeName = DataSetName ?? nameof(AvroDataSetMessage);
             if (encoder is AvroEncoder schemas)
             {
                 var currentSchema = schemas.Current;
@@ -141,12 +140,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // Reading in the context of an array schema
                 current = arr.ItemSchema;
             }
-            if (current is UnionSchema)
+            if (current is UnionSchema union)
             {
-                // Read union
+                // Read union: TODO: this does not work, we need to read this when reading the object
                 var unionId = decoder.ReadUnion();
-                current = decoder.Current;
             }
+
+            // Save the current offset from which we read
+            current = decoder.Current;
 
             // Try first to read the object with header
             if (withDataSetHeader)
