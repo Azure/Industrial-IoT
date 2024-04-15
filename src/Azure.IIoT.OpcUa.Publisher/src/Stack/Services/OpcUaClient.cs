@@ -94,6 +94,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem);
 
         /// <summary>
+        /// Transfer subscription on reconnect
+        /// </summary>
+        public bool DisableTransferSubscriptionOnReconnect
+            => _connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer);
+
+        /// <summary>
         /// Client is connected
         /// </summary>
         public bool IsConnected
@@ -281,7 +287,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (reverseConnectManager == null)
             {
                 return await CreateAsync(configuration, endpoint, updateBeforeConnect,
-                    checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
+                    checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales,
+                    ct).ConfigureAwait(false);
             }
             ITransportWaitingConnection? connection;
             do
@@ -1053,8 +1060,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger.LogInformation("Connecting Client {Client} to {EndpointUrl}...",
                 this, _connection.Endpoint.Url);
             var attempt = 0;
-            foreach (var endpointUrl in _connection.GetEndpointUrls())
+            foreach (var nextUrl in _connection.GetEndpointUrls())
             {
+                var endpointUrl = nextUrl;
+
                 // Ensure any previous session is disposed here.
                 await CloseSessionAsync().ConfigureAwait(false);
                 ct.ThrowIfCancellationRequested();
@@ -1088,6 +1097,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             _sessionName);
                         continue;
                     }
+
+                    endpointUrl = Utils.ParseUri(endpointDescription.EndpointUrl);
                     var endpointConfiguration = EndpointConfiguration.Create(
                         _configuration);
                     endpointConfiguration.OperationTimeout =
@@ -1491,10 +1502,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
                 var endpoints = await client.GetEndpointsAsync(null).ConfigureAwait(false);
+                discoveryUrl ??= uri;
 
-                _logger.LogInformation("Selecting endpoint {EndpointUri} with SecurityMode " +
+                _logger.LogInformation("Discovery endpoint {DiscoveryUrl} returned endpoints. " +
+                    "Selecting endpoint {EndpointUri} with SecurityMode " +
                     "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                    uri, securityMode, securityPolicy ?? "any", endpoints.Select(
+                    discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
                         ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
 
                 var filtered = endpoints
@@ -1530,7 +1543,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     //
                     if (selected != null)
                     {
-                        _logger.LogInformation("Endpoint {Endpoint} selected!",
+                        _logger.LogInformation(
+                            "Endpoint {Endpoint} selected via reverse connect!",
                             ToString(selected));
                     }
                     return selected;
@@ -1552,22 +1566,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 //
-                // Adjust the host name from the host name that was use to
-                // successfully connect the discovery client
+                // Adjust the host name and port to the host name and port
+                // that was use to successfully connect the discovery client
                 //
                 var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-                discoveryUrl = Utils.ParseUri(client.Endpoint.EndpointUrl);
                 if (selectedUrl != null && discoveryUrl != null &&
                     selectedUrl.Scheme == discoveryUrl.Scheme)
                 {
                     selected.EndpointUrl = new UriBuilder(selectedUrl)
                     {
-                        Host = discoveryUrl.DnsSafeHost
+                        Host = discoveryUrl.DnsSafeHost,
+                        Port = discoveryUrl.Port
                     }.ToString();
                 }
 
-                _logger.LogInformation("Endpoint {Endpoint} selected!",
-                    ToString(selected));
+                _logger.LogInformation("Endpoint {Endpoint} selected!", ToString(selected));
                 return selected;
 
                 static string ToString(EndpointDescription ep) =>

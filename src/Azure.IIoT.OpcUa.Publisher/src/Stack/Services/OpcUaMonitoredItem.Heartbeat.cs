@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                return 334455667 + base.GetHashCode();
+                return HashCode.Combine(base.GetHashCode(), nameof(Heartbeat));
             }
 
             /// <inheritdoc/>

@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
+        public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -139,6 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
 
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
+            options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);
         }
 
         /// <summary>

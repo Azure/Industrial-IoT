@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             if (!properties.TryGetValue("opType", out var opType) ||

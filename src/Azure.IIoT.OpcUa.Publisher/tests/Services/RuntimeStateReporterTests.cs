@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Configuration;
     using Moq;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -121,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _message.Setup(c => c.SetContentEncoding(It.IsAny<string>()))
                 .Callback<string>(v => contentEncoding = v)
                 .Returns(_message.Object);
-            _message.Setup(c => c.AddBuffers(It.IsAny<IEnumerable<ReadOnlyMemory<byte>>>()))
+            _message.Setup(c => c.AddBuffers(It.IsAny<IEnumerable<ReadOnlySequence<byte>>>()))
                 .Callback<IEnumerable<ReadOnlyMemory<byte>>>(v => buffers = v.ToList())
                 .Returns(_message.Object);
             _message.Setup(c => c.SetTopic(It.IsAny<string>()))

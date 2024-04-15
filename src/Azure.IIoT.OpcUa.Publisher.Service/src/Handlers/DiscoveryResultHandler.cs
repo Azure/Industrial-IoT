@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             DiscoveryEventModel? discovery;
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to convert discovery result {Json}",
-                    Encoding.UTF8.GetString(payload.Span));
+                    Encoding.UTF8.GetString(payload.ToArray()));
                 return;
             }
             try

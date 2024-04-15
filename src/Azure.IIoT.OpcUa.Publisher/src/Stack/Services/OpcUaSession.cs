@@ -631,7 +631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             SessionFactory = _client;
             DeleteSubscriptionsOnClose = false;
-            TransferSubscriptionsOnReconnect = true;
+            TransferSubscriptionsOnReconnect = !_client.DisableTransferSubscriptionOnReconnect;
 
             PublishError +=
                 _client.Session_HandlePublishError;
@@ -957,6 +957,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(!_client.DisableComplexTypeLoading);
             return Task.Run(async () =>
             {
+                var nodeCache = NodeCache;
                 if (Connected)
                 {
                     var complexTypeSystem = new ComplexTypeSystem(this);
@@ -969,7 +970,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here
-                        NodeCache?.Clear();
+                        nodeCache.Clear();
                         return complexTypeSystem;
                     }
                 }

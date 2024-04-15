@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Furly.Extensions.Mqtt;
+    using Json.More;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -56,6 +57,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
+            if (currentTimes.Count + outputs.Count != messages.Count)
+            {
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
+            }
             Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
@@ -89,6 +94,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
+            if (currentTimes.Count + outputs.Count != messages.Count)
+            {
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
+            }
             Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
@@ -121,6 +130,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
+            if (currentTimes.Count + outputs.Count != messages.Count)
+            {
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
+            }
+
             Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
@@ -147,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Assert
             Assert.NotEmpty(messages);
 
-            if (messages != null) return; // TODO
+            if (messages != null) return; // TODO FIX
 
             var payload1 = messages[0].Message;
             _output.WriteLine(payload1.ToString());

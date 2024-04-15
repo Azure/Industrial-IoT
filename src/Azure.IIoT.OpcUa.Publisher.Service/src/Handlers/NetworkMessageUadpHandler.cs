@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
@@ -41,13 +42,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             try
             {
                 var context = new ServiceMessageContext();
-                var pubSubMessage = PubSubMessage.Decode(payload, ContentType.Uadp, context, null, MessageSchema);
+                var pubSubMessage = PubSubMessage.Decode(payload.ToArray(), ContentType.Uadp, context, null, MessageSchema);
                 if (pubSubMessage is not BaseNetworkMessage networkMessage)
                 {
                     _logger.LogInformation("Received non network message.");
