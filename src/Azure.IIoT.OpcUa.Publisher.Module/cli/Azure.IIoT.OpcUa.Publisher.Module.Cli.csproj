@@ -7,8 +7,8 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.30" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.30" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.40" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.40" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
@@ -19,6 +19,9 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Profiles\KeyFrames.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Profiles\DataSetTopics.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

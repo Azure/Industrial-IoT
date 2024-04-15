@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly.Extensions.Messaging;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -58,6 +59,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
+        public IEventSchema Schema { get; private set; }
+
+        public IEvent SetSchema(IEventSchema schema)
+        {
+            Schema = schema;
+            return this;
+        }
+
         public bool Retain { get; private set; }
 
         public IEvent SetRetain(bool value)
@@ -74,9 +83,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        public IList<ReadOnlyMemory<byte>> Buffers { get; } = new List<ReadOnlyMemory<byte>>();
+        public IList<ReadOnlySequence<byte>> Buffers { get; } = new List<ReadOnlySequence<byte>>();
 
-        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
             Buffers.AddRange(value);
             return this;

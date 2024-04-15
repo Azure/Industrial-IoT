@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Configuration;
     using Moq;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -103,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var contentType = string.Empty;
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
-            IReadOnlyList<ReadOnlyMemory<byte>> buffers = null;
+            IReadOnlyList<ReadOnlySequence<byte>> buffers = null;
             _message.Setup(c => c.SetRetain(It.Is<bool>(v => v)))
                 .Returns(_message.Object);
             _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))
@@ -121,8 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _message.Setup(c => c.SetContentEncoding(It.IsAny<string>()))
                 .Callback<string>(v => contentEncoding = v)
                 .Returns(_message.Object);
-            _message.Setup(c => c.AddBuffers(It.IsAny<IEnumerable<ReadOnlyMemory<byte>>>()))
-                .Callback<IEnumerable<ReadOnlyMemory<byte>>>(v => buffers = v.ToList())
+            _message.Setup(c => c.AddBuffers(It.IsAny<IEnumerable<ReadOnlySequence<byte>>>()))
+                .Callback<IEnumerable<ReadOnlySequence<byte>>>(v => buffers = v.ToList())
                 .Returns(_message.Object);
             _message.Setup(c => c.SetTopic(It.IsAny<string>()))
                 .Returns(_message.Object);
@@ -156,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(Encoding.UTF8.WebName, contentEncoding);
 
             Assert.Single(buffers);
-            var body = Encoding.UTF8.GetString(buffers[0].Span);
+            var body = Encoding.UTF8.GetString(buffers[0].FirstSpan);
             Assert.StartsWith("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1,\"TimestampUtc\":", body, StringComparison.Ordinal);
         }
     }

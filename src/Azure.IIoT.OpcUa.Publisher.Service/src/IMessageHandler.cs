@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service
 {
-    using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask HandleAsync(string deviceId, string? moduleId,
-            ReadOnlyMemory<byte> payload,
+            ReadOnlySequence<byte> payload,
             IReadOnlyDictionary<string, string?> properties,
             CancellationToken ct = default);
     }

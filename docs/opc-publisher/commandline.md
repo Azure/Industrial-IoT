@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.5 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
+                                                 2.9.6 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
 
 General
 -------
@@ -610,6 +610,10 @@ Subscription settings
                                messages but also prevents transcoding of
                                unknown complex types in outgoing messages.
                                Default: `false`.
+      --dtr, --disabletransferonreconnect, --DisableSubscriptionTransfer[=VALUE]
+                             Do not attempt to transfer subscriptions when
+                               reconnecting but re-establish the subscription.
+                               Default: `false`.
 
 OPC UA Client configuration
 ---------------------------
@@ -922,6 +926,10 @@ Diagnostic options
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
                                Default: `15000` (15 seconds).
+      --mms, --maxmetricstreams, --OtlpMaxMetricStreams=VALUE
+                             Specifiy the max number of streams to collect in
+                               the default view.
+                               Default: `3000`.
       --em, --enableprometheusendpoint, --EnableMetrics=VALUE
                              Explicitly enable or disable exporting prometheus
                                metrics directly on the standard path.

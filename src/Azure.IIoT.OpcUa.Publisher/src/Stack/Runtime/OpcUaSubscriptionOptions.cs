@@ -150,5 +150,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// unified namespace publishing
         /// </summary>
         public bool? FetchOpcBrowsePathFromRoot { get; set; }
+
+        /// <summary>
+        /// Disable subscription transfer on reconnect.
+        /// </summary>
+        public bool? DisableSubscriptionTransfer { get; set; }
     }
 }

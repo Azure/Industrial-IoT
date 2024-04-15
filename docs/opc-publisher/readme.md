@@ -383,6 +383,7 @@ The configuration schema is used with the file based configuration, but also wit
   "OpcAuthenticationUsername": "string",
   "OpcAuthenticationPassword": "string",
   "UseReverseConnect": "bool",
+  "DisableSubscriptionTransfer": "bool",
   "DataSetWriterId": "string",
   "DataSetClassId": "guid",
   "DataSetName": "string",
@@ -454,6 +455,7 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `LastChangeTimespan` | No | String | `null` | The time the Publisher configuration was last updated.<br>Read only and informational only. |
 | `EndpointUrl` | Yes | String | N/A | The OPC UA server endpoint URL |
 | `UseReverseConnect` | No | Boolean | `false` | Controls whether to use OPC UA reverse connect to connect to the OPC UA server.<br>A publisher wide default value can be set using the [command line](./commandline.md) |
+| `DisableSubscriptionTransfer` | No | Boolean | `false` | This setting allows you to disable subscription transfer on reconnect to fix interoperability issues with servers that do not support it.<br>A publisher wide default value can be set using the [command line](./commandline.md) |
 | `UseSecurity` | No | Boolean | `false` | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint.<br>`true` corresponds to `EndpointSecurityMode` = `SignAndEncrypt`, `false` to `EndpointSecurityMode` = `None` |
 | `EndpointSecurityMode` | No | Enum | `null` | Enum to specify a requested security mode of the chosen session endpoint. Overrides `UseSecurity` value.<br>Options: `Sign`, `SignAndEncrypt`, `None`, and `Best` (security mode possible which might include `None`) |
 | `EndpointSecurityPolicy` | No | String | `null` | String to specify a security policy the chosen endpoint must meet. Refines the endpoint chosen through `EndpointSecurityMode` and overrides `UseSecurity` value. |

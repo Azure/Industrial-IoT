@@ -99,6 +99,16 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? DebugLogNotificationsFilter { get; set; }
 
         /// <summary>
+        /// Include heartbeats in ingess logs
+        /// </summary>
+        public bool? DebugLogNotificationsWithHeartbeat { get; set; }
+
+        /// <summary>
+        /// Log encoded notifications to informational log
+        /// </summary>
+        public bool? DebugLogEncodedNotifications { get; set; }
+
+        /// <summary>
         /// Define the maximum number of network messages in the
         /// send part of the publish queue of the writer group.
         /// </summary>

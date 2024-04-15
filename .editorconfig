@@ -483,7 +483,7 @@ dotnet_diagnostic.CA1003.severity = silent
 dotnet_diagnostic.CA1008.severity = silent
 
 [*.{cs,vb}]
-dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_coalesce_expression = true:silent
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_auto_properties = true:silent
@@ -513,3 +513,6 @@ dotnet_style_prefer_collection_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+
+# IDE0270: Use coalesce expression
+dotnet_diagnostic.IDE0270.severity = silent

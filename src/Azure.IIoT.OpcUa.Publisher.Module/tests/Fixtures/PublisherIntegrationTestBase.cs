@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -285,9 +286,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
         }
 
-        private static readonly JsonSerializerOptions kIndented =
-            new()
-            { WriteIndented = true };
+        private static readonly JsonSerializerOptions kIndented = new()
+        {
+            WriteIndented = true
+        };
 
         /// <summary>
         /// Start publisher
