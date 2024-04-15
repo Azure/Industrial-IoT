@@ -78,5 +78,4 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         SingleDataSetMessage = 4
     }
-
 }

@@ -55,7 +55,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string WriteValueWhenDataSetHasSingleEntryKey = "WriteValueWhenDataSetHasSingleEntry";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
+        public const string DebugLogEncodedNotificationsKey = "DebugLogEncodedNotifications";
         public const string DebugLogNotificationsFilterKey = "DebugLogNotificationsFilter";
+        public const string DebugLogNotificationsWithHeartbeatKey = "DebugLogNotificationsWithHeartbeat";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
@@ -288,10 +290,22 @@ namespace Azure.IIoT.OpcUa.Publisher
             options.ScaleTestCount ??= GetIntOrDefault(ScaleTestCountKey,
                     ScaleTestCountDefault);
 
-            options.DebugLogNotificationsFilter ??=
+            if (options.DebugLogNotificationsFilter == null)
+            {
+                options.DebugLogNotificationsFilter =
                     GetStringOrDefault(DebugLogNotificationsFilterKey);
+                options.DebugLogNotifications ??= (options.DebugLogNotificationsFilter != null);
+            }
+
+            if (options.DebugLogNotificationsWithHeartbeat == null)
+            {
+                options.DebugLogNotificationsWithHeartbeat =
+                    GetBoolOrDefault(DebugLogNotificationsWithHeartbeatKey);
+                options.DebugLogNotifications ??= options.DebugLogNotifications;
+            }
 
             options.DebugLogNotifications ??= GetBoolOrDefault(DebugLogNotificationsKey);
+            options.DebugLogEncodedNotifications ??= GetBoolOrDefault(DebugLogEncodedNotificationsKey);
 
             if (options.DiagnosticsInterval == null)
             {

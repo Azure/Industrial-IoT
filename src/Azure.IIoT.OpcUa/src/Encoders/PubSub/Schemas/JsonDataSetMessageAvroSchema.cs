@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
             UseCompatibilityMode = useCompatibilityMode;
-            _dataSet = new JsonDataSetAvroSchema(null, dataSet, 
+            _dataSet = new JsonDataSetAvroSchema(null, dataSet,
                 dataSetFieldContentMask, options);
             Schema = Compile(dataSet.Name,
                 GetNamespace(_options.Namespace, _options.Namespaces),

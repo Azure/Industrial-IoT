@@ -494,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override Schema GetSchemaForDataSetField(string name, string ns, 
+        public override Schema GetSchemaForDataSetField(string name, string ns,
             bool asDataValue, Schema valueSchema)
         {
             if (asDataValue)
@@ -554,8 +554,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         internal static Schema PrimitiveType(int builtInType, string name,
             string type)
         {
-            var baseType = PrimitiveSchema.NewInstance(type);
-            return baseType;
+            return PrimitiveSchema.NewInstance(type);
         }
 
         /// <summary>

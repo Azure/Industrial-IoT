@@ -275,6 +275,5 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Status = decoder.ReadStatusCode(nameof(Status));
             return true;
         }
-
     }
 }

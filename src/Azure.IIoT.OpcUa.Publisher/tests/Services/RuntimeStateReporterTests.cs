@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(Encoding.UTF8.WebName, contentEncoding);
 
             Assert.Single(buffers);
-            var body = Encoding.UTF8.GetString(buffers[0].ToArray());
+            var body = Encoding.UTF8.GetString(buffers[0].FirstSpan);
             Assert.StartsWith("{\"MessageType\":\"RestartAnnouncement\",\"MessageVersion\":1,\"TimestampUtc\":", body, StringComparison.Ordinal);
         }
     }
