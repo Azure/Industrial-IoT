@@ -71,15 +71,30 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="builtInType"></param>
+        /// <param name="valueRank"></param>
         /// <returns></returns>
         public static bool IsBuiltInType(this Schema schema,
-            out BuiltInType builtInType)
+            out BuiltInType builtInType, out int valueRank)
         {
+            valueRank = ValueRanks.Scalar;
             if (schema is NamedSchema ns &&
-                ns.SchemaName.Namespace == SchemaUtils.NamespaceZeroName &&
-                Enum.TryParse(ns.Name, out builtInType))
+                ns.SchemaName.Namespace == SchemaUtils.NamespaceZeroName)
             {
-                return true;
+                var name = ns.Name;
+                if (name.EndsWith("Collection", StringComparison.InvariantCulture))
+                {
+                    valueRank = ValueRanks.OneDimension;
+                    name = name[..^10];
+                }
+                else if (name.EndsWith("Matrix", StringComparison.InvariantCulture))
+                {
+                    valueRank = ValueRanks.TwoDimensions;
+                    name = name[..^6];
+                }
+                if (Enum.TryParse(name, out builtInType))
+                {
+                    return true;
+                }
             }
             builtInType = BuiltInType.Null;
             return false;

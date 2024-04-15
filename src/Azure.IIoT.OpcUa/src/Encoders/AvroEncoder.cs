@@ -209,6 +209,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteVariant(string? fieldName,
             Variant value)
         {
+            var currentSchema = GetFieldSchema(fieldName);
+            if (currentSchema is not UnionSchema u)
+            {
+                // Write value per schema
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                {
+                    base.WriteScalar(builtInType, value);
+                }
+                _schema.Pop();
+                return;
+            }
+
             ValidatedWrite(fieldName, BuiltInType.Variant, value,
                 base.WriteVariant);
         }
@@ -488,7 +500,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Serialize the fields in the schema
                 foreach (var field in r.Fields)
                 {
-                    var isVariant = field.Schema.IsBuiltInType(out var bt)
+                    var isVariant = field.Schema.IsBuiltInType(out var bt, out _)
                         && bt == BuiltInType.Variant;
                     if (!dataSet.TryGetValue(SchemaUtils.Unescape(field.Name),
                             out var dataValue)
@@ -583,7 +595,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // The field is a record that should contain the data value fields
             try
             {
-                if (fieldRecord.IsBuiltInType(out var builtInType) &&
+                if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
                     builtInType != BuiltInType.DataValue)
                 {
                     // Write value as variant

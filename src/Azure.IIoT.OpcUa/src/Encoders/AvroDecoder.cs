@@ -633,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // The field is a record that should contain the data value fields
                 try
                 {
-                    if (fieldRecord.IsBuiltInType(out var builtInType) &&
+                    if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
                         builtInType != BuiltInType.DataValue)
                     {
                         // Read value as variant
