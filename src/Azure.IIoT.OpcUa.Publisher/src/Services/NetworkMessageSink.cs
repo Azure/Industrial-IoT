@@ -85,6 +85,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _logNotificationsFilter = _options.Value.DebugLogNotificationsFilter == null ?
                 null : new Regex(_options.Value.DebugLogNotificationsFilter);
+            _filterNotifications = _options.Value.DebugLogNotificationsWithHeartbeat == true
+                ? Filter : FilterHeartbeat;
             _logNotifications = _options.Value.DebugLogNotifications
                 ?? (_logNotificationsFilter != null);
             _maxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
@@ -243,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
-            var notifications = Stringify(args.Notifications);
+            var notifications = Stringify(_filterNotifications(args.Notifications));
             if (!string.IsNullOrEmpty(notifications))
             {
                 _logger.LogInformation(
@@ -253,12 +255,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     args.SubscriptionName, notifications);
             }
 
-            static string Stringify(IList<MonitoredItemNotificationModel> notifications)
+            static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
             {
                 var sb = new StringBuilder();
-                // Filter heartbeats and model changes
-                foreach (var item in notifications
-                    .Where(n => (n.Flags & (MonitoredItemSourceFlags.Heartbeat | MonitoredItemSourceFlags.ModelChanges)) == 0))
+                foreach (var item in notifications)
                 {
                     sb
                         .AppendLine()
@@ -631,6 +631,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly ActionBlock<(IEvent, Action)> _sendBlock;
             private readonly CancellationTokenSource _cts = new();
         }
+		
+        private static IEnumerable<MonitoredItemNotificationModel> FilterHeartbeat(
+            IList<MonitoredItemNotificationModel> notifications)
+        {
+            // Filter heartbeats and model changes
+            return notifications
+                .Where(n => (n.Flags &
+                    (MonitoredItemSourceFlags.Heartbeat | MonitoredItemSourceFlags.ModelChanges)) == 0);
+        }
+
+        private static IEnumerable<MonitoredItemNotificationModel> Filter(
+            IList<MonitoredItemNotificationModel> notifications)
+        {
+            // Filter model changes
+            return notifications
+                .Where(n => (n.Flags & MonitoredItemSourceFlags.ModelChanges) == 0);
+        }
 
         /// <summary>
         /// Create observable metrics
@@ -717,6 +734,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
         private readonly Regex? _logNotificationsFilter;
+        private readonly Func<IList<MonitoredItemNotificationModel>,
+            IEnumerable<MonitoredItemNotificationModel>> _filterNotifications;
         private readonly DateTime _startTime = DateTime.UtcNow;
         private readonly CancellationTokenSource _cts;
         private readonly IMetricsContext _metrics;
