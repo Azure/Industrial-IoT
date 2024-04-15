@@ -1282,7 +1282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(
+                _logger.LogTrace(
                     "#{ThreadId}: Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})",
                     Environment.CurrentManagedThreadId, ToString(e.AcknowledgementsToSend),
                     ToString(e.DeferredAcknowledgementsToSend), session.GoodPublishRequestCount);

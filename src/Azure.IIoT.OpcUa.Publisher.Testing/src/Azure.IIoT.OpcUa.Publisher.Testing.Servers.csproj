@@ -57,6 +57,6 @@
   <ItemGroup>
     <PackageReference Include="Furly.Extensions" Version="1.0.37" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.27" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.36" />
   </ItemGroup>
 </Project>

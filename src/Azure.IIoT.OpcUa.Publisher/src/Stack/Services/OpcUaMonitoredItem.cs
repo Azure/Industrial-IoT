@@ -3104,7 +3104,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 var itemChange = false;
                 if (_snapshotInterval != model._snapshotInterval)
                 {
-                    _logger.LogDebug("{Item}: Changing shptshot interval from {Old} to {New}",
+                    _logger.LogDebug("{Item}: Changing snapshot interval from {Old} to {New}",
                         this, TimeSpan.FromSeconds(_snapshotInterval).TotalMilliseconds,
                         TimeSpan.FromSeconds(model._snapshotInterval).TotalMilliseconds);
 

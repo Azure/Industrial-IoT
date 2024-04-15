@@ -99,6 +99,16 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? DebugLogNotificationsFilter { get; set; }
 
         /// <summary>
+        /// Include heartbeats in ingess logs
+        /// </summary>
+        public bool? DebugLogNotificationsWithHeartbeat { get; set; }
+
+        /// <summary>
+        /// Log encoded notifications to informational log
+        /// </summary>
+        public bool? DebugLogEncodedNotifications { get; set; }
+
+        /// <summary>
         /// Define the maximum number of messages in egress buffer,
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>

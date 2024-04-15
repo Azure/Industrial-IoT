@@ -1469,7 +1469,7 @@ Actual (revised) state/desired state:
             }
             finally
             {
-                _logger.LogDebug("Event callback took {Elapsed}", sw.Elapsed);
+                _logger.LogTrace("Event callback took {Elapsed}", sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
                     _logger.LogWarning("Spent more than 1 second in fast event callback.");
@@ -1514,7 +1514,7 @@ Actual (revised) state/desired state:
                 var publishTime = notification.PublishTime;
 
                 // in case of a keepalive,the sequence number is not incremented by the servers
-                _logger.LogDebug("Keep alive for subscription {Subscription} " +
+                _logger.LogTrace("Keep alive for subscription {Subscription} " +
                     "with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.",
                     this, sequenceNumber, publishTime);
 
@@ -1540,7 +1540,7 @@ Actual (revised) state/desired state:
             }
             finally
             {
-                _logger.LogDebug("Keep alive callback took {Elapsed}", sw.Elapsed);
+                _logger.LogTrace("Keep alive callback took {Elapsed}", sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
                     _logger.LogWarning("Spent more than 1 second in fast keep alive callback.");
@@ -1653,7 +1653,7 @@ Actual (revised) state/desired state:
             }
             finally
             {
-                _logger.LogDebug("Data change callback took {Elapsed}", sw.Elapsed);
+                _logger.LogTrace("Data change callback took {Elapsed}", sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
                     _logger.LogWarning("Spent more than 1 second in fast data change callback.");
@@ -1707,7 +1707,7 @@ Actual (revised) state/desired state:
         {
             if (sequenceNumber.HasValue && Id == subscriptionId)
             {
-                _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
+                _logger.LogTrace("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
                 _currentSequenceNumber = sequenceNumber.Value;
             }
@@ -1789,7 +1789,6 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
-                Debug.Fail("Should not be called after dispose");
                 return;
             }
 
@@ -1813,7 +1812,7 @@ Actual (revised) state/desired state:
             }
             if (e.Status.HasFlag(PublishStateChangedMask.KeepAlive))
             {
-                _logger.LogDebug("Subscription {Subscription} keep alive.", this);
+                _logger.LogTrace("Subscription {Subscription} keep alive.", this);
                 ResetKeepAliveTimer();
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Timeout))
@@ -1838,7 +1837,6 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
-                Debug.Fail("Should not be called after dispose");
                 return;
             }
 

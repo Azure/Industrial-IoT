@@ -50,7 +50,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RemoveDuplicatesFromBatchKey = "RemoveDuplicatesFromBatch";
         public const string IoTHubMaxMessageSizeKey = "IoTHubMaxMessageSize";
         public const string DebugLogNotificationsKey = "DebugLogNotifications";
+        public const string DebugLogEncodedNotificationsKey = "DebugLogEncodedNotifications";
         public const string DebugLogNotificationsFilterKey = "DebugLogNotificationsFilter";
+        public const string DebugLogNotificationsWithHeartbeatKey = "DebugLogNotificationsWithHeartbeat";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
@@ -291,11 +293,24 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DebugLogNotificationsFilter =
                     GetStringOrDefault(DebugLogNotificationsFilterKey);
+                options.DebugLogNotifications ??= (options.DebugLogNotificationsFilter != null);
+            }
+
+            if (options.DebugLogNotificationsWithHeartbeat == null)
+            {
+                options.DebugLogNotificationsWithHeartbeat =
+                    GetBoolOrDefault(DebugLogNotificationsWithHeartbeatKey);
+                options.DebugLogNotifications ??= options.DebugLogNotifications;
             }
 
             if (options.DebugLogNotifications == null)
             {
                 options.DebugLogNotifications = GetBoolOrDefault(DebugLogNotificationsKey);
+            }
+
+            if (options.DebugLogEncodedNotifications == null)
+            {
+                options.DebugLogEncodedNotifications = GetBoolOrDefault(DebugLogEncodedNotificationsKey);
             }
 
             if (options.DiagnosticsInterval == null)

@@ -21,6 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Buffers;
+    using System.Globalization;
+    using System.Text;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -58,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger = logger;
             _options = options;
             InitializeMetrics(metrics);
+            _logNotifications = _options.Value.DebugLogEncodedNotifications == true;
         }
 
         /// <inheritdoc/>
@@ -270,6 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
 
                                         AddMessage(dataSetMessage);
+                                        LogNotification(Notification, false);
                                         currentNotifications.Add(Notification);
                                         continue;
                                     }
@@ -316,6 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
 
                                             AddMessage(dataSetMessage);
+                                            LogNotification(Notification, false);
                                         }
                                         else
                                         {
@@ -383,6 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                                 notification.Value, (uint)dataSetFieldContentMask)
                                                         };
                                                         AddMessage(dataSetMessage);
+                                                        LogNotification(notification);
                                                     }
                                                 }
                                             }
@@ -449,6 +455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #if DEBUG
                                     Notification.MarkProcessed();
 #endif
+                                    LogNotification(Notification, false);
                                 }
                             }
                             if (currentMessage.Messages.Count > 0)
@@ -522,11 +529,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return result;
         }
 
+        /// <summary>
+        /// Drop and log messages
+        /// </summary>
+        /// <param name="messages"></param>
         private void Drop(IEnumerable<IOpcUaSubscriptionNotification> messages)
         {
             var totalNotifications = 0;
             foreach (var message in messages)
             {
+                LogNotification(message, true);
                 totalNotifications += message.Notifications?.Count ?? 0;
 #if DEBUG
                 message.MarkProcessed();
@@ -539,6 +551,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
                 NotificationsDroppedCount += totalNotifications;
             }
+        }
+
+        /// <summary>
+        /// Log notifications for debugging
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="dropped"></param>
+        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped)
+        {
+            if (!_logNotifications)
+            {
+                return;
+            }
+            // Filter fields to log
+            var notifications = Stringify(args.Notifications);
+            if (!string.IsNullOrEmpty(notifications))
+            {
+                _logger.LogInformation(
+                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                    dropped ? "!!!! Dropped !!!! " : "Encoded", args.PublishTimestamp, args.SequenceNumber,
+                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
+                    args.SubscriptionName, notifications);
+            }
+        }
+
+        /// <summary>
+        /// Log notifications for debugging
+        /// </summary>
+        /// <param name="args"></param>
+        private void LogNotification(MonitoredItemNotificationModel args)
+        {
+            if (!_logNotifications)
+            {
+                return;
+            }
+            // Filter fields to log
+            var notifications = Stringify(args.YieldReturn());
+            if (!string.IsNullOrEmpty(notifications))
+            {
+                _logger.LogInformation("Sample|{Items}", notifications);
+            }
+        }
+
+        private static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in notifications.Where(n => (n.Flags & MonitoredItemSourceFlags.ModelChanges) == 0))
+            {
+                sb
+                    .AppendLine()
+                    .Append("   |")
+                    .Append(item.Value?.ServerTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append('|')
+                    .Append(item.DataSetFieldName ?? item.DataSetName)
+                    .Append('|')
+                    .Append(item.Value?.SourceTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append('|')
+                    ;
+            }
+            return sb.ToString();
         }
 
         /// <summary>
@@ -577,6 +649,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private uint _sequenceNumber; // TODO: Use writer group context
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
+        private readonly bool _logNotifications;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }
