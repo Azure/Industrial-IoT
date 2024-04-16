@@ -129,8 +129,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _sequenceNumber = subscription._sequenceNumber;
 
             _goodMonitoredItems = subscription._goodMonitoredItems;
-            _missingKeepAlives = subscription._missingKeepAlives;
             _badMonitoredItems = subscription._badMonitoredItems;
+            _reportingItems = subscription._reportingItems;
+            _disabledItems = subscription._disabledItems;
+            _samplingItems = subscription._samplingItems;
+            _notAppliedItems = subscription._notAppliedItems;
+
+            _missingKeepAlives = subscription._missingKeepAlives;
             _unassignedNotifications = subscription._unassignedNotifications;
 
             _additionallyMonitored = subscription._additionallyMonitored;
@@ -321,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Failed to apply state to Subscription {Subscription} in session {Session}...",
                     this, session);
 
-                // Retry in 2 seconds
+                // Retry in 1 minute if not automatically retried
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.SubscriptionErrorRetryDelay, kDefaultErrorRetryDelay);
             }
@@ -489,6 +494,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
                 _badMonitoredItems = 0;
+
+                _reportingItems = 0;
+                _disabledItems = 0;
+                _samplingItems = 0;
+                _notAppliedItems = 0;
 
                 await Try.Async(
                     () => SetPublishingModeAsync(false)).ConfigureAwait(false);
@@ -836,8 +846,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     invalidItems++;
                 }
             }
-
-            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
             var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
             _logger.LogDebug(
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
@@ -952,10 +960,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Cleanup all items that are not in the currently monitoring list
-            previouslyMonitored
+            var dispose = previouslyMonitored
                 .Except(set)
-                .ToList()
-                .ForEach(m => m.Dispose());
+                .ToList();
+            dispose.ForEach(m => m.Dispose());
 
             // Update subscription state
             _additionallyMonitored = set
@@ -963,11 +971,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToFrozenDictionary(m => m.ClientHandle, m => m);
 
             _badMonitoredItems = invalidItems;
-            _goodMonitoredItems = set.Count - invalidItems;
+            _goodMonitoredItems = set
+                .Count - invalidItems;
+            _reportingItems = set
+                .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Reporting);
+            _disabledItems = set
+                .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
+            _samplingItems = set
+                .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Sampling);
+            _notAppliedItems = set
+                .Count(r => r.Status?.MonitoringMode != r.MonitoringMode);
 
-            _logger.LogInformation(
-                "Now monitoring {Count} (Good:{Good}/Bad:{Bad}) nodes in subscription {Subscription}.",
-                set.Count, _goodMonitoredItems, _badMonitoredItems, this);
+            _logger.LogInformation(@"{Subscription} - Now monitoring {Count} nodes:
+# Good/Bad:     {Good}/{Bad}
+# Reporting:    {Reporting}
+# Sampling:     {Sampling}
+# Disabled:     {Disabled}
+# Not applied:  {NotApplied}
+# Removed:      {Disposed}",
+                this, set.Count,
+                _goodMonitoredItems, _badMonitoredItems,
+                _reportingItems,
+                _samplingItems,
+                _disabledItems,
+                _notAppliedItems,
+                dispose.Count);
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -1294,8 +1322,8 @@ Actual (revised) state/desired state:
             }
             if (delay != Timeout.InfiniteTimeSpan)
             {
-                _logger.LogDebug(
-                    "Setting up trigger to reapply state to {Subscription} in {Timeout}",
+                _logger.LogInformation(
+                    "Setting up trigger to reapply state to {Subscription} in {Timeout}...",
                     this, delay);
             }
             _timer.Change(delay.Value, Timeout.InfiniteTimeSpan);
@@ -1784,11 +1812,12 @@ Actual (revised) state/desired state:
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="e"></param>
-        /// <exception cref="NotImplementedException"></exception>
         private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
         {
             if (_disposed)
             {
+                // Debug.Fail("Should not be called after dispose");
+                // This currently happens because the stack caches the callbacks!
                 return;
             }
 
@@ -1837,6 +1866,8 @@ Actual (revised) state/desired state:
         {
             if (_disposed)
             {
+                // Debug.Fail("Should not be called after dispose");
+                // This currently happens because the stack caches the callbacks!
                 return;
             }
 
@@ -2227,15 +2258,27 @@ Actual (revised) state/desired state:
             _meter.CreateObservableCounter("iiot_edge_publisher_unassigned_notification_count",
                 () => new Measurement<long>(_unassignedNotifications, _metrics.TagList),
                 description: "Number of notifications that could not be assigned.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
+                description: "Total monitored item count.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(_goodMonitoredItems, _metrics.TagList),
                 description: "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(_badMonitoredItems, _metrics.TagList),
                 description: "Monitored items with errors.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
-                description: "Total monitored item count.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_reporting_nodes",
+                () => new Measurement<long>(_reportingItems, _metrics.TagList),
+                description: "Monitored items reporting.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_sampling_nodes",
+                () => new Measurement<long>(_samplingItems, _metrics.TagList),
+                description: "Monitored items with sampling enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_disabled_nodes",
+                () => new Measurement<long>(_disabledItems, _metrics.TagList),
+                description: "Monitored items with monitoring mode disabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_nodes_monitoring_mode_inconsistent",
+                () => new Measurement<long>(_notAppliedItems, _metrics.TagList),
+                description: "Monitored items with monitoring mode not applied.");
 
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
@@ -2275,6 +2318,10 @@ Actual (revised) state/desired state:
         private static uint _lastIndex;
         private uint _currentSequenceNumber;
         private int _goodMonitoredItems;
+        private int _reportingItems;
+        private int _disabledItems;
+        private int _samplingItems;
+        private int _notAppliedItems;
         private int _badMonitoredItems;
         private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;
