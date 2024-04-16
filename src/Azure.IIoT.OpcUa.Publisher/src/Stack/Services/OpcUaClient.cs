@@ -1056,10 +1056,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 desiredRequests = _maxPublishRequests.Value;
             }
+            if (desiredRequests <= 0)
+            {
+                desiredRequests = 1;
+            }
             session.MinPublishRequestCount = desiredRequests;
 
+            var additionalRequests = desiredRequests - GoodPublishRequestCount;
+            if (additionalRequests <= 0)
+            {
+                return;
+            }
+
+            _logger.LogDebug(
+                "Ensuring publish request count {Count} is {Desired} requests.",
+                GoodPublishRequestCount, desiredRequests);
+
             // Queue requests
-            for (var i = GoodPublishRequestCount; i < desiredRequests; i++)
+            for (var i = 0; i < additionalRequests; i++)
             {
                 session.BeginPublish(session.OperationTimeout);
             }
