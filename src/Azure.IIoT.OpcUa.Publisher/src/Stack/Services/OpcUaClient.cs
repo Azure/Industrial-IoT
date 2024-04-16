@@ -1013,24 +1013,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
+            var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
+            if (minPublishRequests <= 0)
+            {
+                minPublishRequests = 1;
+            }
             var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
-            var desiredRequests = Math.Max(
-                MinPublishRequests ?? kMinPublishRequestCount,
+            var desiredRequests = Math.Max(minPublishRequests,
                 percentage == 100 || percentage < 0 ? created :
                     (int)Math.Ceiling(created * (percentage / 100.0)));
-            if (desiredRequests < 0)
+            if (desiredRequests <= 0)
             {
-                _logger.LogDebug("Negative number of publish requests configured.");
-                desiredRequests = kMinPublishRequestCount;
+                // Dont allow negative or 0
+                desiredRequests = minPublishRequests;
             }
             if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
             {
                 desiredRequests = _maxPublishRequests.Value;
+                if (desiredRequests < minPublishRequests)
+                {
+                    desiredRequests = minPublishRequests;
+                }
             }
             session.MinPublishRequestCount = desiredRequests;
 
+            var additionalRequests = desiredRequests - GoodPublishRequestCount;
+            if (additionalRequests <= 0)
+            {
+                return;
+            }
+
+            _logger.LogDebug(
+                "Ensuring publish request count {Count} is {Desired} requests.",
+                GoodPublishRequestCount, desiredRequests);
+
             // Queue requests
-            for (var i = GoodPublishRequestCount; i < desiredRequests; i++)
+            for (var i = 0; i < additionalRequests; i++)
             {
                 session.BeginPublish(session.OperationTimeout);
             }
@@ -1181,9 +1199,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (e.Status.Code)
             {
                 case StatusCodes.BadTooManyPublishRequests:
-                    _maxPublishRequests = GoodPublishRequestCount;
-                    _logger.LogDebug("Limiting number of queued publish requests to {Limit}...",
-                        _maxPublishRequests);
+                    var limit = GoodPublishRequestCount;
+                    var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
+                    if (minPublishRequests <= 0)
+                    {
+                        minPublishRequests = 1;
+                    }
+                    if (limit <= minPublishRequests)
+                    {
+                        break;
+                    }
+                    _maxPublishRequests = limit;
+                    _logger.LogInformation(
+                        "Too many publish request error: Limiting number of requests to {Limit}...",
+                        limit);
                     break;
                 case StatusCodes.BadSessionIdInvalid:
                 case StatusCodes.BadSecureChannelClosed:
@@ -1301,6 +1330,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation(
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
                         e.Status, e.CurrentTime, e.Status);
+                }
+                else
+                {
+                    EnsureMinimumNumberOfPublishRequestsQueued();
                 }
             }
             catch (Exception ex)
