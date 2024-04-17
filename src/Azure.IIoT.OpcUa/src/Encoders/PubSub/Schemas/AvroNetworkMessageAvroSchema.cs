@@ -157,14 +157,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
-
-                if (payloadType is not UnionSchema)
+#if NO_UNION_ROOT
+                // If we want to have a root schema instead of union
+                if (payloadType is UnionSchema)
                 {
-                    return payloadType;
+                    return payloadType.CreateRoot(
+                        typeName == null ? null : MakeUnique(typeName));
                 }
-                // No union at root level
-                return payloadType.CreateRoot(
-                    typeName == null ? null : MakeUnique(typeName));
+#endif
+                return payloadType;
             }
 
             payloadType = ArraySchema.Create(payloadType);
