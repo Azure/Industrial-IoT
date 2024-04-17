@@ -175,6 +175,80 @@
                         "fields": [
                           {
                             "name": "Value",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "EngineeringUnits",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "StringDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "org.opcfoundation.UA.String"
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "AssetId",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "VariantDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
                             "type": {
                               "type": "record",
                               "name": "Variant",
@@ -1349,80 +1423,6 @@
                     ]
                   },
                   {
-                    "name": "EngineeringUnits",
-                    "type": [
-                      "null",
-                      {
-                        "type": "record",
-                        "name": "StringDataValue",
-                        "namespace": "org.github.microsoft.opc.publisher",
-                        "fields": [
-                          {
-                            "name": "Value",
-                            "type": "org.opcfoundation.UA.Variant"
-                          },
-                          {
-                            "name": "StatusCode",
-                            "type": "org.opcfoundation.UA.StatusCode"
-                          },
-                          {
-                            "name": "SourceTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "SourcePicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          },
-                          {
-                            "name": "ServerTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "ServerPicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "name": "AssetId",
-                    "type": [
-                      "null",
-                      {
-                        "type": "record",
-                        "name": "VariantDataValue",
-                        "namespace": "org.github.microsoft.opc.publisher",
-                        "fields": [
-                          {
-                            "name": "Value",
-                            "type": "org.opcfoundation.UA.Variant"
-                          },
-                          {
-                            "name": "StatusCode",
-                            "type": "org.opcfoundation.UA.StatusCode"
-                          },
-                          {
-                            "name": "SourceTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "SourcePicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          },
-                          {
-                            "name": "ServerTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "ServerPicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
                     "name": "Important",
                     "type": [
                       "null",
@@ -1433,7 +1433,7 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": "org.opcfoundation.UA.Variant"
+                            "type": "org.opcfoundation.UA.Boolean"
                           },
                           {
                             "name": "StatusCode",
@@ -1470,7 +1470,7 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": "org.opcfoundation.UA.Variant"
+                            "type": "org.opcfoundation.UA.Float"
                           },
                           {
                             "name": "StatusCode",

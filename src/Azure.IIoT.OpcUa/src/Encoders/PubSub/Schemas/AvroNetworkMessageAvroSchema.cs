@@ -119,14 +119,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var HasNetworkMessageHeader = contentMask
                 .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
 
-            var uniqueNames = new HashSet<string>();
             var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .OrderBy(writer => writer.DataSetWriterId)
                 .Select(writer =>
                     (writer.DataSetWriterId,
                     new AvroDataSetMessageAvroSchema(writer,
-                        HasDataSetMessageHeader, _options, uniqueNames).Schema))
+                        HasDataSetMessageHeader, _options, _uniqueNames).Schema))
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)
@@ -158,7 +157,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
-                return payloadType;
+
+                if (payloadType is not UnionSchema)
+                {
+                    return payloadType;
+                }
+                // No union at root level
+                return payloadType.CreateRoot(
+                    typeName == null ? null : MakeUnique(typeName));
             }
 
             payloadType = ArraySchema.Create(payloadType);
@@ -185,6 +191,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     new(payloadType, nameof(AvroNetworkMessage.Messages), 0)
                 };
 
+            var ns = _options.Namespace != null ?
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
+            return RecordSchema.Create(GetName(typeName), fields, ns);
+        }
+
+        /// <summary>
+        /// Get name of the type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        private string GetName(string? typeName)
+        {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
@@ -195,13 +214,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             {
                 typeName = SchemaUtils.Escape(typeName) + "NetworkMessage";
             }
+            return MakeUnique(typeName);
+        }
 
-            var ns = _options.Namespace != null ?
-                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
-                SchemaUtils.PublisherNamespace;
-            return RecordSchema.Create(typeName, fields, ns);
+        /// <summary>
+        /// Make unique
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private string MakeUnique(string name)
+        {
+            var uniqueName = name;
+            for (var index = 1; _uniqueNames.Contains(uniqueName); index++)
+            {
+                uniqueName = name + index;
+            }
+            _uniqueNames.Add(uniqueName);
+            return uniqueName;
         }
 
         private readonly SchemaOptions _options;
+        private readonly HashSet<string> _uniqueNames = new();
     }
 }

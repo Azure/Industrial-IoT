@@ -324,8 +324,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return RecordSchema.Create(valueSchema.Name + nameof(BuiltInType.DataValue),
                     new List<Field>
                     {
-                        new (GetSchemaForBuiltInType(BuiltInType.Variant), "Value", 0), // TODO
-                        // new (valueSchema, "Value", 0),
+#if USE_VARIANT_FOR_DATAVALUE
+                        new (GetSchemaForBuiltInType(BuiltInType.Variant), "Value", 0),
+#else
+                        new (valueSchema, "Value", 0),
+#endif
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "StatusCode", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoseconds", 3),
