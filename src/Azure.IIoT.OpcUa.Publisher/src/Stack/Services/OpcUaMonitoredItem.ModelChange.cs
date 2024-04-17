@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var evFilter = Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter.SelectClauses
-                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                        .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                             && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 
                 if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1)

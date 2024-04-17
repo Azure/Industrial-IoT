@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Opc Publisher module fixture
@@ -180,6 +181,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
             builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            if (_connection.EventClient is IProcessIdentity identity)
+            {
+                builder.RegisterInstance(identity);
+            }
+
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);

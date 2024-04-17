@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Opc.Ua;
     using System;
     using System.Buffers.Binary;
@@ -350,8 +351,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var fieldId = ReadUnion();
                 if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Cannot decode unknown union field.", fieldId);
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Cannot decode unknown variant union field {fieldId}.");
                 }
                 var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
                 return ReadVariantValue(builtInType, valueRank);
@@ -404,7 +405,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 if (variants == null || variants.Count != fieldNames.Length)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
                         "Unexpected number of fields in data set");
                 }
                 for (var index = 0; index < fieldNames.Length; index++)
@@ -424,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 if (dataValues == null || dataValues.Count != fieldNames.Length)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
                         "Unexpected number of fields in data set");
                 }
                 for (var index = 0; index < fieldNames.Length; index++)
@@ -452,9 +453,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadDecodingError,
-                    Opc.Ua.Utils.Format("Cannot decode type '{0}'.", systemType.FullName));
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Cannot decode type '{systemType.FullName}'.");
             }
 
             if (encodeableTypeId != null)
@@ -669,12 +669,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
-            if (valueRank == ValueRanks.Scalar)
+            var rank = SchemaUtils.GetRank(valueRank);
+            if (rank == SchemaRank.Scalar)
             {
                 return null;
             }
             var array = ReadArray(fieldName, builtInType, systemType, encodeableTypeId);
-            if (array == null || valueRank == ValueRanks.OneDimension)
+            if (array == null || rank == SchemaRank.Collection)
             {
                 return array;
             }
@@ -685,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
                 return new Matrix(array, builtInType, dimensions.ToArray()).ToArray();
             }
-            throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+            throw new ServiceResultException(StatusCodes.BadDecodingError,
                 "Unexpected null or empty Dimensions for multidimensional matrix.");
         }
 
@@ -700,8 +701,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (depth >= DiagnosticInfo.MaxInnerDepth)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
+                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
                     "Maximum nesting level of InnerDiagnosticInfo was exceeded");
             }
             CheckAndIncrementNestingLevel();
@@ -803,8 +803,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (newLength < 0 || newLength > int.MaxValue ||
                     (Context.MaxArrayLength > 0 && Context.MaxArrayLength < newLength))
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                        "MaxArrayLength {0} < {1}", Context.MaxArrayLength, length);
+                    throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
+                        $"MaxArrayLength {Context.MaxArrayLength} < {length}");
                 }
                 result.EnsureCapacity((int)newLength);
                 for (var i = 0; i < length; i++)
@@ -852,7 +852,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <exception cref="ServiceResultException"></exception>
         protected virtual IEncodeable ReadEncodeableInExtensionObject(int unionId)
         {
-            throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+            throw new ServiceResultException(StatusCodes.BadDecodingError,
                 "Cannot decode extensible object structures without schema");
         }
 
@@ -861,6 +861,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         protected virtual ExtensionObject ReadEncodedDataType(string? fieldName)
         {
             var typeId = ReadNodeId("TypeId");
@@ -870,9 +871,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expandedTypeId = NodeId.ToExpandedNodeId(typeId, Context.NamespaceUris);
             if (!NodeId.IsNull(typeId) && NodeId.IsNull(expandedTypeId))
             {
-                ServiceResultException.Create(StatusCodes.BadDecodingError,
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
                     "Cannot de-serialized extension objects if the NamespaceUri " +
-                    "is not in the NamespaceTable: Type = {0}", typeId);
+                    $"is not in the NamespaceTable: Type = {typeId}");
             }
 
             var systemType = Context.Factory.GetSystemType(expandedTypeId);
@@ -924,9 +925,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         protected virtual Variant ReadVariantValue(BuiltInType builtInType,
-            int valueRank = ValueRanks.Scalar)
+            SchemaRank valueRank = SchemaRank.Scalar)
         {
-            if (valueRank == ValueRanks.Scalar)
+            if (valueRank == SchemaRank.Scalar)
             {
                 return ReadScalar(null, builtInType);
             }
@@ -938,9 +939,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return new Variant(StatusCodes.BadDecodingError);
             }
 
-            if (valueRank <= ValueRanks.OneDimension)
+            if (valueRank == SchemaRank.Collection)
             {
-                return new Variant(array, new TypeInfo(builtInType, valueRank));
+                return new Variant(array,
+                    new TypeInfo(builtInType, ValueRanks.OneDimension));
             }
 
             // Read matrix
@@ -1049,9 +1051,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     value.Set(ReadDataValue(fieldName));
                     break;
                 default:
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Cannot decode unknown type in Variant object (0x{0:X2}).",
-                        builtInType);
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Cannot decode unknown type in Variant object (0x{builtInType:X2}).");
             }
             return value;
         }
@@ -1065,7 +1066,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="encodeableTypeId"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private Array? ReadArray(string? fieldName, BuiltInType builtInType,
+        protected Array? ReadArray(string? fieldName, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
             switch (builtInType)
@@ -1142,100 +1143,99 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
                     }
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Cannot decode unknown type in Array object with BuiltInType: {0}.",
-                        builtInType);
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
             }
         }
 
         // TODO: Decide whether the opc ua types are records with single field
-        internal static ReadOnlySpan<(int, BuiltInType)> _variantUnionFieldIds
-            => new (int, BuiltInType)[]
+        internal static ReadOnlySpan<(SchemaRank, BuiltInType)> _variantUnionFieldIds
+            => new (SchemaRank, BuiltInType)[]
         {
-            (ValueRanks.Scalar, BuiltInType.Null),
-            (ValueRanks.Scalar, BuiltInType.Boolean),
-            (ValueRanks.Scalar, BuiltInType.SByte),
-            (ValueRanks.Scalar, BuiltInType.Byte),
-            (ValueRanks.Scalar, BuiltInType.Int16),
-            (ValueRanks.Scalar, BuiltInType.UInt16),
-            (ValueRanks.Scalar, BuiltInType.Int32),
-            (ValueRanks.Scalar, BuiltInType.UInt32),
-            (ValueRanks.Scalar, BuiltInType.Int64),
-            (ValueRanks.Scalar, BuiltInType.UInt64),
-            (ValueRanks.Scalar, BuiltInType.Float),
-            (ValueRanks.Scalar, BuiltInType.Double),
-            (ValueRanks.Scalar, BuiltInType.String),
-            (ValueRanks.Scalar, BuiltInType.DateTime),
-            (ValueRanks.Scalar, BuiltInType.Guid),
-            (ValueRanks.Scalar, BuiltInType.ByteString),
-            (ValueRanks.Scalar, BuiltInType.XmlElement),
-            (ValueRanks.Scalar, BuiltInType.NodeId),
-            (ValueRanks.Scalar, BuiltInType.ExpandedNodeId),
-            (ValueRanks.Scalar, BuiltInType.StatusCode),
-            (ValueRanks.Scalar, BuiltInType.QualifiedName),
-            (ValueRanks.Scalar, BuiltInType.LocalizedText),
-            (ValueRanks.Scalar, BuiltInType.ExtensionObject),
-            (ValueRanks.Scalar, BuiltInType.DataValue),
+            (SchemaRank.Scalar, BuiltInType.Null),
+            (SchemaRank.Scalar, BuiltInType.Boolean),
+            (SchemaRank.Scalar, BuiltInType.SByte),
+            (SchemaRank.Scalar, BuiltInType.Byte),
+            (SchemaRank.Scalar, BuiltInType.Int16),
+            (SchemaRank.Scalar, BuiltInType.UInt16),
+            (SchemaRank.Scalar, BuiltInType.Int32),
+            (SchemaRank.Scalar, BuiltInType.UInt32),
+            (SchemaRank.Scalar, BuiltInType.Int64),
+            (SchemaRank.Scalar, BuiltInType.UInt64),
+            (SchemaRank.Scalar, BuiltInType.Float),
+            (SchemaRank.Scalar, BuiltInType.Double),
+            (SchemaRank.Scalar, BuiltInType.String),
+            (SchemaRank.Scalar, BuiltInType.DateTime),
+            (SchemaRank.Scalar, BuiltInType.Guid),
+            (SchemaRank.Scalar, BuiltInType.ByteString),
+            (SchemaRank.Scalar, BuiltInType.XmlElement),
+            (SchemaRank.Scalar, BuiltInType.NodeId),
+            (SchemaRank.Scalar, BuiltInType.ExpandedNodeId),
+            (SchemaRank.Scalar, BuiltInType.StatusCode),
+            (SchemaRank.Scalar, BuiltInType.QualifiedName),
+            (SchemaRank.Scalar, BuiltInType.LocalizedText),
+            (SchemaRank.Scalar, BuiltInType.ExtensionObject),
+            (SchemaRank.Scalar, BuiltInType.DataValue),
             // (ValueRanks.Scalar, BuiltInType.Number),
             // (ValueRanks.Scalar, BuiltInType.Integer),
             // (ValueRanks.Scalar, BuiltInType.UInteger),
-            (ValueRanks.Scalar, BuiltInType.Enumeration),
-            (ValueRanks.OneDimension, BuiltInType.Boolean),
-            (ValueRanks.OneDimension, BuiltInType.SByte),
-            (ValueRanks.OneDimension, BuiltInType.Byte),
-            (ValueRanks.OneDimension, BuiltInType.Int16),
-            (ValueRanks.OneDimension, BuiltInType.UInt16),
-            (ValueRanks.OneDimension, BuiltInType.Int32),
-            (ValueRanks.OneDimension, BuiltInType.UInt32),
-            (ValueRanks.OneDimension, BuiltInType.Int64),
-            (ValueRanks.OneDimension, BuiltInType.UInt64),
-            (ValueRanks.OneDimension, BuiltInType.Float),
-            (ValueRanks.OneDimension, BuiltInType.Double),
-            (ValueRanks.OneDimension, BuiltInType.String),
-            (ValueRanks.OneDimension, BuiltInType.DateTime),
-            (ValueRanks.OneDimension, BuiltInType.Guid),
-            (ValueRanks.OneDimension, BuiltInType.ByteString),
-            (ValueRanks.OneDimension, BuiltInType.XmlElement),
-            (ValueRanks.OneDimension, BuiltInType.NodeId),
-            (ValueRanks.OneDimension, BuiltInType.ExpandedNodeId),
-            (ValueRanks.OneDimension, BuiltInType.StatusCode),
-            (ValueRanks.OneDimension, BuiltInType.QualifiedName),
-            (ValueRanks.OneDimension, BuiltInType.LocalizedText),
-            (ValueRanks.OneDimension, BuiltInType.ExtensionObject),
-            (ValueRanks.OneDimension, BuiltInType.DataValue),
-            (ValueRanks.OneDimension, BuiltInType.Variant),
-            //(ValueRanks.OneDimension, BuiltInType.Number),
-            //(ValueRanks.OneDimension, BuiltInType.Integer),
-            //(ValueRanks.OneDimension, BuiltInType.UInteger),
-            (ValueRanks.OneDimension, BuiltInType.Enumeration),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Boolean),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.SByte),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Byte),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int16),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt16),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int32),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt32),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Int64),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.UInt64),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Float),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Double),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.String),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.DateTime),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Guid),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ByteString),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.XmlElement),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.NodeId),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExpandedNodeId),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.StatusCode),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.QualifiedName),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.LocalizedText),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.ExtensionObject),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.DataValue),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Variant),
-            //(ValueRanks.OneOrMoreDimensions, BuiltInType.Number),
-            //(ValueRanks.OneOrMoreDimensions, BuiltInType.Integer),
-            //(ValueRanks.OneOrMoreDimensions, BuiltInType.UInteger),
-            (ValueRanks.OneOrMoreDimensions, BuiltInType.Enumeration)
+            (SchemaRank.Scalar, BuiltInType.Enumeration),
+            (SchemaRank.Collection, BuiltInType.Boolean),
+            (SchemaRank.Collection, BuiltInType.SByte),
+            (SchemaRank.Collection, BuiltInType.Byte),
+            (SchemaRank.Collection, BuiltInType.Int16),
+            (SchemaRank.Collection, BuiltInType.UInt16),
+            (SchemaRank.Collection, BuiltInType.Int32),
+            (SchemaRank.Collection, BuiltInType.UInt32),
+            (SchemaRank.Collection, BuiltInType.Int64),
+            (SchemaRank.Collection, BuiltInType.UInt64),
+            (SchemaRank.Collection, BuiltInType.Float),
+            (SchemaRank.Collection, BuiltInType.Double),
+            (SchemaRank.Collection, BuiltInType.String),
+            (SchemaRank.Collection, BuiltInType.DateTime),
+            (SchemaRank.Collection, BuiltInType.Guid),
+            (SchemaRank.Collection, BuiltInType.ByteString),
+            (SchemaRank.Collection, BuiltInType.XmlElement),
+            (SchemaRank.Collection, BuiltInType.NodeId),
+            (SchemaRank.Collection, BuiltInType.ExpandedNodeId),
+            (SchemaRank.Collection, BuiltInType.StatusCode),
+            (SchemaRank.Collection, BuiltInType.QualifiedName),
+            (SchemaRank.Collection, BuiltInType.LocalizedText),
+            (SchemaRank.Collection, BuiltInType.ExtensionObject),
+            (SchemaRank.Collection, BuiltInType.DataValue),
+            (SchemaRank.Collection, BuiltInType.Variant),
+            //(SchemaRank.Collection, BuiltInType.Number),
+            //(SchemaRank.Collection, BuiltInType.Integer),
+            //(SchemaRank.Collection, BuiltInType.UInteger),
+            (SchemaRank.Collection, BuiltInType.Enumeration),
+            (SchemaRank.Matrix, BuiltInType.Boolean),
+            (SchemaRank.Matrix, BuiltInType.SByte),
+            (SchemaRank.Matrix, BuiltInType.Byte),
+            (SchemaRank.Matrix, BuiltInType.Int16),
+            (SchemaRank.Matrix, BuiltInType.UInt16),
+            (SchemaRank.Matrix, BuiltInType.Int32),
+            (SchemaRank.Matrix, BuiltInType.UInt32),
+            (SchemaRank.Matrix, BuiltInType.Int64),
+            (SchemaRank.Matrix, BuiltInType.UInt64),
+            (SchemaRank.Matrix, BuiltInType.Float),
+            (SchemaRank.Matrix, BuiltInType.Double),
+            (SchemaRank.Matrix, BuiltInType.String),
+            (SchemaRank.Matrix, BuiltInType.DateTime),
+            (SchemaRank.Matrix, BuiltInType.Guid),
+            (SchemaRank.Matrix, BuiltInType.ByteString),
+            (SchemaRank.Matrix, BuiltInType.XmlElement),
+            (SchemaRank.Matrix, BuiltInType.NodeId),
+            (SchemaRank.Matrix, BuiltInType.ExpandedNodeId),
+            (SchemaRank.Matrix, BuiltInType.StatusCode),
+            (SchemaRank.Matrix, BuiltInType.QualifiedName),
+            (SchemaRank.Matrix, BuiltInType.LocalizedText),
+            (SchemaRank.Matrix, BuiltInType.ExtensionObject),
+            (SchemaRank.Matrix, BuiltInType.DataValue),
+            (SchemaRank.Matrix, BuiltInType.Variant),
+            //(SchemaRank.Matrix, BuiltInType.Number),
+            //(SchemaRank.Matrix, BuiltInType.Integer),
+            //(SchemaRank.Matrix, BuiltInType.UInteger),
+            (SchemaRank.Matrix, BuiltInType.Enumeration)
         };
 
         /// <summary>

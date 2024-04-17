@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public override void PostConfigure(string? name, PublisherOptions options)
         {
             options.PublisherId ??= GetStringOrDefault(PublisherIdKey,
-                    _identity?.Id ?? Dns.GetHostName());
+                    _identity?.Identity ?? Dns.GetHostName());
 
             options.SiteId ??= GetStringOrDefault(SiteIdKey);
             options.PublisherVersion ??= GetIntOrNull(PublisherVersionKey);

@@ -52,16 +52,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             get
             {
                 var types = AvroSchema.Null.YieldReturn()
-                    .Concat(GetPossibleTypes(ValueRanks.Scalar))
-                    .Concat(GetPossibleTypes(ValueRanks.OneDimension))
-                    .Concat(GetPossibleTypes(ValueRanks.TwoDimensions))
+                    .Concat(GetPossibleTypes(SchemaRank.Scalar))
+                    .Concat(GetPossibleTypes(SchemaRank.Collection))
+                    .Concat(GetPossibleTypes(SchemaRank.Matrix))
                     .ToList();
                 return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
                 {
                     new (UnionSchema.Create(types), kSingleFieldName, 0)
                 }, SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
-                IEnumerable<Schema> GetPossibleTypes(int valueRank)
+                IEnumerable<Schema> GetPossibleTypes(SchemaRank valueRank)
                 {
                     for (var i = 1; i <= 29; i++)
                     {
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         {
                             continue;
                         }
-                        if (i == (int)BuiltInType.Variant && valueRank == ValueRanks.Scalar)
+                        if (i == (int)BuiltInType.Variant && valueRank == SchemaRank.Scalar)
                         {
                             continue; // Array of variant is allowed
                         }
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            int rank = ValueRanks.Scalar)
+            SchemaRank rank = SchemaRank.Scalar)
         {
             if (!_builtIn.TryGetValue((builtInType, rank), out var schema))
             {
@@ -218,19 +218,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 _builtIn.Add((builtInType, rank),
                     PlaceHolder(builtInType, rank));
 
-                if (rank >= ValueRanks.TwoDimensions)
+                switch (rank)
                 {
-                    schema = MatrixType((int)builtInType,
-                        builtInType.ToString());
-                }
-                else if (rank >= ValueRanks.OneOrMoreDimensions)
-                {
-                    schema = CollectionType((int)builtInType,
-                        builtInType.ToString());
-                }
-                else
-                {
-                    schema = Get((int)builtInType);
+                    case SchemaRank.Matrix:
+                        schema = MatrixType((int)builtInType, builtInType.ToString());
+                        break;
+                    case SchemaRank.Collection:
+                        schema = CollectionType((int)builtInType, builtInType.ToString());
+                        break;
+                    default:
+                        schema = Get((int)builtInType);
+                        break;
                 }
                 _builtIn[(builtInType, rank)] = schema;
             }
@@ -383,7 +381,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         internal Schema CollectionType(int builtInType, string name)
         {
             var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType);
-            return RecordSchema.Create(name + "Collection", new List<Field>
+            return RecordSchema.Create(name + nameof(SchemaRank.Collection), new List<Field>
             {
                 new (ArraySchema.Create(baseType), kSingleFieldName, 0)
             }, SchemaUtils.NamespaceZeroName);
@@ -398,10 +396,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         internal Schema MatrixType(int builtInType, string name)
         {
             var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType);
-            return RecordSchema.Create(name + "Matrix", new List<Field>
+            return RecordSchema.Create(name + nameof(SchemaRank.Matrix), new List<Field>
             {
                 new (GetSchemaForBuiltInType(BuiltInType.Int32,
-                    ValueRanks.OneDimension), "Dimensions", 0),
+                    SchemaRank.Collection), "Dimensions", 0),
                 new (ArraySchema.Create(baseType), kSingleFieldName, 0)
             }, SchemaUtils.NamespaceZeroName);
         }
@@ -413,21 +411,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="rank"></param>
         /// <returns></returns>
         private static AvroSchema.PlaceHolder PlaceHolder(BuiltInType builtInType,
-            int rank)
+            SchemaRank rank)
         {
             var name = builtInType.ToString();
-            if (rank >= ValueRanks.TwoDimensions)
+            if (rank != SchemaRank.Scalar)
             {
-                name += "Matrix";
-            }
-            else if (rank >= ValueRanks.OneOrMoreDimensions)
-            {
-                name += "Collection";
+                name += rank;
             }
             return AvroSchema.CreatePlaceHolder(name, SchemaUtils.NamespaceZeroName);
         }
 
         private const string kSingleFieldName = "Value";
-        private readonly Dictionary<(BuiltInType, int), Schema> _builtIn = new();
+        private readonly Dictionary<(BuiltInType, SchemaRank), Schema> _builtIn = new();
     }
 }

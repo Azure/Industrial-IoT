@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = logger;
             _options = options;
-            _identity = identity == null ? "opc-publisher" : identity.Id;
+            _identity = identity == null ? "opc-publisher" : identity.Identity;
             _configuration = BuildAsync();
         }
 

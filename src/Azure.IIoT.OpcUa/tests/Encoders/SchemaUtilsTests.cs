@@ -3,9 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Azure.IIoT.OpcUa.Encoders.Schemas;
-
-namespace Azure.IIoT.OpcUa.Tests.Encoders
+namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using System.Linq;
     using Xunit;

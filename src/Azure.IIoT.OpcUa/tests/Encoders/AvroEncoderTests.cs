@@ -227,14 +227,17 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Theory]
-        [InlineData(StatusCodes.Good)]
-        [InlineData("test")]
-        [InlineData(12345)]
-        public void TestVariant(object value)
+        [InlineData(false, StatusCodes.Good)]
+        [InlineData(false, "test")]
+        [InlineData(false, 12345)]
+        [InlineData(true, StatusCodes.Good)]
+        [InlineData(true, "test")]
+        [InlineData(true, 12345)]
+        public void TestVariant(bool concise, object value)
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             builder.WriteVariant(null, new Variant(value));
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
@@ -321,12 +324,42 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(expected, decoder.ReadExpandedNodeId(null));
         }
 
-        [Fact]
-        public void TestDataValue()
+        [Theory]
+        [InlineData(false, StatusCodes.Good)]
+        [InlineData(false, "test")]
+        [InlineData(false, 12345)]
+        [InlineData(true, StatusCodes.Good)]
+        [InlineData(true, "test")]
+        [InlineData(true, 12345)]
+        public void TestDataValue(bool concise, object value)
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            var expected = new DataValue
+            {
+                Value = value,
+                StatusCode = StatusCodes.Bad,
+                ServerPicoseconds = 10,
+                ServerTimestamp = DateTime.UtcNow
+            };
+            builder.WriteDataValue(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteDataValue(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            Assert.Equal(expected, decoder.ReadDataValue(null));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestDataValueEmpty(bool concise)
+        {
+            var context = new ServiceMessageContext();
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             var expected = new DataValue();
             builder.WriteDataValue(null, expected);
             stream.Position = 0;
@@ -337,12 +370,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(expected, decoder.ReadDataValue(null));
         }
 
-        [Fact]
-        public void TestDataValueNull()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestDataValueNull(bool concise)
         {
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             builder.WriteDataValue(null, null);
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
@@ -1064,13 +1099,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void TestDataValueArray()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestDataValueArray1(bool concise)
         {
             var context = new ServiceMessageContext();
             var expected = new DataValue[] { new(), new() };
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             builder.WriteDataValueArray(null, expected);
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
@@ -1085,13 +1122,130 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void TestVariantArray()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void TestDataValueArray2(bool concise)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new DataValue[] {
+                new() { Value = new Variant(100) },
+                new() { Value = new Variant(200) }
+            };
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            builder.WriteDataValueArray(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteDataValueArray(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var actual = decoder.ReadDataValueArray(null);
+            Assert.Equal(expected.Length, actual.Count);
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected[i], actual[i]);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestVariantArrayWithDifferentTypes1(bool concise)
         {
             var context = new ServiceMessageContext();
             var expected = new Variant[] { new(123), new("test") };
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            builder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+            var actual = decoder.ReadVariantArray(null);
+            Assert.Equal(expected.Length, actual.Count);
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected[i].Value, actual[i].Value);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestVariantArrayWithDifferentTypes2(bool concise)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new VariantCollection {
+                new Variant(4L),
+                new Variant("test"),
+                new Variant(new long[] {1, 2, 3, 4, 5 }),
+                new Variant(new string[] {"1", "2", "3", "4", "5" })
+            };
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            builder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var actual = decoder.ReadVariantArray(null);
+            Assert.Equal(expected.Count, actual.Count);
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].Value, actual[i].Value);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestVariantArrayWithDifferentTypes3(bool concise)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new VariantCollection {
+                new Variant(new VariantCollection {
+                    new Variant(4L),
+                    new Variant("test"),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
+                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                })
+            };
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            builder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteVariantArray(null, expected);
+            stream.Position = 0;
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var actual = decoder.ReadVariantArray(null);
+            Assert.Equal(expected.Count, actual.Count);
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].Value, actual[i].Value);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestVariantArrayWithSameTypes(bool concise)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant[] { new(123), new(321), new(0) };
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             builder.WriteVariantArray(null, expected);
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);

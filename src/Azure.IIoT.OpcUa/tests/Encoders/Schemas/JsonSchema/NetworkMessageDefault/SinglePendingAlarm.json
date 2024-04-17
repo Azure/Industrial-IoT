@@ -22,16 +22,10 @@
       "type": "object",
       "properties": {
         "Offset": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.Int16"
-          }
+          "$ref": "#/definitions/org.opcfoundation.UA.Int16"
         },
         "DaylightSavingInOffset": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
-          }
+          "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
         }
       },
       "required": [

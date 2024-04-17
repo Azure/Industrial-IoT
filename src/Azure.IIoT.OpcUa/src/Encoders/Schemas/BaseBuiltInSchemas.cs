@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="rank"></param>
         /// <returns></returns>
         public abstract T GetSchemaForBuiltInType(
-            BuiltInType builtInType, int rank = ValueRanks.Scalar);
+            BuiltInType builtInType, SchemaRank rank = SchemaRank.Scalar);
 
         /// <summary>
         /// Get a schema for a data value field with the
@@ -48,7 +48,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="bodyType"></param>
         /// <returns></returns>
         public abstract T GetSchemaForExtendableType(
-            string name, string ns, string dataTypeId,
-            T bodyType);
+            string name, string ns, string dataTypeId, T bodyType);
     }
 }

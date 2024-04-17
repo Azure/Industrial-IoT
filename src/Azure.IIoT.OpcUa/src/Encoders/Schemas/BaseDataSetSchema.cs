@@ -188,13 +188,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         protected T LookupSchema(string dataType, out string? name,
-            int valueRank = -1, IReadOnlyList<uint>? arrayDimensions = null)
+            SchemaRank valueRank = SchemaRank.Scalar,
+            IReadOnlyList<uint>? arrayDimensions = null)
         {
             T? schema = null;
 
-            if (arrayDimensions != null)
+            if (arrayDimensions?.Count > 0)
             {
-                valueRank = arrayDimensions.Count;
+                valueRank = SchemaRank.Matrix;
             }
 
             name = null;
@@ -208,7 +209,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     schema = description.Schema;
                     name = description.Name;
-                    if (valueRank >= ValueRanks.OneOrMoreDimensions)
+
+                    if (valueRank != SchemaRank.Scalar)
                     {
                         schema = CreateArraySchema(schema);
                     }
@@ -219,15 +221,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return schema
                 ?? throw new ArgumentException($"No Schema found for {dataType}");
 
-            T? GetBuiltInDataTypeSchema(string dataType, int valueRank,
+            T? GetBuiltInDataTypeSchema(string dataType, SchemaRank valueRank,
                 out string? name)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
                     name = ((BuiltInType)id).ToString();
-                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id,
-                        valueRank);
+                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, valueRank);
                 }
                 name = null;
                 return null;

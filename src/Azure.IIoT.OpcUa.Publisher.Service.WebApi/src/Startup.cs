@@ -43,9 +43,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         public IConfigurationRoot Configuration { get; }
 
         /// <summary>
-        /// Service info - Initialized in constructor
+        /// Service name
         /// </summary>
-        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
+        public string Name => "Opc-Publisher-Service";
+
+        /// <summary>
+        /// Description
+        /// </summary>
+        public string Description => "Azure Industrial IoT OPC UA Publisher Service";
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
@@ -117,8 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     Url = new Uri("https://opensource.org/licenses/MIT")
                 };
             });
-            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
-            // services.AddOpenTelemetry(ServiceInfo.Name);
+            services.AddSwagger(Name, Description);
+            // services.AddOpenTelemetry(Name);
             services.AddHostedService<AwaitableStartable>();
         }
 
@@ -152,8 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger<Startup>>();
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
-            log.LogInformation("{Service} web service started with id {Id}",
-                ServiceInfo.Name, ServiceInfo.Id);
+            log.LogInformation("{Service} web service started.", Name);
         }
 
         /// <summary>
@@ -162,10 +166,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder)
         {
-            // Register service info and configuration
-            builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces();
-
             // Add diagnostics
             builder.RegisterInstance(IMetricsContext.Empty)
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));

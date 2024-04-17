@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Publisher telemetry
@@ -314,6 +315,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            if (_connection.EventClient is IProcessIdentity identity)
+            {
+                builder.RegisterInstance(identity);
+            }
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);

@@ -67,6 +67,29 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
+        /// Is data value
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public static bool IsDataValue(this Schema schema)
+        {
+            if (schema is not RecordSchema r)
+            {
+                return false;
+            }
+            return r.Fields.Count == 6 && r.Fields
+                .Select(r => r.Name).SequenceEqual(new[]
+                {
+                    "Value",
+                    "StatusCode",
+                    "SourceTimestamp",
+                    "SourcePicoseconds",
+                    "ServerTimestamp",
+                    "ServerPicoseconds"
+                });
+        }
+
+        /// <summary>
         /// Test for built in type
         /// </summary>
         /// <param name="schema"></param>
@@ -74,22 +97,24 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="valueRank"></param>
         /// <returns></returns>
         public static bool IsBuiltInType(this Schema schema,
-            out BuiltInType builtInType, out int valueRank)
+            out BuiltInType builtInType, out SchemaRank valueRank)
         {
-            valueRank = ValueRanks.Scalar;
+            valueRank = SchemaRank.Scalar;
             if (schema is NamedSchema ns &&
                 ns.SchemaName.Namespace == SchemaUtils.NamespaceZeroName)
             {
                 var name = ns.Name;
-                if (name.EndsWith("Collection", StringComparison.InvariantCulture))
+                if (name.EndsWith(nameof(SchemaRank.Collection),
+                    StringComparison.InvariantCulture))
                 {
-                    valueRank = ValueRanks.OneDimension;
-                    name = name[..^10];
+                    valueRank = SchemaRank.Collection;
+                    name = name[..^nameof(SchemaRank.Collection).Length];
                 }
-                else if (name.EndsWith("Matrix", StringComparison.InvariantCulture))
+                else if (name.EndsWith(nameof(SchemaRank.Matrix),
+                    StringComparison.InvariantCulture))
                 {
-                    valueRank = ValueRanks.TwoDimensions;
-                    name = name[..^6];
+                    valueRank = SchemaRank.Matrix;
+                    name = name[..^nameof(SchemaRank.Matrix).Length];
                 }
                 if (Enum.TryParse(name, out builtInType))
                 {

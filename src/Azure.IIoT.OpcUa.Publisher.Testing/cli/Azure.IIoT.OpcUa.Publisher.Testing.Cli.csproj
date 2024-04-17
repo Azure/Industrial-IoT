@@ -13,4 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
+  </ItemGroup>
 </Project>

@@ -15,9 +15,13 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.41" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.42" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
   </ItemGroup>
 </Project>

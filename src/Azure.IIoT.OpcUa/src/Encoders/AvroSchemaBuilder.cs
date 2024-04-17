@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Encodes objects and inline builds the schema from it
@@ -29,16 +30,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Creates an encoder that writes to the stream.
         /// </summary>
-        /// <param name="stream">The stream to which the
-        /// encoder writes.</param>
-        /// <param name="context">The message context to
-        /// use for the encoding.</param>
-        /// <param name="leaveOpen">If the stream should
-        /// be left open on dispose.</param>
+        /// <param name="stream">The stream to which the encoder writes.
+        /// </param>
+        /// <param name="context">The message context to use for the
+        /// encoding.</param>
+        /// <param name="leaveOpen">If the stream should be left open on
+        /// dispose.</param>
+        /// <param name="emitConciseSchemas">If the builder should avoid
+        /// creating large union schemas</param>
         public AvroSchemaBuilder(Stream stream,
-            IServiceMessageContext context, bool leaveOpen = true) :
+            IServiceMessageContext context, bool leaveOpen = true,
+            bool emitConciseSchemas = false) :
             base(stream, context, leaveOpen)
         {
+            _emitConciseSchemas = emitConciseSchemas;
         }
 
         /// <inheritdoc/>
@@ -207,9 +212,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override void WriteVariant(string? fieldName,
-            Variant value)
+        public override void WriteVariant(string? fieldName, Variant value)
         {
+            if (_emitConciseSchemas && value != Variant.Null && !_skipInnerSchemas)
+            {
+                using var __ = Add(fieldName, value.TypeInfo.BuiltInType,
+                    SchemaUtils.GetRank(value.TypeInfo.ValueRank));
+                WriteVariantValue(value);
+                return;
+            }
+
             using var _ = Add(fieldName, BuiltInType.Variant);
             base.WriteVariant(fieldName, value);
         }
@@ -218,6 +230,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteDataValue(string? fieldName,
             DataValue? value)
         {
+            if (_emitConciseSchemas && value != null &&
+                value.WrappedValue != Variant.Null)
+            {
+                using var __ = Push(fieldName,
+                    value.WrappedValue.TypeInfo.BuiltInType + "DataValue");
+                base.WriteDataValue(fieldName, value);
+                return;
+            }
             using var _ = Add(fieldName, BuiltInType.DataValue);
             base.WriteDataValue(fieldName, value);
         }
@@ -264,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteBooleanArray(string? fieldName,
             IList<bool>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Boolean, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Boolean, SchemaRank.Collection);
             base.WriteBooleanArray(fieldName, values);
         }
 
@@ -272,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteSByteArray(string? fieldName,
             IList<sbyte>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.SByte, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.SByte, SchemaRank.Collection);
             base.WriteSByteArray(fieldName, values);
         }
 
@@ -280,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteByteArray(string? fieldName,
             IList<byte>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Byte, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Byte, SchemaRank.Collection);
             base.WriteByteArray(fieldName, values);
         }
 
@@ -288,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteInt16Array(string? fieldName,
             IList<short>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Int16, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Int16, SchemaRank.Collection);
             base.WriteInt16Array(fieldName, values);
         }
 
@@ -296,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteUInt16Array(string? fieldName,
             IList<ushort>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.UInt16, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.UInt16, SchemaRank.Collection);
             base.WriteUInt16Array(fieldName, values);
         }
 
@@ -304,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteInt32Array(string? fieldName,
             IList<int>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Int32, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Int32, SchemaRank.Collection);
             base.WriteInt32Array(fieldName, values);
         }
 
@@ -312,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteUInt32Array(string? fieldName,
             IList<uint>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.UInt32, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.UInt32, SchemaRank.Collection);
             base.WriteUInt32Array(fieldName, values);
         }
 
@@ -320,7 +340,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteInt64Array(string? fieldName,
             IList<long>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Int64, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Int64, SchemaRank.Collection);
             base.WriteInt64Array(fieldName, values);
         }
 
@@ -328,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteUInt64Array(string? fieldName,
             IList<ulong>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.UInt64, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.UInt64, SchemaRank.Collection);
             base.WriteUInt64Array(fieldName, values);
         }
 
@@ -336,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteFloatArray(string? fieldName,
             IList<float>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Float, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Float, SchemaRank.Collection);
             base.WriteFloatArray(fieldName, values);
         }
 
@@ -344,7 +364,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteDoubleArray(string? fieldName,
             IList<double>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Double, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Double, SchemaRank.Collection);
             base.WriteDoubleArray(fieldName, values);
         }
 
@@ -352,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteStringArray(string? fieldName,
             IList<string?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.String, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.String, SchemaRank.Collection);
             base.WriteStringArray(fieldName, values);
         }
 
@@ -360,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteDateTimeArray(string? fieldName,
             IList<DateTime>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.DateTime, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.DateTime, SchemaRank.Collection);
             base.WriteDateTimeArray(fieldName, values);
         }
 
@@ -368,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteGuidArray(string? fieldName,
             IList<Uuid>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Guid, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Guid, SchemaRank.Collection);
             base.WriteGuidArray(fieldName, values);
         }
 
@@ -376,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteGuidArray(string? fieldName,
             IList<Guid>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Guid, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Guid, SchemaRank.Collection);
             base.WriteGuidArray(fieldName, values);
         }
 
@@ -384,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteByteStringArray(string? fieldName,
             IList<byte[]?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.ByteString, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.ByteString, SchemaRank.Collection);
             base.WriteByteStringArray(fieldName, values);
         }
 
@@ -392,7 +412,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteXmlElementArray(string? fieldName,
             IList<XmlElement?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.XmlElement, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.XmlElement, SchemaRank.Collection);
             base.WriteXmlElementArray(fieldName, values);
         }
 
@@ -400,7 +420,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteNodeIdArray(string? fieldName,
             IList<NodeId?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.NodeId, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.NodeId, SchemaRank.Collection);
             base.WriteNodeIdArray(fieldName, values);
         }
 
@@ -408,7 +428,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteExpandedNodeIdArray(string? fieldName,
             IList<ExpandedNodeId?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.ExpandedNodeId, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.ExpandedNodeId, SchemaRank.Collection);
             base.WriteExpandedNodeIdArray(fieldName, values);
         }
 
@@ -416,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteStatusCodeArray(string? fieldName,
             IList<StatusCode>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.StatusCode, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.StatusCode, SchemaRank.Collection);
             base.WriteStatusCodeArray(fieldName, values);
         }
 
@@ -424,7 +444,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteDiagnosticInfoArray(string? fieldName,
             IList<DiagnosticInfo?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.DiagnosticInfo, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.DiagnosticInfo, SchemaRank.Collection);
             base.WriteDiagnosticInfoArray(fieldName, values);
         }
 
@@ -432,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteQualifiedNameArray(string? fieldName,
             IList<QualifiedName?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.QualifiedName, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.QualifiedName, SchemaRank.Collection);
             base.WriteQualifiedNameArray(fieldName, values);
         }
 
@@ -440,7 +460,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteLocalizedTextArray(string? fieldName,
             IList<LocalizedText?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.LocalizedText, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.LocalizedText, SchemaRank.Collection);
             base.WriteLocalizedTextArray(fieldName, values);
         }
 
@@ -448,7 +468,17 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteVariantArray(string? fieldName,
             IList<Variant>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Variant, ValueRanks.OneDimension);
+            if (_emitConciseSchemas && values?.Count > 0 && !_skipInnerSchemas)
+            {
+                var typeInfo = values[0].TypeInfo;
+                if (typeInfo.ValueRank == ValueRanks.Scalar &&
+                    values.All(v => typeInfo.Equals(v.TypeInfo)))
+                {
+                    WriteArray(typeInfo.BuiltInType, values.Select(v => v.Value).ToArray());
+                    return;
+                }
+            }
+            using var _ = Add(fieldName, BuiltInType.Variant, SchemaRank.Collection);
             base.WriteVariantArray(fieldName, values);
         }
 
@@ -456,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteDataValueArray(string? fieldName,
             IList<DataValue?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.DataValue, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.DataValue, SchemaRank.Collection);
             base.WriteDataValueArray(fieldName, values);
         }
 
@@ -464,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteExtensionObjectArray(string? fieldName,
             IList<ExtensionObject?>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.ExtensionObject, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.ExtensionObject, SchemaRank.Collection);
             base.WriteExtensionObjectArray(fieldName, values);
         }
 
@@ -479,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEnumeratedArray(string? fieldName,
             Array? values, Type? systemType)
         {
-            using var _ = Add(fieldName, BuiltInType.Enumeration, ValueRanks.OneDimension);
+            using var _ = Add(fieldName, BuiltInType.Enumeration, SchemaRank.Collection);
             base.WriteEnumeratedArray(fieldName, values, systemType);
         }
 
@@ -487,7 +517,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteArray(string? fieldName, object array,
             int valueRank, BuiltInType builtInType)
         {
-            using var _ = Add(fieldName, builtInType, valueRank);
+            using var _ = Add(fieldName, builtInType, SchemaUtils.GetRank(valueRank));
             base.WriteArray(fieldName, array, valueRank, builtInType);
         }
 
@@ -523,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="valueRanks"></param>
         /// <exception cref="ServiceResultException"></exception>
         private IDisposable Add(string? fieldName, BuiltInType builtInType,
-            int valueRanks = ValueRanks.Scalar)
+            SchemaRank valueRanks = SchemaRank.Scalar)
         {
             if (_skipInnerSchemas)
             {
@@ -649,24 +679,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        /// <summary>
-        /// Create root schema for a schema or field at the root
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
-        public static RecordSchema CreateRoot(Schema schema, string? fieldName = null)
-        {
-            if (schema is RecordSchema r && fieldName == null)
-            {
-                return r;
-            }
-            return RecordSchema.Create("Root", new List<Field>
-            {
-                new (schema, fieldName ?? "Value", 0)
-            });
-        }
-
         private sealed class Nothing : IDisposable
         {
             public static readonly Nothing ToDo = new();
@@ -678,6 +690,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         private readonly Stack<Schema> _schemas = new();
         private readonly AvroBuiltInAvroSchemas _builtIns = new();
+        private readonly bool _emitConciseSchemas;
         private bool _skipInnerSchemas;
     }
 }

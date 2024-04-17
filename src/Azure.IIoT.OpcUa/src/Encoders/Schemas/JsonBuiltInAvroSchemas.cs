@@ -27,15 +27,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // Enumeration values shall be encoded as a JSON number
                     // for the reversible encoding.
-                    return PrimitiveType((int)BuiltInType.Enumeration,
-                        nameof(BuiltInType.Enumeration), "int");
+                    return PrimitiveType("int");
                 }
 
                 // For the non - reversible form, Enumeration values are
                 // encoded as a JSON string with the following format:
                 // <name>_<value>
-                return PrimitiveType((int)BuiltInType.Enumeration,
-                    nameof(BuiltInType.Enumeration), "string");
+                return PrimitiveType("string");
             }
         }
 
@@ -75,9 +73,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
 
                 var types = AvroSchema.Null.YieldReturn()
-                    .Concat(GetPossibleTypes(ValueRanks.Scalar))
-                    .Concat(GetPossibleTypes(ValueRanks.OneDimension))
-                    .Concat(GetPossibleTypes(ValueRanks.TwoDimensions))
+                    .Concat(GetPossibleTypes(SchemaRank.Scalar))
+                    .Concat(GetPossibleTypes(SchemaRank.Collection))
+                    .Concat(GetPossibleTypes(SchemaRank.Matrix))
                     .ToList();
                 return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
                 {
@@ -85,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }, SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
 
-                IEnumerable<Schema> GetPossibleTypes(int valueRank)
+                IEnumerable<Schema> GetPossibleTypes(SchemaRank valueRank)
                 {
                     for (var i = 1; i <= 29; i++)
                     {
@@ -93,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         {
                             continue;
                         }
-                        if (i == (int)BuiltInType.Variant && valueRank == ValueRanks.Scalar)
+                        if (i == (int)BuiltInType.Variant && valueRank == SchemaRank.Scalar)
                         {
                             continue; // Array of variant is allowed
                         }
@@ -151,8 +149,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // it is only encoded if it is an element of a JSON array.
                     //
 #if !DERIVE_PRIMITIVE
-                    return PrimitiveType((int)BuiltInType.StatusCode,
-                        nameof(BuiltInType.StatusCode), "int");
+                    return PrimitiveType("int");
 #else
                     return DerivedSchema.Create(nameof(BuiltInType.StatusCode),
                         GetSchemaForBuiltInType(BuiltInType.UInt32),
@@ -221,8 +218,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 // For the non-reversible form, LocalizedText value shall
                 // be encoded as a JSON string containing the Text component.
 #if !DERIVE_PRIMITIVE
-                return PrimitiveType((int)BuiltInType.LocalizedText,
-                    nameof(BuiltInType.LocalizedText), "string");
+                return PrimitiveType("string");
 #else
                     return DerivedSchema.Create(nameof(BuiltInType.LocalizedText),
                         GetSchemaForBuiltInType(BuiltInType.String),
@@ -411,7 +407,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
-            int rank = ValueRanks.Scalar)
+            SchemaRank rank = SchemaRank.Scalar)
         {
             if (!_builtIn.TryGetValue(builtInType, out var schema))
             {
@@ -423,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 schema = Get((int)builtInType);
                 _builtIn[builtInType] = schema;
             }
-            if (rank >= ValueRanks.OneOrMoreDimensions)
+            if (rank != SchemaRank.Scalar)
             {
                 schema = ArraySchema.Create(schema);
             }
@@ -433,25 +429,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 0 => AvroSchema.Null,
 
-                1 => PrimitiveType(id, "Boolean", "boolean"),
-                2 => PrimitiveType(id, "SByte", "int"),
-                3 => PrimitiveType(id, "Byte", "int"),
-                4 => PrimitiveType(id, "Int16", "int"),
-                5 => PrimitiveType(id, "UInt16", "int"),
-                6 => PrimitiveType(id, "Int32", "int"),
-                7 => PrimitiveType(id, "UInt32", "int"),
+                1 => PrimitiveType("boolean"),
+                2 => PrimitiveType("int"),
+                3 => PrimitiveType("int"),
+                4 => PrimitiveType("int"),
+                5 => PrimitiveType("int"),
+                6 => PrimitiveType("int"),
+                7 => PrimitiveType("int"),
 
                 // As per part 6 encoding, long is encoded as string
-                8 => PrimitiveType(id, "Int64", "string"),
-                9 => PrimitiveType(id, "UInt64", "string"),
+                8 => PrimitiveType("string"),
+                9 => PrimitiveType("string"),
 
-                10 => PrimitiveType(id, "Float", "float"),
-                11 => PrimitiveType(id, "Double", "double"),
-                12 => PrimitiveType(id, "String", "string"),
-                13 => PrimitiveType(id, "DateTime", "string"),
-                14 => LogicalType(id, "Guid", "string", "uuid"),
-                15 => PrimitiveType(id, "ByteString", "bytes"),
-                16 => PrimitiveType(id, "XmlElement", "string"),
+                10 => PrimitiveType("float"),
+                11 => PrimitiveType("double"),
+                12 => PrimitiveType("string"),
+                13 => PrimitiveType("string"),
+                14 => LogicalType("string", "uuid"),
+                15 => PrimitiveType("bytes"),
+                16 => PrimitiveType("string"),
 
                 17 => NodeIdSchema,
                 18 => ExpandedNodeIdSchema,
@@ -463,11 +459,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 24 => VariantSchema,
                 25 => DiagnosticInfoSchema,
 
-                26 => PrimitiveType(id, "Number", "string"),
+                26 => PrimitiveType("string"),
 
                 // Should this be string? As per json encoding, long is string
-                27 => PrimitiveType(id, "Integer", "string"),
-                28 => PrimitiveType(id, "UInteger", "string"),
+                27 => PrimitiveType("string"),
+                28 => PrimitiveType("string"),
 
                 29 => EnumerationSchema,
                 _ => throw new ArgumentException($"Built in type {id} unknown")
@@ -526,33 +522,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>
         /// Create logical opc ua derived type
         /// </summary>
-        /// <param name="builtInType"></param>
-        /// <param name="name"></param>
         /// <param name="type"></param>
         /// <param name="logicalType"></param>
         /// <returns></returns>
-        internal static Schema LogicalType(int builtInType, string name,
-            string type, string logicalType)
+        internal static Schema LogicalType(string type, string logicalType)
         {
-            var baseType = Schema.Parse(
+            return Schema.Parse(
                 $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
-#if !DERIVE_PRIMITIVE
-            return baseType;
-#else
-            return DerivedSchema.Create(name, baseType, SchemaUtils.NamespaceZeroName,
-                new[] { GetDataTypeId((BuiltInType)builtInType) });
-#endif
         }
 
         /// <summary>
         /// Create primitive opc ua built in type
         /// </summary>
-        /// <param name="builtInType"></param>
-        /// <param name="name"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal static Schema PrimitiveType(int builtInType, string name,
-            string type)
+        internal static Schema PrimitiveType(string type)
         {
             return PrimitiveSchema.NewInstance(type);
         }

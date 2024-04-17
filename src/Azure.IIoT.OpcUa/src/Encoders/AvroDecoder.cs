@@ -13,6 +13,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Diagnostics;
     using System.IO;
     using System.Xml;
+    using Newtonsoft.Json.Linq;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
+    using System.Linq;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -197,60 +200,61 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override DataValue ReadDataValue(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.DataValue,
-                base.ReadDataValue);
+            // Get current field schema
+            var currentSchema = GetFieldSchema(fieldName);
+            // Should be data value compatible
+            if (!currentSchema.IsDataValue())
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Schema {currentSchema.Fullname} is not " +
+                    $"as expected {currentSchema.ToJson()}.\n{Schema.ToJson()}");
+            }
+
+            // Read type per schema
+            var result = base.ReadDataValue(fieldName);
+
+            // Pop the type from the stack
+            var completedSchema = _schema.Pop();
+            if (completedSchema != currentSchema)
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
+            }
+            return result;
         }
 
         /// <inheritdoc/>
         public override Variant ReadVariant(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Variant,
-                base.ReadVariant);
-#if FALSE
-            var schema = GetFieldSchema(fieldName);
-
-            if (schema.IsBuiltInType(out var builtInType) &&
-                builtInType == BuiltInType.Variant)
+            var currentSchema = GetFieldSchema(fieldName);
+            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
+                SchemaRank.Scalar);
+            try
             {
-                // If it is a original variant - we pass through or it is a built in type
-                return base.ReadVariant(fieldName);
-            }
-
-            // Record? Matrix are arrays with array dimension field
-            var isMatrix = false;
-            if (schema is RecordSchema r)
-            {
-                if (r.Count == 2 &&
-                    r.Fields[0].Schema is ArraySchema adims &&
-                    adims.ItemSchema.Name == nameof(BuiltInType.UInt32))
+                // Read as variant
+                if (currentSchema.Fullname == expectedType.Fullname)
                 {
-                    isMatrix = true;
-                    schema = r.Fields[1].Schema;
+                    return base.ReadVariant(fieldName);
                 }
-                else
+
+                // Read as built in type
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "A matrix must have 2 fields with a dimension and a body");
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    var value = ReadVariantValue(builtInType, rank);
+                    _schema.Pop();
+                    return value;
                 }
-            }
 
-            var isArray = false;
-            if (schema is ArraySchema a)
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
+                    $"field {fieldName ?? "unnamed"} is neither variant nor built " +
+                    $"in type schema. .\n{Schema.ToJson()}");
+            }
+            finally
             {
-                // Array
-                schema = a.ItemSchema;
-                isArray = true;
+                _schema.Pop();
             }
-
-            if (!schema.IsBuiltInType(out builtInType))
-            {
-                // Not a built in type
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema is not a built in schema");
-            }
-
-            return base.ReadVariantValue(builtInType, isArray, isMatrix);
-#endif
         }
 
         /// <inheritdoc/>
@@ -259,8 +263,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var schema = GetFieldSchema(fieldName);
             if (schema is not RecordSchema r)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Data sets must be records or maps.");
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Invalid schema {schema.ToJson()}. " +
+                    $"Data sets must be records or maps.\n{Schema.ToJson()}");
             }
             try
             {
@@ -285,15 +290,113 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
+        /// <summary>
+        /// Read data set field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="isRaw"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private DataValue? ReadDataSetField(string? fieldName, ref bool isRaw)
+        {
+            var schema = GetFieldSchema(fieldName);
+            if (schema is UnionSchema)
+            {
+                var unionId = ReadUnion();
+                if (unionId == 0)
+                {
+                    return ReadNull<DataValue>(fieldName);
+                }
+                Debug.Assert(unionId == 1);
+            }
+
+            if (Current is RecordSchema fieldRecord)
+            {
+                // The field is a record that should contain the data value fields
+                try
+                {
+                    if (fieldRecord.IsDataValue())
+                    {
+                        var dataValue = new DataValue();
+                        foreach (var dvf in fieldRecord.Fields)
+                        {
+                            switch (dvf.Name)
+                            {
+                                case nameof(DataValue.Value):
+                                    dataValue.Value =
+                                        ReadVariant(nameof(DataValue.Value));
+                                    break;
+                                case nameof(DataValue.SourceTimestamp):
+                                    isRaw = false;
+                                    dataValue.SourceTimestamp =
+                                        ReadDateTime(nameof(DataValue.SourceTimestamp));
+                                    break;
+                                case nameof(DataValue.SourcePicoseconds):
+                                    isRaw = false;
+                                    dataValue.SourcePicoseconds =
+                                        ReadUInt16(nameof(DataValue.SourcePicoseconds));
+                                    break;
+                                case nameof(DataValue.ServerTimestamp):
+                                    isRaw = false;
+                                    dataValue.ServerTimestamp =
+                                        ReadDateTime(nameof(DataValue.ServerTimestamp));
+                                    break;
+                                case nameof(DataValue.ServerPicoseconds):
+                                    isRaw = false;
+                                    dataValue.ServerPicoseconds =
+                                        ReadUInt16(nameof(DataValue.ServerPicoseconds));
+                                    break;
+                                case nameof(DataValue.StatusCode):
+                                    isRaw = false;
+                                    dataValue.StatusCode =
+                                        ReadStatusCode(nameof(DataValue.StatusCode));
+                                    break;
+                                default:
+                                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                                        $"Unknown field {dvf.Name} in dataset field.\n{Schema.ToJson()}");
+                            }
+                        }
+
+                        return dataValue;
+                    }
+
+                    if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
+                        builtInType != BuiltInType.DataValue)
+                    {
+                        // Write value as variant
+                        _schema.Push(ArraySchema.Create(fieldRecord));
+                        var value = ReadVariant(null);
+                        _schema.Pop();
+                        if (value == Variant.Null)
+                        {
+                            return null;
+                        }
+                        return new DataValue(value);
+                    }
+
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            $"Data set field {fieldName} must be a data value.\n{Schema.ToJson()}");
+                }
+                finally
+                {
+                    _schema.Pop();
+                }
+            }
+            else
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    "Data set fields must be records.");
+            }
+        }
+
         /// <inheritdoc/>
         public override IEncodeable ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadDecodingError,
-                    Opc.Ua.Utils.Format("Cannot decode type '{0}'.", systemType.FullName));
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Cannot decode type '{systemType.FullName}'.");
             }
 
             var fullName = encodeable.TypeId.GetFullName(systemType.Name, Context);
@@ -326,175 +429,214 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override BooleanCollection ReadBooleanArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Boolean,
-               base.ReadBooleanArray, ValueRanks.OneDimension);
+               base.ReadBooleanArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override SByteCollection ReadSByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.SByte,
-               base.ReadSByteArray, ValueRanks.OneDimension);
+               base.ReadSByteArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override ByteCollection ReadByteArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Byte,
-               base.ReadByteArray, ValueRanks.OneDimension);
+               base.ReadByteArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override Int16Collection ReadInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int16,
-               base.ReadInt16Array, ValueRanks.OneDimension);
+               base.ReadInt16Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override UInt16Collection ReadUInt16Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt16,
-              base.ReadUInt16Array, ValueRanks.OneDimension);
+              base.ReadUInt16Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override Int32Collection ReadInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int32,
-               base.ReadInt32Array, ValueRanks.OneDimension);
+               base.ReadInt32Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override UInt32Collection ReadUInt32Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt32,
-               base.ReadUInt32Array, ValueRanks.OneDimension);
+               base.ReadUInt32Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override Int64Collection ReadInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Int64,
-               base.ReadInt64Array, ValueRanks.OneDimension);
+               base.ReadInt64Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override UInt64Collection ReadUInt64Array(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.UInt64,
-               base.ReadUInt64Array, ValueRanks.OneDimension);
+               base.ReadUInt64Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override FloatCollection ReadFloatArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Float,
-               base.ReadFloatArray, ValueRanks.OneDimension);
+               base.ReadFloatArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override DoubleCollection ReadDoubleArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Double,
-               base.ReadDoubleArray, ValueRanks.OneDimension);
+               base.ReadDoubleArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override StringCollection ReadStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.String,
-               base.ReadStringArray, ValueRanks.OneDimension);
+               base.ReadStringArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override DateTimeCollection ReadDateTimeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DateTime,
-               base.ReadDateTimeArray, ValueRanks.OneDimension);
+               base.ReadDateTimeArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override UuidCollection ReadGuidArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.Guid,
-               base.ReadGuidArray, ValueRanks.OneDimension);
+               base.ReadGuidArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override ByteStringCollection ReadByteStringArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ByteString,
-               base.ReadByteStringArray, ValueRanks.OneDimension);
+               base.ReadByteStringArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override XmlElementCollection ReadXmlElementArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.XmlElement,
-               base.ReadXmlElementArray, ValueRanks.OneDimension);
+               base.ReadXmlElementArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override NodeIdCollection ReadNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.NodeId,
-               base.ReadNodeIdArray, ValueRanks.OneDimension);
+               base.ReadNodeIdArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ExpandedNodeId,
-               base.ReadExpandedNodeIdArray, ValueRanks.OneDimension);
+               base.ReadExpandedNodeIdArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override StatusCodeCollection ReadStatusCodeArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.StatusCode,
-               base.ReadStatusCodeArray, ValueRanks.OneDimension);
+               base.ReadStatusCodeArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override DiagnosticInfoCollection ReadDiagnosticInfoArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DiagnosticInfo,
-               base.ReadDiagnosticInfoArray, ValueRanks.OneDimension);
+               base.ReadDiagnosticInfoArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override QualifiedNameCollection ReadQualifiedNameArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.QualifiedName,
-               base.ReadQualifiedNameArray, ValueRanks.OneDimension);
+               base.ReadQualifiedNameArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override LocalizedTextCollection ReadLocalizedTextArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.LocalizedText,
-               base.ReadLocalizedTextArray, ValueRanks.OneDimension);
+               base.ReadLocalizedTextArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override VariantCollection ReadVariantArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Variant,
-                base.ReadVariantArray, ValueRanks.OneDimension);
+            var currentSchema = GetFieldSchema(fieldName);
+            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
+                SchemaRank.Collection);
+            try
+            {
+                // Write as variant collection
+                if (currentSchema.Fullname == expectedType.Fullname)
+                {
+                    return base.ReadVariantArray(fieldName);
+                }
+
+                // Write as built in type
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                {
+                    //
+                    // Rank should be collection, and all values to write should be
+                    // scalar and of the built in type
+                    //
+                    if (rank != SchemaRank.Collection)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            $"Failed to decode. Wrong schema {currentSchema.ToJson()} " +
+                            $"of field {fieldName ?? "unnamed"} to write variants.\n" +
+                            $"{Schema.ToJson()}");
+                    }
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    var result = ReadArray(null, builtInType, null, null);
+                    _schema.Pop();
+                    return result?.Cast<object?>().Select(o => new Variant(o)).ToArray()
+                        ?? Array.Empty<Variant>();
+                }
+
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
+                    $"field {fieldName ?? "unnamed"} is neither variant collection " +
+                    $"nor built in type collection schema. .\n{Schema.ToJson()}");
+            }
+            finally
+            {
+                _schema.Pop();
+            }
         }
 
         /// <inheritdoc/>
         public override DataValueCollection ReadDataValueArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.DataValue,
-                base.ReadDataValueArray, ValueRanks.OneDimension);
+                base.ReadDataValueArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override ExtensionObjectCollection ReadExtensionObjectArray(string? fieldName)
         {
             return ValidatedRead(fieldName, BuiltInType.ExtensionObject,
-                base.ReadExtensionObjectArray, ValueRanks.OneDimension);
+                base.ReadExtensionObjectArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -508,14 +650,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
             return ValidatedRead(fieldName, BuiltInType.Enumeration,
-                f => base.ReadEnumeratedArray(f, enumType), ValueRanks.OneDimension);
+                f => base.ReadEnumeratedArray(f, enumType), SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override T? ReadNull<T>(string? fieldName) where T : default
         {
             return ValidatedRead(fieldName, BuiltInType.Null,
-                base.ReadNull<T>, ValueRanks.Scalar);
+                base.ReadNull<T>, SchemaRank.Scalar);
         }
 
         /// <inheritdoc/>
@@ -527,10 +669,10 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public override Array? ReadArray(string? fieldName, int valueRank,
-            BuiltInType builtInType, Type? systemType,
-            ExpandedNodeId? encodeableTypeId)
+            BuiltInType builtInType, Type? systemType, ExpandedNodeId? encodeableTypeId)
         {
-            return ValidatedReadArray(() => base.ReadArray(fieldName, valueRank, builtInType,
+            return ValidatedReadArray(
+                () => base.ReadArray(fieldName, valueRank, builtInType,
                     systemType, encodeableTypeId));
         }
 
@@ -577,8 +719,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return u.Schemas[index];
                 }
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Union index read does not match schema union");
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Union index {index} not found in union {u.ToJson()}\n{Schema.ToJson()}");
             };
             GetFieldSchema(null);
             return index;
@@ -593,109 +735,19 @@ namespace Azure.IIoT.OpcUa.Encoders
             var typeId = schema.GetDataTypeId(Context);
             if (NodeId.IsNull(typeId))
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Schema {0} does not reference a valid type id to look up system type.",
-                    schema);
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Schema {schema.ToJson()} does not reference a valid type " +
+                    $"id to look up system type.\n{Schema.ToJson()}");
             }
 
             var systemType = Context.Factory.GetSystemType(typeId);
             if (systemType == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "A system type for schema {0} could not befound using the typeid {1}.",
-                    schema, typeId);
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"A system type for schema {schema} could not befound using " +
+                    $"the typeid {typeId}.");
             }
             return ReadEncodeable(null, systemType, typeId);
-        }
-
-        /// <summary>
-        /// Read data set field
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="isRaw"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private DataValue? ReadDataSetField(string? fieldName, ref bool isRaw)
-        {
-            var schema = GetFieldSchema(fieldName);
-            if (schema is UnionSchema)
-            {
-                var unionId = ReadUnion();
-                if (unionId == 0)
-                {
-                    return ReadNull<DataValue>(fieldName);
-                }
-                Debug.Assert(unionId == 1);
-            }
-
-            if (Current is RecordSchema fieldRecord)
-            {
-                // The field is a record that should contain the data value fields
-                try
-                {
-                    if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
-                        builtInType != BuiltInType.DataValue)
-                    {
-                        // Read value as variant
-                        var value = base.ReadVariant(null);
-                        if (value == Variant.Null)
-                        {
-                            return null;
-                        }
-                        return new DataValue(value); // TODO
-                    }
-
-                    var dataValue = new DataValue();
-                    foreach (var dvf in fieldRecord.Fields)
-                    {
-                        switch (dvf.Name)
-                        {
-                            case nameof(DataValue.Value):
-                                dataValue.Value =
-                                    ReadVariant(nameof(DataValue.Value));
-                                break;
-                            case nameof(DataValue.SourceTimestamp):
-                                isRaw = false;
-                                dataValue.SourceTimestamp =
-                                    ReadDateTime(nameof(DataValue.SourceTimestamp));
-                                break;
-                            case nameof(DataValue.SourcePicoseconds):
-                                isRaw = false;
-                                dataValue.SourcePicoseconds =
-                                    ReadUInt16(nameof(DataValue.SourcePicoseconds));
-                                break;
-                            case nameof(DataValue.ServerTimestamp):
-                                isRaw = false;
-                                dataValue.ServerTimestamp =
-                                    ReadDateTime(nameof(DataValue.ServerTimestamp));
-                                break;
-                            case nameof(DataValue.ServerPicoseconds):
-                                isRaw = false;
-                                dataValue.ServerPicoseconds =
-                                    ReadUInt16(nameof(DataValue.ServerPicoseconds));
-                                break;
-                            case nameof(DataValue.StatusCode):
-                                isRaw = false;
-                                dataValue.StatusCode =
-                                    ReadStatusCode(nameof(DataValue.StatusCode));
-                                break;
-                            default:
-                                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                                    $"Unknown field {dvf.Name} in dataset field.");
-                        }
-                    }
-                    return dataValue;
-                }
-                finally
-                {
-                    _schema.Pop();
-                }
-            }
-            else
-            {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Data set fields must be records.");
-            }
         }
 
         /// <summary>
@@ -710,7 +762,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         private T ValidatedRead<T>(string? fieldName, BuiltInType builtInType,
-            Func<string?, T> value, int valueRank = ValueRanks.Scalar)
+            Func<string?, T> value, SchemaRank valueRank = SchemaRank.Scalar)
         {
             // Get expected schema
             var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType,
@@ -739,9 +791,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var curName = isFullName ? currentSchema.Fullname : currentSchema.Name;
             if (curName != expectedSchemaName)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to decode. Schema {0} is not as expected {1}",
-                    currentSchema.Fullname, expectedSchemaName);
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Schema {currentSchema.Fullname} is not as " +
+                    $"expected {expectedSchemaName}.\n{Schema.ToJson()}");
             }
 
             // Read type per schema
@@ -751,8 +803,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var completedSchema = _schema.Pop();
             if (completedSchema != currentSchema)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to pop built in type.");
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
             }
 
             return result;
@@ -767,22 +819,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <exception cref="ServiceResultException"></exception>
         private T ValidatedReadArray<T>(Func<T> reader)
         {
-            var schema = GetFieldSchema(null);
-            if (schema is not ArraySchema arr)
+            var currentSchema = GetFieldSchema(null);
+            if (currentSchema is not ArraySchema arr)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Reading array field but schema is not array schema");
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Reading array field but schema {currentSchema.ToJson()} is not " +
+                    $"array schema.\n{Schema.ToJson()}");
             }
-            try
+
+            var result = reader();
+
+            // Pop array from stack
+            var completedSchema = _schema.Pop();
+            if (completedSchema != currentSchema)
             {
-                return reader();
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
             }
-            finally
-            {
-                // Pop array from stack
-                schema = _schema.Pop();
-                Debug.Assert(schema == arr);
-            }
+            return result;
         }
 
         /// <summary>
@@ -794,10 +848,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         private Schema GetFieldSchema(string? fieldName)
         {
             _schema.ExpectedFieldName = fieldName;
+            var current = _schema.Current;
             if (!_schema.TryMoveNext())
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Failed to decode. No schema for field {0}", fieldName ?? string.Empty);
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. No schema for field {fieldName ?? "unnamed"} " +
+                    $"found in {current.ToJson()}.\n{Schema.ToJson()}");
             }
             return _schema.Current;
         }

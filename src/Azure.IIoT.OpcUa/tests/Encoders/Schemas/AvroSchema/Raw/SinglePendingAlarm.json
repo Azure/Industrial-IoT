@@ -154,28 +154,15 @@
               "name": "Offset",
               "type": {
                 "type": "record",
-                "name": "Int16Collection",
+                "name": "Int16",
                 "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_4"
+                ],
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "array",
-                      "items": {
-                        "type": "record",
-                        "name": "Int16",
-                        "namespace": "org.opcfoundation.UA",
-                        "aliases": [
-                          "org.opcfoundation.UA.i_4"
-                        ],
-                        "fields": [
-                          {
-                            "name": "Value",
-                            "type": "int"
-                          }
-                        ]
-                      }
-                    }
+                    "type": "int"
                   }
                 ]
               }
@@ -184,28 +171,15 @@
               "name": "DaylightSavingInOffset",
               "type": {
                 "type": "record",
-                "name": "BooleanCollection",
+                "name": "Boolean",
                 "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_1"
+                ],
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "array",
-                      "items": {
-                        "type": "record",
-                        "name": "Boolean",
-                        "namespace": "org.opcfoundation.UA",
-                        "aliases": [
-                          "org.opcfoundation.UA.i_1"
-                        ],
-                        "fields": [
-                          {
-                            "name": "Value",
-                            "type": "boolean"
-                          }
-                        ]
-                      }
-                    }
+                    "type": "boolean"
                   }
                 ]
               }

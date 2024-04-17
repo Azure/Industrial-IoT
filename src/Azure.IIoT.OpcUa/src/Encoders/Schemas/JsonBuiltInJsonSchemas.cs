@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["Type"] = GetSchemaForBuiltInType(BuiltInType.Byte),
                         ["Body"] = any,
                         ["Dimensions"] = GetSchemaForBuiltInType(BuiltInType.UInt32,
-                            ValueRanks.OneDimension)
+                            SchemaRank.Collection)
                     },
                     AdditionalProperties = new JsonSchema { Allowed = false }
                 };
@@ -430,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public override JsonSchema GetSchemaForBuiltInType(BuiltInType builtInType,
-            int rank = ValueRanks.Scalar)
+            SchemaRank rank = SchemaRank.Scalar)
         {
             var typeDefinitionName = GetDefinitionName(builtInType);
             if (!Schemas.TryGetValue(typeDefinitionName, out var schema))
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 schema = Reference(builtInType);
             }
-            if (rank >= ValueRanks.OneOrMoreDimensions)
+            if (rank != SchemaRank.Scalar)
             {
                 return new JsonSchema
                 {

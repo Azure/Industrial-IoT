@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Security.AccessControl;
 
     /// <summary>
     /// Extensions
@@ -188,8 +189,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static UriOrFragment GetSchemaId(this string? nodeId, string name,
             IServiceMessageContext context)
         {
-            var ns = SchemaUtils.SplitNodeId(nodeId, context, false).Namespace;
-            return new UriOrFragment(name, ns);
+            var qn = name.ToQualifiedName(context);
+            var ns = qn.NamespaceIndex != 0 ?
+                context.NamespaceUris.GetString(qn.NamespaceIndex) :
+                SchemaUtils.SplitNodeId(nodeId, context, false).Namespace;
+            return new UriOrFragment(qn.Name, ns);
         }
 
         /// <summary>

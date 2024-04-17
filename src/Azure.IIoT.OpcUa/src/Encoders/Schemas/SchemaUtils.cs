@@ -65,6 +65,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
+        /// Get schema rank
+        /// </summary>
+        /// <param name="valueRank"></param>
+        /// <returns></returns>
+        public static SchemaRank GetRank(int valueRank)
+        {
+            switch (valueRank)
+            {
+                case ValueRanks.Scalar:
+                    return SchemaRank.Scalar;
+                case ValueRanks.OneDimension:
+                case ValueRanks.ScalarOrOneDimension:
+                    return SchemaRank.Collection;
+                default:
+                    return SchemaRank.Matrix;
+            }
+        }
+
+        /// <summary>
         /// Find index in namespace table
         /// </summary>
         /// <param name="namespaces"></param>

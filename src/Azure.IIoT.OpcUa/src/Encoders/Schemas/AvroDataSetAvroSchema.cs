@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             foreach (var field in description.Fields)
             {
                 var schema = LookupSchema(field.DataType, out _,
-                    field.ValueRank, field.ArrayDimensions);
+                    SchemaUtils.GetRank(field.ValueRank), field.ArrayDimensions);
                 if (field.IsOptional)
                 {
                     schema = schema.AsNullable();

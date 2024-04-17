@@ -152,8 +152,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteProgramDiagnostic2DataTypeSchema()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteProgramDiagnostic2DataTypeSchema(bool concise)
         {
             // Create dummy type
             var expected = new ProgramDiagnostic2DataType
@@ -208,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteArray(null, Enumerable
                         .Repeat(expected, count)
@@ -234,8 +236,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataValueArrayWithIntAndSchema()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataValueArrayWithIntAndSchema(bool concise)
         {
             // Create dummy
             var expected = new DataValue(new Variant(12345));
@@ -245,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteArray(null, Enumerable
                         .Repeat(expected, count)
@@ -267,8 +271,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataValueArrayWithStringAndSchema()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataValueArrayWithStringAndSchema(bool concise)
         {
             // Create dummy
             var expected = new DataValue(new Variant("TestTestTestTest"
@@ -279,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteArray(null, Enumerable
                         .Repeat(expected, count)
@@ -301,8 +307,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataSetTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetTest(bool concise)
         {
             // Create dummy
             var expected = new DataSet
@@ -320,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteDataSet(null, expected);
                     schema = encoder.Schema;
@@ -337,8 +345,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataSetArrayRawTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetArrayRawTest(bool concise)
         {
             // Create dummy
             var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
@@ -356,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteDataSet(null, expected);
                     schema = encoder.Schema;
@@ -371,8 +381,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataSetWithSingleEntryTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetWithSingleEntryTest(bool concise)
         {
             // Create dummy
             var expected = new DataSet
@@ -386,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteDataSet(null, expected);
                     schema = encoder.Schema;
@@ -401,8 +413,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataSetWithSingleValueRawTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetWithSingleValueRawTest(bool concise)
         {
             // Create dummy
             var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
@@ -416,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteDataSet(null, expected);
                     schema = encoder.Schema;
@@ -431,8 +445,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        [Fact]
-        public void ReadWriteDataSetArrayRawStreamTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetArrayRawStreamTest(bool concise)
         {
             // Create dummy
             var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
@@ -451,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema;
             using (var stream = new MemoryStream())
             {
-                using (var encoder = new AvroSchemaBuilder(stream, context))
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
                 {
                     encoder.WriteArray(null, Enumerable
                         .Repeat(expected, count)

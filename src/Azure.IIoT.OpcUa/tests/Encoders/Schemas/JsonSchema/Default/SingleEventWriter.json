@@ -16,22 +16,16 @@
       "default": 0,
       "format": "double"
     },
-    "org.opcfoundation.SimpleEvents.nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType": {
-      "$id": "http://opcfoundation.org/SimpleEvents#nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+    "org.opcfoundation.SimpleEvents.CycleStepDataType": {
+      "$id": "http://opcfoundation.org/SimpleEvents#CycleStepDataType",
       "title": "nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
       "type": "object",
       "properties": {
         "Name": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.String"
-          }
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "Duration": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.Double"
-          }
+          "$ref": "#/definitions/org.opcfoundation.UA.Double"
         }
       },
       "required": [
@@ -173,7 +167,7 @@
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "#/definitions/org.opcfoundation.SimpleEvents.nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType"
+          "$ref": "#/definitions/org.opcfoundation.SimpleEvents.CycleStepDataType"
         },
         "Status": {
           "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"

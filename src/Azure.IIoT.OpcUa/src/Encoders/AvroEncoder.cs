@@ -11,9 +11,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Xml;
+    using System.Linq;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.
@@ -206,31 +206,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override void WriteVariant(string? fieldName,
-            Variant value)
+        public override void WriteDataValue(string? fieldName, DataValue? value)
         {
+            // Get current field schema
             var currentSchema = GetFieldSchema(fieldName);
-            if (currentSchema is not UnionSchema u)
+
+            // Should be the same
+            if (!currentSchema.IsDataValue())
             {
-                // Write value per schema
-                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
-                {
-                    base.WriteScalar(builtInType, value);
-                }
-                _schema.Pop();
-                return;
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to encode. Schema {currentSchema.Fullname} is not " +
+                    $"as expected {currentSchema.ToJson()}.\n{Schema.ToJson()}");
             }
 
-            ValidatedWrite(fieldName, BuiltInType.Variant, value,
-                base.WriteVariant);
-        }
+            // Write type per schema
+            base.WriteDataValue(fieldName, value);
 
-        /// <inheritdoc/>
-        public override void WriteDataValue(string? fieldName,
-            DataValue? value)
-        {
-            ValidatedWrite(fieldName, BuiltInType.DataValue, value,
-                base.WriteDataValue);
+            // Pop the type from the stack
+            var completedSchema = _schema.Pop();
+            if (completedSchema != currentSchema)
+            {
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
+            }
         }
 
         /// <inheritdoc/>
@@ -261,6 +259,49 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public override void WriteVariant(string? fieldName, Variant value)
+        {
+            var currentSchema = GetFieldSchema(fieldName);
+            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
+                SchemaRank.Scalar);
+            try
+            {
+                // Write as variant
+                if (currentSchema.Fullname == expectedType.Fullname)
+                {
+                    base.WriteVariant(fieldName, value);
+                    return;
+                }
+
+                // Write as built in type
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                {
+                    if (value.TypeInfo.BuiltInType != builtInType ||
+                        SchemaUtils.GetRank(value.TypeInfo.ValueRank) != rank)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
+                            $"of field {fieldName ?? "unnamed"} for variant of type" +
+                            $"{value.TypeInfo} .\n{Schema.ToJson()}");
+                    }
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    WriteVariantValue(value);
+                    _schema.Pop();
+                    return;
+                }
+
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to encode. Variant schema {currentSchema.ToJson()} of " +
+                    $"field {fieldName ?? "unnamed"} is neither variant nor built " +
+                    $"in type schema. .\n{Schema.ToJson()}");
+            }
+            finally
+            {
+                _schema.Pop();
+            }
+        }
+
+        /// <inheritdoc/>
         public override void WriteEnumerated(string? fieldName,
             Enum? value)
         {
@@ -273,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<bool>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Boolean, values,
-                base.WriteBooleanArray, ValueRanks.OneDimension);
+                base.WriteBooleanArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -281,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<sbyte>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.SByte, values,
-                base.WriteSByteArray, ValueRanks.OneDimension);
+                base.WriteSByteArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -289,7 +330,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<byte>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Byte, values,
-                base.WriteByteArray, ValueRanks.OneDimension);
+                base.WriteByteArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -297,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<short>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Int16, values,
-                base.WriteInt16Array, ValueRanks.OneDimension);
+                base.WriteInt16Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -305,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<ushort>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.UInt16, values,
-                base.WriteUInt16Array, ValueRanks.OneDimension);
+                base.WriteUInt16Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -313,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<int>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Int32, values,
-                base.WriteInt32Array, ValueRanks.OneDimension);
+                base.WriteInt32Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -321,7 +362,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<uint>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.UInt32, values,
-                base.WriteUInt32Array, ValueRanks.OneDimension);
+                base.WriteUInt32Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -329,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<long>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Int64, values,
-                base.WriteInt64Array, ValueRanks.OneDimension);
+                base.WriteInt64Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -337,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<ulong>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.UInt64, values,
-                base.WriteUInt64Array, ValueRanks.OneDimension);
+                base.WriteUInt64Array, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -345,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<float>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Float, values,
-                base.WriteFloatArray, ValueRanks.OneDimension);
+                base.WriteFloatArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -353,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<double>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Double, values,
-                base.WriteDoubleArray, ValueRanks.OneDimension);
+                base.WriteDoubleArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -361,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<string?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.String, values,
-                base.WriteStringArray, ValueRanks.OneDimension);
+                base.WriteStringArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -369,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<DateTime>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.DateTime, values,
-                base.WriteDateTimeArray, ValueRanks.OneDimension);
+                base.WriteDateTimeArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -377,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<Uuid>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Guid, values,
-                base.WriteGuidArray, ValueRanks.OneDimension);
+                base.WriteGuidArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -385,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<Guid>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.Guid, values,
-                base.WriteGuidArray, ValueRanks.OneDimension);
+                base.WriteGuidArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -393,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<byte[]?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.ByteString, values,
-                base.WriteByteStringArray, ValueRanks.OneDimension);
+                base.WriteByteStringArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -401,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<XmlElement?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.XmlElement, values,
-                base.WriteXmlElementArray, ValueRanks.OneDimension);
+                base.WriteXmlElementArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -409,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<NodeId?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.NodeId, values,
-                base.WriteNodeIdArray, ValueRanks.OneDimension);
+                base.WriteNodeIdArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -417,7 +458,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<ExpandedNodeId?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.ExpandedNodeId, values,
-                base.WriteExpandedNodeIdArray, ValueRanks.OneDimension);
+                base.WriteExpandedNodeIdArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -425,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<StatusCode>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.StatusCode, values,
-                base.WriteStatusCodeArray, ValueRanks.OneDimension);
+                base.WriteStatusCodeArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -433,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<DiagnosticInfo?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.DiagnosticInfo, values,
-                base.WriteDiagnosticInfoArray, ValueRanks.OneDimension);
+                base.WriteDiagnosticInfoArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -441,7 +482,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<QualifiedName?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.QualifiedName, values,
-                base.WriteQualifiedNameArray, ValueRanks.OneDimension);
+                base.WriteQualifiedNameArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -449,15 +490,55 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<LocalizedText?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.LocalizedText, values,
-                base.WriteLocalizedTextArray, ValueRanks.OneDimension);
+                base.WriteLocalizedTextArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
         public override void WriteVariantArray(string? fieldName,
             IList<Variant>? values)
         {
-            ValidatedWrite(fieldName, BuiltInType.Variant, values,
-                base.WriteVariantArray, ValueRanks.OneDimension);
+            var currentSchema = GetFieldSchema(fieldName);
+            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
+                SchemaRank.Collection);
+            try
+            {
+                // Write as variant collection
+                if (currentSchema.Fullname == expectedType.Fullname)
+                {
+                    base.WriteVariantArray(fieldName, values);
+                    return;
+                }
+
+                // Write as built in type
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                {
+                    //
+                    // Rank should be collection, and all values to write should be
+                    // scalar and of the built in type
+                    //
+                    if (rank != SchemaRank.Collection)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
+                            $"of field {fieldName ?? "unnamed"} to write variants.\n" +
+                            $"{Schema.ToJson()}");
+                    }
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    WriteArray(builtInType, values?.Select(v => v.Value).ToArray()
+                        ?? Array.Empty<object>());
+                    _schema.Pop();
+                    return;
+                }
+
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to encode. Variant schema {currentSchema.ToJson()} of " +
+                    $"field {fieldName ?? "unnamed"} is neither variant collection " +
+                    $"nor built in type collection schema. .\n{Schema.ToJson()}");
+            }
+            finally
+            {
+                _schema.Pop();
+            }
         }
 
         /// <inheritdoc/>
@@ -465,7 +546,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<DataValue?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.DataValue, values,
-                base.WriteDataValueArray, ValueRanks.OneDimension);
+                base.WriteDataValueArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -473,7 +554,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IList<ExtensionObject?>? values)
         {
             ValidatedWrite(fieldName, BuiltInType.ExtensionObject, values,
-                base.WriteExtensionObjectArray, ValueRanks.OneDimension);
+                base.WriteExtensionObjectArray, SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -482,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             ValidatedWrite(fieldName, BuiltInType.Enumeration, values,
                 (f, v) => base.WriteEnumeratedArray(f, v, systemType),
-                ValueRanks.OneDimension);
+                SchemaRank.Collection);
         }
 
         /// <inheritdoc/>
@@ -595,48 +676,57 @@ namespace Azure.IIoT.OpcUa.Encoders
             // The field is a record that should contain the data value fields
             try
             {
-                if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
-                    builtInType != BuiltInType.DataValue)
+                if (fieldRecord.IsDataValue())
                 {
-                    // Write value as variant
-                    base.WriteVariant(fieldName, value.WrappedValue); // TODO
+                    foreach (var dvf in fieldRecord.Fields)
+                    {
+                        switch (dvf.Name)
+                        {
+                            case nameof(value.Value):
+                                WriteVariant(nameof(value.Value),
+                                    value.WrappedValue);
+                                break;
+                            case nameof(value.SourceTimestamp):
+                                WriteDateTime(nameof(value.SourceTimestamp),
+                                    value.SourceTimestamp);
+                                break;
+                            case nameof(value.SourcePicoseconds):
+                                WriteUInt16(nameof(value.SourcePicoseconds),
+                                    value.SourcePicoseconds);
+                                break;
+                            case nameof(value.ServerTimestamp):
+                                WriteDateTime(nameof(value.ServerTimestamp),
+                                    value.ServerTimestamp);
+                                break;
+                            case nameof(value.ServerPicoseconds):
+                                WriteUInt16(nameof(value.ServerPicoseconds),
+                                    value.ServerPicoseconds);
+                                break;
+                            case nameof(value.StatusCode):
+                                WriteStatusCode(nameof(value.StatusCode),
+                                    value.StatusCode);
+                                break;
+                            default:
+                                throw new ServiceResultException(
+                                    StatusCodes.BadEncodingError,
+                                    $"Unknown field {dvf.Name} in dataset field.");
+                        }
+                    }
                     return;
                 }
 
-                foreach (var dvf in fieldRecord.Fields)
+                // Write value as variant
+                if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
+                    builtInType != BuiltInType.DataValue)
                 {
-                    switch (dvf.Name)
-                    {
-                        case nameof(value.Value):
-                            WriteVariant(nameof(value.Value),
-                                value.WrappedValue);
-                            break;
-                        case nameof(value.SourceTimestamp):
-                            WriteDateTime(nameof(value.SourceTimestamp),
-                                value.SourceTimestamp);
-                            break;
-                        case nameof(value.SourcePicoseconds):
-                            WriteUInt16(nameof(value.SourcePicoseconds),
-                                value.SourcePicoseconds);
-                            break;
-                        case nameof(value.ServerTimestamp):
-                            WriteDateTime(nameof(value.ServerTimestamp),
-                                value.ServerTimestamp);
-                            break;
-                        case nameof(value.ServerPicoseconds):
-                            WriteUInt16(nameof(value.ServerPicoseconds),
-                                value.ServerPicoseconds);
-                            break;
-                        case nameof(value.StatusCode):
-                            WriteStatusCode(nameof(value.StatusCode),
-                                value.StatusCode);
-                            break;
-                        default:
-                            throw new ServiceResultException(
-                                StatusCodes.BadEncodingError,
-                                $"Unknown field {dvf.Name} in dataset field.");
-                    }
+                    _schema.Push(ArraySchema.Create(fieldRecord));
+                    WriteVariant(null, value.WrappedValue);
+                    _schema.Pop();
+                    return;
                 }
+
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Data set field {fieldName} must be a data value.\n{Schema.ToJson()}");
             }
             finally
             {
@@ -672,7 +762,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteNull<T>(string? fieldName, T? value) where T : default
         {
             ValidatedWrite(fieldName, BuiltInType.Null, value,
-                base.WriteNull<T>, ValueRanks.Scalar);
+                base.WriteNull<T>, SchemaRank.Scalar);
         }
 
         /// <inheritdoc/>
@@ -704,11 +794,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         private void ValidatedWrite<T>(string? fieldName, BuiltInType builtInType,
-            T value, Action<string?, T> writer, int valueRank = ValueRanks.Scalar)
+            T value, Action<string?, T> writer, SchemaRank valueRank = SchemaRank.Scalar)
         {
             // Get expected schema
-            var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType,
-                valueRank);
+            var expectedType = _builtIns.GetSchemaForBuiltInType(builtInType, valueRank);
             var expectedName = expectedType.Fullname;
             ValidatedWrite(fieldName, expectedName, value, writer);
         }
@@ -759,21 +848,22 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <exception cref="ServiceResultException"></exception>
         private void ValidatedWriteArray(Action writer)
         {
-            var schema = GetFieldSchema(null);
-            if (schema is not ArraySchema arr)
+            var currentSchema = GetFieldSchema(null);
+            if (currentSchema is not ArraySchema arr)
             {
                 throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Reading array field but schema {schema.ToJson()} is not " +
+                    $"Reading array field but schema {currentSchema.ToJson()} is not " +
                     $"array schema.\n{Schema.ToJson()}");
             }
-            try
+
+            writer();
+
+            // Pop array from stack
+            var completedSchema = _schema.Pop();
+            if (completedSchema != currentSchema)
             {
-                writer();
-            }
-            finally
-            {
-                // Pop array from stack
-                _schema.Pop();
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to pop built in type.\n{Schema.ToJson()}");
             }
         }
 
@@ -786,11 +876,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         private Schema GetFieldSchema(string? fieldName)
         {
             _schema.ExpectedFieldName = fieldName;
+            var current = _schema.Current;
             if (!_schema.TryMoveNext())
             {
                 throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. No schema for field {fieldName ?? "unnamed"}.\n" +
-                    $"{Schema.ToJson()}");
+                    $"Failed to decode. No schema for field {fieldName ?? "unnamed"} " +
+                    $"found in {current.ToJson()}.\n{Schema.ToJson()}");
             }
             return _schema.Current;
         }
