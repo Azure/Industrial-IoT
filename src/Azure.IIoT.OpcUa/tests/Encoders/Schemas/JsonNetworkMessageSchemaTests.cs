@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         private static async Task AssertAsync(string name, string writerGroupFile, string json)
         {
             var document = JsonDocument.Parse(json);
-            json = JsonSerializer.Serialize(document, kIndented);
+            json = JsonSerializer.Serialize(document, kIndented).ReplaceLineEndings();
             Assert.NotNull(json);
 #if WRITE
             var folder = Path.Combine(".", "JsonSchema", name);
@@ -267,7 +267,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 #else
             var folder = Path.Combine(".", "Encoders", "Schemas", "JsonSchema", name);
             var expected = await File.ReadAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)));
-            Assert.Equal(expected.ReplaceLineEndings(), json.ReplaceLineEndings());
+            Assert.Equal(expected.ReplaceLineEndings(), json);
 #endif
         }
     }

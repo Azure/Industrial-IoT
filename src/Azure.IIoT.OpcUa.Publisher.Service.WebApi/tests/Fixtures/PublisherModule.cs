@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Utils;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Opc Publisher module fixture

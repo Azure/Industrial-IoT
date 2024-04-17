@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Furly;
@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Opc.Ua;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using System.Globalization;
 
     /// <summary>

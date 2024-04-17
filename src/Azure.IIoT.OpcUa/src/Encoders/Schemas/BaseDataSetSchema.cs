@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -182,12 +182,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Return the name of the root schema.
         /// </summary>
         /// <param name="dataType"></param>
-        /// <param name="name"></param>
         /// <param name="valueRank"></param>
         /// <param name="arrayDimensions"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        protected T LookupSchema(string dataType, out string? name,
+        protected T LookupSchema(string dataType,
             SchemaRank valueRank = SchemaRank.Scalar,
             IReadOnlyList<uint>? arrayDimensions = null)
         {
@@ -198,7 +197,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 valueRank = SchemaRank.Matrix;
             }
 
-            name = null;
             if (_types.TryGetValue(dataType, out var description))
             {
                 if (description.Schema == null)
@@ -208,7 +206,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 if (description.Schema != null)
                 {
                     schema = description.Schema;
-                    name = description.Name;
 
                     if (valueRank != SchemaRank.Scalar)
                     {
@@ -217,20 +214,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }
             }
 
-            schema ??= GetBuiltInDataTypeSchema(dataType, valueRank, out name);
+            schema ??= GetBuiltInDataTypeSchema(dataType, valueRank);
             return schema
                 ?? throw new ArgumentException($"No Schema found for {dataType}");
 
-            T? GetBuiltInDataTypeSchema(string dataType, SchemaRank valueRank,
-                out string? name)
+            T? GetBuiltInDataTypeSchema(string dataType, SchemaRank valueRank)
             {
                 if (int.TryParse(dataType[2..], out var id)
                     && id >= 0 && id <= 29)
                 {
-                    name = ((BuiltInType)id).ToString();
                     return Encoding.GetSchemaForBuiltInType((BuiltInType)id, valueRank);
                 }
-                name = null;
                 return null;
             }
         }
@@ -267,11 +261,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             public T? Schema { get; set; }
 
             /// <summary>
-            /// Return name
-            /// </summary>
-            public string? Name { get; set; }
-
-            /// <summary>
             /// Resolve the type
             /// </summary>
             /// <param name="schema"></param>
@@ -304,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     // Derive from base type or built in type
                     Schema = Description.BaseDataType != null ?
-                        schemas.LookupSchema(Description.BaseDataType, out _) :
+                        schemas.LookupSchema(Description.BaseDataType) :
                         schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
                             (Description.BuiltInType ?? (byte?)BuiltInType.String));
                 }

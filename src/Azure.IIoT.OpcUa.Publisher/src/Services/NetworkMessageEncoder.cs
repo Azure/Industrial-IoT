@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -19,9 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
-    using System.Linq;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using System.Globalization;
+    using System.Linq;
     using System.Text;
 
     /// <summary>

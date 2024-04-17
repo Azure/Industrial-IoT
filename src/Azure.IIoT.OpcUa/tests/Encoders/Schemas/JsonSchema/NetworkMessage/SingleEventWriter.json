@@ -80,7 +80,7 @@
     },
     "com.microsoft.ByteStringDataValue": {
       "$id": "http://www.microsoft.com#ByteStringDataValue",
-      "title": "Dataset Field of Type byte",
+      "title": "Dataset Field of Type ByteString",
       "type": "object",
       "properties": {
         "Value": {
@@ -111,7 +111,7 @@
     },
     "com.microsoft.LocalizedTextDataValue": {
       "$id": "http://www.microsoft.com#LocalizedTextDataValue",
-      "title": "Dataset Field of Type OPC UA built in type LocalizedText",
+      "title": "Dataset Field of Type LocalizedText",
       "type": "object",
       "properties": {
         "Value": {
@@ -137,7 +137,7 @@
     },
     "com.microsoft.StringDataValue": {
       "$id": "http://www.microsoft.com#StringDataValue",
-      "title": "Dataset Field of Type OPC UA built in type String",
+      "title": "Dataset Field of Type String",
       "type": "object",
       "properties": {
         "Value": {
@@ -161,9 +161,9 @@
       },
       "additionalProperties": false
     },
-    "com.microsoft.nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue": {
-      "$id": "http://www.microsoft.com#nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue",
-      "title": "Dataset Field of Type nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+    "com.microsoft.CycleStepDataTypeDataValue": {
+      "$id": "http://www.microsoft.com#CycleStepDataTypeDataValue",
+      "title": "Dataset Field of Type CycleStepDataType",
       "type": "object",
       "properties": {
         "Value": {
@@ -202,7 +202,7 @@
           "$ref": "#/definitions/com.microsoft.StringDataValue"
         },
         "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep": {
-          "$ref": "#/definitions/com.microsoft.nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue"
+          "$ref": "#/definitions/com.microsoft.CycleStepDataTypeDataValue"
         }
       }
     },

@@ -5,15 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Xml;
     using System.Linq;
+    using System.Xml;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.

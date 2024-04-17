@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Opc.Ua;
-    using System.CodeDom.Compiler;
-    using System.Runtime.Serialization;
     using System;
 
     /// <summary>

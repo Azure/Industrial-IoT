@@ -45,9 +45,9 @@
       "default": 0,
       "format": "uint16"
     },
-    "com.microsoft.CurrentTimeDataValue": {
-      "$id": "http://www.microsoft.com#CurrentTimeDataValue",
-      "title": "Dataset Field of Type date-time",
+    "com.microsoft.DateTimeDataValue": {
+      "$id": "http://www.microsoft.com#DateTimeDataValue",
+      "title": "Dataset Field of Type DateTime",
       "type": "object",
       "properties": {
         "Value": {
@@ -73,7 +73,7 @@
     },
     "com.microsoft.StringDataValue": {
       "$id": "http://www.microsoft.com#StringDataValue",
-      "title": "Dataset Field of Type OPC UA built in type String",
+      "title": "Dataset Field of Type String",
       "type": "object",
       "properties": {
         "Value": {
@@ -109,9 +109,9 @@
         "boolean"
       ]
     },
-    "com.microsoft.VariantDataValue": {
-      "$id": "http://www.microsoft.com#VariantDataValue",
-      "title": "Dataset Field of Type Any",
+    "com.microsoft.NumberDataValue": {
+      "$id": "http://www.microsoft.com#NumberDataValue",
+      "title": "Dataset Field of Type Number",
       "type": "object",
       "properties": {
         "Value": {
@@ -151,7 +151,7 @@
     },
     "com.microsoft.BooleanDataValue": {
       "$id": "http://www.microsoft.com#BooleanDataValue",
-      "title": "Dataset Field of Type OPC UA built in type Boolean",
+      "title": "Dataset Field of Type Boolean",
       "type": "object",
       "properties": {
         "Value": {
@@ -186,7 +186,7 @@
     },
     "com.microsoft.FloatDataValue": {
       "$id": "http://www.microsoft.com#FloatDataValue",
-      "title": "Dataset Field of Type float",
+      "title": "Dataset Field of Type Float",
       "type": "object",
       "properties": {
         "Value": {
@@ -216,13 +216,13 @@
       "type": "object",
       "properties": {
         "CurrentTime": {
-          "$ref": "#/definitions/com.microsoft.CurrentTimeDataValue"
+          "$ref": "#/definitions/com.microsoft.DateTimeDataValue"
         },
         "EngineeringUnits": {
           "$ref": "#/definitions/com.microsoft.StringDataValue"
         },
         "AssetId": {
-          "$ref": "#/definitions/com.microsoft.VariantDataValue"
+          "$ref": "#/definitions/com.microsoft.NumberDataValue"
         },
         "Important": {
           "$ref": "#/definitions/com.microsoft.BooleanDataValue"

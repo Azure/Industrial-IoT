@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Furly;
@@ -14,9 +14,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Globalization;
     using System.Diagnostics;
+    using System.Globalization;
+    using System.Linq;
 
     /// <summary>
     /// Network message avro schema

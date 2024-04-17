@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Tests", "Azure.IIoT.OpcUa.Tests.csproj", "{B69A2DD9-9B18-485B-88C2-6B720E6F6B6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B69A2DD9-9B18-485B-88C2-6B720E6F6B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B69A2DD9-9B18-485B-88C2-6B720E6F6B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B69A2DD9-9B18-485B-88C2-6B720E6F6B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B69A2DD9-9B18-485B-88C2-6B720E6F6B6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {500E0C56-67D0-41F3-9E93-A9DEF445991E}
+	EndGlobalSection
+EndGlobal

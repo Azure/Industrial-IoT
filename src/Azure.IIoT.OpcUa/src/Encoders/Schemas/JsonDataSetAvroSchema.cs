@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     if (fieldMetadata?.DataType != null)
                     {
-                        set.Add(LookupSchema(fieldMetadata.DataType, out _));
+                        set.Add(LookupSchema(fieldMetadata.DataType));
                     }
                 }
                 return set.Select(s => s.AsNullable());
@@ -113,13 +113,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 pos++;
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType, out var typeName);
+                    var schema = LookupSchema(fieldMetadata.DataType);
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", ns,
-                                fieldsAreDataValues, schema);
+                            ns, fieldsAreDataValues, schema);
 
                         fields.Add(new Field(schema, SchemaUtils.Escape(fieldName), pos));
                     }
@@ -169,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
             foreach (var field in description.Fields)
             {
-                var schema = LookupSchema(field.DataType, out _,
+                var schema = LookupSchema(field.DataType,
                     SchemaUtils.GetRank(field.ValueRank), field.ArrayDimensions);
                 if (field.IsOptional)
                 {

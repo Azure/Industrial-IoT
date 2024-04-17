@@ -1,6 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": [],
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/org.github.microsoft.opcpublisher.TelemetryDataSetMessage"
+  },
   "definitions": {
     "org.opcfoundation.UA.UInt32": {
       "$id": "http://opcfoundation.org/UA/#UInt32",
@@ -47,7 +50,7 @@
     },
     "org.github.microsoft.opcpublisher.UInt32DataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#UInt32DataValue",
-      "title": "Dataset Field of Type uint32",
+      "title": "Dataset Field of Type UInt32",
       "type": "object",
       "properties": {
         "Value": {
@@ -78,7 +81,7 @@
     },
     "org.github.microsoft.opcpublisher.BooleanDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
-      "title": "Dataset Field of Type OPC UA built in type Boolean",
+      "title": "Dataset Field of Type Boolean",
       "type": "object",
       "properties": {
         "Value": {
@@ -113,7 +116,7 @@
     },
     "org.github.microsoft.opcpublisher.DoubleDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#DoubleDataValue",
-      "title": "Dataset Field of Type double",
+      "title": "Dataset Field of Type Double",
       "type": "object",
       "properties": {
         "Value": {
@@ -145,7 +148,7 @@
     },
     "org.github.microsoft.opcpublisher.ByteStringDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#ByteStringDataValue",
-      "title": "Dataset Field of Type byte",
+      "title": "Dataset Field of Type ByteString",
       "type": "object",
       "properties": {
         "Value": {
@@ -171,7 +174,7 @@
     },
     "org.github.microsoft.opcpublisher.StringDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#StringDataValue",
-      "title": "Dataset Field of Type OPC UA built in type String",
+      "title": "Dataset Field of Type String",
       "type": "object",
       "properties": {
         "Value": {
@@ -206,7 +209,7 @@
     },
     "org.github.microsoft.opcpublisher.ByteDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#ByteDataValue",
-      "title": "Dataset Field of Type byte",
+      "title": "Dataset Field of Type Byte",
       "type": "object",
       "properties": {
         "Value": {
@@ -241,7 +244,7 @@
     },
     "org.github.microsoft.opcpublisher.Int32DataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#Int32DataValue",
-      "title": "Dataset Field of Type int32",
+      "title": "Dataset Field of Type Int32",
       "type": "object",
       "properties": {
         "Value": {

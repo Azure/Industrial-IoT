@@ -5,15 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Json.Schema;
     using Furly;
     using Furly.Extensions.Messaging;
+    using Json.Schema;
     using Opc.Ua;
-    using System.Collections.Generic;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

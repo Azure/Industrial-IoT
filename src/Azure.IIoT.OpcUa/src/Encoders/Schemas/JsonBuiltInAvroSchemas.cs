@@ -5,14 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Avro;
     using Opc.Ua;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
@@ -490,12 +488,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override Schema GetSchemaForDataSetField(string name, string ns,
-            bool asDataValue, Schema valueSchema)
+        public override Schema GetSchemaForDataSetField(string ns, bool asDataValue,
+            Schema valueSchema)
         {
             if (asDataValue)
             {
-                return RecordSchema.Create(name + nameof(BuiltInType.DataValue),
+                return RecordSchema.Create(valueSchema.Name + nameof(BuiltInType.DataValue),
                     new List<Field>
                     {
                         new (valueSchema, "Value", 0),

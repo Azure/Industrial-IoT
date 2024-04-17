@@ -321,13 +321,16 @@ Options:
                 {
                     arguments.Add($"--pf={publishedNodesFilePath}");
                 }
-                if (cs != null)
+                if (!args.Any(a => a.StartsWith("-t=", StringComparison.OrdinalIgnoreCase)))
                 {
-                    arguments.Add($"--ec={cs}");
-                }
-                else
-                {
-                    arguments.Add("-t=Null");
+                    if (cs != null)
+                    {
+                        arguments.Add($"--ec={cs}");
+                    }
+                    else
+                    {
+                        arguments.Add("-t=Null");
+                    }
                 }
                 arguments.Add("--cl=5"); // enable 5 second client linger
                 if (acceptAll)

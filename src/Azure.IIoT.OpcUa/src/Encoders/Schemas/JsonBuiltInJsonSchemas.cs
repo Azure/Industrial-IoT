@@ -7,9 +7,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Json.Schema;
     using Opc.Ua;
+    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System;
     using System.Collections.Generic;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
+    using Avro;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
@@ -512,16 +513,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override JsonSchema GetSchemaForDataSetField(string name, string ns,
-            bool asDataValue, JsonSchema valueSchema)
+        public override JsonSchema GetSchemaForDataSetField(string ns, bool asDataValue,
+            JsonSchema valueSchema)
         {
-            var id = new UriOrFragment(name, ns);
+            var fieldSchema = valueSchema.Resolve(Schemas);
+            var type = fieldSchema.Id?.Fragment ?? fieldSchema.Format ?? fieldSchema.Type.ToString();
+            var id = new UriOrFragment(type + nameof(DataValue), ns);
             return Schemas.Reference(id, id =>
             {
-                var fieldSchema = valueSchema.Resolve(Schemas);
-                var type = fieldSchema.Format
-                    ?? fieldSchema.Title
-                    ?? fieldSchema.Type.ToString();
                 return new JsonSchema
                 {
                     Id = id,

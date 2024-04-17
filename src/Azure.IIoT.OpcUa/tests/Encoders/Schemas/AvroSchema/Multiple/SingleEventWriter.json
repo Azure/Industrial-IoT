@@ -1408,8 +1408,8 @@
                       "null",
                       {
                         "type": "record",
-                        "name": "org/SimpleEvents;CurrentStepDataValue",
-                        "namespace": "nsu=http://opcfoundation",
+                        "name": "CycleStepDataTypeDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
                         "fields": [
                           {
                             "name": "Value",

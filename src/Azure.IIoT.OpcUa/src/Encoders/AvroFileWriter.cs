@@ -5,20 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using System;
-    using Furly.Extensions.Storage;
-    using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using Furly.Extensions.Messaging;
-    using System.Threading;
-    using Furly;
-    using System.Collections.Concurrent;
-    using System.Buffers;
+    using Avro;
     using Avro.File;
     using Avro.Generic;
     using Avro.IO;
-    using Avro;
+    using Furly;
+    using Furly.Extensions.Messaging;
+    using Furly.Extensions.Storage;
+    using System;
+    using System.Buffers;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Write avro files
@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     public sealed class AvroFileWriter : IFileWriter, IDisposable
     {
         /// <inheritdoc/>
-        public string ContentType => ContentMimeType.AvroBinary;
+        public string ContentType => Encoders.ContentType.Avro;
 
         /// <inheritdoc/>
         public ValueTask WriteAsync(string fileName, DateTime timestamp,
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 Schema = Schema.Parse(schema.Schema);
 
                 _writer = DataFileWriter<ReadOnlySequence<byte>>.OpenWriter(
-                    this, fileName);
+                    this, fileName + ".avro");
                 foreach (var item in metadata)
                 {
                     _writer.SetMeta(item.Key, item.Value);

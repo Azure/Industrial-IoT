@@ -8,7 +8,7 @@
         "null",
         {
           "type": "record",
-          "name": "CurrentTimeDataValue",
+          "name": "DateTimeDataValue",
           "namespace": "org.github.microsoft.opc.publisher",
           "fields": [
             {

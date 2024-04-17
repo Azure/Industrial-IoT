@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Clients;
@@ -46,7 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
-    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Publisher telemetry

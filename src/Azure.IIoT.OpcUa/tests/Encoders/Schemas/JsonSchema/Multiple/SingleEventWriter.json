@@ -1,6 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": [],
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsDataSetMessage"
+  },
   "definitions": {
     "org.opcfoundation.UA.String": {
       "$id": "http://opcfoundation.org/UA/#String",
@@ -80,7 +83,7 @@
     },
     "org.github.microsoft.opcpublisher.ByteStringDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#ByteStringDataValue",
-      "title": "Dataset Field of Type byte",
+      "title": "Dataset Field of Type ByteString",
       "type": "object",
       "properties": {
         "Value": {
@@ -111,7 +114,7 @@
     },
     "org.github.microsoft.opcpublisher.LocalizedTextDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#LocalizedTextDataValue",
-      "title": "Dataset Field of Type OPC UA built in type LocalizedText",
+      "title": "Dataset Field of Type LocalizedText",
       "type": "object",
       "properties": {
         "Value": {
@@ -137,7 +140,7 @@
     },
     "org.github.microsoft.opcpublisher.StringDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#StringDataValue",
-      "title": "Dataset Field of Type OPC UA built in type String",
+      "title": "Dataset Field of Type String",
       "type": "object",
       "properties": {
         "Value": {
@@ -161,9 +164,9 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue",
-      "title": "Dataset Field of Type nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+    "org.github.microsoft.opcpublisher.CycleStepDataTypeDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#CycleStepDataTypeDataValue",
+      "title": "Dataset Field of Type CycleStepDataType",
       "type": "object",
       "properties": {
         "Value": {
@@ -202,7 +205,7 @@
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
         "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.nsu=http://opcfoundation.org/SimpleEvents;CurrentStepDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.CycleStepDataTypeDataValue"
         }
       }
     },

@@ -29,13 +29,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// value variant will then be made a reserved
         /// identifer
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="ns"></param>
         /// <param name="asDataValue"></param>
         /// <param name="valueSchema"></param>
         /// <returns></returns>
         public abstract T GetSchemaForDataSetField(
-            string name, string ns, bool asDataValue, T valueSchema);
+            string ns, bool asDataValue, T valueSchema);
 
         /// <summary>
         /// Get the schema definition for a type that can

@@ -1368,7 +1368,7 @@
         "null",
         {
           "type": "record",
-          "name": "LocalTimeDataValue",
+          "name": "TimeZoneDataTypeDataValue",
           "namespace": "org.github.microsoft.opc.publisher",
           "fields": [
             {
@@ -1412,7 +1412,7 @@
         "null",
         {
           "type": "record",
-          "name": "ReceiveTimeDataValue",
+          "name": "DateTimeDataValue",
           "namespace": "org.github.microsoft.opc.publisher",
           "fields": [
             {
@@ -1528,37 +1528,7 @@
       "name": "Time",
       "type": [
         "null",
-        {
-          "type": "record",
-          "name": "TimeDataValue",
-          "namespace": "org.github.microsoft.opc.publisher",
-          "fields": [
-            {
-              "name": "Value",
-              "type": "org.opcfoundation.UA.Variant"
-            },
-            {
-              "name": "StatusCode",
-              "type": "org.opcfoundation.UA.StatusCode"
-            },
-            {
-              "name": "SourceTimestamp",
-              "type": "org.opcfoundation.UA.DateTime"
-            },
-            {
-              "name": "SourcePicoseconds",
-              "type": "org.opcfoundation.UA.UInt16"
-            },
-            {
-              "name": "ServerTimestamp",
-              "type": "org.opcfoundation.UA.DateTime"
-            },
-            {
-              "name": "ServerPicoseconds",
-              "type": "org.opcfoundation.UA.UInt16"
-            }
-          ]
-        }
+        "org.github.microsoft.opc.publisher.DateTimeDataValue"
       ]
     }
   ]

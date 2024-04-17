@@ -47,7 +47,7 @@
     },
     "org.github.microsoft.opcpublisher.UInt32DataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#UInt32DataValue",
-      "title": "Dataset Field of Type uint32",
+      "title": "Dataset Field of Type UInt32",
       "type": "object",
       "properties": {
         "Value": {
@@ -78,7 +78,7 @@
     },
     "org.github.microsoft.opcpublisher.BooleanDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
-      "title": "Dataset Field of Type OPC UA built in type Boolean",
+      "title": "Dataset Field of Type Boolean",
       "type": "object",
       "properties": {
         "Value": {
@@ -113,7 +113,7 @@
     },
     "org.github.microsoft.opcpublisher.Int32DataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#Int32DataValue",
-      "title": "Dataset Field of Type int32",
+      "title": "Dataset Field of Type Int32",
       "type": "object",
       "properties": {
         "Value": {
@@ -148,7 +148,7 @@
     },
     "org.github.microsoft.opcpublisher.DoubleDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#DoubleDataValue",
-      "title": "Dataset Field of Type double",
+      "title": "Dataset Field of Type Double",
       "type": "object",
       "properties": {
         "Value": {
@@ -314,6 +314,18 @@
       ],
       "additionalProperties": false
     },
+    "org.github.microsoft.opcpublisher.DataSets": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSets",
+      "type": "object",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage1"
+        }
+      ]
+    },
     "org.opcfoundation.UA.Guid": {
       "$id": "http://opcfoundation.org/UA/#Guid",
       "title": "OPC UA built in type Guid",
@@ -342,15 +354,7 @@
         "Messages": {
           "type": "array",
           "items": {
-            "type": "object",
-            "oneOf": [
-              {
-                "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
-              },
-              {
-                "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage1"
-              }
-            ]
+            "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSets"
           }
         }
       },

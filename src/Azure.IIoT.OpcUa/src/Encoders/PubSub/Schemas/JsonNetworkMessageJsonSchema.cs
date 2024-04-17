@@ -5,16 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
+    using Json.Schema;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Json.Schema;
 
     /// <summary>
     /// Network message avro schema
@@ -121,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             return new JsonSchema
             {
-                Type = Ref == null ? SchemaType.Null : SchemaType.None,
+                Type = Ref == null ? SchemaType.Null : Ref.Type,
+                Items = Ref?.Items,
                 Definitions = Definitions,
                 Reference = Ref?.Reference
             }.ToJsonString();
@@ -136,12 +137,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private JsonSchema? Compile(List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
-            var uniqueNames = new HashSet<string>();
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer => new JsonDataSetMessageJsonSchema(writer,
                     contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                        _options, Definitions, UseCompatibilityMode, uniqueNames).Ref!)
+                        _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!)
                 .Where(r => r != null)
                 .ToList();
 
@@ -150,8 +150,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return null;
             }
 
-            var dataSetMessages = dataSets.Count > 1 ? dataSets.AsUnion(Definitions)
-                : dataSets[0];
+            var dataSetMessages = dataSets.Count > 1 ?
+                dataSets.AsUnion(Definitions, id: _options.GetSchemaId(MakeUnique("DataSets"))) :
+                dataSets[0];
             var payloadType =
                 contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
                 dataSetMessages : dataSetMessages.AsArray();
@@ -204,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// </summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        private static string GetName(string? typeName)
+        private string GetName(string? typeName)
         {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
@@ -216,9 +217,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             {
                 typeName += "NetworkMessage";
             }
-            return typeName;
+            return MakeUnique(typeName);
+        }
+
+        /// <summary>
+        /// Make unique
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private string MakeUnique(string name)
+        {
+            var uniqueName = name;
+            for (var index = 1; _uniqueNames.Contains(uniqueName); index++)
+            {
+                uniqueName = name + index;
+            }
+            _uniqueNames.Add(uniqueName);
+            return uniqueName;
         }
 
         private readonly SchemaOptions _options;
+        private readonly HashSet<string> _uniqueNames = new();
     }
 }

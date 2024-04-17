@@ -45,9 +45,9 @@
       "default": 0,
       "format": "uint16"
     },
-    "org.github.microsoft.opcpublisher.CurrentTimeDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#CurrentTimeDataValue",
-      "title": "Dataset Field of Type date-time",
+    "org.github.microsoft.opcpublisher.DateTimeDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#DateTimeDataValue",
+      "title": "Dataset Field of Type DateTime",
       "type": "object",
       "properties": {
         "Value": {
@@ -73,7 +73,7 @@
     },
     "org.github.microsoft.opcpublisher.StringDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#StringDataValue",
-      "title": "Dataset Field of Type OPC UA built in type String",
+      "title": "Dataset Field of Type String",
       "type": "object",
       "properties": {
         "Value": {
@@ -109,9 +109,9 @@
         "boolean"
       ]
     },
-    "org.github.microsoft.opcpublisher.VariantDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#VariantDataValue",
-      "title": "Dataset Field of Type Any",
+    "org.github.microsoft.opcpublisher.NumberDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#NumberDataValue",
+      "title": "Dataset Field of Type Number",
       "type": "object",
       "properties": {
         "Value": {
@@ -151,7 +151,7 @@
     },
     "org.github.microsoft.opcpublisher.BooleanDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
-      "title": "Dataset Field of Type OPC UA built in type Boolean",
+      "title": "Dataset Field of Type Boolean",
       "type": "object",
       "properties": {
         "Value": {
@@ -186,7 +186,7 @@
     },
     "org.github.microsoft.opcpublisher.FloatDataValue": {
       "$id": "http://github.org/microsoft/opcpublisher#FloatDataValue",
-      "title": "Dataset Field of Type float",
+      "title": "Dataset Field of Type Float",
       "type": "object",
       "properties": {
         "Value": {
@@ -216,13 +216,13 @@
       "type": "object",
       "properties": {
         "CurrentTime": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.CurrentTimeDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
         },
         "EngineeringUnits": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
         "AssetId": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.VariantDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NumberDataValue"
         },
         "Important": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
     using Json.Schema;
@@ -118,8 +118,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     if (fieldMetadata?.DataType != null)
                     {
-                        var schema = LookupSchema(fieldMetadata.DataType, out _);
-                        set.Add(LookupSchema(fieldMetadata.DataType, out _));
+                        var schema = LookupSchema(fieldMetadata.DataType);
+                        set.Add(schema);
                     }
                 }
                 return set;
@@ -132,13 +132,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType, out var typeName);
+                    var schema = LookupSchema(fieldMetadata.DataType);
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
-                            (typeName ?? fieldName) + "DataValue", ns,
-                            fieldsAreDataValues, schema);
+                            ns, fieldsAreDataValues, schema);
 
                         properties.Add(fieldName, schema);
                     }
@@ -178,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 for (var i = 0; i < description.Fields.Count; i++)
                 {
                     var field = description.Fields[i];
-                    var schema = LookupSchema(field.DataType, out var s,
+                    var schema = LookupSchema(field.DataType,
                         SchemaUtils.GetRank(field.ValueRank), field.ArrayDimensions);
                     if (!field.IsOptional)
                     {

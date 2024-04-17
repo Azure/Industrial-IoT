@@ -5,17 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Avro;
     using Opc.Ua;
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Xml;
-    using Newtonsoft.Json.Linq;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
     using System.Linq;
+    using System.Xml;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided

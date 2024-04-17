@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Security.AccessControl;
 
     /// <summary>
     /// Extensions
@@ -62,10 +61,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="schemas"></param>
         /// <param name="definitions"></param>
         /// <param name="title"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static JsonSchema AsUnion(this IEnumerable<JsonSchema> schemas,
-            Dictionary<string, JsonSchema> definitions, string? title = null)
+            Dictionary<string, JsonSchema> definitions, string? title = null,
+            UriOrFragment? id = null)
         {
             var s = schemas.ToList();
             if (s.Count == 0)
@@ -73,13 +74,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 throw new ArgumentException("Union must have at least one schema",
                     nameof(schemas));
             }
-            return new JsonSchema
+            if (id == null)
             {
-                Title = title,
-                Types = s.Select(s => Resolve(s, definitions)
-                    .Type).Distinct().ToArray(),
-                OneOf = s
-            };
+                return Create(definitions, title, s, null);
+            }
+            return definitions.Reference(id, id => Create(definitions, title, s, id));
+
+            static JsonSchema Create(Dictionary<string, JsonSchema> definitions,
+                string? title, List<JsonSchema> s, UriOrFragment? id)
+            {
+                return new JsonSchema
+                {
+                    Id = id,
+                    Title = title,
+                    Types = s
+                        .Select(s => Resolve(s, definitions).Type)
+                        .Distinct()
+                        .ToArray(),
+                    OneOf = s
+                };
+            }
         }
 
         /// <summary>
@@ -88,8 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="schema"></param>
         /// <param name="title"></param>
         /// <returns></returns>
-        public static JsonSchema AsArray(this JsonSchema schema,
-            string? title = null)
+        public static JsonSchema AsArray(this JsonSchema schema, string? title = null)
         {
             return new JsonSchema
             {
