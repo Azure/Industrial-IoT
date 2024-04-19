@@ -46,9 +46,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected BaseAvroEncoder(Stream stream,
             IServiceMessageContext context, bool leaveOpen = true)
         {
-            _writer = new AvroBinaryWriter(stream);
+            _writer = new AvroBinaryWriter(stream, leaveOpen);
             Context = context;
-            _leaveOpen = leaveOpen;
             _nestingLevel = 0;
         }
 
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_leaveOpen && disposing)
+            if (disposing)
             {
                 _writer.Dispose();
             }
@@ -221,13 +220,21 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual void WriteGuid(string? fieldName, Uuid value)
         {
+#if UUID_FIXED
             _writer.WriteFixed(((Guid)value).ToByteArray());
+#else
+            _writer.WriteString(((Guid)value).ToString());
+#endif
         }
 
         /// <inheritdoc/>
         public virtual void WriteGuid(string? fieldName, Guid value)
         {
+#if UUID_FIXED
             _writer.WriteFixed(value.ToByteArray());
+#else
+            _writer.WriteString(value.ToString());
+#endif
         }
 
         /// <inheritdoc/>
@@ -1640,20 +1647,23 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="systemType"></param>
         /// <param name="typeName"></param>
+        /// <param name="typeId"></param>
         /// <returns></returns>
         protected string? GetFullNameOfEncodeable(IEncodeable? value,
-            Type? systemType, out string? typeName)
+            Type? systemType, out string? typeName, out ExpandedNodeId? typeId)
         {
             typeName = systemType?.Name ?? value?.GetType().Name;
+            typeId = value?.TypeId;
             if (string.IsNullOrEmpty(typeName))
             {
                 return null;
             }
-            var fullName = value?.TypeId.GetFullName(typeName, Context);
+            var fullName = typeId?.GetFullName(typeName, Context);
             if (string.IsNullOrEmpty(fullName) && systemType != null)
             {
                 value = (IEncodeable?)Activator.CreateInstance(systemType);
-                fullName = value?.TypeId.GetFullName(typeName, Context);
+                typeId ??= value?.TypeId;
+                fullName = typeId?.GetFullName(typeName, Context);
             }
             return fullName;
         }
@@ -1678,7 +1688,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected const string kDefaultFieldName = "Value";
 
         private readonly AvroBinaryWriter _writer;
-        private readonly bool _leaveOpen;
         private ushort[]? _namespaceMappings;
         private ushort[]? _serverMappings;
         private uint _nestingLevel;

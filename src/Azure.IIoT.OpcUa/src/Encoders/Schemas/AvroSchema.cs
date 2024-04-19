@@ -24,17 +24,57 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public static Schema Null { get; } = PrimitiveSchema.NewInstance("null");
 
         /// <summary>
-        /// Get the property map
+        /// Set data type
         /// </summary>
         /// <param name="dataTypeId"></param>
         /// <returns></returns>
-        public static PropertyMap GetProperties(string dataTypeId)
+        public static PropertyMap Properties(string? dataTypeId)
         {
-            // Need to add json strings
-            return new PropertyMap
+            return new PropertyMap()
+                .AddProperty(kUaDataTypeIdKey, dataTypeId);
+        }
+
+        /// <summary>
+        /// Get the property map
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static PropertyMap AddProperty(this PropertyMap properties,
+            string key, string? value)
+        {
+            if (value != null)
             {
-                ["uaDataTypeId"] = "\"" + dataTypeId + "\""
-            };
+                // Need to add json strings
+                properties.Add(key, "\"" + value + "\"");
+            }
+            return properties;
+        }
+
+        /// <summary>
+        /// Get the data type id
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static ExpandedNodeId GetDataTypeId(this Schema schema,
+            IServiceMessageContext context)
+        {
+            var type = schema.GetProperty(kUaDataTypeIdKey);
+            if (type == null &&
+                schema is NamedSchema ns &&
+                context.NamespaceUris.TryFindNamespace(ns.Namespace,
+                    out var namespaceIndex, out var namespaceUri))
+            {
+                return new ExpandedNodeId(ns.Name,
+                    (ushort)namespaceIndex, namespaceUri, 0);
+            }
+            if (type == null)
+            {
+                return ExpandedNodeId.Null;
+            }
+            return type.TrimQuotes().ToExpandedNodeId(context);
         }
 
         /// <summary>
@@ -123,27 +163,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             builtInType = BuiltInType.Null;
             return false;
-        }
-
-        /// <summary>
-        /// Get the data type id
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static ExpandedNodeId GetDataTypeId(this Schema schema,
-            IServiceMessageContext context)
-        {
-            var type = schema.GetProperty("uaDataTypeId");
-            if (type == null &&
-                schema is NamedSchema ns &&
-                context.NamespaceUris.TryFindNamespace(ns.Namespace,
-                    out var namespaceIndex, out var namespaceUri))
-            {
-                return new ExpandedNodeId(ns.Name,
-                    (ushort)namespaceIndex, namespaceUri, 0);
-            }
-            return type.ToExpandedNodeId(context);
         }
 
         /// <summary>
@@ -260,6 +279,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         private const string kRootFieldName = "Value";
         private const string kRootSchemaName = "Type";
         private const string kRootNamespace = "org.apache.avro";
+
+        private const string kUaDataTypeIdKey = "uaDataTypeId";
 
         private static readonly JsonSerializerOptions kIndented = new()
         {

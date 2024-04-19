@@ -7,8 +7,10 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -215,6 +217,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (_emitConciseSchemas && value != Variant.Null && !_skipInnerSchemas)
             {
+                if (value.Value is ExtensionObject eo && eo.Body is IEncodeable e)
+                {
+                    WriteEncodeable(fieldName, e, e.GetType());
+                    return;
+                }
+
                 using var __ = Add(fieldName, value.TypeInfo.BuiltInType,
                     SchemaUtils.GetRank(value.TypeInfo.ValueRank));
                 WriteVariantValue(value);
@@ -232,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (_emitConciseSchemas && value != null &&
                 value.WrappedValue != Variant.Null)
             {
-                using var __ = Push(fieldName,
+                using var __ = Record(fieldName,
                     value.WrappedValue.TypeInfo.BuiltInType + "DataValue");
                 base.WriteDataValue(fieldName, value);
                 return;
@@ -253,13 +261,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEncodeable(string? fieldName,
             IEncodeable? value, Type? systemType)
         {
-            var fullName = GetFullNameOfEncodeable(value, systemType, out var typeName);
+            var fullName = GetFullNameOfEncodeable(value, systemType,
+                out var typeName, out var typeId);
             if (typeName == null)
             {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError,
                     "Failed to encode a encodeable without system type");
             }
-            using var _ = Push(fieldName, fullName ?? typeName);
+            using var _ = Record(fieldName, fullName ?? typeName, typeId: typeId);
             base.WriteEncodeable(fieldName, value, systemType);
         }
 
@@ -267,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteObject(string? fieldName, string? typeName,
             Action writer)
         {
-            using var _ = Push(fieldName, typeName ?? fieldName ?? "unknown");
+            using var _ = Record(fieldName, typeName ?? fieldName ?? "unknown");
             base.WriteObject(fieldName, typeName, writer);
         }
 
@@ -523,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override void WriteDataSet(string? fieldName, DataSet dataSet)
         {
-            using var _ = Push(fieldName, fieldName + typeof(DataSet).Name);
+            using var _ = Record(fieldName, fieldName + typeof(DataSet).Name);
             base.WriteDataSet(fieldName, dataSet);
         }
 
@@ -532,6 +541,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             DataValue? value)
         {
             using var _ = Union(fieldName, true);
+            if (value == null)
+            {
+                using var __ = Add(fieldName, BuiltInType.DataValue);
+                base.WriteNullableDataValue(fieldName, value);
+                return;
+            }
             base.WriteNullableDataValue(fieldName, value);
         }
 
@@ -539,8 +554,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteArray<T>(string? fieldName, IList<T>? values,
             Action<T> writer, string? typeName = null)
         {
-            using var _ = Push(fieldName, typeName ??
-                values?.FirstOrDefault()?.GetType().Name ?? typeof(T).Name, true);
+            using var _ = Array(fieldName);
             base.WriteArray(fieldName, values, writer);
         }
 
@@ -591,19 +605,34 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="typeName"></param>
-        /// <param name="array"></param>
+        /// <param name="typeId"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private IDisposable Push(string? fieldName, string typeName, bool array = false)
+        private IDisposable Record(string? fieldName, string typeName,
+            ExpandedNodeId? typeId = null)
         {
             if (_skipInnerSchemas)
             {
                 return Nothing.ToDo;
             }
-            var schema = array ? (Schema)ArraySchema.Create(
-                AvroSchema.CreatePlaceHolder("Dummy", "")) :
-                RecordSchema.Create(typeName, new List<Field>());
+            var schema = RecordSchema.Create(typeName, new List<Field>(),
+                customProperties: AvroSchema.Properties(
+                    typeId?.AsString(Context, NamespaceFormat.Uri)));
             return PushSchema(fieldName, schema);
+        }
+
+        /// <summary>
+        /// Push a new array schema as field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        private IDisposable Array(string? fieldName)
+        {
+            if (_skipInnerSchemas)
+            {
+                return Nothing.ToDo;
+            }
+            return PushSchema(fieldName, ArraySchema.Create(
+                    AvroSchema.CreatePlaceHolder("Dummy", "")));
         }
 
         /// <summary>
@@ -612,7 +641,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="nullable"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
         private IDisposable Union(string? fieldName, bool nullable = false)
         {
             if (_skipInnerSchemas)

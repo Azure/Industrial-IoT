@@ -9,6 +9,24 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Xml;
+
+    public sealed record class VariantsHolder(
+        IReadOnlyList<Variant> Variants, TypeInfo TypeInfo)
+    {
+        public override string ToString()
+        {
+            return TypeInfo.ToString();
+        }
+    }
+
+    public sealed record class VariantHolder(Variant Variant)
+    {
+        public override string ToString()
+        {
+            return Variant.TypeInfo.ToString();
+        }
+    }
 
     public static class VariantVariants
     {
@@ -73,7 +91,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             yield return new Variant(Guid.NewGuid());
             yield return new Variant(Guid.Empty);
             yield return new Variant(DateTime.UtcNow);
-            yield return new Variant(DateTime.Now);
             yield return new Variant(DateTime.MaxValue);
             yield return new Variant(DateTime.MinValue);
             yield return new Variant(string.Empty);
@@ -103,6 +120,78 @@ namespace Azure.IIoT.OpcUa.Encoders
             yield return new Variant(new QualifiedName("en", 0));
             yield return new Variant(new QualifiedName(string.Empty, 0));
             yield return new Variant((QualifiedName)null);
+            yield return new Variant((StatusCode)StatusCodes.Bad);
+            yield return new Variant((StatusCode)StatusCodes.UncertainDependentValueChanged);
+            yield return new Variant(new DataValue(StatusCodes.BadNoCommunication));
+            yield return new Variant(new DataValue(new Variant(123)));
+            yield return new Variant(XmlElement);
         }
+
+        public static XmlElement XmlElement
+        {
+            get
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(
+              """
+<?xml version="1.0" encoding="UTF-8"?>
+            <note>
+                <to>Tove</to>
+                <from>Jani</from>
+                <heading test="1.0">Reminder</heading>
+                <author><nothing/></author>
+                <body>Don't forget me this weekend!</body>
+            </note>
+"""
+                );
+                return doc.DocumentElement;
+            }
+        }
+
+        public static readonly ProgramDiagnostic2DataType Complex = new ProgramDiagnostic2DataType
+        {
+            CreateClientName = "Testname",
+            CreateSessionId = new NodeId(Guid.NewGuid()),
+            InvocationCreationTime = DateTime.UtcNow,
+            LastMethodCall = "swappido",
+            LastMethodCallTime = DateTime.UtcNow,
+            LastMethodInputArguments = new ArgumentCollection {
+                    new Argument("something1",
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something2",
+                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something3",
+                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("something4",
+                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
+                },
+            LastMethodInputValues = new VariantCollection {
+                    new Variant(4L),
+                    new Variant("test"),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
+                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                },
+            LastMethodOutputArguments = new ArgumentCollection {
+                    new Argument("foo1",
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("foo2",
+                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("adfsdafsdsdsafdsfa",
+                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
+                    new Argument("ddddd",
+                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
+                },
+            LastMethodOutputValues = new VariantCollection {
+                    new Variant(4L),
+                    new Variant("test"),
+                    new Variant(new long[] {1, 2, 3, 4, 5 }),
+                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                },
+            LastMethodReturnStatus =
+                    StatusCodes.BadAggregateConfigurationRejected,
+            LastMethodSessionId = new NodeId(
+                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
+            LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
+        };
     }
 }

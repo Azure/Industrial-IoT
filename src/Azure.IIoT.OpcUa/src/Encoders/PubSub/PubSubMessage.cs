@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// Encodeable PubSub messages
@@ -61,6 +62,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
+        /// Decode the network message from the wire representation
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="stream"></param>
+        /// <param name="resolver"></param>
+        public abstract bool TryDecode(IServiceMessageContext context,
+            Stream stream, IDataSetMetaDataResolver? resolver = null);
+
+        /// <summary>
         /// Encode the network message into network message chunks
         /// wire representation.
         /// </summary>
@@ -73,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
-        /// Decode pub sub messages from buffer
+        /// Decode pub sub messages from a single network buffer. If the message
+        /// was chunked, the message might not be fully reconstituted.
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="contentType"></param>
@@ -91,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <summary>
-        /// Decode all from reader
+        /// Decode all messages from the provided chunk reader. The reader
+        /// is a queue of byte sequences, each representing a network buffer.
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="contentType"></param>
@@ -101,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <returns></returns>
         public static IEnumerable<PubSubMessage> Decode(Queue<ReadOnlySequence<byte>> reader,
             string contentType, IServiceMessageContext context,
-            IDataSetMetaDataResolver resolver, string? messageSchema = null)
+            IDataSetMetaDataResolver? resolver = null, string? messageSchema = null)
         {
             while (true)
             {
@@ -118,7 +130,110 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <summary>
-        /// Decode one pub sub messages from buffer
+        /// Decode messages from stream. The stream will be read until the
+        /// entire message has been loaded. UADP messages can be chunked
+        /// the stream therefore must include all chunks to decode successfully.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="contentType"></param>
+        /// <param name="context"></param>
+        /// <param name="resolver"></param>
+        /// <param name="messageSchema"></param>
+        /// <returns></returns>
+        public static IEnumerable<PubSubMessage> Decode(Stream stream,
+            string contentType, IServiceMessageContext context,
+            IDataSetMetaDataResolver? resolver = null, string? messageSchema = null)
+        {
+            while (stream.Position != stream.Length)
+            {
+                PubSubMessage message;
+                long pos;
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                switch (contentType.ToLowerInvariant())
+                {
+                    case Encoders.ContentType.JsonGzip:
+                    case ContentMimeType.Json:
+                    case Encoders.ContentType.UaJson:
+                    case Encoders.ContentType.UaLegacyPublisher:
+                    case Encoders.ContentType.UaNonReversibleJson:
+                        message = new JsonNetworkMessage
+                        {
+                            MessageSchemaToUse = messageSchema,
+                            UseGzipCompression = contentType.Equals(
+                                Encoders.ContentType.JsonGzip,
+                                StringComparison.OrdinalIgnoreCase)
+                        };
+                        pos = stream.Position;
+                        if (message.TryDecode(context, stream, resolver))
+                        {
+                            yield return message;
+                        }
+                        else
+                        {
+                            stream.Position = pos;
+                            message = new JsonMetaDataMessage();
+                            if (message.TryDecode(context, stream, resolver))
+                            {
+                                yield return message;
+                            }
+                            else
+                            {
+                                yield break;
+                            }
+                        }
+                        break;
+                    case ContentMimeType.Binary:
+                    case Encoders.ContentType.Uadp:
+                        message = new UadpNetworkMessage();
+                        pos = stream.Position;
+                        if (message.TryDecode(context, stream, resolver))
+                        {
+                            yield return message;
+                        }
+                        else
+                        {
+                            stream.Position = pos;
+                            message = new UadpDiscoveryMessage();
+                            if (message.TryDecode(context, stream, resolver))
+                            {
+                                yield return message;
+                            }
+                            else
+                            {
+                                yield break;
+                            }
+                        }
+                        break;
+
+                    case Encoders.ContentType.Avro:
+                    case Encoders.ContentType.AvroGzip:
+                    case ContentMimeType.AvroBinary:
+                        message = new AvroNetworkMessage
+                        {
+                            Schema = Schema.Parse(messageSchema),
+                            UseGzipCompression = contentType.Equals(
+                                Encoders.ContentType.AvroGzip, StringComparison.OrdinalIgnoreCase)
+                        };
+                        if (message.TryDecode(context, stream, resolver))
+                        {
+                            yield return message;
+                        }
+                        else
+                        {
+                            yield break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+#pragma warning restore CA1308 // Normalize strings to uppercase
+            }
+        }
+
+        /// <summary>
+        /// Decode one pub sub messages from the chunks provided by the reader
+        /// Avro and JSON do not support chunking hence only ever one chunk is
+        /// pulled from the reader.
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="contentType"></param>

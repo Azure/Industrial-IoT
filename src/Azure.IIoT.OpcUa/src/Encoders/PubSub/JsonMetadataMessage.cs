@@ -118,6 +118,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {

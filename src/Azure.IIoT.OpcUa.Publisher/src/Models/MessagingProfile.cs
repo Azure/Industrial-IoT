@@ -342,18 +342,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Uadp);
 
-            // Avro encodings
-            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(false),
+            // Avro encodings - default is single dataset mode
+            AddProfile(MessagingMode.PubSub, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
                     MessageEncoding.Avro, MessageEncoding.AvroGzip);
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildNetworkMessageContentMask(),
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true),
+                    NetworkMessageContentMask.DataSetMessageHeader,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Avro, MessageEncoding.AvroGzip);
             AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true),
                     NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
                     BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.RawDataSets, 0,
+                    0,
+                    DataSetFieldContentMask.RawData,
                     MessageEncoding.Avro, MessageEncoding.AvroGzip);
             AddProfile(MessagingMode.SingleRawDataSet, 0,
                     NetworkMessageContentMask.SingleDataSetMessage,

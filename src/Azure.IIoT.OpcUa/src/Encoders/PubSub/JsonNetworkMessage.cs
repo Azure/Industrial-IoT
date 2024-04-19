@@ -192,6 +192,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            var compression = UseGzipCompression ?
+                new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
+            try
+            {
+                using var decoder = new JsonDecoderEx((Stream?)compression ?? stream,
+                    context, useJsonLoader: false);
+                var readArray = decoder.ReadArray(null, () => TryReadNetworkMessage(decoder));
+                if (readArray?.All(s => s) != true ||
+                    stream.Length != stream.Position)
+                {
+                    return false;
+                }
+                return true;
+            }
+            finally
+            {
+                compression?.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver = null)
         {

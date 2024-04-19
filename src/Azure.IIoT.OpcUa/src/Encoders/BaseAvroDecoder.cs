@@ -32,9 +32,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        protected BaseAvroDecoder(Stream stream, IServiceMessageContext context)
+        /// <param name="leaveOpen"></param>
+        protected BaseAvroDecoder(Stream stream, IServiceMessageContext context,
+            bool leaveOpen = false)
         {
-            _reader = new AvroBinaryReader(stream)
+            _reader = new AvroBinaryReader(stream, leaveOpen)
             {
                 MaxBytesLength = context.MaxByteStringLength,
                 MaxStringLength = context.MaxStringLength
@@ -179,9 +181,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual Uuid ReadGuid(string? fieldName)
         {
+#if UUID_FIXED
             Span<byte> bytes = stackalloc byte[16];
             _reader.ReadFixed(bytes);
             return new Uuid(new Guid(bytes));
+#else
+            var uuid = _reader.ReadString();
+            return new Uuid(Guid.Parse(uuid));
+#endif
         }
 
         /// <inheritdoc/>

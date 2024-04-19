@@ -1205,7 +1205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         minPublishRequests = 1;
                     }
-                    if (limit <= minPublishRequests)
+                    if (limit <= minPublishRequests || limit == _maxPublishRequests)
                     {
                         break;
                     }

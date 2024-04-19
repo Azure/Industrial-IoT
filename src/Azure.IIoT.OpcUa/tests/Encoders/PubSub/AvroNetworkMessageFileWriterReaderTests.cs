@@ -7,18 +7,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Xunit;
 
     /// <summary>
-    /// Avro encoder decoder tests
+    /// Avro file reader/writer tests
     /// </summary>
-    public class AvroNetworkMessageEncoderDecoderTests2
+    public class AvroNetworkMessageFileWriterReaderTests
     {
         public const AvroNetworkMessageContentMask NetworkMessageContentMaskDefault =
             AvroNetworkMessageContentMask.NetworkMessageHeader |
@@ -30,39 +33,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataSetFieldContentMask.SourcePicoSeconds |
             DataSetFieldContentMask.ServerPicoSeconds |
             DataSetFieldContentMask.StatusCode;
-
-        [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(false, NetworkMessageContentMaskDefault, 1)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 3)]
-        [InlineData(true, NetworkMessageContentMaskDefault, 1)]
-        public void EncodeDecodeNetworkMessage(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask, messages);
-            networkMessage.UseGzipCompression = compress;
-
-            var context = new ServiceMessageContext();
-            var buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
-
-            context = new ServiceMessageContext();
-            buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
-            Assert.Equal(schema, networkMessage.Schema);
-
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            var result = PubSubMessage.Decode(buffer, networkMessage.ContentType, context, messageSchema: json);
-            Assert.Equal(networkMessage, result);
-        }
 
         [Theory]
         [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
@@ -77,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessages(bool compress,
+        public void ReadWriteNetworkMessages(bool compress,
             AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
@@ -89,19 +59,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
+
+            using var file = new MemoryStream();
+            using (var writer = AvroFileWriter.AvroFile.CreateFromStream(
+                file, networkMessage.Schema.ToJson(), new Dictionary<string, string>(), Log.Console("test"), compress))
+            {
+                writer.Write(buffers);
+            }
 
             ConvertToOpcUaUniversalTime(networkMessage);
+            networkMessage.UseGzipCompression = false; // Unset compression flag now as we are reading the file
 
-            var m = buffers
-                .Select(buffer => (BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json))
-                .ToList();
-            var result = m[0];
-            result.Messages = m.SelectMany(m => m.Messages).ToList();
-            Assert.Equal(networkMessage, result);
+            file.Seek(0, SeekOrigin.Begin);
+            using (var reader = new AvroFileReader(file))
+            {
+                var m = reader
+                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                        context, messageSchema: schema.ToJson()).ToList())
+                    .SelectMany(m => m.Cast<BaseNetworkMessage>())
+                    .ToList();
+
+                var result = m[0];
+                result.Messages = m.SelectMany(m => m.Messages).ToList();
+                Assert.Equal(networkMessage, result);
+            }
         }
 
         [Theory]
@@ -111,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessagesNoNetworkMessageHeader(
+        public void ReadWriteNetworkMessagesNoNetworkMessageHeader(
             AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
@@ -123,16 +104,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
-            ConvertToOpcUaUniversalTime(networkMessage);
+            using var file = new MemoryStream();
+            using (var writer = AvroFileWriter.AvroFile.CreateFromStream(
+                file, networkMessage.Schema.ToJson(), new Dictionary<string, string>(), Log.Console("test")))
+            {
+                writer.Write(buffers);
+            }
 
-            var result = buffers
-                .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .ToList();
-            Assert.Equal(networkMessage.Messages, result);
+            ConvertToOpcUaUniversalTime(networkMessage);
+            file.Seek(0, SeekOrigin.Begin);
+            using (var reader = new AvroFileReader(file))
+            {
+                var result = reader
+                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                        context, messageSchema: schema.ToJson()).ToList())
+                    .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
+                    .SelectMany(m => m.Messages)
+                    .ToList();
+
+                Assert.Equal(networkMessage.Messages, result);
+            }
         }
 
         [Theory]
@@ -142,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessagesNoDataSetMessageHeader(
+        public void ReadWriteNetworkMessagesNoDataSetMessageHeader(
             AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
@@ -155,17 +146,25 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
 
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
+            using var file = new MemoryStream();
+            using (var writer = AvroFileWriter.AvroFile.CreateFromStream(
+                file, networkMessage.Schema.ToJson(), new Dictionary<string, string>(), Log.Console("test")))
+            {
+                writer.Write(buffers);
+            }
             ConvertToOpcUaUniversalTime(networkMessage);
+            file.Seek(0, SeekOrigin.Begin);
+            using (var reader = new AvroFileReader(file))
+            {
+                var result = reader
+                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                        context, messageSchema: schema.ToJson()).ToList())
+                    .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
+                    .SelectMany(m => m.Messages).Select(m => m.Payload)
+                    .ToList();
 
-            var result = buffers
-                .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .Select(m => m.Payload)
-                .ToList();
-            Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
+                Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
+            }
         }
 
         [Theory]
@@ -174,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeader(
+        public void ReadWriteNetworkMessagesNoHeader(
             AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
@@ -186,60 +185,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
+            using var file = new MemoryStream();
+            using (var writer = AvroFileWriter.AvroFile.CreateFromStream(
+                file, networkMessage.Schema.ToJson(), new Dictionary<string, string>(), Log.Console("test")))
+            {
+                writer.Write(buffers);
+            }
 
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
             ConvertToOpcUaUniversalTime(networkMessage);
+            file.Seek(0, SeekOrigin.Begin);
+            using (var reader = new AvroFileReader(file))
+            {
+                var result = reader
+                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                         context, messageSchema: schema.ToJson()).ToList())
+                    .SelectMany(m => m.Cast<BaseNetworkMessage>())
+                    .SelectMany(m => m.Messages.Select(m => m.Payload))
+                    .ToList();
 
-            var result = buffers
-                .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .Select(m => m.Payload)
-                .ToList();
-            Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
-        }
-
-        [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
-        [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeaderRaw(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask
-                & ~(AvroNetworkMessageContentMask.NetworkMessageHeader | AvroNetworkMessageContentMask.DataSetMessageHeader), messages);
-
-            var context = new ServiceMessageContext();
-            var buffers = networkMessage.Encode(context, maxMessageSize);
-
-            var schema = networkMessage.Schema;
-            Assert.NotNull(schema);
-            var json = schema.ToJson();
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            // Compare payload as raw data equivalent
-            var serializer = new NewtonsoftJsonSerializer();
-            var result = serializer.Parse(serializer.SerializeToString(buffers
-                .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value.Value))
-                .ToList()));
-            var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value.Value))
-                .ToList()));
-
-            Assert.Equal(expected, result);
+                var expected = networkMessage.Messages.Select(m => m.Payload).ToList();
+                Assert.All(expected, (p, i) => Assert.True(result[i].Equals(p)));
+            }
         }
 
         /// <summary>

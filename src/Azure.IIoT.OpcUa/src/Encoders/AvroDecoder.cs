@@ -40,9 +40,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="schema"></param>
         /// <param name="context">The message context to
         /// use for the encoding.</param>
+        /// <param name="leaveOpen"></param>
         public AvroDecoder(Stream stream, Schema schema,
-            IServiceMessageContext context) :
-            base(stream, context)
+            IServiceMessageContext context, bool leaveOpen = false) :
+            base(stream, context, leaveOpen)
         {
             Schema = schema;
             _schema = new AvroSchemaTraverser(schema);
@@ -244,6 +245,17 @@ namespace Azure.IIoT.OpcUa.Encoders
                     return value;
                 }
 
+                // Read as encodeable
+                var typeId = currentSchema.GetDataTypeId(Context);
+                var systemType = Context.Factory.GetSystemType(typeId);
+                if (systemType != null)
+                {
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    var value = ReadEncodeable(null, systemType, typeId);
+                    _schema.Pop();
+                    return new Variant(value);
+                }
+
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
                     $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
                     $"field {fieldName ?? "unnamed"} is neither variant nor built " +
@@ -298,21 +310,28 @@ namespace Azure.IIoT.OpcUa.Encoders
         private DataValue? ReadDataSetField(string? fieldName, ref bool isRaw)
         {
             var schema = GetFieldSchema(fieldName);
-            if (schema is UnionSchema)
+            try
             {
-                var unionId = ReadUnion();
-                if (unionId == 0)
+                if (schema is UnionSchema)
                 {
-                    return ReadNull<DataValue>(fieldName);
+                    var unionId = ReadUnion();
+                    if (unionId == 0)
+                    {
+                        if (Current.Tag != Schema.Type.Null)
+                        {
+                            throw new ServiceResultException(StatusCodes.BadDecodingError,
+                                $"Data set field {fieldName} in dataset should be null " +
+                                $"per union schema but is {Current.ToJson()}.\n{Schema.ToJson()}");
+                        }
+                        return base.ReadNull<DataValue>(fieldName);
+                    }
+                    Debug.Assert(unionId == 1);
                 }
-                Debug.Assert(unionId == 1);
-            }
 
-            if (Current is RecordSchema fieldRecord)
-            {
-                // The field is a record that should contain the data value fields
-                try
+                if (Current is RecordSchema fieldRecord)
                 {
+                    // The field is a record that should contain the data value fields
+
                     if (fieldRecord.IsDataValue())
                     {
                         var dataValue = new DataValue();
@@ -358,32 +377,23 @@ namespace Azure.IIoT.OpcUa.Encoders
                         return dataValue;
                     }
 
-                    if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
-                        builtInType != BuiltInType.DataValue)
-                    {
-                        // Write value as variant
-                        _schema.Push(ArraySchema.Create(fieldRecord));
-                        var value = ReadVariant(null);
-                        _schema.Pop();
-                        if (value == Variant.Null)
-                        {
-                            return null;
-                        }
-                        return new DataValue(value);
-                    }
-
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
-                            $"Data set field {fieldName} must be a data value.\n{Schema.ToJson()}");
-                }
-                finally
-                {
+                    // Read value as variant
+                    _schema.Push(ArraySchema.Create(fieldRecord));
+                    var value = ReadVariant(null);
                     _schema.Pop();
+                    if (value == Variant.Null)
+                    {
+                        return null;
+                    }
+                    return new DataValue(value);
                 }
-            }
-            else
-            {
+
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
                     "Data set fields must be records.");
+            }
+            finally
+            {
+                _schema.Pop();
             }
         }
 
@@ -608,8 +618,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                     _schema.Push(ArraySchema.Create(currentSchema));
                     var result = ReadArray(null, builtInType, null, null);
                     _schema.Pop();
-                    return result?.Cast<object?>().Select(o => new Variant(o)).ToArray()
-                        ?? Array.Empty<Variant>();
+                    if (result == null || result.Length == 0)
+                    {
+                        return Array.Empty<Variant>();
+                    }
+                    return result.Cast<object?>()
+                        .Select(o => new Variant(o))
+                        .ToArray();
                 }
 
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
@@ -867,7 +882,8 @@ namespace Azure.IIoT.OpcUa.Encoders
     {
         /// <inheritdoc/>
         public SchemalessAvroDecoder(Stream stream,
-            IServiceMessageContext context) : base(stream, context)
+            IServiceMessageContext context, bool leaveOpen = false)
+            : base(stream, context, leaveOpen)
         {
         }
     }

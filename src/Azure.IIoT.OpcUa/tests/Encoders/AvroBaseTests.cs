@@ -153,22 +153,23 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(value, decoder.ReadVariant(null).Value);
         }
 
-        public static TheoryData<Variant> GetValues()
+        public static TheoryData<VariantHolder> GetValues()
         {
-            return new TheoryData<Variant>(VariantVariants.GetValues());
+            return new TheoryData<VariantHolder>(VariantVariants.GetValues().Select(v => new VariantHolder(v)));
         }
 
         [Theory]
         [MemberData(nameof(GetValues))]
-        public void TestVariantVariants(Variant value)
+        public void TestVariantVariants(VariantHolder value)
         {
+            var expected = value.Variant;
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
             using var encoder = new SchemalessAvroEncoder(stream, context, true);
-            encoder.WriteVariant(null, value);
+            encoder.WriteVariant(null, expected);
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
-            Assert.Equal(value, decoder.ReadVariant(null));
+            Assert.Equal(expected, decoder.ReadVariant(null));
         }
 
         [Theory]
@@ -756,23 +757,24 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        public static TheoryData<Variant[]> GetVariantArrays()
+        public static TheoryData<VariantsHolder> GetVariantArrays()
         {
-            return new TheoryData<Variant[]>(VariantVariants.GetValues()
-                .Select(v => Enumerable.Repeat(v, 3).ToArray()));
+            return new TheoryData<VariantsHolder>(VariantVariants.GetValues()
+                .Select(v => new VariantsHolder(Enumerable.Repeat(v, 3).ToArray(), v.TypeInfo)));
         }
 
         [Theory]
         [MemberData(nameof(GetVariantArrays))]
-        public void TestVariantArrayVariants(Variant[] value)
+        public void TestVariantArrayVariants(VariantsHolder value)
         {
+            var expected = value.Variants.ToArray();
             var context = new ServiceMessageContext();
             using var stream = new MemoryStream();
             using var encoder = new SchemalessAvroEncoder(stream, context, true);
-            encoder.WriteVariantArray(null, value);
+            encoder.WriteVariantArray(null, expected);
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
-            Assert.Equal(value, decoder.ReadVariantArray(null));
+            Assert.Equal(expected, decoder.ReadVariantArray(null));
         }
     }
 }

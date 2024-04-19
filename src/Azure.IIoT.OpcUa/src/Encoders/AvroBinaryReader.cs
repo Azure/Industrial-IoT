@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// </summary>
     public sealed class AvroBinaryReader : IDisposable
     {
+        private readonly bool _leaveOpen;
+
         /// <summary>
         /// Underlying stream
         /// </summary>
@@ -36,15 +38,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Create avro reader
         /// </summary>
         /// <param name="stream"></param>
-        public AvroBinaryReader(Stream stream)
+        /// <param name="leaveOpen"></param>
+        public AvroBinaryReader(Stream stream, bool leaveOpen = false)
         {
             Stream = stream;
+            _leaveOpen = leaveOpen;
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            Stream.Dispose();
+            if (!_leaveOpen)
+            {
+                Stream.Dispose();
+            }
         }
 
         /// <inheritdoc/>

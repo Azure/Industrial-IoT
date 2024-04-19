@@ -32,6 +32,11 @@
     <None Remove="Resources\MultiDataWriter.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Encoders\PubSub\Avro\SingleEvent.avro">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
     <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
   </ItemGroup>

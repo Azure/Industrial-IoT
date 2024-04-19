@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using Xunit;
+    using System.Text.Json;
+    using Opc.Ua.Extensions;
 
     public class AvroDataSetTests
     {
@@ -20,51 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteProgramDiagnostic2DataTypeStream()
         {
             // Create dummy type
-            var expected = new ProgramDiagnostic2DataType
-            {
-                CreateClientName = "Testname",
-                CreateSessionId = new NodeId(Guid.NewGuid()),
-                InvocationCreationTime = DateTime.UtcNow,
-                LastMethodCall = "swappido",
-                LastMethodCallTime = DateTime.UtcNow,
-                LastMethodInputArguments = new ArgumentCollection {
-                    new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodInputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodOutputArguments = new ArgumentCollection {
-                    new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodOutputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodReturnStatus =
-                    StatusCodes.BadAggregateConfigurationRejected,
-                LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
-                LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
-            };
+            var expected = VariantVariants.Complex;
 
             const int count = 100;
             byte[] buffer;
@@ -158,52 +116,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteProgramDiagnostic2DataTypeSchema(bool concise)
         {
             // Create dummy type
-            var expected = new ProgramDiagnostic2DataType
-            {
-                CreateClientName = "Testname",
-                CreateSessionId = new NodeId(Guid.NewGuid()),
-                InvocationCreationTime = DateTime.UtcNow,
-                LastMethodCall = "swappido",
-                LastMethodCallTime = DateTime.UtcNow,
-                LastMethodInputArguments = new ArgumentCollection {
-                    new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodInputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodOutputArguments = new ArgumentCollection {
-                    new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodOutputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodReturnStatus =
-                    StatusCodes.BadAggregateConfigurationRejected,
-                LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
-                LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
-            };
-
+            var expected = VariantVariants.Complex;
             const int count = 100;
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -310,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void ReadWriteDataSetTest(bool concise)
+        public void ReadWriteDataSetTest1(bool concise)
         {
             // Create dummy
             var expected = new DataSet
@@ -348,7 +261,45 @@ namespace Azure.IIoT.OpcUa.Encoders
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void ReadWriteDataSetArrayRawTest(bool concise)
+        public void ReadWriteDataSetTest2(bool concise)
+        {
+            // Create dummy
+            var expected = new DataSet
+            {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
+                ["http://microsoft.com"] = null,
+                ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
+                ["1245"] = null,
+                ["..."] = new DataValue(new Variant("imbricated"))
+            };
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
+                {
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            var json = schema.ToJson();
+            Assert.NotNull(json);
+            using (var stream = new MemoryStream(buffer))
+            using (var decoder = new AvroDecoder(stream, schema, context))
+            {
+                var result = decoder.ReadDataSet(null);
+                Assert.True(expected.Equals(result));
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetArrayRawTest1(bool concise)
         {
             // Create dummy
             var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
@@ -359,6 +310,42 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant("imbricated"))
+            };
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
+                {
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            using (var decoder = new AvroDecoder(stream, schema, context))
+            {
+                var result = decoder.ReadDataSet(null);
+                Assert.True(expected.Equals(result));
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetArrayRawTest2(bool concise)
+        {
+            // Create dummy
+            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            {
+                ["abcd"] = null,
+                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
+                ["1111111111111111111111111"] = null,
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
+                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["..."] = null
             };
 
             byte[] buffer;
@@ -416,6 +403,42 @@ namespace Azure.IIoT.OpcUa.Encoders
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public void ReadWriteDataSetWithSingleComplexEntryTest(bool concise)
+        {
+            // Create dummy
+            var expected = new DataSet
+            {
+                ["abcd"] = new DataValue(new Variant(VariantVariants.Complex),
+                    StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+            };
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
+                {
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            using (var decoder = new AvroDecoder(stream, schema, context))
+            {
+                var result = decoder.ReadDataSet(null);
+                Assert.True(result["abcd"].Value is ExtensionObject);
+                var eo = (ExtensionObject)result["abcd"].Value;
+                Assert.True(eo.Body is IEncodeable);
+                var e = (IEncodeable)eo.Body;
+                Assert.Equal(VariantVariants.Complex.AsJson(context), e.AsJson(context));
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public void ReadWriteDataSetWithSingleValueRawTest(bool concise)
         {
             // Create dummy
@@ -442,6 +465,42 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var result = decoder.ReadDataSet(null);
                 Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ReadWriteDataSetWithSingleComplexValueRawTest(bool concise)
+        {
+            // Create dummy
+            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            {
+                ["abcd"] = new DataValue(new Variant(VariantVariants.Complex),
+                    StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
+            };
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            Schema schema;
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new AvroSchemaBuilder(stream, context, emitConciseSchemas: concise))
+                {
+                    encoder.WriteDataSet(null, expected);
+                    schema = encoder.Schema;
+                }
+                buffer = stream.ToArray();
+            }
+            using (var stream = new MemoryStream(buffer))
+            using (var decoder = new AvroDecoder(stream, schema, context))
+            {
+                var result = decoder.ReadDataSet(null);
+                Assert.True(result["abcd"].Value is ExtensionObject);
+                var eo = (ExtensionObject)result["abcd"].Value;
+                Assert.True(eo.Body is IEncodeable);
+                var e = (IEncodeable)eo.Body;
+                Assert.Equal(VariantVariants.Complex.AsJson(context), e.AsJson(context));
             }
         }
 

@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return RecordSchema.Create(
                 SchemaUtils.SplitQualifiedName(description.Name, Context, ns1),
                 fields, ns1, new[] { dt },
-                customProperties: AvroSchema.GetProperties(description.DataTypeId));
+                customProperties: AvroSchema.Properties(description.DataTypeId));
         }
 
         /// <inheritdoc/>
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return EnumSchema.Create(
                 SchemaUtils.SplitQualifiedName(description.Name, Context, ns),
                 symbols, ns, new[] { dt },
-                customProperties: AvroSchema.GetProperties(description.DataTypeId),
+                customProperties: AvroSchema.Properties(description.DataTypeId),
                 defaultSymbol: symbols[0]);
             // TODO: Build doc from fields descriptions
         }

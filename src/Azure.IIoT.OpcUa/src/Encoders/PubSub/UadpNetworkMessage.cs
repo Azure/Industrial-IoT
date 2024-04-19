@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Avro.Generic;
     using Furly;
     using Microsoft.IO;
     using Opc.Ua;
@@ -438,6 +439,45 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public UadpNetworkMessage()
         {
             SequenceNumber = () => _sequenceNumber;
+        }
+
+        /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            var chunks = new List<Message>();
+            while (stream.Position != stream.Length)
+            {
+                using (var binaryDecoder = new BinaryDecoder(stream, context))
+                {
+                    ReadNetworkMessageHeaderFlags(binaryDecoder);
+
+                    // decode network message header according to the header flags
+                    if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0))
+                    {
+                        return false;
+                    }
+
+                    var buffers = ReadPayload(binaryDecoder, chunks).ToArray();
+
+                    ReadSecurityFooter(binaryDecoder);
+                    ReadSignature(binaryDecoder);
+
+                    // Processing completed
+                    if (buffers.Length != 0 || chunks.Count == 0)
+                    {
+                        if (buffers.Length > 0)
+                        {
+                            DecodePayloadChunks(context, buffers, resolver);
+                            // Process all messages in the buffer
+                        }
+                        break;
+                    }
+                    // Still not processed all chunks, continue reading
+                    continue;
+                }
+            }
+            return true;
         }
 
         /// <inheritdoc/>

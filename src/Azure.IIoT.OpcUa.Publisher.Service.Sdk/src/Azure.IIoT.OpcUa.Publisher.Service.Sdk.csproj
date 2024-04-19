@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />

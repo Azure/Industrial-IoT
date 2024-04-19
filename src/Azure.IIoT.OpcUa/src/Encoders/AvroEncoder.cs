@@ -244,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IEncodeable? value, Type? systemType)
         {
             var fullName = GetFullNameOfEncodeable(value, systemType,
-                out var typeName);
+                out var typeName, out var typeId);
             if (typeName == null)
             {
                 // Perform unvalidated write. TODO: Throw?
@@ -286,6 +286,18 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     _schema.Push(ArraySchema.Create(currentSchema));
                     WriteVariantValue(value);
+                    _schema.Pop();
+                    return;
+                }
+
+                var typeId = currentSchema.GetDataTypeId(Context);
+                var encodeable = (value.Value as ExtensionObject)?.Body as IEncodeable;
+                var systemType = encodeable?.GetType()
+                    ?? Context.Factory.GetSystemType(typeId);
+                if (systemType != null)
+                {
+                    _schema.Push(ArraySchema.Create(currentSchema));
+                    WriteEncodeable(null, encodeable, systemType);
                     _schema.Pop();
                     return;
                 }
@@ -581,8 +593,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Serialize the fields in the schema
                 foreach (var field in r.Fields)
                 {
-                    var isVariant = field.Schema.IsBuiltInType(out var bt, out _)
-                        && bt == BuiltInType.Variant;
+                    var isVariant = field.Schema is not UnionSchema;
                     if (!dataSet.TryGetValue(SchemaUtils.Unescape(field.Name),
                             out var dataValue)
                         || dataValue == null)
@@ -716,17 +727,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 // Write value as variant
-                if (fieldRecord.IsBuiltInType(out var builtInType, out var rank) &&
-                    builtInType != BuiltInType.DataValue)
-                {
-                    _schema.Push(ArraySchema.Create(fieldRecord));
-                    WriteVariant(null, value.WrappedValue);
-                    _schema.Pop();
-                    return;
-                }
-
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Data set field {fieldName} must be a data value.\n{Schema.ToJson()}");
+                _schema.Push(ArraySchema.Create(fieldRecord));
+                WriteVariant(null, value.WrappedValue);
+                _schema.Pop();
             }
             finally
             {

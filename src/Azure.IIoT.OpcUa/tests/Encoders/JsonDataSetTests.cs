@@ -18,51 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteProgramDiagnostic2DataTypeStream()
         {
             // Create dummy type
-            var expected = new ProgramDiagnostic2DataType
-            {
-                CreateClientName = "Testname",
-                CreateSessionId = new NodeId(Guid.NewGuid()),
-                InvocationCreationTime = DateTime.UtcNow,
-                LastMethodCall = "swappido",
-                LastMethodCallTime = DateTime.UtcNow,
-                LastMethodInputArguments = new ArgumentCollection {
-                    new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodInputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodOutputArguments = new ArgumentCollection {
-                    new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
-                    new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-                LastMethodOutputValues = new VariantCollection {
-                    new Variant(4L),
-                    new Variant("test"),
-                    new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-                LastMethodReturnStatus =
-                    StatusCodes.BadAggregateConfigurationRejected,
-                LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
-                LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
-            };
+            var expected = VariantVariants.Complex;
 
             const int count = 100;
             byte[] buffer;

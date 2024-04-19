@@ -77,6 +77,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         public bool UseGzipCompression { get; set; }
 
+        /// <summary>
+        /// Setting to generate concise schemas during encoding
+        /// </summary>
+        internal bool EmitConciseSchema { get; set; }
+
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
@@ -111,8 +116,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            if (Schema == null)
+            {
+                return false;
+            }
+            var compression = UseGzipCompression ?
+                new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
+            try
+            {
+                using var decoder = new AvroDecoder((Stream?)compression ?? stream,
+                    Schema, context, true);
+
+                return TryReadNetworkMessage(decoder);
+            }
+            finally
+            {
+                compression?.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver = null)
+            Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             // Decodes a single buffer
             if (Schema == null)
@@ -131,13 +159,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     {
                         using var decoder = new AvroDecoder((Stream?)compression ?? memoryStream,
                             Schema, context);
-                        while (memoryStream.Position != memoryStream.Length)
+
+                        if (!TryReadNetworkMessage(decoder) ||
+                            memoryStream.Position != memoryStream.Length)
                         {
-                            if (!TryReadNetworkMessage(decoder))
-                            {
-                                return false;
-                            }
+                            return false;
                         }
+
                         // Complete the buffer
                         reader.Dequeue();
                         return true;
@@ -191,7 +219,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         var stream = (Stream?)compression ?? memoryStream;
                         if (Schema == null)
                         {
-                            using var encoder = new AvroSchemaBuilder(stream, context);
+                            using var encoder = new AvroSchemaBuilder(stream, context,
+                                emitConciseSchemas: EmitConciseSchema);
                             WriteMessages(encoder, messages);
                             Schema = encoder.Schema;
                         }

@@ -254,7 +254,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 11 => Primitive(id, "Double", "double"),
                 12 => Primitive(id, "String", "string"),
                 13 => Primitive(id, "DateTime", "long"),
+#if UUID_FIXED
+                14 => Fixed(id, "Guid", "uuid", 16),
+#else
                 14 => Primitive(id, "Guid", "string", "uuid"),
+#endif
                 15 => Primitive(id, "ByteString", "bytes"),
                 16 => Primitive(id, "XmlElement", "string"),
 
@@ -366,7 +370,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             var baseType = logicalType == null ?
                 PrimitiveSchema.NewInstance(type) : Schema.Parse(
-                $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
+    $$"""{"type": "{{type}}", "logicalType": "{{logicalType}}"}""");
+            return RecordSchema.Create(name, new List<Field>
+            {
+                new (baseType, kSingleFieldName, 0)
+            }, SchemaUtils.NamespaceZeroName,
+                new[] { GetDataTypeId((BuiltInType)builtInType) });
+        }
+
+        /// <summary>
+        /// Create primitive opc ua built in type
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <param name="name"></param>
+        /// <param name="baseName"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        internal static Schema Fixed(int builtInType, string name,
+            string baseName, int size)
+        {
+            var baseType = FixedSchema.Create(baseName, size);
             return RecordSchema.Create(name, new List<Field>
             {
                 new (baseType, kSingleFieldName, 0)
