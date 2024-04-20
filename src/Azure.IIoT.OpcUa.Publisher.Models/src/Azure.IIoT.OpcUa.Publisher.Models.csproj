@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Abstractions" Version="1.0.42" />
+    <PackageReference Include="Furly.Extensions.Abstractions" Version="1.0.43" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />

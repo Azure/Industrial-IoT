@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Avro;
     using Avro.File;
     using Avro.IO;
     using Furly.Extensions.Messaging;
@@ -14,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Microsoft.IO;
     using System;
     using System.Buffers;
-    using System.Buffers.Binary;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
@@ -30,7 +28,14 @@ namespace Azure.IIoT.OpcUa.Encoders
     public sealed class AvroFileWriter : IFileWriter, IDisposable
     {
         /// <inheritdoc/>
-        public string ContentType => Encoders.ContentType.Avro;
+        public bool SupportsContentType(string contentType)
+        {
+            return
+                contentType.Equals(ContentType.Avro,
+                    StringComparison.OrdinalIgnoreCase) ||
+                contentType.Equals(ContentType.AvroGzip,
+                    StringComparison.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// Create writer
@@ -45,12 +50,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public ValueTask WriteAsync(string fileName, DateTime timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
             IReadOnlyDictionary<string, string?> metadata, IEventSchema? schema,
-            CancellationToken ct = default)
+            string contentType, CancellationToken ct = default)
         {
             if (schema?.Id != null)
             {
-                var file = _files.GetOrAdd(fileName + schema.Id,
-                    _ => AvroFile.Create(fileName, schema.Schema, metadata, _logger));
+                var file = _files.GetOrAdd(fileName + schema.Id + contentType,
+                    _ => AvroFile.Create(fileName, schema.Schema, metadata, _logger,
+                        contentType.Equals(ContentType.AvroGzip,
+                            StringComparison.OrdinalIgnoreCase)));
                 file.Write(buffers);
             }
             return ValueTask.CompletedTask;
@@ -113,12 +120,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="schema"></param>
             /// <param name="metadata"></param>
             /// <param name="logger"></param>
+            /// <param name="isGzip"></param>
             /// <returns></returns>
             public static AvroFile Create(string fileName, string schema,
-                IReadOnlyDictionary<string, string?> metadata, ILogger logger)
+                IReadOnlyDictionary<string, string?> metadata, ILogger logger,
+                bool isGzip = false)
             {
                 var fs = new FileStream(fileName + ".avro", FileMode.OpenOrCreate);
-                return new AvroFile(fileName, fs, schema, metadata, logger, false, false);
+                return new AvroFile(fileName, fs, schema, metadata, logger, false, isGzip);
             }
 
             /// <summary>
