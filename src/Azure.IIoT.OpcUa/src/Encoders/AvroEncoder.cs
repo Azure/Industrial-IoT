@@ -276,8 +276,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Write as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
                 {
-                    if (value.TypeInfo.BuiltInType != builtInType ||
-                        SchemaUtils.GetRank(value.TypeInfo.ValueRank) != rank)
+                    if (value.TypeInfo != null &&
+                        (value.TypeInfo.BuiltInType != builtInType ||
+                        SchemaUtils.GetRank(value.TypeInfo.ValueRank) != rank))
                     {
                         throw new ServiceResultException(StatusCodes.BadEncodingError,
                             $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +

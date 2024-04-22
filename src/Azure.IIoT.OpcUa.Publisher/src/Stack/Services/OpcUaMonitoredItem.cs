@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (!AttachedToSubscription)
             {
-                _logger.LogWarning(
+                _logger.LogDebug(
                     "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
                     this, subscription.Id, Status.Error);
                 return true;
@@ -316,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
-                _logger.LogWarning(
+                _logger.LogDebug(
                     "Item {Item} in #{SubscriptionId} is disabled with {Status}.",
                     this, subscription.Id, Status.Error);
                 return false;

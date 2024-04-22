@@ -42,6 +42,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
+        /// Returns true if messaging profile supports schemas
+        /// </summary>
+        public bool SupportsSchemaPublishing
+        {
+            get
+            {
+                switch (MessagingMode)
+                {
+                    case MessagingMode.FullSamples:
+                    case MessagingMode.Samples:
+                        return false;
+                    default:
+                        return MessageEncoding != MessageEncoding.Uadp;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns true if messaging profiles supports keyframes
         /// </summary>
         public bool SupportsKeyFrames
@@ -306,7 +324,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
-            // Raw key value pair datasets, non-reversible
+            AddProfile(MessagingMode.DataSets, 0,
+                    0,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.SingleDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.DataSets, 0,
+                    0,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.SingleDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.RawDataSets, 0,
                     0,
                     DataSetFieldContentMask.RawData,
@@ -315,6 +348,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     NetworkMessageContentMask.SingleDataSetMessage,
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.RawDataSets, 0,
+                    0,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.SingleRawDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Uadp encoding
             AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
@@ -357,6 +398,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     MessageEncoding.Avro, MessageEncoding.AvroGzip);
             AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true),
                     NetworkMessageContentMask.DataSetMessageHeader | NetworkMessageContentMask.SingleDataSetMessage,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.DataSets, 0,
+                    0,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Avro, MessageEncoding.AvroGzip);
+            AddProfile(MessagingMode.SingleDataSet, 0,
+                    NetworkMessageContentMask.SingleDataSetMessage,
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Avro, MessageEncoding.AvroGzip);
             AddProfile(MessagingMode.RawDataSets, 0,

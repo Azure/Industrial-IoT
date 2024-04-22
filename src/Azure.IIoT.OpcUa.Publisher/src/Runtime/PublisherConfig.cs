@@ -394,16 +394,19 @@ namespace Azure.IIoT.OpcUa.Publisher
                     ResolveDisplayNameDefault);
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
 
-            var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
-            if (schemaNamespace != null || GetBoolOrDefault(PublishMessageSchemaKey))
+            if (options.MessagingProfile?.SupportsSchemaPublishing ?? false)
             {
-                options.SchemaOptions ??= new SchemaOptions();
-            }
-            if (options.SchemaOptions != null)
-            {
-                options.DisableComplexTypeSystem = false;
-                options.DisableDataSetMetaData = false;
-                options.SchemaOptions.Namespace ??= schemaNamespace;
+                var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
+                if (schemaNamespace != null || GetBoolOrDefault(PublishMessageSchemaKey))
+                {
+                    options.SchemaOptions ??= new SchemaOptions();
+                }
+                if (options.SchemaOptions != null)
+                {
+                    options.DisableComplexTypeSystem = false;
+                    options.DisableDataSetMetaData = false;
+                    options.SchemaOptions.Namespace ??= schemaNamespace;
+                }
             }
         }
 

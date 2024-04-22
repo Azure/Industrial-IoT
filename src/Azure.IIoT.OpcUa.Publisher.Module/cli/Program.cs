@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -26,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Publisher module host process
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? publishProfile = null;
             string? publishedNodesFilePath = null;
             var useNullTransport = false;
-            var dumpMessages = false;
+            string? dumpMessages = null;
             var scaleunits = 0u;
             var unknownArgs = new List<string>();
             try
@@ -119,8 +119,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             break;
                         case "-D":
                         case "--dump-messages":
-                            dumpMessages = true;
-                            break;
+                            i++;
+                            if (i < args.Length)
+                            {
+                                dumpMessages = args[i];
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --dump-messages");
                         case "-P":
                         case "--publish-profile":
                             i++;
@@ -209,13 +214,12 @@ Options:
             Task hostingTask;
             try
             {
-                if (dumpMessages)
+                if (dumpMessages != null)
                 {
-                    DumpMessagesAsync(loggerFactory, TimeSpan.FromMinutes(1), cts.Token)
-                        .GetAwaiter().GetResult();
-                    return;
+                    hostingTask = DumpMessagesAsync(dumpMessages, loggerFactory,
+                        TimeSpan.FromMinutes(1), scaleunits, cts.Token);
                 }
-                if (!withServer)
+                else if (!withServer)
                 {
                     hostingTask = HostAsync(connectionString, loggerFactory,
                         deviceId, moduleId, args, reverseConnectPort, !checkTrust,
@@ -398,12 +402,14 @@ Options:
         /// <summary>
         /// Dump messages
         /// </summary>
+        /// <param name="messageMode"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="duration"></param>
+        /// <param name="scaleunits"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private static async Task DumpMessagesAsync(ILoggerFactory loggerFactory, TimeSpan duration,
-            CancellationToken ct)
+        private static async Task DumpMessagesAsync(string messageMode, ILoggerFactory loggerFactory,
+            TimeSpan duration, uint scaleunits, CancellationToken ct)
         {
             try
             {
@@ -435,7 +441,7 @@ Start messaging profile {Profile}...\n
 =============================================================================\n
 ", messageProfile);
                             await RunAsync(loggerFactory, publishProfile, messageProfile,
-                                outputFolder, linkedToken.Token).ConfigureAwait(false);
+                                outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
                             logger.LogInformation(@"
 =============================================================================\n
 Completed messaging profile {Profile}.\n
@@ -446,7 +452,11 @@ Completed messaging profile {Profile}.\n
                     }
                     foreach (var messageProfile in MessagingProfile.Supported)
                     {
-                        await RunForDuration(publishProfile, messageProfile).ConfigureAwait(false);
+                        if (messageMode == "all" || messageProfile.MessagingMode.ToString()
+                            .Equals(messageMode, StringComparison.OrdinalIgnoreCase))
+                        {
+                            await RunForDuration(publishProfile, messageProfile).ConfigureAwait(false);
+                        }
                     }
                     logger.LogInformation(@"
 #############################################################################\n
@@ -458,23 +468,24 @@ Completed publishing profile {Profile}.\n
             catch (OperationCanceledException) { }
 
             static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
-                MessagingProfile messageProfile, string outputFolder, CancellationToken ct)
+                MessagingProfile messageProfile, string outputFolder, uint scaleunits, CancellationToken ct)
             {
                 // Start test server
-                using (var server = new ServerWrapper(1, loggerFactory, null))
+                using (var server = new ServerWrapper(scaleunits, loggerFactory, null))
                 {
-                    var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
+                    var name = Path.GetFileNameWithoutExtension(publishProfile);
+                    var publishedNodesFilePath = await LoadPnJson(server, name,
                         $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
 
-                    var name = Path.GetFileNameWithoutExtension(publishProfile);
                     var arguments = new List<string>
                     {
                         "-c",
+                        "--ps",
                         $"--pf={publishedNodesFilePath}",
                         $"--me={messageProfile.MessageEncoding}",
                         $"--mm={messageProfile.MessagingMode}",
                         $"--ttt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
-                        $"--mtt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
+                        $"--mdt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
                         "-t=FileSystem",
                         $"-o={outputFolder}",
                         "--aa"

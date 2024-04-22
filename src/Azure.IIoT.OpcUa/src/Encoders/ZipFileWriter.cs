@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         internal const string FileSuffix = ".zip";
-        internal const string MessageSchemaFile = "message-schema";
+        internal const string MessageSchemaFile = "schema.json";
         internal const string ContentTypeFile = "content-type";
         private readonly ConcurrentDictionary<string, ZipFile> _files = new();
     }

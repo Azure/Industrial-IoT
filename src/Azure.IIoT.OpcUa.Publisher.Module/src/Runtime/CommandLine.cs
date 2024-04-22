@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `False` (disabled).\n",
                         b => this[LegacyCompatibility] = b, true },
                 { $"ps|publishschemas:|{PublisherConfig.PublishMessageSchemaKey}:",
-                    "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
+                    "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
                     (bool? b) => this[PublisherConfig.PublishMessageSchemaKey] = b?.ToString() ?? "True" },
                 { $"dsg|disablesessionpergroup:|{PublisherConfig.DisableSessionPerWriterGroupKey}:",
                     $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{PublisherConfig.DisableSessionPerWriterGroupDefault}`.\n",
