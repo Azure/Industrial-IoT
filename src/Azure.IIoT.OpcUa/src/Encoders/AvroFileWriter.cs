@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public ValueTask WriteAsync(string fileName, DateTime timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
-            IReadOnlyDictionary<string, string?> metadata, IEventSchema? schema,
+            IReadOnlyDictionary<string, string?>? metadata, IEventSchema? schema,
             string contentType, CancellationToken ct = default)
         {
             if (schema?.Id != null)
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="leaveOpen"></param>
             /// <param name="isGzip"></param>
             private AvroFile(string fileName, Stream stream, string schema,
-                IReadOnlyDictionary<string, string?> metadata, ILogger logger,
+                IReadOnlyDictionary<string, string?>? metadata, ILogger logger,
                 bool leaveOpen, bool isGzip)
             {
                 _logger = logger;
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
                 // Write header
                 _encoder.WriteFixed(DataFileConstants.Magic);
-                WriteMetaData(schema, metadata
+                WriteMetaData(schema, metadata?
                     .Where(kv => !IsReservedMeta(kv.Key) && kv.Value != null)
                     .ToDictionary(kv => kv.Key, kv => Encoding.UTF8.GetBytes(kv.Value!)));
                 _encoder.WriteFixed(_syncMarker);
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="isGzip"></param>
             /// <returns></returns>
             public static AvroFile Create(string fileName, string schema,
-                IReadOnlyDictionary<string, string?> metadata, ILogger logger,
+                IReadOnlyDictionary<string, string?>? metadata, ILogger logger,
                 bool isGzip = false)
             {
                 var fs = new FileStream(fileName + ".avro", FileMode.OpenOrCreate);
@@ -140,10 +140,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="isGzip"></param>
             /// <returns></returns>
             public static AvroFile CreateFromStream(Stream stream, string schema,
-                IReadOnlyDictionary<string, string?> metadata, ILogger logger,
+                IReadOnlyDictionary<string, string?>? metadata, ILogger logger,
                 bool isGzip = false)
             {
-                return new AvroFile(string.Empty, stream, schema, metadata, logger, true, isGzip);
+                return new AvroFile(string.Empty, stream, schema, metadata,
+                    logger, true, isGzip);
             }
 
             /// <summary>
@@ -155,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 foreach (var buffer in buffers)
                 {
-                    foreach (var memory in _isGzip ? GzipDecompressData(buffer) : buffer)
+                    foreach (var memory in _isGzip ? buffer.GzipDecompress() : buffer)
                     {
                         _blockStream.Write(memory.Span);
                     }
@@ -221,8 +222,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="schema"></param>
             /// <param name="metadata"></param>
             private void WriteMetaData(string schema,
-                Dictionary<string, byte[]> metadata)
+                Dictionary<string, byte[]>? metadata)
             {
+                metadata ??= new Dictionary<string, byte[]>();
                 metadata.Add(DataFileConstants.MetaDataCodec,
                     Encoding.UTF8.GetBytes(_codec.GetName()));
                 metadata.Add(DataFileConstants.MetaDataSchema,
@@ -259,18 +261,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             private readonly ILogger _logger;
             private readonly bool _leaveOpen;
             private readonly bool _isGzip;
-        }
-
-        /// <summary>
-        /// Decompress
-        /// </summary>
-        /// <param name="compressedData"></param>
-        /// <returns></returns>
-        private static ReadOnlySequence<byte> GzipDecompressData(ReadOnlySequence<byte> compressedData)
-        {
-            using var compressedStream = new MemoryStream(compressedData.ToArray());
-            using var deflateStream = new GZipStream(compressedStream, CompressionMode.Decompress);
-            return new ReadOnlySequence<byte>(deflateStream.ReadAsBuffer());
         }
 
         internal static readonly RecyclableMemoryStreamManager kStreams = new();

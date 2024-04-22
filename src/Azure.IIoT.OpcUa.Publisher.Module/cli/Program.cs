@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Publisher module host process
@@ -53,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? publishProfile = null;
             string? publishedNodesFilePath = null;
             var useNullTransport = false;
+            var dumpMessages = false;
             var scaleunits = 0u;
             var unknownArgs = new List<string>();
             try
@@ -114,6 +116,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "-S":
                         case "--with-server":
                             withServer = true;
+                            break;
+                        case "-D":
+                        case "--dump-messages":
+                            dumpMessages = true;
                             break;
                         case "-P":
                         case "--publish-profile":
@@ -203,6 +209,12 @@ Options:
             Task hostingTask;
             try
             {
+                if (dumpMessages)
+                {
+                    DumpMessagesAsync(loggerFactory, TimeSpan.FromMinutes(1), cts.Token)
+                        .GetAwaiter().GetResult();
+                    return;
+                }
                 if (!withServer)
                 {
                     hostingTask = HostAsync(connectionString, loggerFactory,
@@ -381,6 +393,95 @@ Options:
                 }
             }
             catch (OperationCanceledException) { }
+        }
+
+        /// <summary>
+        /// Dump messages
+        /// </summary>
+        /// <param name="loggerFactory"></param>
+        /// <param name="duration"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private static async Task DumpMessagesAsync(ILoggerFactory loggerFactory, TimeSpan duration,
+            CancellationToken ct)
+        {
+            try
+            {
+                foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
+                {
+                    var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
+                    var logger = loggerFactory.CreateLogger(publishProfileName);
+                    logger.LogInformation(@"
+#############################################################################\n
+Start publishing profile {Profile}...\n
+#############################################################################\n
+", publishProfileName);
+                    var outputFolder = Path.Combine(".", "dump", publishProfileName);
+                    if (Directory.Exists(outputFolder))
+                    {
+                        continue;
+                    }
+                    Directory.CreateDirectory(outputFolder);
+                    async Task RunForDuration(string publishProfile, MessagingProfile messageProfile)
+                    {
+                        using var runtime = new CancellationTokenSource(duration);
+                        try
+                        {
+                            using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
+                                ct, runtime.Token);
+                            logger.LogInformation(@"
+=============================================================================\n
+Start messaging profile {Profile}...\n
+=============================================================================\n
+", messageProfile);
+                            await RunAsync(loggerFactory, publishProfile, messageProfile,
+                                outputFolder, linkedToken.Token).ConfigureAwait(false);
+                            logger.LogInformation(@"
+=============================================================================\n
+Completed messaging profile {Profile}.\n
+=============================================================================\n
+", messageProfile);
+                        }
+                        catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
+                    }
+                    foreach (var messageProfile in MessagingProfile.Supported)
+                    {
+                        await RunForDuration(publishProfile, messageProfile).ConfigureAwait(false);
+                    }
+                    logger.LogInformation(@"
+#############################################################################\n
+Completed publishing profile {Profile}.\n
+#############################################################################\n
+", publishProfileName);
+                }
+            }
+            catch (OperationCanceledException) { }
+
+            static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
+                MessagingProfile messageProfile, string outputFolder, CancellationToken ct)
+            {
+                // Start test server
+                using (var server = new ServerWrapper(1, loggerFactory, null))
+                {
+                    var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
+                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
+
+                    var name = Path.GetFileNameWithoutExtension(publishProfile);
+                    var arguments = new List<string>
+                    {
+                        "-c",
+                        $"--pf={publishedNodesFilePath}",
+                        $"--me={messageProfile.MessageEncoding}",
+                        $"--mm={messageProfile.MessagingMode}",
+                        $"--ttt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
+                        $"--mtt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
+                        "-t=FileSystem",
+                        $"-o={outputFolder}",
+                        "--aa"
+                    };
+                    await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                }
+            }
         }
 
         private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,

@@ -31,8 +31,16 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             _leaveOpen = false;
             _stream = new FileStream(fileName, FileMode.Open);
-            _decoder = new BinaryDecoder(_stream);
-            _codec = ReadHeader();
+            try
+            {
+                _decoder = new BinaryDecoder(_stream);
+                _codec = ReadHeader();
+            }
+            catch
+            {
+                _stream.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -43,8 +51,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             _leaveOpen = true;
             _stream = stream;
-            _decoder = new BinaryDecoder(_stream);
-            _codec = ReadHeader();
+            try
+            {
+                _decoder = new BinaryDecoder(_stream);
+                _codec = ReadHeader();
+            }
+            catch
+            {
+                _stream.Dispose();
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -162,11 +178,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             catch (Exception e)
             {
-                throw new AvroRuntimeException("Not a valid data file!", e);
+                throw new FormatException("Not a valid data file!", e);
             }
             if (!firstBytes.SequenceEqual(DataFileConstants.Magic))
             {
-                throw new AvroRuntimeException("Not a valid data file!");
+                throw new FormatException("Not a valid data file!");
             }
         }
 

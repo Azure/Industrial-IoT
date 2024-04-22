@@ -5,8 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Furly;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.IO;
     using System.Linq;
     using System.Text;

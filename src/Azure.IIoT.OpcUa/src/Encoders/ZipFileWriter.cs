@@ -5,19 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.IO;
     using System;
     using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
-    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,15 +27,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         public bool SupportsContentType(string contentType)
         {
             return GetContentType(contentType) != ContentType.None;
-        }
-
-        /// <summary>
-        /// Create writer
-        /// </summary>
-        /// <param name="logger"></param>
-        public ZipFileWriter(ILogger<ZipFileWriter> logger)
-        {
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -72,18 +59,17 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <summary>
             /// Create zip file
             /// </summary>
-            /// <param name="fileName"></param>
             /// <param name="stream"></param>
             /// <param name="schema"></param>
             /// <param name="leaveOpen"></param>
             /// <param name="contentType"></param>
-            private ZipFile(string fileName, Stream stream, string? schema,
-                bool leaveOpen, ContentType contentType)
+            private ZipFile(Stream stream, string? schema, bool leaveOpen,
+                ContentType contentType)
             {
                 _zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen);
                 _contentType = contentType;
-                _fileName = fileName;
-                WriteSchema(schema);
+                WriteHeader(schema, contentType);
+                _suffix = Suffix(contentType);
             }
 
             /// <summary>
@@ -96,8 +82,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             public static ZipFile Create(string fileName, string? schema,
                 ContentType contentType)
             {
-                var fs = new FileStream(fileName + ".zip", FileMode.OpenOrCreate);
-                return new ZipFile(fileName, fs, schema, false, contentType);
+                var fs = new FileStream(fileName + FileSuffix, FileMode.OpenOrCreate);
+                return new ZipFile(fs, schema, false, contentType);
             }
 
             /// <summary>
@@ -110,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             public static ZipFile CreateFromStream(Stream stream, string? schema,
                 ContentType contentType)
             {
-                return new ZipFile(string.Empty, stream, schema, true, contentType);
+                return new ZipFile(stream, schema, true, contentType);
             }
 
             /// <summary>
@@ -121,13 +107,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <returns></returns>
             public void Write(DateTime timestamp, IEnumerable<ReadOnlySequence<byte>> buffers)
             {
-                var entry = _zip.CreateEntry(timestamp +
-                    (_contentType == ContentType.Binary ? ".bin" : ".json"));
+                var entry = _zip.CreateEntry(Interlocked.Increment(ref _sequenceNumber) +
+                    _suffix, CompressionLevel.Optimal);
+                entry.LastWriteTime = timestamp;
                 using var stream = entry.Open();
                 foreach (var buffer in buffers)
                 {
                     foreach (var memory in _contentType == ContentType.JsonGzip ?
-                        GzipDecompressData(buffer) : buffer)
+                        buffer.GzipDecompress() : buffer)
                     {
                         stream.Write(memory.Span);
                     }
@@ -144,17 +131,24 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// Writes the schema.
             /// </summary>
             /// <param name="schema"></param>
-            private void WriteSchema(string? schema)
+            /// <param name="contentType"></param>
+            private void WriteHeader(string? schema, ContentType contentType)
             {
                 if (schema is not null)
                 {
-                    var entry = _zip.CreateEntry("schema.json");
+                    var entry = _zip.CreateEntry(MessageSchemaFile, CompressionLevel.Optimal);
                     using var stream = entry.Open();
                     stream.Write(Encoding.UTF8.GetBytes(schema));
                 }
+                {
+                    var entry = _zip.CreateEntry(ContentTypeFile, CompressionLevel.NoCompression);
+                    using var stream = entry.Open();
+                    stream.WriteByte((byte)contentType);
+                }
             }
 
-            private readonly string _fileName;
+            private int _sequenceNumber;
+            private readonly string _suffix;
             private readonly ZipArchive _zip;
             private readonly ContentType _contentType;
         }
@@ -192,23 +186,25 @@ namespace Azure.IIoT.OpcUa.Encoders
             return ContentType.None;
         }
 
-
-
-
         /// <summary>
-        /// Decompress
+        /// Get suffix for content type
         /// </summary>
-        /// <param name="compressedData"></param>
+        /// <param name="contentType"></param>
         /// <returns></returns>
-        private static ReadOnlySequence<byte> GzipDecompressData(ReadOnlySequence<byte> compressedData)
+        /// <exception cref="FormatException"></exception>
+        internal static string Suffix(ContentType contentType)
         {
-            using var compressedStream = new MemoryStream(compressedData.ToArray());
-            using var deflateStream = new GZipStream(compressedStream, CompressionMode.Decompress);
-            return new ReadOnlySequence<byte>(deflateStream.ReadAsBuffer());
+            return contentType switch
+            {
+                ContentType.Json or ContentType.JsonGzip => ".json",
+                ContentType.Binary => ".bin",
+                _ => throw new FormatException("Invalid content type")
+            };
         }
 
-        internal static readonly RecyclableMemoryStreamManager kStreams = new();
+        internal const string FileSuffix = ".zip";
+        internal const string MessageSchemaFile = "message-schema";
+        internal const string ContentTypeFile = "content-type";
         private readonly ConcurrentDictionary<string, ZipFile> _files = new();
-        private readonly ILogger _logger;
     }
 }
