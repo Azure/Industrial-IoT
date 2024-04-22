@@ -294,12 +294,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     entry.OpcNodes.Add(nodeToAdd);
                                     existingNodesSet.Add(nodeToAdd);
                                 }
-                                else
-                                {
-                                    _logger.LogDebug("Node \"{Node}\" is already present " +
-                                        "for entry with \"{Endpoint}\" endpoint.",
-                                        nodeToAdd.Id, entry.EndpointUrl);
-                                }
                             }
                             dataSetFound = true;
                         }

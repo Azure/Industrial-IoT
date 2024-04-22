@@ -59,11 +59,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to enumerate</param>
         /// <param name="ct"></param>
         /// <returns>The list of certificates currently in the store.</returns>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpGet("{store}/certs")]
         public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
-            CertificateStoreName store, CancellationToken ct = default)
+            string store, CancellationToken ct = default)
         {
-            return await _certificates.ListCertificatesAsync(store, false,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            return await _certificates.ListCertificatesAsync(storeType, false,
                 ct).ConfigureAwait(false);
         }
 
@@ -77,11 +82,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <returns>The list of certificates revocation lists currently
         /// in the store.</returns>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpGet("{store}/crls")]
         public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
-            CertificateStoreName store, CancellationToken ct = default)
+            string store, CancellationToken ct = default)
         {
-            return await _certificates.ListCertificateRevocationListsAsync(store,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            return await _certificates.ListCertificateRevocationListsAsync(storeType,
                 ct).ConfigureAwait(false);
         }
 
@@ -98,13 +108,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="pfxBlob"/>
         /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpPatch("{store}/certs")]
-        public async Task AddCertificateAsync(CertificateStoreName store,
+        public async Task AddCertificateAsync(string store,
             [FromBody][Required] byte[] pfxBlob, [FromQuery] string? password,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(pfxBlob);
-            await _certificates.AddCertificateAsync(store, pfxBlob, password,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            await _certificates.AddCertificateAsync(storeType, pfxBlob, password,
                 ct).ConfigureAwait(false);
         }
 
@@ -120,12 +135,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="crl"/>
         /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpPatch("{store}/crls")]
-        public async Task AddCertificateRevocationListAsync(CertificateStoreName store,
+        public async Task AddCertificateRevocationListAsync(string store,
             [FromBody][Required] byte[] crl, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(crl);
-            await _certificates.AddCertificateRevocationListAsync(store, crl,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            await _certificates.AddCertificateRevocationListAsync(storeType, crl,
                 ct).ConfigureAwait(false);
         }
 
@@ -198,11 +218,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="thumbprint">The thumbprint of the certificate to delete.</param>
         /// <param name="ct"></param>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpDelete("{store}/certs/{thumbprint}")]
-        public async Task RemoveCertificateAsync(CertificateStoreName store,
+        public async Task RemoveCertificateAsync(string store,
             string thumbprint, CancellationToken ct = default)
         {
-            await _certificates.RemoveCertificateAsync(store, thumbprint,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            await _certificates.RemoveCertificateAsync(storeType, thumbprint,
                 ct).ConfigureAwait(false);
         }
 
@@ -215,11 +240,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="crl">The crl to delete.</param>
         /// <param name="ct"></param>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpDelete("{store}/crls")]
-        public async Task RemoveCertificateRevocationListAsync(CertificateStoreName store,
+        public async Task RemoveCertificateRevocationListAsync(string store,
             byte[] crl, CancellationToken ct = default)
         {
-            await _certificates.RemoveCertificateRevocationListAsync(store, crl,
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            await _certificates.RemoveCertificateRevocationListAsync(storeType, crl,
                 ct).ConfigureAwait(false);
         }
 
@@ -232,11 +262,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </remarks>
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="ct"></param>
+        /// <exception cref="ArgumentException">if store name is invalid.</exception>
         [HttpDelete("{store}")]
-        public async Task RemoveAllAsync(CertificateStoreName store,
-            CancellationToken ct = default)
+        public async Task RemoveAllAsync(string store, CancellationToken ct = default)
         {
-            await _certificates.CleanAsync(store, ct).ConfigureAwait(false);
+            if (!Enum.TryParse<CertificateStoreName>(store, out var storeType))
+            {
+                throw new ArgumentException("Invalid store name");
+            }
+            await _certificates.CleanAsync(storeType, ct).ConfigureAwait(false);
         }
 
         private readonly IOpcUaCertificates _certificates;

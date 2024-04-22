@@ -60,9 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
             var result = await client.GetConfiguredEndpointsAsync(request, ct).ConfigureAwait(false);
 
-            _logger.LogDebug("Retrieved configured endpoints from publisher {Publisher}.",
-                publisherId);
-
             if (result.Endpoints != null)
             {
                 foreach (var item in result.Endpoints)
@@ -80,9 +77,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 
             var client = new PublisherApiClient(_client, publisherId, kTimeout, _serializer);
             await client.SetConfiguredEndpointsAsync(request, ct).ConfigureAwait(false);
-
-            _logger.LogDebug("Set configured endpointts ont publisher {Publisher}.",
-                publisherId);
         }
 
         /// <inheritdoc/>
