@@ -404,6 +404,11 @@ namespace Json.Schema
         public string? Namespace { get; }
 
         /// <summary>
+        /// Self reference
+        /// </summary>
+        public static readonly UriOrFragment Self = new ("#");
+
+        /// <summary>
         /// Create a fragment
         /// </summary>
         /// <param name="fragment"></param>
@@ -421,9 +426,9 @@ namespace Json.Schema
         {
             if (Namespace != null)
             {
-                return Namespace + "#" + Fragment;
+                return Namespace + "#" + Fragment.UrlEncode();
             }
-            return Fragment;
+            return Fragment.UrlEncode();
         }
     }
 }

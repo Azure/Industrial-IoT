@@ -130,7 +130,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.UInt32"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.UInt32"
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -174,20 +177,23 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "record",
-                      "name": "Boolean",
-                      "namespace": "org.opcfoundation.UA",
-                      "aliases": [
-                        "org.opcfoundation.UA.i_1"
-                      ],
-                      "fields": [
-                        {
-                          "name": "Value",
-                          "type": "boolean"
-                        }
-                      ]
-                    }
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "Boolean",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_1"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "boolean"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -252,20 +258,23 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "record",
-                      "name": "Double",
-                      "namespace": "org.opcfoundation.UA",
-                      "aliases": [
-                        "org.opcfoundation.UA.i_11"
-                      ],
-                      "fields": [
-                        {
-                          "name": "Value",
-                          "type": "double"
-                        }
-                      ]
-                    }
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "Double",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_11"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "double"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -351,20 +360,23 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "record",
-                      "name": "ByteString",
-                      "namespace": "org.opcfoundation.UA",
-                      "aliases": [
-                        "org.opcfoundation.UA.i_15"
-                      ],
-                      "fields": [
-                        {
-                          "name": "Value",
-                          "type": "bytes"
-                        }
-                      ]
-                    }
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ByteString",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_15"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "bytes"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -401,7 +413,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.String"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.String"
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -433,25 +448,41 @@
               "null",
               {
                 "type": "record",
-                "name": "ByteDataValue",
+                "name": "ByteCollectionDataValue",
                 "namespace": "org.github.microsoft.opc.publisher",
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "record",
-                      "name": "Byte",
-                      "namespace": "org.opcfoundation.UA",
-                      "aliases": [
-                        "org.opcfoundation.UA.i_3"
-                      ],
-                      "fields": [
-                        {
-                          "name": "Value",
-                          "type": "int"
-                        }
-                      ]
-                    }
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ByteCollection",
+                        "namespace": "org.opcfoundation.UA",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "array",
+                              "items": {
+                                "type": "record",
+                                "name": "Byte",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_3"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "int"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -509,20 +540,23 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": {
-                      "type": "record",
-                      "name": "Int32",
-                      "namespace": "org.opcfoundation.UA",
-                      "aliases": [
-                        "org.opcfoundation.UA.i_6"
-                      ],
-                      "fields": [
-                        {
-                          "name": "Value",
-                          "type": "int"
-                        }
-                      ]
-                    }
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "Int32",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_6"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": "int"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   {
                     "name": "StatusCode",

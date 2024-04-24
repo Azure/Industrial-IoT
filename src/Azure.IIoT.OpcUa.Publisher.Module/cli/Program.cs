@@ -417,11 +417,11 @@ Options:
                 {
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
                     var logger = loggerFactory.CreateLogger(publishProfileName);
-                    logger.LogInformation(@"
+                    Console.WriteLine($@"
 #############################################################################\n
-Start publishing profile {Profile}...\n
+Start publishing profile {publishProfileName}...\n
 #############################################################################\n
-", publishProfileName);
+");
                     var outputFolder = Path.Combine(".", "dump", publishProfileName);
                     if (Directory.Exists(outputFolder))
                     {
@@ -435,34 +435,46 @@ Start publishing profile {Profile}...\n
                         {
                             using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
                                 ct, runtime.Token);
-                            logger.LogInformation(@"
+                            Console.WriteLine($@"
 =============================================================================\n
-Start messaging profile {Profile}...\n
+Start messaging profile {messageProfile}...\n
 =============================================================================\n
-", messageProfile);
+");
                             await RunAsync(loggerFactory, publishProfile, messageProfile,
                                 outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
-                            logger.LogInformation(@"
+                            Console.WriteLine($@"
 =============================================================================\n
-Completed messaging profile {Profile}.\n
+Completed messaging profile {messageProfile}.\n
 =============================================================================\n
-", messageProfile);
+");
                         }
                         catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
                     }
                     foreach (var messageProfile in MessagingProfile.Supported)
                     {
+                        if (messageProfile.MessageEncoding.HasFlag(MessageEncoding.IsGzipCompressed))
+                        {
+                            // No need to dump gzip
+                            continue;
+                        }
+                        // TODO : Remove
+                        if (!messageProfile.MessageEncoding.HasFlag(MessageEncoding.Avro))
+                        {
+                            // No need to dump gzip
+                            continue;
+                        }
+                        // TODO : Remove
                         if (messageMode == "all" || messageProfile.MessagingMode.ToString()
                             .Equals(messageMode, StringComparison.OrdinalIgnoreCase))
                         {
                             await RunForDuration(publishProfile, messageProfile).ConfigureAwait(false);
                         }
                     }
-                    logger.LogInformation(@"
+                    Console.WriteLine($@"
 #############################################################################\n
-Completed publishing profile {Profile}.\n
+Completed publishing profile {publishProfileName}.\n
 #############################################################################\n
-", publishProfileName);
+");
                 }
             }
             catch (OperationCanceledException) { }
@@ -476,6 +488,19 @@ Completed publishing profile {Profile}.\n
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
                     var publishedNodesFilePath = await LoadPnJson(server, name,
                         $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
+                    if (publishedNodesFilePath == null)
+                    {
+                        return;
+                    }
+
+                    // Check whether the profile overrides the messaging mode
+                    var check = await File.ReadAllTextAsync(publishedNodesFilePath, ct).ConfigureAwait(false);
+                    if (check.Contains("\"MessagingMode\":", StringComparison.InvariantCulture) &&
+                        !check.Contains($"\"MessagingMode\": \"{messageProfile.MessagingMode}\"",
+                        StringComparison.InvariantCulture))
+                    {
+                        return;
+                    }
 
                     var arguments = new List<string>
                     {
@@ -502,21 +527,23 @@ Completed publishing profile {Profile}.\n
             if (!string.IsNullOrEmpty(publishProfile))
             {
                 var publishedNodesFile = $"./Profiles/{publishProfile}.json";
-                if (File.Exists(publishedNodesFile))
+                if (!File.Exists(publishedNodesFile))
                 {
-                    await File.WriteAllTextAsync(publishedNodesFilePath,
-                        (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                        .Replace("{{EndpointUrl}}", endpointUrl,
-                            StringComparison.Ordinal), ct).ConfigureAwait(false);
-
-                    return publishedNodesFilePath;
+                    throw new ArgumentException($"Profile {publishProfile} does not exist");
                 }
+                await File.WriteAllTextAsync(publishedNodesFilePath,
+                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                    .Replace("{{EndpointUrl}}", endpointUrl,
+                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                return publishedNodesFilePath;
             }
 
             var testServer = await server.Server.Task.ConfigureAwait(false);
             if (testServer?.PublishedNodesJson != null)
             {
-                var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}", endpointUrl, StringComparison.Ordinal);
+                var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}",
+                    endpointUrl, StringComparison.Ordinal);
 
                 // var entries = JsonSerializer.Deserialize<PublishedNodesEntryModel[]>(server.PublishedNodesJson);
 

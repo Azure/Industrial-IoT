@@ -147,7 +147,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             return null;
         }
 
-        // First entry is 1
         private int _sequenceNumber = 1;
         private readonly ZipArchive _zip;
         private readonly string? _schema;

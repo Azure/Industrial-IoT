@@ -382,7 +382,11 @@ namespace Json.Schema
             {
                 return;
             }
-            if (uriOrFragment.Namespace != null || uriOrFragment.Fragment == "#")
+            if (uriOrFragment.Fragment == "#")
+            {
+                _writer.WriteString(name, "#");
+            }
+            else if (uriOrFragment.Namespace != null)
             {
                 _writer.WriteString(name, uriOrFragment.ToString());
             }

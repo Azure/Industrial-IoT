@@ -175,20 +175,23 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": {
-                              "type": "record",
-                              "name": "ByteString",
-                              "namespace": "org.opcfoundation.UA",
-                              "aliases": [
-                                "org.opcfoundation.UA.i_15"
-                              ],
-                              "fields": [
-                                {
-                                  "name": "Value",
-                                  "type": "bytes"
-                                }
-                              ]
-                            }
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "ByteString",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_15"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "bytes"
+                                  }
+                                ]
+                              }
+                            ]
                           },
                           {
                             "name": "StatusCode",
@@ -225,24 +228,27 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": {
-                              "type": "record",
-                              "name": "LocalizedText",
-                              "namespace": "org.opcfoundation.UA",
-                              "aliases": [
-                                "org.opcfoundation.UA.i_21"
-                              ],
-                              "fields": [
-                                {
-                                  "name": "Locale",
-                                  "type": "String"
-                                },
-                                {
-                                  "name": "Text",
-                                  "type": "String"
-                                }
-                              ]
-                            }
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "LocalizedText",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_21"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Locale",
+                                    "type": "String"
+                                  },
+                                  {
+                                    "name": "Text",
+                                    "type": "String"
+                                  }
+                                ]
+                              }
+                            ]
                           },
                           {
                             "name": "StatusCode",
@@ -279,7 +285,10 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": "org.opcfoundation.UA.String"
+                            "type": [
+                              "null",
+                              "org.opcfoundation.UA.String"
+                            ]
                           },
                           {
                             "name": "StatusCode",
@@ -316,38 +325,41 @@
                         "fields": [
                           {
                             "name": "Value",
-                            "type": {
-                              "type": "record",
-                              "name": "CycleStepDataType",
-                              "namespace": "org.opcfoundation.SimpleEvents",
-                              "aliases": [
-                                "org.opcfoundation.SimpleEvents.i_x95_183"
-                              ],
-                              "fields": [
-                                {
-                                  "name": "Name",
-                                  "type": "org.opcfoundation.UA.String"
-                                },
-                                {
-                                  "name": "Duration",
-                                  "type": {
-                                    "type": "record",
-                                    "name": "Double",
-                                    "namespace": "org.opcfoundation.UA",
-                                    "aliases": [
-                                      "org.opcfoundation.UA.i_11"
-                                    ],
-                                    "fields": [
-                                      {
-                                        "name": "Value",
-                                        "type": "double"
-                                      }
-                                    ]
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "CycleStepDataType",
+                                "namespace": "org.opcfoundation.SimpleEvents",
+                                "aliases": [
+                                  "org.opcfoundation.SimpleEvents.i_x95_183"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Name",
+                                    "type": "org.opcfoundation.UA.String"
+                                  },
+                                  {
+                                    "name": "Duration",
+                                    "type": {
+                                      "type": "record",
+                                      "name": "Double",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_11"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "double"
+                                        }
+                                      ]
+                                    }
                                   }
-                                }
-                              ],
-                              "uaDataTypeId": "nsu=http://opcfoundation.org/SimpleEvents;i=183"
-                            }
+                                ],
+                                "uaDataTypeId": "nsu=http://opcfoundation.org/SimpleEvents;i=183"
+                              }
+                            ]
                           },
                           {
                             "name": "StatusCode",

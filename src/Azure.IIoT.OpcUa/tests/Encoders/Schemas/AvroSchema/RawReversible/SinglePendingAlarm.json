@@ -114,14 +114,40 @@
       "name": "ConditionSubClassId",
       "type": [
         "null",
-        "org.opcfoundation.UA.NodeId"
+        {
+          "type": "record",
+          "name": "NodeIdCollection",
+          "namespace": "org.opcfoundation.UA",
+          "fields": [
+            {
+              "name": "Value",
+              "type": {
+                "type": "array",
+                "items": "NodeId"
+              }
+            }
+          ]
+        }
       ]
     },
     {
       "name": "ConditionSubClassName",
       "type": [
         "null",
-        "org.opcfoundation.UA.LocalizedText"
+        {
+          "type": "record",
+          "name": "LocalizedTextCollection",
+          "namespace": "org.opcfoundation.UA",
+          "fields": [
+            {
+              "name": "Value",
+              "type": {
+                "type": "array",
+                "items": "LocalizedText"
+              }
+            }
+          ]
+        }
       ]
     },
     {

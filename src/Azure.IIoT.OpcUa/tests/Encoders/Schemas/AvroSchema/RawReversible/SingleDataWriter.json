@@ -192,15 +192,28 @@
         "null",
         {
           "type": "record",
-          "name": "Byte",
+          "name": "ByteCollection",
           "namespace": "org.opcfoundation.UA",
-          "aliases": [
-            "org.opcfoundation.UA.i_3"
-          ],
           "fields": [
             {
               "name": "Value",
-              "type": "int"
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "Byte",
+                  "namespace": "org.opcfoundation.UA",
+                  "aliases": [
+                    "org.opcfoundation.UA.i_3"
+                  ],
+                  "fields": [
+                    {
+                      "name": "Value",
+                      "type": "int"
+                    }
+                  ]
+                }
+              }
             }
           ]
         }

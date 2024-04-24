@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Json.Schema;
+    using Newtonsoft.Json;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -52,7 +53,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return id.Fragment;
             }
-            return SchemaUtils.NamespaceUriToNamespace(id.Namespace) + "." + id.Fragment;
+            return SchemaUtils.NamespaceUriToNamespace(id.Namespace)
+                + "." + SchemaUtils.Escape(id.Fragment);
         }
 
         /// <summary>

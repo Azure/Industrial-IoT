@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -246,6 +247,40 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
             Assert.Equal(value, decoder.ReadVariant(null).Value);
+        }
+
+        [Theory]
+        [InlineData(StatusCodes.Good)]
+        [InlineData("test")]
+        [InlineData(12345)]
+        public void TestVariantWithNullableValue(object value)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(value);
+
+            var schemas = new AvroBuiltInAvroSchemas();
+            var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType);
+            var schema = valueSchema.AsNullable().CreateRoot();
+
+            using (var stream = new MemoryStream())
+            using (var encoder = new AvroEncoder(stream, schema, context, true))
+            {
+                encoder.WriteVariant(null, expected);
+                stream.Position = 0;
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var variant = decoder.ReadVariant(null);
+                Assert.Equal(expected, variant);
+            }
+
+            using (var stream = new MemoryStream())
+            using (var encoder = new AvroEncoder(stream, schema, context, true))
+            {
+                encoder.WriteVariant(null, Variant.Null);
+                stream.Position = 0;
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var variant = decoder.ReadVariant(null);
+                Assert.Equal(Variant.Null, variant);
+            }
         }
 
         public static TheoryData<VariantHolder> GetValues()
@@ -1461,7 +1496,60 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 Assert.Equal(expected[i].Value, result.Value);
             }
+        }
 
+        [Fact]
+        public void TestVariantWithArray1()
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(Enumerable.Repeat("test", 3).ToArray());
+
+            var schemas = new AvroBuiltInAvroSchemas();
+            var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType,
+                SchemaRank.Collection);
+            var schema = valueSchema.AsNullable().CreateRoot();
+
+            using (var stream = new MemoryStream())
+            using (var encoder = new AvroEncoder(stream, schema, context, true))
+            {
+                encoder.WriteVariant(null, expected);
+                stream.Position = 0;
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var variant = decoder.ReadVariant(null);
+                Assert.Equal(expected, variant);
+            }
+
+            using (var stream = new MemoryStream())
+            using (var encoder = new AvroEncoder(stream, schema, context, true))
+            {
+                encoder.WriteVariant(null, Variant.Null);
+                stream.Position = 0;
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var variant = decoder.ReadVariant(null);
+                Assert.Equal(Variant.Null, variant);
+            }
+        }
+
+        [Fact]
+        public void TestVariantWithArray2()
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(Enumerable.Repeat("test", 3).ToArray());
+
+            var schemas = new AvroBuiltInAvroSchemas();
+            var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType,
+                SchemaRank.Collection);
+            var schema = valueSchema.CreateRoot();
+
+            using (var stream = new MemoryStream())
+            using (var encoder = new AvroEncoder(stream, schema, context, true))
+            {
+                encoder.WriteVariant(null, expected);
+                stream.Position = 0;
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var variant = decoder.ReadVariant(null);
+                Assert.Equal(expected, variant);
+            }
         }
 
         private static void AssertEqual(DiagnosticInfo x, DiagnosticInfo y)

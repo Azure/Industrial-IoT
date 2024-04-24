@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// </summary>
     public sealed class ZipFileWriterTests
     {
-
         [Fact]
         public void SupportsContentTypeTests()
         {
@@ -134,16 +133,8 @@ namespace Azure.IIoT.OpcUa.Encoders
 
                 Assert.True(File.Exists(file + ".zip"));
                 using var reader = new ZipFileReader(file);
-                Assert.True(reader.HasMore());
-                var result = reader.Read((s, t) =>
-                {
-                    var buffer = t.ReadAsBuffer();
-                    Assert.Equal(0, buffer.Count);
-                    Assert.Null(s);
-                    return 123;
-                });
                 Assert.False(reader.HasMore());
-                Assert.Equal(123, result);
+
                 Assert.Throws<EndOfStreamException>(() => reader.Read((s, t) => 123));
                 Assert.False(reader.HasMore());
             }

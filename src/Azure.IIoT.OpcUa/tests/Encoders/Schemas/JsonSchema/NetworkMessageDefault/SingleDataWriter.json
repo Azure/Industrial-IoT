@@ -204,13 +204,16 @@
       "default": 0,
       "format": "byte"
     },
-    "org.github.microsoft.opcpublisher.ByteDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#ByteDataValue",
-      "title": "Dataset Field of Type Byte",
+    "org.github.microsoft.opcpublisher.ByteArrayDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#ByteArrayDataValue",
+      "title": "Dataset Field of Type ByteArray",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Byte"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.Byte"
+          }
         },
         "Status": {
           "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
@@ -322,7 +325,7 @@
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
         "LongString200kB": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteArrayDataValue"
         },
         "LongString50kB": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
@@ -365,8 +368,8 @@
         }
       }
     },
-    "org.opcfoundation.UA.i=14593": {
-      "$id": "http://opcfoundation.org/UA/#i=14593",
+    "org.opcfoundation.UA.i_x61_14593": {
+      "$id": "http://opcfoundation.org/UA/#i%3d14593",
       "type": "object",
       "properties": {
         "MajorVersion": {
@@ -382,7 +385,7 @@
       "type": "object",
       "properties": {
         "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
         },
         "MessageType": {
           "$ref": "#/definitions/org.opcfoundation.UA.String"

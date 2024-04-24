@@ -293,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
 
-            var innerNodeId = ReadNodeId((ushort)namespaceIndex);
+            var innerNodeId = ReadNodeId(namespaceIndex);
             var serverUri = ReadString("ServerUri");
 
             if (NodeId.IsNull(innerNodeId))
@@ -355,14 +355,16 @@ namespace Azure.IIoT.OpcUa.Encoders
             try
             {
                 // Read Union discriminator for the variant
-                var fieldId = ReadUnion();
-                if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
+                return ReadUnion(fieldName, fieldId =>
                 {
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
-                        $"Cannot decode unknown variant union field {fieldId}.");
-                }
-                var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
-                return ReadVariantValue(builtInType, valueRank);
+                    if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            $"Cannot decode unknown variant union field {fieldId}.");
+                    }
+                    var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
+                    return ReadVariantValue(builtInType, valueRank);
+                });
             }
             finally
             {
@@ -393,65 +395,68 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual DataSet ReadDataSet(string? fieldName)
         {
-            var fieldNames = Array.Empty<string>();
-            var avroFieldContent = ReadUnion();
-
-            var dataSet = avroFieldContent == 0 ?
-                new DataSet() :
-                new DataSet((uint)DataSetFieldContentMask.RawData);
-
-            if (avroFieldContent == 1) // Raw mode
+            return ReadUnion(fieldName, avroFieldContent =>
             {
-                //
-                // Read map of raw variant
-                //
-                var variants = ReadVariantArray(null); // TODO: Read map
-                if (variants == null && fieldNames.Length == 0)
+                var fieldNames = Array.Empty<string>();
+                var dataSet = avroFieldContent == 0 ?
+                    new DataSet() :
+                    new DataSet((uint)DataSetFieldContentMask.RawData);
+
+                if (avroFieldContent == 1) // Raw mode
                 {
-                    return dataSet;
+                    //
+                    // Read map of raw variant
+                    //
+                    var variants = ReadVariantArray(null); // TODO: Read map
+                    if (variants == null && fieldNames.Length == 0)
+                    {
+                        return dataSet;
+                    }
+                    if (variants == null || variants.Count != fieldNames.Length)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            "Unexpected number of fields in data set");
+                    }
+                    for (var index = 0; index < fieldNames.Length; index++)
+                    {
+                        dataSet.Add(fieldNames[index], new DataValue(variants[index]));
+                    }
                 }
-                if (variants == null || variants.Count != fieldNames.Length)
+                else if (avroFieldContent == 0)
                 {
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
-                        "Unexpected number of fields in data set");
+                    //
+                    // Read map of data values
+                    //
+                    var dataValues = ReadDataValueArray(null); // TODO: Read map
+                    if (dataValues == null && fieldNames.Length == 0)
+                    {
+                        return dataSet;
+                    }
+                    if (dataValues == null || dataValues.Count != fieldNames.Length)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            "Unexpected number of fields in data set");
+                    }
+                    for (var index = 0; index < fieldNames.Length; index++)
+                    {
+                        dataSet.Add(fieldNames[index], dataValues[index]);
+                    }
                 }
-                for (var index = 0; index < fieldNames.Length; index++)
-                {
-                    dataSet.Add(fieldNames[index], new DataValue(variants[index]));
-                }
-            }
-            else if (avroFieldContent == 0)
-            {
-                //
-                // Read map of data values
-                //
-                var dataValues = ReadDataValueArray(null); // TODO: Read map
-                if (dataValues == null && fieldNames.Length == 0)
-                {
-                    return dataSet;
-                }
-                if (dataValues == null || dataValues.Count != fieldNames.Length)
-                {
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
-                        "Unexpected number of fields in data set");
-                }
-                for (var index = 0; index < fieldNames.Length; index++)
-                {
-                    dataSet.Add(fieldNames[index], dataValues[index]);
-                }
-            }
-            return dataSet;
+                return dataSet;
+            });
         }
 
         /// <inheritdoc/>
         public virtual ExtensionObject? ReadExtensionObject(string? fieldName)
         {
-            var unionId = ReadUnion();
-            if (unionId != 0)
+            return ReadUnion(fieldName, unionId =>
             {
-                return new ExtensionObject(ReadEncodeableInExtensionObject(unionId));
-            }
-            return ReadEncodedDataType(fieldName);
+                if (unionId != 0)
+                {
+                    return new ExtensionObject(ReadEncodeableInExtensionObject(unionId));
+                }
+                return ReadEncodedDataType(fieldName);
+            });
         }
 
         /// <inheritdoc/>
@@ -722,31 +727,14 @@ namespace Azure.IIoT.OpcUa.Encoders
                     LocalizedText = ReadInt32(nameof(DiagnosticInfo.LocalizedText)),
                     AdditionalInfo = ReadString(nameof(DiagnosticInfo.AdditionalInfo)),
                     InnerStatusCode = ReadStatusCode(nameof(DiagnosticInfo.InnerStatusCode)),
-                    InnerDiagnosticInfo = ReadNullableDiagnosticInfo(
-                        nameof(DiagnosticInfo.InnerDiagnosticInfo), depth + 1)
+                    InnerDiagnosticInfo = ReadNullable(nameof(DiagnosticInfo.InnerDiagnosticInfo),
+                        f => ReadDiagnosticInfo(f, depth + 1))
                 };
             }
             finally
             {
                 _nestingLevel--;
             }
-        }
-
-        /// <summary>
-        /// Reads a DiagnosticInfo from the stream.
-        /// Limits the InnerDiagnosticInfo nesting level.
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="depth"></param>
-        private DiagnosticInfo? ReadNullableDiagnosticInfo(string? fieldName, int depth)
-        {
-            var unionId = ReadUnion();
-            if (unionId == 0)
-            {
-                return ReadNull<DiagnosticInfo>(fieldName);
-            }
-            Debug.Assert(unionId == 1);
-            return ReadDiagnosticInfo(fieldName, depth);
         }
 
         /// <summary>
@@ -758,6 +746,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             // Nothing to do
             return default;
+        }
+
+        /// <summary>
+        /// Read nullable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="reader"></param>
+        protected virtual T? ReadNullable<T>(string? fieldName, Func<string?, T> reader)
+        {
+            return ReadUnion(fieldName, id =>
+            {
+                switch (id)
+                {
+                    case 0:
+                        return ReadNull<T>(fieldName);
+                    case 1:
+                        return reader(fieldName);
+                    default:
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            $"Unexpected union discriminator {id}.");
+                }
+            });
         }
 
         /// <summary>
@@ -827,12 +838,39 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
+        /// Read union
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="reader"></param>
+        public virtual T ReadUnion<T>(string? fieldName,
+            Func<int, T> reader)
+        {
+            var id = StartUnion();
+            try
+            {
+                return reader(id);
+            }
+            finally
+            {
+                EndUnion();
+            }
+        }
+
+        /// <summary>
         /// Read union selector
         /// </summary>
         /// <returns></returns>
-        public virtual int ReadUnion()
+        public virtual int StartUnion()
         {
             return (int)_reader.ReadInteger();
+        }
+
+        /// <summary>
+        /// End union
+        /// </summary>
+        public virtual void EndUnion()
+        {
         }
 
         /// <summary>
@@ -1254,20 +1292,23 @@ namespace Azure.IIoT.OpcUa.Encoders
         private NodeId ReadNodeId(ushort namespaceIndex)
         {
             const string kIdentifierName = "Identifier";
-            switch ((IdType)ReadUnion()) // Union field id
+            return ReadUnion(kIdentifierName, idType =>
             {
-                case IdType.Numeric:
-                    return new NodeId(ReadUInt32(kIdentifierName), namespaceIndex);
-                case IdType.String:
-                    return new NodeId(ReadString(kIdentifierName), namespaceIndex);
-                case IdType.Guid:
-                    return new NodeId(ReadGuid(kIdentifierName), namespaceIndex);
-                case IdType.Opaque:
-                    return new NodeId(ReadByteString(kIdentifierName), namespaceIndex);
-                default:
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Unknown node id type");
-            }
+                switch ((IdType)idType)
+                {
+                    case IdType.Numeric:
+                        return new NodeId(ReadUInt32(kIdentifierName), namespaceIndex);
+                    case IdType.String:
+                        return new NodeId(ReadString(kIdentifierName), namespaceIndex);
+                    case IdType.Guid:
+                        return new NodeId(ReadGuid(kIdentifierName), namespaceIndex);
+                    case IdType.Opaque:
+                        return new NodeId(ReadByteString(kIdentifierName), namespaceIndex);
+                    default:
+                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                            "Unknown node id type");
+                }
+            });
         }
 
         /// <summary>

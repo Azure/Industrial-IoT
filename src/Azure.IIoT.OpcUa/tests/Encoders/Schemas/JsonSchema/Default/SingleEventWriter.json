@@ -2,38 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEvents",
   "definitions": {
-    "org.opcfoundation.UA.String": {
-      "$id": "http://opcfoundation.org/UA/#String",
-      "title": "OPC UA built in type String",
-      "type": "string"
-    },
-    "org.opcfoundation.UA.Double": {
-      "$id": "http://opcfoundation.org/UA/#Double",
-      "title": "OPC UA built in type Double",
-      "type": "number",
-      "minimum": -1.7976931348623157E+308,
-      "maximum": 1.7976931348623157E+308,
-      "default": 0,
-      "format": "double"
-    },
-    "org.opcfoundation.SimpleEvents.CycleStepDataType": {
-      "$id": "http://opcfoundation.org/SimpleEvents#CycleStepDataType",
-      "title": "nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
-      "type": "object",
-      "properties": {
-        "Name": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Duration": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Double"
-        }
-      },
-      "required": [
-        "Name",
-        "Duration"
-      ],
-      "additionalProperties": false
-    },
     "org.opcfoundation.UA.ByteString": {
       "$id": "http://opcfoundation.org/UA/#ByteString",
       "title": "OPC UA built in type ByteString",
@@ -48,6 +16,11 @@
       "maximum": 4294967295,
       "default": 0,
       "format": "uint32"
+    },
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
     },
     "org.opcfoundation.UA.StatusCode": {
       "$id": "http://opcfoundation.org/UA/#StatusCode",
@@ -159,6 +132,33 @@
           "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Double": {
+      "$id": "http://opcfoundation.org/UA/#Double",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "org.opcfoundation.SimpleEvents.CycleStepDataType": {
+      "$id": "http://opcfoundation.org/SimpleEvents#CycleStepDataType",
+      "title": "nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Duration": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Double"
+        }
+      },
+      "required": [
+        "Name",
+        "Duration"
+      ],
       "additionalProperties": false
     },
     "org.github.microsoft.opcpublisher.CycleStepDataTypeDataValue": {

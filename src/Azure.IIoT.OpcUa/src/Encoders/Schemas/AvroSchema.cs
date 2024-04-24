@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text.Json;
 
@@ -84,12 +85,27 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public static Schema AsNullable(this Schema schema)
         {
-            return schema == Null ? schema :
-                UnionSchema.Create(new List<Schema>
+            if (schema == Null)
+            {
+                return schema;
+            }
+            if (schema is UnionSchema u)
+            {
+                if (!u.Schemas.Contains(Null))
                 {
-                    Null,
-                    schema
-                });
+                    u.Schemas.Insert(0, Null);
+                }
+                else
+                {
+                    Debug.Assert(u.Schemas[0] == Null);
+                }
+                return u;
+            }
+            return UnionSchema.Create(new List<Schema>
+            {
+                Null,
+                schema
+            });
         }
 
         /// <summary>

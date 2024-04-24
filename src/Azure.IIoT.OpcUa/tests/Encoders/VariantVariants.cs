@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
         }
 
-        public static readonly ProgramDiagnostic2DataType Complex = new ProgramDiagnostic2DataType
+        public static readonly ProgramDiagnostic2DataType Complex = new()
         {
             CreateClientName = "Testname",
             CreateSessionId = new NodeId(Guid.NewGuid()),

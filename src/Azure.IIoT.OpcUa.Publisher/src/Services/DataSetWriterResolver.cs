@@ -904,7 +904,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _extension.MetaData = await ResolveMetaDataAsync(session, typeSystem,
                         new VariableNode
                         {
-                            DataType = GetBuiltInType(_extension.Value)
+                            DataType = GetBuiltInType(_extension.Value),
+                            ValueRank = _extension.Value.IsArray ?
+                                ValueRanks.OneDimension : ValueRanks.Scalar
                         }, 0u, ct).ConfigureAwait(false);
 
                     static NodeId GetBuiltInType(VariantValue value)
@@ -1123,6 +1125,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 typeSystem, variable, (_variable.MetaData?.MinorVersion ?? 0) + 1,
                                 ct).ConfigureAwait(false);
                             MetaDataNeedsRefresh = false;
+                        }
+                        else
+                        {
+                            _variable.State = kItemInvalid;
                         }
                     }
                     catch (ServiceResultException sre)

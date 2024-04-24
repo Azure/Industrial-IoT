@@ -507,6 +507,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             return valueSchema;
         }
 
+        /// <inheritdoc/>
+        public override Schema GetSchemaForRank(Schema schema, SchemaRank rank)
+        {
+            switch (rank)
+            {
+                case SchemaRank.Matrix:
+                    // Variant schema
+                    return GetSchemaForBuiltInType(BuiltInType.Variant);
+                case SchemaRank.Collection:
+                    return ArraySchema.Create(schema);
+                default:
+                    return schema;
+            }
+        }
+
         /// <summary>
         /// Get data typeid
         /// </summary>

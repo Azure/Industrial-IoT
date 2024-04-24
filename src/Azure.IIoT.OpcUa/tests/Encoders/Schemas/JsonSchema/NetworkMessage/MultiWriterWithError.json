@@ -221,8 +221,8 @@
         }
       }
     },
-    "org.opcfoundation.UA.i=14593": {
-      "$id": "http://opcfoundation.org/UA/#i=14593",
+    "org.opcfoundation.UA.i_x61_14593": {
+      "$id": "http://opcfoundation.org/UA/#i%3d14593",
       "type": "object",
       "properties": {
         "MajorVersion": {
@@ -238,7 +238,7 @@
       "type": "object",
       "properties": {
         "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
         },
         "MessageType": {
           "$ref": "#/definitions/org.opcfoundation.UA.String"
@@ -294,7 +294,7 @@
       "type": "object",
       "properties": {
         "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i=14593"
+          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
         },
         "MessageType": {
           "$ref": "#/definitions/org.opcfoundation.UA.String"

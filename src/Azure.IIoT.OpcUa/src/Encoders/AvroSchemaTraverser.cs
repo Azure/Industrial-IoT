@@ -205,7 +205,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return false;
                 }
-                _outer.Pop(); // Pop us and push the actual item if not null
                 _outer.Push(selected);
                 return true;
             }
@@ -237,7 +236,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (_pos == _record.Count)
                 {
                     _pos = 0;
-                    _outer.Pop();
                 }
                 var field = _record.Fields[_pos];
                 var fieldName = _outer.ExpectedFieldName;

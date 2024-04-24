@@ -118,7 +118,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     if (fieldMetadata?.DataType != null)
                     {
-                        var schema = LookupSchema(fieldMetadata.DataType);
+                        var schema = LookupSchema(fieldMetadata.DataType,
+                            SchemaUtils.GetRank(fieldMetadata.ValueRank),
+                            fieldMetadata.ArrayDimensions);
                         set.Add(schema);
                     }
                 }
@@ -132,13 +134,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType);
+                    var schema = LookupSchema(fieldMetadata.DataType,
+                        SchemaUtils.GetRank(fieldMetadata.ValueRank),
+                        fieldMetadata.ArrayDimensions);
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(
                             ns, fieldsAreDataValues, schema);
 
+                        schema.Description = fieldMetadata.Description;
                         properties.Add(fieldName, schema);
                     }
                 }
@@ -160,9 +165,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override JsonSchema CreateStructureSchema(StructureDescriptionModel description,
-            JsonSchema? baseTypeSchema)
+            SchemaRank rank, JsonSchema? baseTypeSchema)
         {
-            return Definitions.Reference(description.DataTypeId.GetSchemaId(description.Name, Context), id =>
+            var scalar = Definitions.Reference(description.DataTypeId
+                .GetSchemaId(description.Name, Context), id =>
             {
                 //
                 // |---------------|------------|----------------|
@@ -183,6 +189,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     {
                         required.Add(field.Name);
                     }
+                    schema.Description = field.Description;
                     properties.Add(field.Name, schema);
                 }
                 return new JsonSchema
@@ -196,14 +203,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             });
+
+            return Encoding.GetSchemaForRank(scalar, rank);
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description)
+        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description, SchemaRank rank)
         {
-            return Definitions.Reference(description.DataTypeId.GetSchemaId(description.Name, Context), id =>
+            var scalar = Definitions.Reference(description.DataTypeId
+                .GetSchemaId(description.Name, Context), id =>
             {
-                var fields = description.Fields.Select(f => new Const<long>(f.Value)).ToArray();
+                var fields = description.Fields
+                    .Select(f => new Const<long>(f.Value)).ToArray();
 
                 // TODO: Build doc from fields descriptions
 
@@ -216,12 +227,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     Format = "int32"
                 };
             });
-        }
-
-        /// <inheritdoc/>
-        protected override JsonSchema CreateArraySchema(JsonSchema schema)
-        {
-            return schema.AsArray();
+            return Encoding.GetSchemaForRank(scalar, rank);
         }
 
         /// <inheritdoc/>

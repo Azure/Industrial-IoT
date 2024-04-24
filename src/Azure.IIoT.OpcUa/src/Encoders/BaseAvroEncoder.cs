@@ -330,28 +330,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             const string kIdentifierName = "Identifier";
             WriteString("Namespace", namespaceUri);
-
-            var idUnionIndex = value?.IdType ?? IdType.Numeric;
             //  Numeric = 0,
             //  String = 1
             //  Guid = 2
             //  Opaque = 3
-            WriteUnion((int)idUnionIndex);
-            switch (idUnionIndex)
+            var idUnionIndex = (int)(value?.IdType ?? IdType.Numeric);
+            WriteUnion(kIdentifierName, idUnionIndex, id =>
             {
-                case IdType.Numeric:
-                    WriteUInt32(kIdentifierName, (uint)(value?.Identifier ?? 0u));
-                    break;
-                case IdType.String:
-                    WriteString(kIdentifierName, (string)value!.Identifier);
-                    break;
-                case IdType.Guid:
-                    WriteGuid(kIdentifierName, (Guid)value!.Identifier);
-                    break;
-                case IdType.Opaque:
-                    WriteByteString(kIdentifierName, (byte[])value!.Identifier);
-                    break;
-            }
+                switch ((IdType)id)
+                {
+                    case IdType.Numeric:
+                        WriteUInt32(kIdentifierName, (uint)(value?.Identifier ?? 0u));
+                        break;
+                    case IdType.String:
+                        WriteString(kIdentifierName, (string)value!.Identifier);
+                        break;
+                    case IdType.Guid:
+                        WriteGuid(kIdentifierName, (Guid)value!.Identifier);
+                        break;
+                    case IdType.Opaque:
+                        WriteByteString(kIdentifierName, (byte[])value!.Identifier);
+                        break;
+                }
+            });
         }
 
         /// <inheritdoc/>
@@ -433,21 +434,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             CheckAndIncrementNestingLevel();
             try
             {
-                var valueToEncode = value.Value;
-
                 // Write union index
-                if (valueToEncode == null)
-                {
-                    WriteUnion(0);
-                }
-                else
-                {
-                    var rank = SchemaUtils.GetRank(value.TypeInfo!.ValueRank);
-                    WriteUnion(ToUnionId(value.TypeInfo.BuiltInType, rank));
-                }
-
-                // Write value
-                WriteVariantValue(value);
+                var unionId = value.Value == null ? 0 : ToUnionId(
+                    value.TypeInfo.BuiltInType,
+                        SchemaUtils.GetRank(value.TypeInfo!.ValueRank));
+                WriteUnion(fieldName, unionId, _ => WriteVariantValue(value));
             }
             finally
             {
@@ -483,10 +474,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteExtensionObject(string? fieldName, ExtensionObject? value)
         {
             value ??= new ExtensionObject();
-
             // Write a raw encoded data type of the schema union
-            WriteUnion(0);
-            WriteEncodedDataType(fieldName, value);
+            WriteUnion(fieldName, 0, _ => WriteEncodedDataType(fieldName, value));
         }
 
         /// <inheritdoc/>
@@ -1157,12 +1146,63 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Write union selector
+        /// Write nullable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
+        /// <param name="writer"></param>
+        protected virtual void WriteNullable<T>(string? fieldName, T? value,
+            Action<string?, T> writer) where T : class
+        {
+            // Union index, first is "null"
+            WriteUnion(fieldName, value == null ? 0 : 1, id =>
+            {
+                switch (id)
+                {
+                    case 0:
+                        WriteNull(null, value);
+                        break;
+                    default:
+                        Debug.Assert(value != null);
+                        writer(null, value);
+                        break;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Write union
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="index"></param>
+        /// <param name="writer"></param>
+        public virtual void WriteUnion(string? fieldName, int index,
+            Action<int> writer)
+        {
+            StartUnion(index);
+            try
+            {
+                writer(index);
+            }
+            finally
+            {
+                EndUnion();
+            }
+        }
+
+        /// <summary>
+        /// Start union
         /// </summary>
         /// <param name="index"></param>
-        public virtual void WriteUnion(int index)
+        public virtual void StartUnion(int index)
         {
             _writer.WriteInteger(index);
+        }
+
+        /// <inheritdoc/>
+        public virtual void EndUnion()
+        {
         }
 
         /// <summary>
@@ -1173,13 +1213,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         protected virtual void WriteNullableDataValue(string? fieldName,
             DataValue? value)
         {
-            WriteUnion(value == null ? 0 : 1); // Union index, first is "null"
-            if (value == null)
-            {
-                WriteNull(fieldName, value);
-                return;
-            }
-            WriteDataValue(fieldName, value);
+            WriteNullable(fieldName, value, WriteDataValue);
         }
 
         /// <summary>
@@ -1261,15 +1295,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 value = null;
             }
-
-            // Diagnostic info is nullable here
-            WriteUnion(value == null ? 0 : 1); // Union index, first is "null"
-            if (value == null)
-            {
-                WriteNull<DiagnosticInfo>(fieldName, null);
-                return;
-            }
-            WriteDiagnosticInfo(fieldName, value, depth);
+            WriteNullable(fieldName, value, (f, v) => WriteDiagnosticInfo(f, v, depth));
         }
 
         /// <summary>
@@ -1310,7 +1336,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 WriteNull<object>(null, null);
             }
-            else if (value.TypeInfo!.ValueRank < 0)
+            else if (value.TypeInfo!.ValueRank == ValueRanks.Scalar)
             {
                 WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
             }

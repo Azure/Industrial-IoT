@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System;
     using System.Collections.Generic;
-    using Avro;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         ["InnerDiagnosticInfo"] = new JsonSchema
                         {
                             // Self reference
-                            Reference = new UriOrFragment("#")
+                            Reference = UriOrFragment.Self
                         }
                     },
                     AdditionalProperties = new JsonSchema { Allowed = false }
@@ -433,6 +432,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override JsonSchema GetSchemaForBuiltInType(BuiltInType builtInType,
             SchemaRank rank = SchemaRank.Scalar)
         {
+            if (rank == SchemaRank.Matrix)
+            {
+                return GetSchemaForBuiltInType(BuiltInType.Variant);
+            }
             var typeDefinitionName = GetDefinitionName(builtInType);
             if (!Schemas.TryGetValue(typeDefinitionName, out var schema))
             {
@@ -517,7 +520,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             JsonSchema valueSchema)
         {
             var fieldSchema = valueSchema.Resolve(Schemas);
-            var type = fieldSchema.Id?.Fragment ?? fieldSchema.Format ?? fieldSchema.Type.ToString();
+            var isArray = fieldSchema.Type == SchemaType.Array &&
+                fieldSchema.Items?.Count == 1;
+            if (isArray)
+            {
+                fieldSchema = fieldSchema.Items![0].Resolve(Schemas);
+            }
+            var type = fieldSchema.Id?.Fragment ?? fieldSchema.Format
+                ?? fieldSchema.Type.ToString();
+            if (isArray)
+            {
+                type += "Array";
+            }
             var id = new UriOrFragment(type + nameof(DataValue), ns);
             return Schemas.Reference(id, id =>
             {
@@ -538,6 +552,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     AdditionalProperties = new JsonSchema { Allowed = false }
                 };
             });
+        }
+
+        /// <inheritdoc/>
+        public override JsonSchema GetSchemaForRank(JsonSchema schema, SchemaRank rank)
+        {
+            switch (rank)
+            {
+                case SchemaRank.Matrix:
+                    // Variant schema
+                    return GetSchemaForBuiltInType(BuiltInType.Variant);
+                case SchemaRank.Collection:
+                    return schema.AsArray();
+                default:
+                    return schema;
+            }
         }
 
         /// <summary>

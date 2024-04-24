@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Avro;
     using Opc.Ua;
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Xml;
@@ -230,12 +229,31 @@ namespace Azure.IIoT.OpcUa.Encoders
                 SchemaRank.Scalar);
             try
             {
-                // Read as variant
                 if (currentSchema.Fullname == expectedType.Fullname)
                 {
+                    // Read as variant
                     return base.ReadVariant(fieldName);
                 }
 
+                // Alternatively the schema could be nullable
+                if (currentSchema is UnionSchema u)
+                {
+                    // Read as nullable
+                    _schema.Push(ArraySchema.Create(u));
+                    var result = ReadNullable(fieldName, f => ReadVariant(f, u.Schemas[1]));
+                    _schema.Pop();
+                    return result;
+                }
+
+                return ReadVariant(fieldName, currentSchema);
+            }
+            finally
+            {
+                _schema.Pop();
+            }
+
+            Variant ReadVariant(string? fieldName, Schema currentSchema)
+            {
                 // Read as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
                 {
@@ -261,10 +279,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                     $"field {fieldName ?? "unnamed"} is neither variant nor built " +
                     $"in type schema. .\n{Schema.ToJson()}");
             }
-            finally
-            {
-                _schema.Pop();
-            }
         }
 
         /// <inheritdoc/>
@@ -280,12 +294,17 @@ namespace Azure.IIoT.OpcUa.Encoders
             try
             {
                 var dataSet = new DataSet();
-                var isRaw = true;
+                var isRaw = false;
 
                 // Run through the fields and read either using variant or data values
                 foreach (var field in r.Fields)
                 {
-                    var dataValue = ReadDataSetField(field.Name, ref isRaw);
+                    var dataValue = ReadDataSetField(field.Name);
+                    if (dataValue?.StatusCode == (StatusCode)uint.MaxValue)
+                    {
+                        isRaw = true;
+                        dataValue.StatusCode = StatusCodes.Good;
+                    }
                     dataSet.Add(SchemaUtils.Unescape(field.Name), dataValue);
                 }
                 if (isRaw)
@@ -304,96 +323,101 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Read data set field
         /// </summary>
         /// <param name="fieldName"></param>
-        /// <param name="isRaw"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private DataValue? ReadDataSetField(string? fieldName, ref bool isRaw)
+        private DataValue? ReadDataSetField(string? fieldName)
         {
-            var schema = GetFieldSchema(fieldName);
+            var currentSchema = GetFieldSchema(fieldName);
             try
             {
-                if (schema is UnionSchema)
+                if (currentSchema is UnionSchema u)
                 {
-                    var unionId = ReadUnion();
-                    if (unionId == 0)
+                    _schema.Push(ArraySchema.Create(u));
+                    var result = ReadNullable(null, _ =>
                     {
-                        if (Current.Tag != Schema.Type.Null)
-                        {
-                            throw new ServiceResultException(StatusCodes.BadDecodingError,
-                                $"Data set field {fieldName} in dataset should be null " +
-                                $"per union schema but is {Current.ToJson()}.\n{Schema.ToJson()}");
-                        }
-                        return base.ReadNull<DataValue>(fieldName);
-                    }
-                    Debug.Assert(unionId == 1);
-                }
-
-                if (Current is RecordSchema fieldRecord)
-                {
-                    // The field is a record that should contain the data value fields
-
-                    if (fieldRecord.IsDataValue())
-                    {
-                        var dataValue = new DataValue();
-                        foreach (var dvf in fieldRecord.Fields)
-                        {
-                            switch (dvf.Name)
-                            {
-                                case nameof(DataValue.Value):
-                                    dataValue.Value =
-                                        ReadVariant(nameof(DataValue.Value));
-                                    break;
-                                case nameof(DataValue.SourceTimestamp):
-                                    isRaw = false;
-                                    dataValue.SourceTimestamp =
-                                        ReadDateTime(nameof(DataValue.SourceTimestamp));
-                                    break;
-                                case nameof(DataValue.SourcePicoseconds):
-                                    isRaw = false;
-                                    dataValue.SourcePicoseconds =
-                                        ReadUInt16(nameof(DataValue.SourcePicoseconds));
-                                    break;
-                                case nameof(DataValue.ServerTimestamp):
-                                    isRaw = false;
-                                    dataValue.ServerTimestamp =
-                                        ReadDateTime(nameof(DataValue.ServerTimestamp));
-                                    break;
-                                case nameof(DataValue.ServerPicoseconds):
-                                    isRaw = false;
-                                    dataValue.ServerPicoseconds =
-                                        ReadUInt16(nameof(DataValue.ServerPicoseconds));
-                                    break;
-                                case nameof(DataValue.StatusCode):
-                                    isRaw = false;
-                                    dataValue.StatusCode =
-                                        ReadStatusCode(nameof(DataValue.StatusCode));
-                                    break;
-                                default:
-                                    throw new ServiceResultException(StatusCodes.BadDecodingError,
-                                        $"Unknown field {dvf.Name} in dataset field.\n{Schema.ToJson()}");
-                            }
-                        }
-
-                        return dataValue;
-                    }
-
-                    // Read value as variant
-                    _schema.Push(ArraySchema.Create(fieldRecord));
-                    var value = ReadVariant(null);
+                        _schema.Push(((UnionSchema)Current).Schemas[1]);
+                        var v = ReadDataSetFieldValue();
+                        _schema.Pop();
+                        return v!;
+                    });
                     _schema.Pop();
-                    if (value == Variant.Null)
-                    {
-                        return null;
-                    }
-                    return new DataValue(value);
+                    return result;
                 }
-
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    "Data set fields must be records.");
+                return ReadDataSetFieldValue();
             }
             finally
             {
                 _schema.Pop();
+            }
+
+            DataValue? ReadDataSetFieldValue()
+            {
+                var isRaw = true;
+                if (Current is not RecordSchema fieldRecord)
+                {
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Invalid schema {Current.ToJson()}." +
+                        $"Data set fields must be records.\n{Schema.ToJson()}");
+                }
+
+                // The field is a record that should contain the data value fields
+                if (fieldRecord.IsDataValue())
+                {
+                    var dataValue = new DataValue();
+                    foreach (var dvf in fieldRecord.Fields)
+                    {
+                        switch (dvf.Name)
+                        {
+                            case nameof(DataValue.Value):
+                                dataValue.Value =
+                                    ReadVariant(nameof(DataValue.Value));
+                                break;
+                            case nameof(DataValue.SourceTimestamp):
+                                isRaw = false;
+                                dataValue.SourceTimestamp =
+                                    ReadDateTime(nameof(DataValue.SourceTimestamp));
+                                break;
+                            case nameof(DataValue.SourcePicoseconds):
+                                isRaw = false;
+                                dataValue.SourcePicoseconds =
+                                    ReadUInt16(nameof(DataValue.SourcePicoseconds));
+                                break;
+                            case nameof(DataValue.ServerTimestamp):
+                                isRaw = false;
+                                dataValue.ServerTimestamp =
+                                    ReadDateTime(nameof(DataValue.ServerTimestamp));
+                                break;
+                            case nameof(DataValue.ServerPicoseconds):
+                                isRaw = false;
+                                dataValue.ServerPicoseconds =
+                                    ReadUInt16(nameof(DataValue.ServerPicoseconds));
+                                break;
+                            case nameof(DataValue.StatusCode):
+                                isRaw = false;
+                                dataValue.StatusCode =
+                                    ReadStatusCode(nameof(DataValue.StatusCode));
+                                break;
+                            default:
+                                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                                    $"Unknown field {dvf.Name} in dataset field.\n{Schema.ToJson()}");
+                        }
+                    }
+                    if (isRaw)
+                    {
+                        dataValue.StatusCode = (StatusCode)uint.MaxValue;
+                    }
+                    return dataValue;
+                }
+
+                // Read value as variant
+                _schema.Push(ArraySchema.Create(fieldRecord));
+                var value = ReadVariant(null);
+                _schema.Pop();
+                if (value == Variant.Null)
+                {
+                    return null;
+                }
+                return new DataValue(value, (StatusCode)uint.MaxValue);
             }
         }
 
@@ -674,6 +698,33 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        protected override T? ReadNullable<T>(string? fieldName, Func<string?, T> reader)
+            where T : default
+        {
+            return ReadUnion(fieldName, id =>
+            {
+                // Check the schema is a nullable union schema
+                if (Current is not UnionSchema u ||
+                    u.Count != 2 || u.Schemas[0].Tag != Schema.Type.Null)
+                {
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Failed to decode. Union schema {Current.ToJson()} of nullable " +
+                        $"field {fieldName ?? "unnamed"} does not match.\n{Schema.ToJson()}");
+                }
+                switch (id)
+                {
+                    case 0:
+                        return ReadNull<T>(null);
+                    case 1:
+                        return reader(null);
+                    default:
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                            $"Unexpected union discriminator {id}.");
+                }
+            });
+        }
+
+        /// <inheritdoc/>
         protected override Array ReadArray(string? fieldName,
             Func<object> reader, Type type)
         {
@@ -723,9 +774,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override int ReadUnion()
+        public override T ReadUnion<T>(string? fieldName,
+            Func<int, T> reader)
         {
-            var index = base.ReadUnion();
+            // Get the union schema
+            var schema = GetFieldSchema(fieldName);
+            if (schema is not UnionSchema)
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Union field {fieldName ?? "unnamed"} must be a union " +
+                    $"schema but is {schema.ToJson()} schema.\n{Schema.ToJson()}");
+            }
+            return base.ReadUnion(fieldName, reader);
+        }
+
+        /// <inheritdoc/>
+        public override int StartUnion()
+        {
+            var index = base.StartUnion();
             _schema.ExpectUnionItem = u =>
             {
                 if (index < u.Schemas.Count && index >= 0)
@@ -735,8 +801,20 @@ namespace Azure.IIoT.OpcUa.Encoders
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
                     $"Union index {index} not found in union {u.ToJson()}\n{Schema.ToJson()}");
             };
-            GetFieldSchema(null);
             return index;
+        }
+
+        /// <inheritdoc/>
+        public override void EndUnion()
+        {
+            var unionSchema = _schema.Pop();
+            if (unionSchema is not UnionSchema)
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Expected union schema but got {unionSchema.ToJson()} after " +
+                    $"completing union.\n{Schema.ToJson()}");
+            }
+            base.EndUnion();
         }
 
         /// <inheritdoc/>

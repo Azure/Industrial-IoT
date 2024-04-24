@@ -48,5 +48,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public abstract T GetSchemaForExtendableType(
             string name, string ns, string dataTypeId, T bodyType);
+
+        /// <summary>
+        /// Get schema for specified value rank
+        /// schema
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="rank"></param>
+        /// <returns></returns>
+        public abstract T GetSchemaForRank(T schema, SchemaRank rank);
     }
 }

@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Read magic
         /// </summary>
-        /// <exception cref="AvroRuntimeException"></exception>
+        /// <exception cref="FormatException"></exception>
         private void ReadMagicBytes()
         {
             var firstBytes = new byte[DataFileConstants.Magic.Length];

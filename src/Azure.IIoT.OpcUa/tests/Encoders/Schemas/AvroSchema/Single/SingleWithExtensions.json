@@ -130,7 +130,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.DateTime"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.DateTime"
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -167,7 +170,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.String"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.String"
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -199,8 +205,8 @@
               "null",
               {
                 "type": "record",
-                "name": "VariantDataValue",
-                "namespace": "org.github.microsoft.opc.publisher",
+                "name": "DataValue",
+                "namespace": "org.opcfoundation.UA",
                 "fields": [
                   {
                     "name": "Value",
@@ -516,40 +522,7 @@
                                 }
                               ]
                             },
-                            {
-                              "type": "record",
-                              "name": "DataValue",
-                              "namespace": "org.opcfoundation.UA",
-                              "aliases": [
-                                "org.opcfoundation.UA.i_23"
-                              ],
-                              "fields": [
-                                {
-                                  "name": "Value",
-                                  "type": "Variant"
-                                },
-                                {
-                                  "name": "StatusCode",
-                                  "type": "StatusCode"
-                                },
-                                {
-                                  "name": "SourceTimestamp",
-                                  "type": "DateTime"
-                                },
-                                {
-                                  "name": "SourcePicoseconds",
-                                  "type": "UInt16"
-                                },
-                                {
-                                  "name": "ServerTimestamp",
-                                  "type": "DateTime"
-                                },
-                                {
-                                  "name": "ServerPicoseconds",
-                                  "type": "UInt16"
-                                }
-                              ]
-                            },
+                            "DataValue",
                             {
                               "type": "record",
                               "name": "Enumeration",
@@ -1371,23 +1344,23 @@
                   },
                   {
                     "name": "StatusCode",
-                    "type": "org.opcfoundation.UA.StatusCode"
+                    "type": "StatusCode"
                   },
                   {
                     "name": "SourceTimestamp",
-                    "type": "org.opcfoundation.UA.DateTime"
+                    "type": "DateTime"
                   },
                   {
                     "name": "SourcePicoseconds",
-                    "type": "org.opcfoundation.UA.UInt16"
+                    "type": "UInt16"
                   },
                   {
                     "name": "ServerTimestamp",
-                    "type": "org.opcfoundation.UA.DateTime"
+                    "type": "DateTime"
                   },
                   {
                     "name": "ServerPicoseconds",
-                    "type": "org.opcfoundation.UA.UInt16"
+                    "type": "UInt16"
                   }
                 ]
               }
@@ -1404,7 +1377,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.Boolean"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.Boolean"
+                    ]
                   },
                   {
                     "name": "StatusCode",
@@ -1441,7 +1417,10 @@
                 "fields": [
                   {
                     "name": "Value",
-                    "type": "org.opcfoundation.UA.Float"
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.Float"
+                    ]
                   },
                   {
                     "name": "StatusCode",

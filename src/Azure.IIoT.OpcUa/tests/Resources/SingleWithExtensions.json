@@ -55,7 +55,8 @@
             "id": "5e09aeba4d22fee5abe741f41106c0c909214fc1",
             "metaData": {
               "builtInType": 12,
-              "dataType": "i=12"
+              "dataType": "i=12",
+              "valueRank": -1
             }
           },
           {
@@ -65,7 +66,8 @@
             "id": "dd813d5c5984d6bc15b30d5aae3500b7f6dcc2ef",
             "metaData": {
               "builtInType": 24,
-              "dataType": "i=24"
+              "dataType": "i=24",
+              "valueRank": -1
             }
           },
           {
@@ -75,7 +77,8 @@
             "id": "657665279ce1373259bd6d16d526116a95a4ae1d",
             "metaData": {
               "builtInType": 1,
-              "dataType": "i=1"
+              "dataType": "i=1",
+              "valueRank": -1
             }
           },
           {
@@ -85,7 +88,8 @@
             "id": "7263495507c1655587f38afcddf5162aff6f8078",
             "metaData": {
               "builtInType": 10,
-              "dataType": "i=10"
+              "dataType": "i=10",
+              "valueRank": -1
             }
           }
         ],

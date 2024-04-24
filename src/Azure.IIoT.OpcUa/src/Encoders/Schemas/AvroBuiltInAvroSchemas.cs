@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
     /// Provides the Avro schemas of built in types and objects
@@ -210,6 +211,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
             SchemaRank rank = SchemaRank.Scalar)
         {
+            // TODO: Placeholder caching is needed to avoid stack overflow
+            // However we should clear the cache every time we completed the
+            // api lookup, to avoid getting placeholder items leaking out
+            // to an outside caller.
             if (!_builtIn.TryGetValue((builtInType, rank), out var schema))
             {
                 // Before we create the schema add a place
@@ -321,30 +326,51 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        public override Schema GetSchemaForDataSetField(string ns, bool asDataValue, Schema valueSchema)
+        public override Schema GetSchemaForDataSetField(string ns, bool asDataValue,
+            Schema valueSchema)
         {
+            var variantSchema = GetSchemaForBuiltInType(BuiltInType.Variant);
+#if USE_VARIANT_FOR_DATAVALUE
+            valueSchema = variantSchema;
+#endif
+            var schemaName = string.Empty;
+            var space = SchemaUtils.NamespaceZeroName;
+            if (valueSchema.Fullname != variantSchema.Fullname)
+            {
+                // Variant is by default already nullable
+                schemaName = valueSchema.Name;
+                space = ns;
+                valueSchema = valueSchema.AsNullable();
+            }
+
             if (asDataValue)
             {
-                return RecordSchema.Create(valueSchema.Name + nameof(BuiltInType.DataValue),
+                return RecordSchema.Create(schemaName + nameof(BuiltInType.DataValue),
                     new List<Field>
                     {
-#if USE_VARIANT_FOR_DATAVALUE
-                        new (GetSchemaForBuiltInType(BuiltInType.Variant), "Value", 0),
-#else
                         new (valueSchema, "Value", 0),
-#endif
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "StatusCode", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoseconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoseconds", 5)
-                    }, ns).AsNullable();
+                    }, space).AsNullable();
             }
-            if (valueSchema is UnionSchema)
+            return valueSchema;
+        }
+
+        /// <inheritdoc/>
+        public override Schema GetSchemaForRank(Schema schema, SchemaRank rank)
+        {
+            switch (rank)
             {
-                return valueSchema; // Variant is by default already nullable
+                case SchemaRank.Matrix:
+                    return MatrixType(schema);
+                case SchemaRank.Collection:
+                    return CollectionType(schema);
+                default:
+                    return schema;
             }
-            return valueSchema.AsNullable();
         }
 
         /// <summary>
@@ -406,10 +432,29 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         internal Schema CollectionType(int builtInType, string name)
         {
             var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType);
+            return CollectionType(baseType, name, SchemaUtils.NamespaceZeroName);
+        }
+
+        /// <summary>
+        /// Create collection type
+        /// </summary>
+        /// <param name="baseType"></param>
+        /// <param name="name"></param>
+        /// <param name="space"></param>
+        /// <returns></returns>
+        private static RecordSchema CollectionType(Schema baseType, string? name = null,
+            string? space = null)
+        {
+            name ??= baseType.Name;
+            if (space == null && baseType is NamedSchema n)
+            {
+                space = n.Namespace;
+            }
+            space ??= SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(name + nameof(SchemaRank.Collection), new List<Field>
             {
                 new (ArraySchema.Create(baseType), kSingleFieldName, 0)
-            }, SchemaUtils.NamespaceZeroName);
+            }, space);
         }
 
         /// <summary>
@@ -421,12 +466,31 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         internal Schema MatrixType(int builtInType, string name)
         {
             var baseType = GetSchemaForBuiltInType((BuiltInType)builtInType);
+            return MatrixType(baseType, name, SchemaUtils.NamespaceZeroName);
+        }
+
+        /// <summary>
+        /// Create matrix type
+        /// </summary>
+        /// <param name="baseType"></param>
+        /// <param name="name"></param>
+        /// <param name="space"></param>
+        /// <returns></returns>
+        private RecordSchema MatrixType(Schema baseType, string? name = null,
+            string? space = null)
+        {
+            name ??= baseType.Name;
+            if (space == null && baseType is NamedSchema n)
+            {
+                space = n.Namespace;
+            }
+            space ??= SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(name + nameof(SchemaRank.Matrix), new List<Field>
             {
                 new (GetSchemaForBuiltInType(BuiltInType.Int32,
                     SchemaRank.Collection), "Dimensions", 0),
                 new (ArraySchema.Create(baseType), kSingleFieldName, 0)
-            }, SchemaUtils.NamespaceZeroName);
+            }, space);
         }
 
         /// <summary>

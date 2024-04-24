@@ -95,7 +95,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     if (fieldMetadata?.DataType != null)
                     {
-                        set.Add(LookupSchema(fieldMetadata.DataType));
+                        set.Add(LookupSchema(fieldMetadata.DataType,
+                            SchemaUtils.GetRank(fieldMetadata.ValueRank),
+                            fieldMetadata.ArrayDimensions));
                     }
                 }
                 return set.Select(s => s.AsNullable());
@@ -113,7 +115,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 pos++;
                 if (fieldMetadata?.DataType != null)
                 {
-                    var schema = LookupSchema(fieldMetadata.DataType);
+                    var schema = LookupSchema(fieldMetadata.DataType,
+                        SchemaUtils.GetRank(fieldMetadata.ValueRank),
+                        fieldMetadata.ArrayDimensions);
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
@@ -144,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override Schema CreateStructureSchema(StructureDescriptionModel description,
-            Schema? baseTypeSchema)
+            SchemaRank rank, Schema? baseTypeSchema)
         {
             //
             // |---------------|------------|----------------|
@@ -178,31 +182,28 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             var (ns1, dt) = SchemaUtils.SplitNodeId(description.DataTypeId, Context, true);
-            return RecordSchema.Create(
+            var scalar = RecordSchema.Create(
                 SchemaUtils.SplitQualifiedName(description.Name, Context, ns1),
                 fields, ns1, new[] { dt },
                 customProperties: AvroSchema.Properties(description.DataTypeId));
+            return Encoding.GetSchemaForRank(scalar, rank);
         }
 
         /// <inheritdoc/>
-        protected override Schema CreateEnumSchema(EnumDescriptionModel description)
+        protected override Schema CreateEnumSchema(EnumDescriptionModel description,
+            SchemaRank rank)
         {
             var (ns, dt) = SchemaUtils.SplitNodeId(description.DataTypeId, Context, true);
             var symbols = description.Fields
                 .Select(e => SchemaUtils.Escape(e.Name))
                 .ToList();
-            return EnumSchema.Create(
+            var scalar = EnumSchema.Create(
                 SchemaUtils.SplitQualifiedName(description.Name, Context, ns),
                 symbols, ns, new[] { dt },
                 customProperties: AvroSchema.Properties(description.DataTypeId),
                 defaultSymbol: symbols[0]);
             // TODO: Build doc from fields descriptions
-        }
-
-        /// <inheritdoc/>
-        protected override Schema CreateArraySchema(Schema schema)
-        {
-            return ArraySchema.Create(schema);
+            return Encoding.GetSchemaForRank(scalar, rank);
         }
 
         /// <inheritdoc/>

@@ -80,6 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // type. This can be optimized in the future.
             //
             var typeName = DataSetName ?? nameof(AvroDataSetMessage);
+            var popUnion = false;
             if (encoder is AvroEncoder schemas)
             {
                 var currentSchema = schemas.Current;
@@ -90,26 +91,36 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 if (currentSchema is UnionSchema unionSchema)
                 {
-                    encoder.WriteUnion(DataSetWriterId);
+                    encoder.StartUnion(DataSetWriterId);
+                    popUnion = true;
                     currentSchema = unionSchema[DataSetWriterId];
                 }
                 typeName = currentSchema.Name;
             }
-
-            if (!WithDataSetHeader)
+            try
             {
-                // If no header, write payload record directly
-                encoder.WriteDataSet(null, Payload);
-                return;
+                if (!WithDataSetHeader)
+                {
+                    // If no header, write payload record directly
+                    encoder.WriteDataSet(null, Payload);
+                    return;
+                }
+
+                // If header, write data set message
+                encoder.WriteObject(null, typeName, () =>
+                {
+                    WriteDataSetMessageHeader(encoder);
+                    // Write payload
+                    encoder.WriteDataSet(nameof(Payload), Payload);
+                });
             }
-
-            // If header, write data set message
-            encoder.WriteObject(null, typeName, () =>
+            finally
             {
-                WriteDataSetMessageHeader(encoder);
-                // Write payload
-                encoder.WriteDataSet(nameof(Payload), Payload);
-            });
+                if (popUnion)
+                {
+                    encoder.EndUnion();
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -139,56 +150,67 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // Reading in the context of an array schema
                 current = arr.ItemSchema;
             }
+            var popUnion = false;
             if (current is UnionSchema union)
             {
                 // Read union: TODO: this does not work, we need to read this when reading the object
-                var unionId = decoder.ReadUnion();
+                var unionId = decoder.StartUnion();
+                popUnion = true;
             }
-
-            // Save the current offset from which we read
-            current = decoder.Current;
-
-            // Try first to read the object with header
-            if (withDataSetHeader)
+            try
             {
-                var result = decoder.ReadObject(null, schema =>
-                {
-                    if (schema is not RecordSchema recordSchema)
-                    {
-                        return false;
-                    }
+                // Save the current offset from which we read
+                current = decoder.Current;
 
-                    if (recordSchema.Fields.Count > 0 &&
-                        recordSchema.Fields[0].Name == nameof(MessageType))
+                // Try first to read the object with header
+                if (withDataSetHeader)
+                {
+                    var result = decoder.ReadObject(null, schema =>
                     {
-                        WithDataSetHeader = true;
-                        DataSetName = recordSchema.Name;
-                        if (DataSetName == nameof(AvroDataSetMessage))
-                        {
-                            DataSetName = null;
-                        }
-                        if (!TryReadDataSetMessageHeader(decoder))
+                        if (schema is not RecordSchema recordSchema)
                         {
                             return false;
                         }
-                        // Read payload
-                        Payload = decoder.ReadDataSet(nameof(Payload));
-                        return true;
-                    }
-                    return (bool?)null;
-                });
 
-                if (result.HasValue)
+                        if (recordSchema.Fields.Count > 0 &&
+                            recordSchema.Fields[0].Name == nameof(MessageType))
+                        {
+                            WithDataSetHeader = true;
+                            DataSetName = recordSchema.Name;
+                            if (DataSetName == nameof(AvroDataSetMessage))
+                            {
+                                DataSetName = null;
+                            }
+                            if (!TryReadDataSetMessageHeader(decoder))
+                            {
+                                return false;
+                            }
+                            // Read payload
+                            Payload = decoder.ReadDataSet(nameof(Payload));
+                            return true;
+                        }
+                        return (bool?)null;
+                    });
+
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
+
+                // Fall back to read the data set
+                decoder.Push(current);
+                WithDataSetHeader = false;
+                Payload = decoder.ReadDataSet(null);
+                return true;
+            }
+            finally
+            {
+                if (popUnion)
                 {
-                    return result.Value;
+                    decoder.EndUnion();
                 }
             }
-
-            // Fall back to read the data set
-            decoder.Push(current);
-            WithDataSetHeader = false;
-            Payload = decoder.ReadDataSet(null);
-            return true;
         }
 
         /// <summary>

@@ -196,13 +196,16 @@
       "default": 0,
       "format": "byte"
     },
-    "org.github.microsoft.opcpublisher.ByteDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#ByteDataValue",
-      "title": "Dataset Field of Type Byte",
+    "org.github.microsoft.opcpublisher.ByteArrayDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#ByteArrayDataValue",
+      "title": "Dataset Field of Type ByteArray",
       "type": "object",
       "properties": {
         "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Byte"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.Byte"
+          }
         },
         "Status": {
           "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
@@ -314,7 +317,7 @@
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
         "LongString200kB": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteArrayDataValue"
         },
         "LongString50kB": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"

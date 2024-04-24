@@ -107,12 +107,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <returns></returns>
             public void Write(DateTime timestamp, IEnumerable<ReadOnlySequence<byte>> buffers)
             {
-                var entry = _zip.CreateEntry(Interlocked.Increment(ref _sequenceNumber) +
-                    _suffix, CompressionLevel.Optimal);
-                entry.LastWriteTime = timestamp;
-                using var stream = entry.Open();
                 foreach (var buffer in buffers)
                 {
+                    var entry = _zip.CreateEntry(Interlocked.Increment(ref _sequenceNumber) +
+                        _suffix, CompressionLevel.Optimal);
+                    entry.LastWriteTime = timestamp;
+                    using var stream = entry.Open();
                     foreach (var memory in _contentType == ContentType.JsonGzip ?
                         buffer.GzipDecompress() : buffer)
                     {

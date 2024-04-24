@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -71,15 +72,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             // Collect types
             CollectTypes(dataSet);
 
-            // Compile collected types to schemas
-            foreach (var type in _types.Values)
-            {
-                if (type.Schema == null)
-                {
-                    type.Resolve(this);
-                }
-            }
-
             var schemas = GetDataSetFieldSchemas(name, dataSet, uniqueNames).ToList();
             if (schemas.Count == 0)
             {
@@ -106,24 +98,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Create record schema for the structure
         /// </summary>
         /// <param name="description"></param>
+        /// <param name="rank"></param>
         /// <param name="baseTypeSchema"></param>
         /// <returns></returns>
         protected abstract T CreateStructureSchema(
-            StructureDescriptionModel description, T? baseTypeSchema = default);
+            StructureDescriptionModel description, SchemaRank rank,
+            T? baseTypeSchema = default);
 
         /// <summary>
         /// Create enum schema for the enum description
         /// </summary>
         /// <param name="description"></param>
+        /// <param name="rank"></param>
         /// <returns></returns>
-        protected abstract T CreateEnumSchema(EnumDescriptionModel description);
-
-        /// <summary>
-        /// Create array schema
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <returns></returns>
-        protected abstract T CreateArraySchema(T schema);
+        protected abstract T CreateEnumSchema(EnumDescriptionModel description,
+            SchemaRank rank);
 
         /// <summary>
         /// Create union schema
@@ -192,26 +181,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             T? schema = null;
 
-            if (arrayDimensions?.Count > 0)
+            if (arrayDimensions?.Count > 1)
             {
                 valueRank = SchemaRank.Matrix;
             }
 
             if (_types.TryGetValue(dataType, out var description))
             {
-                if (description.Schema == null)
-                {
-                    description.Resolve(this);
-                }
-                if (description.Schema != null)
-                {
-                    schema = description.Schema;
-
-                    if (valueRank != SchemaRank.Scalar)
-                    {
-                        schema = CreateArraySchema(schema);
-                    }
-                }
+                schema = description.GetSchema(this, valueRank);
             }
 
             schema ??= GetBuiltInDataTypeSchema(dataType, valueRank);
@@ -220,10 +197,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
             T? GetBuiltInDataTypeSchema(string dataType, SchemaRank valueRank)
             {
-                if (int.TryParse(dataType[2..], out var id)
-                    && id >= 0 && id <= 29)
+                var nodeId = dataType.ToExpandedNodeId(Context);
+                if (nodeId.IdType == IdType.Numeric)
                 {
-                    return Encoding.GetSchemaForBuiltInType((BuiltInType)id, valueRank);
+                    var id = nodeId.Identifier as uint?;
+                    if (id >= 0 && id <= 29)
+                    {
+                        return Encoding.GetSchemaForBuiltInType((BuiltInType)id, valueRank);
+                    }
                 }
                 return null;
             }
@@ -256,15 +237,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         private abstract record class TypedDescription
         {
             /// <summary>
-            /// Resolved schema of the type
-            /// </summary>
-            public T? Schema { get; set; }
-
-            /// <summary>
-            /// Resolve the type
+            /// Get schema
             /// </summary>
             /// <param name="schema"></param>
-            public abstract void Resolve(BaseDataSetSchema<T> schema);
+            /// <param name="rank"></param>
+            /// <returns></returns>
+            public abstract T? GetSchema(BaseDataSetSchema<T> schema, SchemaRank rank);
         }
 
         /// <summary>
@@ -275,28 +253,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(BaseDataSetSchema<T> schemas)
+            public override T? GetSchema(BaseDataSetSchema<T> schemas, SchemaRank rank)
             {
-                if (Schema != null)
-                {
-                    return;
-                }
-
                 if (Description.DataTypeId == "i=" + Description.BuiltInType)
                 {
                     // Emit the built in type definition here instead
                     Debug.Assert(Description.BuiltInType.HasValue);
-                    Schema = schemas.Encoding.GetSchemaForBuiltInType(
-                        (BuiltInType)Description.BuiltInType.Value);
+                    return schemas.Encoding.GetSchemaForBuiltInType(
+                        (BuiltInType)Description.BuiltInType.Value, rank);
                 }
-                else
+                // Derive from base type or built in type
+                if (Description.BaseDataType != null)
                 {
                     // Derive from base type or built in type
-                    Schema = Description.BaseDataType != null ?
-                        schemas.LookupSchema(Description.BaseDataType) :
-                        schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
-                            (Description.BuiltInType ?? (byte?)BuiltInType.String));
+                    return schemas.LookupSchema(Description.BaseDataType, rank);
                 }
+
+                // Derive from base type or built in type
+                return schemas.Encoding.GetSchemaForBuiltInType((BuiltInType)
+                    (Description.BuiltInType ?? (byte?)BuiltInType.String), rank);
             }
         }
 
@@ -308,11 +283,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(BaseDataSetSchema<T> schemas)
+            public override T? GetSchema(BaseDataSetSchema<T> schemas, SchemaRank rank)
             {
-                if (Schema != null)
+                if (_cache[(int)rank] != null)
                 {
-                    return;
+                    return _cache[(int)rank];
                 }
 
                 // Get super types
@@ -321,14 +296,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     schemas._types.TryGetValue(Description.BaseDataType, out var def) &&
                     def is StructureType baseDescription)
                 {
-                    baseDescription.Resolve(schemas);
-                    if (baseDescription.Schema != null)
-                    {
-                        baseSchema = baseDescription.Schema;
-                    }
+                    baseSchema = baseDescription.GetSchema(schemas, rank);
                 }
-                Schema = schemas.CreateStructureSchema(Description, baseSchema);
+
+                _cache[(int)rank] = schemas.CreateStructureSchema(Description, rank, baseSchema);
+                return _cache[(int)rank];
             }
+
+            private readonly T?[] _cache = new T?[3];
         }
 
         /// <summary>
@@ -339,11 +314,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             : TypedDescription
         {
             /// <inheritdoc/>
-            public override void Resolve(BaseDataSetSchema<T> schemas)
+            public override T? GetSchema(BaseDataSetSchema<T> schemas, SchemaRank rank)
             {
-                if (Schema != null)
+                if (_cache[(int)rank] != null)
                 {
-                    return;
+                    return _cache[(int)rank];
                 }
 
                 if (Description.IsOptionSet)
@@ -352,8 +327,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // ...
                 }
 
-                Schema = schemas.CreateEnumSchema(Description);
+                _cache[(int)rank] = schemas.CreateEnumSchema(Description, rank);
+                return _cache[(int)rank];
             }
+            private readonly T?[] _cache = new T?[3];
         }
 
         /// <summary>
