@@ -520,8 +520,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual ByteCollection ReadByteArray(string? fieldName)
         {
-            // TODO: Read fixed bytes instead
-            return ReadArray(fieldName, () => ReadByte(null));
+            return _reader.ReadBytes();
         }
 
         /// <inheritdoc/>
@@ -1010,7 +1009,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="builtInType"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private Variant ReadScalar(string? fieldName, BuiltInType builtInType)
+        protected Variant ReadScalar(string? fieldName, BuiltInType builtInType)
         {
             var value = new Variant();
             switch (builtInType)
@@ -1227,7 +1226,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             (SchemaRank.Scalar, BuiltInType.Enumeration),
             (SchemaRank.Collection, BuiltInType.Boolean),
             (SchemaRank.Collection, BuiltInType.SByte),
-            (SchemaRank.Collection, BuiltInType.Byte),
+            // (SchemaRank.Collection, BuiltInType.Byte),
             (SchemaRank.Collection, BuiltInType.Int16),
             (SchemaRank.Collection, BuiltInType.UInt16),
             (SchemaRank.Collection, BuiltInType.Int32),

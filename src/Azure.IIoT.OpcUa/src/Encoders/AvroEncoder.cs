@@ -278,20 +278,20 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (currentSchema is UnionSchema u)
                 {
                     _schema.Push(ArraySchema.Create(u));
-                    WriteNullable(fieldName, value.Value,
-                        (f, _) => WriteVariant(f, value, u.Schemas[1]));
+                    WriteNullable(null, value.Value,
+                        (_, _) => WriteVariant(value, u.Schemas[1]));
                     _schema.Pop();
                     return;
                 }
 
-                WriteVariant(fieldName, value, currentSchema);
+                WriteVariant(value, currentSchema);
             }
             finally
             {
                 _schema.Pop();
             }
 
-            void WriteVariant(string? fieldName, Variant value, Schema currentSchema)
+            void WriteVariant(Variant value, Schema currentSchema)
             {
                 // Write as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
@@ -359,8 +359,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteByteArray(string? fieldName,
             IList<byte>? values)
         {
-            ValidatedWrite(fieldName, BuiltInType.Byte, values,
-                base.WriteByteArray, SchemaRank.Collection);
+            ValidatedWrite(fieldName, BuiltInType.ByteString, values,
+                base.WriteByteArray, SchemaRank.Scalar);
         }
 
         /// <inheritdoc/>
@@ -542,22 +542,32 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Write as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
                 {
+                    // When written in concise mode we get an array of bytes as byte string
+                    if (builtInType == BuiltInType.ByteString && rank == SchemaRank.Scalar)
+                    {
+                        _schema.Push(ArraySchema.Create(currentSchema));
+                        WriteScalar(builtInType, values?.Select(v => v.Value).Cast<byte>().ToArray()
+                            ?? Array.Empty<byte>());
+                        _schema.Pop();
+                        return;
+                    }
                     //
                     // Rank should be collection, and all values to write should be
                     // scalar and of the built in type
                     //
-                    if (rank != SchemaRank.Collection)
+                    if (rank == SchemaRank.Collection)
                     {
-                        throw new ServiceResultException(StatusCodes.BadEncodingError,
-                            $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
-                            $"of field {fieldName ?? "unnamed"} to write variants.\n" +
-                            $"{Schema.ToJson()}");
+                        _schema.Push(ArraySchema.Create(currentSchema));
+                        WriteArray(builtInType, values?.Select(v => v.Value).ToArray()
+                            ?? Array.Empty<object>());
+                        _schema.Pop();
+                        return;
                     }
-                    _schema.Push(ArraySchema.Create(currentSchema));
-                    WriteArray(builtInType, values?.Select(v => v.Value).ToArray()
-                        ?? Array.Empty<object>());
-                    _schema.Pop();
-                    return;
+
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
+                        $"of field {fieldName ?? "unnamed"} to write variants.\n" +
+                        $"{Schema.ToJson()}");
                 }
 
                 throw new ServiceResultException(StatusCodes.BadEncodingError,

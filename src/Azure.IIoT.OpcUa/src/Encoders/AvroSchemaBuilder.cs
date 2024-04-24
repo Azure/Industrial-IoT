@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteByteArray(string? fieldName,
             IList<byte>? values)
         {
-            using var _ = Add(fieldName, BuiltInType.Byte, SchemaRank.Collection);
+            using var _ = Add(fieldName, BuiltInType.ByteString, SchemaRank.Scalar);
             base.WriteByteArray(fieldName, values);
         }
 

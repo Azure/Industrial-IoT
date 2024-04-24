@@ -436,13 +436,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return GetSchemaForBuiltInType(BuiltInType.Variant);
             }
+            // Always use byte string for byte arrays
+            if (builtInType == BuiltInType.Byte && rank == SchemaRank.Collection)
+            {
+                builtInType = BuiltInType.ByteString;
+                rank = SchemaRank.Scalar;
+            }
             var typeDefinitionName = GetDefinitionName(builtInType);
             if (!Schemas.TryGetValue(typeDefinitionName, out var schema))
             {
                 schema = CreateSchemaForBuiltInType((int)builtInType);
                 Schemas.Add(typeDefinitionName, schema);
             }
-
             if (schema.Id != null)
             {
                 schema = Reference(builtInType);
@@ -519,6 +524,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override JsonSchema GetSchemaForDataSetField(string ns, bool asDataValue,
             JsonSchema valueSchema)
         {
+            if (!asDataValue)
+            {
+                // Nothing to do when value is raw value of variant.
+                if (_reversibleEncoding)
+                {
+                    return valueSchema;
+                }
+                //
+                // TODO: Create a stand in variant with const schema
+                // setting the built in type
+                //
+                return GetSchemaForBuiltInType(BuiltInType.Variant);
+            }
+
             var fieldSchema = valueSchema.Resolve(Schemas);
             var isArray = fieldSchema.Type == SchemaType.Array &&
                 fieldSchema.Items?.Count == 1;

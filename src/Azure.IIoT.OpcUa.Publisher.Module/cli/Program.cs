@@ -217,7 +217,7 @@ Options:
                 if (dumpMessages != null)
                 {
                     hostingTask = DumpMessagesAsync(dumpMessages, loggerFactory,
-                        TimeSpan.FromMinutes(1), scaleunits, cts.Token);
+                        TimeSpan.FromMinutes(2), scaleunits, cts.Token);
                 }
                 else if (!withServer)
                 {
@@ -417,16 +417,16 @@ Options:
                 {
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
                     var logger = loggerFactory.CreateLogger(publishProfileName);
-                    Console.WriteLine($@"
-#############################################################################\n
-Start publishing profile {publishProfileName}...\n
-#############################################################################\n
-");
                     var outputFolder = Path.Combine(".", "dump", publishProfileName);
-                    if (Directory.Exists(outputFolder))
+                    if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
                     {
                         continue;
                     }
+                    Console.WriteLine($@"
+#############################################################################
+Start publishing profile {publishProfileName}...
+#############################################################################
+");
                     Directory.CreateDirectory(outputFolder);
                     async Task RunForDuration(string publishProfile, MessagingProfile messageProfile)
                     {
@@ -436,16 +436,16 @@ Start publishing profile {publishProfileName}...\n
                             using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
                                 ct, runtime.Token);
                             Console.WriteLine($@"
-=============================================================================\n
-Start messaging profile {messageProfile}...\n
-=============================================================================\n
+=============================================================================
+Start messaging profile {messageProfile}...
+=============================================================================
 ");
                             await RunAsync(loggerFactory, publishProfile, messageProfile,
                                 outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
                             Console.WriteLine($@"
-=============================================================================\n
-Completed messaging profile {messageProfile}.\n
-=============================================================================\n
+=============================================================================
+Completed messaging profile {messageProfile}.
+=============================================================================
 ");
                         }
                         catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
@@ -457,13 +457,11 @@ Completed messaging profile {messageProfile}.\n
                             // No need to dump gzip
                             continue;
                         }
-                        // TODO : Remove
-                        if (!messageProfile.MessageEncoding.HasFlag(MessageEncoding.Avro))
-                        {
-                            // No need to dump gzip
-                            continue;
-                        }
-                        // TODO : Remove
+                        //if (!messageProfile.MessageEncoding.HasFlag(MessageEncoding.Avro))
+                        //{
+                        //    // No need to dump gzip
+                        //    continue;
+                        //}
                         if (messageMode == "all" || messageProfile.MessagingMode.ToString()
                             .Equals(messageMode, StringComparison.OrdinalIgnoreCase))
                         {
@@ -471,9 +469,9 @@ Completed messaging profile {messageProfile}.\n
                         }
                     }
                     Console.WriteLine($@"
-#############################################################################\n
-Completed publishing profile {publishProfileName}.\n
-#############################################################################\n
+#############################################################################
+Completed publishing profile {publishProfileName}.
+#############################################################################
 ");
                 }
             }
@@ -506,11 +504,12 @@ Completed publishing profile {publishProfileName}.\n
                     {
                         "-c",
                         "--ps",
+                        $"--ssf={outputFolder}",
                         $"--pf={publishedNodesFilePath}",
                         $"--me={messageProfile.MessageEncoding}",
                         $"--mm={messageProfile.MessagingMode}",
-                        $"--ttt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
-                        $"--mdt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}",
+                        $"--ttt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}/{{WriterGroup}}",
+                        $"--mdt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}/{{WriterGroup}}",
                         "-t=FileSystem",
                         $"-o={outputFolder}",
                         "--aa"

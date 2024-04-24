@@ -78,6 +78,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         {
                             continue; // Array of variant is allowed
                         }
+                        if (i == (int)BuiltInType.Byte && valueRank == SchemaRank.Collection)
+                        {
+                            continue; // Array of bytes is not allowed
+                        }
                         yield return GetSchemaForBuiltInType((BuiltInType)i, valueRank);
                     }
                 }
@@ -211,6 +215,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
             SchemaRank rank = SchemaRank.Scalar)
         {
+            // Always use byte string for byte arrays
+            if (builtInType == BuiltInType.Byte && rank == SchemaRank.Collection)
+            {
+                builtInType = BuiltInType.ByteString;
+                rank = SchemaRank.Scalar;
+            }
+
             // TODO: Placeholder caching is needed to avoid stack overflow
             // However we should clear the cache every time we completed the
             // api lookup, to avoid getting placeholder items leaking out

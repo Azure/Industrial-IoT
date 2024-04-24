@@ -333,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     switch (i)
                     {
                         case 0:
-                            value = new Variant((Uuid)Guid.NewGuid());
+                            value = new Variant(Guid.NewGuid().ToByteArray());
                             break;
                         case 1:
                             value = eventType;

@@ -195,44 +195,6 @@
       },
       "additionalProperties": false
     },
-    "org.opcfoundation.UA.Byte": {
-      "$id": "http://opcfoundation.org/UA/#Byte",
-      "title": "OPC UA built in type Byte",
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 255,
-      "default": 0,
-      "format": "byte"
-    },
-    "com.microsoft.ByteArrayDataValue": {
-      "$id": "http://www.microsoft.com#ByteArrayDataValue",
-      "title": "Dataset Field of Type ByteArray",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.Byte"
-          }
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
-    },
     "org.opcfoundation.UA.Int32": {
       "$id": "http://opcfoundation.org/UA/#Int32",
       "title": "OPC UA built in type Int32",
@@ -325,7 +287,7 @@
           "$ref": "#/definitions/com.microsoft.StringDataValue"
         },
         "LongString200kB": {
-          "$ref": "#/definitions/com.microsoft.ByteArrayDataValue"
+          "$ref": "#/definitions/com.microsoft.ByteStringDataValue"
         },
         "LongString50kB": {
           "$ref": "#/definitions/com.microsoft.StringDataValue"

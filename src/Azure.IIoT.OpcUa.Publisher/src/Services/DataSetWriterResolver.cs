@@ -1590,9 +1590,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 private static IEnumerable<SimpleAttributeOperandModel> GetModelChangeEventFields()
                 {
                     yield return Create(BrowseNames.EventId, builtInType: BuiltInType.ByteString);
-                    yield return Create(BrowseNames.EventType, builtInType: BuiltInType.NodeId);
+                    yield return Create(BrowseNames.EventType, builtInType: BuiltInType.ExpandedNodeId);
                     yield return Create(BrowseNames.SourceNode, builtInType: BuiltInType.NodeId);
-                    yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
+                    yield return Create(BrowseNames.Time, builtInType: BuiltInType.DateTime);
                     yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
 
                     static SimpleAttributeOperandModel Create(string fieldName, string? dataType = null,
@@ -1604,7 +1604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSetFieldName = fieldName,
                             MetaData = new PublishedMetaDataModel
                             {
-                                DataType = dataType ?? "i=" + builtInType,
+                                DataType = dataType ?? "i=" + (int)builtInType,
                                 ValueRank = ValueRanks.Scalar,
                                 // ArrayDimensions =
                                 BuiltInType = (byte)builtInType

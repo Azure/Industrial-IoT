@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -240,19 +241,19 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     // Read as nullable
                     _schema.Push(ArraySchema.Create(u));
-                    var result = ReadNullable(fieldName, f => ReadVariant(f, u.Schemas[1]));
+                    var result = ReadNullable(fieldName, _ => ReadVariant(u.Schemas[1]));
                     _schema.Pop();
                     return result;
                 }
 
-                return ReadVariant(fieldName, currentSchema);
+                return ReadVariant(currentSchema);
             }
             finally
             {
                 _schema.Pop();
             }
 
-            Variant ReadVariant(string? fieldName, Schema currentSchema)
+            Variant ReadVariant(Schema currentSchema)
             {
                 // Read as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
@@ -474,8 +475,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override ByteCollection ReadByteArray(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Byte,
-               base.ReadByteArray, SchemaRank.Collection);
+            return ValidatedRead(fieldName, BuiltInType.ByteString,
+               base.ReadByteArray, SchemaRank.Scalar);
         }
 
         /// <inheritdoc/>
@@ -628,27 +629,40 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Write as built in type
                 if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
                 {
+                    // When written in concise mode we get an array of bytes as byte string
+                    if (builtInType == BuiltInType.ByteString && rank == SchemaRank.Scalar)
+                    {
+                        _schema.Push(ArraySchema.Create(currentSchema));
+                        var result = ReadScalar(null, builtInType);
+                        _schema.Pop();
+                        return (result.Value as byte[])?
+                            .Select(o => new Variant(o))
+                            .ToArray();
+                    }
                     //
-                    // Rank should be collection, and all values to write should be
+                    // Otherwise rank should be collection, and all values to write should be
                     // scalar and of the built in type
                     //
-                    if (rank != SchemaRank.Collection)
+                    if (rank == SchemaRank.Collection)
+                    {
+                        _schema.Push(ArraySchema.Create(currentSchema));
+                        var result = ReadArray(null, builtInType, null, null);
+                        _schema.Pop();
+                        if (result == null || result.Length == 0)
+                        {
+                            return Array.Empty<Variant>();
+                        }
+                        return result.Cast<object?>()
+                            .Select(o => new Variant(o))
+                            .ToArray();
+                    }
+                    else
                     {
                         throw new ServiceResultException(StatusCodes.BadDecodingError,
                             $"Failed to decode. Wrong schema {currentSchema.ToJson()} " +
                             $"of field {fieldName ?? "unnamed"} to write variants.\n" +
                             $"{Schema.ToJson()}");
                     }
-                    _schema.Push(ArraySchema.Create(currentSchema));
-                    var result = ReadArray(null, builtInType, null, null);
-                    _schema.Pop();
-                    if (result == null || result.Length == 0)
-                    {
-                        return Array.Empty<Variant>();
-                    }
-                    return result.Cast<object?>()
-                        .Select(o => new Variant(o))
-                        .ToArray();
                 }
 
                 throw new ServiceResultException(StatusCodes.BadDecodingError,

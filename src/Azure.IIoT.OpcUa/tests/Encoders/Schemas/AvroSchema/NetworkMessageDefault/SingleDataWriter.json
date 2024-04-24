@@ -491,66 +491,7 @@
                     "name": "LongString200kB",
                     "type": [
                       "null",
-                      {
-                        "type": "record",
-                        "name": "ByteCollectionDataValue",
-                        "namespace": "org.github.microsoft.opc.publisher",
-                        "fields": [
-                          {
-                            "name": "Value",
-                            "type": [
-                              "null",
-                              {
-                                "type": "record",
-                                "name": "ByteCollection",
-                                "namespace": "org.opcfoundation.UA",
-                                "fields": [
-                                  {
-                                    "name": "Value",
-                                    "type": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "record",
-                                        "name": "Byte",
-                                        "namespace": "org.opcfoundation.UA",
-                                        "aliases": [
-                                          "org.opcfoundation.UA.i_3"
-                                        ],
-                                        "fields": [
-                                          {
-                                            "name": "Value",
-                                            "type": "int"
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "name": "StatusCode",
-                            "type": "org.opcfoundation.UA.StatusCode"
-                          },
-                          {
-                            "name": "SourceTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "SourcePicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          },
-                          {
-                            "name": "ServerTimestamp",
-                            "type": "org.opcfoundation.UA.DateTime"
-                          },
-                          {
-                            "name": "ServerPicoseconds",
-                            "type": "org.opcfoundation.UA.UInt16"
-                          }
-                        ]
-                      }
+                      "org.github.microsoft.opc.publisher.ByteStringDataValue"
                     ]
                   },
                   {

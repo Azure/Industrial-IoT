@@ -71,10 +71,12 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="namespaces"></param>
+        /// <param name="allowUnknownNamespace"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static NodeId ToNodeId(this ExpandedNodeId? nodeId, NamespaceTable namespaces)
+        public static NodeId ToNodeId(this ExpandedNodeId? nodeId, NamespaceTable namespaces,
+            bool allowUnknownNamespace = false)
         {
             if (nodeId?.IsNull != false)
             {
@@ -90,9 +92,13 @@ namespace Opc.Ua.Extensions
                 index = namespaces.GetIndex(nodeId.NamespaceUri);
                 if (index < 0)
                 {
-                    throw new ArgumentException(
-                        $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.",
-                        nameof(nodeId));
+                    if (!allowUnknownNamespace)
+                    {
+                        throw new ArgumentException(
+                            $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.",
+                            nameof(nodeId));
+                    }
+                    index = 0;
                 }
             }
             return new NodeId(nodeId.Identifier, (ushort)index);

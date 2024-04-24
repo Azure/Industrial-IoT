@@ -576,20 +576,6 @@
                                     },
                                     {
                                       "type": "record",
-                                      "name": "ByteCollection",
-                                      "namespace": "org.opcfoundation.UA",
-                                      "fields": [
-                                        {
-                                          "name": "Value",
-                                          "type": {
-                                            "type": "array",
-                                            "items": "Byte"
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "record",
                                       "name": "Int16Collection",
                                       "namespace": "org.opcfoundation.UA",
                                       "fields": [

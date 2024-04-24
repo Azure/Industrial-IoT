@@ -407,6 +407,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public override Schema GetSchemaForBuiltInType(BuiltInType builtInType,
             SchemaRank rank = SchemaRank.Scalar)
         {
+            // Always use byte string for byte arrays
+            if (builtInType == BuiltInType.Byte && rank == SchemaRank.Collection)
+            {
+                builtInType = BuiltInType.ByteString;
+                rank = SchemaRank.Scalar;
+            }
             if (!_builtIn.TryGetValue(builtInType, out var schema))
             {
                 // Before we create the schema add a place

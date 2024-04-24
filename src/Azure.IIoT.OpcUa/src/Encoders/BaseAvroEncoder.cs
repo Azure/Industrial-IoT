@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -388,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // the union discriminator.  After that we write the
             // namespace uri and then server index.
             //
-            WriteNodeId(value.ToNodeId(Context.NamespaceUris),
+            WriteNodeId(value.ToNodeId(Context.NamespaceUris, true),
                 namespaceUri ?? string.Empty);
             WriteString("ServerUri", serverUri);
         }
@@ -524,7 +525,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteByteArray(string? fieldName,
             IList<byte>? values)
         {
-            WriteArray(fieldName, values, v => WriteByte(null, v));
+            if (values == null || values.Count == 0)
+            {
+                _writer.WriteInteger(0);
+                return;
+            }
+
+            if (Context.MaxByteStringLength > 0 &&
+                Context.MaxByteStringLength < values.Count)
+            {
+                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxByteStringLength {Context.MaxByteStringLength} < {values.Count}");
+            }
+            // Byte array is written as byte string
+            _writer.WriteBytes(values.ToArray());
         }
 
         /// <inheritdoc/>
@@ -1575,9 +1589,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteInt32(null, Convert.ToInt32(valueToEncode,
                         CultureInfo.InvariantCulture));
                     return;
-                    //case BuiltInType.DiagnosticInfo:
-                    //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
-                    //    return;
+                //case BuiltInType.DiagnosticInfo:
+                //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
+                //    return;
             }
 
             throw new ServiceResultException(StatusCodes.BadEncodingError,

@@ -80,7 +80,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // type. This can be optimized in the future.
             //
             var typeName = DataSetName ?? nameof(AvroDataSetMessage);
-            var popUnion = false;
             if (encoder is AvroEncoder schemas)
             {
                 var currentSchema = schemas.Current;
@@ -89,15 +88,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     // Writing an array of messages
                     currentSchema = arr.ItemSchema;
                 }
-                if (currentSchema is UnionSchema unionSchema)
+                if (currentSchema is UnionSchema u)
                 {
-                    encoder.StartUnion(DataSetWriterId);
-                    popUnion = true;
-                    currentSchema = unionSchema[DataSetWriterId];
+                    encoder.WriteUnion(null, DataSetWriterId,
+                        id => Encode(u[id].Name));
                 }
-                typeName = currentSchema.Name;
+                else
+                {
+                    Encode(typeName);
+                }
             }
-            try
+            else
+            {
+                Encode(typeName);
+            }
+
+            void Encode(string typeName)
             {
                 if (!WithDataSetHeader)
                 {
@@ -113,13 +119,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     // Write payload
                     encoder.WriteDataSet(nameof(Payload), Payload);
                 });
-            }
-            finally
-            {
-                if (popUnion)
-                {
-                    encoder.EndUnion();
-                }
             }
         }
 

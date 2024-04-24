@@ -190,33 +190,7 @@
       "name": "LongString200kB",
       "type": [
         "null",
-        {
-          "type": "record",
-          "name": "ByteCollection",
-          "namespace": "org.opcfoundation.UA",
-          "fields": [
-            {
-              "name": "Value",
-              "type": {
-                "type": "array",
-                "items": {
-                  "type": "record",
-                  "name": "Byte",
-                  "namespace": "org.opcfoundation.UA",
-                  "aliases": [
-                    "org.opcfoundation.UA.i_3"
-                  ],
-                  "fields": [
-                    {
-                      "name": "Value",
-                      "type": "int"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        }
+        "org.opcfoundation.UA.ByteString"
       ]
     },
     {
