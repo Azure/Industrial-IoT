@@ -8,43 +8,17 @@
       "type": "string",
       "format": "date-time"
     },
-    "org.opcfoundation.UA.StatusCode": {
-      "$id": "http://opcfoundation.org/UA/#StatusCode",
-      "title": "OPC UA built in type StatusCode",
-      "type": "integer",
-      "format": "uint32"
-    },
-    "org.opcfoundation.UA.UInt16": {
-      "$id": "http://opcfoundation.org/UA/#UInt16",
-      "title": "OPC UA built in type UInt16",
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 65535,
-      "default": 0,
-      "format": "uint16"
-    },
-    "org.github.microsoft.opcpublisher.DateTimeDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#DateTimeDataValue",
-      "title": "Dataset Field of Type DateTime",
+    "org.github.microsoft.opcpublisher.DateTimeVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#DateTimeVariant",
+      "title": "Variant Field of Type DateTime",
       "type": "object",
       "properties": {
-        "Value": {
+        "Type": {
+          "type": "integer",
+          "const": 13
+        },
+        "Body": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
@@ -54,28 +28,17 @@
       "title": "OPC UA built in type String",
       "type": "string"
     },
-    "org.github.microsoft.opcpublisher.StringDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#StringDataValue",
-      "title": "Dataset Field of Type String",
+    "org.github.microsoft.opcpublisher.StringVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#StringVariant",
+      "title": "Variant Field of Type String",
       "type": "object",
       "properties": {
-        "Value": {
+        "Type": {
+          "type": "integer",
+          "const": 12
+        },
+        "Body": {
           "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
@@ -127,28 +90,17 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.VariantDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#VariantDataValue",
-      "title": "Dataset Field of Type Variant",
+    "org.github.microsoft.opcpublisher.VariantVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#VariantVariant",
+      "title": "Variant Field of Type Variant",
       "type": "object",
       "properties": {
-        "Value": {
+        "Type": {
+          "type": "integer",
+          "const": 24
+        },
+        "Body": {
           "$ref": "#/definitions/org.opcfoundation.UA.Variant"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
@@ -158,28 +110,17 @@
       "title": "OPC UA built in type Boolean",
       "type": "boolean"
     },
-    "org.github.microsoft.opcpublisher.BooleanDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
-      "title": "Dataset Field of Type Boolean",
+    "org.github.microsoft.opcpublisher.BooleanVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#BooleanVariant",
+      "title": "Variant Field of Type Boolean",
       "type": "object",
       "properties": {
-        "Value": {
+        "Type": {
+          "type": "integer",
+          "const": 1
+        },
+        "Body": {
           "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
@@ -193,28 +134,17 @@
       "default": 0,
       "format": "float"
     },
-    "org.github.microsoft.opcpublisher.FloatDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#FloatDataValue",
-      "title": "Dataset Field of Type Float",
+    "org.github.microsoft.opcpublisher.FloatVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#FloatVariant",
+      "title": "Variant Field of Type Float",
       "type": "object",
       "properties": {
-        "Value": {
+        "Type": {
+          "type": "integer",
+          "const": 10
+        },
+        "Body": {
           "$ref": "#/definitions/org.opcfoundation.UA.Float"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         }
       },
       "additionalProperties": false
@@ -225,19 +155,19 @@
       "type": "object",
       "properties": {
         "CurrentTime": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeVariant"
         },
         "EngineeringUnits": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringVariant"
         },
         "AssetId": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.VariantDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.VariantVariant"
         },
         "Important": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanVariant"
         },
         "Variance": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.FloatDataValue"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.FloatVariant"
         }
       }
     }

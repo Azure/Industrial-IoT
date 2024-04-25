@@ -693,7 +693,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void TestLocalizedTextArray()
+        public void TestLocalizedTextArray1()
         {
             var context = new ServiceMessageContext();
             var expected = new LocalizedText[] { new("test", "en"), new("test", "en") };
@@ -703,6 +703,20 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(expected, decoder.ReadLocalizedTextArray(null));
+        }
+
+        [Fact]
+        public void TestLocalizedTextArray2()
+        {
+            var context = new ServiceMessageContext();
+            var expected = new LocalizedText[] { new("test", "en"), new("test", "en") };
+            using var stream = new MemoryStream();
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
+            encoder.WriteArray(null, expected, ValueRanks.OneDimension, BuiltInType.LocalizedText);
+            stream.Position = 0;
+            using var decoder = new SchemalessAvroDecoder(stream, context);
+            var result = decoder.ReadArray(null, ValueRanks.OneDimension, BuiltInType.LocalizedText);
+            Assert.Equal(expected, result);
         }
 
         [Fact]

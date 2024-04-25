@@ -860,7 +860,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Read union selector
         /// </summary>
         /// <returns></returns>
-        public virtual int StartUnion()
+        protected virtual int StartUnion()
         {
             return (int)_reader.ReadInteger();
         }
@@ -868,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// End union
         /// </summary>
-        public virtual void EndUnion()
+        protected virtual void EndUnion()
         {
         }
 

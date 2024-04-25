@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 foreach (var value in dataSet)
                 {
-                    WriteNullableDataValue(value.Key, value.Value);
+                    WriteNullable(value.Key, value.Value, WriteDataValue);
                 }
             }
         }
@@ -1209,25 +1209,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Start union
         /// </summary>
         /// <param name="index"></param>
-        public virtual void StartUnion(int index)
+        protected virtual void StartUnion(int index)
         {
             _writer.WriteInteger(index);
         }
 
         /// <inheritdoc/>
-        public virtual void EndUnion()
+        protected virtual void EndUnion()
         {
-        }
-
-        /// <summary>
-        /// Write nullable data value
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="value"></param>
-        protected virtual void WriteNullableDataValue(string? fieldName,
-            DataValue? value)
-        {
-            WriteNullable(fieldName, value, WriteDataValue);
         }
 
         /// <summary>

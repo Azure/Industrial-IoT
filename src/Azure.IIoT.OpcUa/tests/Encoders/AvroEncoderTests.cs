@@ -1209,16 +1209,20 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(3)]
-        [InlineData(4096)]
-        public void TestLocalizedTextArray(int length)
+        [InlineData(false, 0)]
+        [InlineData(false, 1)]
+        [InlineData(false, 3)]
+        [InlineData(false, 4096)]
+        [InlineData(true, 0)]
+        [InlineData(true, 1)]
+        [InlineData(true, 3)]
+        [InlineData(true, 4096)]
+        public void TestLocalizedTextArray1(bool concise, int length)
         {
             var context = new ServiceMessageContext();
             var expected = Enumerable.Range(0, length).Select(v => new LocalizedText("test" + v, "en")).ToArray();
             using var stream = new MemoryStream();
-            using var builder = new AvroSchemaBuilder(stream, context, true);
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
             builder.WriteLocalizedTextArray(null, expected);
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
@@ -1226,6 +1230,30 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
             Assert.Equal(expected, decoder.ReadLocalizedTextArray(null));
+        }
+
+        [Theory]
+        [InlineData(false, 0)]
+        [InlineData(false, 1)]
+        [InlineData(false, 3)]
+        [InlineData(false, 4096)]
+        [InlineData(true, 0)]
+        [InlineData(true, 1)]
+        [InlineData(true, 3)]
+        [InlineData(true, 4096)]
+        public void TestLocalizedTextArray2(bool concise, int length)
+        {
+            var context = new ServiceMessageContext();
+            var expected = Enumerable.Range(0, length).Select(v => new LocalizedText("test" + v, "en")).ToArray();
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, concise);
+            builder.WriteArray(null, expected, ValueRanks.OneDimension, BuiltInType.LocalizedText);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var result = decoder.ReadArray(null, ValueRanks.OneDimension, BuiltInType.LocalizedText);
+            Assert.Equal(expected, result);
         }
 
         [Fact]

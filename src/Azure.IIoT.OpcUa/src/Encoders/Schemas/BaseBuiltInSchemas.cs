@@ -32,9 +32,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="ns"></param>
         /// <param name="asDataValue"></param>
         /// <param name="valueSchema"></param>
+        /// <param name="builtInType"></param>
         /// <returns></returns>
-        public abstract T GetSchemaForDataSetField(
-            string ns, bool asDataValue, T valueSchema);
+        public abstract T GetSchemaForDataSetField(string ns,
+            bool asDataValue, T valueSchema, BuiltInType builtInType);
 
         /// <summary>
         /// Get the schema definition for a type that can

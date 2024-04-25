@@ -413,69 +413,79 @@ Options:
         {
             try
             {
-                foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
+                // Dump one message encoding at a time
+                var rootFolder = Path.Combine(".", "dump");
+                foreach (var messageProfile in MessagingProfile.Supported)
                 {
-                    var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
-                    var logger = loggerFactory.CreateLogger(publishProfileName);
-                    var outputFolder = Path.Combine(".", "dump", publishProfileName);
+                    if (messageProfile.MessageEncoding.HasFlag(MessageEncoding.IsGzipCompressed))
+                    {
+                        // No need to dump gzip
+                        continue;
+                    }
+
+                    if (messageMode != "all" &&
+                        !messageProfile.MessagingMode.ToString().Equals(
+                            messageMode, StringComparison.OrdinalIgnoreCase) &&
+                        !messageProfile.MessageEncoding.ToString().Equals(
+                            messageMode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"Skipping {messageProfile}...");
+                        continue;
+                    }
+
+                    var outputFolder = Path.Combine(rootFolder, messageProfile.MessagingMode.ToString(),
+                        messageProfile.MessageEncoding.ToString());
                     if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
                     {
                         continue;
                     }
-                    Console.WriteLine($@"
-#############################################################################
-Start publishing profile {publishProfileName}...
-#############################################################################
-");
                     Directory.CreateDirectory(outputFolder);
-                    async Task RunForDuration(string publishProfile, MessagingProfile messageProfile)
-                    {
-                        using var runtime = new CancellationTokenSource(duration);
-                        try
-                        {
-                            using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
-                                ct, runtime.Token);
-                            Console.WriteLine($@"
-=============================================================================
-Start messaging profile {messageProfile}...
-=============================================================================
-");
-                            await RunAsync(loggerFactory, publishProfile, messageProfile,
-                                outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
-                            Console.WriteLine($@"
-=============================================================================
-Completed messaging profile {messageProfile}.
-=============================================================================
-");
-                        }
-                        catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
-                    }
-                    foreach (var messageProfile in MessagingProfile.Supported)
-                    {
-                        if (messageProfile.MessageEncoding.HasFlag(MessageEncoding.IsGzipCompressed))
-                        {
-                            // No need to dump gzip
-                            continue;
-                        }
-                        //if (!messageProfile.MessageEncoding.HasFlag(MessageEncoding.Avro))
-                        //{
-                        //    // No need to dump gzip
-                        //    continue;
-                        //}
-                        if (messageMode == "all" || messageProfile.MessagingMode.ToString()
-                            .Equals(messageMode, StringComparison.OrdinalIgnoreCase))
-                        {
-                            await RunForDuration(publishProfile, messageProfile).ConfigureAwait(false);
-                        }
-                    }
-                    Console.WriteLine($@"
-#############################################################################
-Completed publishing profile {publishProfileName}.
-#############################################################################
-");
+                    await DumpPublishingProfiles(outputFolder, messageProfile).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
+
+            // Dump message profile for all publishing profiles
+            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile)
+            {
+                foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
+                {
+                    var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
+                    var logger = loggerFactory.CreateLogger(publishProfileName);
+                    var outputFolder = Path.Combine(rootFolder, publishProfileName);
+                    if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
+                    {
+                        continue;
+                    }
+                    Directory.CreateDirectory(outputFolder);
+                    await DumpMessagesForDuration(outputFolder, publishProfile,
+                            messageProfile).ConfigureAwait(false);
+                }
+            }
+
+            async Task DumpMessagesForDuration(string outputFolder, string publishProfile,
+                MessagingProfile messageProfile)
+            {
+                using var runtime = new CancellationTokenSource(duration);
+                try
+                {
+                    using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
+                        ct, runtime.Token);
+                    Console.WriteLine($@"
+=============================================================================
+Start messaging profile {messageProfile} for {publishProfile}...
+=============================================================================
+");
+                    await RunAsync(loggerFactory, publishProfile, messageProfile,
+                        outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
+                    Console.WriteLine($@"
+=============================================================================
+Completed messaging profile {messageProfile} for {publishProfile}.
+=============================================================================
+");
+                }
+                catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
+            }
 
             static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
                 MessagingProfile messageProfile, string outputFolder, uint scaleunits, CancellationToken ct)
@@ -508,8 +518,8 @@ Completed publishing profile {publishProfileName}.
                         $"--pf={publishedNodesFilePath}",
                         $"--me={messageProfile.MessageEncoding}",
                         $"--mm={messageProfile.MessagingMode}",
-                        $"--ttt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}/{{WriterGroup}}",
-                        $"--mdt={name}/{messageProfile.MessagingMode}/{messageProfile.MessageEncoding}/{{WriterGroup}}",
+                        $"--ttt={name}/{{WriterGroup}}",
+                        $"--mdt={name}/{{WriterGroup}}",
                         "-t=FileSystem",
                         $"-o={outputFolder}",
                         "--aa"
@@ -517,6 +527,7 @@ Completed publishing profile {publishProfileName}.
                     await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
                 }
             }
+
         }
 
         private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,

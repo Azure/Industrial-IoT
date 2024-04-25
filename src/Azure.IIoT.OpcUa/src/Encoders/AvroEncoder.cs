@@ -627,19 +627,94 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         dataValue = null;
                     }
-                    if (field.Schema is not UnionSchema)
-                    {
-                        WriteVariant(field.Name, dataValue?.WrappedValue ?? default);
-                    }
-                    else
-                    {
-                        WriteNullable(field.Name, dataValue, WriteDataSetField);
-                    }
+                    WriteDataSetField(field.Name, dataValue, field.Schema);
                 }
             }
             finally
             {
                 _schema.Pop();
+            }
+        }
+
+        /// <summary>
+        /// Write data set field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="dataValue"></param>
+        /// <param name="schema"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        private void WriteDataSetField(string? fieldName, DataValue? dataValue,
+            Schema schema)
+        {
+            if (schema is not UnionSchema)
+            {
+                WriteVariant(fieldName, dataValue?.WrappedValue ?? default);
+            }
+            else
+            {
+                WriteNullable(fieldName, dataValue, WriteDataSetFieldValue);
+            }
+
+            void WriteDataSetFieldValue(string? fieldName, DataValue value)
+            {
+                var currentSchema = GetFieldSchema(fieldName);
+                try
+                {
+                    if (currentSchema is not RecordSchema fieldRecord)
+                    {
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            $"Invalid schema {currentSchema.ToJson()}." +
+                            $"Data set fields must be records.\n{Schema.ToJson()}");
+                    }
+
+                    // The field is a record that should contain the data value fields
+                    if (fieldRecord.IsDataValue())
+                    {
+                        foreach (var dvf in fieldRecord.Fields)
+                        {
+                            switch (dvf.Name)
+                            {
+                                case nameof(value.Value):
+                                    WriteVariant(nameof(value.Value),
+                                        value.WrappedValue);
+                                    break;
+                                case nameof(value.SourceTimestamp):
+                                    WriteDateTime(nameof(value.SourceTimestamp),
+                                        value.SourceTimestamp);
+                                    break;
+                                case nameof(value.SourcePicoseconds):
+                                    WriteUInt16(nameof(value.SourcePicoseconds),
+                                        value.SourcePicoseconds);
+                                    break;
+                                case nameof(value.ServerTimestamp):
+                                    WriteDateTime(nameof(value.ServerTimestamp),
+                                        value.ServerTimestamp);
+                                    break;
+                                case nameof(value.ServerPicoseconds):
+                                    WriteUInt16(nameof(value.ServerPicoseconds),
+                                        value.ServerPicoseconds);
+                                    break;
+                                case nameof(value.StatusCode):
+                                    WriteStatusCode(nameof(value.StatusCode),
+                                        value.StatusCode);
+                                    break;
+                                default:
+                                    throw new ServiceResultException(
+                                        StatusCodes.BadEncodingError,
+                                        $"Unknown field {dvf.Name} in dataset field.");
+                            }
+                        }
+                        return;
+                    }
+
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Invalid schema {Current.ToJson()}." +
+                        $"Data set fields must be records.\n{Schema.ToJson()}");
+                }
+                finally
+                {
+                    _schema.Pop();
+                }
             }
         }
 
@@ -680,101 +755,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             ValidatedWrite(fieldName, SchemaUtils.NamespaceZeroName + ".EncodedDataType",
                 value, base.WriteEncodedDataType);
-        }
-
-        /// <summary>
-        /// Write data set field
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="value"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        private void WriteDataSetField(string? fieldName, DataValue value)
-        {
-            var currentSchema = GetFieldSchema(fieldName);
-            try
-            {
-                if (currentSchema is UnionSchema u)
-                {
-                    _schema.Push(ArraySchema.Create(u));
-                    WriteUnion(null, value == null ? 0 : 1, unionId =>
-                    {
-                        switch (unionId)
-                        {
-                            case 0:
-                                WriteNull(null, value);
-                                break;
-                            default:
-                                Debug.Assert(value != null);
-                                _schema.Push(u.Schemas[1]);
-                                WriteDataSetFieldValue(value);
-                                _schema.Pop();
-                                break;
-                        }
-                    });
-                    _schema.Pop();
-                    return;
-                }
-                WriteDataSetFieldValue(value);
-            }
-            finally
-            {
-                _schema.Pop();
-            }
-
-            void WriteDataSetFieldValue(DataValue value)
-            {
-                if (Current is not RecordSchema fieldRecord)
-                {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Invalid schema {Current.ToJson()}." +
-                        $"Data set fields must be records.\n{Schema.ToJson()}");
-                }
-
-                // The field is a record that should contain the data value fields
-                if (fieldRecord.IsDataValue())
-                {
-                    foreach (var dvf in fieldRecord.Fields)
-                    {
-                        switch (dvf.Name)
-                        {
-                            case nameof(value.Value):
-                                WriteVariant(nameof(value.Value),
-                                    value.WrappedValue);
-                                break;
-                            case nameof(value.SourceTimestamp):
-                                WriteDateTime(nameof(value.SourceTimestamp),
-                                    value.SourceTimestamp);
-                                break;
-                            case nameof(value.SourcePicoseconds):
-                                WriteUInt16(nameof(value.SourcePicoseconds),
-                                    value.SourcePicoseconds);
-                                break;
-                            case nameof(value.ServerTimestamp):
-                                WriteDateTime(nameof(value.ServerTimestamp),
-                                    value.ServerTimestamp);
-                                break;
-                            case nameof(value.ServerPicoseconds):
-                                WriteUInt16(nameof(value.ServerPicoseconds),
-                                    value.ServerPicoseconds);
-                                break;
-                            case nameof(value.StatusCode):
-                                WriteStatusCode(nameof(value.StatusCode),
-                                    value.StatusCode);
-                                break;
-                            default:
-                                throw new ServiceResultException(
-                                    StatusCodes.BadEncodingError,
-                                    $"Unknown field {dvf.Name} in dataset field.");
-                        }
-                    }
-                    return;
-                }
-
-                // Write value as variant
-                _schema.Push(ArraySchema.Create(fieldRecord));
-                WriteVariant(null, value.WrappedValue);
-                _schema.Pop();
-            }
         }
 
         /// <inheritdoc/>
@@ -842,7 +822,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override void StartUnion(int index)
+        protected override void StartUnion(int index)
         {
             base.StartUnion(index);
             _schema.ExpectUnionItem = u =>
@@ -854,11 +834,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 throw new ServiceResultException(StatusCodes.BadEncodingError,
                     $"Union index {index} not found in union {u.ToJson()}\n{Schema.ToJson()}");
             };
-            // GetFieldSchema(null);
         }
 
         /// <inheritdoc/>
-        public override void EndUnion()
+        protected override void EndUnion()
         {
             var unionSchema = _schema.Pop();
             if (unionSchema is not UnionSchema)

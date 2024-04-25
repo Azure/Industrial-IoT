@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (schema is not RecordSchema recordSchema)
                 {
                     // Should always be a record at the start
-                    return false;
+                    return (bool?)null;
                 }
 
                 if (recordSchema.Fields.Count == 6 &&

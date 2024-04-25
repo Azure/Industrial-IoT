@@ -746,15 +746,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override Array? ReadArray(string? fieldName, int valueRank,
-            BuiltInType builtInType, Type? systemType, ExpandedNodeId? encodeableTypeId)
-        {
-            return ValidatedReadArray(
-                () => base.ReadArray(fieldName, valueRank, builtInType,
-                    systemType, encodeableTypeId));
-        }
-
-        /// <inheritdoc/>
         public override T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
             return ValidatedReadArray(() => base.ReadArray(fieldName, () => reader()));
@@ -803,7 +794,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override int StartUnion()
+        protected override int StartUnion()
         {
             var index = base.StartUnion();
             _schema.ExpectUnionItem = u =>
@@ -819,7 +810,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override void EndUnion()
+        protected override void EndUnion()
         {
             var unionSchema = _schema.Pop();
             if (unionSchema is not UnionSchema)
@@ -925,7 +916,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         private T ValidatedReadArray<T>(Func<T> reader)
         {
             var currentSchema = GetFieldSchema(null);
-            if (currentSchema is not ArraySchema arr)
+            if (currentSchema is not ArraySchema)
             {
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
                     $"Reading array field but schema {currentSchema.ToJson()} is not " +

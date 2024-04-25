@@ -8,195 +8,16 @@
       "type": "string",
       "format": "opcuaNodeId"
     },
-    "org.opcfoundation.UA.UInt32": {
-      "$id": "http://opcfoundation.org/UA/#UInt32",
-      "title": "OPC UA built in type UInt32",
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 4294967295,
-      "default": 0,
-      "format": "uint32"
-    },
-    "org.opcfoundation.UA.String": {
-      "$id": "http://opcfoundation.org/UA/#String",
-      "title": "OPC UA built in type String",
-      "type": "string"
-    },
-    "org.opcfoundation.UA.StatusCode": {
-      "$id": "http://opcfoundation.org/UA/#StatusCode",
-      "title": "OPC UA built in type StatusCode",
-      "type": "object",
-      "properties": {
-        "Code": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
-        },
-        "Symbol": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        }
-      },
-      "additionalProperties": false
-    },
-    "org.opcfoundation.UA.DateTime": {
-      "$id": "http://opcfoundation.org/UA/#DateTime",
-      "title": "OPC UA built in type DateTime",
-      "type": "string",
-      "format": "date-time"
-    },
-    "org.opcfoundation.UA.UInt16": {
-      "$id": "http://opcfoundation.org/UA/#UInt16",
-      "title": "OPC UA built in type UInt16",
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 65535,
-      "default": 0,
-      "format": "uint16"
-    },
-    "org.github.microsoft.opcpublisher.NodeIdDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#NodeIdDataValue",
-      "title": "Dataset Field of Type NodeId",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
-    },
     "org.opcfoundation.UA.LocalizedText": {
       "$id": "http://opcfoundation.org/UA/#LocalizedText",
       "title": "OPC UA built in type LocalizedText",
       "type": "string"
-    },
-    "org.github.microsoft.opcpublisher.LocalizedTextDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#LocalizedTextDataValue",
-      "title": "Dataset Field of Type LocalizedText",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
-    },
-    "org.github.microsoft.opcpublisher.NodeIdArrayDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#NodeIdArrayDataValue",
-      "title": "Dataset Field of Type NodeIdArray",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
-          }
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
-    },
-    "org.github.microsoft.opcpublisher.LocalizedTextArrayDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#LocalizedTextArrayDataValue",
-      "title": "Dataset Field of Type LocalizedTextArray",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
-          }
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
     },
     "org.opcfoundation.UA.ByteString": {
       "$id": "http://opcfoundation.org/UA/#ByteString",
       "title": "OPC UA built in type ByteString",
       "type": "string",
       "format": "byte"
-    },
-    "org.github.microsoft.opcpublisher.ByteStringDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#ByteStringDataValue",
-      "title": "Dataset Field of Type ByteString",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.ByteString"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
     },
     "org.opcfoundation.UA.Int16": {
       "$id": "http://opcfoundation.org/UA/#Int16",
@@ -230,109 +51,25 @@
       ],
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.TimeZoneDataTypeDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#TimeZoneDataTypeDataValue",
-      "title": "Dataset Field of Type TimeZoneDataType",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.TimeZoneDataType"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
+    "org.opcfoundation.UA.DateTime": {
+      "$id": "http://opcfoundation.org/UA/#DateTime",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
     },
-    "org.github.microsoft.opcpublisher.DateTimeDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#DateTimeDataValue",
-      "title": "Dataset Field of Type DateTime",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
+    "org.opcfoundation.UA.UInt16": {
+      "$id": "http://opcfoundation.org/UA/#UInt16",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
     },
-    "org.github.microsoft.opcpublisher.UInt16DataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#UInt16DataValue",
-      "title": "Dataset Field of Type UInt16",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
-    },
-    "org.github.microsoft.opcpublisher.StringDataValue": {
-      "$id": "http://github.org/microsoft/opcpublisher#StringDataValue",
-      "title": "Dataset Field of Type String",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Status": {
-          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
-        },
-        "SourceTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "SourcePicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        },
-        "ServerTimestamp": {
-          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
-        },
-        "ServerPicoSeconds": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
-        }
-      },
-      "additionalProperties": false
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
     },
     "org.github.microsoft.opcpublisher.PendingAlarms": {
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarms",
@@ -340,43 +77,49 @@
       "type": "object",
       "properties": {
         "ConditionClassId": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
         },
         "ConditionClassName": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
         },
         "ConditionSubClassId": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdArrayDataValue"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
+          }
         },
         "ConditionSubClassName": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextArrayDataValue"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
+          }
         },
         "EventId": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteStringDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.ByteString"
         },
         "EventType": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
         },
         "LocalTime": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.TimeZoneDataTypeDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.TimeZoneDataType"
         },
         "Message": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
         },
         "ReceiveTime": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
         "Severity": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt16DataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
         },
         "SourceName": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
         },
         "SourceNode": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
         },
         "Time": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         }
       }
     }

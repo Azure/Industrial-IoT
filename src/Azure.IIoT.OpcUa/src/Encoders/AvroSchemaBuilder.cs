@@ -537,25 +537,42 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        protected override void WriteNullableDataValue(string? fieldName,
-            DataValue? value)
-        {
-            using var _ = Union(fieldName, true);
-            if (value == null)
-            {
-                using var __ = Add(fieldName, BuiltInType.DataValue);
-                base.WriteNullableDataValue(fieldName, value);
-                return;
-            }
-            base.WriteNullableDataValue(fieldName, value);
-        }
-
-        /// <inheritdoc/>
         public override void WriteArray<T>(string? fieldName, IList<T>? values,
             Action<T> writer, string? typeName = null)
         {
             using var _ = Array(fieldName);
             base.WriteArray(fieldName, values, writer);
+        }
+
+        /// <inheritdoc/>
+        protected override void WriteNullable<T>(string? fieldName, T? value,
+            Action<string?, T> writer) where T : class
+        {
+            using var _ = Union(fieldName, true);
+            base.WriteNullable(fieldName, value, writer);
+            if (value == null)
+            {
+                //
+                // We need to add the type to the schema even in case of
+                // null value.
+                // Try to be generic enough, but this will not work for
+                // everything at this point. Need to update if tests fail.
+                // Today we use this for DiagnosticInfo and DataValue
+                //
+                SchemaRank rank;
+                var type = typeof(T);
+                if (typeof(T).IsArray)
+                {
+                    rank = SchemaRank.Collection;
+                    type = type.GetElementType();
+                }
+                else
+                {
+                    rank = SchemaRank.Scalar;
+                }
+                var builtInType = Enum.Parse<BuiltInType>(type!.Name);
+                using var __ = Add(fieldName, builtInType, rank);
+            }
         }
 
         /// <summary>

@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         public override Schema GetSchemaForDataSetField(string ns, bool asDataValue,
-            Schema valueSchema)
+            Schema valueSchema, BuiltInType builtInType)
         {
             var variantSchema = GetSchemaForBuiltInType(BuiltInType.Variant);
 #if USE_VARIANT_FOR_DATAVALUE

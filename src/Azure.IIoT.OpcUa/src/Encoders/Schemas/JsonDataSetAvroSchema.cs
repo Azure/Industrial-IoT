@@ -121,8 +121,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
-                        schema = Encoding.GetSchemaForDataSetField(
-                            ns, fieldsAreDataValues, schema);
+                        schema = Encoding.GetSchemaForDataSetField(ns, fieldsAreDataValues,
+                            schema, (Opc.Ua.BuiltInType)fieldMetadata.BuiltInType);
 
                         fields.Add(new Field(schema, SchemaUtils.Escape(fieldName), pos));
                     }

@@ -140,17 +140,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     if (fieldName != null)
                     {
                         // TODO: Add properties to the field type
-                        schema = Encoding.GetSchemaForDataSetField(
-                            ns, fieldsAreDataValues, schema);
+                        schema = Encoding.GetSchemaForDataSetField(ns, fieldsAreDataValues,
+                            schema, (Opc.Ua.BuiltInType)fieldMetadata.BuiltInType);
 
                         schema.Description = fieldMetadata.Description;
                         properties.Add(fieldName, schema);
                     }
                 }
-            }
-            if (properties.Count == 0)
-            {
-                return Enumerable.Empty<JsonSchema>();
             }
             var type = MakeUnique(name ?? dataSet.Name ?? "DataSet", uniqueNames);
             return Definitions.Reference(_options.GetSchemaId(type), id => new JsonSchema

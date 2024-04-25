@@ -1,5 +1,4 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
+﻿//  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
@@ -522,22 +521,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         public override JsonSchema GetSchemaForDataSetField(string ns, bool asDataValue,
-            JsonSchema valueSchema)
+            JsonSchema valueSchema, BuiltInType builtInType)
         {
-            if (!asDataValue)
-            {
-                // Nothing to do when value is raw value of variant.
-                if (_reversibleEncoding)
-                {
-                    return valueSchema;
-                }
-                //
-                // TODO: Create a stand in variant with const schema
-                // setting the built in type
-                //
-                return GetSchemaForBuiltInType(BuiltInType.Variant);
-            }
-
             var fieldSchema = valueSchema.Resolve(Schemas);
             var isArray = fieldSchema.Type == SchemaType.Array &&
                 fieldSchema.Items?.Count == 1;
@@ -551,6 +536,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 type += "Array";
             }
+
+            if (_reversibleEncoding)
+            {
+                // For reversible encoding, the field is a variant formatted object
+                valueSchema = GetSchemaForTypedVariant(ns, type,
+                    valueSchema, builtInType);
+            }
+
+            if (!asDataValue)
+            {
+                // Raw mode
+                return valueSchema;
+            }
+
             var id = new UriOrFragment(type + nameof(DataValue), ns);
             return Schemas.Reference(id, id =>
             {
@@ -586,6 +585,39 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 default:
                     return schema;
             }
+        }
+
+        /// <summary>
+        /// Generate a typed variant
+        /// </summary>
+        /// <param name="ns"></param>
+        /// <param name="name"></param>
+        /// <param name="valueSchema"></param>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private JsonSchema GetSchemaForTypedVariant(string ns, string name, JsonSchema valueSchema,
+            BuiltInType builtInType)
+        {
+            var id = new UriOrFragment(name + nameof(Variant), ns);
+            return Schemas.Reference(id, id =>
+            {
+                return new JsonSchema
+                {
+                    Id = id,
+                    Title = $"Variant Field of Type {name}",
+                    Type = SchemaType.Object,
+                    Properties = new Dictionary<string, JsonSchema>
+                    {
+                        ["Type"] = new JsonSchema
+                        {
+                            Type = SchemaType.Integer,
+                            Const = Const.From((int)builtInType)
+                        },
+                        ["Body"] = valueSchema
+                    },
+                    AdditionalProperties = new JsonSchema { Allowed = false }
+                };
+            });
         }
 
         /// <summary>

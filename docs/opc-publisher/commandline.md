@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.6 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
+                                                  2.9.7 (.NET 8.0.4/win-x64/OPC Stack 1.5.374.36)
 
 General
 -------
@@ -119,6 +119,8 @@ Messaging configuration
                                    `FullSamples`
                                    `DataSetMessages`
                                    `SingleDataSetMessage`
+                                   `DataSets`
+                                   `SingleDataSet`
                                    `RawDataSets`
                                    `SingleRawDataSet`
                                Default: `PubSub` if `-c` is specified,
@@ -251,6 +253,8 @@ Messaging configuration
                                registry or subtopics.
                                Automatically enables complex type system and
                                metadata support.
+                               Only has effect if the messaging profile
+                               supports publishing schemas.
                                Default: `True` if the message encoding requires
                                schemas (for example Avro) otherwise `False`.
       --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
@@ -937,6 +941,11 @@ Diagnostic options
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
                                Default: `disabled`.
+      --lnh, --lognotificationsandheartbeats[=VALUE]
+                             Include heartbeats in notifications log.
+                               If set also implicitly enables debug logging via
+                               `--ln`.
+                               Default: `disabled`.
       --lnf, --lognotificationfilter[=VALUE]
                              Only log notifications where the data set field
                                name, subscription name, or data set name match
@@ -944,6 +953,11 @@ Diagnostic options
                                If set implicitly enables debug logging via `--
                                ln`.
                                Default: `null` (matches all).
+      --len, --logencodednotifications[=VALUE]
+                             Log encoded subscription and monitored item
+                               notifications at Informational level to aid
+                               debugging.
+                               Default: `disabled`.
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.
