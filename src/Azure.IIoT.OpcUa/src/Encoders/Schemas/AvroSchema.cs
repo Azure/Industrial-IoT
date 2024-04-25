@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             out BuiltInType builtInType, out SchemaRank valueRank)
         {
             valueRank = SchemaRank.Scalar;
-            if (schema is NamedSchema ns &&
+            if (schema is RecordSchema ns &&
                 ns.SchemaName.Namespace == SchemaUtils.NamespaceZeroName)
             {
                 var name = ns.Name;
@@ -176,6 +176,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 {
                     return true;
                 }
+            }
+            if (schema is ArraySchema a)
+            {
+                valueRank = SchemaRank.Collection;
+                schema = a.ItemSchema;
+            }
+            if (schema is EnumSchema)
+            {
+                builtInType = BuiltInType.Enumeration;
+                return true;
             }
             builtInType = BuiltInType.Null;
             return false;

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Buffers;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -154,6 +155,20 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(value, decoder.ReadVariant(null).Value);
+        }
+
+        [Theory]
+        [InlineData(DiagnosticsLevel.Advanced)]
+        [InlineData(BuiltInType.Int32)]
+        public void TestVariantWithEnumeration(object value)
+        {
+            var context = new ServiceMessageContext();
+            using var stream = new MemoryStream();
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
+            encoder.WriteVariant(null, new Variant(value));
+            stream.Position = 0;
+            using var decoder = new SchemalessAvroDecoder(stream, context);
+            Assert.Equal(Convert.ToInt32(value, CultureInfo.InvariantCulture), decoder.ReadVariant(null).Value);
         }
 
         public static TheoryData<VariantHolder> GetValues()
@@ -792,6 +807,20 @@ namespace Azure.IIoT.OpcUa.Encoders
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
             Assert.Equal(expected, decoder.ReadVariantArray(null));
+        }
+
+        [Fact]
+        public void TestVariantWithEnumerations()
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(new [] { DiagnosticsLevel.Advanced, DiagnosticsLevel.Advanced });
+            using var stream = new MemoryStream();
+            using var encoder = new SchemalessAvroEncoder(stream, context, true);
+            encoder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var decoder = new SchemalessAvroDecoder(stream, context);
+            var result = decoder.ReadVariant(null).Value;
+            Assert.Equal(new int[] {1, 1}, result);
         }
     }
 }

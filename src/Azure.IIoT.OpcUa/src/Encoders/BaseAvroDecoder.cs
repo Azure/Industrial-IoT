@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Text;
     using System.Xml;
@@ -496,7 +495,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual Enum ReadEnumerated(string? fieldName, Type enumType)
         {
-            return (Enum)Enum.ToObject(enumType, _reader.ReadInteger());
+            return (Enum)Enum.ToObject(enumType, ReadEnumerated(fieldName));
+        }
+
+        /// <inheritdoc/>
+        public virtual int ReadEnumerated(string? fieldName)
+        {
+            return (int)_reader.ReadInteger();
         }
 
         /// <inheritdoc/>
@@ -668,6 +673,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             return ReadArray(fieldName, () => ReadEnumerated(null,
                 enumType), enumType);
+        }
+
+        /// <inheritdoc/>
+        public virtual int[] ReadEnumeratedArray(string? fieldName)
+        {
+            return ReadArray(fieldName, () => ReadEnumerated(null));
         }
 
         /// <inheritdoc/>
@@ -846,14 +857,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             Func<int, T> reader)
         {
             var id = StartUnion();
-            try
-            {
-                return reader(id);
-            }
-            finally
-            {
-                EndUnion();
-            }
+            var result = reader(id);
+            EndUnion();
+            return result;
         }
 
         /// <summary>
@@ -1033,8 +1039,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                     value.Set(ReadUInt16(fieldName));
                     break;
                 case BuiltInType.Int32:
-                case BuiltInType.Enumeration:
                     value.Set(ReadInt32(fieldName));
+                    break;
+                case BuiltInType.Enumeration:
+                    value.Set(ReadEnumerated(fieldName));
                     break;
                 case BuiltInType.UInt32:
                     value.Set(ReadUInt32(fieldName));
@@ -1134,8 +1142,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                             return ReadEnumeratedArray(fieldName, systemType);
                         }
                     }
-                    // if system type is not known or not an enum, fall back to Int32
-                    goto case BuiltInType.Int32;
+                    return ReadEnumeratedArray(fieldName);
                 case BuiltInType.Int32:
                     return ReadInt32Array(fieldName)?.ToArray();
                 case BuiltInType.UInt32:
