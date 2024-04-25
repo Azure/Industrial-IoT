@@ -29,12 +29,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Resources\105cb6db42f0ab039c2180583e0926278b503d04.json" />
     <None Remove="Resources\MultiDataWriter.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Encoders\PubSub\Avro\SingleEvent.avro">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />

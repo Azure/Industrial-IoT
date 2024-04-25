@@ -762,12 +762,33 @@ namespace Azure.IIoT.OpcUa.Encoders
             using var builder = new AvroSchemaBuilder(stream, context, true);
             builder.WriteEnumerated(null, expected);
             stream.Position = 0;
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
             encoder.WriteEnumerated(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
             var result = decoder.ReadEnumerated<DiagnosticsLevel>(null);
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void TestEnumAsInteger()
+        {
+            var context = new ServiceMessageContext();
+            using var stream = new MemoryStream();
+            const int expected = 1;
+            using var builder = new AvroSchemaBuilder(stream, context, true);
+            builder.WriteEnumerated(null, expected);
+            stream.Position = 0;
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteEnumerated(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var result = decoder.ReadEnumerated<DiagnosticsLevel>(null);
+            Assert.Equal((DiagnosticsLevel)expected, result);
         }
 
         [Fact]
@@ -1250,6 +1271,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             builder.WriteArray(null, expected, ValueRanks.OneDimension, BuiltInType.LocalizedText);
             stream.Position = 0;
             using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteArray(null, expected, ValueRanks.OneDimension, BuiltInType.LocalizedText);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
             var result = decoder.ReadArray(null, ValueRanks.OneDimension, BuiltInType.LocalizedText);
@@ -1578,6 +1600,46 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var variant = decoder.ReadVariant(null);
                 Assert.Equal(expected, variant);
             }
+        }
+
+        [Theory]
+        [InlineData(DiagnosticsLevel.Advanced)]
+        [InlineData(BuiltInType.Int32)]
+        public void TestVariantWithEnumeration(object value)
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(value);
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, true);
+            builder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+            var result = decoder.ReadVariant(null);
+            Assert.Equal(Convert.ToInt32(value, CultureInfo.InvariantCulture), result.Value);
+        }
+
+        [Fact]
+        public void TestVariantWithEnumerations()
+        {
+            var context = new ServiceMessageContext();
+            var expected = new Variant(new[] { DiagnosticsLevel.Advanced, DiagnosticsLevel.Advanced });
+            using var stream = new MemoryStream();
+            using var builder = new AvroSchemaBuilder(stream, context, true, true);
+            builder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var encoder = new AvroEncoder(stream, builder.Schema, context, true);
+            encoder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, builder.Schema, context);
+            var json = builder.Schema.ToJson();
+            Assert.NotNull(json);
+            var result = decoder.ReadVariant(null);
+            Assert.Equal(new int[] { 1, 1 }, result);
         }
 
         private static void AssertEqual(DiagnosticInfo x, DiagnosticInfo y)

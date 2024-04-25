@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -436,10 +435,19 @@ namespace Azure.IIoT.OpcUa.Encoders
             try
             {
                 // Write union index
-                var unionId = value.Value == null ? 0 : ToUnionId(
-                    value.TypeInfo.BuiltInType,
-                        SchemaUtils.GetRank(value.TypeInfo!.ValueRank));
-                WriteUnion(fieldName, unionId, _ => WriteVariantValue(value));
+                int unionId;
+                var rank = SchemaRank.Scalar;
+                if (value.Value == null)
+                {
+                    unionId = 0;
+                }
+                else
+                {
+                    rank = SchemaUtils.GetRank(value.TypeInfo!.ValueRank);
+                    unionId = ToUnionId(value.TypeInfo.BuiltInType, rank);
+                }
+                WriteUnion(fieldName, unionId, _ => WriteVariantValue(value,
+                    value.TypeInfo?.BuiltInType ?? BuiltInType.Null, rank));
             }
             finally
             {
@@ -503,8 +511,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public virtual void WriteEnumerated(string? fieldName, Enum? value)
         {
-            _writer.WriteInteger(Convert.ToInt32(value,
-                CultureInfo.InvariantCulture));
+            _writer.WriteInteger(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+        }
+
+        /// <inheritdoc/>
+        public virtual void WriteEnumerated(string? fieldName, int value)
+        {
+            _writer.WriteInteger(value);
         }
 
         /// <inheritdoc/>
@@ -718,6 +731,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public virtual void WriteEnumeratedArray(string? fieldName,
+            int[] values, Type? enumType)
+        {
+            WriteArray(fieldName, values, v => WriteEnumerated(null, v));
+        }
+
+        /// <inheritdoc/>
         public virtual void WriteArray(string? fieldName, object array,
             int valueRank, BuiltInType builtInType)
         {
@@ -790,38 +810,28 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteArray(fieldName, (XmlElement[])array, v => WriteXmlElement(null, v));
                         break;
                     case BuiltInType.Variant:
+                        // try to write IEncodeable Array
+                        if (array is IEncodeable[] encodeableArray)
                         {
-                            // try to write IEncodeable Array
-                            if (array is IEncodeable[] encodeableArray)
-                            {
-                                WriteEncodeableArray(fieldName, encodeableArray,
-                                    array.GetType().GetElementType());
-                                return;
-                            }
-                            WriteVariantArray(null, (Variant[])array);
+                            WriteEncodeableArray(fieldName, encodeableArray,
+                                array.GetType().GetElementType());
+                            return;
+                        }
+                        WriteVariantArray(null, (Variant[])array);
+                        break;
+                    case BuiltInType.Enumeration:
+                        if (array is Enum[] enums)
+                        {
+                            WriteArray(fieldName, enums, v => WriteEnumerated(null, v));
                             break;
                         }
-                    case BuiltInType.Enumeration:
-                        var ints = array as int[];
-                        if (ints == null && array is Enum[] enums)
+                        else if (array is int[] values)
                         {
-                            ints = new int[enums.Length];
-                            for (var ii = 0; ii < enums.Length; ii++)
-                            {
-                                ints[ii] = Convert.ToInt32(enums[ii],
-                                    CultureInfo.InvariantCulture);
-                            }
+                            WriteArray(fieldName, values, v => WriteEnumerated(null, v));
+                            break;
                         }
-                        if (ints != null)
-                        {
-                            WriteArray(fieldName, ints, v => WriteInt32(null, v));
-                        }
-                        else
-                        {
-                            throw new ServiceResultException(StatusCodes.BadEncodingError,
-                                "Unexpected type encountered while encoding an Enumeration Array.");
-                        }
-                        break;
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            "Unexpected type encountered while encoding an Enumeration Array.");
                     case BuiltInType.ExtensionObject:
                         WriteArray(fieldName, (ExtensionObject[])array, v => WriteExtensionObject(null, v));
                         break;
@@ -832,23 +842,22 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteArray(fieldName, (DataValue[])array, v => WriteDataValue(null, v));
                         break;
                     default:
+                        // try to write IEncodeable Array
+                        if (array is IEncodeable[] encodeableArray2)
                         {
-                            // try to write IEncodeable Array
-                            if (array is IEncodeable[] encodeableArray)
-                            {
-                                WriteEncodeableArray(fieldName, encodeableArray,
-                                    array.GetType().GetElementType());
-                                return;
-                            }
-                            if (array == null)
-                            {
-                                // write zero dimension
-                                WriteInt32(null, -1);
-                                return;
-                            }
-                            throw new ServiceResultException(StatusCodes.BadEncodingError,
-                                $"Unexpected type encountered while encoding an Array with BuiltInType: {builtInType}");
+                            WriteEncodeableArray(fieldName, encodeableArray2,
+                                array.GetType().GetElementType());
+                            return;
                         }
+                        if (array == null)
+                        {
+                            // write zero dimension
+                            WriteInt32(null, -1);
+                            return;
+                        }
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            "Unexpected type encountered while encoding an Array with " +
+                            $"BuiltInType: {builtInType}");
                 }
             }
             else if (rank == SchemaRank.Matrix)
@@ -930,8 +939,19 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 }
                                 break;
                             }
-                            goto case BuiltInType.Int32;
                         }
+                        {
+                            if (matrix.Elements is int[] values)
+                            {
+                                for (var ii = 0; ii < values.Length; ii++)
+                                {
+                                    WriteEnumerated(null, values[ii]);
+                                }
+                                break;
+                            }
+                        }
+                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            "Unexpected type encountered while encoding an Enumeration Matrix.");
                     case BuiltInType.Int32:
                         {
                             var values = (int[])matrix.Elements;
@@ -1195,14 +1215,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             Action<int> writer)
         {
             StartUnion(index);
-            try
-            {
-                writer(index);
-            }
-            finally
-            {
-                EndUnion();
-            }
+            writer(index);
+            EndUnion();
         }
 
         /// <summary>
@@ -1307,7 +1321,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="value"></param>
         /// <param name="depth"></param>
-        protected virtual void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo value, int depth)
+        protected virtual void WriteDiagnosticInfo(string? fieldName,
+            DiagnosticInfo value, int depth)
         {
             CheckAndIncrementNestingLevel();
             try
@@ -1331,7 +1346,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Writes an Variant value to the stream.
         /// </summary>
         /// <param name="value"></param>
-        protected virtual void WriteVariantValue(Variant value)
+        /// <param name="builtInType"></param>
+        /// <param name="valueRank"></param>
+        protected void WriteVariantValue(Variant value,
+            BuiltInType builtInType, SchemaRank valueRank)
         {
             var valueToEncode = value.Value;
 
@@ -1339,16 +1357,18 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 WriteNull<object>(null, null);
             }
-            else if (value.TypeInfo!.ValueRank == ValueRanks.Scalar)
+            else if (valueRank == SchemaRank.Scalar)
             {
-                WriteScalar(value.TypeInfo.BuiltInType, valueToEncode);
+                WriteScalar(builtInType, valueToEncode);
             }
             else if (valueToEncode is not Matrix m)
             {
-                WriteArray(value.TypeInfo.BuiltInType, valueToEncode);
+                Debug.Assert(valueRank == SchemaRank.Collection);
+                WriteArray(builtInType, valueToEncode);
             }
             else
             {
+                Debug.Assert(valueRank == SchemaRank.Matrix);
                 WriteMatrix("Body", m);
             }
         }
@@ -1459,16 +1479,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                     break;
                 case BuiltInType.Enumeration:
                     // Check whether the value to encode is int array.
-                    if (valueToEncode is not int[] ints)
+                    if (valueToEncode is int[] ints)
                     {
-                        var enums = Cast<Enum>(valueToEncode);
-                        ints = new int[enums.Length];
-                        for (var index = 0; index < enums.Length; index++)
-                        {
-                            ints[index] = (int)(object)enums[index];
-                        }
+                        WriteEnumeratedArray(null, ints, null);
+                        break;
                     }
-                    WriteInt32Array(null, ints);
+                    var enums = Cast<Enum>(valueToEncode);
+                    WriteEnumeratedArray(null, enums, null);
                     break;
                 case BuiltInType.Variant:
                     if (valueToEncode is Variant[] variants)
@@ -1575,12 +1592,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                     WriteDataValue(null, (DataValue)valueToEncode);
                     return;
                 case BuiltInType.Enumeration:
-                    WriteInt32(null, Convert.ToInt32(valueToEncode,
+                    WriteEnumerated(null, Convert.ToInt32(valueToEncode,
                         CultureInfo.InvariantCulture));
                     return;
-                //case BuiltInType.DiagnosticInfo:
-                //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
-                //    return;
+                    //case BuiltInType.DiagnosticInfo:
+                    //    WriteDiagnosticInfo((DiagnosticInfo)valueToEncode);
+                    //    return;
             }
 
             throw new ServiceResultException(StatusCodes.BadEncodingError,
@@ -1591,51 +1608,42 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteArray<T>(string? fieldName,
             IList<T>? values, Action<T> writer, string? typeName = null)
         {
-            try
+            if (values == null || values.Count == 0)
             {
-                if (values == null || values.Count == 0)
-                {
-                    _writer.WriteInteger(0);
-                    return;
-                }
-
-                if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
-                {
-                    throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                        $"MaxArrayLength {Context.MaxArrayLength} < {values.Count}");
-                }
-
+                _writer.WriteInteger(0);
+            }
+            else if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
+            {
+                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Count}");
+            }
+            else
+            {
                 _writer.WriteInteger(values.Count);
                 foreach (var value in values)
                 {
                     writer(value);
                 }
             }
-            finally
-            {
-                // Array block ends with 0 length
-                _writer.WriteInteger(0);
-            }
+            // Array block ends with 0 length
+            _writer.WriteInteger(0);
         }
 
         /// <inheritdoc/>
         protected virtual void WriteArray(string? fieldName, Array? values,
             Action<object?> writer)
         {
-            try
+            if (values == null || values.Length == 0)
             {
-                if (values == null || values.Length == 0)
-                {
-                    _writer.WriteInteger(0);
-                    return;
-                }
-
-                if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
-                {
-                    throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                        $"MaxArrayLength {Context.MaxArrayLength} < {values.Length}");
-                }
-
+                _writer.WriteInteger(0);
+            }
+            else if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
+            {
+                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Length}");
+            }
+            else
+            {
                 // write length
                 _writer.WriteInteger(values.Length);
 
@@ -1644,11 +1652,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     writer(values.GetValue(index));
                 }
             }
-            finally
-            {
-                // Array block ends with 0 length
-                _writer.WriteInteger(0);
-            }
+            // Array block ends with 0 length
+            _writer.WriteInteger(0);
         }
 
         /// <inheritdoc/>

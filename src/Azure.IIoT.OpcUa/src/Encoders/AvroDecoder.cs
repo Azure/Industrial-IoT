@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Linq;
     using System.Xml;
     using Newtonsoft.Json.Linq;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -211,14 +212,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             // Read type per schema
             var result = base.ReadDataValue(fieldName);
-
-            // Pop the type from the stack
-            var completedSchema = _schema.Pop();
-            if (completedSchema != currentSchema)
-            {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    $"Failed to pop built in type.\n{Schema.ToJson()}");
-            }
+            ValidatedPop(currentSchema);
             return result;
         }
 
@@ -226,10 +220,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override Variant ReadVariant(string? fieldName)
         {
             var currentSchema = GetFieldSchema(fieldName);
-            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
-                SchemaRank.Scalar);
-            try
+            var result = ReadVariant(fieldName, currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            Variant ReadVariant(string? fieldName, Schema currentSchema)
             {
+                var expectedType = _builtIns.GetSchemaForBuiltInType(
+                    BuiltInType.Variant, SchemaRank.Scalar);
                 if (currentSchema.Fullname == expectedType.Fullname)
                 {
                     // Read as variant
@@ -240,60 +238,54 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (currentSchema is UnionSchema u)
                 {
                     // Read as nullable
-                    _schema.Push(ArraySchema.Create(u));
-                    var result = ReadNullable(fieldName, _ => ReadVariant(u.Schemas[1]));
-                    _schema.Pop();
-                    return result;
+                    return ReadWithSchema(u, () => ReadNullable(fieldName,
+                        _ => ReadVariantValueWithSchema(u.Schemas[1])));
                 }
 
-                return ReadVariant(currentSchema);
-            }
-            finally
-            {
-                _schema.Pop();
-            }
+                return ReadVariantValueWithSchema(currentSchema);
 
-            Variant ReadVariant(Schema currentSchema)
-            {
-                // Read as built in type
-                if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                Variant ReadVariantValueWithSchema(Schema currentSchema)
                 {
-                    _schema.Push(ArraySchema.Create(currentSchema));
-                    var value = ReadVariantValue(builtInType, rank);
-                    _schema.Pop();
-                    return value;
-                }
+                    // Read as built in type
+                    if (currentSchema.IsBuiltInType(out var builtInType, out var rank))
+                    {
+                        return ReadWithSchema(currentSchema,
+                            () => ReadVariantValue(builtInType, rank));
+                    }
 
-                // Read as encodeable
-                var typeId = currentSchema.GetDataTypeId(Context);
-                var systemType = Context.Factory.GetSystemType(typeId);
-                if (systemType != null)
-                {
-                    _schema.Push(ArraySchema.Create(currentSchema));
-                    var value = ReadEncodeable(null, systemType, typeId);
-                    _schema.Pop();
-                    return new Variant(value);
-                }
+                    // Read as encodeable
+                    var typeId = currentSchema.GetDataTypeId(Context);
+                    var systemType = Context.Factory.GetSystemType(typeId);
+                    if (systemType != null)
+                    {
+                        return new Variant(ReadWithSchema(currentSchema,
+                            () => ReadEncodeable(null, systemType, typeId)));
+                    }
 
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
-                    $"field {fieldName ?? "unnamed"} is neither variant nor built " +
-                    $"in type schema. .\n{Schema.ToJson()}");
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
+                        $"field {fieldName ?? "unnamed"} is neither variant nor built " +
+                        $"in type schema. .\n{Schema.ToJson()}");
+                }
             }
         }
 
         /// <inheritdoc/>
         public override DataSet ReadDataSet(string? fieldName)
         {
-            var schema = GetFieldSchema(fieldName);
-            if (schema is not RecordSchema r)
+            var currentSchema = GetFieldSchema(fieldName);
+            var result = ReadDataSet(currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            DataSet ReadDataSet(Schema currentSchema)
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    $"Invalid schema {schema.ToJson()}. " +
-                    $"Data sets must be records or maps.\n{Schema.ToJson()}");
-            }
-            try
-            {
+                if (currentSchema is not RecordSchema r)
+                {
+                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        $"Invalid schema {currentSchema.ToJson()}. " +
+                        $"Data sets must be records or maps.\n{Schema.ToJson()}");
+                }
                 var dataSet = new DataSet();
                 var isRaw = false;
 
@@ -314,10 +306,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 return dataSet;
             }
-            finally
-            {
-                _schema.Pop();
-            }
         }
 
         /// <summary>
@@ -329,27 +317,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         private DataValue? ReadDataSetField(string? fieldName)
         {
             var currentSchema = GetFieldSchema(fieldName);
-            try
-            {
-                if (currentSchema is UnionSchema u)
-                {
-                    _schema.Push(ArraySchema.Create(u));
-                    var result = ReadNullable(null, _ =>
-                    {
-                        _schema.Push(((UnionSchema)Current).Schemas[1]);
-                        var v = ReadDataSetFieldValue();
-                        _schema.Pop();
-                        return v!;
-                    });
-                    _schema.Pop();
-                    return result;
-                }
-                return ReadDataSetFieldValue();
-            }
-            finally
-            {
-                _schema.Pop();
-            }
+            var result = ReadDataSetField(currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
 
             DataValue? ReadDataSetFieldValue()
             {
@@ -411,14 +381,27 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 // Read value as variant
-                _schema.Push(ArraySchema.Create(fieldRecord));
-                var value = ReadVariant(null);
-                _schema.Pop();
+                var value = ReadWithSchema(fieldRecord, () => ReadVariant(null));
                 if (value == Variant.Null)
                 {
                     return null;
                 }
                 return new DataValue(value, (StatusCode)uint.MaxValue);
+            }
+
+            DataValue? ReadDataSetField(Schema currentSchema)
+            {
+                if (currentSchema is UnionSchema u)
+                {
+                    return ReadWithSchema(u, () => ReadNullable(null, _ =>
+                    {
+                        _schema.Push(((UnionSchema)Current).Schemas[1]);
+                        var v = ReadDataSetFieldValue();
+                        _schema.Pop();
+                        return v!;
+                    }));
+                }
+                return ReadDataSetFieldValue();
             }
         }
 
@@ -452,10 +435,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override Enum ReadEnumerated(string? fieldName, Type enumType)
+        public override int ReadEnumerated(string? fieldName)
         {
-            return ValidatedRead(fieldName, BuiltInType.Enumeration,
-                f => base.ReadEnumerated(f, enumType));
+            var currentSchema = GetFieldSchema(fieldName);
+            var result = ReadEnumerated(fieldName, currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            int ReadEnumerated(string? fieldName, Schema currentSchema)
+            {
+                if (currentSchema.IsBuiltInType(out var builtInType, out var rank) &&
+                    rank == SchemaRank.Scalar &&
+                    (builtInType == BuiltInType.Int32 || builtInType == BuiltInType.Enumeration))
+                {
+                    return ReadWithSchema(currentSchema,
+                        () => base.ReadEnumerated(fieldName));
+                }
+                else
+                {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Invalid schema {currentSchema.ToJson()}. " +
+                        $"Enumerated values must be enums.\n{Schema.ToJson()}");
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -616,10 +618,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override VariantCollection ReadVariantArray(string? fieldName)
         {
             var currentSchema = GetFieldSchema(fieldName);
-            var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
-                SchemaRank.Collection);
-            try
+            var result = ReadVariantArray(fieldName, currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            VariantCollection ReadVariantArray(string? fieldName, Schema currentSchema)
             {
+                var expectedType = _builtIns.GetSchemaForBuiltInType(BuiltInType.Variant,
+                    SchemaRank.Collection);
                 // Write as variant collection
                 if (currentSchema.Fullname == expectedType.Fullname)
                 {
@@ -632,9 +638,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // When written in concise mode we get an array of bytes as byte string
                     if (builtInType == BuiltInType.ByteString && rank == SchemaRank.Scalar)
                     {
-                        _schema.Push(ArraySchema.Create(currentSchema));
-                        var result = ReadScalar(null, builtInType);
-                        _schema.Pop();
+                        var result = ReadWithSchema(currentSchema,
+                            () => ReadScalar(null, builtInType));
                         return (result.Value as byte[])?
                             .Select(o => new Variant(o))
                             .ToArray();
@@ -645,9 +650,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     if (rank == SchemaRank.Collection)
                     {
-                        _schema.Push(ArraySchema.Create(currentSchema));
-                        var result = ReadArray(null, builtInType, null, null);
-                        _schema.Pop();
+                        var result = ReadWithSchema(currentSchema,
+                            () => ReadArray(null, builtInType, null, null));
                         if (result == null || result.Length == 0)
                         {
                             return Array.Empty<Variant>();
@@ -669,10 +673,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                     $"Failed to decode. Variant schema {currentSchema.ToJson()} of " +
                     $"field {fieldName ?? "unnamed"} is neither variant collection " +
                     $"nor built in type collection schema. .\n{Schema.ToJson()}");
-            }
-            finally
-            {
-                _schema.Pop();
             }
         }
 
@@ -700,8 +700,61 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
-            return ValidatedRead(fieldName, BuiltInType.Enumeration,
-                f => base.ReadEnumeratedArray(f, enumType), SchemaRank.Collection);
+            var currentSchema = GetFieldSchema(fieldName);
+            var result = ReadEnumeratedArray(fieldName, currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            Array? ReadEnumeratedArray(string? fieldName, Schema currentSchema)
+            {
+                if (currentSchema is ArraySchema a && a.ItemSchema is EnumSchema e)
+                {
+                    return ReadWithSchema(currentSchema,
+                        () => base.ReadEnumeratedArray(fieldName, enumType));
+                }
+                else if (currentSchema.IsBuiltInType(out var builtInType, out var rank) &&
+                    rank == SchemaRank.Collection &&
+                    (builtInType == BuiltInType.Int32 || builtInType == BuiltInType.Enumeration))
+                {
+                    return base.ReadEnumeratedArray(fieldName, enumType);
+                }
+                else
+                {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Invalid schema {currentSchema.ToJson()}. " +
+                        $"Enumerated values must be arrays of enums.\n{Schema.ToJson()}");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override int[] ReadEnumeratedArray(string? fieldName)
+        {
+            var currentSchema = GetFieldSchema(fieldName);
+            var result = ReadEnumeratedArray(fieldName, currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
+
+            int[] ReadEnumeratedArray(string? fieldName, Schema currentSchema)
+            {
+                if (currentSchema is ArraySchema a && a.ItemSchema is EnumSchema e)
+                {
+                    return ReadWithSchema(currentSchema,
+                        () => base.ReadEnumeratedArray(fieldName));
+                }
+                else if (currentSchema.IsBuiltInType(out var builtInType, out var rank) &&
+                    rank == SchemaRank.Collection &&
+                    (builtInType == BuiltInType.Int32 || builtInType == BuiltInType.Enumeration))
+                {
+                    return base.ReadEnumeratedArray(fieldName);
+                }
+                else
+                {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"Invalid schema {currentSchema.ToJson()}. " +
+                        $"Enumerated values must be arrays of enums.\n{Schema.ToJson()}");
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -739,6 +792,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public override Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
+            Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
+        {
+            var currentSchema = GetFieldSchema(null);
+            if (!currentSchema.IsBuiltInType(out var expectedType, out var rank))
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Schema {currentSchema.ToJson()} is not " +
+                    $"an array schema.\n{Schema.ToJson()}");
+            }
+            if (rank != SchemaUtils.GetRank(valueRank) || builtInType != expectedType)
+            {
+                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    $"Failed to decode. Schema {currentSchema.ToJson()} does " +
+                    $"not match expected rank and built in type.\n{Schema.ToJson()}");
+            }
+            var result = ReadWithSchema(currentSchema,
+                () => base.ReadArray(fieldName, valueRank, builtInType, systemType, encodeableTypeId));
+            ValidatedPop(currentSchema);
+            return result;
+        }
+
+        /// <inheritdoc/>
         protected override Array ReadArray(string? fieldName,
             Func<object> reader, Type type)
         {
@@ -754,15 +830,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override T ReadObject<T>(string? fieldName, Func<object?, T> reader)
         {
-            var schema = GetFieldSchema(fieldName);
-            try
-            {
-                return reader(schema);
-            }
-            finally
-            {
-                _schema.Pop();
-            }
+            var currentSchema = GetFieldSchema(fieldName);
+            var result = reader(currentSchema);
+            ValidatedPop(currentSchema);
+            return result;
         }
 
         /// <inheritdoc/>
@@ -783,12 +854,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             Func<int, T> reader)
         {
             // Get the union schema
-            var schema = GetFieldSchema(fieldName);
-            if (schema is not UnionSchema)
+            var currentSchema = GetFieldSchema(fieldName);
+            if (currentSchema is not UnionSchema)
             {
                 throw new ServiceResultException(StatusCodes.BadDecodingError,
                     $"Union field {fieldName ?? "unnamed"} must be a union " +
-                    $"schema but is {schema.ToJson()} schema.\n{Schema.ToJson()}");
+                    $"schema but is {currentSchema.ToJson()} schema.\n{Schema.ToJson()}");
             }
             return base.ReadUnion(fieldName, reader);
         }
@@ -894,15 +965,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             // Read type per schema
             var result = value(fieldName);
-
-            // Pop the type from the stack
-            var completedSchema = _schema.Pop();
-            if (completedSchema != currentSchema)
-            {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    $"Failed to pop built in type.\n{Schema.ToJson()}");
-            }
-
+            ValidatedPop(currentSchema);
             return result;
         }
 
@@ -924,15 +987,40 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             var result = reader();
+            ValidatedPop(currentSchema);
+            return result;
+        }
 
+        /// <summary>
+        /// Use specified schema by pushing it on top for reading
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="schema"></param>
+        /// <param name="reader"></param>
+        private T ReadWithSchema<T>(Schema schema, Func<T> reader)
+        {
+            var top = ArraySchema.Create(schema);
+            _schema.Push(top);
+            var result = reader();
+            ValidatedPop(top);
+            return result;
+        }
+
+        /// <summary>
+        /// Validate pop from stack should be expected schema
+        /// </summary>
+        /// <param name="expectedSchema"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        private void ValidatedPop(Schema expectedSchema)
+        {
             // Pop array from stack
             var completedSchema = _schema.Pop();
-            if (completedSchema != currentSchema)
+            if (completedSchema != expectedSchema)
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
-                    $"Failed to pop built in type.\n{Schema.ToJson()}");
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Failed to pop schema. Expected {expectedSchema.ToJson()} " +
+                    $"but got {completedSchema.ToJson()}.\n{Schema.ToJson()}");
             }
-            return result;
         }
 
         /// <summary>

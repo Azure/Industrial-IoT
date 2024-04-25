@@ -16,6 +16,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using Newtonsoft.Json.Linq;
+    using System.Reflection;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Encodes objects and inline builds the schema from it
@@ -223,9 +226,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                     return;
                 }
 
+                var rank = SchemaUtils.GetRank(value.TypeInfo.ValueRank);
                 using var __ = Add(fieldName, value.TypeInfo.BuiltInType,
                     SchemaUtils.GetRank(value.TypeInfo.ValueRank));
-                WriteVariantValue(value);
+                WriteVariantValue(value, value.TypeInfo.BuiltInType, rank);
                 return;
             }
 
@@ -281,8 +285,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public override void WriteEnumerated(string? fieldName,
-            Enum? value)
+        public override void WriteEnumerated(string? fieldName, Enum? value)
+        {
+            using var _ = value == null ? Add(fieldName, BuiltInType.Enumeration) :
+                Enumeration(fieldName, value.GetType());
+            base.WriteEnumerated(fieldName, value);
+        }
+
+        /// <inheritdoc/>
+        public override void WriteEnumerated(string? fieldName, int value)
         {
             using var _ = Add(fieldName, BuiltInType.Enumeration);
             base.WriteEnumerated(fieldName, value);
@@ -517,8 +528,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEnumeratedArray(string? fieldName,
             Array? values, Type? systemType)
         {
-            using var _ = Add(fieldName, BuiltInType.Enumeration, SchemaRank.Collection);
+            var enumType = values?.GetType().GetElementType() ?? systemType;
+            using var _ = enumType == null ?
+                Add(fieldName, BuiltInType.Enumeration, SchemaRank.Collection) :
+                Enumeration(fieldName, enumType, SchemaRank.Collection);
             base.WriteEnumeratedArray(fieldName, values, systemType);
+        }
+
+        /// <inheritdoc/>
+        public override void WriteEnumeratedArray(string? fieldName,
+            int[] values, Type? enumType)
+        {
+            using var _ = Add(fieldName, BuiltInType.Enumeration, SchemaRank.Collection);
+            base.WriteEnumeratedArray(fieldName, values, enumType);
         }
 
         /// <inheritdoc/>
@@ -615,6 +637,39 @@ namespace Azure.IIoT.OpcUa.Encoders
                     "No record schema to push to {0}", Schema.ToJson());
             }
             return new Skip(this);
+        }
+
+        /// <summary>
+        /// Push enum schema
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="enumType"></param>
+        /// <param name="rank"></param>
+        /// <returns></returns>
+        private IDisposable Enumeration(string? fieldName, Type enumType,
+            SchemaRank rank = SchemaRank.Scalar)
+        {
+            if (_skipInnerSchemas)
+            {
+                return Nothing.ToDo;
+            }
+            // Get enum types from DataMemberAttribute
+            var names = enumType.GetProperties()
+                .Select(p => p.GetCustomAttribute<DataMemberAttribute>()!)
+                .Where(a => a?.Name != null)
+                .OrderBy(a => a.Order)
+                .Select(a => a.Name!)
+                .ToArray();
+            if (names.Length == 0)
+            {
+                names = Enum.GetNames(enumType);
+            }
+            Schema schema = EnumSchema.Create(enumType.Name, names);
+            if (rank == SchemaRank.Collection)
+            {
+                schema = ArraySchema.Create(schema);
+            }
+            return PushSchema(fieldName, schema);
         }
 
         /// <summary>
